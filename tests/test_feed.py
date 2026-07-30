@@ -76,6 +76,43 @@ def test_gs_ids_and_ts_units():
     assert d["url"].endswith("#/updates?mod=123")
 
 
+def test_gs_downloaded_is_muted_but_the_bad_news_still_lands():
+    """"downloaded" retells "updated" and ignores the cared flag, so the hall
+    stays quiet about it. The two warnings must survive that muting."""
+    def ev(seq, etype):
+        return {"seq": seq, "modId": "9", "appId": 394360, "type": etype,
+                "ts": 1785300000, "detectedAt": 1785300100, "title": "Mod"}
+    out = server.gs_events_to_dispatches(
+        [ev(1, "updated"), ev(2, "downloaded"), ev(3, "removed"),
+         ev(4, "banned")], {"394360": "HOI4"})
+    assert sorted(d["kind"] for d in out.values()) == [
+        "mods.banned", "mods.removed", "mods.updated"]
+    assert "gs:2" not in out
+
+
+def test_gs_unknown_kind_is_dropped_not_muted():
+    """A muted kind is a decision; an unknown kind is news. Keep them apart so
+    a future Ground Station event type cannot vanish silently."""
+    assert "downloaded" not in server.GS_EVENT_KINDS
+    assert not server.GS_MUTED_KINDS & set(server.GS_EVENT_KINDS)
+    out = server.gs_events_to_dispatches(
+        [{"seq": 5, "modId": "9", "appId": 394360, "type": "someday-new-kind",
+          "ts": 1785300000, "detectedAt": 1785300100}], {})
+    assert out == {}
+
+
+def test_every_relayed_kind_has_a_headline_in_both_languages():
+    """server.py and app.js drift apart easily — a dispatch kind with no i18n
+    key renders as a blank detail line, which reads as a bug, not a mute."""
+    app_js = (Path(__file__).resolve().parent.parent
+              / "static" / "js" / "app.js").read_text(encoding="utf-8")
+    for kind in sorted(set(server.GS_EVENT_KINDS.values())):
+        assert f"case '{kind}':" in app_js, kind
+        assert app_js.count(f"'k.{kind}':") == 2, kind   # en + zh
+    for muted in sorted(server.GS_MUTED_KINDS):
+        assert f"k.mods.{muted}" not in app_js, muted
+
+
 def test_ap_events_ids_and_ts_units():
     """Autopilot stamps epoch SECONDS; every dispatch carries milliseconds."""
     events = [
