@@ -227,15 +227,16 @@ Endpoints:
 - `GET /api/stats` — `{stats: {id: {kind, params}}}` (piggybacked by client)
 
 **Time contract**: feed `ts` is **epoch milliseconds**. Normalization:
-Ground Station `ts*1000`; qB `added_on*1000`; outreach `invitedAt` as-is,
+Ground Station `ts*1000`; Autopilot ledger `ts*1000` (epoch seconds on the
+wire); outreach `invitedAt` as-is,
 `finishedAt*1000`; anime naive ISO via
 `datetime.fromisoformat(s).timestamp()*1000` (machine-local — never
 `utcnow()`; machine is UTC+8, the classic bug shifts 8 h). Same rule for
 `last_sync` staleness. Day breaks computed in the browser's local timezone.
 
 **Deterministic dispatch ids** (feed idempotent across hub restarts):
-`gs:<seq>` · `anime:notif:<bgm_id>:<detected_at>` ·
-`anime:unresolved:<bgm_id>` · `qb:<torrent_hash>` ·
+`gs:<seq>` · `ap:<seq>` · `anime:notif:<bgm_id>:<detected_at>` ·
+`anime:unresolved:<bgm_id>` ·
 `outreach:queue-ready:<local-date>` · `outreach:progress` (single mutable
 item, replaced in place) · `outreach:invites:<local-date>` (mutable).
 
@@ -252,11 +253,19 @@ item, replaced in place) · `outreach:invites:<local-date>` (mutable).
 - 5 min: `GET /api/overview` → grace alerts (`status=='grace'`,
   `grace.expires` epoch s), daemon health (`last_sync` stale >15 min,
   `qb_ok`), watching count stat.
-- Episodes ("which anime updated"): qBittorrent WebUI, passwordless at
-  `localhost:8080` (verified in anime-rss config/code): 60 s
-  `GET /api/v2/torrents/info`, filter `save_path` under `X:\Bangumi`,
-  `added_on` within 48 h; show = folder name. If qB returns 401/403:
-  **degrade loudly** — `/api/status` note "episode headlines disabled".
+- Episodes ("which anime landed"): `GET /api/events?after_seq=<cursor>&limit=200`,
+  Autopilot's append-only ledger, with the cursor in `state/cursors.json`.
+  Kinds `episode.landed` / `show.subscribed`; any other kind → drop and log.
+  `ts` is epoch **seconds** here and must be multiplied on the way in.
+  Autopilot returns events **ascending** by seq (`hasMore` means NEWER matches
+  remain), so the catch-up walks the cursor FORWARD — the mirror image of the
+  Ground Station feed below. Cold start backfills the recent window only; a
+  seq regression means the ledger was reset, so drop the group and resync.
+  Offline fallback reads `X:\Github\anime-rss-auto\events.json` directly.
+  Superseded a qBittorrent snoop that inferred episodes from torrent names:
+  the ledger means "hardlinked into the library" rather than "queued", it
+  survives the dedupe pass deleting the torrent, and it is durable across a
+  hub restart.
 - Link `http://127.0.0.1:8767/`. Hint: `run_webui_hidden.vbs`.
 
 **Ground Station** (`127.0.0.1:8768`, header `X-PMH: 1` on *every* call

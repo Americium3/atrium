@@ -96,14 +96,19 @@ adapter falls back to reading the service's state files directly.
 Adapter notes:
 
 - **Autopilot**: polls `/api/notifications` (60 s) and `/api/overview`
-  (5 min); episode headlines come straight from qBittorrent's
-  `added_on` timestamps (torrents under `X:\Bangumi`). Never POSTs — the
-  panel's unread banners belong to the user.
+  (5 min); episode headlines follow `/api/events` — Autopilot's append-only
+  automation ledger — with an `ap_seq` cursor persisted in
+  `state/cursors.json`. A ledger entry is written when the episode is
+  hardlinked into the library, so a headline means "landed" rather than
+  "queued", every episode is announced exactly once, and nothing is missed
+  while the hub itself is down. Offline fallback reads `events.json`
+  directly. Never POSTs — the panel's unread banners belong to the user.
 - **Ground Station**: `X-PMH: 1` header on every call; cheap `/api/ping`
   seq probe, then `/api/feed?after_seq=` with a cursor persisted in
   `state/cursors.json`. Changelog snippets come from the local prefetched
   files, never the live scrape endpoint. Offline fallback reads
-  `data/events.json`.
+  `data/events.json`. Mod updates only arrive for mods marked *watched*
+  there — an unwatched mod's update raises no event at all, by design.
 - **Outreach Desk**: privacy hard rule — only aggregate counts ever leave
   the hub process (allowlisted param keys); names, drafts and per-person
   URLs never appear in the feed. Enforced server-side and covered by a test.

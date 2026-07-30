@@ -48,10 +48,9 @@ AUTOPILOT_URL = "http://127.0.0.1:8767"
 GS_URL = "http://127.0.0.1:8768"
 GS_HEADERS = {"X-PMH": "1"}          # required by every Ground Station route
 OUTREACH_URL = "http://127.0.0.1:8802"
-QB_URL = "http://localhost:8080"     # passwordless per anime-rss-auto config
-BANGUMI_ROOT = "x:/bangumi"
 
 GS_DATA_DIR = Path(r"X:\Github\pdx-mod-hub\data")
+AP_DATA_DIR = Path(r"X:\Github\anime-rss-auto")
 OUTREACH_DIR = Path(r"X:\Github\linkedin-networking")
 
 # Privacy hard rule: outreach dispatches/stats may only ever carry aggregate
@@ -234,28 +233,43 @@ def anime_grace_to_dispatches(overview: dict) -> dict:
     return out
 
 
-_EP_RE = re.compile(r"[-\s](\d{1,4})(?:v\d)?\s*[\[\(（]|\s-\s(\d{1,4})\b")
+AP_EVENT_KINDS = {
+    "episode.landed": "anime.landed",
+    "show.subscribed": "anime.subscribed",
+}
 
 
-def qb_torrents_to_dispatches(torrents: list, now: int) -> dict:
+def anime_events_to_dispatches(events: list) -> dict:
+    """Autopilot's append-only automation ledger (events.json).
+
+    This replaced a qBittorrent snoop that inferred episodes from torrent
+    names: the ledger is written when the file is hardlinked into the library,
+    so it means "landed" rather than "queued", it survives the torrent being
+    deleted by the dedupe pass, and it is durable across an Atrium restart.
+
+    Autopilot stamps events in epoch SECONDS; dispatches are milliseconds.
+    """
     out: dict[str, dict] = {}
-    for t in torrents or []:
-        save = str(t.get("save_path", "")).replace("\\", "/").rstrip("/").lower()
-        # Separator-guarded: X:\BangumiJF (the Jellyfin mirror) shares the
-        # bare prefix and must not match.
-        if not (save == BANGUMI_ROOT or save.startswith(BANGUMI_ROOT + "/")):
+    for ev in events or []:
+        raw = ev.get("kind")
+        kind = AP_EVENT_KINDS.get(raw)
+        if kind is None:
+            log.info("autopilot: unknown event kind %r dropped", raw)
             continue
-        added_ms = int(t.get("added_on", 0)) * 1000
-        if now - added_ms > EPISODE_WINDOW_MS or added_ms <= 0:
-            continue
-        show = str(t.get("save_path", "")).replace("\\", "/").rstrip("/").rsplit("/", 1)[-1]
-        params = {"show": show}
-        m = _EP_RE.search(t.get("name", ""))
-        if m:
-            params["ep"] = m.group(1) or m.group(2)
-        did = f"qb:{t.get('hash')}"
-        out[did] = _dispatch(did, "autopilot", "salon", "anime.episode",
-                             params, added_ms)
+        p = ev.get("params") or {}
+        if kind == "anime.landed":
+            params = {"show": p.get("show", "?"), "cour": p.get("cour", "")}
+            # Batch/BD releases carry no episode number; the headline drops the
+            # number rather than the message.
+            if p.get("ep") is not None:
+                params["ep"] = str(p["ep"])
+        else:
+            params = {"title": p.get("title", "?")}
+            if p.get("group"):
+                params["group"] = p["group"]
+        did = f"ap:{ev.get('seq')}"
+        out[did] = _dispatch(did, "autopilot", "salon", kind, params,
+                             int(ev.get("ts") or 0) * 1000)
     return out
 
 
@@ -413,12 +427,126 @@ async def _timed_get(client: httpx.AsyncClient, url: str, **kw):
     return resp, int((time.perf_counter() - t0) * 1000)
 
 
+AP_MAX_PAGES = 10
+
+
+async def _ap_catchup(client: httpx.AsyncClient, cursor: int) -> tuple[list, bool]:
+    """Collect every event with seq > cursor. Returns (events, caught_up).
+
+    Autopilot returns the OLDEST matching events first and `hasMore` means
+    NEWER matches remain, so the cursor walks FORWARD — the mirror image of
+    the GS feed below, which pages backwards from the newest.
+
+    caught_up is False when the page cap cut the walk short; the caller must
+    then park the cursor on what was actually ingested rather than on the
+    server's head, or the unread tail is skipped forever.
+    """
+    events: list = []
+    for _ in range(AP_MAX_PAGES):
+        resp, _ms = await _timed_get(
+            client, f"{AUTOPILOT_URL}/api/events?after_seq={cursor}&limit=200")
+        page = resp.json()
+        got = page.get("events") or []
+        events.extend(got)
+        if not got or not page.get("hasMore"):
+            return events, True
+        cursor = max(int(e.get("seq") or 0) for e in got)
+    return events, False
+
+
+async def _ap_backfill_recent(client: httpx.AsyncClient) -> tuple[list, bool]:
+    """The whole ledger, filtered to the recent window (cold start / reset)."""
+    events, caught_up = await _ap_catchup(client, 0)
+    now = now_ms()
+    return [e for e in events
+            if now - int(e.get("ts") or 0) * 1000 <= EPISODE_WINDOW_MS], caught_up
+
+
+def _ap_ingest(events: list) -> None:
+    group = SOURCES["autopilot"].groups.setdefault("events", {})
+    group.update(anime_events_to_dispatches(events))
+    _trim_group(group)
+
+
+def _ap_advance(events: list, head: int, caught_up: bool) -> None:
+    """Park the cursor. On a short walk it may only go as far as was ingested —
+    jumping to the server's head would skip the unread tail permanently."""
+    if caught_up:
+        _cursors["ap_seq"] = head
+    else:
+        reached = max((int(e.get("seq") or 0) for e in events), default=0)
+        _cursors["ap_seq"] = max(_cursors.get("ap_seq") or 0, reached)
+        log.warning("autopilot catch-up hit the page cap at seq %s (head %s)",
+                    _cursors["ap_seq"], head)
+    save_cursors()
+
+
+async def _ap_events(client: httpx.AsyncClient) -> None:
+    """Follow Autopilot's ledger by seq cursor, exactly as GS's feed is followed."""
+    src = SOURCES["autopilot"]
+    resp, _ = await _timed_get(client, f"{AUTOPILOT_URL}/api/events?limit=1")
+    seq = int(resp.json().get("seq") or 0)
+    cursor = _cursors.get("ap_seq")
+    if cursor is None:
+        # Cold start: backfill only the recent window, then set the cursor.
+        fetched, caught_up = await _ap_backfill_recent(client)
+    elif seq < cursor:
+        # events.json was deleted/reset — resync or we stall forever.
+        # ap:<seq> ids restart too, so drop pre-reset dispatches.
+        log.warning("autopilot seq regressed (%s < %s) — resyncing", seq, cursor)
+        src.groups["events"] = {}
+        _cursors.pop("ap_seq", None)   # the window filter below is the new floor
+        fetched, caught_up = await _ap_backfill_recent(client)
+    elif seq > cursor:
+        fetched, caught_up = await _ap_catchup(client, cursor)
+    else:
+        return
+    # Ingest before advancing: a throw above leaves the cursor untouched, so the
+    # next tick re-requests the same events rather than losing them.
+    _ap_ingest(fetched)
+    _ap_advance(fetched, seq, caught_up)
+
+
+def _ap_offline_fallback() -> None:
+    """Panel down → read events.json with the same seq cursor.
+
+    Worth doing rather than going quiet: the watch daemon that writes the
+    ledger is a separate process from the web UI, so episodes keep landing
+    while the panel is down — provided events.json itself is readable. If the
+    file is missing, read_json_safe serves its last-good copy, so a ledger
+    reset is only noticed once the panel is back and _ap_events sees the head
+    seq regress.
+    """
+    src = SOURCES["autopilot"]
+    payload = read_json_safe(AP_DATA_DIR / "events.json")
+    if not payload:
+        return
+    file_seq = int(payload.get("seq") or 0)
+    cursor = _cursors.get("ap_seq")
+    cold = cursor is None
+    if cursor is not None and file_seq < cursor:   # reset while we were away
+        src.groups["events"] = {}
+        cursor, cold = 0, True
+    cursor = cursor or 0
+    fresh = [e for e in payload.get("events") or []
+             if int(e.get("seq") or 0) > cursor]
+    if cold:  # cold start backfills the recent window only
+        now = now_ms()
+        fresh = [e for e in fresh
+                 if now - int(e.get("ts") or 0) * 1000 <= EPISODE_WINDOW_MS]
+    if fresh:
+        _ap_ingest(fresh)
+    if fresh or (cold and file_seq):
+        _cursors["ap_seq"] = max(file_seq, cursor)
+        save_cursors()
+
+
 async def tick_autopilot(client: httpx.AsyncClient) -> None:
     src = SOURCES["autopilot"]
     now = now_ms()
     try:
         resp, ms = await _timed_get(client, f"{AUTOPILOT_URL}/api/notifications")
-        src.state, src.latency_ms = "open", ms
+        src.state, src.latency_ms, src.note = "open", ms, None
         src.groups["notif"] = anime_notifications_to_dispatches(
             resp.json().get("notifications") or [], now)
         try:
@@ -427,25 +555,13 @@ async def tick_autopilot(client: httpx.AsyncClient) -> None:
                 resp2.json().get("unresolved") or [])
         except Exception:
             pass  # keep the previous unresolved group
+        await _ap_events(client)
     except Exception as exc:
         src.state = "dark"
         src.latency_ms = None
-        src.note = None   # a stale qb note must not outlive the open period
+        src.note = None
         log.debug("autopilot dark: %s", exc)
-
-    # Episode headlines straight from qBittorrent (passwordless localhost).
-    note = None
-    try:
-        resp = await client.get(f"{QB_URL}/api/v2/torrents/info")
-        if resp.status_code in (401, 403):
-            note = "qb_auth"  # degrade loudly, not silently
-        else:
-            resp.raise_for_status()
-            src.groups["episodes"] = qb_torrents_to_dispatches(resp.json(), now)
-    except Exception:
-        note = "qb_down"
-    if src.state == "open":
-        src.note = note
+        _ap_offline_fallback()
 
 
 async def tick_autopilot_slow(client: httpx.AsyncClient) -> None:
