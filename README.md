@@ -14,9 +14,22 @@ Atrium serves `http://127.0.0.1:8769` and currently fronts:
 
 ## What's on the page
 
-- **Gates** — each destination is an arched deco portal carrying its sigil,
-  a one-line description, the literal address it opens, an OPEN/DARK status
-  lamp (live health checks) and one live stat. Clicking an OPEN gate opens
+- **The concourse clock** — the hall's centrepiece, showing your machine's
+  local time. A grande-complication regulator in a stepped octagonal deco
+  case: knurled bronze bezel, guilloche field, twelve Roman numerals, and
+  four complications on the cardinal axes — moon phase at 12, date at 3,
+  small seconds at 6, and a pair of meshed wheels at 9 turning off the
+  seconds arbor. Pierced Breguet hands. The drive loop reads the wall clock
+  every frame and never accumulates, so it cannot drift and a DST step or a
+  laptop suspend corrects itself on the next frame; reduced motion swaps the
+  sweep for a boundary-aligned deadbeat tick. PREFERENCES → THE CLOCK picks
+  between **STATION** (the dial hangs above the gates, the Ledger stays
+  standing) and **CONCOURSE** (the dial owns the centre of the screen and the
+  Ledger withdraws into a drawer carrying an unread count).
+- **Gates** — each destination is an arched deco portal carrying that
+  service's own mark — the identical artwork its favicon and taskbar tile
+  show — plus a one-line description, the literal address it opens, an
+  OPEN/DARK status lamp (live health checks) and one live stat. Clicking an OPEN gate opens
   the target in a named tab (one tab per service, reused). Clicking a DARK
   gate shows the launcher hint instead of a dead tab.
 - **The Ledger** — the message center. A gilded dispatch column collecting
