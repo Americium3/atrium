@@ -65,6 +65,10 @@ var STR = {
     'k.outreach.invites': '{n} of {target} sent',
     'k.outreach.error.head': 'Drafter hit an error',
     'k.outreach.error': 'Check the Outreach Desk',
+    clockLayout: 'THE CLOCK',
+    clockBand: 'STATION', clockHall: 'CONCOURSE',
+    clockBandDesc: 'Hung above the gates; the Ledger stands open',
+    clockHallDesc: 'Centre of the hall; the Ledger withdraws to a drawer',
     appearance: 'APPEARANCE', language: 'LANGUAGE', motion: 'MOTION',
     onyx: 'ONYX', ivory: 'IVORY', system: 'FOLLOW SYSTEM',
     onyxDesc: 'Black & gold', ivoryDesc: 'Platinum & gold', systemDesc: 'Match the OS',
@@ -121,6 +125,10 @@ var STR = {
     'k.outreach.invites': '已发出 {n}/{target}',
     'k.outreach.error.head': '草稿引擎出错',
     'k.outreach.error': '请到 Outreach Desk 查看',
+    clockLayout: '大钟',
+    clockBand: 'STATION', clockHall: 'CONCOURSE',
+    clockBandDesc: '悬于拱门之上，消息总台常驻在侧',
+    clockHallDesc: '独占大厅正中，消息总台收进抽屉',
     appearance: '外观', language: '语言', motion: '动效',
     onyx: '黑金 · ONYX', ivory: '白金 · IVORY', system: '跟随系统',
     onyxDesc: '玄色与鎏金', ivoryDesc: '铂色与鎏金', systemDesc: '与操作系统一致',
@@ -584,8 +592,12 @@ function renderGates() {
     shell.appendChild(svgClone('frame', '0 0 300 570', 'gate-frame'));
 
     var face = el('div', 'face');
-    var sig = KNOWN_SIGILS[svc.sigil] ? svc.sigil : 'fallback';
-    face.appendChild(svgUse('sigil', '0 0 96 96', '#sig-' + sig));
+    // The gate wears the service's own mark — the same one its favicon, its
+    // taskbar tile and its own masthead show. One identity per service.
+    var sig = KNOWN_SIGILS[svc.sigil] ? svc.sigil : null;
+    face.appendChild(sig
+      ? svgUse('sigil mark', '0 0 96 96', '#mark-' + sig)
+      : svgUse('sigil', '0 0 96 96', '#sig-fallback'));
     face.appendChild(el('h3', 'g-name display', svc.name));
     face.appendChild(el('p', 'g-desc', t(descKey(svc))));
     var stat = el('div', 'g-stat');
@@ -909,9 +921,9 @@ function buildPlaque(d) {
   rim.setAttribute('class', 'rim');
   svg.appendChild(rim);
   var sig = document.createElementNS(ns, 'use');
-  var sigName = KNOWN_SIGILS[d.origin] ? d.origin : 'fallback';
-  sig.setAttribute('href', '#sig-' + sigName);
-  sig.setAttribute('class', 'm-sig');
+  var known = KNOWN_SIGILS[d.origin];
+  sig.setAttribute('href', known ? '#mark-' + d.origin : '#sig-fallback');
+  sig.setAttribute('class', known ? 'm-sig m-mark' : 'm-sig');
   svg.appendChild(sig);
   medal.appendChild(svg);
   li.appendChild(medal);   // outside the clipped layers — overhangs the spine
@@ -933,6 +945,7 @@ function updatePlaque(li, d) {
 }
 
 function renderLedger() {
+  paintLedgerCount();
   var ol = $('#plaques');
   var shown = feed.filter(function (d) {
     return chipFilter === 'all' || d.wing === chipFilter;
@@ -1204,7 +1217,8 @@ function syncPrefRadios() {
   var current = {
     theme: root.dataset.themePref || 'system',
     lang: lang,
-    motion: root.dataset.motion
+    motion: root.dataset.motion,
+    clock: root.dataset.clock
   };
   Array.prototype.forEach.call(prefs.querySelectorAll('[data-pref]'), function (group) {
     var pref = group.dataset.pref;
@@ -1233,8 +1247,76 @@ prefs.addEventListener('click', function (e) {
   var val = btn.dataset.value;
   if (pref === 'theme') setThemePref(val);
   else if (pref === 'lang') setLang(val);
-  else if (pref === 'motion') { root.dataset.motion = val; store('atrium.motion', val); }
+  else if (pref === 'motion') {
+    root.dataset.motion = val;
+    store('atrium.motion', val);
+    // The clock drives itself; tell it to swap sweep for deadbeat.
+    window.dispatchEvent(new Event('atrium:motionchange'));
+  } else if (pref === 'clock') { setClockLayout(val); }
   syncPrefRadios();
+});
+
+/* ------------------------------------------------------------------------
+   Clock composition + the Ledger drawer.
+
+   In "hall" the Ledger is a modal drawer, so leaving that composition while
+   it is open would strand the scrim and the aria state — always close first.
+   ------------------------------------------------------------------------ */
+function setClockLayout(val) {
+  var next = val === 'hall' ? 'hall' : 'band';
+  if (root.dataset.ledger === 'open') closeLedger(true);
+  root.dataset.clock = next;
+  store('atrium.clock', next);
+  // The stage column changes width when the Ledger leaves the grid, and the
+  // gate slots are absolute px — re-solve them after the reflow lands.
+  requestAnimationFrame(function () { layoutStage(true); });
+}
+
+var ledgerBtn = $('#ledger-btn');
+var ledgerEl = $('#ledger');
+var ledgerScrim = $('#ledger-scrim');
+var ledgerReturn = null;
+
+function openLedger() {
+  if (root.dataset.clock !== 'hall') return;
+  ledgerReturn = document.activeElement;
+  root.dataset.ledger = 'open';
+  ledgerBtn.setAttribute('aria-expanded', 'true');
+  $('#ledger-close').focus();
+}
+function closeLedger(silent) {
+  root.dataset.ledger = 'closed';
+  ledgerBtn.setAttribute('aria-expanded', 'false');
+  if (!silent && ledgerReturn && ledgerReturn.focus) ledgerReturn.focus();
+  ledgerReturn = null;
+}
+ledgerBtn.addEventListener('click', function () {
+  if (root.dataset.ledger === 'open') closeLedger(); else openLedger();
+});
+$('#ledger-close').addEventListener('click', function () { closeLedger(); });
+ledgerScrim.addEventListener('click', function () { closeLedger(); });
+document.addEventListener('keydown', function (e) {
+  if (e.key === 'Escape' && root.dataset.ledger === 'open') closeLedger();
+});
+
+/* The trigger carries a count of dispatches since the drawer was last
+   opened, so the hall composition never silently swallows news. */
+var ledgerSeen = +(store('atrium.ledgerSeen') || 0);
+function markLedgerSeen() {
+  ledgerSeen = Date.now();
+  store('atrium.ledgerSeen', String(ledgerSeen));
+  paintLedgerCount();
+}
+function paintLedgerCount() {
+  var el = $('#ledger-count');
+  if (!el) return;
+  var n = 0;
+  feed.forEach(function (d) { if (d.ts > ledgerSeen) n++; });
+  el.hidden = n === 0;
+  el.textContent = n > 99 ? '99+' : String(n);
+}
+ledgerBtn.addEventListener('click', function () {
+  if (root.dataset.ledger === 'open') markLedgerSeen();
 });
 
 var mq = matchMedia('(prefers-color-scheme: dark)');

@@ -172,6 +172,16 @@ html[lang="zh"] .display { letter-spacing: 0.26em; }
 /* ==========================================================================
    HALL LAYOUT
    ========================================================================== */
+/* Two compositions, both centred on the clock:
+
+   "band"  — the station clock hangs above the gates while the Ledger keeps
+             its standing right-hand column. Nothing is hidden; the dial sits
+             on the stage axis rather than the viewport axis.
+   "hall"  — the concourse clock owns the viewport axis and the gates stand
+             in a row beneath it. The Ledger withdraws into a right-hand
+             drawer, called by the dispatches trigger in the masthead.
+
+   Chosen in PREFERENCES; the pre-paint head script writes data-clock. */
 #hall {
   max-width: 1720px;
   margin: 0 auto;
@@ -181,8 +191,40 @@ html[lang="zh"] .display { letter-spacing: 0.26em; }
   grid-template-areas:
     "masthead masthead"
     "ticker   ticker"
+    "clock    ledger"
     "stage    ledger";
+  /* The clock row is sized explicitly. The Ledger spans rows 3-4 and is far
+     taller than either; with an auto row the surplus would be distributed
+     into the clock row and stretch it to the Ledger's full height. Pinning
+     row 3 sends every bit of that surplus to the stage row instead, where
+     `#stage { align-self: start }` already parks the gates at the top. */
+  grid-template-rows: auto auto var(--clock-row) auto;
   column-gap: 44px;
+  --clock-w: min(34vh, 380px);
+  --clock-mt: 10px;
+  --clock-mb: 2px;
+  --clock-row: calc(var(--clock-w) + var(--clock-mt) + var(--clock-mb));
+}
+/* The dial and the gates share one screen: the arches step down so both the
+   clock and the full triptych land above the fold at 1050px and taller. */
+:root[data-clock="band"] { --gate-w: clamp(150px, 11vw, 208px); }
+/* The Ledger heads its own column, so it must not be dragged down by the
+   clock row — it starts at the clock row and runs to the foot of the stage. */
+:root[data-clock="band"] #ledger { grid-row: 3 / span 2; }
+
+:root[data-clock="hall"] {
+  --gate-w: clamp(150px, 12.5vw, 232px);
+}
+:root[data-clock="hall"] #hall {
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas:
+    "masthead"
+    "ticker"
+    "clock"
+    "stage";
+  --clock-w: min(44vh, 540px);
+  --clock-mt: 2px;
+  --clock-mb: 0;
 }
 /* Suppressed loads only — a played entrance flipping data-entered later
    must not re-run this fade (the hall is already fully visible). */
@@ -619,6 +661,11 @@ html[data-entered="no"] #machine-rail {
   color: var(--gold-text);
   overflow: visible;
 }
+/* Service marks carry their own colour — the hall does not tint them, and a
+   themed transition on their fills would fight the enamel. The keystone
+   diamond frames them, so they sit slightly smaller than a line sigil. */
+.sigil.mark { width: 30%; margin-top: 6.5%; }
+.sigil.mark, .medal .m-mark { transition: none; }
 .g-name {
   margin-top: 26%;
   font-size: clamp(14px, 1.15vw, 18px);
@@ -724,9 +771,182 @@ html[data-entered="no"] #machine-rail {
 }
 
 /* ==========================================================================
+   THE CONCOURSE CLOCK
+
+   New ornament class, declared against the density budget: the octagonal
+   case, its diagonal spandrels, the knurled bezel and the guilloche field
+   belong to the clock and to nothing else in the hall. The clock is the only
+   place a fourth wing-metal surface is permitted (quarter numerals, spandrel
+   lozenges, subdial rings, the seconds baton) — it is the hall's one jewel.
+   ========================================================================== */
+#clock {
+  grid-area: clock;
+  justify-self: center;   /* NEVER `margin: ... auto` here — the vertical
+                             margin is a custom property and the shorthand
+                             would resolve margin-left:auto and end-align it */
+  align-self: start;      /* the clock row is definite (see #hall) — without
+                             this the box stretches into the row the Ledger
+                             inflates and drives the gates off-screen */
+  width: var(--clock-w);
+  aspect-ratio: 1;
+  max-width: 100%;
+  margin-top: var(--clock-mt);
+  margin-bottom: var(--clock-mb);
+  position: relative;
+  z-index: 1;
+  pointer-events: none;   /* the dial is scenery, never a click target */
+}
+#clock svg { width: 100%; height: auto; }
+
+/* Case and dial: flat tones, hairlines only. */
+.ck-case, .ck-case2 {
+  fill: var(--bronze-deep); stroke: var(--bronze);
+  stroke-width: 1.5; vector-effect: non-scaling-stroke;
+}
+.ck-caseline2, .ck-caseline {
+  fill: none; stroke: var(--machine-edge);
+  stroke-width: 1; vector-effect: non-scaling-stroke;
+}
+.ck-step, .ck-span {
+  fill: none; stroke-width: 1.5; vector-effect: non-scaling-stroke;
+}
+.ck-step { stroke: var(--bronze); }
+.ck-span { stroke: var(--metal); }
+.ck-spanin { fill: var(--metal); }
+.ck-rivet { fill: var(--rivet); }
+.ck-knurl { fill: var(--bronze); }
+.ck-well {
+  fill: var(--surface); stroke: var(--chrome);
+  stroke-width: 1.5; vector-effect: non-scaling-stroke;
+}
+.ck-hair, .ck-hair2 {
+  fill: none; stroke: var(--chrome);
+  stroke-width: 1; vector-effect: non-scaling-stroke;
+}
+.ck-goldrule {
+  fill: none; stroke: var(--metal); stroke-opacity: 0.55;
+  stroke-width: 1; vector-effect: non-scaling-stroke;
+}
+.ck-guil, .ck-guil2 {
+  fill: none; stroke: var(--ink);
+  stroke-width: 1; vector-effect: non-scaling-stroke;
+}
+.ck-guil { stroke-opacity: 0.10; }
+.ck-guil2 { stroke-opacity: 0.05; }
+.ck-baton { fill: var(--ink); }
+.ck-minute { fill: var(--ink-faint); }
+.ck-num {
+  fill: var(--ink); font-size: 50px; font-weight: 540; letter-spacing: 4px;
+  font-family: var(--serif); font-variant-numeric: tabular-nums lining-nums;
+}
+.ck-numq { fill: var(--metal); }
+.ck-subring {
+  fill: none; stroke: var(--metal);
+  stroke-width: 1.5; vector-effect: non-scaling-stroke;
+}
+.ck-subring2 {
+  fill: none; stroke: var(--line);
+  stroke-width: 1; vector-effect: non-scaling-stroke;
+}
+.ck-subcap {
+  fill: var(--ink-faint); font-size: 19px; letter-spacing: 4px;
+  font-family: var(--serif);
+}
+.ck-subboss { fill: var(--bronze); }
+.ck-moonwell, .ck-gearwell, .ck-gearhole { fill: var(--base); }
+.ck-moondisc { fill: var(--metal); }
+.ck-moonshade { fill: var(--base); }
+.ck-star { fill: var(--ink); fill-opacity: 0.55; }
+.ck-datewin {
+  fill: none; stroke: var(--metal);
+  stroke-width: 1.5; vector-effect: non-scaling-stroke;
+}
+.ck-datenum {
+  fill: var(--ink); font-size: 38px; font-weight: 540; font-family: var(--serif);
+  font-variant-numeric: tabular-nums lining-nums;
+}
+.ck-gear { fill: var(--bronze); }
+.ck-gear2 { fill: var(--metal); fill-opacity: 0.75; }
+.ck-hand, .ck-pomme {
+  fill: var(--ink); stroke: var(--edge);
+  stroke-width: 1; vector-effect: non-scaling-stroke;
+}
+.ck-pommehole { fill: var(--surface); }
+.ck-sec { fill: var(--metal); }
+.ck-secring {
+  fill: none; stroke: var(--metal);
+  stroke-width: 2.5; vector-effect: non-scaling-stroke;
+}
+.ck-boss {
+  fill: var(--bronze); stroke: var(--machine-edge);
+  stroke-width: 1.5; vector-effect: non-scaling-stroke;
+}
+.ck-bosshair {
+  fill: none; stroke: var(--metal);
+  stroke-width: 1; vector-effect: non-scaling-stroke;
+}
+/* Theme flips ride the same 0.4s crossfade as the rest of the chrome. */
+#clock [class^="ck-"] { transition: fill 0.4s, stroke 0.4s; }
+/* ...but never the hands or the works: they are re-transformed every frame
+   and a transition on transform would smear the sweep. */
+.ck-h, .ck-m, .ck-ss, .ck-gA, .ck-gB { transition: none; }
+
+/* ==========================================================================
    LEDGER
    ========================================================================== */
 #ledger { grid-area: ledger; padding-top: 26px; min-width: 0; }
+
+/* ----- Ledger as a drawer (hall composition) -----------------------------
+   The dispatch office withdraws behind a door rather than disappearing: the
+   trigger keeps a live unread count, and the panel is a real dialog with a
+   scrim, an escape key and a focus return. */
+#ledger-scrim {
+  position: fixed; inset: 0; z-index: 96;
+  background-color: var(--veil);
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.3s var(--ease-out);
+}
+:root[data-clock="hall"] #ledger {
+  position: fixed; z-index: 97;
+  top: 0; right: 0; bottom: 0; width: min(420px, 92vw);
+  padding: 26px 26px 128px 22px;
+  overflow-y: auto;
+  background-color: var(--surface);
+  border-left: 1px solid var(--line);
+  box-shadow: -18px 0 44px var(--shadow-drop);
+  transform: translateX(100%);
+  transition: transform 0.42s var(--ease-out);
+}
+:root[data-clock="hall"][data-ledger="open"] #ledger { transform: none; }
+:root[data-clock="hall"][data-ledger="open"] #ledger-scrim {
+  opacity: 1; pointer-events: auto;
+}
+/* The trigger only exists in the hall composition — in band the Ledger is
+   already standing in the open. */
+#ledger-btn { display: none; }
+:root[data-clock="hall"] #ledger-btn {
+  display: grid; grid-auto-flow: column; align-items: center; gap: 8px;
+  position: relative;
+}
+#ledger-btn svg { width: 26px; height: 26px; color: var(--ink-faint); }
+#ledger-btn:hover svg { color: var(--metal); }
+#ledger-btn .lb-caption {
+  font-size: 9px; letter-spacing: 0.2em; color: var(--ink-faint);
+}
+#ledger-btn .lb-count {
+  font-size: 11px; letter-spacing: 0.06em;
+  font-variant-numeric: tabular-nums;
+  color: var(--base); background-color: var(--metal);
+  min-width: 18px; padding: 1px 5px; text-align: center;
+}
+#ledger-btn .lb-count[hidden] { display: none; }
+#ledger-close { display: none; }
+:root[data-clock="hall"] #ledger-close {
+  display: block; position: absolute; top: 20px; right: 22px;
+  font-size: 15px; color: var(--ink-faint); line-height: 1;
+}
+:root[data-clock="hall"] #ledger-close:hover { color: var(--ink); }
+
 .l-head {
   display: flex; align-items: baseline; justify-content: space-between;
   margin-bottom: 14px;
@@ -820,6 +1040,9 @@ html[data-entered="no"] #machine-rail {
 .medal .rim { color: var(--gold); }
 .medal.m-bureau .rim { color: var(--plat); }
 .medal .m-sig { color: var(--ink-faint); transform: translate(8px, 8px) scale(0.25); }
+/* The mark fills the carrier end-cap rather than sitting inside it as a
+   line drawing — 22 of the 40-unit medallion, centred. */
+.medal .m-mark { transform: translate(9px, 9px) scale(0.229); }
 .pl-head { font-size: 14.5px; color: var(--ink); letter-spacing: 0.03em; }
 .pl-detail { font-size: 12.5px; color: var(--ink-faint); margin-top: 2px; line-height: 1.5; }
 .pl-time { font-size: 11px; color: var(--ink-faint); margin-top: 5px; letter-spacing: 0.1em; }

@@ -42,6 +42,18 @@ re-light reads even in the weakest cell (Bureau × Ivory).
 - Rosette: masthead monogram + settings trigger only.
 - Stepped frame: gates only. Medallions: Ledger only.
 - Double hairline rule: ticker + Ledger day-breaks only.
+- **Clock-only classes (v3.2)**: the octagonal case with its stepped
+  shoulders, the four diagonal spandrels, the knurled bezel, the fret band
+  and the guilloche field belong to the concourse clock and appear nowhere
+  else. The clock is also the one place a fourth wing-metal surface is
+  allowed (quarter numerals, spandrel lozenges, subdial rings, the seconds
+  baton) — it is the hall's single jewel.
+- **Service marks (v3.2)**: gate keystones and Ledger medallions carry each
+  service's own coloured mark rather than a monochrome sigil. This is the
+  one sanctioned break in the hall's monochrome discipline: the mark shown
+  in the hall is byte-identical to the one the service's own favicon,
+  taskbar tile and masthead show. Services with no mark fall back to the
+  line-drawn keystone sigil, which still tints with `color`.
 - Hairline tokens: 1px and 1.5px; a double rule = 2×1px with 3px gap.
 - **Ban list**: no multi-stop metallic gradients, no bevel/emboss, no outer
   glows on gold. The only specular effect is a single masked 30° sheen sweep
@@ -109,6 +121,53 @@ Masthead: monogram rosette · "ATRIUM · GRAND CONCOURSE" · localized date
 line · settings trigger at right edge. The settings trigger is a rosette of
 visibly distinct construction (keyhole center), with a persistent caption
 "PREFERENCES" beneath, hover glint, focus ring, aria-label.
+
+## The concourse clock (v3.2)
+
+A grande-complication regulator in a stepped octagonal deco case, showing the
+machine's local time. `static/js/clock.js` generates the geometry so the
+1000-unit construction lives beside its drive loop; `atrium.css` owns every
+colour. All strokes carry `vector-effect: non-scaling-stroke`, so the 1 /
+1.5px hairline law holds whether the dial draws at 160px or 620px.
+
+- **Case** — octagon with three-step shoulders (the gate language), a deco
+  spandrel on each diagonal, rivets at the eight vertices.
+- **Dial** (own 1000 space, scaled 0.855) — knurled bronze bezel, fret band,
+  guilloche field (concentric rules crossed by a 90-spoke fan, both under 10%
+  ink), 60-mark chapter ring, **twelve** Roman numerals with the quarters in
+  wing metal.
+- **Complications** on the cardinal axes: 12 moon phase (synodic, reference
+  new moon 2000-01-06 18:14 UTC), 3 date on a 31-step ring read through an
+  aperture, 6 small seconds, 9 the works — two wheels geared 14:9 turning
+  against each other off the seconds arbor.
+- **Hands** — pierced Breguet with stepped counterweights; the hour hand
+  carries a second, smaller piercing so the two never read alike.
+- **Drive** — the loop reads `new Date()` every frame and never accumulates,
+  so drift is structurally impossible and a DST step, a suspend/resume or a
+  throttled background tab all self-correct on the next frame.
+  `visibilitychange` stops the loop while hidden. Reduced motion swaps the
+  sweep for a boundary-aligned 1 Hz deadbeat tick —
+  `setTimeout(tick, 1000 - Date.now() % 1000)` — which is the mechanism a
+  real regulator actually has.
+
+### Composition (PREFERENCES → THE CLOCK)
+
+- **STATION** (`data-clock="band"`) — the dial hangs above the gates and the
+  Ledger keeps its standing right-hand column. The clock sits on the stage
+  axis. The clock row is sized explicitly: the Ledger spans rows 3–4 and is
+  far taller than either, and an auto row would absorb that surplus and
+  stretch the clock to the Ledger's full height, driving the gates
+  off-screen.
+- **CONCOURSE** (`data-clock="hall"`) — the dial owns the viewport axis, the
+  gates stand in a row beneath it, and the Ledger withdraws into a right-hand
+  drawer called by the dispatch-tube trigger in the masthead. The trigger
+  carries a count of dispatches since the drawer was last opened. The drawer
+  is a real dialog: scrim, Escape, focus return.
+
+Never write `margin: <custom-property> auto` on the clock box — the shorthand
+resolves the property's second value into `margin-right` and `auto` into
+`margin-left`, which end-aligns the dial. Vertical margin is set on its own
+longhands and centring is `justify-self`.
 
 ## Stage (triptych composition)
 
