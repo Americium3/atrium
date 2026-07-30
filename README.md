@@ -22,10 +22,9 @@ Atrium serves `http://127.0.0.1:8769` and currently fronts:
   seconds arbor. Pierced Breguet hands. The drive loop reads the wall clock
   every frame and never accumulates, so it cannot drift and a DST step or a
   laptop suspend corrects itself on the next frame; reduced motion swaps the
-  sweep for a boundary-aligned deadbeat tick. PREFERENCES → THE CLOCK picks
-  between **STATION** (the dial hangs above the gates, the Ledger stays
-  standing) and **CONCOURSE** (the dial owns the centre of the screen and the
-  Ledger withdraws into a drawer carrying an unread count).
+  sweep for a boundary-aligned deadbeat tick. It is set
+  into a niche in the back wall between the arches, on their baseline and
+  under their head line, with one hairline wall rule running behind all three.
 - **Gates** — each destination is an arched deco portal carrying that
   service's own mark — the identical artwork its favicon and taskbar tile
   show — plus a one-line description, the literal address it opens, an

@@ -65,10 +65,6 @@ var STR = {
     'k.outreach.invites': '{n} of {target} sent',
     'k.outreach.error.head': 'Drafter hit an error',
     'k.outreach.error': 'Check the Outreach Desk',
-    clockLayout: 'THE CLOCK',
-    clockBand: 'STATION', clockHall: 'CONCOURSE',
-    clockBandDesc: 'Hung above the gates; the Ledger stands open',
-    clockHallDesc: 'Centre of the hall; the Ledger withdraws to a drawer',
     appearance: 'APPEARANCE', language: 'LANGUAGE', motion: 'MOTION',
     onyx: 'ONYX', ivory: 'IVORY', system: 'FOLLOW SYSTEM',
     onyxDesc: 'Black & gold', ivoryDesc: 'Platinum & gold', systemDesc: 'Match the OS',
@@ -125,10 +121,6 @@ var STR = {
     'k.outreach.invites': '已发出 {n}/{target}',
     'k.outreach.error.head': '草稿引擎出错',
     'k.outreach.error': '请到 Outreach Desk 查看',
-    clockLayout: '大钟',
-    clockBand: 'STATION', clockHall: 'CONCOURSE',
-    clockBandDesc: '悬于拱门之上，消息总台常驻在侧',
-    clockHallDesc: '独占大厅正中，消息总台收进抽屉',
     appearance: '外观', language: '语言', motion: '动效',
     onyx: '黑金 · ONYX', ivory: '白金 · IVORY', system: '跟随系统',
     onyxDesc: '玄色与鎏金', ivoryDesc: '铂色与鎏金', systemDesc: '与操作系统一致',
@@ -669,13 +661,27 @@ function layoutStage(initial) {
   var receded = services.filter(function (s) { return s.wing !== wing; });
   var spacing = gateW * 1.16;
 
+  /* The clock holds the axis: active gates split evenly to either side of the
+     niche rather than straddling the centre. With an odd count the extra gate
+     goes stage-left, which keeps the composition weighted like a facade
+     instead of drifting. The niche is measured, not assumed, so a narrow
+     viewport that shrinks the dial pulls the gates in with it. */
+  var clock = $('#clock');
+  var half = clock ? clock.offsetWidth / 2 + gateW * 0.10 : 0;
+  var left = Math.ceil(active.length / 2);
+
   active.forEach(function (svc, i) {
     var a = $('#gate-' + svc.id);
     if (!a) return;
+    var onLeft = i < left;
+    var rank = onLeft ? (left - 1 - i) : (i - left);
+    var x = (onLeft ? -1 : 1) * (half + gateW / 2 + rank * spacing);
     a.classList.add('active'); a.classList.remove('receded');
-    a.style.setProperty('--slot-x', ((i - (active.length - 1) / 2) * spacing) + 'px');
+    a.style.setProperty('--slot-x', x + 'px');
     a.style.setProperty('--slot-s', '1');
-    a.style.setProperty('--side', '0');
+    // Gates flanking a centrepiece turn a few degrees toward it — the wall
+    // reads as a shallow apse rather than three flat panels.
+    a.style.setProperty('--side', onLeft ? '0.55' : '-0.55');
     // Receding gates lead by 80ms; each group cascades at 60ms.
     a.style.setProperty('--slot-delay', initial ? '0ms' : (80 + i * 60) + 'ms');
   });
@@ -814,6 +820,15 @@ function applyStatuses() {
     rail.style.setProperty('--gauge',
       (-120 + (openCount / services.length) * 240).toFixed(1));
   }
+
+  // The hall is a picture; say out loud how many lines are open, so a screen
+  // reader learns the same thing the lamps show. Only on change — a live
+  // region rewritten every poll would announce itself every poll.
+  var st = $('#hall-status');
+  if (st && services.length) {
+    var msg = t('linesOpen', { n: openCount, m: services.length });
+    if (st.textContent !== msg) st.textContent = msg;
+  }
 }
 
 function statText(svc) {
@@ -945,7 +960,6 @@ function updatePlaque(li, d) {
 }
 
 function renderLedger() {
-  paintLedgerCount();
   var ol = $('#plaques');
   var shown = feed.filter(function (d) {
     return chipFilter === 'all' || d.wing === chipFilter;
@@ -1217,8 +1231,7 @@ function syncPrefRadios() {
   var current = {
     theme: root.dataset.themePref || 'system',
     lang: lang,
-    motion: root.dataset.motion,
-    clock: root.dataset.clock
+    motion: root.dataset.motion
   };
   Array.prototype.forEach.call(prefs.querySelectorAll('[data-pref]'), function (group) {
     var pref = group.dataset.pref;
@@ -1252,71 +1265,8 @@ prefs.addEventListener('click', function (e) {
     store('atrium.motion', val);
     // The clock drives itself; tell it to swap sweep for deadbeat.
     window.dispatchEvent(new Event('atrium:motionchange'));
-  } else if (pref === 'clock') { setClockLayout(val); }
+  }
   syncPrefRadios();
-});
-
-/* ------------------------------------------------------------------------
-   Clock composition + the Ledger drawer.
-
-   In "hall" the Ledger is a modal drawer, so leaving that composition while
-   it is open would strand the scrim and the aria state — always close first.
-   ------------------------------------------------------------------------ */
-function setClockLayout(val) {
-  var next = val === 'hall' ? 'hall' : 'band';
-  if (root.dataset.ledger === 'open') closeLedger(true);
-  root.dataset.clock = next;
-  store('atrium.clock', next);
-  // The stage column changes width when the Ledger leaves the grid, and the
-  // gate slots are absolute px — re-solve them after the reflow lands.
-  requestAnimationFrame(function () { layoutStage(true); });
-}
-
-var ledgerBtn = $('#ledger-btn');
-var ledgerEl = $('#ledger');
-var ledgerScrim = $('#ledger-scrim');
-var ledgerReturn = null;
-
-function openLedger() {
-  if (root.dataset.clock !== 'hall') return;
-  ledgerReturn = document.activeElement;
-  root.dataset.ledger = 'open';
-  ledgerBtn.setAttribute('aria-expanded', 'true');
-  $('#ledger-close').focus();
-}
-function closeLedger(silent) {
-  root.dataset.ledger = 'closed';
-  ledgerBtn.setAttribute('aria-expanded', 'false');
-  if (!silent && ledgerReturn && ledgerReturn.focus) ledgerReturn.focus();
-  ledgerReturn = null;
-}
-ledgerBtn.addEventListener('click', function () {
-  if (root.dataset.ledger === 'open') closeLedger(); else openLedger();
-});
-$('#ledger-close').addEventListener('click', function () { closeLedger(); });
-ledgerScrim.addEventListener('click', function () { closeLedger(); });
-document.addEventListener('keydown', function (e) {
-  if (e.key === 'Escape' && root.dataset.ledger === 'open') closeLedger();
-});
-
-/* The trigger carries a count of dispatches since the drawer was last
-   opened, so the hall composition never silently swallows news. */
-var ledgerSeen = +(store('atrium.ledgerSeen') || 0);
-function markLedgerSeen() {
-  ledgerSeen = Date.now();
-  store('atrium.ledgerSeen', String(ledgerSeen));
-  paintLedgerCount();
-}
-function paintLedgerCount() {
-  var el = $('#ledger-count');
-  if (!el) return;
-  var n = 0;
-  feed.forEach(function (d) { if (d.ts > ledgerSeen) n++; });
-  el.hidden = n === 0;
-  el.textContent = n > 99 ? '99+' : String(n);
-}
-ledgerBtn.addEventListener('click', function () {
-  if (root.dataset.ledger === 'open') markLedgerSeen();
 });
 
 var mq = matchMedia('(prefers-color-scheme: dark)');

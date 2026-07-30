@@ -150,24 +150,19 @@ colour. All strokes carry `vector-effect: non-scaling-stroke`, so the 1 /
   `setTimeout(tick, 1000 - Date.now() % 1000)` — which is the mechanism a
   real regulator actually has.
 
-### Composition (PREFERENCES → THE CLOCK)
+### Composition
 
-- **STATION** (`data-clock="band"`) — the dial hangs above the gates and the
-  Ledger keeps its standing right-hand column. The clock sits on the stage
-  axis. The clock row is sized explicitly: the Ledger spans rows 3–4 and is
-  far taller than either, and an auto row would absorb that surplus and
-  stretch the clock to the Ledger's full height, driving the gates
-  off-screen.
-- **CONCOURSE** (`data-clock="hall"`) — the dial owns the viewport axis, the
-  gates stand in a row beneath it, and the Ledger withdraws into a right-hand
-  drawer called by the dispatch-tube trigger in the masthead. The trigger
-  carries a count of dispatches since the drawer was last opened. The drawer
-  is a real dialog: scrim, Escape, focus return.
+The clock is set into a niche in the back wall, between the arches: same
+baseline, same head height, one hairline wall rule running behind all three at
+the gates' plinth line. `layoutStage()` splits the active gates either side of
+the niche and turns each a few degrees toward it, so the wall reads as a
+shallow apse rather than three flat panels. Every niche dimension derives from
+`--gate-w`, so the dial tracks the arches at any viewport.
 
 Never write `margin: <custom-property> auto` on the clock box — the shorthand
 resolves the property's second value into `margin-right` and `auto` into
-`margin-left`, which end-aligns the dial. Vertical margin is set on its own
-longhands and centring is `justify-self`.
+`margin-left`, which end-aligns the dial. Vertical margin goes on its own
+longhands; centring is `justify-self`.
 
 ## Stage (triptych composition)
 

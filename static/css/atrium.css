@@ -89,7 +89,9 @@
 
 :root {
   --serif: 'EB Garamond', Georgia, 'Palatino Linotype', serif;
-  --gate-w: clamp(200px, 16vw, 280px);
+  /* The stage now seats a clock between the arches — the gates give up some
+     width so all three stand on one screen without crowding. */
+  --gate-w: clamp(182px, 13.6vw, 248px);
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
   --ease-stage: cubic-bezier(0.4, 0, 0.2, 1);
   --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -121,6 +123,11 @@ body::after {
     radial-gradient(ellipse at 50% 42%, transparent 55%, var(--vignette)),
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='linear' slope='0.045'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23n)'/%3E%3C/svg%3E");
   background-size: auto, 220px 220px;
+}
+/* Text alternatives that carry meaning but take no space. */
+.sr-only {
+  position: absolute; width: 1px; height: 1px; margin: -1px;
+  clip-path: inset(50%); overflow: hidden; white-space: nowrap;
 }
 a { color: inherit; text-decoration: none; }
 button {
@@ -172,59 +179,21 @@ html[lang="zh"] .display { letter-spacing: 0.26em; }
 /* ==========================================================================
    HALL LAYOUT
    ========================================================================== */
-/* Two compositions, both centred on the clock:
-
-   "band"  — the station clock hangs above the gates while the Ledger keeps
-             its standing right-hand column. Nothing is hidden; the dial sits
-             on the stage axis rather than the viewport axis.
-   "hall"  — the concourse clock owns the viewport axis and the gates stand
-             in a row beneath it. The Ledger withdraws into a right-hand
-             drawer, called by the dispatches trigger in the masthead.
-
-   Chosen in PREFERENCES; the pre-paint head script writes data-clock. */
+/* One composition. The clock is not hung above the hall — it stands IN it,
+   set into a niche on the back wall with a gate to either side, sharing the
+   gates' baseline and their cornice line. A dial floating over the stage
+   reads as a moon; a dial framed by architecture reads as the building. */
 #hall {
   max-width: 1720px;
   margin: 0 auto;
   padding: 20px 44px 48px;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 400px;
+  grid-template-columns: minmax(0, 1fr) 372px;
   grid-template-areas:
     "masthead masthead"
     "ticker   ticker"
-    "clock    ledger"
     "stage    ledger";
-  /* The clock row is sized explicitly. The Ledger spans rows 3-4 and is far
-     taller than either; with an auto row the surplus would be distributed
-     into the clock row and stretch it to the Ledger's full height. Pinning
-     row 3 sends every bit of that surplus to the stage row instead, where
-     `#stage { align-self: start }` already parks the gates at the top. */
-  grid-template-rows: auto auto var(--clock-row) auto;
-  column-gap: 44px;
-  --clock-w: min(34vh, 380px);
-  --clock-mt: 10px;
-  --clock-mb: 2px;
-  --clock-row: calc(var(--clock-w) + var(--clock-mt) + var(--clock-mb));
-}
-/* The dial and the gates share one screen: the arches step down so both the
-   clock and the full triptych land above the fold at 1050px and taller. */
-:root[data-clock="band"] { --gate-w: clamp(150px, 11vw, 208px); }
-/* The Ledger heads its own column, so it must not be dragged down by the
-   clock row — it starts at the clock row and runs to the foot of the stage. */
-:root[data-clock="band"] #ledger { grid-row: 3 / span 2; }
-
-:root[data-clock="hall"] {
-  --gate-w: clamp(150px, 12.5vw, 232px);
-}
-:root[data-clock="hall"] #hall {
-  grid-template-columns: minmax(0, 1fr);
-  grid-template-areas:
-    "masthead"
-    "ticker"
-    "clock"
-    "stage";
-  --clock-w: min(44vh, 540px);
-  --clock-mt: 2px;
-  --clock-mb: 0;
+  column-gap: 40px;
 }
 /* Suppressed loads only — a played entrance flipping data-entered later
    must not re-run this fade (the hall is already fully visible). */
@@ -779,24 +748,60 @@ html[data-entered="no"] #machine-rail {
    place a fourth wing-metal surface is permitted (quarter numerals, spandrel
    lozenges, subdial rings, the seconds baton) — it is the hall's one jewel.
    ========================================================================== */
+/* The niche: a recess in the back wall between the two arches. It stands on
+   the same floor line as the gates and its head reaches the same springing
+   line, so the three read as one wall rather than a dial and some doors.
+   Positioned like a gate — absolute, bottom-anchored, translated by a slot
+   the stage solves — so it re-composes with them under the same transform. */
+/* Every dimension derives from the gate height, so the niche is exactly as
+   tall as the arches beside it and its sill lands on their plinth rule. The
+   dial then fills the recess instead of floating in it. */
 #clock {
-  grid-area: clock;
-  justify-self: center;   /* NEVER `margin: ... auto` here — the vertical
-                             margin is a custom property and the shorthand
-                             would resolve margin-left:auto and end-align it */
-  align-self: start;      /* the clock row is definite (see #hall) — without
-                             this the box stretches into the row the Ledger
-                             inflates and drives the gates off-screen */
-  width: var(--clock-w);
-  aspect-ratio: 1;
-  max-width: 100%;
-  margin-top: var(--clock-mt);
-  margin-bottom: var(--clock-mb);
-  position: relative;
+  position: absolute;
+  left: 50%; bottom: 0;
+  transform: translateX(-50%);
   z-index: 1;
   pointer-events: none;   /* the dial is scenery, never a click target */
+  --gh: calc(var(--gate-w) * 1.9);
+  --reveal: calc(var(--gh) * 0.055);   /* wall left at the head and sides */
+  --sill: calc(var(--gh) * 0.125);     /* the shelf the dial stands on */
+  --dial: calc(var(--gh) - var(--sill) - var(--reveal));
+  width: calc(var(--dial) + 2 * var(--reveal));
 }
-#clock svg { width: 100%; height: auto; }
+.niche {
+  position: relative;
+  height: var(--gh);
+  padding: var(--reveal) var(--reveal) var(--sill);
+}
+/* Recess: a stepped deco surround, darker than the wall, with a sill. */
+.niche::before {
+  content: "";
+  position: absolute; inset: 0;
+  background-color: var(--surface);
+  border: 1px solid var(--line);
+  box-shadow: inset 0 2px 18px var(--shadow-soft);
+}
+.n-frame { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.n-frame path, .n-frame rect { stroke: var(--chrome); fill: none; transition: stroke 0.4s; }
+.n-frame .nf-metal { stroke: var(--metal); }
+.n-frame .nf-fill { fill: var(--metal); stroke: none; }
+#clock svg.dial {
+  position: relative; display: block;
+  width: var(--dial); height: var(--dial);
+}
+
+/* The wall rule: one hairline at the gates' plinth line, running the width of
+   the stage behind everything. It is what makes the three read as a single
+   facade rather than a dial parked between two doors. */
+.wall-rule {
+  position: absolute; left: 3%; right: 3%;
+  bottom: calc(var(--gate-w) * 1.9 * 0.079);
+  height: 1px;
+  background-color: var(--line);
+  opacity: 0.85;
+  pointer-events: none;
+  transition: background-color 0.4s;
+}
 
 /* Case and dial: flat tones, hairlines only. */
 .ck-case, .ck-case2 {
@@ -895,57 +900,6 @@ html[data-entered="no"] #machine-rail {
    LEDGER
    ========================================================================== */
 #ledger { grid-area: ledger; padding-top: 26px; min-width: 0; }
-
-/* ----- Ledger as a drawer (hall composition) -----------------------------
-   The dispatch office withdraws behind a door rather than disappearing: the
-   trigger keeps a live unread count, and the panel is a real dialog with a
-   scrim, an escape key and a focus return. */
-#ledger-scrim {
-  position: fixed; inset: 0; z-index: 96;
-  background-color: var(--veil);
-  opacity: 0; pointer-events: none;
-  transition: opacity 0.3s var(--ease-out);
-}
-:root[data-clock="hall"] #ledger {
-  position: fixed; z-index: 97;
-  top: 0; right: 0; bottom: 0; width: min(420px, 92vw);
-  padding: 26px 26px 128px 22px;
-  overflow-y: auto;
-  background-color: var(--surface);
-  border-left: 1px solid var(--line);
-  box-shadow: -18px 0 44px var(--shadow-drop);
-  transform: translateX(100%);
-  transition: transform 0.42s var(--ease-out);
-}
-:root[data-clock="hall"][data-ledger="open"] #ledger { transform: none; }
-:root[data-clock="hall"][data-ledger="open"] #ledger-scrim {
-  opacity: 1; pointer-events: auto;
-}
-/* The trigger only exists in the hall composition — in band the Ledger is
-   already standing in the open. */
-#ledger-btn { display: none; }
-:root[data-clock="hall"] #ledger-btn {
-  display: grid; grid-auto-flow: column; align-items: center; gap: 8px;
-  position: relative;
-}
-#ledger-btn svg { width: 26px; height: 26px; color: var(--ink-faint); }
-#ledger-btn:hover svg { color: var(--metal); }
-#ledger-btn .lb-caption {
-  font-size: 9px; letter-spacing: 0.2em; color: var(--ink-faint);
-}
-#ledger-btn .lb-count {
-  font-size: 11px; letter-spacing: 0.06em;
-  font-variant-numeric: tabular-nums;
-  color: var(--base); background-color: var(--metal);
-  min-width: 18px; padding: 1px 5px; text-align: center;
-}
-#ledger-btn .lb-count[hidden] { display: none; }
-#ledger-close { display: none; }
-:root[data-clock="hall"] #ledger-close {
-  display: block; position: absolute; top: 20px; right: 22px;
-  font-size: 15px; color: var(--ink-faint); line-height: 1;
-}
-:root[data-clock="hall"] #ledger-close:hover { color: var(--ink); }
 
 .l-head {
   display: flex; align-items: baseline; justify-content: space-between;
