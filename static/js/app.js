@@ -41,6 +41,7 @@ var STR = {
     'stat.airing': '{n} AIRING TODAY', 'stat.watching': '{n} WATCHING',
     'stat.pending': '{n} UPDATES PENDING', 'stat.mods': '{n} MODS TRACKED',
     'stat.queue': 'QUEUE {done}/{total}', 'stat.invited': 'SENT {n}/{target}',
+    'stat.stories': '{n} STORIES · {m} SECTIONS', 'stat.stale': 'EDITION STALE',
     'note.qb_down': 'qBittorrent unreachable — downloads paused',
     'note.daemon_stale': 'Sync daemon looks stalled',
     'note.fallback': 'Reading state files directly (server down)',
@@ -98,6 +99,7 @@ var STR = {
     'stat.airing': '今日 {n} 部放送', 'stat.watching': '在看 {n} 部',
     'stat.pending': '{n} 个更新待装', 'stat.mods': '追踪 {n} 个 MOD',
     'stat.queue': '队列 {done}/{total}', 'stat.invited': '已发 {n}/{target}',
+    'stat.stories': '{n} 条 · {m} 栏', 'stat.stale': '早报未更新',
     'note.qb_down': 'qBittorrent 不可达——下载已暂停',
     'note.daemon_stale': '同步守护进程疑似卡住',
     'note.fallback': '服务器离线——正在直读状态文件',
@@ -679,6 +681,13 @@ function layoutStage(initial) {
     var rank = onLeft ? (left - 1 - i) : (i - left);
     var x = (onLeft ? -1 : 1) * (half + gateW / 2 + rank * spacing);
     a.classList.add('active'); a.classList.remove('receded');
+    // Depth order is set here, not left to DOM order. The gates are absolutely
+    // positioned siblings, so without an explicit z-index the later ones in
+    // markup paint on top — and a gate on its way out to the flank sweeps
+    // straight across the pair coming forward, briefly eclipsing them. Setting
+    // it at the start of the move rather than the end means the gate that is
+    // about to recede drops behind before it travels.
+    a.style.zIndex = '3';
     a.style.setProperty('--slot-x', x + 'px');
     a.style.setProperty('--slot-s', '1');
     // Gates flanking a centrepiece turn a few degrees toward it — the wall
@@ -694,6 +703,8 @@ function layoutStage(initial) {
     var a = $('#gate-' + svc.id);
     if (!a) return;
     a.classList.add('receded'); a.classList.remove('active');
+    // Behind the active pair for the whole journey, not just on arrival.
+    a.style.zIndex = '1';
     // Alternate flanks; extra flankmates on a side step inward so they
     // never stack exactly on top of each other.
     var side = (receded.length === 1) ? 1 : (i % 2 === 0 ? -1 : 1);
@@ -841,6 +852,8 @@ function statText(svc) {
   } else if (svc.id === 'groundstation') {
     if (s.pending > 0) return t('stat.pending', { n: s.pending });
     if (s.mods !== undefined) return t('stat.mods', { n: s.mods });
+  } else if (svc.id === 'pressroom') {
+    if (s.stories > 0) return t('stat.stories', { n: s.stories, m: s.sections || 0 });
   } else if (svc.id === 'outreach') {
     var parts = [];
     if (s.total > 0) parts.push(t('stat.queue', { done: s.ready || 0, total: s.total }));
