@@ -69,7 +69,9 @@ var STR = {
     onyxDesc: 'Black & gold', ivoryDesc: 'Platinum & gold', systemDesc: 'Match the OS',
     motionFull: 'FULL', motionReduced: 'REDUCED',
     replay: 'REPLAY ENTRANCE',
-    ariaTicker: 'Status band', ariaLever: 'Salon / Bureau wing',
+    ariaTicker: 'Status band',
+    ariaLever: 'Mode lever: off = Salon, the play wing; on = Bureau, the work wing',
+    ariaRail: 'Machine rail — mode lever',
     ariaFilter: 'Filter dispatches', ariaClose: 'Close',
     ariaGates: 'Gates', ariaLedger: 'Dispatches',
     salonWing: 'Play wing', bureauWing: 'Work wing'
@@ -122,7 +124,9 @@ var STR = {
     onyxDesc: '玄色与鎏金', ivoryDesc: '铂色与鎏金', systemDesc: '与操作系统一致',
     motionFull: '完整', motionReduced: '减弱',
     replay: '重播入场动画',
-    ariaTicker: '状态带', ariaLever: '沙龙翼 / 事务翼切换',
+    ariaTicker: '状态带',
+    ariaLever: '模式拨杆：关＝沙龙翼（娱乐），开＝事务翼（工作）',
+    ariaRail: '机械横轨——模式拨杆',
     ariaFilter: '筛选快讯', ariaClose: '关闭',
     ariaGates: '门廊', ariaLedger: '快讯',
     salonWing: '娱乐翼 · 沙龙', bureauWing: '工作翼 · 事务所'
@@ -180,13 +184,34 @@ function buildRays() {
   }
 }
 
+/* Vault boltwork: 8 radial rods around the drawn circle. Rotation lives on
+   wrapper <g> attributes (attribute/CSS override law); the retract is a
+   plain translateY on each line, made radial by the wrapper rotation. */
+function buildBolts() {
+  var g = $('.e-bolts');
+  if (!g || g.childNodes.length) return;
+  var ns = 'http://www.w3.org/2000/svg';
+  for (var i = 0; i < 8; i++) {
+    var wrap = document.createElementNS(ns, 'g');
+    wrap.setAttribute('transform', 'rotate(' + (i * 45) + ' 400 400)');
+    var line = document.createElementNS(ns, 'line');
+    line.setAttribute('x1', '400'); line.setAttribute('y1', '306');
+    line.setAttribute('x2', '400'); line.setAttribute('y2', '262');
+    wrap.appendChild(line);
+    g.appendChild(wrap);
+  }
+}
+
 function playEntrance() {
   buildRays();
+  buildBolts();
   var at = function (ms, fn) { entranceTimers.push(setTimeout(fn, ms)); };
   entrance.classList.add('play');
   at(500, function () { entrance.classList.add('doors'); });
+  at(700, function () { entrance.classList.add('wheel'); });
   at(830, function () { entrance.classList.add('seam'); });
   at(970, function () { entrance.classList.add('open'); });
+  at(990, function () { steamBurst($('.e-nozzle'), 2); });
   at(1500, function () { entrance.classList.add('word'); });
   at(1800, function () {
     // Signature moment: the drawn circle flies and docks as the rosette.
@@ -228,6 +253,265 @@ function finishEntrance() {
   // snapped to their end state here. data-boot stays 'played', so the
   // suppressed-load hall-fade does NOT retrigger on this flip.
   root.dataset.entered = 'yes';
+}
+
+/* ========================================================================
+   Machine rail — lever, gear train, gauge, steam (DESIGN.md v3.1).
+   One scalar --drive (0=salon, 1=bureau) written by a rAF driver; the
+   lever and both gears derive their rotation from it via calc, so sync
+   is structural.
+   ======================================================================== */
+var rail = $('#machine-rail');
+var railNozzle = $('#machine-rail .nozzle');
+var NS = 'http://www.w3.org/2000/svg';
+
+function svgEl(tag, attrs, cls) {
+  var e = document.createElementNS(NS, tag);
+  for (var k in attrs) e.setAttribute(k, attrs[k]);
+  if (cls) e.setAttribute('class', cls);
+  return e;
+}
+
+/* Trapezoid-tooth gear on ISO proportions (addendum 1.0m, dedendum 1.25m);
+   involute flanks are indistinguishable at UI scale. Meshing gears MUST
+   share the module m. Emits a d-string centered on (0,0), fill-rule
+   evenodd for the bore and spoke windows. */
+function gearPath(N, m, o) {
+  o = o || {};
+  var rp = N * m / 2;
+  var ra = rp + m;
+  var rr = rp - 1.25 * m;
+  var pitch = 2 * Math.PI / N;
+  var wTip = pitch * 0.32, wRoot = pitch * 0.52;
+  var P = function (r, a) {
+    return (r * Math.cos(a)).toFixed(2) + ' ' + (r * Math.sin(a)).toFixed(2);
+  };
+  var d = '';
+  for (var i = 0; i < N; i++) {
+    var c = i * pitch;
+    var r0 = c - wRoot / 2, r1 = c + wRoot / 2;
+    var t0 = c - wTip / 2, t1 = c + wTip / 2;
+    d += (i === 0 ? 'M ' + P(rr, r0)
+                  : ' A ' + rr + ' ' + rr + ' 0 0 1 ' + P(rr, r0));
+    d += ' L ' + P(ra, t0)
+       + ' A ' + ra + ' ' + ra + ' 0 0 1 ' + P(ra, t1)
+       + ' L ' + P(rr, r1);
+  }
+  d += ' A ' + rr + ' ' + rr + ' 0 0 1 ' + P(rr, -wRoot / 2) + ' Z';
+  var circle = function (r) {
+    return ' M ' + r + ' 0 A ' + r + ' ' + r + ' 0 1 0 ' + (-r) + ' 0'
+         + ' A ' + r + ' ' + r + ' 0 1 0 ' + r + ' 0 Z';
+  };
+  d += circle(o.bore || 0.16 * rp);
+  if (o.spokes) {
+    var hub = 0.32 * rp, rim = 0.72 * rr, half = 0.16;
+    for (var s = 0; s < o.spokes; s++) {
+      var a0 = s * 2 * Math.PI / o.spokes + half;
+      var a1 = (s + 1) * 2 * Math.PI / o.spokes - half;
+      d += ' M ' + P(hub, a0) + ' A ' + hub + ' ' + hub + ' 0 0 1 ' + P(hub, a1)
+         + ' L ' + P(rim, a1) + ' A ' + rim + ' ' + rim + ' 0 0 0 ' + P(rim, a0) + ' Z';
+    }
+  }
+  return d;
+}
+
+/* Gear train constants — shared module, exact center distance, interleave
+   phase per the meshing law. The CSS rotations (90° / −180°) encode the
+   −N_A/N_B ratio; lever→gearA gearing is implied by the hidden rack. */
+var GEAR_NA = 18, GEAR_NB = 9, GEAR_M = 4.4, GEAR_PHI = -20;
+
+function buildRail() {
+  if (!rail) return;
+  // ---- quadrant plate (static art) — pivot at (180, 212) ----
+  var q = $('.quadrant', rail);
+  var qp = function (r, deg) {
+    var a = deg * Math.PI / 180;
+    return (180 + r * Math.sin(a)).toFixed(1) + ' ' + (212 - r * Math.cos(a)).toFixed(1);
+  };
+  q.appendChild(svgEl('path', { d:
+    'M ' + qp(148, -22) + ' A 148 148 0 0 1 ' + qp(148, 22) +
+    ' L ' + qp(130, 22) + ' A 130 130 0 0 0 ' + qp(130, -22) + ' Z' }, 'q-plate'));
+  q.appendChild(svgEl('path', { d:
+    'M ' + qp(140, -19) + ' A 140 140 0 0 1 ' + qp(140, 19) }, 'q-face'));
+  // ratchet teeth on the inner edge; deep notches at the ±16° detents
+  var teeth = '';
+  for (var d = -18; d <= 18; d += 4) {
+    if (d === -16 || d === 16) continue;
+    teeth += 'M ' + qp(130, d) + ' L ' + qp(126, d) + ' ';
+  }
+  q.appendChild(svgEl('path', { d: teeth }, 'q-teeth'));
+  [-16, 16].forEach(function (deg) {
+    q.appendChild(svgEl('polygon', { points: [
+      qp(126, deg - 1.8), qp(126, deg + 1.8), qp(138, deg + 1.3), qp(138, deg - 1.3)
+    ].join(' ') }, 'q-notch'));
+  });
+  // floor slot the lever tail passes through
+  q.appendChild(svgEl('rect', { x: 162, y: 200, width: 36, height: 9, rx: 3 }, 'q-slot'));
+  // painted static contact shadow under the gear-well aperture (shadows
+  // never ride the movers — they'd re-raster per frame)
+  q.appendChild(svgEl('rect', { x: 92, y: 206, width: 176, height: 4 }, 'q-shadow'));
+  // steam vent pipe + collars + mouth (the nozzle sits on the mouth)
+  q.appendChild(svgEl('rect', { x: 263.5, y: 112, width: 11, height: 90 }, 'q-pipe'));
+  q.appendChild(svgEl('rect', { x: 260.5, y: 119, width: 17, height: 2.5 }, 'q-pipe'));
+  q.appendChild(svgEl('rect', { x: 260.5, y: 126, width: 17, height: 2.5 }, 'q-pipe'));
+  q.appendChild(svgEl('ellipse', { cx: 269, cy: 112, rx: 5.5, ry: 2 }, 'q-slot'));
+
+  // ---- lever (mover) — pivot at (70, 202) in its own viewBox ----
+  var lv = $('.lever-svg', rail);
+  lv.appendChild(svgEl('polygon',
+    { points: '63.5,206 76.5,206 75,30 65,30' }, 'lv-arm'));
+  lv.appendChild(svgEl('rect',
+    { x: 63, y: 16, width: 14, height: 50, rx: 7 }, 'lv-grip'));
+  lv.appendChild(svgEl('rect',
+    { x: 77, y: 170, width: 7, height: 12 }, 'lv-arm'));   // pawl block
+  lv.appendChild(svgEl('circle', { cx: 70, cy: 120, r: 9 }, 'lv-plate'));
+  var num = svgEl('text', { x: 70, y: 124.5, 'text-anchor': 'middle' }, 'lv-plate-t');
+  num.textContent = '1';
+  lv.appendChild(num);
+
+  // ---- gear pair (movers) — placed on exact mesh geometry ----
+  var rpA = GEAR_NA * GEAR_M / 2, rpB = GEAR_NB * GEAR_M / 2;
+  var phi = GEAR_PHI * Math.PI / 180;
+  var ax = 58, ay = 66;                        // gearA center in the well
+  var bx = ax + (rpA + rpB) * Math.cos(phi);
+  var by = ay + (rpA + rpB) * Math.sin(phi);
+  // interleave phase: ((1 + NA/NB)·φ + 180 − 180/NB) mod (360/NB)
+  var phaseB = (((1 + GEAR_NA / GEAR_NB) * GEAR_PHI + 180 - 180 / GEAR_NB)
+                % (360 / GEAR_NB) + 360 / GEAR_NB) % (360 / GEAR_NB);
+  var gA = $('.gearA-svg', rail), gB = $('.gearB-svg', rail);
+  var wrapA = svgEl('g', {});
+  wrapA.appendChild(svgEl('path', { d: gearPath(GEAR_NA, GEAR_M, { spokes: 5 }),
+    'fill-rule': 'evenodd' }));
+  gA.appendChild(wrapA);
+  var wrapB = svgEl('g', { transform: 'rotate(' + phaseB.toFixed(2) + ')' });
+  wrapB.appendChild(svgEl('path', { d: gearPath(GEAR_NB, GEAR_M, {}),
+    'fill-rule': 'evenodd' }));
+  gB.appendChild(wrapB);
+  gA.style.left = (ax - 52) + 'px'; gA.style.top = (ay - 52) + 'px';
+  gB.style.left = (bx - 30).toFixed(1) + 'px'; gB.style.top = (by - 30).toFixed(1) + 'px';
+}
+
+/* The one machined ring allowed above the ticker: a knurl band appended to
+   the rosette def (live <use> instances update automatically). */
+function buildRosetteKnurl() {
+  var def = document.getElementById('rosette');
+  if (!def) return;
+  var g = svgEl('g', { 'stroke-width': '1' });
+  for (var i = 0; i < 24; i++) {
+    var a = i * 15 * Math.PI / 180;
+    g.appendChild(svgEl('line', {
+      x1: (24 + 20.8 * Math.sin(a)).toFixed(2), y1: (24 - 20.8 * Math.cos(a)).toFixed(2),
+      x2: (24 + 22.6 * Math.sin(a)).toFixed(2), y2: (24 - 22.6 * Math.cos(a)).toFixed(2)
+    }));
+  }
+  def.appendChild(g);
+}
+
+/* Enamel gauge — LINES 0..m on a 240° scale, knurled bezel. Rebuilt only
+   when the registry size changes. */
+function buildGauge(m) {
+  var svg = rail && $('.gauge', rail);
+  if (!svg || svg._m === m || m < 1) return;
+  svg._m = m;
+  svg.textContent = '';
+  svg.appendChild(svgEl('circle', { cx: 50, cy: 50, r: 34, 'stroke-width': 1.5 }, 'g-bezel'));
+  svg.appendChild(svgEl('circle', { cx: 50, cy: 50, r: 30, 'stroke-width': 1 }, 'g-bezel'));
+  var knurl = svgEl('g', { 'stroke-width': 1 }, 'g-knurl');
+  for (var i = 0; i < 24; i++) {
+    var a = i * 15 * Math.PI / 180;
+    knurl.appendChild(svgEl('line', {
+      x1: (50 + 30.8 * Math.sin(a)).toFixed(2), y1: (50 - 30.8 * Math.cos(a)).toFixed(2),
+      x2: (50 + 33.2 * Math.sin(a)).toFixed(2), y2: (50 - 33.2 * Math.cos(a)).toFixed(2)
+    }));
+  }
+  svg.appendChild(knurl);
+  svg.appendChild(svgEl('circle', { cx: 50, cy: 50, r: 29 }, 'g-dial'));
+  for (var j = 0; j <= m; j++) {
+    var deg = -120 + 240 * j / m;
+    var r = deg * Math.PI / 180;
+    svg.appendChild(svgEl('line', {
+      x1: (50 + 22 * Math.sin(r)).toFixed(2), y1: (50 - 22 * Math.cos(r)).toFixed(2),
+      x2: (50 + 27.5 * Math.sin(r)).toFixed(2), y2: (50 - 27.5 * Math.cos(r)).toFixed(2),
+      'stroke-width': 1.5
+    }, 'g-tick'));
+    var tx = svgEl('text', {
+      x: (50 + 15.5 * Math.sin(r)).toFixed(2),
+      y: (50 - 15.5 * Math.cos(r) + 3.5).toFixed(2),
+      'text-anchor': 'middle'
+    });
+    tx.textContent = String(j);
+    svg.appendChild(tx);
+  }
+  svg.appendChild(svgEl('line', { x1: 50, y1: 58, x2: 50, y2: 26, 'stroke-width': 1.5 }, 'g-needle'));
+  svg.appendChild(svgEl('circle', { cx: 50, cy: 50, r: 3 }, 'g-hub'));
+}
+
+/* Steam — event-only. 4–6 soft sprites per burst, randomized via inline
+   custom properties; cleanup on animationend plus a safety timeout. */
+var MAX_PUFFS = 14, STEAM_WIND = 9;
+function steamBurst(nozzleEl, n) {
+  if (!nozzleEl || root.dataset.motion === 'reduced') return;
+  if (nozzleEl.childElementCount > MAX_PUFFS - n) return;
+  for (var i = 0; i < n; i++) {
+    var p = document.createElement('div');
+    p.className = 'puff';
+    var dur = Math.round(900 + Math.random() * 600);
+    var delay = Math.round(Math.random() * 120);
+    p.style.cssText =
+      '--dx:' + Math.round(Math.random() * 28 - 14 + STEAM_WIND) + 'px;' +
+      '--rise:' + Math.round(-(60 + Math.random() * 50)) + 'px;' +
+      '--s:' + (2.2 + Math.random() * 0.8).toFixed(2) + ';' +
+      '--rot:' + Math.round(Math.random() * 80 - 40) + 'deg;' +
+      'animation-duration:' + dur + 'ms;animation-delay:' + delay + 'ms;';
+    p.addEventListener('animationend', function (e) { e.target.remove(); }, { once: true });
+    (function (el, t) { setTimeout(function () { el.remove(); }, t); })(p, dur + delay + 120);
+    nozzleEl.appendChild(p);
+  }
+}
+
+/* Weighty throw: fast start → ~4.5% overshoot → damped clank settle.
+   C0-continuous at the seam; identical feel both directions. */
+function easeWeighty(t) {
+  if (t >= 1) return 1;
+  var MAIN = 0.78, OVER = 0.045;
+  if (t < MAIN) {
+    var u = t / MAIN;
+    return (1 + OVER) * (1 - Math.pow(1 - u, 3.1));
+  }
+  var v = (t - MAIN) / (1 - MAIN);
+  return 1 + OVER * Math.cos(v * Math.PI * 2.2) * Math.exp(-4.5 * v);
+}
+
+var railRaf = null;
+function setDrive(v) { rail.style.setProperty('--drive', v.toFixed(4)); }
+function getDrive() {
+  var v = parseFloat(getComputedStyle(rail).getPropertyValue('--drive'));
+  return isNaN(v) ? 0 : v;
+}
+
+/* Interrupt-safe rAF driver: a re-toggle mid-throw reads the current
+   --drive as its new start. Steam fires once past 55% of the throw
+   (latched). Reduced motion: snap — the gears stay correct for free. */
+function railDrive(target) {
+  if (!rail) return;
+  cancelAnimationFrame(railRaf);
+  // Hidden pages never fire rAF — land the mechanism instantly.
+  if (root.dataset.motion === 'reduced' ||
+      document.visibilityState === 'hidden') { setDrive(target); return; }
+  var from = getDrive(), t0 = performance.now(), DUR = 520;
+  var latched = false;
+  var frame = function (now) {
+    // The Motion preference can flip (or the tab hide) mid-throw — land it.
+    if (root.dataset.motion === 'reduced' ||
+        document.visibilityState === 'hidden') { setDrive(target); return; }
+    var t = Math.min(1, (now - t0) / DUR);
+    var p = from + (target - from) * easeWeighty(t);
+    setDrive(t === 1 ? target : p);
+    var prog = target === 1 ? p : 1 - p;
+    if (!latched && prog > 0.55) { latched = true; steamBurst(railNozzle, 5); }
+    if (t < 1) railRaf = requestAnimationFrame(frame);
+  };
+  railRaf = requestAnimationFrame(frame);
 }
 
 /* ========================================================================
@@ -329,6 +613,7 @@ function renderGates() {
     a.addEventListener('click', function (e) { gateClick(e, a, svc); });
     wrap.appendChild(a);
   });
+  buildGauge(services.length);
   layoutStage(true);
   applyStatuses();
   applyStats();
@@ -449,10 +734,13 @@ var themeBusy = false;
 var wingReorderT;
 
 function setWing(w) {
+  wingPending = w;
   var apply = function () {
     root.dataset.wing = w;
+    if (wingPending === w) wingPending = null;
     store('atrium.wing', w);
     lever.setAttribute('aria-checked', String(w === 'bureau'));
+    railDrive(w === 'bureau' ? 1 : 0);
     layoutStage(false);
     // After the slide settles, re-append gates active-first so the tab
     // order matches the new composition (pixels don't move — gates are
@@ -469,13 +757,19 @@ function setWing(w) {
   // Serialize: the lever re-light queues until a theme crossfade finishes.
   if (themeBusy) setTimeout(apply, 420); else apply();
 }
-lever.addEventListener('click', function () {
-  setWing(root.dataset.wing === 'salon' ? 'bureau' : 'salon');
-});
+/* Toggle target derives from the PENDING wing when a crossfade has queued
+   the apply — two quick toggles must round-trip, not both land on the same
+   side. */
+var wingPending = null;
+function toggleWing() {
+  var cur = wingPending || root.dataset.wing;
+  setWing(cur === 'salon' ? 'bureau' : 'salon');
+}
+lever.addEventListener('click', toggleWing);
 lever.addEventListener('keydown', function (e) {
   if (e.key === ' ' || e.key === 'Enter') {
     e.preventDefault();
-    setWing(root.dataset.wing === 'salon' ? 'bureau' : 'salon');
+    toggleWing();
   }
 });
 
@@ -501,6 +795,11 @@ function applyStatuses() {
     $('.g-lamp', a).title = note || lampT.title;
   });
   $('#all-dark').hidden = !(known === services.length && known > 0 && openCount === 0);
+  // The rail gauge tracks lines open (needle spring-settles via CSS).
+  if (rail && services.length) {
+    rail.style.setProperty('--gauge',
+      (-120 + (openCount / services.length) * 240).toFixed(1));
+  }
 }
 
 function statText(svc) {
@@ -635,11 +934,19 @@ function renderLedger() {
     return chipFilter === 'all' || d.wing === chipFilter;
   });
   if (firstFeed) { ol.textContent = ''; }
-  // Remove plaques whose dispatch left the window/filter
+  // Cache-prune ONLY dispatches that left the feed window for real; a
+  // chip-hidden plaque is detached but keeps its cache entry, so toggling
+  // the filter back never rebuilds it as "fresh" (would re-animate).
+  var shownIds = {};
+  shown.forEach(function (d) { shownIds[d.id] = 1; });
   Object.keys(plaqueEls).forEach(function (id) {
-    if (!shown.some(function (d) { return d.id === id; })) {
-      if (plaqueEls[id].parentNode) plaqueEls[id].parentNode.removeChild(plaqueEls[id]);
+    var li = plaqueEls[id];
+    var inFeed = feed.some(function (d) { return d.id === id; });
+    if (!inFeed) {
+      if (li.parentNode) li.parentNode.removeChild(li);
       delete plaqueEls[id];
+    } else if (!shownIds[id] && li.parentNode) {
+      li.parentNode.removeChild(li);
     }
   });
   // Clear old daybreaks/empty markers, rebuild order
@@ -672,7 +979,17 @@ function renderLedger() {
     }
     updatePlaque(li, d);
     ol.appendChild(li);                      // reposition in sorted order
-    if (fresh && !firstFeed) li.classList.add('arrive');
+    if (fresh && !firstFeed) {
+      // Strip the class once played: re-appending a connected node
+      // restarts its CSS animations, and re-polls must never re-animate.
+      li.classList.add('arrive');
+      li.addEventListener('animationend', function () {
+        li.classList.remove('arrive');
+      }, { once: true });
+      (function (el) {
+        setTimeout(function () { el.classList.remove('arrive'); }, 700);
+      })(li);
+    }
   });
 }
 
@@ -980,7 +1297,26 @@ $('#replay').addEventListener('click', function () {
 applyI18nStatic();
 renderDateline();
 renderGhosts();
+buildRosetteKnurl();
+buildRail();
+// Seed the inline --drive: without it the first throw's getDrive() would
+// read the wing-attribute CSS rule AFTER setWing flips the attribute —
+// from === target, so the ease and the 55% steam latch would both vanish.
+if (rail) setDrive(root.dataset.wing === 'bureau' ? 1 : 0);
 lever.setAttribute('aria-checked', String(root.dataset.wing === 'bureau'));
+
+/* ?steam=1 (debug, not persisted): freeze a burst at four life stages so
+   headless screenshots can QA the vapor without a pointer. */
+if (new URLSearchParams(location.search).get('steam') === '1' && railNozzle) {
+  [-100, -350, -650, -900].forEach(function (offset, i) {
+    var p = document.createElement('div');
+    p.className = 'puff';
+    p.style.cssText = '--dx:' + (i * 10 - 8) + 'px;--rise:-84px;--s:2.6;' +
+      '--rot:24deg;animation-duration:1200ms;' +
+      'animation-delay:' + offset + 'ms;animation-play-state:paused;';
+    railNozzle.appendChild(p);
+  });
+}
 
 if (root.dataset.entered === 'no') playEntrance();
 
