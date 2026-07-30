@@ -54,7 +54,6 @@ var STR = {
     'k.anime.unresolved': 'No release group matched yet',
     'k.anime.grace': 'Waiting for the preferred group',
     'k.mods.updated': 'Workshop update · {game}',
-    'k.mods.downloaded': 'Update installed · {game}',
     'k.mods.removed': 'Delisted from the Workshop',
     'k.mods.banned': 'Banned on the Workshop',
     'k.outreach.queue_ready.head': 'Daily queue ready',
@@ -114,7 +113,6 @@ var STR = {
     'k.anime.unresolved': '尚未匹配到字幕组源',
     'k.anime.grace': '等待首选字幕组中',
     'k.mods.updated': '创意工坊更新 · {game}',
-    'k.mods.downloaded': '更新已入库 · {game}',
     'k.mods.removed': '已从创意工坊下架',
     'k.mods.banned': '已被创意工坊封禁',
     'k.outreach.queue_ready.head': '今日邀约队列已就绪',
@@ -875,8 +873,6 @@ function headline(d) {
       return { head: p.title, detail: t('k.anime.grace') };
     case 'mods.updated':
       return { head: p.title, detail: t('k.mods.updated', p) + (p.note ? ' — ' + p.note : '') };
-    case 'mods.downloaded':
-      return { head: p.title, detail: t('k.mods.downloaded', p) };
     case 'mods.removed':
       return { head: p.title, detail: t('k.mods.removed'), warn: true };
     case 'mods.banned':

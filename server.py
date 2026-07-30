@@ -275,9 +275,20 @@ def anime_events_to_dispatches(events: list) -> dict:
 
 GS_EVENT_KINDS = {
     "updated": "mods.updated",
-    "downloaded": "mods.downloaded",
     "removed": "mods.removed",
     "banned": "mods.banned",
+}
+
+# Kinds Ground Station raises that the hall deliberately stays quiet about.
+# Spelled out rather than merely left out of the table above, so that a
+# genuinely new kind from a future Ground Station still trips the "unknown"
+# log line instead of disappearing into the same silent branch.
+GS_MUTED_KINDS = {
+    # Raised once Steam has finished writing an update to disk. That is the
+    # second half of a story "updated" already told, and unlike "updated" it
+    # is not gated on the mod's cared flag — every tracked mod can raise it,
+    # so it drowns the Ledger. Ground Station's own panel still lists it.
+    "downloaded",
 }
 
 
@@ -285,8 +296,12 @@ def gs_events_to_dispatches(events: list, games: dict,
                             changelog_for=None) -> dict:
     out: dict[str, dict] = {}
     for ev in events or []:
-        kind = GS_EVENT_KINDS.get(ev.get("type"))
+        etype = ev.get("type")
+        if etype in GS_MUTED_KINDS:
+            continue
+        kind = GS_EVENT_KINDS.get(etype)
         if kind is None:
+            log.info("groundstation: unknown event kind %r dropped", etype)
             continue
         ts = int(ev.get("detectedAt") or ev.get("ts") or 0) * 1000
         params = {
