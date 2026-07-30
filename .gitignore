@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+.codegraph/
+.claude/
+hub.log
+state/
+shots/
