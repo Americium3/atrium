@@ -40,16 +40,17 @@ var STR = {
     'stat.airing': '{n} AIRING TODAY', 'stat.watching': '{n} WATCHING',
     'stat.pending': '{n} UPDATES PENDING', 'stat.mods': '{n} MODS TRACKED',
     'stat.queue': 'QUEUE {done}/{total}', 'stat.invited': 'SENT {n}/{target}',
-    'note.qb_auth': 'qBittorrent auth blocked — episode headlines disabled',
-    'note.qb_down': 'qBittorrent unreachable — episode headlines paused',
+    'note.qb_down': 'qBittorrent unreachable — downloads paused',
     'note.daemon_stale': 'Sync daemon looks stalled',
     'note.fallback': 'Reading state files directly (server down)',
     'k.anime.premiere': 'Premiered',
     'k.anime.premiere.promoted': 'Premiered — auto-subscribed',
     'k.anime.completed': 'Finished — all {eps} episodes watched',
     'k.anime.completed.noeps': 'Finished — marked as watched',
-    'k.anime.episode': 'Episode {ep} arrived',
-    'k.anime.episode.noep': 'New episode arrived',
+    'k.anime.landed': 'Episode {ep} shelved · {cour}',
+    'k.anime.landed.noep': 'New episode shelved · {cour}',
+    'k.anime.subscribed': 'Now subscribed · {group}',
+    'k.anime.subscribed.nogroup': 'Now subscribed',
     'k.anime.unresolved': 'No release group matched yet',
     'k.anime.grace': 'Waiting for the preferred group',
     'k.mods.updated': 'Workshop update · {game}',
@@ -95,16 +96,17 @@ var STR = {
     'stat.airing': '今日 {n} 部放送', 'stat.watching': '在看 {n} 部',
     'stat.pending': '{n} 个更新待装', 'stat.mods': '追踪 {n} 个 MOD',
     'stat.queue': '队列 {done}/{total}', 'stat.invited': '已发 {n}/{target}',
-    'note.qb_auth': 'qBittorrent 拒绝访问——单集快讯已停用',
-    'note.qb_down': 'qBittorrent 不可达——单集快讯暂停',
+    'note.qb_down': 'qBittorrent 不可达——下载已暂停',
     'note.daemon_stale': '同步守护进程疑似卡住',
     'note.fallback': '服务器离线——正在直读状态文件',
     'k.anime.premiere': '开播',
     'k.anime.premiere.promoted': '开播——已自动订阅',
     'k.anime.completed': '完结——全 {eps} 话看完',
     'k.anime.completed.noeps': '完结——已标记看过',
-    'k.anime.episode': '第 {ep} 话已入库',
-    'k.anime.episode.noep': '新一话已入库',
+    'k.anime.landed': '第 {ep} 话已入库 · {cour}',
+    'k.anime.landed.noep': '新一话已入库 · {cour}',
+    'k.anime.subscribed': '已订阅 · {group}',
+    'k.anime.subscribed.nogroup': '已订阅',
     'k.anime.unresolved': '尚未匹配到字幕组源',
     'k.anime.grace': '等待首选字幕组中',
     'k.mods.updated': '创意工坊更新 · {game}',
@@ -851,8 +853,10 @@ function headline(d) {
       return { head: p.title, detail: t(p.promoted ? 'k.anime.premiere.promoted' : 'k.anime.premiere') };
     case 'anime.completed':
       return { head: p.title, detail: t(p.eps ? 'k.anime.completed' : 'k.anime.completed.noeps', p) };
-    case 'anime.episode':
-      return { head: p.show, detail: t(p.ep ? 'k.anime.episode' : 'k.anime.episode.noep', p) };
+    case 'anime.landed':
+      return { head: p.show, detail: t(p.ep ? 'k.anime.landed' : 'k.anime.landed.noep', p) };
+    case 'anime.subscribed':
+      return { head: p.title, detail: t(p.group ? 'k.anime.subscribed' : 'k.anime.subscribed.nogroup', p) };
     case 'anime.unresolved':
       return { head: p.title, detail: t('k.anime.unresolved'), warn: true };
     case 'anime.grace':
