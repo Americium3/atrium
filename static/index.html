@@ -1,0 +1,364 @@
+<!doctype html>
+<html lang="en" data-theme="onyx" data-wing="salon" data-motion="full" data-entered="no">
+<head>
+<meta charset="utf-8">
+<title>ATRIUM</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script>
+/* Pre-paint: resolve theme, language, wing, motion and entrance suppression
+   before first paint — no flash, no wrong-theme frame. */
+(function () {
+  var d = document.documentElement, ls;
+  try { ls = window.localStorage; } catch (e) { ls = null; }
+  var q = new URLSearchParams(location.search);   // debug overrides, not persisted
+  function get(k, f) { return (ls && ls.getItem(k)) || f; }
+  var pref = q.get('theme') || get('atrium.theme', 'system');
+  var dark = pref === 'onyx' ||
+    (pref === 'system' && matchMedia('(prefers-color-scheme: dark)').matches);
+  d.dataset.theme = dark ? 'onyx' : 'ivory';
+  d.dataset.themePref = pref;
+  d.lang = (q.get('lang') || get('atrium.lang', 'en')) === 'zh' ? 'zh' : 'en';
+  d.dataset.wing =
+    (q.get('wing') || get('atrium.wing', 'salon')) === 'bureau' ? 'bureau' : 'salon';
+  var motion = q.get('motion') || get('atrium.motion',
+    matchMedia('(prefers-reduced-motion: reduce)').matches ? 'reduced' : 'full');
+  d.dataset.motion = motion;
+  var last = +(get('atrium.entered', '0'));
+  var play = motion === 'full' && (Date.now() - last > 6 * 3600 * 1000);
+  if (q.get('entrance') === '1') play = true;
+  if (q.get('entrance') === '0') play = false;
+  d.dataset.entered = play ? 'no' : 'yes';
+  // data-boot distinguishes a suppressed load (hall fades in at boot) from
+  // a played entrance (flipping data-entered later must NOT re-fade).
+  d.dataset.boot = play ? 'played' : 'suppressed';
+  if (play && ls && !q.get('entrance')) {
+    ls.setItem('atrium.entered', String(Date.now()));
+  }
+})();
+</script>
+<link rel="preload" href="/static/fonts/EBGaramond-wght.ttf" as="font" type="font/ttf" crossorigin>
+<link rel="preload" href="/static/fonts/NotoSerifSC-VF.ttf" as="font" type="font/ttf" crossorigin>
+<link rel="stylesheet" href="/static/css/atrium.css">
+</head>
+<body>
+
+<!-- ======================================================================
+     Shared SVG defs — one ornament vocabulary for the whole hall.
+     Geometry law: sigils on a 96 grid, 1.5px strokes, zero corner radius,
+     at most one accent-filled shape each.
+====================================================================== -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+<defs>
+
+  <!-- Gate frame: arch + inner hairline + stepped shoulders + plinth -->
+  <g id="gate-frame">
+    <path class="fs1" d="M10 162 A140 140 0 0 1 290 162 L290 560 L10 560 Z"
+          fill="none" stroke-width="1.5"/>
+    <path class="fs2" d="M22 166 A128 128 0 0 1 278 166 L278 548 L22 548 Z"
+          fill="none" stroke-width="1"/>
+    <!-- stepped shoulders: 3 steps of 6 at the springing line -->
+    <path class="fs3" d="M10 162 h6 v6 h6 v6 h6 M290 162 h-6 v6 h-6 v6 h-6"
+          fill="none" stroke-width="1"/>
+    <!-- plinth rule + center diamond (single hairline — double rules are
+         reserved for the ticker and Ledger day-breaks) -->
+    <path class="fs3" d="M22 524 H278" fill="none" stroke-width="1"/>
+    <rect class="fs4" x="145" y="519.5" width="10" height="10"
+          transform="rotate(45 150 524.5)" fill="none" stroke-width="1"/>
+    <!-- keystone diamond around the sigil zone -->
+    <rect class="fs2" x="106" y="52" width="88" height="88"
+          transform="rotate(45 150 96)" fill="none" stroke-width="1"/>
+  </g>
+
+  <!-- Sigils are referenced through <use> (shadow DOM): stroke/fill must be
+       currentColor so the host element's CSS `color` pierces through. -->
+
+  <!-- Sigil: Anime Autopilot — winged disc -->
+  <g id="sig-autopilot" fill="none" stroke="currentColor" stroke-width="1.5">
+    <circle cx="48" cy="48" r="13"/>
+    <circle cx="48" cy="48" r="4" fill="currentColor" stroke="none"/>
+    <path d="M33 44 H12 M33 50 H18 M33 56 H24"/>
+    <path d="M63 44 H84 M63 50 H78 M63 56 H72"/>
+    <path d="M48 63 L43 76 H53 Z"/>
+  </g>
+
+  <!-- Sigil: Ground Station — dish over ringed planet -->
+  <g id="sig-groundstation" fill="none" stroke="currentColor" stroke-width="1.5">
+    <circle cx="48" cy="60" r="14"/>
+    <path d="M26 66 C36 74 60 74 70 66"/>
+    <path d="M34 34 A16 16 0 0 1 62 34 L48 48 Z"/>
+    <path d="M48 34 V22 M42 22 H54"/>
+    <circle cx="48" cy="34" r="2.5" fill="currentColor" stroke="none"/>
+  </g>
+
+  <!-- Sigil: Outreach Desk — deco compass -->
+  <g id="sig-outreach" fill="none" stroke="currentColor" stroke-width="1.5">
+    <circle cx="48" cy="48" r="22"/>
+    <path d="M48 14 L54 42 L48 48 L42 42 Z" fill="currentColor" stroke="none"/>
+    <path d="M48 82 L42 54 L48 48 L54 54 Z"/>
+    <path d="M14 48 H34 M62 48 H82"/>
+    <circle cx="48" cy="48" r="3"/>
+  </g>
+
+  <!-- Sigil: generic fallback keystone (future services) -->
+  <g id="sig-fallback" fill="none" stroke="currentColor" stroke-width="1.5">
+    <path d="M30 26 H66 L74 70 H22 Z"/>
+    <path d="M40 34 V62 M48 34 V62 M56 34 V62" stroke-width="1"/>
+    <circle cx="48" cy="20" r="3" fill="currentColor" stroke="none"/>
+  </g>
+
+  <!-- Masthead monogram rosette (JS adds the outer knurl band — the one
+       machined ring allowed above the ticker) -->
+  <g id="rosette" fill="none" stroke="currentColor" stroke-width="1.5">
+    <circle cx="24" cy="24" r="20"/>
+    <circle cx="24" cy="24" r="13" stroke-width="1"/>
+    <g stroke-width="1">
+      <path d="M24 4 V11 M24 37 V44 M4 24 H11 M37 24 H44"/>
+      <path d="M9.9 9.9 L14.8 14.8 M33.2 33.2 L38.1 38.1
+               M38.1 9.9 L33.2 14.8 M14.8 33.2 L9.9 38.1"/>
+    </g>
+    <path d="M24 17 L28 27 H20 Z" fill="currentColor" stroke="none"/>
+  </g>
+
+  <!-- Settings rosette: distinct construction — keyhole center -->
+  <g id="rosette-key" fill="none" stroke="currentColor" stroke-width="1.5">
+    <circle cx="24" cy="24" r="20"/>
+    <g stroke-width="1">
+      <path d="M24 4 V10 M24 38 V44 M4 24 H10 M38 24 H44"/>
+      <path d="M9.9 9.9 L14.1 14.1 M33.9 33.9 L38.1 38.1
+               M38.1 9.9 L33.9 14.1 M14.1 33.9 L9.9 38.1"/>
+    </g>
+    <circle cx="24" cy="20" r="5.5"/>
+    <path d="M22 24.5 L20.5 32 H27.5 L26 24.5"/>
+  </g>
+
+  <!-- Ledger medallion ring — third ring makes it a pneumatic carrier end-cap -->
+  <g id="medallion" stroke="currentColor">
+    <circle cx="20" cy="20" r="18" fill="none" stroke-width="1.5"/>
+    <circle cx="20" cy="20" r="14" fill="none" stroke-width="1"/>
+    <circle cx="20" cy="20" r="10.5" fill="none" stroke-width="1" opacity="0.6"/>
+  </g>
+
+  <!-- Empty-state fleuron -->
+  <g id="fleuron" fill="none" stroke="currentColor" stroke-width="1">
+    <path d="M4 20 H28 M32 20 H56"/>
+    <rect x="26" y="16" width="8" height="8" transform="rotate(45 30 20)"/>
+  </g>
+
+</defs>
+</svg>
+
+<!-- ======================================================================
+     Entrance — the sequence assembles the chrome: the drawn circle docks
+     as the masthead rosette while the rays fade as the doors part; the
+     ticker's double rules draw themselves in echo.
+====================================================================== -->
+<div id="entrance" aria-hidden="true">
+  <div class="e-void"></div>
+  <svg class="e-burst" viewBox="0 0 800 800">
+    <g class="e-rays"></g>
+    <!-- Vault boltwork: 8 radial rods (JS-populated) retract in sync as the
+         handwheel turns — a vault throws all bolts at once. -->
+    <g class="e-bolts"></g>
+    <circle class="e-circle" cx="400" cy="400" r="92" fill="none" stroke-width="1.5"/>
+    <!-- Handwheel drawn from the same circle: 4 spokes + hub + grip knobs.
+         It docks with the burst into the rosette (spokes echo the cross-hairs). -->
+    <g class="e-wheel" fill="none" stroke-width="1.5">
+      <circle cx="400" cy="400" r="58"/>
+      <circle cx="400" cy="400" r="13"/>
+      <path d="M400 342 V387 M400 413 V458 M342 400 H387 M413 400 H458" stroke-width="3"/>
+      <circle cx="400" cy="334" r="4"/><circle cx="400" cy="466" r="4"/>
+      <circle cx="334" cy="400" r="4"/><circle cx="466" cy="400" r="4"/>
+    </g>
+  </svg>
+  <div class="e-seam"></div>
+  <div class="e-panel e-left"><svg viewBox="0 0 400 900" preserveAspectRatio="xMaxYMid slice">
+    <g class="e-engrave" fill="none" stroke-width="1">
+      <path d="M400 450 m-60 0 a60 60 0 0 1 60 -60 M400 450 m-110 0 a110 110 0 0 1 110 -110
+               M400 450 m-160 0 a160 160 0 0 1 160 -160 M400 450 m-210 0 a210 210 0 0 1 210 -210"/>
+      <path d="M400 450 m-60 0 a60 60 0 0 0 60 60 M400 450 m-110 0 a110 110 0 0 0 110 110
+               M400 450 m-160 0 a160 160 0 0 0 160 160 M400 450 m-210 0 a210 210 0 0 0 210 210"/>
+      <path d="M340 60 V840 M300 100 V800 M260 140 V760"/>
+      <!-- rivet column along the meeting edge (0-dash + round cap = dots) -->
+      <path d="M386 90 V810" stroke-dasharray="0 44" stroke-linecap="round" stroke-width="3"/>
+    </g>
+  </svg></div>
+  <div class="e-panel e-right"><svg viewBox="0 0 400 900" preserveAspectRatio="xMinYMid slice">
+    <g class="e-engrave" fill="none" stroke-width="1">
+      <path d="M0 450 m60 0 a60 60 0 0 0 -60 -60 M0 450 m110 0 a110 110 0 0 0 -110 -110
+               M0 450 m160 0 a160 160 0 0 0 -160 -160 M0 450 m210 0 a210 210 0 0 0 -210 -210"/>
+      <path d="M0 450 m60 0 a60 60 0 0 1 -60 60 M0 450 m110 0 a110 110 0 0 1 -110 110
+               M0 450 m160 0 a160 160 0 0 1 -160 160 M0 450 m210 0 a210 210 0 0 1 -210 210"/>
+      <path d="M60 60 V840 M100 100 V800 M140 140 V760"/>
+      <path d="M14 90 V810" stroke-dasharray="0 44" stroke-linecap="round" stroke-width="3"/>
+    </g>
+  </svg></div>
+  <div class="e-wordmark" aria-hidden="true">
+    <span>A</span><span>T</span><span>R</span><span>I</span><span>U</span><span>M</span>
+  </div>
+  <!-- One steam wisp rises from the seam foot as the doors part. -->
+  <div class="e-nozzle" aria-hidden="true"></div>
+</div>
+
+<!-- ====================================================================== -->
+<div id="hall">
+
+  <header id="masthead">
+    <svg id="monogram" viewBox="0 0 48 48" aria-hidden="true"><use href="#rosette"/></svg>
+    <div class="m-title">
+      <h1 class="display">ATRIUM</h1>
+      <div class="m-sub display" data-i18n="subtitle">GRAND CONCOURSE</div>
+    </div>
+    <div class="m-underline" aria-hidden="true"></div>
+    <div class="m-right">
+      <div id="dateline"></div>
+      <button id="prefs-btn" aria-haspopup="dialog">
+        <svg viewBox="0 0 48 48" aria-hidden="true"><use href="#rosette-key"/></svg>
+        <span class="p-caption" data-i18n="preferences">PREFERENCES</span>
+      </button>
+    </div>
+  </header>
+
+  <div id="ticker" aria-live="off" tabindex="0" data-i18n-aria="ariaTicker">
+    <div class="t-track" id="ticker-track"></div>
+  </div>
+
+  <main id="stage" data-i18n-aria="ariaGates" aria-label="Gates">
+    <div class="floor" aria-hidden="true"></div>
+    <div class="stage-glow" aria-hidden="true"></div>
+    <div id="gates"></div>
+    <div id="all-dark" hidden data-i18n="allDark">The hall is dark — no services reachable.</div>
+  </main>
+
+  <aside id="ledger" data-i18n-aria="ariaLedger" aria-label="Dispatches">
+    <div class="l-head">
+      <h2 class="display" data-i18n="ledger">THE LEDGER</h2>
+      <div class="chips" role="radiogroup" data-i18n-aria="ariaFilter" aria-label="Filter">
+        <button class="chip display" role="radio" aria-checked="true" data-chip="all" data-i18n="chipAll">ALL</button>
+        <button class="chip display" role="radio" aria-checked="false" data-chip="salon" data-i18n-title="salonWing" tabindex="-1">SALON</button>
+        <button class="chip display" role="radio" aria-checked="false" data-chip="bureau" data-i18n-title="bureauWing" tabindex="-1">BUREAU</button>
+      </div>
+    </div>
+    <div class="l-col">
+      <div class="spine" aria-hidden="true"></div>
+      <ol id="plaques"></ol>
+    </div>
+  </aside>
+
+</div>
+
+<!-- ======================================================================
+     Machine rail — the works of the hall. Fixed full-bleed footer, a
+     body-level sibling of #hall (never inside #stage: parallax vars are
+     scoped there, and a transformed ancestor would trap the fixed box).
+     Layers: .rail-art (static housing, contained) / .rail-fx (the three
+     movers + steam nozzle, overflow visible) / #lever (hit surface — same
+     id and contract as before, all JS bindings survive relocation).
+====================================================================== -->
+<footer id="machine-rail" data-i18n-aria="ariaRail" aria-label="Machine rail">
+  <div class="rail-band" aria-hidden="true"></div>
+  <div class="rail-core">
+    <div class="rail-inst rail-gauge" aria-hidden="true">
+      <svg class="gauge" viewBox="0 0 100 92"></svg>
+      <span class="inst-caption display">LINES</span>
+    </div>
+    <div class="assembly" aria-hidden="true">
+      <div class="rail-art">
+        <svg class="quadrant" viewBox="0 0 360 220"></svg>
+      </div>
+      <div class="rail-fx">
+        <div class="gear-well" aria-hidden="true">
+          <svg class="gearA-svg" viewBox="-52 -52 104 104"></svg>
+          <svg class="gearB-svg" viewBox="-30 -30 60 60"></svg>
+        </div>
+        <svg class="lever-svg" viewBox="0 0 140 210"></svg>
+        <div class="nozzle"></div>
+      </div>
+      <span class="l-label l-salon display" data-i18n-title="salonWing">SALON</span>
+      <span class="l-label l-bureau display" data-i18n-title="bureauWing">BUREAU</span>
+    </div>
+    <div id="lever" role="switch" aria-checked="false" tabindex="0"
+         data-i18n-aria="ariaLever" data-i18n-title="ariaLever"
+         aria-label="Mode lever: off = Salon, on = Bureau">
+      <!-- The arm hit zone rides above the box so clicks land only where
+           hardware is actually drawn — never a floating rectangle. -->
+      <span class="hit-arm" aria-hidden="true"></span>
+    </div>
+    <div class="rail-inst rail-plate" aria-hidden="true">
+      <!-- Single frame: double rules stay reserved for ticker/day-breaks -->
+      <svg class="builder-plate" viewBox="0 0 208 52">
+        <rect x="1.5" y="1.5" width="205" height="49" fill="none" stroke-width="1.5"/>
+        <circle cx="10" cy="10" r="1.6"/><circle cx="198" cy="10" r="1.6"/>
+        <circle cx="10" cy="42" r="1.6"/><circle cx="198" cy="42" r="1.6"/>
+        <text class="bp-name display" x="104" y="23" text-anchor="middle">ATRIUM WORKS</text>
+        <text class="bp-no addr" x="104" y="40" text-anchor="middle">No. 8769 · MMXXVI</text>
+      </svg>
+    </div>
+  </div>
+</footer>
+
+<!-- ====================================================================== -->
+<div id="prefs" role="dialog" aria-modal="true" aria-labelledby="prefs-title" hidden>
+  <div class="p-wrap">
+  <div class="p-sheet">
+    <header class="p-head">
+      <h2 id="prefs-title" class="display" data-i18n="preferences">PREFERENCES</h2>
+      <button id="prefs-close" data-i18n-aria="ariaClose" aria-label="Close">✕</button>
+    </header>
+
+    <section class="p-group">
+      <h3 class="p-label display" id="lbl-appearance" data-i18n="appearance">APPEARANCE</h3>
+      <div class="p-options" role="radiogroup" aria-labelledby="lbl-appearance" data-pref="theme">
+        <button class="p-plaque" role="radio" data-value="onyx">
+          <span class="swatch sw-onyx" aria-hidden="true"></span>
+          <span class="p-name display" data-i18n="onyx">ONYX</span>
+          <span class="p-desc" data-i18n="onyxDesc">Black &amp; gold</span>
+        </button>
+        <button class="p-plaque" role="radio" data-value="ivory">
+          <span class="swatch sw-ivory" aria-hidden="true"></span>
+          <span class="p-name display" data-i18n="ivory">IVORY</span>
+          <span class="p-desc" data-i18n="ivoryDesc">Platinum &amp; gold</span>
+        </button>
+        <button class="p-plaque" role="radio" data-value="system">
+          <span class="swatch sw-system" aria-hidden="true"></span>
+          <span class="p-name display" data-i18n="system">FOLLOW SYSTEM</span>
+          <span class="p-desc" data-i18n="systemDesc">Match the OS</span>
+        </button>
+      </div>
+    </section>
+
+    <section class="p-group">
+      <h3 class="p-label display" id="lbl-language" data-i18n="language">LANGUAGE</h3>
+      <div class="p-options" role="radiogroup" aria-labelledby="lbl-language" data-pref="lang">
+        <button class="p-plaque" role="radio" data-value="en">
+          <span class="p-name display">ENGLISH</span>
+        </button>
+        <button class="p-plaque" role="radio" data-value="zh">
+          <span class="p-name display" lang="zh">中文</span>
+        </button>
+      </div>
+    </section>
+
+    <section class="p-group">
+      <h3 class="p-label display" id="lbl-motion" data-i18n="motion">MOTION</h3>
+      <div class="p-options" role="radiogroup" aria-labelledby="lbl-motion" data-pref="motion">
+        <button class="p-plaque" role="radio" data-value="full">
+          <span class="p-name display" data-i18n="motionFull">FULL</span>
+        </button>
+        <button class="p-plaque" role="radio" data-value="reduced">
+          <span class="p-name display" data-i18n="motionReduced">REDUCED</span>
+        </button>
+      </div>
+    </section>
+
+    <section class="p-group">
+      <button id="replay" class="p-plaque">
+        <span class="p-name display" data-i18n="replay">REPLAY ENTRANCE</span>
+      </button>
+    </section>
+  </div>
+  </div>
+</div>
+
+<script src="/static/js/app.js"></script>
+</body>
+</html>

@@ -28,21 +28,39 @@ Atrium serves `http://127.0.0.1:8769` and currently fronts:
   lever — both wings' news always arrives.
 - **The ticker** — a status band (lines open, per-gate stats) that also
   scrolls dispatches you haven't seen yet; static when nothing is new.
-- **Mode lever** — SALON ◆ BUREAU. Throwing it re-lights the hall (gold ↔
-  platinum) and re-composes the stage; the inactive wing recedes behind a
-  veil but stays clickable. It never filters the Ledger.
+- **The machine rail** — a fixed bronze footer housing the works of the
+  hall. At its center stands a floor-mounted signal-box lever in a notched
+  quadrant (SALON ◆ BUREAU): throwing it re-lights the hall (gold ↔
+  platinum), re-composes the stage, spins the meshed gear pair in the
+  aperture below (trapezoid teeth on ISO proportions, exact center distance
+  and interleave phase), and vents a burst of steam mid-throw. The throw
+  has weight — fast start, slight overshoot, damped clank settle. The rail
+  also carries an enamel LINES gauge (needle = services reachable), a
+  riveted housing with an engraved builder's plate, and a FLUX.2-generated
+  engine-turned texture blended into the plate. It never filters the
+  Ledger.
 - **Entrance** — a ~2.4 s sequence that assembles the chrome: a gold circle
-  draws itself, sunburst rays fan out, engraved door leaves swing open on
-  their hinges in perspective, the wordmark settles, the camera dollies in,
-  and the circle docks as the masthead rosette. Plays at most once per 6 h;
-  click to skip; replay from Preferences; collapses to a fade under reduced
-  motion.
+  draws itself, sunburst rays fan out, the circle grows a vault handwheel
+  whose quarter-turn retracts eight radial bolts in sync, riveted door
+  leaves swing open on their hinges in perspective as a steam wisp rises
+  from the seam, the wordmark settles, the camera dollies in, and the
+  wheel docks with the circle as the masthead rosette. Plays at most once
+  per 6 h; click to skip; replay from Preferences; collapses to a fade
+  under reduced motion.
 - **Depth** — the hall is dimensional, not flat: a one-point-perspective
   floor converges behind the stage, gates are slabs with thickness, contact
   shadows and polished-floor reflections, receded wings tilt inward like a
   triptych's side panels, and the whole stage tilts subtly with the pointer
   (fine pointers only; fully off under reduced motion — the static depth
   stays). One near-vertical key light governs every shadow.
+- **Deco-machine fusion** — the steampunk layer follows the BioShock
+  casework principle: mechanism density peaks at the bottom rail and dies
+  before the architecture above. An oiled-bronze token family joins gold
+  and platinum in both themes; rivets appear only at machine plate seams;
+  the masthead rosette gains one machined knurl ring; the Ledger spine
+  reads as a pneumatic dispatch tube with pipe collars at the day breaks;
+  medallions become carrier end-caps. Nothing idles: gears turn only when
+  the lever drives them, steam exists only as discrete event bursts.
 
 ## Preferences
 
@@ -94,12 +112,26 @@ Adapter notes:
 
 ```
 run_hub.bat            # foreground-ish (logs to hub.log)
-run_hub_hidden.vbs     # hidden, for the Startup folder
+run_hub_hidden.vbs     # hidden starter
+scripts/concierge.ps1  # port-guarded fleet autostart (see below)
 ```
 
 Python 3.11 with `fastapi`, `uvicorn`, `httpx` (all present on the global
-interpreter). To autostart at login, drop a shortcut to
-`run_hub_hidden.vbs` into `shell:startup`.
+interpreter).
+
+Autostart: `scripts/concierge.vbs` runs `concierge.ps1`, which probes each
+service port and launches only what is down (Atrium, Ground Station,
+Outreach Desk — Anime Autopilot keeps its own Startup shortcuts). Register
+it as a logon scheduled task; services are spawned via WMI so they are
+parented outside the task's job object and survive its execution time
+limit:
+
+```powershell
+$a = New-ScheduledTaskAction -Execute 'wscript.exe' `
+       -Argument '"X:\Github\atrium\scripts\concierge.vbs"'
+$t = New-ScheduledTaskTrigger -AtLogOn -User $env:USERNAME; $t.Delay = 'PT15S'
+Register-ScheduledTask -TaskName 'AtriumConcierge' -Action $a -Trigger $t
+```
 
 Tests: `python tests/test_feed.py`
 
@@ -114,9 +146,17 @@ adapter tick if the service should feed the Ledger.
 ## Debug URL parameters
 
 Not persisted, for testing only: `?theme=onyx|ivory` · `?lang=en|zh` ·
-`?wing=salon|bureau` · `?motion=full|reduced` · `?entrance=0|1` · `?prefs=1`.
+`?wing=salon|bureau` · `?motion=full|reduced` · `?entrance=0|1` ·
+`?prefs=1` · `?steam=1` (freezes a steam burst at four life stages for
+screenshot QA).
 
-## Fonts
+## Fonts and textures
 
-Bundled locally (no CDN, no external fetches): EB Garamond and Noto Serif SC
-variable fonts, both SIL OFL 1.1 — see `static/fonts/LICENSE.txt`.
+Fonts are bundled locally (no CDN, no external fetches): EB Garamond and
+Noto Serif SC variable fonts, both SIL OFL 1.1 — see
+`static/fonts/LICENSE.txt`.
+
+The two material textures in `static/assets/tex/` (engine-turned steel,
+riveted iron plate) were generated locally with FLUX.2 [dev] via ComfyUI,
+then flattened to low-contrast mid-gray so they overlay-blend into either
+theme's housing tone.

@@ -1,0 +1,1156 @@
+/* ==========================================================================
+   ATRIUM — Art-Deco entrance hall for local web UIs.
+   Contract: DESIGN.md v2. Ornament budget: sunburst = entrance only;
+   rosettes = masthead/settings only; stepped frames = gates only; double
+   rules = ticker + ledger day-breaks only; medallions = ledger only.
+   Ban list: no multi-stop metallic gradients, no bevel/emboss, no outer
+   glows on gold. Hairlines: 1px / 1.5px only.
+   ========================================================================== */
+
+@font-face {
+  font-family: 'EB Garamond';
+  src: url('/static/fonts/EBGaramond-wght.ttf') format('truetype');
+  font-weight: 400 800;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Noto Serif SC';
+  src: url('/static/fonts/NotoSerifSC-VF.ttf') format('truetype');
+  font-weight: 200 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* ----- Token matrix (contrast-verified; see DESIGN.md) ------------------- */
+:root[data-theme="onyx"] {
+  --base: #0c0a07;
+  --surface: #141109;
+  --chrome: #3a3427;
+  --ink: #e8dcc0;
+  --ink-faint: #8a7f63;
+  --gold: #d4af37;
+  --gold-text: #d4af37;
+  --champagne: #f1e3b6;
+  --plat: #c9cfd8;
+  --plat-hi: #eef1f5;
+  --veil: rgba(12, 10, 7, 0.55);
+  --line: #2a2419;
+  --focus: #d4af37;   /* wing-neutral focus ring, 9.4:1 on base */
+  /* Depth tokens — one near-vertical key light, offsets point down */
+  --edge: #060504;
+  --shadow-drop: rgba(0, 0, 0, 0.55);
+  --shadow-soft: rgba(0, 0, 0, 0.42);
+  --vignette: rgba(0, 0, 0, 0.26);
+  /* Oiled-bronze machine family (v3.1) — flat tones, never gradients */
+  --bronze-deep: #1e170d;
+  --bronze: #6e522c;
+  --machine-edge: #060504;   /* wells, slots, notches — darkest machine tone */
+  --rivet: rgba(232, 220, 192, 0.34);
+  --steam-core: rgba(248, 240, 220, 0.60);
+  --steam-mid: rgba(248, 240, 220, 0.26);
+  color-scheme: dark;
+}
+:root[data-theme="ivory"] {
+  --base: #f4efe4;
+  --surface: #ece5d4;
+  --chrome: #d8d2c4;
+  --ink: #2a2416;
+  --ink-faint: #6b6252;
+  --gold: #9a7b2d;          /* display >=24px + rules only */
+  --gold-text: #7a5f1e;     /* body-size gold text */
+  --champagne: #b8963e;
+  --plat: #5b6470;
+  --plat-hi: #8b93a0;
+  --veil: rgba(244, 239, 228, 0.55);
+  --line: #cfc7b4;
+  --focus: #5b6470;   /* wing-neutral focus ring, 5.2:1 on base */
+  /* Ivory shadows derive from ink — pure black would break the paper tone */
+  --edge: #d4ccba;
+  --shadow-drop: rgba(42, 36, 22, 0.30);
+  --shadow-soft: rgba(42, 36, 22, 0.16);
+  --vignette: rgba(42, 36, 22, 0.10);
+  /* Ivory machine bronze: greige housing, ink hairlines; steam derives from
+     ink — white vapor on paper is the failure mode. --machine-edge must be
+     dark against the greige housing (--edge is a paper tone here and would
+     vanish, ~1.07:1). */
+  --bronze-deep: #ddd3bc;
+  --bronze: #8a6a34;
+  --machine-edge: #57492f;
+  --rivet: rgba(42, 36, 22, 0.30);
+  --steam-core: rgba(42, 36, 22, 0.15);
+  --steam-mid: rgba(42, 36, 22, 0.07);
+  color-scheme: light;
+}
+/* Wing metal — carried by exactly three surfaces:
+   lever needle, masthead underline, active gate frames + stage glow. */
+:root[data-wing="salon"]  { --metal: var(--gold); --metal-hi: var(--champagne); }
+:root[data-wing="bureau"] { --metal: var(--plat); --metal-hi: var(--plat-hi); }
+
+:root {
+  --serif: 'EB Garamond', Georgia, 'Palatino Linotype', serif;
+  --gate-w: clamp(200px, 16vw, 280px);
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-stage: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* ----- Base -------------------------------------------------------------- */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { height: 100%; }
+body {
+  min-height: 100%;
+  background-color: var(--base);
+  color: var(--ink);
+  font-family: var(--serif);
+  font-size: 16px;
+  line-height: 1.5;
+  transition: background-color 0.4s, color 0.4s;
+  overflow-x: hidden;
+  padding-bottom: 116px;   /* the fixed machine rail must never cover the
+                              Ledger tail or the floor's near edge */
+}
+html[lang="zh"] body { font-family: 'EB Garamond', 'Noto Serif SC', 'Microsoft YaHei', serif; }
+/* Atmosphere sheet: vignette + fine grain in front of the hall — implies
+   air, unifies the depth layers, kills gradient banding on dark ground. */
+body::after {
+  content: "";
+  position: fixed; inset: 0; z-index: 95;
+  pointer-events: none;
+  background-image:
+    radial-gradient(ellipse at 50% 42%, transparent 55%, var(--vignette)),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='linear' slope='0.045'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: auto, 220px 220px;
+}
+a { color: inherit; text-decoration: none; }
+button {
+  font: inherit; color: inherit; background: none; border: none; cursor: pointer;
+}
+svg { display: block; }
+/* Wing-neutral (the wing metal is reserved for exactly three surfaces). */
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; }
+
+/* Display caps: tracked EB Garamond, never below 0.15em, no ligatures. */
+.display {
+  font-weight: 540;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  font-variant-ligatures: none;
+}
+/* zh sentences: tracking 0, slightly larger to reconcile x-height. */
+html[lang="zh"] .zh-sentence,
+html[lang="zh"] .pl-head, html[lang="zh"] .pl-detail,
+html[lang="zh"] .g-desc, html[lang="zh"] .p-desc {
+  letter-spacing: 0; font-size: 1.06em;
+}
+/* Localized display lines need the CJK tracking floor (0.25-0.35em). */
+html[lang="zh"] .display { letter-spacing: 0.26em; }
+/* Addresses / numerals: true caps + tabular figures (digits have no small caps). */
+.addr, .num {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.08em;
+  font-size: 12px;
+}
+
+/* Themed strokes/fills pick up variable flips with a scoped transition —
+   never a universal selector (would fight the stage choreography).
+   <use>-based art is colored via `color` (currentColor pierces shadow DOM).
+   NOTE: gate frame segments are NOT in this list — their transitions carry
+   the sequential-lighting stagger below and must win the cascade. */
+.sigil, #monogram, #prefs-btn svg,
+.medal, .medal .rim, .medal .m-sig, .chip,
+.quadrant path, .quadrant circle, .quadrant rect, .quadrant polygon,
+.quadrant ellipse,
+.gauge path, .gauge circle, .gauge line, .gauge text,
+.builder-plate rect, .builder-plate circle, .builder-plate text,
+.lever-svg path, .lever-svg circle, .lever-svg rect, .lever-svg text,
+.lever-svg polygon, .gearA-svg path, .gearB-svg path {
+  transition: stroke 0.4s, fill 0.4s, color 0.4s,
+              background-color 0.4s, border-color 0.4s;
+}
+
+/* ==========================================================================
+   HALL LAYOUT
+   ========================================================================== */
+#hall {
+  max-width: 1720px;
+  margin: 0 auto;
+  padding: 20px 44px 48px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 400px;
+  grid-template-areas:
+    "masthead masthead"
+    "ticker   ticker"
+    "stage    ledger";
+  column-gap: 44px;
+}
+/* Suppressed loads only — a played entrance flipping data-entered later
+   must not re-run this fade (the hall is already fully visible). */
+html[data-boot="suppressed"] #hall { animation: hall-fade 0.3s var(--ease-out) both; }
+@keyframes hall-fade { from { opacity: 0; } to { opacity: 1; } }
+
+/* ----- Masthead ---------------------------------------------------------- */
+#masthead {
+  grid-area: masthead;
+  display: grid;
+  grid-template-columns: 48px 1fr auto;
+  align-items: center;
+  column-gap: 18px;
+  padding-bottom: 14px;
+  position: relative;
+}
+#monogram { width: 48px; height: 48px; color: var(--gold); }
+.m-title { display: flex; align-items: baseline; gap: 18px; }
+.m-title h1 {
+  font-size: 30px; font-weight: 560; letter-spacing: 0.28em;
+  color: var(--gold); line-height: 1;
+}
+.m-sub { font-size: 12px; color: var(--ink-faint); letter-spacing: 0.28em; }
+.m-underline {
+  position: absolute; left: 0; right: 0; bottom: 0; height: 1px;
+  background-color: var(--metal);
+  transition: background-color 0.4s;
+}
+.m-right { display: flex; align-items: center; gap: 26px; }
+#dateline { font-size: 14px; color: var(--ink-faint); letter-spacing: 0.06em; }
+#prefs-btn {
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  color: var(--ink-faint);
+}
+#prefs-btn svg { width: 30px; height: 30px; }
+#prefs-btn .p-caption { font-size: 9px; letter-spacing: 0.24em; }
+#prefs-btn:hover { color: var(--gold-text); }
+#prefs-btn:hover svg { transform: rotate(22.5deg); }
+#prefs-btn svg { transition: transform 0.5s var(--ease-spring), stroke 0.4s; }
+
+/* ----- Ticker (status band; double rules live here) ---------------------- */
+#ticker {
+  grid-area: ticker;
+  position: relative;
+  margin-top: 14px;
+  padding: 7px 0;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  overflow: hidden;
+  white-space: nowrap;
+}
+#ticker::before, #ticker::after {
+  content: ""; position: absolute; left: 0; right: 0; height: 1px;
+  background-color: var(--line);
+}
+#ticker::before { top: 3px; }
+#ticker::after { bottom: 3px; }
+.t-track {
+  display: inline-block;
+  font-size: 13px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  font-variant-numeric: tabular-nums;
+}
+#ticker.rolling .t-track {
+  animation: marquee var(--t-dur, 40s) linear infinite;
+  will-change: transform;
+}
+#ticker.rolling:hover .t-track,
+#ticker.rolling:focus-within .t-track { animation-play-state: paused; }
+#ticker.static { text-align: center; }
+@keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+.t-sep { color: var(--gold); padding: 0 14px; }
+.t-new { color: var(--gold-text); }
+
+/* ==========================================================================
+   MACHINE RAIL — the works of the hall (DESIGN.md v3.1). Fixed full-bleed
+   footer; z ladder: rail 50 < prefs 60 < grain 95 < entrance 100. The shell
+   is never clipped (steam must escape; clip-path kills shadows) — only the
+   gear well clips, via overflow:hidden. One scalar --drive (0=salon,
+   1=bureau, written by the JS driver) derives the lever and both gears.
+   ========================================================================== */
+#machine-rail {
+  position: fixed; left: 0; right: 0; bottom: 0;
+  height: 96px;
+  z-index: 50;
+  isolation: isolate;
+  pointer-events: none;   /* only the lever hit surface takes the pointer */
+}
+/* Boot parity with the hall: suppressed loads fade, played entrances rise
+   in the old lever-row slot. Transform/opacity only — the entrance dock
+   measurement depends on zero layout shift. */
+html[data-boot="suppressed"] #machine-rail {
+  animation: hall-fade 0.3s var(--ease-out) both;
+}
+html[data-entered="no"] #machine-rail {
+  animation: rise-in 0.45s var(--ease-out) both;
+  animation-delay: 2.1s;
+}
+/* Initial lever pose before the JS driver's first write. */
+:root[data-wing="salon"] #machine-rail { --drive: 0; }
+:root[data-wing="bureau"] #machine-rail { --drive: 1; }
+
+.rail-band {
+  position: absolute; inset: 0;
+  background-color: var(--bronze-deep);
+  border-top: 1px solid var(--gold);
+  /* rivet row under the brass edge strip — dots live at plate seams only.
+     Beneath it, the FLUX.2 engine-turned texture (flattened to mid-gray
+     ±12) overlay-blends into the housing tone: machined richness without
+     breaking the flat-ink language. */
+  background-image: radial-gradient(circle 1.4px at 28px 9px,
+      var(--rivet) 99%, transparent),
+    url('/static/assets/tex/engine_turned.png');
+  background-size: 56px 100%, 420px;
+  background-repeat: repeat-x, repeat;
+  background-blend-mode: normal, overlay;
+  transition: background-color 0.4s, border-color 0.4s;
+}
+/* Riveted seam plates: hairline seam + its own rivet column. */
+.rail-band::before, .rail-band::after {
+  content: ""; position: absolute; top: 12px; bottom: 9px; width: 9px;
+  background-image:
+    linear-gradient(var(--machine-edge), var(--machine-edge)),
+    radial-gradient(circle 1.4px at 4.5px 13px, var(--rivet) 99%, transparent);
+  background-size: 1px 100%, 9px 26px;
+  background-position: 4px 0, 0 0;
+  background-repeat: no-repeat, repeat-y;
+}
+.rail-band::before { left: 21%; }
+.rail-band::after { right: 21%; }
+
+.rail-core {
+  position: relative;
+  max-width: 1720px; height: 100%;
+  margin: 0 auto;
+  padding: 0 44px;
+}
+
+/* ----- Instruments ------------------------------------------------------- */
+.rail-inst {
+  position: absolute; bottom: 0;
+  display: flex; flex-direction: column; align-items: center;
+}
+.rail-gauge { left: 44px; bottom: 3px; }
+.gauge { width: 82px; height: 75px; overflow: visible; }
+.gauge .g-bezel { stroke: var(--bronze); fill: none; }
+.gauge .g-knurl { stroke: var(--ink-faint); }
+.gauge .g-dial { fill: var(--surface); stroke: var(--line); }
+.gauge .g-tick { stroke: var(--ink-faint); }
+/* Instrument text renders through the svg scale (~0.8) — declared sizes
+   compensate, and ink (not ink-faint) holds 4.5:1 on the housing. */
+.gauge text {
+  fill: var(--ink);
+  font-family: var(--serif);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+.gauge .g-needle {
+  stroke: var(--gold);
+  transform: rotate(calc(var(--gauge, -120) * 1deg));
+  transform-box: view-box;
+  transform-origin: 50px 50px;
+  transition: transform 0.9s var(--ease-spring), stroke 0.4s;
+}
+.gauge .g-hub { fill: var(--bronze); stroke: none; }
+.inst-caption {
+  font-size: 10px; letter-spacing: 0.24em;
+  color: var(--ink); margin-top: 2px;
+}
+.rail-plate { right: 44px; bottom: 24px; }
+.builder-plate { width: 166px; height: 42px; }
+.builder-plate rect { stroke: var(--bronze); fill: none; }
+.builder-plate circle { fill: var(--rivet); stroke: none; }
+.builder-plate text { fill: var(--ink); font-family: var(--serif); }
+.bp-name { font-size: 13px; letter-spacing: 0.2em; }
+.bp-no { font-size: 12px; letter-spacing: 0.08em; font-variant-numeric: tabular-nums; }
+
+/* ----- Lever assembly ---------------------------------------------------- */
+.assembly {
+  position: absolute; left: 50%; bottom: 0;
+  width: 360px; height: 220px;
+  transform: translateX(-50%);
+  transform-origin: center bottom;
+  pointer-events: none;
+}
+.rail-art { position: absolute; inset: 0; contain: layout paint; }
+.quadrant { position: absolute; inset: 0; width: 100%; height: 100%; }
+.quadrant .q-plate { fill: var(--bronze-deep); stroke: var(--bronze); stroke-width: 1; }
+.quadrant .q-face { fill: none; stroke: var(--bronze); stroke-width: 1; }
+.quadrant .q-teeth { stroke: var(--ink-faint); stroke-width: 1; fill: none; }
+.quadrant .q-notch { fill: var(--machine-edge); stroke: none; }
+.quadrant .q-slot { fill: var(--machine-edge); stroke: var(--line); stroke-width: 1; }
+.quadrant .q-pipe { fill: var(--bronze-deep); stroke: var(--bronze); stroke-width: 1; }
+.quadrant .q-shadow { fill: var(--shadow-soft); stroke: none; }
+
+.rail-fx { position: absolute; inset: 0; }
+.gear-well {
+  position: absolute; left: 50%; bottom: 14px;
+  width: 176px; height: 56px;
+  margin-left: -88px;
+  overflow: hidden;               /* the one sanctioned clip — not clip-path */
+  background-color: var(--machine-edge);
+  border: 1px solid var(--bronze);
+  transition: background-color 0.4s, border-color 0.4s;
+}
+.gearA-svg, .gearB-svg {
+  position: absolute;
+  overflow: visible;
+  will-change: transform;
+}
+.gearA-svg {
+  width: 104px; height: 104px;
+  transform: rotate(calc((var(--drive, 0) - 0.5) * 90deg));
+}
+.gearB-svg {
+  width: 60px; height: 60px;
+  transform: rotate(calc((var(--drive, 0) - 0.5) * -180deg));
+}
+.gearA-svg path, .gearB-svg path {
+  fill: var(--bronze); stroke: var(--machine-edge); stroke-width: 1;
+}
+
+.lever-svg {
+  position: absolute; left: 110px; bottom: 0;
+  width: 140px; height: 210px;
+  overflow: visible;
+  transform-origin: 70px 202px;
+  transform: rotate(calc(-16deg + var(--drive, 0) * 32deg));
+  will-change: transform;
+}
+.lever-svg .lv-arm { fill: var(--bronze); stroke: var(--bronze-deep); stroke-width: 1; }
+/* The polished grip inherits the old needle's wing-metal slot (1 of 3). */
+.lever-svg .lv-grip { fill: var(--metal); stroke: none; transition: fill 0.4s; }
+.lever-svg .lv-plate { fill: var(--bronze-deep); stroke: var(--champagne); stroke-width: 1; }
+.lever-svg .lv-plate-t {
+  fill: var(--ink-faint); font-family: var(--serif); font-size: 11px;
+}
+
+.assembly .l-label {
+  position: absolute; top: 46px;
+  font-size: 12px; letter-spacing: 0.2em;
+  color: var(--ink-faint);
+  transition: color 0.4s;
+}
+.assembly .l-salon { right: calc(50% + 88px); }
+.assembly .l-bureau { left: calc(50% + 88px); }
+/* Active label brightens to ink — only the GRIP carries the wing metal. */
+:root[data-wing="salon"] .l-salon,
+:root[data-wing="bureau"] .l-bureau { color: var(--ink); }
+
+/* Hit surface = the machine base box; the arm zone is a child riding above
+   it, so clicks land only where hardware is drawn (never a floating
+   rectangle over hall content) and the focus ring hugs the base. */
+#lever {
+  position: absolute; left: 50%; bottom: 0;
+  width: 300px; height: 108px;
+  transform: translateX(-50%);
+  pointer-events: auto;
+  cursor: pointer; user-select: none;
+  z-index: 2;
+}
+#lever .hit-arm {
+  position: absolute; left: 50%; bottom: 100%;
+  width: 220px; height: 112px;
+  transform: translateX(-50%);
+  display: block;
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+/* ----- Steam ------------------------------------------------------------- */
+.nozzle {
+  position: absolute; left: 269px; top: 112px;
+  width: 0; height: 0;
+  pointer-events: none; z-index: 3;
+}
+.puff {
+  position: absolute; left: -20px; top: -20px; width: 40px; height: 40px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 55%,
+      var(--steam-core), var(--steam-mid) 42%, transparent 70%);
+  filter: blur(6px);
+  will-change: transform, opacity;
+  opacity: 0;
+  animation: puff-rise both cubic-bezier(0.25, 0.6, 0.35, 1);
+}
+@keyframes puff-rise {
+  0% { transform: translate3d(0, 0, 0) scale(0.55) rotate(0deg); opacity: 0; }
+  12% { opacity: 1; }
+  100% {
+    transform: translate3d(var(--dx, 8px), var(--rise, -70px), 0)
+               scale(var(--s, 2.4)) rotate(var(--rot, 20deg));
+    opacity: 0;
+  }
+}
+/* Belt and braces: the CSS kill-switch collapses the animation, but a
+   spawned sprite would still flash — hide the class outright. */
+:root[data-motion="reduced"] .puff { display: none; }
+@media (prefers-reduced-motion: reduce) { .puff { display: none; } }
+
+/* ==========================================================================
+   STAGE — triptych; gates positioned by transform only (60 fps law)
+   ========================================================================== */
+#stage {
+  grid-area: stage;
+  position: relative;
+  min-height: calc(var(--gate-w) * 1.9 + 70px);
+  padding-top: 26px;
+  align-self: start;   /* never stretch to the Ledger's row height */
+}
+.stage-glow {
+  position: absolute; left: 50%; bottom: 0;
+  width: min(70%, 640px); height: 1px;
+  transform: translateX(-50%);
+  background-color: var(--metal);
+  opacity: 0.6;
+  transition: background-color 0.4s;
+  z-index: 1;
+}
+/* One-point-perspective floor: a real rotated plane whose deco seams
+   converge behind the stage; the far edge dissolves into the base color
+   (atmospheric falloff — the fade also hides aliasing at the horizon). */
+.floor {
+  position: absolute; left: -12%; right: -12%; bottom: -170px;
+  height: 230px;
+  transform: perspective(820px) rotateX(56deg);
+  transform-origin: top center;
+  background-image:
+    linear-gradient(to top, transparent 30%, var(--base) 96%),
+    repeating-linear-gradient(90deg, var(--line) 0 1px, transparent 1px 84px),
+    repeating-linear-gradient(0deg, var(--line) 0 1px, transparent 1px 46px);
+  opacity: 0.85;
+  pointer-events: none;
+}
+#gates { position: absolute; inset: 26px 0 0 0; }
+#all-dark {
+  position: absolute; left: 50%; top: 46%;
+  transform: translate(-50%, -50%);
+  font-size: 15px; letter-spacing: 0.12em; color: var(--ink-faint);
+  text-transform: uppercase;
+}
+
+/* ----- Gate -------------------------------------------------------------- */
+.gate {
+  position: absolute;
+  left: 50%; bottom: 0;
+  width: var(--gate-w);
+  aspect-ratio: 300 / 570;
+  transform: translateX(calc(-50% + var(--slot-x, 0px)))
+             translateY(var(--rise, 0px))
+             scale(var(--slot-s, 1));
+  transform-origin: center bottom;
+  transition: transform 0.6s var(--ease-stage);
+  transition-delay: var(--slot-delay, 0ms);
+  cursor: pointer;
+  display: block;
+  /* Plain perspective property — NEVER preserve-3d on #gates (it would
+     depth-sort away the active/receded z-index contract). */
+  perspective: 900px;
+}
+/* 3D chain: .g-pose = static wing tilt (transitions with the stage
+   choreography); .g-shell = pointer parallax (NO transition — it would
+   smear the tilt). Children stay flat so the intra-gate z-stack holds. */
+.g-pose {
+  position: absolute; inset: 0;
+  transform-style: preserve-3d;
+  transform: rotateY(calc(var(--side, 0) * 10deg));
+  transition: transform 0.6s var(--ease-stage);
+}
+.g-shell {
+  position: absolute; inset: 0;
+  transform: rotateY(calc(var(--par-x, 0) * var(--par-k, 5) * 1deg))
+             rotateX(calc(var(--par-y, 0) * var(--par-k, 5) * -0.6deg));
+}
+.gate.receded .g-shell { --par-k: 2.5; }
+/* Slab thickness: arch-shaped backing offset along the key light, carrying
+   the two-shadow grounding pair (contact + penumbra). */
+.g-back {
+  position: absolute; inset: 2% 3% 1.5%;
+  border-radius: 50% 50% 0 0 / 26% 26% 0 0;
+  background-color: var(--edge);
+  transform: translate(4px, 7px);
+  box-shadow: 0 3px 5px var(--shadow-drop),
+              0 30px 60px -18px var(--shadow-soft);
+  transition: background-color 0.4s;
+}
+/* Polished-floor reflection: a mirrored frame clone under the plinth. */
+.g-mirror {
+  position: absolute; top: 99%; left: 0; right: 0;
+  height: 44%;
+  overflow: hidden;
+  transform: scaleY(-1);
+  mask-image: linear-gradient(to top, rgba(0, 0, 0, 0.28), transparent 62%);
+  -webkit-mask-image: linear-gradient(to top, rgba(0, 0, 0, 0.28), transparent 62%);
+  pointer-events: none;
+  opacity: 0.8;
+}
+.g-mirror svg { width: 100%; height: 227%; }
+.g-mirror path, .g-mirror rect { stroke: var(--chrome); fill: none; }
+.gate.active .g-mirror path, .gate.active .g-mirror rect { stroke: var(--metal); }
+.gate .frame { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.gate .frame path, .gate .frame rect { stroke: var(--chrome); }
+/* Sequential frame lighting on hover/focus (stroke transitions, staggered).
+   Specificity (0,3,0) so the stagger beats any shared theming rule. */
+.gate .frame .fs1 { transition: stroke 0.25s 0ms; }
+.gate .frame .fs2 { transition: stroke 0.25s 90ms; }
+.gate .frame .fs3 { transition: stroke 0.25s 180ms; }
+.gate .frame .fs4 { transition: stroke 0.25s 270ms; }
+.gate.active .frame path, .gate.active .frame rect { stroke: var(--metal); }
+.gate.active:hover .frame path, .gate.active:hover .frame rect,
+.gate.active:focus-visible .frame path, .gate.active:focus-visible .frame rect,
+.gate.receded:hover .frame path, .gate.receded:hover .frame rect,
+.gate.receded:focus-visible .frame path, .gate.receded:focus-visible .frame rect {
+  stroke: var(--metal-hi);
+}
+.gate.flash .frame path, .gate.flash .frame rect {
+  stroke: var(--champagne) !important;
+  transition-duration: 0.05s;
+}
+.gate:hover, .gate:focus-visible { --rise: -4px; }
+
+.face {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column; align-items: center;
+  padding: 12% 12% 0;
+  text-align: center;
+  /* no z-index: it would trap .g-name/.g-lamp below the sibling veil */
+}
+.sigil {
+  width: 34%; height: auto; aspect-ratio: 1;
+  margin-top: 5%;
+  color: var(--gold-text);
+  overflow: visible;
+}
+.g-name {
+  margin-top: 26%;
+  font-size: clamp(14px, 1.15vw, 18px);
+  font-weight: 560;
+  letter-spacing: 0.2em;
+  color: var(--ink);
+  z-index: 3;
+}
+.g-desc {
+  margin-top: 10px;
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--ink-faint);
+  letter-spacing: 0.04em;
+  min-height: 3em;
+}
+.g-stat {
+  margin-top: auto;
+  font-size: 13px;
+  letter-spacing: 0.14em;
+  color: var(--gold-text);
+  text-transform: uppercase;
+  overflow: hidden;
+}
+.g-stat .num-roll { display: inline-block; }
+.g-stat .roll { animation: odometer 0.5s var(--ease-out); }
+@keyframes odometer {
+  0% { transform: translateY(0); opacity: 1; }
+  45% { transform: translateY(-115%); opacity: 0; }
+  55% { transform: translateY(115%); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+.g-addr { margin-top: 8px; color: var(--ink-faint); }
+.g-lamp {
+  margin-top: 10px;
+  margin-bottom: 24%;   /* clears the plinth double rule */
+  display: flex; align-items: center; gap: 7px;
+  font-size: 11px; letter-spacing: 0.22em;
+  color: var(--ink-faint);
+  z-index: 3;
+}
+.g-lamp .lamp-d {
+  width: 9px; height: 9px;
+  transform: rotate(45deg);
+  border: 1.5px solid var(--ink-faint);
+  transition: background-color 0.4s, border-color 0.4s;
+}
+.gate[data-state="open"] .g-lamp { color: var(--gold-text); }
+.gate[data-state="open"] .g-lamp .lamp-d {
+  background-color: var(--gold-text); border-color: var(--gold-text);
+}
+.gate[data-state="dark"] .g-lamp .lamp-d { background: none; }
+.gate[data-state="dark"] .face > :not(.g-name):not(.g-lamp) { opacity: 0.35; }
+.gate[data-state="checking"] .g-lamp .lamp-d {
+  animation: lamp-breathe 1.6s ease-in-out infinite;
+}
+@keyframes lamp-breathe { 50% { border-color: var(--gold-text); } }
+
+.g-veil {
+  position: absolute; inset: 0; z-index: 2;
+  background-color: var(--veil);
+  border: 1px solid var(--line);
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.6s var(--ease-stage), background-color 0.4s;
+}
+.gate.receded .g-veil { opacity: 1; }
+.gate.receded:hover .g-veil, .gate.receded.flash .g-veil { opacity: 0.25; }
+.gate.receded .frame path, .gate.receded .frame rect { stroke: var(--chrome); }
+.gate.active { z-index: 2; }
+.gate.receded { z-index: 1; }
+
+/* One masked 30-degree sheen sweep per hover — the only specular effect. */
+.sheen {
+  position: absolute; inset: 0; z-index: 2;
+  overflow: hidden; pointer-events: none;
+  clip-path: polygon(3% 0, 97% 0, 97% 100%, 3% 100%);
+}
+.sheen::after {
+  content: ""; position: absolute; top: -20%; bottom: -20%;
+  left: 0; width: 34%;
+  background: linear-gradient(105deg, transparent,
+              rgba(255, 252, 240, 0.10), transparent);
+  transform: translateX(-160%) rotate(0.001deg);
+}
+.gate:hover .sheen::after, .gate:focus-visible .sheen::after {
+  animation: sheen-sweep 0.6s var(--ease-out) 1;
+}
+@keyframes sheen-sweep {
+  from { transform: translateX(-160%); }
+  to { transform: translateX(420%); }
+}
+
+.g-notice {
+  position: absolute; left: 8%; right: 8%; bottom: 4%;
+  z-index: 4;
+  font-size: 11px; line-height: 1.6;
+  color: var(--ink);
+  background-color: var(--surface);
+  border: 1px solid var(--line);
+  padding: 8px 10px;
+  letter-spacing: 0.03em;
+  word-break: break-all;
+}
+
+/* ==========================================================================
+   LEDGER
+   ========================================================================== */
+#ledger { grid-area: ledger; padding-top: 26px; min-width: 0; }
+.l-head {
+  display: flex; align-items: baseline; justify-content: space-between;
+  margin-bottom: 14px;
+}
+.l-head h2 { font-size: 15px; color: var(--gold-text); letter-spacing: 0.28em; }
+.chips { display: flex; gap: 6px; }
+.chip {
+  font-size: 10px; letter-spacing: 0.18em;
+  color: var(--ink-faint);
+  padding: 4px 10px;
+  border: 1px solid transparent;
+}
+.chip[aria-checked="true"] {
+  color: var(--gold-text);
+  border-color: var(--line);
+}
+.chip:hover { color: var(--ink); }
+
+.l-col { position: relative; padding-left: 44px; }
+/* The spine is a pneumatic dispatch main: a brass tube (edge hairlines)
+   with a flap-door terminal at its head; day-break collars girdle it. */
+.spine {
+  position: absolute; left: 18px; top: 0; bottom: 0; width: 6px;
+  border-left: 1px solid var(--gold);
+  border-right: 1px solid var(--gold);
+  background-color: color-mix(in srgb, var(--gold) 12%, transparent);
+  opacity: 0.7;
+  transition: border-color 0.4s;
+}
+.spine::before {
+  content: ""; position: absolute; top: -3px; left: -4px; right: -4px;
+  height: 8px;
+  border: 1px solid var(--gold);
+  background-color: var(--surface);
+  transition: background-color 0.4s, border-color 0.4s;
+}
+#plaques { list-style: none; }
+
+/* Plaque anatomy: the li itself is unclipped so the medallion can overhang
+   onto the spine; .pl-frame carries the 1px chamfered rim, the inner link
+   the surface. Never a plain rectangle (R10). */
+.plaque {
+  position: relative;
+  margin: 0 0 12px var(--pl-off, 0px);
+  --n: 10px;
+}
+.plaque:nth-child(even) { --pl-off: 10px; }
+.pl-frame {
+  clip-path: polygon(var(--n) 0, calc(100% - var(--n)) 0, 100% var(--n),
+    100% calc(100% - var(--n)), calc(100% - var(--n)) 100%, var(--n) 100%,
+    0 calc(100% - var(--n)), 0 var(--n));
+  background-color: var(--line);           /* 1px chamfered rim */
+  padding: 1px;
+  transition: background-color 0.4s;
+}
+/* box-shadow dies under clip-path, and drop-shadow on the clipped element
+   itself gets clipped too — so the shadow lives on the UNCLIPPED li and
+   follows the chamfered silhouette (the medallion casts along with it,
+   which is physically right). Ghosts excluded (they re-raster on pulse). */
+.plaque:not(.ghost) {
+  filter: drop-shadow(0 3px 4px var(--shadow-drop))
+          drop-shadow(0 12px 18px var(--shadow-soft));
+  transition: transform 0.25s var(--ease-out);
+}
+.plaque:not(.ghost):hover { transform: translateY(-2px); }
+.plaque.new .pl-frame { background-color: var(--champagne); }
+.pl-frame > a, .pl-frame > .pl-in {
+  display: block;
+  position: relative;
+  clip-path: polygon(var(--n) 0, calc(100% - var(--n)) 0, 100% var(--n),
+    100% calc(100% - var(--n)), calc(100% - var(--n)) 100%, var(--n) 100%,
+    0 calc(100% - var(--n)), 0 var(--n));
+  background-color: var(--surface);
+  padding: 12px 16px 12px 22px;
+  transition: background-color 0.4s;
+}
+.pl-frame > a:hover { background-color: var(--base); }
+.plaque.new .pl-head::after {
+  content: "◆"; font-size: 9px; color: var(--champagne);
+  margin-left: 8px; vertical-align: 2px;
+}
+.medal {
+  position: absolute; left: -34px; top: 10px;
+  width: 40px; height: 40px;
+  background-color: var(--base);
+  border-radius: 50%;
+  z-index: 1;
+  transition: background-color 0.4s;
+}
+.medal svg { width: 40px; height: 40px; position: absolute; inset: 0; }
+.medal .rim { color: var(--gold); }
+.medal.m-bureau .rim { color: var(--plat); }
+.medal .m-sig { color: var(--ink-faint); transform: translate(8px, 8px) scale(0.25); }
+.pl-head { font-size: 14.5px; color: var(--ink); letter-spacing: 0.03em; }
+.pl-detail { font-size: 12.5px; color: var(--ink-faint); margin-top: 2px; line-height: 1.5; }
+.pl-time { font-size: 11px; color: var(--ink-faint); margin-top: 5px; letter-spacing: 0.1em; }
+.plaque.warn .pl-head { color: var(--gold-text); }
+
+/* Day breaks: full-width double rule (the ledger's only double rules). */
+.daybreak {
+  list-style: none;
+  display: flex; align-items: center; gap: 12px;
+  margin: 18px 0 14px calc(-44px + 0px);
+  padding-left: 0;
+  font-size: 10.5px; letter-spacing: 0.28em;
+  color: var(--ink-faint);
+  text-transform: uppercase;
+}
+.daybreak::before, .daybreak::after {
+  content: ""; flex: 1; height: 5px;   /* 2x1px rules with a true 3px gap */
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+/* Day-break lead-in doubles as a pipe collar girdling the dispatch main. */
+.daybreak::before {
+  flex: 0 0 14px; max-width: 14px; height: 11px;
+  margin-left: 14px;
+  border: 1px solid var(--gold);
+  background-color: var(--surface);
+  transition: background-color 0.4s, border-color 0.4s;
+}
+
+/* Loading: hairline-pulse plaques (never gray skeleton blocks). */
+.plaque.ghost { animation: ghost-pulse 1.4s ease-in-out infinite; }
+.plaque.ghost .pl-in { height: 58px; }
+@keyframes ghost-pulse { 50% { background-color: var(--chrome); } }
+
+.l-empty {
+  text-align: center; color: var(--ink-faint);
+  font-size: 13px; letter-spacing: 0.1em;
+  padding: 30px 0;
+}
+.l-empty svg { width: 60px; height: 40px; margin: 0 auto 10px; color: var(--chrome); }
+
+/* New plaques materialize once; re-polls never re-animate (JS keys by id). */
+.plaque.arrive { animation: plaque-in 0.45s var(--ease-out); }
+@keyframes plaque-in {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* ==========================================================================
+   PREFERENCES OVERLAY
+   ========================================================================== */
+#prefs {
+  position: fixed; inset: 0; z-index: 60;
+  display: flex; align-items: center; justify-content: center;
+  background-color: color-mix(in srgb, var(--base) 82%, transparent);
+}
+#prefs[hidden] { display: none; }
+.p-wrap {
+  /* unclipped wrapper so the drop-shadow survives the sheet's clip-path */
+  filter: drop-shadow(0 8px 14px var(--shadow-drop))
+          drop-shadow(0 30px 60px var(--shadow-soft));
+}
+.p-sheet {
+  width: min(560px, 92vw);
+  max-height: 86vh; overflow-y: auto;
+  background-color: var(--surface);
+  --n: 18px;
+  clip-path: polygon(var(--n) 0, calc(100% - var(--n)) 0, 100% var(--n),
+    100% calc(100% - var(--n)), calc(100% - var(--n)) 100%, var(--n) 100%,
+    0 calc(100% - var(--n)), 0 var(--n));
+  padding: 30px 36px 36px;
+  animation: sheet-reveal 0.45s var(--ease-out);
+}
+@keyframes sheet-reveal {
+  from {
+    clip-path: polygon(50% 42%, 50% 42%, 58% 50%, 50% 58%, 50% 58%,
+      50% 58%, 42% 50%, 50% 42%);
+    opacity: 0;
+  }
+  to {
+    clip-path: polygon(18px 0, calc(100% - 18px) 0, 100% 18px,
+      100% calc(100% - 18px), calc(100% - 18px) 100%, 18px 100%,
+      0 calc(100% - 18px), 0 18px);
+    opacity: 1;
+  }
+}
+.p-head {
+  display: flex; justify-content: space-between; align-items: center;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 14px; margin-bottom: 22px;
+}
+.p-head h2 { font-size: 16px; color: var(--gold-text); letter-spacing: 0.28em; }
+#prefs-close { color: var(--ink-faint); font-size: 16px; padding: 4px 8px; }
+#prefs-close:hover { color: var(--ink); }
+.p-group { margin-bottom: 24px; }
+.p-label { font-size: 11px; color: var(--ink-faint); letter-spacing: 0.26em; margin-bottom: 10px; }
+.p-options { display: flex; gap: 10px; flex-wrap: wrap; }
+.p-plaque {
+  flex: 1 1 140px;
+  display: flex; flex-direction: column; align-items: center; gap: 5px;
+  border: 1px solid var(--line);
+  padding: 14px 10px;
+  color: var(--ink-faint);
+  transition: border-color 0.3s, color 0.3s;
+}
+.p-plaque:hover { color: var(--ink); }
+.p-plaque[aria-checked="true"] {
+  border-color: var(--gold);
+  color: var(--ink);
+}
+.p-name { font-size: 12px; letter-spacing: 0.2em; }
+.p-desc { font-size: 11.5px; }
+.swatch { width: 34px; height: 12px; border: 1px solid var(--line); }
+.sw-onyx { background-color: #0c0a07; }
+.sw-ivory { background-color: #f4efe4; }
+.sw-system {
+  background: linear-gradient(90deg, #0c0a07 50%, #f4efe4 50%);
+}
+
+/* ==========================================================================
+   ENTRANCE — timeline per DESIGN.md; plays only when data-entered="no"
+   ========================================================================== */
+#entrance {
+  position: fixed; inset: 0; z-index: 100;
+  pointer-events: none;
+  /* Shared perspective so both door leaves converge on the seam. */
+  perspective: 1100px;
+}
+/* While playing, the overlay swallows the skip gesture — otherwise the
+   click lands on the invisible hall underneath and opens a gate. */
+html[data-entered="no"] #entrance { pointer-events: auto; cursor: pointer; }
+html[data-entered="yes"] #entrance { display: none; }
+#entrance .e-void {
+  position: absolute; inset: 0;
+  background-color: var(--base);
+}
+.e-panel {
+  position: absolute; top: 0; bottom: 0; width: 51vw;
+  background-color: var(--base);
+  /* FLUX.2 riveted-iron plate, flattened to mid-gray ±24 and overlay-
+     blended — the doors read as vault iron in both themes. */
+  background-image: url('/static/assets/tex/riveted_iron.png');
+  background-size: 460px;
+  background-blend-mode: overlay;
+  transition: transform 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+  backface-visibility: hidden;
+}
+.e-left { left: 0; transform-origin: left center; }
+.e-right { right: 0; transform-origin: right center; }
+.e-panel svg { width: 100%; height: 100%; }
+.e-engrave { stroke: var(--gold); opacity: 0; transition: opacity 0.5s; }
+.e-panel { will-change: transform; }
+#entrance.doors .e-engrave { opacity: 0.22; }
+/* Doors swing on their outer hinges (real 3D leaves, not a slide);
+   the outward translate guarantees full clearance. */
+#entrance.open .e-left { transform: translateX(-26%) rotateY(74deg); }
+#entrance.open .e-right { transform: translateX(26%) rotateY(-74deg); }
+
+.e-burst {
+  position: absolute; left: 50%; top: 50%;
+  width: min(64vmin, 800px); height: min(64vmin, 800px);
+  margin: calc(min(64vmin, 800px) / -2) 0 0 calc(min(64vmin, 800px) / -2);
+  transition: transform 0.5s var(--ease-out), opacity 0.3s;
+  will-change: transform;
+}
+.e-circle {
+  stroke: var(--gold);
+  stroke-dasharray: 578;
+  stroke-dashoffset: 578;
+}
+#entrance.play .e-circle {
+  animation: circle-draw 0.45s var(--ease-out) forwards;
+}
+@keyframes circle-draw { to { stroke-dashoffset: 0; } }
+.e-rays line {
+  stroke: var(--gold); stroke-width: 1;
+  opacity: 0;
+  transform-origin: 400px 400px;
+  transform: scale(0.3);
+}
+#entrance.play .e-rays line {
+  animation: ray-in 0.3s var(--ease-out) forwards;
+  animation-delay: calc(300ms + var(--i) * 12ms);   /* last ray done by ~876ms */
+}
+@keyframes ray-in {
+  from { opacity: 0; transform: scale(0.3); }
+  60% { opacity: 0.85; }
+  to { opacity: 0.5; transform: scale(1); }
+}
+/* Group-level fade as the doors part — a per-line rule would lose to the
+   running ray-in animation. */
+#entrance.open .e-rays { opacity: 0; transition: opacity 0.4s; }
+#entrance.dock .e-burst {
+  transform: translate(var(--dock-x, 0px), var(--dock-y, 0px)) scale(var(--dock-s, 0.1));
+  opacity: 0;
+}
+.e-seam {
+  position: absolute; left: 50%; top: 8vh; bottom: 8vh; width: 1px;
+  background-color: var(--champagne);
+  transform: scaleY(0);
+  transition: transform 0.12s linear, opacity 0.4s;
+}
+#entrance.seam .e-seam { transform: scaleY(1); }
+#entrance.open .e-seam { opacity: 0; }
+
+/* Vault unlock beat: the drawn circle grows a handwheel and 8 radial
+   bolts; the wheel turns 60° and every bolt retracts in sync (a vault
+   throws all bolts at once — the synchrony is the luxury). The wheel then
+   docks with the burst into the rosette. */
+.e-wheel {
+  stroke: var(--gold);
+  opacity: 0;
+  transform-box: view-box;
+  transform-origin: 400px 400px;
+  transition: transform 0.45s var(--ease-out), opacity 0.35s;
+}
+#entrance.doors .e-wheel { opacity: 0.9; }
+#entrance.wheel .e-wheel { transform: rotate(60deg); }
+.e-bolts line {
+  stroke: var(--gold); stroke-width: 5;
+  opacity: 0;
+  transition: transform 0.45s var(--ease-out) 0.05s, opacity 0.3s;
+}
+#entrance.doors .e-bolts line { opacity: 0.75; }
+#entrance.wheel .e-bolts line { transform: translateY(30px); }
+#entrance.open .e-bolts { opacity: 0; transition: opacity 0.3s; }
+.e-nozzle {
+  position: absolute; left: 50%; bottom: 8vh;
+  width: 0; height: 0;
+}
+
+.e-wordmark {
+  position: absolute; left: 0; right: 0; top: 50%;
+  transform: translateY(-50%);
+  display: flex; justify-content: center;
+  font-size: clamp(40px, 6vw, 72px);
+  font-weight: 560;
+  color: var(--gold);
+  opacity: 0;
+}
+.e-wordmark span {
+  display: inline-block;
+  padding: 0 0.11em;             /* visual tracking 0.22em — never animate letter-spacing */
+  transform: translateX(calc(var(--wx) * 0.9em));
+  transition: transform 0.5s var(--ease-out);
+}
+.e-wordmark span:nth-child(1) { --wx: -2.5; }
+.e-wordmark span:nth-child(2) { --wx: -1.5; }
+.e-wordmark span:nth-child(3) { --wx: -0.5; }
+.e-wordmark span:nth-child(4) { --wx: 0.5; }
+.e-wordmark span:nth-child(5) { --wx: 1.5; }
+.e-wordmark span:nth-child(6) { --wx: 2.5; }
+#entrance.word .e-wordmark { opacity: 1; transition: opacity 0.4s; }
+#entrance.word .e-wordmark span { transform: translateX(0); }
+#entrance.done-fade .e-wordmark,
+#entrance.done-fade .e-void { opacity: 0; transition: opacity 0.4s; }
+#entrance.done-fade .e-panel { visibility: hidden; }
+#entrance.open .e-void { opacity: 0; transition: opacity 0.3s; }
+
+/* Hall assembly (only while the entrance plays) */
+html[data-entered="no"] #masthead { animation: rise-in 0.5s var(--ease-out) both; animation-delay: 2.0s; }
+html[data-entered="no"] #ticker { animation: rise-in 0.45s var(--ease-out) both; animation-delay: 2.05s; }
+html[data-entered="no"] #ticker::before { animation: rule-draw 0.4s var(--ease-out) both; animation-delay: 1.9s; }
+html[data-entered="no"] #ticker::after { animation: rule-draw 0.4s var(--ease-out) both; animation-delay: 2.0s; }
+html[data-entered="no"] .gate { animation: gate-rise 0.5s var(--ease-out) both; animation-delay: calc(1.9s + var(--gi, 0) * 80ms); }
+html[data-entered="no"] #ledger { animation: rise-in 0.5s var(--ease-out) both; animation-delay: 2.15s; }
+/* The glow and floor light only once the gates have landed; the stage
+   dollies in gently — the camera walks into the hall. */
+html[data-entered="no"] .stage-glow { animation: glow-in 0.45s var(--ease-out) both; animation-delay: 2.2s; }
+html[data-entered="no"] .floor { animation: floor-in 0.6s var(--ease-out) both; animation-delay: 2.15s; }
+html[data-entered="no"] #stage { animation: stage-dolly 0.9s var(--ease-out) both; animation-delay: 1.85s; }
+@keyframes glow-in { from { opacity: 0; } to { opacity: 0.6; } }
+@keyframes floor-in { from { opacity: 0; } to { opacity: 0.85; } }
+@keyframes stage-dolly { from { transform: scale(0.965); } to { transform: none; } }
+@keyframes rise-in {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes rule-draw { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@keyframes gate-rise {
+  from {
+    opacity: 0;
+    transform: translateX(calc(-50% + var(--slot-x, 0px))) translateY(40px)
+               scale(var(--slot-s, 1));
+  }
+  to {
+    opacity: 1;
+    transform: translateX(calc(-50% + var(--slot-x, 0px))) translateY(0)
+               scale(var(--slot-s, 1));
+  }
+}
+
+/* ==========================================================================
+   RESPONSIVE
+   ========================================================================== */
+@media (max-width: 1279px) {
+  #hall {
+    grid-template-columns: 1fr;
+    grid-template-areas: "masthead" "ticker" "stage" "ledger";
+  }
+  #stage { margin-bottom: 170px; }   /* reserve room for the floor plane */
+  #ledger { max-width: 640px; margin: 30px auto 0; width: 100%; }
+}
+@media (max-width: 899px) {
+  #hall { padding: 16px 18px 40px; }
+  :root { --gate-w: clamp(170px, 44vw, 230px); }
+  #masthead { grid-template-columns: 36px 1fr auto; }
+  .m-title h1 { font-size: 22px; }
+  .m-sub { display: none; }
+  #dateline { display: none; }
+  .rail-inst { display: none; }
+  .assembly { transform: translateX(-50%) scale(0.85); }
+  #lever { width: 260px; }
+  #lever .hit-arm { width: 190px; height: 96px; }
+}
+
+/* ==========================================================================
+   REDUCED MOTION — setting or OS preference collapses everything
+   ========================================================================== */
+:root[data-motion="reduced"] *,
+:root[data-motion="reduced"] *::before,
+:root[data-motion="reduced"] *::after {
+  animation-duration: 0.01ms !important;
+  animation-delay: 0ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  transition-delay: 0ms !important;
+}
+:root[data-motion="reduced"] #ticker.rolling .t-track {
+  animation: none; transform: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  :root[data-motion="full"] #ticker.rolling .t-track { animation: none; }
+}
