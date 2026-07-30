@@ -313,10 +313,10 @@ Motion setting collapse all of the above to fades/instant.
 
 ## Accessibility summary
 
-Tab order: masthead → lever → active gates → receded gates → chips → Ledger
-plaques. Lever `role=switch`; chips radiogroup; settings overlay
-focus-trapped + Esc; entrance overlay aria-hidden; lamps always carry text;
-AA contrast per the token matrix.
+Tab order (v3.1): masthead → ticker → active gates → receded gates → chips
+→ Ledger plaques → machine-rail lever (footer-last). Lever `role=switch`;
+chips radiogroup; settings overlay focus-trapped + Esc; entrance overlay
+aria-hidden; lamps always carry text; AA contrast per the token matrix.
 
 ## Depth pass (v3 — client mandate: keep the motion, kill the flatness)
 
@@ -365,6 +365,117 @@ light, near-vertical (skylight): every shadow offset points down, slight x.
   multi-stop metallic gradients, bevel/emboss highlights, outer glows on
   gold. Static depth (pose tilt, shadows, floor) persists under reduced
   motion — depth is not motion; only parallax and the entrance are.
+
+## Steampunk pass (v3.1) — the machine rail and the deco-machine fusion
+
+Design stance (from the BioShock/Rapture research): kitsch is prevented by
+COHERENCE, not restraint alone. Machinery is sublimated by finishes — the
+mechanism lives inside architectural casework and is revealed at exactly one
+deliberate aperture per region. Mechanism density is a gradient that peaks
+at the bottom rail and dies before the architecture above.
+
+### Material law — the oiled-bronze family
+
+A third metal tier joins gold and platinum, defined per theme:
+`--bronze-deep` (machine housings), `--bronze` (machined parts/strokes),
+`--steam` (vapor — warm champagne-alpha in Onyx; **ink-derived** in Ivory,
+white steam on paper is the failure mode), `--machine-edge` (wells, slots,
+notches — dark against the housing in BOTH themes; `--edge` is a paper tone
+in Ivory and vanishes). Flat fills + 1/1.5 px hairlines only; patina is a
+tone, never a noise/grunge bitmap. The existing bans (multi-stop metallic
+gradients, bevel/emboss, outer glows) extend to bronze. Wing metal stays on
+exactly three surfaces; the lever's polished grip zone inherits the old
+needle's slot.
+
+**Texture amendment**: exactly two FLUX.2-generated bitmaps are sanctioned
+as material garnish — the engine-turned band overlay and the riveted-iron
+door overlay — and only after flattening to low-contrast mid-gray
+(±8..±24) so they overlay-blend into the housing tone. They must never
+carry color, read as photographic grime, or appear on paper/plaque
+surfaces. Everything else remains stroke-built SVG.
+
+### New ornament classes (with their own density laws)
+
+- **Rivet line**: 1.5 px filled dots at even pitch, only at plate seams of
+  machine housings (rail edge, seam plates, builder's plate corners) —
+  never on paper/plaque surfaces, never on gate frames.
+- **Knurl band**: short radial ticks at even pitch — the machined cousin of
+  the Greek key; bridges deco and machine. Allowed on the masthead rosette's
+  outer ring, gauge bezel, grip surfaces. One ring per element.
+- **Machined gear**: trapezoid teeth on ISO proportions (addendum 1.0 m,
+  dedendum 1.25 m), spoked rim, evenodd cutouts. A gear MUST mesh with a
+  partner and rotate only when driven (max 2 gears page-wide, both in the
+  rail). No idle motion anywhere: the hall at rest is silent architecture.
+- **Steam puff**: event-only — 4–6 soft sprites per burst from the one vent
+  on lever throw (plus one wisp as the entrance doors part). Never ambient.
+- **Pneumatic main**: the Ledger spine re-read as a brass dispatch tube —
+  edge hairlines + collar rings at day-break junctions; medallions gain one
+  concentric ring (carrier end-caps). Pipes must plumb something.
+
+### The machine rail (`#machine-rail`)
+
+The only region with full mechanism density; even here the drive train must
+be traceable: lever → hidden rack → gear pair → vent.
+
+- **Placement**: `position:fixed; bottom:0` full-bleed footer, a body-level
+  sibling AFTER `#hall` (never inside — parallax vars are scoped to #stage;
+  a transformed ancestor would trap the fixed box). `z-index:50` — above
+  hall content, **below** prefs scrim (60), grain sheet (95), entrance
+  (100). `body { padding-bottom }` clears the Ledger tail. The old
+  `#lever-row` grid row is deleted from both grid templates.
+- **Anatomy** (signal-box pattern): bronze housing band (~88 px) with a
+  gold top hairline + rivet row and two riveted seam plates; left — enamel
+  gauge, LINES 0..n, knurled bezel, needle on `--gauge`; center — notched
+  quadrant plate (ratchet teeth, deep end notches, SALON/BUREAU engraved at
+  the arc ends) and the lever: bronze arm, polished `--metal` grip zone,
+  riveted number plate, ±16° throw; behind it a hairline-framed aperture
+  well showing the meshed gear pair; right — engraved builder's plate
+  (ATRIUM WORKS · No. 8769 · MMXXVI) and the steam vent pipe with collar.
+- **Drive**: one scalar `--drive` (0 = salon, 1 = bureau) written by a JS
+  rAF driver; lever (±16°), gear A (90°) and pinion B (−180°, ratio
+  −N_A/N_B) all derive via calc — sync is structural. Meshing law: shared
+  module, center distance = r_pA + r_pB, interleave phase
+  `((1+N_A/N_B)·φ + 180 − 180/N_B) mod (360/N_B)` baked as a static
+  transform (never in the CSS-animated one).
+- **Feel**: weighty piecewise ease (fast start → ~4.5% overshoot → damped
+  clank settle, ~520 ms); steam burst latched at 55% of the throw;
+  interrupt-safe (re-toggle reads current `--drive`). Reduced motion: snap
+  `--drive`, no steam, no overshoot — gears stay correct for free.
+- **Layers**: `.rail-art` (static housing, `contain: layout paint`,
+  painted static gear shadows) / `.rail-fx` (the three movers + nozzle,
+  overflow visible so puffs escape) / `#lever` (the invisible hit surface —
+  same id, `role=switch`, Space/Enter, aria-checked, i18n attributes; all
+  existing JS bindings survive relocation verbatim). The gear well clips
+  via `overflow:hidden` on an inner div — never `clip-path` on the shell.
+- **Boot**: `html[data-boot="suppressed"] #machine-rail` mirrors the hall
+  fade; under a playing entrance the rail rises at ~2.1 s in the old
+  lever-row slot. Tab order is now masthead → ticker → gates → chips →
+  plaques → lever (footer-last, re-documented).
+
+### Entrance beat — the vault unlock
+
+One new beat inside the existing timeline (total unchanged, ≤2.7 s): the
+drawn gold circle grows a 4-spoke handwheel and 8 radial bolts (`.wheel`
+class at ~700 ms) — wheel turns 60°, bolts retract inward in sync (a vault
+throws all bolts at once; the synchrony is the luxury) — then the seam
+splits, the doors swing, and one steam wisp rises from the seam foot
+(spawned via the `at()` helper so skip clears it). The wheel docks with the
+burst into the masthead rosette — its spokes echo the rosette cross-hairs.
+Door panels gain rivet columns along their meeting edges inside the
+engraved group. Reduced motion: entrance never plays (unchanged).
+
+### Ban list (v3.1 additions)
+
+No glued-on gears (every gear meshes and is driven); no costume tropes
+(goggles, airships, clockwork octopi); no rust/verdigris/grunge bitmaps; no
+idle machinery or looping steam; no Art-Nouveau scrollwork (machine
+ornament is machined: knurl, flute, rivet, flange); no orphan pipework; no
+sepia palette coup — steampunk arrives as geometry plus one bronze family;
+no steam-as-atmosphere; no mechanism in gate sigil/keystone zones, on
+plaque bodies, or above the ticker (masthead knurl ring excepted); no
+autoplaying audio; the lever is never a styled checkbox that snaps — but
+the ritual must not delay the actual mode switch beyond ~450 ms or break
+`role=switch` semantics.
 
 ## Non-goals (v1)
 

@@ -42,6 +42,13 @@
   --shadow-drop: rgba(0, 0, 0, 0.55);
   --shadow-soft: rgba(0, 0, 0, 0.42);
   --vignette: rgba(0, 0, 0, 0.26);
+  /* Oiled-bronze machine family (v3.1) — flat tones, never gradients */
+  --bronze-deep: #1e170d;
+  --bronze: #6e522c;
+  --machine-edge: #060504;   /* wells, slots, notches — darkest machine tone */
+  --rivet: rgba(232, 220, 192, 0.34);
+  --steam-core: rgba(248, 240, 220, 0.60);
+  --steam-mid: rgba(248, 240, 220, 0.26);
   color-scheme: dark;
 }
 :root[data-theme="ivory"] {
@@ -63,6 +70,16 @@
   --shadow-drop: rgba(42, 36, 22, 0.30);
   --shadow-soft: rgba(42, 36, 22, 0.16);
   --vignette: rgba(42, 36, 22, 0.10);
+  /* Ivory machine bronze: greige housing, ink hairlines; steam derives from
+     ink — white vapor on paper is the failure mode. --machine-edge must be
+     dark against the greige housing (--edge is a paper tone here and would
+     vanish, ~1.07:1). */
+  --bronze-deep: #ddd3bc;
+  --bronze: #8a6a34;
+  --machine-edge: #57492f;
+  --rivet: rgba(42, 36, 22, 0.30);
+  --steam-core: rgba(42, 36, 22, 0.15);
+  --steam-mid: rgba(42, 36, 22, 0.07);
   color-scheme: light;
 }
 /* Wing metal — carried by exactly three surfaces:
@@ -90,6 +107,8 @@ body {
   line-height: 1.5;
   transition: background-color 0.4s, color 0.4s;
   overflow-x: hidden;
+  padding-bottom: 116px;   /* the fixed machine rail must never cover the
+                              Ledger tail or the floor's near edge */
 }
 html[lang="zh"] body { font-family: 'EB Garamond', 'Noto Serif SC', 'Microsoft YaHei', serif; }
 /* Atmosphere sheet: vignette + fine grain in front of the hall — implies
@@ -138,8 +157,14 @@ html[lang="zh"] .display { letter-spacing: 0.26em; }
    <use>-based art is colored via `color` (currentColor pierces shadow DOM).
    NOTE: gate frame segments are NOT in this list — their transitions carry
    the sequential-lighting stagger below and must win the cascade. */
-.sigil, #monogram, #prefs-btn svg, .l-plaque path, .l-plaque circle,
-.medal, .medal .rim, .medal .m-sig, .chip {
+.sigil, #monogram, #prefs-btn svg,
+.medal, .medal .rim, .medal .m-sig, .chip,
+.quadrant path, .quadrant circle, .quadrant rect, .quadrant polygon,
+.quadrant ellipse,
+.gauge path, .gauge circle, .gauge line, .gauge text,
+.builder-plate rect, .builder-plate circle, .builder-plate text,
+.lever-svg path, .lever-svg circle, .lever-svg rect, .lever-svg text,
+.lever-svg polygon, .gearA-svg path, .gearB-svg path {
   transition: stroke 0.4s, fill 0.4s, color 0.4s,
               background-color 0.4s, border-color 0.4s;
 }
@@ -156,7 +181,6 @@ html[lang="zh"] .display { letter-spacing: 0.26em; }
   grid-template-areas:
     "masthead masthead"
     "ticker   ticker"
-    "lever    lever"
     "stage    ledger";
   column-gap: 44px;
 }
@@ -235,28 +259,231 @@ html[data-boot="suppressed"] #hall { animation: hall-fade 0.3s var(--ease-out) b
 .t-sep { color: var(--gold); padding: 0 14px; }
 .t-new { color: var(--gold-text); }
 
-/* ----- Mode lever -------------------------------------------------------- */
-#lever-row { grid-area: lever; display: flex; justify-content: center; padding: 22px 0 8px; }
-#lever {
-  display: flex; align-items: center; gap: 16px;
-  cursor: pointer; user-select: none;
+/* ==========================================================================
+   MACHINE RAIL — the works of the hall (DESIGN.md v3.1). Fixed full-bleed
+   footer; z ladder: rail 50 < prefs 60 < grain 95 < entrance 100. The shell
+   is never clipped (steam must escape; clip-path kills shadows) — only the
+   gear well clips, via overflow:hidden. One scalar --drive (0=salon,
+   1=bureau, written by the JS driver) derives the lever and both gears.
+   ========================================================================== */
+#machine-rail {
+  position: fixed; left: 0; right: 0; bottom: 0;
+  height: 96px;
+  z-index: 50;
+  isolation: isolate;
+  pointer-events: none;   /* only the lever hit surface takes the pointer */
 }
-.l-label { font-size: 13px; color: var(--ink-faint); transition: color 0.4s; }
-/* Active label brightens to ink — only the NEEDLE carries the wing metal. */
+/* Boot parity with the hall: suppressed loads fade, played entrances rise
+   in the old lever-row slot. Transform/opacity only — the entrance dock
+   measurement depends on zero layout shift. */
+html[data-boot="suppressed"] #machine-rail {
+  animation: hall-fade 0.3s var(--ease-out) both;
+}
+html[data-entered="no"] #machine-rail {
+  animation: rise-in 0.45s var(--ease-out) both;
+  animation-delay: 2.1s;
+}
+/* Initial lever pose before the JS driver's first write. */
+:root[data-wing="salon"] #machine-rail { --drive: 0; }
+:root[data-wing="bureau"] #machine-rail { --drive: 1; }
+
+.rail-band {
+  position: absolute; inset: 0;
+  background-color: var(--bronze-deep);
+  border-top: 1px solid var(--gold);
+  /* rivet row under the brass edge strip — dots live at plate seams only.
+     Beneath it, the FLUX.2 engine-turned texture (flattened to mid-gray
+     ±12) overlay-blends into the housing tone: machined richness without
+     breaking the flat-ink language. */
+  background-image: radial-gradient(circle 1.4px at 28px 9px,
+      var(--rivet) 99%, transparent),
+    url('/static/assets/tex/engine_turned.png');
+  background-size: 56px 100%, 420px;
+  background-repeat: repeat-x, repeat;
+  background-blend-mode: normal, overlay;
+  transition: background-color 0.4s, border-color 0.4s;
+}
+/* Riveted seam plates: hairline seam + its own rivet column. */
+.rail-band::before, .rail-band::after {
+  content: ""; position: absolute; top: 12px; bottom: 9px; width: 9px;
+  background-image:
+    linear-gradient(var(--machine-edge), var(--machine-edge)),
+    radial-gradient(circle 1.4px at 4.5px 13px, var(--rivet) 99%, transparent);
+  background-size: 1px 100%, 9px 26px;
+  background-position: 4px 0, 0 0;
+  background-repeat: no-repeat, repeat-y;
+}
+.rail-band::before { left: 21%; }
+.rail-band::after { right: 21%; }
+
+.rail-core {
+  position: relative;
+  max-width: 1720px; height: 100%;
+  margin: 0 auto;
+  padding: 0 44px;
+}
+
+/* ----- Instruments ------------------------------------------------------- */
+.rail-inst {
+  position: absolute; bottom: 0;
+  display: flex; flex-direction: column; align-items: center;
+}
+.rail-gauge { left: 44px; bottom: 3px; }
+.gauge { width: 82px; height: 75px; overflow: visible; }
+.gauge .g-bezel { stroke: var(--bronze); fill: none; }
+.gauge .g-knurl { stroke: var(--ink-faint); }
+.gauge .g-dial { fill: var(--surface); stroke: var(--line); }
+.gauge .g-tick { stroke: var(--ink-faint); }
+/* Instrument text renders through the svg scale (~0.8) — declared sizes
+   compensate, and ink (not ink-faint) holds 4.5:1 on the housing. */
+.gauge text {
+  fill: var(--ink);
+  font-family: var(--serif);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+.gauge .g-needle {
+  stroke: var(--gold);
+  transform: rotate(calc(var(--gauge, -120) * 1deg));
+  transform-box: view-box;
+  transform-origin: 50px 50px;
+  transition: transform 0.9s var(--ease-spring), stroke 0.4s;
+}
+.gauge .g-hub { fill: var(--bronze); stroke: none; }
+.inst-caption {
+  font-size: 10px; letter-spacing: 0.24em;
+  color: var(--ink); margin-top: 2px;
+}
+.rail-plate { right: 44px; bottom: 24px; }
+.builder-plate { width: 166px; height: 42px; }
+.builder-plate rect { stroke: var(--bronze); fill: none; }
+.builder-plate circle { fill: var(--rivet); stroke: none; }
+.builder-plate text { fill: var(--ink); font-family: var(--serif); }
+.bp-name { font-size: 13px; letter-spacing: 0.2em; }
+.bp-no { font-size: 12px; letter-spacing: 0.08em; font-variant-numeric: tabular-nums; }
+
+/* ----- Lever assembly ---------------------------------------------------- */
+.assembly {
+  position: absolute; left: 50%; bottom: 0;
+  width: 360px; height: 220px;
+  transform: translateX(-50%);
+  transform-origin: center bottom;
+  pointer-events: none;
+}
+.rail-art { position: absolute; inset: 0; contain: layout paint; }
+.quadrant { position: absolute; inset: 0; width: 100%; height: 100%; }
+.quadrant .q-plate { fill: var(--bronze-deep); stroke: var(--bronze); stroke-width: 1; }
+.quadrant .q-face { fill: none; stroke: var(--bronze); stroke-width: 1; }
+.quadrant .q-teeth { stroke: var(--ink-faint); stroke-width: 1; fill: none; }
+.quadrant .q-notch { fill: var(--machine-edge); stroke: none; }
+.quadrant .q-slot { fill: var(--machine-edge); stroke: var(--line); stroke-width: 1; }
+.quadrant .q-pipe { fill: var(--bronze-deep); stroke: var(--bronze); stroke-width: 1; }
+.quadrant .q-shadow { fill: var(--shadow-soft); stroke: none; }
+
+.rail-fx { position: absolute; inset: 0; }
+.gear-well {
+  position: absolute; left: 50%; bottom: 14px;
+  width: 176px; height: 56px;
+  margin-left: -88px;
+  overflow: hidden;               /* the one sanctioned clip — not clip-path */
+  background-color: var(--machine-edge);
+  border: 1px solid var(--bronze);
+  transition: background-color 0.4s, border-color 0.4s;
+}
+.gearA-svg, .gearB-svg {
+  position: absolute;
+  overflow: visible;
+  will-change: transform;
+}
+.gearA-svg {
+  width: 104px; height: 104px;
+  transform: rotate(calc((var(--drive, 0) - 0.5) * 90deg));
+}
+.gearB-svg {
+  width: 60px; height: 60px;
+  transform: rotate(calc((var(--drive, 0) - 0.5) * -180deg));
+}
+.gearA-svg path, .gearB-svg path {
+  fill: var(--bronze); stroke: var(--machine-edge); stroke-width: 1;
+}
+
+.lever-svg {
+  position: absolute; left: 110px; bottom: 0;
+  width: 140px; height: 210px;
+  overflow: visible;
+  transform-origin: 70px 202px;
+  transform: rotate(calc(-16deg + var(--drive, 0) * 32deg));
+  will-change: transform;
+}
+.lever-svg .lv-arm { fill: var(--bronze); stroke: var(--bronze-deep); stroke-width: 1; }
+/* The polished grip inherits the old needle's wing-metal slot (1 of 3). */
+.lever-svg .lv-grip { fill: var(--metal); stroke: none; transition: fill 0.4s; }
+.lever-svg .lv-plate { fill: var(--bronze-deep); stroke: var(--champagne); stroke-width: 1; }
+.lever-svg .lv-plate-t {
+  fill: var(--ink-faint); font-family: var(--serif); font-size: 11px;
+}
+
+.assembly .l-label {
+  position: absolute; top: 46px;
+  font-size: 12px; letter-spacing: 0.2em;
+  color: var(--ink-faint);
+  transition: color 0.4s;
+}
+.assembly .l-salon { right: calc(50% + 88px); }
+.assembly .l-bureau { left: calc(50% + 88px); }
+/* Active label brightens to ink — only the GRIP carries the wing metal. */
 :root[data-wing="salon"] .l-salon,
 :root[data-wing="bureau"] .l-bureau { color: var(--ink); }
-.l-plaque {
-  width: 96px; height: 44px;
-  filter: drop-shadow(0 2px 3px var(--shadow-drop));
+
+/* Hit surface = the machine base box; the arm zone is a child riding above
+   it, so clicks land only where hardware is drawn (never a floating
+   rectangle over hall content) and the focus ring hugs the base. */
+#lever {
+  position: absolute; left: 50%; bottom: 0;
+  width: 300px; height: 108px;
+  transform: translateX(-50%);
+  pointer-events: auto;
+  cursor: pointer; user-select: none;
+  z-index: 2;
 }
-.l-plaque path, .l-plaque circle { stroke: var(--chrome); fill: none; }
-.l-needle {
-  stroke: var(--metal);
-  transform-origin: 48px 30px;
-  transform: rotate(-24deg);
-  transition: transform 0.45s var(--ease-spring), stroke 0.4s;
+#lever .hit-arm {
+  position: absolute; left: 50%; bottom: 100%;
+  width: 220px; height: 112px;
+  transform: translateX(-50%);
+  display: block;
+  pointer-events: auto;
+  cursor: pointer;
 }
-:root[data-wing="bureau"] .l-needle { transform: rotate(24deg); }
+
+/* ----- Steam ------------------------------------------------------------- */
+.nozzle {
+  position: absolute; left: 269px; top: 112px;
+  width: 0; height: 0;
+  pointer-events: none; z-index: 3;
+}
+.puff {
+  position: absolute; left: -20px; top: -20px; width: 40px; height: 40px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 55%,
+      var(--steam-core), var(--steam-mid) 42%, transparent 70%);
+  filter: blur(6px);
+  will-change: transform, opacity;
+  opacity: 0;
+  animation: puff-rise both cubic-bezier(0.25, 0.6, 0.35, 1);
+}
+@keyframes puff-rise {
+  0% { transform: translate3d(0, 0, 0) scale(0.55) rotate(0deg); opacity: 0; }
+  12% { opacity: 1; }
+  100% {
+    transform: translate3d(var(--dx, 8px), var(--rise, -70px), 0)
+               scale(var(--s, 2.4)) rotate(var(--rot, 20deg));
+    opacity: 0;
+  }
+}
+/* Belt and braces: the CSS kill-switch collapses the animation, but a
+   spawned sprite would still flash — hide the class outright. */
+:root[data-motion="reduced"] .puff { display: none; }
+@media (prefers-reduced-motion: reduce) { .puff { display: none; } }
 
 /* ==========================================================================
    STAGE — triptych; gates positioned by transform only (60 fps law)
@@ -519,10 +746,22 @@ html[data-boot="suppressed"] #hall { animation: hall-fade 0.3s var(--ease-out) b
 .chip:hover { color: var(--ink); }
 
 .l-col { position: relative; padding-left: 44px; }
+/* The spine is a pneumatic dispatch main: a brass tube (edge hairlines)
+   with a flap-door terminal at its head; day-break collars girdle it. */
 .spine {
-  position: absolute; left: 20px; top: 0; bottom: 0; width: 1.5px;
-  background-color: var(--gold);
+  position: absolute; left: 18px; top: 0; bottom: 0; width: 6px;
+  border-left: 1px solid var(--gold);
+  border-right: 1px solid var(--gold);
+  background-color: color-mix(in srgb, var(--gold) 12%, transparent);
   opacity: 0.7;
+  transition: border-color 0.4s;
+}
+.spine::before {
+  content: ""; position: absolute; top: -3px; left: -4px; right: -4px;
+  height: 8px;
+  border: 1px solid var(--gold);
+  background-color: var(--surface);
+  transition: background-color 0.4s, border-color 0.4s;
 }
 #plaques { list-style: none; }
 
@@ -601,7 +840,14 @@ html[data-boot="suppressed"] #hall { animation: hall-fade 0.3s var(--ease-out) b
   border-top: 1px solid var(--line);
   border-bottom: 1px solid var(--line);
 }
-.daybreak::before { max-width: 34px; }
+/* Day-break lead-in doubles as a pipe collar girdling the dispatch main. */
+.daybreak::before {
+  flex: 0 0 14px; max-width: 14px; height: 11px;
+  margin-left: 14px;
+  border: 1px solid var(--gold);
+  background-color: var(--surface);
+  transition: background-color 0.4s, border-color 0.4s;
+}
 
 /* Loading: hairline-pulse plaques (never gray skeleton blocks). */
 .plaque.ghost { animation: ghost-pulse 1.4s ease-in-out infinite; }
@@ -713,6 +959,11 @@ html[data-entered="yes"] #entrance { display: none; }
 .e-panel {
   position: absolute; top: 0; bottom: 0; width: 51vw;
   background-color: var(--base);
+  /* FLUX.2 riveted-iron plate, flattened to mid-gray ±24 and overlay-
+     blended — the doors read as vault iron in both themes. */
+  background-image: url('/static/assets/tex/riveted_iron.png');
+  background-size: 460px;
+  background-blend-mode: overlay;
   transition: transform 0.9s cubic-bezier(0.22, 1, 0.36, 1);
   backface-visibility: hidden;
 }
@@ -774,6 +1025,32 @@ html[data-entered="yes"] #entrance { display: none; }
 #entrance.seam .e-seam { transform: scaleY(1); }
 #entrance.open .e-seam { opacity: 0; }
 
+/* Vault unlock beat: the drawn circle grows a handwheel and 8 radial
+   bolts; the wheel turns 60° and every bolt retracts in sync (a vault
+   throws all bolts at once — the synchrony is the luxury). The wheel then
+   docks with the burst into the rosette. */
+.e-wheel {
+  stroke: var(--gold);
+  opacity: 0;
+  transform-box: view-box;
+  transform-origin: 400px 400px;
+  transition: transform 0.45s var(--ease-out), opacity 0.35s;
+}
+#entrance.doors .e-wheel { opacity: 0.9; }
+#entrance.wheel .e-wheel { transform: rotate(60deg); }
+.e-bolts line {
+  stroke: var(--gold); stroke-width: 5;
+  opacity: 0;
+  transition: transform 0.45s var(--ease-out) 0.05s, opacity 0.3s;
+}
+#entrance.doors .e-bolts line { opacity: 0.75; }
+#entrance.wheel .e-bolts line { transform: translateY(30px); }
+#entrance.open .e-bolts { opacity: 0; transition: opacity 0.3s; }
+.e-nozzle {
+  position: absolute; left: 50%; bottom: 8vh;
+  width: 0; height: 0;
+}
+
 .e-wordmark {
   position: absolute; left: 0; right: 0; top: 50%;
   transform: translateY(-50%);
@@ -807,7 +1084,6 @@ html[data-entered="no"] #masthead { animation: rise-in 0.5s var(--ease-out) both
 html[data-entered="no"] #ticker { animation: rise-in 0.45s var(--ease-out) both; animation-delay: 2.05s; }
 html[data-entered="no"] #ticker::before { animation: rule-draw 0.4s var(--ease-out) both; animation-delay: 1.9s; }
 html[data-entered="no"] #ticker::after { animation: rule-draw 0.4s var(--ease-out) both; animation-delay: 2.0s; }
-html[data-entered="no"] #lever-row { animation: rise-in 0.45s var(--ease-out) both; animation-delay: 2.1s; }
 html[data-entered="no"] .gate { animation: gate-rise 0.5s var(--ease-out) both; animation-delay: calc(1.9s + var(--gi, 0) * 80ms); }
 html[data-entered="no"] #ledger { animation: rise-in 0.5s var(--ease-out) both; animation-delay: 2.15s; }
 /* The glow and floor light only once the gates have landed; the stage
@@ -842,7 +1118,7 @@ html[data-entered="no"] #stage { animation: stage-dolly 0.9s var(--ease-out) bot
 @media (max-width: 1279px) {
   #hall {
     grid-template-columns: 1fr;
-    grid-template-areas: "masthead" "ticker" "lever" "stage" "ledger";
+    grid-template-areas: "masthead" "ticker" "stage" "ledger";
   }
   #stage { margin-bottom: 170px; }   /* reserve room for the floor plane */
   #ledger { max-width: 640px; margin: 30px auto 0; width: 100%; }
@@ -854,6 +1130,10 @@ html[data-entered="no"] #stage { animation: stage-dolly 0.9s var(--ease-out) bot
   .m-title h1 { font-size: 22px; }
   .m-sub { display: none; }
   #dateline { display: none; }
+  .rail-inst { display: none; }
+  .assembly { transform: translateX(-50%) scale(0.85); }
+  #lever { width: 260px; }
+  #lever .hit-arm { width: 190px; height: 96px; }
 }
 
 /* ==========================================================================
@@ -863,8 +1143,10 @@ html[data-entered="no"] #stage { animation: stage-dolly 0.9s var(--ease-out) bot
 :root[data-motion="reduced"] *::before,
 :root[data-motion="reduced"] *::after {
   animation-duration: 0.01ms !important;
+  animation-delay: 0ms !important;
   animation-iteration-count: 1 !important;
   transition-duration: 0.01ms !important;
+  transition-delay: 0ms !important;
 }
 :root[data-motion="reduced"] #ticker.rolling .t-track {
   animation: none; transform: none;
