@@ -36,6 +36,7 @@ var STR = {
     'desc.autopilot': 'Season anime, fetched and shelved while you sleep.',
     'desc.groundstation': 'Workshop mods tracked, updates caught in orbit.',
     'desc.outreach': "The day's introductions, briefed and dealt.",
+    'desc.pressroom': 'The world overnight, set in type by morning.',
     'desc.fallback': 'A newly registered hall.',
     'stat.airing': '{n} AIRING TODAY', 'stat.watching': '{n} WATCHING',
     'stat.pending': '{n} UPDATES PENDING', 'stat.mods': '{n} MODS TRACKED',
@@ -92,6 +93,7 @@ var STR = {
     'desc.autopilot': '当季新番，睡着也替你追完入库。',
     'desc.groundstation': '创意工坊 Mod 尽在轨道监测之中。',
     'desc.outreach': '今日的引荐名单，已备好草稿待发。',
+    'desc.pressroom': '昨夜的世界，天亮前已排版付印。',
     'desc.fallback': '新登记的厅室。',
     'stat.airing': '今日 {n} 部放送', 'stat.watching': '在看 {n} 部',
     'stat.pending': '{n} 个更新待装', 'stat.mods': '追踪 {n} 个 MOD',
@@ -156,7 +158,7 @@ var firstFeed = true;
 var watermark = +(store('atrium.lastVisit') || 0);
 var plaqueEls = {};   // dispatch id -> element (re-polls never re-animate)
 var chipFilter = 'all';   // session-only, resets to ALL on every load (R11)
-var KNOWN_SIGILS = { autopilot: 1, groundstation: 1, outreach: 1 };
+var KNOWN_SIGILS = { autopilot: 1, groundstation: 1, outreach: 1, pressroom: 1 };
 
 window.addEventListener('pagehide', function () {
   store('atrium.lastVisit', String(Date.now()));

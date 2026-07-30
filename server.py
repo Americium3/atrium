@@ -48,6 +48,7 @@ AUTOPILOT_URL = "http://127.0.0.1:8767"
 GS_URL = "http://127.0.0.1:8768"
 GS_HEADERS = {"X-PMH": "1"}          # required by every Ground Station route
 OUTREACH_URL = "http://127.0.0.1:8802"
+PRESSROOM_URL = "http://127.0.0.1:8765"
 
 GS_DATA_DIR = Path(r"X:\Github\pdx-mod-hub\data")
 AP_DATA_DIR = Path(r"X:\Github\anime-rss-auto")
@@ -97,6 +98,17 @@ SERVICES = [
         "desc_key": "outreach",
         "launch_hint": r"X:\Github\linkedin-networking\run_server_hidden.vbs",
         "order": 3,
+    },
+    {
+        "id": "pressroom",
+        "name": "THE PRESS ROOM",
+        "wing": "bureau",
+        "url": PRESSROOM_URL + "/",
+        "addr": "127.0.0.1:8765",
+        "sigil": "pressroom",
+        "desc_key": "pressroom",
+        "launch_hint": r"X:\Github\yorha-news\scripts\run_server.py",
+        "order": 4,
     },
 ]
 

@@ -1261,6 +1261,14 @@ html[data-entered="no"] #masthead { animation: rise-in 0.5s var(--ease-out) both
 html[data-entered="no"] #ticker { animation: rise-in 0.45s var(--ease-out) both; animation-delay: 2.05s; }
 html[data-entered="no"] #ticker::before { animation: rule-draw 0.4s var(--ease-out) both; animation-delay: 1.9s; }
 html[data-entered="no"] #ticker::after { animation: rule-draw 0.4s var(--ease-out) both; animation-delay: 2.0s; }
+/* The dial is set into the back wall, so it has to be standing there before
+   the gates rise in front of it: 1.88s puts it one beat ahead of the first
+   gate. It was missing from this list entirely and so arrived fully formed at
+   frame zero, which read as a rendering fault rather than as the centrepiece.
+   Like .gate below, its keyframes must carry the translateX(-50%) that centres
+   it — an animated transform replaces the static one outright, and without it
+   the clock snaps to the left edge for the length of the entrance. */
+html[data-entered="no"] #clock { animation: dial-wake 0.62s var(--ease-out) both; animation-delay: 1.88s; }
 html[data-entered="no"] .gate { animation: gate-rise 0.5s var(--ease-out) both; animation-delay: calc(1.9s + var(--gi, 0) * 80ms); }
 html[data-entered="no"] #ledger { animation: rise-in 0.5s var(--ease-out) both; animation-delay: 2.15s; }
 /* The glow and floor light only once the gates have landed; the stage
@@ -1276,6 +1284,12 @@ html[data-entered="no"] #stage { animation: stage-dolly 0.9s var(--ease-out) bot
   to { opacity: 1; transform: none; }
 }
 @keyframes rule-draw { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+/* A clock does not fade in, it comes up to speed. The dial settles from
+   slightly small and slightly low, as though the works had just taken load. */
+@keyframes dial-wake {
+  from { opacity: 0; transform: translateX(-50%) translateY(8px) scale(0.955); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+}
 @keyframes gate-rise {
   from {
     opacity: 0;
