@@ -326,9 +326,11 @@ item, replaced in place) · `outreach:invites:<local-date>` (mutable).
 including the ping probe):
 
 - 60 s: `GET /api/ping`; if `.seq` == stored cursor → done. Else page
-  `GET /api/feed?after_seq=<cursor>&limit=200` until short page. Events
-  `updated|downloaded|removed|banned`; map `appId`→game via `/api/state`
-  `games[]` (cached per session). Changelog snippet: local file
+  `GET /api/feed?after_seq=<cursor>&limit=200` until short page. Relayed
+  events `updated|removed|banned`; `downloaded` is muted (`GS_MUTED_KINDS`)
+  — it retells what `updated` already said and is the one kind Ground
+  Station raises regardless of the mod's *cared* flag. Map `appId`→game via
+  `/api/state` `games[]` (cached per session). Changelog snippet: local file
   `X:/Github/pdx-mod-hub/data/changelogs/<modId>.json`, match
   `entries[].ts == event.ts`; never call `/api/mods/:id/changelog`.
 - **Cursor persisted** in `state/cursors.json` (atomic temp+replace). Cold

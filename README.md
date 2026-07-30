@@ -33,8 +33,8 @@ Atrium serves `http://127.0.0.1:8769` and currently fronts:
   gate shows the launcher hint instead of a dead tab.
 - **The Ledger** — the message center. A gilded dispatch column collecting
   today's news from all services: which anime got a new episode, premieres
-  auto-subscribed, shows auto-completed, which workshop mod updated or got
-  installed, outreach daily-queue readiness and invites sent. Dispatches
+  auto-subscribed, shows auto-completed, which watched workshop mod updated
+  or got pulled, outreach daily-queue readiness and invites sent. Dispatches
   newer than your last visit carry a champagne rim. Filter chips
   (ALL / SALON / BUREAU) are session-only and never touched by the mode
   lever — both wings' news always arrives.
@@ -121,6 +121,11 @@ Adapter notes:
   files, never the live scrape endpoint. Offline fallback reads
   `data/events.json`. Mod updates only arrive for mods marked *watched*
   there — an unwatched mod's update raises no event at all, by design.
+  Of the four kinds Ground Station raises, the hall relays three:
+  `updated`, `removed` and `banned`. `downloaded` — Steam having finished
+  writing an update to disk — is muted, because it retells what `updated`
+  already said and is the one kind raised for watched and unwatched mods
+  alike. It stays visible on Ground Station's own updates page.
 - **Outreach Desk**: privacy hard rule — only aggregate counts ever leave
   the hub process (allowlisted param keys); names, drafts and per-person
   URLs never appear in the feed. Enforced server-side and covered by a test.
