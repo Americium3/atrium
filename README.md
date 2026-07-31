@@ -31,13 +31,16 @@ Atrium serves `http://127.0.0.1:8769` and currently fronts:
   OPEN/DARK status lamp (live health checks) and one live stat. Clicking an OPEN gate opens
   the target in a named tab (one tab per service, reused). Clicking a DARK
   gate shows the launcher hint instead of a dead tab.
-- **The Ledger** — the message center. A gilded dispatch column collecting
-  today's news from all services: which anime got a new episode, premieres
-  auto-subscribed, shows auto-completed, which watched workshop mod updated
-  or got pulled, outreach daily-queue readiness and invites sent. Dispatches
-  newer than your last visit carry a champagne rim. Filter chips
-  (ALL / SALON / BUREAU) are session-only and never touched by the mode
-  lever — both wings' news always arrives.
+- **The Ledger** — the message center, kept off the main page behind a hatch
+  button in the masthead. Opening it slides a drawer over the right edge; its
+  spine draws downward and the dispatches cascade after it, staggered and
+  capped so a long feed still lands quickly. It collects today's news from all
+  services: which anime got a new episode, premieres auto-subscribed, shows
+  auto-completed, which watched workshop mod updated or got pulled, outreach
+  daily-queue readiness and invites sent. Dispatches newer than your last visit
+  carry a champagne rim. Filter chips (ALL / SALON / BUREAU) are session-only
+  and never touched by the mode lever — both wings' news always arrives.
+  Escape, the scrim and the button all close it.
 - **The ticker** — a status band (lines open, per-gate stats) that also
   scrolls dispatches you haven't seen yet; static when nothing is new.
 - **The machine rail** — a fixed bronze footer housing the works of the
@@ -46,19 +49,28 @@ Atrium serves `http://127.0.0.1:8769` and currently fronts:
   platinum), re-composes the stage, spins the meshed gear pair in the
   aperture below (trapezoid teeth on ISO proportions, exact center distance
   and interleave phase), and vents a burst of steam mid-throw. The throw
-  has weight — fast start, slight overshoot, damped clank settle. The rail
+  has weight — fast start, slight overshoot, damped clank settle. The lever
+  and both gears are drawn as machined parts rather than silhouettes —
+  knurled grip, ferrule, web relief, rivets, gaiter, pawl and detent on the
+  lever; rim bands, root fillets, tip wear flats, spoke fillets, lightening
+  holes, keyway, bolt circle and witness marks on the gears, with the pinion
+  cast differently from the spur so the pair reads as two parts. The rail
   also carries an enamel LINES gauge (needle = services reachable), a
   riveted housing with an engraved builder's plate, and a FLUX.2-generated
   engine-turned texture blended into the plate. It never filters the
   Ledger.
-- **Entrance** — a ~2.4 s sequence that assembles the chrome: a gold circle
-  draws itself, sunburst rays fan out, the circle grows a vault handwheel
-  whose quarter-turn retracts eight radial bolts in sync, riveted door
-  leaves swing open on their hinges in perspective as a steam wisp rises
-  from the seam, the wordmark settles, the camera dollies in, and the
-  wheel docks with the circle as the masthead rosette. Plays at most once
-  per 6 h; click to skip; replay from Preferences; collapses to a fade
-  under reduced motion.
+- **Entrance** — a ~2.4 s sequence that assembles the chrome. The lock face
+  is built from a real vault door: case and relocker, a handwheel of rim,
+  fillets, hub and grip knobs, a dial ring whose graduations tick in, bolt
+  guides and a carrier ring, four drive cams, jamb planes and threshold, and
+  a maker's plate. A gold circle draws itself, sunburst rays fan out, the
+  handwheel's quarter-turn drives the cams and retracts eight bolts in sync,
+  the engraved door leaves swing open on their hinges in perspective as a
+  steam wisp rises from the seam, the wordmark settles, the camera dollies
+  in, the wheel docks with the circle as the masthead rosette, and the rail
+  ticks one tooth so the hall is already in motion. Plays at most once per
+  6 h; click to skip; replay from Preferences; collapses to a fade under
+  reduced motion.
 - **Depth** — the hall is dimensional, not flat: a one-point-perspective
   floor converges behind the stage, gates are slabs with thickness, contact
   shadows and polished-floor reflections, receded wings tilt inward like a
