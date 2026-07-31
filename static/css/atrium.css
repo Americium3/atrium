@@ -280,23 +280,43 @@ html[data-boot="suppressed"] #hall { animation: hall-fade 0.3s var(--ease-out) b
   transform-box: fill-box;
   transition: transform 0.25s var(--ease-out);
 }
-/* Unread badge */
+/* Unread signal — a machined disc seated at 45° on the hatch housing ring,
+   rather than a badge pinned to the button's bounding box. The hatch is a
+   pneumatic dispatch cap; an annunciator belongs on its housing.
+
+   Champagne because that is already what "unseen" means in this hall: Ledger
+   plaques newer than the watermark take a champagne rim and a champagne ◆, so
+   the masthead and the drawer say the same thing in the same colour.
+
+   Flat fill and one dark seat hairline, no gradient and no bloom — the ban
+   list rules out the outer glow that would normally read as "lit", so value
+   contrast against the bronze housing has to carry it instead. Measured on
+   the housing each theme actually paints: champagne on Onyx bronze reaches
+   13.9:1, but on Ivory's greige housing it collapses to 1.9:1, which is no
+   signal at 9px. Ivory therefore takes --gold-text, the token this palette
+   already reserves for warm accent at small sizes, at 4.1:1. */
 .l-badge {
   position: absolute;
-  top: -4px; right: -4px;
-  width: 16px; height: 16px;
+  /* 45° on the r=22 housing ring of a 48-unit viewBox drawn at 40px. */
+  top: 2.5px; right: 6.5px;
+  width: 9px; height: 9px;
   border-radius: 50%;
-  background: var(--gold);
-  color: var(--base);
-  font-size: 9px;
-  font-variant-numeric: tabular-nums;
-  letter-spacing: 0;
-  line-height: 16px;
-  text-align: center;
+  background: var(--champagne);
+  /* Seats the disc into the housing instead of gluing it on top. */
+  box-shadow: 0 0 0 1px var(--machine-edge);
   pointer-events: none;
-  font-family: var(--serif);
 }
+:root[data-theme="ivory"] .l-badge { background: var(--gold-text); }
 .l-badge[hidden] { display: none; }
+/* Arrival: the carrier seats itself, once. Event-driven, never idle — the
+   hall at rest is silent architecture. As a CSS animation this also collapses
+   under REDUCED motion, which the inline transform it replaces did not. */
+.l-badge.seating { animation: badge-seat 260ms var(--ease-spring) both; }
+@keyframes badge-seat {
+  0%   { transform: scale(0.2); }
+  60%  { transform: scale(1.28); }
+  100% { transform: scale(1); }
+}
 
 /* ----- Ticker (status band; double rules live here) ---------------------- */
 #ticker {

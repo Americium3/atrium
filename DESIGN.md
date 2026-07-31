@@ -215,9 +215,23 @@ full column width. Plaque anatomy: medallion (service sigil; gold rim Salon,
 platinum rim Bureau) + localized headline + detail line + relative time.
 Plaques are links opening the dispatch url.
 
-- **Seen/unseen watermark**: localStorage last-visit timestamp. Dispatches
-  newer than the watermark get a champagne rim + small ◆ marker. The Ledger
-  itself always shows the full window.
+- **Seen/unseen watermark**: localStorage timestamp of the last time the
+  drawer was *open*. Dispatches newer than the watermark get a champagne rim
+  + small ◆ marker. The Ledger itself always shows the full window. The
+  watermark advances on close, and on unload only if the drawer was open —
+  stamping it on every unload marked dispatches read that were never looked
+  at, which leaves nothing for the unread signal to report.
+- **Unread signal (masthead)**: one 9 px disc seated at 45° on the hatch
+  housing ring — an annunciator on the dispatch cap, not a badge pinned to
+  the button's bounding box. Carries no numeral: the count is exposed through
+  the button's tooltip and an `.sr-only` span, so the mark stays a mark. Flat
+  fill + a single `--machine-edge` seat hairline; the ban on outer glow means
+  value contrast does the work of "lit", which is why the colour is
+  per-theme — champagne on Onyx bronze (13.9:1), `--gold-text` on Ivory's
+  greige housing (4.1:1, where champagne would be 1.9:1 and read as nothing).
+  Motion is arrival-only: a single 260 ms seat when the count *grows*, never
+  on a re-poll that returns the same dispatches, since the hall at rest is
+  silent architecture.
 - Filter chips ALL / SALON / BUREAU: session-only, reset to ALL on every
   load; **no code path ties the lever to the chips** (R11). Chips are a
   radiogroup with arrow keys.
