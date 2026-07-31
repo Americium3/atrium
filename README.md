@@ -68,9 +68,11 @@ Atrium serves `http://127.0.0.1:8769` and currently fronts:
   the engraved door leaves swing open on their hinges in perspective as a
   steam wisp rises from the seam, the wordmark settles, the camera dollies
   in, the wheel docks with the circle as the masthead rosette, and the rail
-  ticks one tooth so the hall is already in motion. Plays at most once per
-  6 h; click to skip; replay from Preferences; collapses to a fade under
-  reduced motion.
+  ticks one tooth so the hall is already in motion. It plays on **every**
+  load — it used to be gated to once per six hours, which made the hall's
+  best moment something you saw once a morning and never again. Any click or
+  keypress cuts it short, `?entrance=0` suppresses it, and reduced motion
+  collapses it to a fade.
 - **Depth** — the hall is dimensional, not flat: a one-point-perspective
   floor converges behind the stage, gates are slabs with thickness, contact
   shadows and polished-floor reflections, receded wings tilt inward like a
@@ -155,10 +157,17 @@ interpreter).
 
 Autostart: `scripts/concierge.vbs` runs `concierge.ps1`, which probes each
 service port and launches only what is down (Atrium, Ground Station,
-Outreach Desk — Anime Autopilot keeps its own Startup shortcuts). Register
-it as a logon scheduled task; services are spawned via WMI so they are
-parented outside the task's job object and survive its execution time
-limit:
+Outreach Desk, the Press Room — Anime Autopilot keeps its own Startup
+shortcuts). A silent port gets a second look three seconds later before
+anything is launched, because several of these are started at logon by their
+own mechanism at the same moment and a cold-boot uvicorn can take longer to
+bind than this task's trigger delay; without that pause the concierge starts
+a duplicate that dies on "address already in use". The Press Room is listed
+as a safety net rather than as its owner — YoRHa News registers its own
+`YoRHaNews-Server` logon task, and the port guard is what keeps the two from
+fighting. Register the concierge as a logon scheduled task; services are
+spawned via WMI so they are parented outside the task's job object and
+survive its execution time limit:
 
 ```powershell
 $a = New-ScheduledTaskAction -Execute 'wscript.exe' `

@@ -23,17 +23,19 @@
   var motion = q.get('motion') || get('atrium.motion',
     matchMedia('(prefers-reduced-motion: reduce)').matches ? 'reduced' : 'full');
   d.dataset.motion = motion;
-  var last = +(get('atrium.entered', '0'));
-  var play = motion === 'full' && (Date.now() - last > 6 * 3600 * 1000);
+  // The entrance plays on every load. It was previously gated by a 6 h
+  // localStorage stamp (`atrium.entered`), which meant the hall's best moment
+  // was something you saw once a morning and never again. Nothing reads or
+  // writes that key any more. The escape hatches are unchanged and cover the
+  // hurry case: reduced motion collapses it, ?entrance=0 skips it outright,
+  // and any click or keypress cuts a running one short.
+  var play = motion === 'full';
   if (q.get('entrance') === '1') play = true;
   if (q.get('entrance') === '0') play = false;
   d.dataset.entered = play ? 'no' : 'yes';
   // data-boot distinguishes a suppressed load (hall fades in at boot) from
   // a played entrance (flipping data-entered later must NOT re-fade).
   d.dataset.boot = play ? 'played' : 'suppressed';
-  if (play && ls && !q.get('entrance')) {
-    ls.setItem('atrium.entered', String(Date.now()));
-  }
 })();
 </script>
 <!-- One canonical mark, in every form anything asks for. Order matters: the

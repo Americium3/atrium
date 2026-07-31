@@ -1897,9 +1897,13 @@ function renderDateline() {
   $('#dateline').textContent = fmt.format(new Date());
 }
 
+// Replay is now just a reload — every load plays the entrance, so there is no
+// suppression stamp left to clear. ?entrance=1 is appended so the replay still
+// works for someone browsing with motion set to reduced.
 $('#replay').addEventListener('click', function () {
-  try { localStorage.removeItem('atrium.entered'); } catch (e) {}
-  location.reload();
+  var u = new URL(location.href);
+  u.searchParams.set('entrance', '1');
+  location.href = u.toString();
 });
 
 /* ========================================================================
