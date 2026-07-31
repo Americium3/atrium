@@ -79,7 +79,8 @@ var STR = {
     ariaFilter: 'Filter dispatches', ariaClose: 'Close',
     ariaGates: 'Gates', ariaLedger: 'Ledger — dispatch timeline',
     salonWing: 'Play wing', bureauWing: 'Work wing',
-    ledgerBtnLabel: 'LEDGER'
+    ledgerBtnLabel: 'LEDGER',
+    unreadCount: '{n} new dispatches', unreadCountOne: '1 new dispatch'
   },
   zh: {
     subtitle: '大通廊',
@@ -139,7 +140,8 @@ var STR = {
     ariaFilter: '筛选快讯', ariaClose: '关闭',
     ariaGates: '门廊', ariaLedger: '账本 — 派发时间轴',
     salonWing: '娱乐翼 · 沙龙', bureauWing: '工作翼 · 事务所',
-    ledgerBtnLabel: '账本'
+    ledgerBtnLabel: '账本',
+    unreadCount: '{n} 条新消息', unreadCountOne: '1 条新消息'
   }
 };
 
@@ -170,6 +172,12 @@ var cascadeIndex = 0;         // counter for --ci stamps in cascading pass
 var KNOWN_SIGILS = { autopilot: 1, groundstation: 1, outreach: 1, pressroom: 1 };
 
 window.addEventListener('pagehide', function () {
+  // Only a Ledger that was actually open counts as read. Stamping the
+  // watermark on every unload marked every dispatch read whether or not the
+  // drawer was ever opened, so the unread signal could not survive a reload —
+  // which is the one thing a notification dot has to do.
+  var drawer = document.getElementById('ledger');
+  if (!drawer || !drawer.classList.contains('open')) return;
   store('atrium.lastVisit', String(Date.now()));
 });
 
@@ -1520,18 +1528,34 @@ function renderLedger() {
   });
 }
 
+var badgeCount = 0;
+
 function updateLedgerBadge() {
   var badge = $('#ledger-badge');
+  var btn = $('#ledger-btn');
   if (!badge) return;
   var count = feed.filter(function (d) { return d.ts > watermark; }).length;
-  if (count <= 0) {
-    badge.hidden = true;
-  } else {
-    badge.hidden = false;
-    badge.textContent = count > 99 ? '99+' : String(count);
-    // Physical "clunk" on change
-    badge.style.transform = 'scale(1.3)';
-    setTimeout(function () { badge.style.transform = ''; }, 150);
+  var was = badgeCount;
+  badgeCount = count;
+
+  badge.hidden = count <= 0;
+  // The disc says "something arrived"; the number it stands for is still
+  // reachable — read out by a screen reader, and on hover as a tooltip.
+  var label = count <= 0 ? ''
+    : count === 1 ? t('unreadCountOne') : t('unreadCount', { n: count });
+  var slot = $('#ledger-badge-count');
+  if (slot) slot.textContent = label;
+  if (btn) {
+    if (count > 0) btn.title = label;
+    else btn.removeAttribute('title');
+  }
+
+  // Seat the disc only when the count actually grows. Re-polls return the
+  // same dispatches, and re-animating on every tick would be idle motion.
+  if (count > was) {
+    badge.classList.remove('seating');
+    void badge.offsetWidth;            // restart the animation
+    badge.classList.add('seating');
   }
 }
 

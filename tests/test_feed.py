@@ -194,6 +194,18 @@ def relayed_kinds() -> set:
     return set(KIND_LITERAL.findall(src)) | set(server.GS_EVENT_KINDS.values())
 
 
+def test_unread_signal_strings_exist_in_both_languages():
+    """The dot carries no number, so its count lives only in the string that
+    screen readers and the tooltip use. A missing translation silently drops
+    the count for one language rather than showing a visible gap."""
+    app_js = (Path(__file__).resolve().parent.parent
+              / "static" / "js" / "app.js").read_text(encoding="utf-8")
+    for key in ("unreadCount", "unreadCountOne"):
+        assert app_js.count(f"{key}:") == 2, key   # en + zh
+    assert app_js.count("'{n} new dispatches'") == 1
+    assert app_js.count("'{n} 条新消息'") == 1
+
+
 def test_every_relayed_kind_has_a_headline_in_both_languages():
     """server.py and app.js drift apart easily — a dispatch kind with no i18n
     key renders as a blank detail line, which reads as a bug, not a mute."""

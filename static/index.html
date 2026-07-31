@@ -483,7 +483,10 @@
                   transform="rotate(-45 24 24)"/>
           </g>
         </svg>
-        <span class="l-badge" id="ledger-badge" aria-hidden="true" hidden>0</span>
+        <!-- Unread signal. The disc is the whole visual; the count it stands
+             for stays available to screen readers and to the button tooltip. -->
+        <span class="l-badge" id="ledger-badge" hidden
+          ><span class="sr-only" id="ledger-badge-count"></span></span>
         <span class="p-caption display" data-i18n="ledgerBtnLabel">LEDGER</span>
       </button>
       <button id="prefs-btn" aria-haspopup="dialog">

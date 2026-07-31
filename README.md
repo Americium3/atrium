@@ -39,7 +39,11 @@ Atrium serves `http://127.0.0.1:8769` and currently fronts:
   auto-completed, which watched workshop mod updated or got pulled, outreach
   daily-queue readiness and invites sent, and the morning edition going to
   press. Dispatches newer than your last visit
-  carry a champagne rim. Filter chips (ALL / SALON / BUREAU) are session-only
+  carry a champagne rim, and the hatch button wears a single disc on its
+  housing ring while any of them are unread — the count behind it is in the
+  button's tooltip rather than on the disc. The watermark only advances when
+  the drawer has actually been open, so the signal survives a reload.
+  Filter chips (ALL / SALON / BUREAU) are session-only
   and never touched by the mode lever — both wings' news always arrives.
   Escape, the scrim and the button all close it.
 - **The ticker** — a status band (lines open, per-gate stats) that also
