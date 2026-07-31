@@ -75,8 +75,9 @@ var STR = {
     ariaLever: 'Mode lever: off = Salon, the play wing; on = Bureau, the work wing',
     ariaRail: 'Machine rail — mode lever',
     ariaFilter: 'Filter dispatches', ariaClose: 'Close',
-    ariaGates: 'Gates', ariaLedger: 'Dispatches',
-    salonWing: 'Play wing', bureauWing: 'Work wing'
+    ariaGates: 'Gates', ariaLedger: 'Ledger — dispatch timeline',
+    salonWing: 'Play wing', bureauWing: 'Work wing',
+    ledgerBtnLabel: 'LEDGER'
   },
   zh: {
     subtitle: '大通廊',
@@ -132,8 +133,9 @@ var STR = {
     ariaLever: '模式拨杆：关＝沙龙翼（娱乐），开＝事务翼（工作）',
     ariaRail: '机械横轨——模式拨杆',
     ariaFilter: '筛选快讯', ariaClose: '关闭',
-    ariaGates: '门廊', ariaLedger: '快讯',
-    salonWing: '娱乐翼 · 沙龙', bureauWing: '工作翼 · 事务所'
+    ariaGates: '门廊', ariaLedger: '账本 — 派发时间轴',
+    salonWing: '娱乐翼 · 沙龙', bureauWing: '工作翼 · 事务所',
+    ledgerBtnLabel: '账本'
   }
 };
 
@@ -158,6 +160,9 @@ var firstFeed = true;
 var watermark = +(store('atrium.lastVisit') || 0);
 var plaqueEls = {};   // dispatch id -> element (re-polls never re-animate)
 var chipFilter = 'all';   // session-only, resets to ALL on every load (R11)
+/* Ledger drawer state */
+var ledgerOpening = false;    // true only during openLedger() render pass
+var cascadeIndex = 0;         // counter for --ci stamps in cascading pass
 var KNOWN_SIGILS = { autopilot: 1, groundstation: 1, outreach: 1, pressroom: 1 };
 
 window.addEventListener('pagehide', function () {
@@ -190,38 +195,115 @@ function buildRays() {
 
 /* Vault boltwork: 8 radial rods around the drawn circle. Rotation lives on
    wrapper <g> attributes (attribute/CSS override law); the retract is a
-   plain translateY on each line, made radial by the wrapper rotation. */
+   plain translateY on each line, made radial by the wrapper rotation.
+   --bi index drives the 12ms stagger; slight stroke-width variation (hash)
+   makes the bolts feel individually machined, not stamped. */
 function buildBolts() {
   var g = $('.e-bolts');
   if (!g || g.childNodes.length) return;
   var ns = 'http://www.w3.org/2000/svg';
+  var swVariants = [5, 4.5, 5.5, 4, 5, 5.5, 4.5, 5];
   for (var i = 0; i < 8; i++) {
     var wrap = document.createElementNS(ns, 'g');
     wrap.setAttribute('transform', 'rotate(' + (i * 45) + ' 400 400)');
     var line = document.createElementNS(ns, 'line');
     line.setAttribute('x1', '400'); line.setAttribute('y1', '306');
     line.setAttribute('x2', '400'); line.setAttribute('y2', '262');
+    line.setAttribute('stroke-width', String(swVariants[i]));
+    line.style.setProperty('--bi', String(i));
+    line.setAttribute('class', 'e-bolt-' + i);
     wrap.appendChild(line);
     g.appendChild(wrap);
   }
+  // Bolt guide channels (4, at N/S/E/W) — individual rect elements
+  for (var j = 0; j < 4; j++) {
+    var gWrap = document.createElementNS(ns, 'g');
+    gWrap.setAttribute('transform', 'rotate(' + (j * 90) + ' 400 400)');
+    var guide = document.createElementNS(ns, 'rect');
+    guide.setAttribute('x', '397'); guide.setAttribute('y', '274');
+    guide.setAttribute('width', '6'); guide.setAttribute('height', '28');
+    guide.setAttribute('rx', '1');
+    guide.setAttribute('fill', 'var(--bronze-deep)');
+    guide.setAttribute('stroke', 'var(--bronze)');
+    guide.setAttribute('stroke-width', '1');
+    guide.setAttribute('class', 'e-bolt-guide');
+    gWrap.appendChild(guide);
+    g.appendChild(gWrap);
+  }
+  // Bolt carrier ring (circular track all bolts engage)
+  var carrier = document.createElementNS(ns, 'circle');
+  carrier.setAttribute('cx', '400'); carrier.setAttribute('cy', '400');
+  carrier.setAttribute('r', '100');
+  carrier.setAttribute('stroke', 'var(--bronze)');
+  carrier.setAttribute('stroke-width', '2');
+  carrier.setAttribute('fill', 'none');
+  carrier.setAttribute('class', 'e-bolt-carrier');
+  g.appendChild(carrier);
 }
 
 function playEntrance() {
+  // Disable ledger button during entrance; re-enabled in finishEntrance()
+  var lb = $('#ledger-btn');
+  if (lb) lb.disabled = true;
   buildRays();
   buildBolts();
   var at = function (ms, fn) { entranceTimers.push(setTimeout(fn, ms)); };
+
+  // Beat 0 — circle draws + engraving scribes simultaneously (0ms).
+  // Both classes added in the same synchronous statement: the circle is
+  // being manufactured; the engraving scribes happen during manufacture.
   entrance.classList.add('play');
+  entrance.classList.add('engrave');
+
+  // Beat 1 — handwheel materialises + bolts tick in (500ms).
+  // The circle (lock case) is complete at ~420ms. The wheel and bolt
+  // assembly live inside the case and can only appear once the case is visible.
   at(500, function () { entrance.classList.add('doors'); });
+
+  // Beat 2 — wheel turns 60 deg; bolts retract in two-phase rush-and-settle (700ms).
+  // The wheel is the drive: turning it advances the drive cams, which push
+  // the bolt carrier, which retracts all eight bolts simultaneously.
   at(700, function () { entrance.classList.add('wheel'); });
-  at(830, function () { entrance.classList.add('seam'); });
-  at(970, function () { entrance.classList.add('open'); });
-  at(990, function () { steamBurst($('.e-nozzle'), 2); });
-  at(1500, function () { entrance.classList.add('word'); });
+
+  // Beat 3 — seam hairline descends (870ms).
+  // The bolts have cleared their locking engagement (bolt body has passed the
+  // jamb face before reaching full retraction). The door leaf is now free.
+  // STRUCTURED HOLD — seam visible 160ms, wheel settled, bolts home.
+  // Do not compress this gap: it is the mechanism confirmation beat.
+  at(870, function () { entrance.classList.add('seam'); });
+
+  // Beat 4 — doors swing open; steam vents (1030ms).
+  // The seam is the visual proof of pressure differential. At 1030ms the
+  // door swings. Steam fires 20ms later — pressure escaping through the gap.
+  at(1030, function () { entrance.classList.add('open'); });
+  at(1050, function () { steamBurst($('.e-nozzle'), 3); });
+
+  // Beat 5 — wordmark stamps down (1500ms).
+  // Door is 40% open by 1500ms — the sign is readable in the widening aperture.
+  // Per-letter stagger: 38ms × 5 = 190ms total; last letter at 1500+190+480=2170ms.
+  at(1500, function () {
+    entrance.classList.add('word');
+    // Set per-letter animation delays inline so each span has its own timing.
+    var spans = entrance.querySelectorAll('.e-wordmark span');
+    for (var si = 0; si < spans.length; si++) {
+      spans[si].style.animationDelay = (si * 38) + 'ms';
+    }
+  });
+
+  // Beat 6 — circle docks as masthead rosette (1800ms).
+  // The lock face is no longer needed on the door — it belongs on the hall
+  // masthead rosette. The circle flies inward and up to its permanent home.
+  // Dock arithmetic (all values runtime-computed from live DOM):
+  //   --dock-x = mono.cx - burst.cx (px, signed)
+  //   --dock-y = mono.cy - burst.cy - 14 (px; -14 compensates masthead
+  //              rise-in from-state translateY(14px) which fires at 2000ms,
+  //              200ms after dock)
+  //   --dock-s = mono.width / (burst.width * 0.23)
+  //   * 0.23: SVG viewBox=800x800, circle r=92, diameter=184, 184/800=0.23.
+  //   !! LOAD-BEARING: if masthead rise-in delay changes from 2000ms,
+  //   recompute -14 as: masthead_from_translateY * (1 - elapsed_fraction) !!
   at(1800, function () {
-    // Signature moment: the drawn circle flies and docks as the rosette.
-    // The masthead is still in its rise-in "from" state (translateY(14px))
-    // at this instant, so compensate to hit the settled rosette position.
-    var mono = $('#monogram').getBoundingClientRect();
+    var mono  = $('#monogram').getBoundingClientRect();
     var burst = $('.e-burst').getBoundingClientRect();
     entrance.style.setProperty('--dock-x',
       (mono.left + mono.width / 2 - (burst.left + burst.width / 2)) + 'px');
@@ -231,8 +313,15 @@ function playEntrance() {
       String(mono.width / (burst.width * 0.23)));
     entrance.classList.add('dock');
   });
-  at(2100, function () { entrance.classList.add('done-fade'); });
+
+  // Beat 7 — done-fade (2200ms).
+  // 30ms gap after last letter (2170ms): load-bearing. Prior code fired at
+  // 2100ms while the sixth letter was still animating — this closes that bug.
+  at(2200, function () { entrance.classList.add('done-fade'); });
+
+  // Beat 8 — finish (2700ms).
   at(2700, finishEntrance);
+
   // The overlay has pointer-events:auto while playing, so the skip gesture
   // is swallowed here and never reaches the invisible hall underneath.
   entranceSkip = function (e) {
@@ -257,6 +346,38 @@ function finishEntrance() {
   // snapped to their end state here. data-boot stays 'played', so the
   // suppressed-load hall-fade does NOT retrigger on this flip.
   root.dataset.entered = 'yes';
+  // Re-enable ledger button now that entrance is done
+  var lb = $('#ledger-btn');
+  if (lb) lb.disabled = false;
+  // Relay: motion transfers from the overlay to the hall. The gear rail
+  // twitches one tooth — the machine exhales as the overlay clears.
+  railNudge();
+}
+
+/* Rail nudge: one-tooth gear tick after the entrance clears.
+   Amplitude 0.07 on --drive ≈ 6.3 deg on gearA (18 teeth × 5 deg/tooth).
+   Self-terminates in ~480ms. Reduced motion: returns immediately. */
+function railNudge() {
+  if (root.dataset.motion === 'reduced') return;
+  if (!rail) return;
+  var t0 = performance.now();
+  var PUSH = 200, PULL = 280, AMP = 0.07;
+  var base = getDrive();
+  function frame(now) {
+    var dt = now - t0;
+    var v;
+    if (dt < PUSH) {
+      v = base + AMP * (dt / PUSH);
+    } else if (dt < PUSH + PULL) {
+      v = base + AMP * (1 - (dt - PUSH) / PULL);
+    } else {
+      setDrive(base);
+      return;
+    }
+    setDrive(v);
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
 }
 
 /* ========================================================================
@@ -326,6 +447,22 @@ var GEAR_NA = 18, GEAR_NB = 9, GEAR_M = 4.4, GEAR_PHI = -20;
 
 function buildRail() {
   if (!rail) return;
+
+  var DEG = Math.PI / 180;
+
+  // Polar-to-cartesian helper (origin at 0,0, as used inside gear SVGs)
+  function P(r, a) {
+    return (r * Math.cos(a)).toFixed(2) + ' ' + (r * Math.sin(a)).toFixed(2);
+  }
+
+  // Arc sector path (from a0 to a1 at radius r, origin 0,0)
+  function sectorPath(r, a0, a1) {
+    var da = a1 - a0;
+    if (da < 0) da += 2 * Math.PI;
+    var large = da > Math.PI ? 1 : 0;
+    return 'M 0 0 L ' + P(r, a0) + ' A ' + r + ' ' + r + ' 0 ' + large + ' 1 ' + P(r, a1) + ' Z';
+  }
+
   // ---- quadrant plate (static art) — pivot at (180, 212) ----
   var q = $('.quadrant', rail);
   var qp = function (r, deg) {
@@ -349,29 +486,133 @@ function buildRail() {
       qp(126, deg - 1.8), qp(126, deg + 1.8), qp(138, deg + 1.3), qp(138, deg - 1.3)
     ].join(' ') }, 'q-notch'));
   });
-  // floor slot the lever tail passes through
-  q.appendChild(svgEl('rect', { x: 162, y: 200, width: 36, height: 9, rx: 3 }, 'q-slot'));
-  // painted static contact shadow under the gear-well aperture (shadows
-  // never ride the movers — they'd re-raster per frame)
+  // painted static contact shadow under the gear-well aperture
   q.appendChild(svgEl('rect', { x: 92, y: 206, width: 176, height: 4 }, 'q-shadow'));
-  // steam vent pipe + collars + mouth (the nozzle sits on the mouth)
+  // steam vent pipe + collars + mouth
   q.appendChild(svgEl('rect', { x: 263.5, y: 112, width: 11, height: 90 }, 'q-pipe'));
   q.appendChild(svgEl('rect', { x: 260.5, y: 119, width: 17, height: 2.5 }, 'q-pipe'));
   q.appendChild(svgEl('rect', { x: 260.5, y: 126, width: 17, height: 2.5 }, 'q-pipe'));
   q.appendChild(svgEl('ellipse', { cx: 269, cy: 112, rx: 5.5, ry: 2 }, 'q-slot'));
 
-  // ---- lever (mover) — pivot at (70, 202) in its own viewBox ----
+  // Base flange plate (static — does not rotate with lever)
+  q.appendChild(svgEl('rect', { x: 155, y: 208, width: 50, height: 8, rx: 1 }, 'lv-flange'));
+  [159, 165, 175, 181].forEach(function (cx) {
+    q.appendChild(svgEl('circle', { cx: cx, cy: 212, r: 1.4 }, 'lv-fbolt'));
+  });
+  // Two-layer floor gaiter (replaces the old q-slot rect)
+  q.appendChild(svgEl('rect', { x: 162, y: 200, width: 36, height: 9, rx: 3 }, 'q-slot'));
+  q.appendChild(svgEl('rect', { x: 163, y: 201, width: 34, height: 7, rx: 2.5 }, 'lv-gaiter'));
+
+  // Static gear-A shadow ellipse (on quadrant, never on the mover)
+  // ax=58 in well coords; well is at left:50%-88px, so in the 360x220
+  // quadrant space the center is near (180,66). We offset +34px downward
+  // for the contact shadow.
+  q.appendChild(svgEl('ellipse', { cx: 180, cy: 100, rx: 36, ry: 8, opacity: 0.5 }, 'q-shadow ga-shadow'));
+
+  // ---- lever (mover) — rebuild with full anatomy ----
   var lv = $('.lever-svg', rail);
-  lv.appendChild(svgEl('polygon',
-    { points: '63.5,206 76.5,206 75,30 65,30' }, 'lv-arm'));
-  lv.appendChild(svgEl('rect',
-    { x: 63, y: 16, width: 14, height: 50, rx: 7 }, 'lv-grip'));
-  lv.appendChild(svgEl('rect',
-    { x: 77, y: 170, width: 7, height: 12 }, 'lv-arm'));   // pawl block
+
+  // Inject knurl pattern into a <defs> inside the lever SVG
+  var lvDefs = document.createElementNS(NS, 'defs');
+  var knurlPat = document.createElementNS(NS, 'pattern');
+  knurlPat.setAttribute('id', 'knurl-a');
+  knurlPat.setAttribute('x', '0'); knurlPat.setAttribute('y', '0');
+  knurlPat.setAttribute('width', '3'); knurlPat.setAttribute('height', '3');
+  knurlPat.setAttribute('patternUnits', 'userSpaceOnUse');
+  var kl1 = svgEl('line', { x1: 0, y1: 3, x2: 3, y2: 0, stroke: 'var(--bronze-deep)', 'stroke-width': 0.5 });
+  var kl2 = svgEl('line', { x1: 0, y1: 0, x2: 3, y2: 3, stroke: 'var(--bronze-deep)', 'stroke-width': 0.5 });
+  knurlPat.appendChild(kl1); knurlPat.appendChild(kl2);
+
+  // Engine-turned texture pattern for the grip
+  var etPat = document.createElementNS(NS, 'pattern');
+  etPat.setAttribute('id', 'tex-et');
+  etPat.setAttribute('x', '0'); etPat.setAttribute('y', '0');
+  etPat.setAttribute('width', '64'); etPat.setAttribute('height', '64');
+  etPat.setAttribute('patternUnits', 'userSpaceOnUse');
+  var etImg = document.createElementNS(NS, 'image');
+  etImg.setAttribute('href', '/static/assets/tex/engine_turned.png');
+  etImg.setAttribute('x', '0'); etImg.setAttribute('y', '0');
+  etImg.setAttribute('width', '64'); etImg.setAttribute('height', '64');
+  etPat.appendChild(etImg);
+
+  lvDefs.appendChild(knurlPat);
+  lvDefs.appendChild(etPat);
+  lv.appendChild(lvDefs);
+
+  // 1. Arm body (tapered, I-beam outer silhouette)
+  lv.appendChild(svgEl('polygon', { points: '63.5,206 76.5,206 75,30 65,30' }, 'lv-arm'));
+  // 2. Arm lit strip (left edge highlight)
+  lv.appendChild(svgEl('polygon', { points: '63.5,206 65.5,206 64,30 63.5,30' }, 'lv-arm-lit'));
+  // 3. Arm shadow strip (right edge)
+  lv.appendChild(svgEl('polygon', { points: '75.5,30 76.5,206 75,206 74,30' }, 'lv-arm-shd'));
+  // 4. I-beam web relief (center, slightly lighter to suggest recessed web)
+  lv.appendChild(svgEl('polygon', { points: '67,190 73,190 72,50 68,50' }, 'lv-web'));
+  // 5-8. Web rivets × 4 — per-index radius micro-variation for individuality
+  var rivetRad = [2.1, 1.8, 2.2, 1.9];
+  [165, 140, 115, 80].forEach(function (cy, si) {
+    var rv = svgEl('circle', { cx: 70, cy: cy, r: rivetRad[si] }, 'lv-rivet');
+    rv.style.setProperty('--si', String(si));
+    lv.appendChild(rv);
+  });
+  // 9. Pivot pin boss
+  lv.appendChild(svgEl('circle', { cx: 70, cy: 202, r: 8 }, 'lv-pin-boss'));
+  // 10. Pivot pin boss lit arc (300°-60° in SVG = upper-left)
+  lv.appendChild(svgEl('path', {
+    d: 'M ' + (70 + 8 * Math.cos(300 * DEG)).toFixed(2) + ',' + (202 + 8 * Math.sin(300 * DEG)).toFixed(2) +
+       ' A 8 8 0 0 1 ' + (70 + 8 * Math.cos(60 * DEG)).toFixed(2) + ',' + (202 + 8 * Math.sin(60 * DEG)).toFixed(2)
+  }, 'lv-pin-lit'));
+  // 11. Pivot pin hole
+  lv.appendChild(svgEl('circle', { cx: 70, cy: 202, r: 3 }, 'lv-pin-hole'));
+  // 12. Cotter slot
+  lv.appendChild(svgEl('rect', { x: 67.5, y: 204.5, width: 5, height: 1.5 }, 'lv-cotter'));
+  // 13. Pawl housing block
+  lv.appendChild(svgEl('rect', { x: 77, y: 170, width: 7, height: 12 }, 'lv-pawl-body'));
+  // 14. Pawl blade
+  lv.appendChild(svgEl('polygon', { points: '79.5,170 83,170 83.5,163 79,163.5' }, 'lv-pawl'));
+  // 15. Pawl spring coil path
+  lv.appendChild(svgEl('path', {
+    d: 'M 83,168 Q 84.5,166 86,168 Q 87.5,170 89,168 Q 90.5,166 92,168'
+  }, 'lv-spring'));
+  // 16. Detent roller
+  lv.appendChild(svgEl('circle', { cx: 79, cy: 182, r: 2.5 }, 'lv-roller'));
+  // 17. Detent roller shadow (sector 120°-300°)
+  lv.appendChild(svgEl('path', {
+    d: 'M ' + (79 + 2.5 * Math.cos(120 * DEG)).toFixed(2) + ',' + (182 + 2.5 * Math.sin(120 * DEG)).toFixed(2) +
+       ' A 2.5 2.5 0 1 1 ' + (79 + 2.5 * Math.cos(300 * DEG)).toFixed(2) + ',' + (182 + 2.5 * Math.sin(300 * DEG)).toFixed(2) + ' Z'
+  }, 'lv-roller-shd'));
+  // 18. Linkage clevis body
+  lv.appendChild(svgEl('rect', { x: 62, y: 195, width: 8, height: 10, rx: 1 }, 'lv-clevis'));
+  // 19-20. Clevis tines × 2
+  lv.appendChild(svgEl('rect', { x: 60, y: 198, width: 3, height: 7 }, 'lv-clevis-t'));
+  lv.appendChild(svgEl('rect', { x: 67, y: 198, width: 3, height: 7 }, 'lv-clevis-t'));
+  // 21. Grip ferrule collar
+  lv.appendChild(svgEl('rect', { x: 62, y: 60, width: 16, height: 6, rx: 1 }, 'lv-ferrule'));
+  // 22. Grip body (polished, wing-metal)
+  lv.appendChild(svgEl('rect', { x: 63, y: 16, width: 14, height: 50, rx: 7 }, 'lv-grip'));
+  // Engine-turned texture over the grip (above grip, below knurl)
+  lv.appendChild(svgEl('rect', { x: 63, y: 16, width: 14, height: 50, rx: 7,
+    fill: 'url(#tex-et)' }, 'lv-tex-et'));
+  // 23. Knurl pattern rect
+  lv.appendChild(svgEl('rect', { x: 63, y: 22, width: 14, height: 38, rx: 7 }, 'lv-knurl'));
+  // 24. End cap ellipse
+  lv.appendChild(svgEl('ellipse', { cx: 70, cy: 16, rx: 7, ry: 3.5 }, 'lv-endcap'));
+  // 25. End cap highlight
+  lv.appendChild(svgEl('ellipse', { cx: 68, cy: 15, rx: 3, ry: 1.5 }, 'lv-endcap-lit'));
+  // 26. Number plate (existing lv-plate)
   lv.appendChild(svgEl('circle', { cx: 70, cy: 120, r: 9 }, 'lv-plate'));
-  var num = svgEl('text', { x: 70, y: 124.5, 'text-anchor': 'middle' }, 'lv-plate-t');
-  num.textContent = '1';
-  lv.appendChild(num);
+  // 27. Number plate knurled edge ring
+  lv.appendChild(svgEl('circle', { cx: 70, cy: 120, r: 9 }, 'lv-plate-ring'));
+  // 28/29. Number texts — CSS data-wing toggles visibility
+  var num1 = svgEl('text', { x: 70, y: 124.5, 'text-anchor': 'middle' }, 'lv-plate-t lv-num-1');
+  num1.textContent = '1';
+  lv.appendChild(num1);
+  var num2 = svgEl('text', { x: 70, y: 124.5, 'text-anchor': 'middle' }, 'lv-plate-t lv-num-2');
+  num2.textContent = '2';
+  lv.appendChild(num2);
+  // 30. Return spring coil (below pivot)
+  lv.appendChild(svgEl('path', {
+    d: 'M 70,202 Q 73,206 70,210 Q 67,214 70,218 Q 73,222 70,226'
+  }, 'lv-rspring'));
 
   // ---- gear pair (movers) — placed on exact mesh geometry ----
   var rpA = GEAR_NA * GEAR_M / 2, rpB = GEAR_NB * GEAR_M / 2;
@@ -383,14 +624,219 @@ function buildRail() {
   var phaseB = (((1 + GEAR_NA / GEAR_NB) * GEAR_PHI + 180 - 180 / GEAR_NB)
                 % (360 / GEAR_NB) + 360 / GEAR_NB) % (360 / GEAR_NB);
   var gA = $('.gearA-svg', rail), gB = $('.gearB-svg', rail);
+
+  // ---- Gear A — 18 teeth, viewBox -52 -52 104 104 ----
+  // Dimensions: rp=39.6, ra=40.6, rr=34.1
+  var GA_RP = 39.6, GA_RA = 40.6, GA_RR = 34.1;
+  var GA_HUB = 10.5, GA_RIM_WEB = 28.0, GA_WEB_IN = 10.5;
+  var GA_HALF = 0.16;
+
   var wrapA = svgEl('g', {});
-  wrapA.appendChild(svgEl('path', { d: gearPath(GEAR_NA, GEAR_M, { spokes: 5 }),
-    'fill-rule': 'evenodd' }));
+
+  // 1. Rim body — teeth profile only (gearPath with no spokes/bore options)
+  wrapA.appendChild(svgEl('path', {
+    d: gearPath(GEAR_NA, GEAR_M, {}), 'fill-rule': 'evenodd'
+  }, 'ga-rim'));
+
+  // 2/3. Rim lit/shadow arcs at ra+0.6=41.2
+  var rimR = 41.2;
+  wrapA.appendChild(svgEl('path', {
+    d: 'M ' + P(rimR, 330 * DEG) + ' A ' + rimR + ' ' + rimR + ' 0 0 1 ' + P(rimR, 160 * DEG)
+  }, 'ga-rim-lit'));
+  wrapA.appendChild(svgEl('path', {
+    d: 'M ' + P(rimR, 160 * DEG) + ' A ' + rimR + ' ' + rimR + ' 1 1 1 ' + P(rimR, 330 * DEG)
+  }, 'ga-rim-shd'));
+
+  // 4. Tooth-root fillet band at rr-1.2=32.9
+  wrapA.appendChild(svgEl('circle', { cx: 0, cy: 0, r: 32.9 }, 'ga-fillet'));
+
+  // 5/6. Tip wear flat + chamfer (18 mini-arcs each)
+  var tipLitD = '', tipShdD = '';
+  for (var ti = 0; ti < 18; ti++) {
+    var tc = ti * (2 * Math.PI / 18);
+    tipLitD += 'M ' + P(40.2, tc - 0.05) + ' A 40.2 40.2 0 0 1 ' + P(40.2, tc + 0.05) + ' ';
+    tipShdD += 'M ' + P(40.2, tc + 0.05) + ' A 40.2 40.2 0 0 1 ' + P(40.2, tc + 0.10) + ' ';
+  }
+  wrapA.appendChild(svgEl('path', { d: tipLitD }, 'ga-tip-lit'));
+  wrapA.appendChild(svgEl('path', { d: tipShdD }, 'ga-tip-shd'));
+
+  // 7. Web disc background
+  wrapA.appendChild(svgEl('circle', { cx: 0, cy: 0, r: 28.0 }, 'ga-web'));
+
+  // 8. Web shadow crescent (lower-right: 150°-330°)
+  wrapA.appendChild(svgEl('path', { d: sectorPath(28, 150 * DEG, 330 * DEG) }, 'ga-web-shd'));
+  // 9. Web highlight crescent (upper-left: 330°-150° going the short way = -30° to 150°)
+  wrapA.appendChild(svgEl('path', { d: sectorPath(28, 330 * DEG - 2 * Math.PI, 150 * DEG) }, 'ga-web-lit'));
+
+  // 10-14 (spokes) + 15-19 (fillet shoulders) — 5 of each
+  for (var s = 0; s < 5; s++) {
+    var a0 = s * 2 * Math.PI / 5 + GA_HALF;
+    var a1 = (s + 1) * 2 * Math.PI / 5 - GA_HALF;
+    var spkD = 'M ' + P(GA_HUB, a0) + ' A ' + GA_HUB + ' ' + GA_HUB + ' 0 0 1 ' + P(GA_HUB, a1) +
+               ' L ' + P(GA_RIM_WEB, a1) + ' A ' + GA_RIM_WEB + ' ' + GA_RIM_WEB + ' 0 0 0 ' + P(GA_RIM_WEB, a0) + ' Z';
+    wrapA.appendChild(svgEl('path', { d: spkD }, 'ga-spoke'));
+    // Fillet shoulder: tiny dark quad at spoke-hub junction
+    var fs = 'M ' + P(GA_HUB, a0 - 0.05) + ' L ' + P(GA_HUB, a0 + 0.05) +
+             ' L ' + P(12, a0 + 0.08) + ' L ' + P(12, a0 - 0.08) + ' Z';
+    wrapA.appendChild(svgEl('path', { d: fs }, 'ga-spoke-shd'));
+  }
+
+  // 20-24. Lightening holes × 5 (midway between spokes, r=19)
+  // Per-index radius micro-variation makes each hole feel individually machined.
+  var lholeRad = [3.5, 3.1, 3.7, 3.3, 3.6];
+  for (var s = 0; s < 5; s++) {
+    var lhA = (s + 0.5) * 2 * Math.PI / 5;
+    var lhEl = svgEl('circle', {
+      cx: (19 * Math.cos(lhA)).toFixed(2),
+      cy: (19 * Math.sin(lhA)).toFixed(2),
+      r: lholeRad[s]
+    }, 'ga-lhole');
+    lhEl.style.setProperty('--si', String(s));
+    wrapA.appendChild(lhEl);
+  }
+
+  // 25. Hub boss outer ring
+  wrapA.appendChild(svgEl('circle', { cx: 0, cy: 0, r: 9.5 }, 'ga-boss'));
+  // 26. Hub boss lit arc (330°-90°)
+  wrapA.appendChild(svgEl('path', {
+    d: 'M ' + P(9.5, 330 * DEG) + ' A 9.5 9.5 0 0 1 ' + P(9.5, 90 * DEG)
+  }, 'ga-boss-lit'));
+  // 27. Hub boss shadow arc (90°-330°)
+  wrapA.appendChild(svgEl('path', {
+    d: 'M ' + P(9.5, 90 * DEG) + ' A 9.5 9.5 0 1 1 ' + P(9.5, 330 * DEG)
+  }, 'ga-boss-shd'));
+
+  // 28. Bore
+  wrapA.appendChild(svgEl('circle', { cx: 0, cy: 0, r: 3.2 }, 'ga-bore'));
+  // 29. Keyway slot (12 o'clock = -y direction)
+  wrapA.appendChild(svgEl('rect', { x: -1.6, y: -9.5, width: 3.2, height: 6.3 }, 'ga-keyway'));
+  // 30. Key in keyway
+  wrapA.appendChild(svgEl('rect', { x: -1.2, y: -9.4, width: 2.4, height: 5.8 }, 'ga-key'));
+
+  // 31. Set-screw boss (at 12 o'clock on hub boss surface)
+  wrapA.appendChild(svgEl('circle', { cx: 0, cy: -9.5, r: 1.8 }, 'ga-ssboss'));
+  // 32. Set-screw hex recess — 6 pts inscribed r=0.9 at (0,-9.5)
+  var hexPts = [];
+  for (var hi = 0; hi < 6; hi++) {
+    var ha = hi * Math.PI / 3;
+    hexPts.push((0.9 * Math.cos(ha)).toFixed(2) + ',' + (-9.5 + 0.9 * Math.sin(ha)).toFixed(2));
+  }
+  wrapA.appendChild(svgEl('polygon', { points: hexPts.join(' ') }, 'ga-sshex'));
+
+  // 33-37. Bolt circle × 5 pin holes at r=22, offset 36° to sit between lholes+spokes
+  // Per-index stroke-width micro-variation (±0.25) simulates individual drilling.
+  var bholeStroke = [1.0, 0.75, 1.25, 0.75, 1.0];
+  for (var s = 0; s < 5; s++) {
+    var bhA = (s + 0.5) * 2 * Math.PI / 5 + Math.PI / 5;
+    var bhEl = svgEl('circle', {
+      cx: (22 * Math.cos(bhA)).toFixed(2),
+      cy: (22 * Math.sin(bhA)).toFixed(2),
+      r: 1.8
+    }, 'ga-bhole');
+    bhEl.style.setProperty('--si', String(s));
+    bhEl.style.strokeWidth = bholeStroke[s];
+    wrapA.appendChild(bhEl);
+  }
+
+  // 38. Witness mark scribe circle at r=24.5
+  wrapA.appendChild(svgEl('circle', { cx: 0, cy: 0, r: 24.5 }, 'ga-witness'));
+
+  // 39. Index/timing mark on tooth 0 (at angle 0 = +x = 3 o'clock in SVG)
+  // Two radial ticks: long at ra-1 to ra-2.5, short at ra to ra-0.8
+  wrapA.appendChild(svgEl('path', {
+    d: 'M ' + P(39, 0) + ' L ' + P(36.5, 0) + ' M ' + P(41, 0) + ' L ' + P(40, 0)
+  }, 'ga-index'));
+
+  // 40. Cast part number plate background
+  wrapA.appendChild(svgEl('rect', { x: -10, y: 14, width: 20, height: 7, rx: 0.5 }, 'ga-pno-bg'));
+  // 41. Cast part number text
+  var pnoT = svgEl('text', { x: 0, y: 20, 'text-anchor': 'middle' }, 'ga-pno-t');
+  pnoT.textContent = 'GA-18';
+  wrapA.appendChild(pnoT);
+
   gA.appendChild(wrapA);
+
+  // ---- Gear B — 9 teeth, viewBox -30 -30 60 60 ----
   var wrapB = svgEl('g', { transform: 'rotate(' + phaseB.toFixed(2) + ')' });
-  wrapB.appendChild(svgEl('path', { d: gearPath(GEAR_NB, GEAR_M, {}),
-    'fill-rule': 'evenodd' }));
+
+  // 1. Rim body — teeth only
+  wrapB.appendChild(svgEl('path', {
+    d: gearPath(GEAR_NB, GEAR_M, {}), 'fill-rule': 'evenodd'
+  }, 'gb-rim'));
+
+  // 2/3. Rim lit/shadow arcs at ra+0.6 (computed from GEAR_NB, GEAR_M)
+  var bRimR = GEAR_NB * GEAR_M / 2 + GEAR_M + 0.6;   // rp+m+0.6 = 24.8
+  wrapB.appendChild(svgEl('path', {
+    d: 'M ' + P(bRimR, 330 * DEG) + ' A ' + bRimR + ' ' + bRimR + ' 0 0 1 ' + P(bRimR, 160 * DEG)
+  }, 'gb-rim-lit'));
+  wrapB.appendChild(svgEl('path', {
+    d: 'M ' + P(bRimR, 160 * DEG) + ' A ' + bRimR + ' ' + bRimR + ' 1 1 1 ' + P(bRimR, 330 * DEG)
+  }, 'gb-rim-shd'));
+
+  // 4. Fillet band at rr-0.7 (computed from GEAR_NB, GEAR_M)
+  var bFilletR = GEAR_NB * GEAR_M / 2 - 1.25 * GEAR_M - 0.7; // rr-0.7 = 13.6
+  wrapB.appendChild(svgEl('circle', { cx: 0, cy: 0, r: bFilletR }, 'gb-fillet'));
+
+  // 5. Web disc
+  wrapB.appendChild(svgEl('circle', { cx: 0, cy: 0, r: 13.5 }, 'gb-web'));
+
+  // 6. Web shadow crescent (lower-right: 150°-330°)
+  wrapB.appendChild(svgEl('path', { d: sectorPath(13.5, 150 * DEG, 330 * DEG) }, 'gb-web-shd'));
+  // 6b. Web highlight crescent (upper-left: 330°-150° going the short way)
+  wrapB.appendChild(svgEl('path', { d: sectorPath(13.5, 330 * DEG - 2 * Math.PI, 150 * DEG) }, 'gb-web-lit'));
+
+  // 7-9. Spoke arms × 3 (broader half-angle=0.18)
+  var GB_HALF = 0.18;
+  for (var s = 0; s < 3; s++) {
+    var ba0 = s * 2 * Math.PI / 3 + GB_HALF;
+    var ba1 = (s + 1) * 2 * Math.PI / 3 - GB_HALF;
+    var bSpkD = 'M ' + P(7.5, ba0) + ' A 7.5 7.5 0 0 1 ' + P(7.5, ba1) +
+                ' L ' + P(13.5, ba1) + ' A 13.5 13.5 0 0 0 ' + P(13.5, ba0) + ' Z';
+    wrapB.appendChild(svgEl('path', { d: bSpkD }, 'gb-spoke'));
+  }
+
+  // 10. Hub flange outer ring
+  wrapB.appendChild(svgEl('circle', { cx: 0, cy: 0, r: 6.0 }, 'gb-flange'));
+  // 11. Hub flange step lit arc (330°-90°)
+  wrapB.appendChild(svgEl('path', {
+    d: 'M ' + P(5.0, 330 * DEG) + ' A 5 5 0 0 1 ' + P(5.0, 90 * DEG)
+  }, 'gb-fl-lit'));
+  // 12. Hub flange step shadow arc (90°-330°)
+  wrapB.appendChild(svgEl('path', {
+    d: 'M ' + P(5.0, 90 * DEG) + ' A 5 5 0 1 1 ' + P(5.0, 330 * DEG)
+  }, 'gb-fl-shd'));
+
+  // 13. D-flat bore background
+  wrapB.appendChild(svgEl('circle', { cx: 0, cy: 0, r: 2.5 }, 'gb-bore'));
+  // 14. D-flat chord mask (clips the flat on one side of the bore)
+  wrapB.appendChild(svgEl('rect', { x: -2.5, y: 1.8, width: 5.0, height: 1.0 }, 'gb-dflat'));
+
+  // 15/16. Tip wear flat + chamfer (9 mini-arcs each, at tooth tips)
+  var bTipR = GEAR_NB * GEAR_M / 2 + GEAR_M - 0.4; // ra-0.4 = 23.8
+  var bTipLitD = '', bTipShdD = '';
+  for (var ti = 0; ti < 9; ti++) {
+    var btc = ti * (2 * Math.PI / 9);
+    bTipLitD += 'M ' + P(bTipR, btc - 0.07) + ' A ' + bTipR + ' ' + bTipR + ' 0 0 1 ' + P(bTipR, btc + 0.07) + ' ';
+    bTipShdD += 'M ' + P(bTipR, btc + 0.07) + ' A ' + bTipR + ' ' + bTipR + ' 0 0 1 ' + P(bTipR, btc + 0.14) + ' ';
+  }
+  wrapB.appendChild(svgEl('path', { d: bTipLitD }, 'gb-tip-lit'));
+  wrapB.appendChild(svgEl('path', { d: bTipShdD }, 'gb-tip-shd'));
+
+  // 17. Serial ring (dotted circle)
+  wrapB.appendChild(svgEl('circle', { cx: 0, cy: 0, r: 11.5 }, 'gb-serial'));
+
+  // 18. Serial number text
+  var snoT = svgEl('text', { x: 0, y: 14, 'text-anchor': 'middle' }, 'gb-sno');
+  snoT.textContent = 'GB-9';
+  wrapB.appendChild(snoT);
+
+  // 19. Index mark on tooth 0 (one tick, distinct from A's double tick)
+  wrapB.appendChild(svgEl('path', {
+    d: 'M ' + P(20, 0) + ' L ' + P(18, 0)
+  }, 'gb-index'));
+
   gB.appendChild(wrapB);
+
   gA.style.left = (ax - 52) + 'px'; gA.style.top = (ay - 52) + 'px';
   gB.style.left = (bx - 30).toFixed(1) + 'px'; gB.style.top = (by - 30).toFixed(1) + 'px';
 }
@@ -930,6 +1376,11 @@ function relTime(ts) {
 function buildPlaque(d) {
   var li = el('li', 'plaque');
   li.dataset.id = d.id;
+  // pl-shadow-wrap is an unclipped wrapper that carries the drop-shadow filter.
+  // The li itself only carries animations (arrive/cascading), so the browser can
+  // promote animated opacity/transform to compositor layers without re-rasterizing
+  // the filter every frame.
+  var shadowWrap = el('div', 'pl-shadow-wrap');
   var frame = el('div', 'pl-frame');
   var a = el('a', 'pl-in');
   a.href = d.url;
@@ -957,7 +1408,8 @@ function buildPlaque(d) {
   a.appendChild(el('div', 'pl-detail'));
   a.appendChild(el('div', 'pl-time num'));
   frame.appendChild(a);
-  li.appendChild(frame);
+  shadowWrap.appendChild(frame);
+  li.appendChild(shadowWrap);
   return li;
 }
 
@@ -1010,7 +1462,21 @@ function renderLedger() {
     var bucket = d.ts >= todayMs ? 'today' : 'earlier';
     if (bucket !== lastBucket) {
       lastBucket = bucket;
-      ol.appendChild(el('li', 'daybreak display', t(bucket)));
+      var db = el('li', 'daybreak display', t(bucket));
+      if (ledgerOpening) {
+        db.classList.add('cascading');
+        db.style.setProperty('--ci', String(cascadeIndex));
+        db.addEventListener('animationend', function () {
+          db.classList.remove('cascading');
+        }, { once: true });
+        (function (el2) {
+          // 1400ms > the 820ms stagger cap + the 420ms card-cascade duration.
+          // A shorter guard strips .cascading mid-animation on the last cards.
+          setTimeout(function () { el2.classList.remove('cascading'); }, 1400);
+        })(db);
+      }
+      cascadeIndex++;
+      ol.appendChild(db);
     }
     var li = plaqueEls[d.id];
     var fresh = false;
@@ -1021,9 +1487,22 @@ function renderLedger() {
     }
     updatePlaque(li, d);
     ol.appendChild(li);                      // reposition in sorted order
-    if (fresh && !firstFeed) {
-      // Strip the class once played: re-appending a connected node
-      // restarts its CSS animations, and re-polls must never re-animate.
+    if (ledgerOpening) {
+      // Cascade open: EVERY card falls, not just new ones. Plaque elements are
+      // cached in plaqueEls across renders, so by the time the drawer is first
+      // opened `fresh` is false for all of them — gating the cascade on `fresh`
+      // meant the waterfall never ran on a real card, only on the day-breaks
+      // (which are rebuilt each pass). Removed after the run so polls are clean.
+      li.classList.add('cascading');
+      li.style.setProperty('--ci', String(cascadeIndex++));
+      li.addEventListener('animationend', function () {
+        li.classList.remove('cascading');
+      }, { once: true });
+      (function (el) {
+        setTimeout(function () { el.classList.remove('cascading'); }, 1400);
+      })(li);
+    } else if (fresh && !firstFeed) {
+      // Normal arrive animation on poll-driven new dispatch
       li.classList.add('arrive');
       li.addEventListener('animationend', function () {
         li.classList.remove('arrive');
@@ -1033,6 +1512,54 @@ function renderLedger() {
       })(li);
     }
   });
+}
+
+function updateLedgerBadge() {
+  var badge = $('#ledger-badge');
+  if (!badge) return;
+  var count = feed.filter(function (d) { return d.ts > watermark; }).length;
+  if (count <= 0) {
+    badge.hidden = true;
+  } else {
+    badge.hidden = false;
+    badge.textContent = count > 99 ? '99+' : String(count);
+    // Physical "clunk" on change
+    badge.style.transform = 'scale(1.3)';
+    setTimeout(function () { badge.style.transform = ''; }, 150);
+  }
+}
+
+function openLedger() {
+  var ledgerEl = $('#ledger');
+  var scrimEl = $('#ledger-scrim');
+  var ledgerBtnEl = $('#ledger-btn');
+  if (!ledgerEl || !scrimEl || !ledgerBtnEl) return;
+  // Mark opening for cascade
+  ledgerOpening = true;
+  cascadeIndex = 0;
+  // Add .opening so spine animation fires, then remove after spine draw
+  ledgerEl.classList.add('opening');
+  setTimeout(function () { ledgerEl.classList.remove('opening'); }, 400);
+  ledgerEl.classList.add('open');
+  scrimEl.classList.add('visible');
+  ledgerBtnEl.setAttribute('aria-expanded', 'true');
+  renderLedger();
+  ledgerOpening = false;
+}
+
+function closeLedger() {
+  var ledgerEl = $('#ledger');
+  var scrimEl = $('#ledger-scrim');
+  var ledgerBtnEl = $('#ledger-btn');
+  if (!ledgerEl || !scrimEl || !ledgerBtnEl) return;
+  ledgerEl.classList.remove('open');
+  scrimEl.classList.remove('visible');
+  ledgerBtnEl.setAttribute('aria-expanded', 'false');
+  // Update watermark on close — zeroes the badge on next check
+  watermark = Date.now();
+  store('atrium.lastVisit', String(watermark));
+  renderLedger();
+  updateLedgerBadge();
 }
 
 function renderGhosts() {
@@ -1180,6 +1707,7 @@ function refresh() {
       renderLedger();
       firstFeed = false;
     }
+    updateLedgerBadge();
     renderTicker();
   });
 }
@@ -1236,6 +1764,41 @@ prefsBtn.addEventListener('click', openPrefs);
 $('#prefs-close').addEventListener('click', closePrefs);
 prefs.addEventListener('click', function (e) {
   if (e.target === prefs) closePrefs();
+});
+
+/* ========================================================================
+   Ledger drawer — open/close wiring
+   ======================================================================== */
+var ledgerBtnEl = $('#ledger-btn');
+var ledgerScrimEl = $('#ledger-scrim');
+
+if (ledgerBtnEl) {
+  ledgerBtnEl.addEventListener('click', function () {
+    var ledgerEl = $('#ledger');
+    if (ledgerEl && ledgerEl.classList.contains('open')) {
+      closeLedger();
+    } else {
+      openLedger();
+    }
+  });
+}
+
+if (ledgerScrimEl) {
+  ledgerScrimEl.addEventListener('click', function () {
+    closeLedger();
+  });
+}
+
+/* Escape closes ledger (non-modal; does not fight prefs Escape which is
+   bound while prefs is open and removed when it closes). */
+document.addEventListener('keydown', function (e) {
+  if (e.key === 'Escape') {
+    var ledgerEl = $('#ledger');
+    if (ledgerEl && ledgerEl.classList.contains('open')) {
+      closeLedger();
+      if (ledgerBtnEl) ledgerBtnEl.focus();
+    }
+  }
 });
 
 function syncPrefRadios() {
@@ -1312,6 +1875,7 @@ function setLang(next) {
   applyStatuses();
   applyStats();
   renderLedger();
+  updateLedgerBadge();
   renderTicker();
 }
 

@@ -139,54 +139,278 @@
 </svg>
 
 <!-- ======================================================================
-     Entrance — the sequence assembles the chrome: the drawn circle docks
-     as the masthead rosette while the rays fade as the doors part; the
-     ticker's double rules draw themselves in echo.
+     Entrance — vault-door sequence per DESIGN.md v1 spec.
+     Beat ladder: 0=circle+engrave, 1=wheel+bolts(500ms),
+     2=wheel-turn+bolt-retract(700ms), 3=seam(870ms),
+     4=doors-open(1030ms), 5=wordmark(1500ms),
+     6=dock(1800ms), 7=done-fade(2200ms), 8=finish(2700ms).
+     65+ individually-animated elements across 9 groups.
 ====================================================================== -->
 <div id="entrance" aria-hidden="true">
   <div class="e-void"></div>
+
+  <!-- CENTER BURST SVG — lock face, wheel, boltwork, dial ring -->
   <svg class="e-burst" viewBox="0 0 800 800">
-    <g class="e-rays"></g>
-    <!-- Vault boltwork: 8 radial rods (JS-populated) retract in sync as the
-         handwheel turns — a vault throws all bolts at once. -->
+    <defs>
+      <!-- engine_turned.png on lock case housing -->
+      <pattern id="eng-turned" patternUnits="userSpaceOnUse" width="60" height="60">
+        <image href="/static/assets/tex/engine_turned.png" width="60" height="60" opacity="0.28"/>
+      </pattern>
+    </defs>
+
+    <!-- Group A: Lock case housing (behind wheel, appears with play) -->
+    <rect class="e-lock-case" x="335" y="335" width="130" height="130" rx="4"
+          fill="var(--bronze-deep)"/>
+    <rect x="335" y="335" width="130" height="130" rx="4"
+          fill="url(#eng-turned)" style="mix-blend-mode:overlay"/>
+    <!-- Lit top-edge plane (flat-shaded anatomy) -->
+    <rect class="e-lock-case-lit" x="335" y="335" width="130" height="5" rx="0"
+          fill="var(--champagne)" opacity="0"/>
+    <!-- Static occlusion shadow (never on a mover) -->
+    <rect class="e-lock-case-shadow" x="339" y="465" width="126" height="4"
+          fill="var(--base)" opacity="0.35"/>
+    <!-- Relocker bar (secondary locking bar visible on the case) -->
+    <rect class="e-relocker" x="386" y="344" width="28" height="12"
+          stroke="var(--bronze)" stroke-width="1.5" fill="var(--bronze-deep)" opacity="0"/>
+    <!-- Relocker lit top edge -->
+    <line class="e-relocker-lit" x1="386" y1="344" x2="414" y2="344"
+          stroke="var(--champagne)" stroke-width="1.5" opacity="0"/>
+
+    <!-- Group D: Dial ring with graduated markings (r=76, between wheel and bolt roots) -->
+    <circle class="e-dial-ring" cx="400" cy="400" r="76"
+            stroke="var(--bronze)" stroke-width="1.6" fill="none" opacity="0"/>
+    <circle class="e-dial-ring-inner" cx="400" cy="400" r="72"
+            stroke="var(--bronze)" stroke-width="1.1" fill="none" opacity="0"/>
+    <!-- 12 major graduation ticks (every 30 deg), individually staggered -->
+    <line class="e-dial-major" style="--di:0"  x1="400" y1="318" x2="400" y2="328" stroke="var(--gold)" stroke-width="1.9" opacity="0"/>
+    <line class="e-dial-major" style="--di:1"  x1="438" y1="328" x2="433" y2="337" stroke="var(--gold)" stroke-width="1.9" opacity="0"/>
+    <line class="e-dial-major" style="--di:2"  x1="466" y1="362" x2="457" y2="367" stroke="var(--gold)" stroke-width="1.9" opacity="0"/>
+    <line class="e-dial-major" style="--di:3"  x1="472" y1="400" x2="482" y2="400" stroke="var(--gold)" stroke-width="1.9" opacity="0"/>
+    <line class="e-dial-major" style="--di:4"  x1="466" y1="438" x2="457" y2="433" stroke="var(--gold)" stroke-width="1.9" opacity="0"/>
+    <line class="e-dial-major" style="--di:5"  x1="438" y1="472" x2="433" y2="463" stroke="var(--gold)" stroke-width="1.9" opacity="0"/>
+    <line class="e-dial-major" style="--di:6"  x1="400" y1="482" x2="400" y2="472" stroke="var(--gold)" stroke-width="1.9" opacity="0"/>
+    <line class="e-dial-major" style="--di:7"  x1="362" y1="472" x2="367" y2="463" stroke="var(--gold)" stroke-width="1.9" opacity="0"/>
+    <line class="e-dial-major" style="--di:8"  x1="334" y1="438" x2="343" y2="433" stroke="var(--gold)" stroke-width="1.9" opacity="0"/>
+    <line class="e-dial-major" style="--di:9"  x1="318" y1="400" x2="328" y2="400" stroke="var(--gold)" stroke-width="1.9" opacity="0"/>
+    <line class="e-dial-major" style="--di:10" x1="334" y1="362" x2="343" y2="367" stroke="var(--gold)" stroke-width="1.9" opacity="0"/>
+    <line class="e-dial-major" style="--di:11" x1="362" y1="328" x2="367" y2="337" stroke="var(--gold)" stroke-width="1.9" opacity="0"/>
+    <!-- 10 staggered minor ticks -->
+    <line class="e-dial-minor" style="--dmi:0"  x1="400" y1="323" x2="400" y2="327" stroke="var(--bronze)" stroke-width="1.3" opacity="0"/>
+    <line class="e-dial-minor" style="--dmi:1"  x1="419" y1="325" x2="418" y2="329" stroke="var(--bronze)" stroke-width="1.3" opacity="0"/>
+    <line class="e-dial-minor" style="--dmi:2"  x1="435" y1="333" x2="433" y2="337" stroke="var(--bronze)" stroke-width="1.3" opacity="0"/>
+    <line class="e-dial-minor" style="--dmi:3"  x1="446" y1="346" x2="443" y2="349" stroke="var(--bronze)" stroke-width="1.3" opacity="0"/>
+    <line class="e-dial-minor" style="--dmi:4"  x1="452" y1="362" x2="449" y2="363" stroke="var(--bronze)" stroke-width="1.3" opacity="0"/>
+    <line class="e-dial-minor" style="--dmi:5"  x1="454" y1="381" x2="450" y2="381" stroke="var(--bronze)" stroke-width="1.3" opacity="0"/>
+    <line class="e-dial-minor" style="--dmi:6"  x1="452" y1="400" x2="456" y2="400" stroke="var(--bronze)" stroke-width="1.3" opacity="0"/>
+    <line class="e-dial-minor" style="--dmi:7"  x1="448" y1="419" x2="452" y2="420" stroke="var(--bronze)" stroke-width="1.3" opacity="0"/>
+    <line class="e-dial-minor" style="--dmi:8"  x1="441" y1="436" x2="444" y2="438" stroke="var(--bronze)" stroke-width="1.3" opacity="0"/>
+    <line class="e-dial-minor" style="--dmi:9"  x1="431" y1="450" x2="434" y2="453" stroke="var(--bronze)" stroke-width="1.3" opacity="0"/>
+    <!-- Remaining 38 minor ticks as a compound path (group fade) -->
+    <path class="e-dial-minor-group"
+          d="M381 323 L380 327 M362 327 L363 331 M346 334 L348 338
+             M333 345 L336 348 M323 359 L326 361 M318 375 L322 376
+             M318 400 L322 400 M319 419 L323 418 M323 438 L327 436
+             M331 453 L334 451 M343 466 L345 463 M358 475 L359 471
+             M375 480 L376 476 M400 482 L400 478 M419 480 L418 476
+             M437 475 L435 471 M452 465 L450 462 M463 452 L460 450
+             M472 438 L469 436 M477 419 L473 418 M477 400 L473 400
+             M477 381 L473 381 M473 362 L469 363 M465 346 L462 349
+             M454 333 L452 336 M440 324 L439 328 M419 319 L418 323
+             M381 477 L382 473 M362 473 L363 469 M346 466 L348 462
+             M333 455 L336 452 M323 441 L326 439 M318 425 L322 424
+             M318 381 L322 381 M319 362 L323 363 M323 343 L327 345
+             M331 328 L334 330"
+          stroke="var(--bronze)" stroke-width="1.3" fill="none" opacity="0"/>
+
+    <!-- Group C: Boltwork (JS-populated lines + new anatomy) -->
     <g class="e-bolts"></g>
-    <circle class="e-circle" cx="400" cy="400" r="92" fill="none" stroke-width="1.5"/>
-    <!-- Handwheel drawn from the same circle: 4 spokes + hub + grip knobs.
-         It docks with the burst into the rosette (spokes echo the cross-hairs). -->
+
+    <!-- Group A: Circle (lock face boundary) -->
+    <circle class="e-circle" cx="400" cy="400" r="92" fill="none" stroke-width="2"/>
+
+    <!-- Group B: Handwheel — 20 elements (rim, inner rim, hub, hub-cap,
+         4 individual spokes, 4 spoke fillets, 4 knobs, 4 knob-inner, spindle) -->
     <g class="e-wheel" fill="none" stroke-width="1.5">
-      <circle cx="400" cy="400" r="58"/>
-      <circle cx="400" cy="400" r="13"/>
-      <path d="M400 342 V387 M400 413 V458 M342 400 H387 M413 400 H458" stroke-width="3"/>
-      <circle cx="400" cy="334" r="4"/><circle cx="400" cy="466" r="4"/>
-      <circle cx="334" cy="400" r="4"/><circle cx="466" cy="400" r="4"/>
+      <!-- Rim outer + inner chamfer -->
+      <circle class="e-wh-rim" cx="400" cy="400" r="58" stroke="var(--gold)"/>
+      <circle class="e-wh-rim-inner" cx="400" cy="400" r="53" stroke="var(--bronze)" opacity="0.4"/>
+      <!-- Hub ring + cap -->
+      <circle class="e-wh-hub" cx="400" cy="400" r="13" stroke="var(--gold)"/>
+      <circle class="e-wh-hub-cap" cx="400" cy="400" r="9"
+              fill="var(--bronze-deep)" stroke="none"/>
+      <!-- 4 individual spokes (split from compound path) -->
+      <line class="e-wh-spoke-0" x1="400" y1="342" x2="400" y2="387" stroke="var(--gold)" stroke-width="3"/>
+      <line class="e-wh-spoke-1" x1="400" y1="413" x2="400" y2="458" stroke="var(--gold)" stroke-width="3"/>
+      <line class="e-wh-spoke-2" x1="342" y1="400" x2="387" y2="400" stroke="var(--gold)" stroke-width="3"/>
+      <line class="e-wh-spoke-3" x1="413" y1="400" x2="458" y2="400" stroke="var(--gold)" stroke-width="3"/>
+      <!-- Spoke fillets at hub junctions (curved micro-arcs) -->
+      <path class="e-wh-fillet-0" d="M400 395 Q398 390 395 389" stroke="var(--bronze)" stroke-width="2.1" opacity="0.6"/>
+      <path class="e-wh-fillet-1" d="M400 405 Q402 410 405 411" stroke="var(--bronze)" stroke-width="2.1" opacity="0.6"/>
+      <path class="e-wh-fillet-2" d="M395 400 Q390 402 389 405" stroke="var(--bronze)" stroke-width="2.1" opacity="0.6"/>
+      <path class="e-wh-fillet-3" d="M405 400 Q410 398 411 395" stroke="var(--bronze)" stroke-width="2.1" opacity="0.6"/>
+      <!-- 4 grip knobs with hash-derived radii (hollow bronze, not solid gold) -->
+      <circle class="e-wh-knob-0" cx="400" cy="334" r="4"   stroke="var(--gold)"/>
+      <circle class="e-wh-knob-1" cx="400" cy="466" r="5"   stroke="var(--gold)"/>
+      <circle class="e-wh-knob-2" cx="334" cy="400" r="3.5" stroke="var(--gold)"/>
+      <circle class="e-wh-knob-3" cx="466" cy="400" r="4.5" stroke="var(--gold)"/>
+      <!-- Knob interior fills -->
+      <circle class="e-wh-knob-inner-0" cx="400" cy="334" r="2"   fill="var(--bronze-deep)" stroke="none"/>
+      <circle class="e-wh-knob-inner-1" cx="400" cy="466" r="2.5" fill="var(--bronze-deep)" stroke="none"/>
+      <circle class="e-wh-knob-inner-2" cx="334" cy="400" r="1.5" fill="var(--bronze-deep)" stroke="none"/>
+      <circle class="e-wh-knob-inner-3" cx="466" cy="400" r="2"   fill="var(--bronze-deep)" stroke="none"/>
     </g>
+
+    <!-- Drive cams (4, keyed to wheel spindle at diagonal positions).
+         Outer <g>: fixed base rotation (HTML attribute, never animated).
+         Inner <g class="e-drive-cam">: CSS-animated 60deg additional rotation. -->
+    <g transform="rotate(45 400 400)">
+      <g class="e-drive-cam e-drive-cam-0">
+        <ellipse cx="400" cy="322" rx="6" ry="4" fill="var(--bronze)" opacity="0"/>
+      </g>
+    </g>
+    <g transform="rotate(135 400 400)">
+      <g class="e-drive-cam e-drive-cam-1">
+        <ellipse cx="400" cy="322" rx="6" ry="4" fill="var(--bronze)" opacity="0"/>
+      </g>
+    </g>
+    <g transform="rotate(225 400 400)">
+      <g class="e-drive-cam e-drive-cam-2">
+        <ellipse cx="400" cy="322" rx="6" ry="4" fill="var(--bronze)" opacity="0"/>
+      </g>
+    </g>
+    <g transform="rotate(315 400 400)">
+      <g class="e-drive-cam e-drive-cam-3">
+        <ellipse cx="400" cy="322" rx="6" ry="4" fill="var(--bronze)" opacity="0"/>
+      </g>
+    </g>
+
+    <!-- Group A: Spindle hub cap (appears with wheel at beat 1) -->
+    <circle class="e-spindle" cx="400" cy="400" r="5"
+            fill="var(--bronze)" opacity="0"/>
+
+    <!-- Group D: Rays (JS-populated) -->
+    <g class="e-rays"></g>
   </svg>
+
+  <!-- Seam hairline (beat 3) -->
   <div class="e-seam"></div>
-  <div class="e-panel e-left"><svg viewBox="0 0 400 900" preserveAspectRatio="xMaxYMid slice">
-    <g class="e-engrave" fill="none" stroke-width="1">
-      <path d="M400 450 m-60 0 a60 60 0 0 1 60 -60 M400 450 m-110 0 a110 110 0 0 1 110 -110
-               M400 450 m-160 0 a160 160 0 0 1 160 -160 M400 450 m-210 0 a210 210 0 0 1 210 -210"/>
-      <path d="M400 450 m-60 0 a60 60 0 0 0 60 60 M400 450 m-110 0 a110 110 0 0 0 110 110
-               M400 450 m-160 0 a160 160 0 0 0 160 160 M400 450 m-210 0 a210 210 0 0 0 210 210"/>
-      <path d="M340 60 V840 M300 100 V800 M260 140 V760"/>
-      <!-- rivet column along the meeting edge (0-dash + round cap = dots) -->
-      <path d="M386 90 V810" stroke-dasharray="0 44" stroke-linecap="round" stroke-width="3"/>
-    </g>
-  </svg></div>
-  <div class="e-panel e-right"><svg viewBox="0 0 400 900" preserveAspectRatio="xMinYMid slice">
-    <g class="e-engrave" fill="none" stroke-width="1">
-      <path d="M0 450 m60 0 a60 60 0 0 0 -60 -60 M0 450 m110 0 a110 110 0 0 0 -110 -110
-               M0 450 m160 0 a160 160 0 0 0 -160 -160 M0 450 m210 0 a210 210 0 0 0 -210 -210"/>
-      <path d="M0 450 m60 0 a60 60 0 0 1 -60 60 M0 450 m110 0 a110 110 0 0 1 -110 110
-               M0 450 m160 0 a160 160 0 0 1 -160 160 M0 450 m210 0 a210 210 0 0 1 -210 210"/>
-      <path d="M60 60 V840 M100 100 V800 M140 140 V760"/>
-      <path d="M14 90 V810" stroke-dasharray="0 44" stroke-linecap="round" stroke-width="3"/>
-    </g>
-  </svg></div>
-  <div class="e-wordmark" aria-hidden="true">
-    <span>A</span><span>T</span><span>R</span><span>I</span><span>U</span><span>M</span>
+  <!-- Threshold plate visible when seam breaks (beat 3) -->
+  <div class="e-threshold" aria-hidden="true"></div>
+
+  <!-- LEFT DOOR PANEL — Group E: 12 individually-classed engraving elements
+       + Group F: jamb planes (static anatomy) + Group G: maker's plate -->
+  <div class="e-panel e-left">
+    <svg viewBox="0 0 400 900" preserveAspectRatio="xMaxYMid slice">
+      <!-- Jamb planes (static, flat-shaded occlusion) -->
+      <rect class="e-jamb-left" x="390" y="0" width="10" height="900"
+            fill="var(--champagne)" opacity="0.06"/>
+      <rect class="e-jamb-shadow-left" x="380" y="0" width="10" height="900"
+            fill="var(--base)" opacity="0.25"/>
+      <g class="e-engrave" fill="none" stroke="var(--gold)" stroke-width="1">
+        <!-- 8 individual arcs (upper 4 + lower 4), staggered by --ai -->
+        <!-- Upper arcs (above seam midpoint) -->
+        <path class="e-arc" style="--ai:0"
+              d="M400 450 m-60 0 a60 60 0 0 1 60 -60"
+              />
+        <path class="e-arc" style="--ai:1"
+              d="M400 450 m-110 0 a110 110 0 0 1 110 -110"
+              />
+        <path class="e-arc" style="--ai:2"
+              d="M400 450 m-160 0 a160 160 0 0 1 160 -160"
+              />
+        <path class="e-arc" style="--ai:3"
+              d="M400 450 m-210 0 a210 210 0 0 1 210 -210"
+              />
+        <!-- Lower arcs -->
+        <path class="e-arc" style="--ai:4"
+              d="M400 450 m-60 0 a60 60 0 0 0 60 60"
+              />
+        <path class="e-arc" style="--ai:5"
+              d="M400 450 m-110 0 a110 110 0 0 0 110 110"
+              />
+        <path class="e-arc" style="--ai:6"
+              d="M400 450 m-160 0 a160 160 0 0 0 160 160"
+              />
+        <path class="e-arc" style="--ai:7"
+              d="M400 450 m-210 0 a210 210 0 0 0 210 210"
+              />
+        <!-- 3 individual vlines, staggered by --vi -->
+        <path class="e-vline" style="--vi:0" d="M340 60 V840" transform-origin="340px 0px"/>
+        <path class="e-vline" style="--vi:1" d="M300 100 V800" transform-origin="300px 0px"/>
+        <path class="e-vline" style="--vi:2" d="M260 140 V760" transform-origin="260px 0px"/>
+        <!-- Rivet column -->
+        <path class="e-rivet"
+              d="M386 90 V810" stroke-dasharray="0 44"
+              stroke-linecap="round" stroke-width="3"/>
+      </g>
+    </svg>
   </div>
-  <!-- One steam wisp rises from the seam foot as the doors part. -->
+
+  <!-- RIGHT DOOR PANEL — mirror geometry + maker's plate -->
+  <div class="e-panel e-right">
+    <svg viewBox="0 0 400 900" preserveAspectRatio="xMinYMid slice">
+      <!-- Jamb planes (static) -->
+      <rect class="e-jamb-right" x="0" y="0" width="10" height="900"
+            fill="var(--champagne)" opacity="0.06"/>
+      <rect class="e-jamb-shadow-right" x="10" y="0" width="10" height="900"
+            fill="var(--base)" opacity="0.25"/>
+      <g class="e-engrave" fill="none" stroke="var(--gold)" stroke-width="1">
+        <!-- 8 individual arcs (mirrored) -->
+        <path class="e-arc" style="--ai:0"
+              d="M0 450 m60 0 a60 60 0 0 0 -60 -60"
+              />
+        <path class="e-arc" style="--ai:1"
+              d="M0 450 m110 0 a110 110 0 0 0 -110 -110"
+              />
+        <path class="e-arc" style="--ai:2"
+              d="M0 450 m160 0 a160 160 0 0 0 -160 -160"
+              />
+        <path class="e-arc" style="--ai:3"
+              d="M0 450 m210 0 a210 210 0 0 0 -210 -210"
+              />
+        <path class="e-arc" style="--ai:4"
+              d="M0 450 m60 0 a60 60 0 0 1 -60 60"
+              />
+        <path class="e-arc" style="--ai:5"
+              d="M0 450 m110 0 a110 110 0 0 1 -110 110"
+              />
+        <path class="e-arc" style="--ai:6"
+              d="M0 450 m160 0 a160 160 0 0 1 -160 160"
+              />
+        <path class="e-arc" style="--ai:7"
+              d="M0 450 m210 0 a210 210 0 0 1 -210 210"
+              />
+        <!-- 3 vlines -->
+        <path class="e-vline" style="--vi:0" d="M60 60 V840" transform-origin="60px 0px"/>
+        <path class="e-vline" style="--vi:1" d="M100 100 V800" transform-origin="100px 0px"/>
+        <path class="e-vline" style="--vi:2" d="M140 140 V760" transform-origin="140px 0px"/>
+        <!-- Rivet column -->
+        <path class="e-rivet"
+              d="M14 90 V810" stroke-dasharray="0 44"
+              stroke-linecap="round" stroke-width="3"/>
+      </g>
+      <!-- Group G: Maker's plate (right panel lower area) -->
+      <rect class="e-maker-frame" x="20" y="720" width="140" height="70" rx="2"
+            stroke="var(--gold)" stroke-width="0.5" fill="none" opacity="0"/>
+      <text class="e-maker-t1" x="90" y="740" text-anchor="middle"
+            font-size="8" letter-spacing="1.5" fill="var(--gold)" opacity="0">ATRIUM WORKS</text>
+      <text class="e-maker-t2" x="90" y="755" text-anchor="middle"
+            font-size="7" letter-spacing="0.8" fill="var(--gold)" opacity="0">No. 8769</text>
+      <text class="e-maker-t3" x="90" y="775" text-anchor="middle"
+            font-size="6" letter-spacing="2" fill="var(--gold)" opacity="0">MMXXVI</text>
+    </svg>
+  </div>
+
+  <!-- Group H: Wordmark (6 individually-staggered letter spans) -->
+  <div class="e-wordmark" aria-hidden="true" style="perspective:900px">
+    <span style="--wi:0">A</span>
+    <span style="--wi:1">T</span>
+    <span style="--wi:2">R</span>
+    <span style="--wi:3">I</span>
+    <span style="--wi:4">U</span>
+    <span style="--wi:5">M</span>
+  </div>
+  <!-- Steam rises from the seam foot as the doors part -->
   <div class="e-nozzle" aria-hidden="true"></div>
 </div>
 
@@ -202,6 +426,64 @@
     <div class="m-underline" aria-hidden="true"></div>
     <div class="m-right">
       <div id="dateline"></div>
+      <button id="ledger-btn" aria-label="Open Ledger" aria-expanded="false"
+              aria-controls="ledger" data-i18n-aria="ariaLedger">
+        <!-- Pneumatic-tube dispatch hatch: anatomically flat-shaded brass cap -->
+        <svg viewBox="0 0 48 48" aria-hidden="true" width="40" height="40">
+          <!-- Housing ring (outer 3px band) -->
+          <circle class="hatch-housing" cx="24" cy="24" r="22"
+                  fill="none" stroke="var(--bronze-deep)" stroke-width="3"/>
+          <!-- Inner hairline (gold) -->
+          <circle cx="24" cy="24" r="20.5"
+                  fill="none" stroke="var(--gold)" stroke-width="0.8" opacity="0.6"/>
+          <!-- Outer hairline -->
+          <circle cx="24" cy="24" r="23.5"
+                  fill="none" stroke="var(--bronze)" stroke-width="0.8" opacity="0.5"/>
+          <!-- Knurl: 12 radial grip ticks on the outer housing ring -->
+          <g class="hatch-knurl" stroke="var(--bronze)" stroke-width="1" opacity="0.7">
+            <line x1="24" y1="1.5" x2="24" y2="4.5"/>
+            <line x1="30.2" y1="2.8" x2="28.7" y2="5.5"/>
+            <line x1="35.5" y1="6.5" x2="33.0" y2="8.2"/>
+            <line x1="39.2" y1="12.3" x2="36.6" y2="13.6"/>
+            <line x1="41.5" y1="19.2" x2="38.5" y2="19.8"/>
+            <line x1="41.5" y1="26.2" x2="38.5" y2="25.6"/>
+            <line x1="39.2" y1="33.1" x2="36.6" y2="31.8"/>
+            <line x1="35.5" y1="39.0" x2="33.0" y2="37.3"/>
+            <line x1="30.2" y1="43.2" x2="28.7" y2="40.5"/>
+            <line x1="24.0" y1="45.5" x2="24.0" y2="42.5"/>
+            <line x1="17.8" y1="43.2" x2="19.3" y2="40.5"/>
+            <line x1="12.5" y1="39.0" x2="15.0" y2="37.3"/>
+          </g>
+          <!-- 4 rivet dots at N/E/S/W on housing -->
+          <g class="hatch-rim" fill="var(--rivet)">
+            <circle cx="24" cy="2.5" r="1.4"/>
+            <circle cx="45.5" cy="24" r="1.4"/>
+            <circle cx="24" cy="45.5" r="1.4"/>
+            <circle cx="2.5" cy="24" r="1.4"/>
+          </g>
+          <!-- Main disc (3 flat-shaded zones) -->
+          <g class="hatch-disc">
+            <!-- Main disc face -->
+            <circle class="hatch-face" cx="24" cy="24" r="18"
+                    fill="color-mix(in srgb, var(--bronze) 80%, var(--base) 20%)"/>
+            <!-- Top specular crescent (single flat highlight plane) -->
+            <path class="hatch-bevel"
+                  d="M10 18 A18 18 0 0 1 38 18 Q31 12 24 12 Q17 12 10 18 Z"
+                  fill="var(--champagne)" opacity="0.22"/>
+            <!-- Bayonet cut slots (two slot-shaped polygons at 135°/315°) -->
+            <!-- Slot 1: NW-SE direction -->
+            <rect class="hatch-recess" x="15" y="22.5" width="18" height="3"
+                  rx="1.5" fill="var(--machine-edge)"
+                  transform="rotate(45 24 24)"/>
+            <!-- Slot 2: NE-SW direction (45° rotated opposite) -->
+            <rect class="hatch-recess" x="15" y="22.5" width="18" height="3"
+                  rx="1.5" fill="var(--machine-edge)"
+                  transform="rotate(-45 24 24)"/>
+          </g>
+        </svg>
+        <span class="l-badge" id="ledger-badge" aria-hidden="true" hidden>0</span>
+        <span class="p-caption display" data-i18n="ledgerBtnLabel">LEDGER</span>
+      </button>
       <button id="prefs-btn" aria-haspopup="dialog">
         <svg viewBox="0 0 48 48" aria-hidden="true"><use href="#rosette-key"/></svg>
         <span class="p-caption" data-i18n="preferences">PREFERENCES</span>
@@ -243,6 +525,9 @@
   </aside>
 
 </div>
+
+<!-- Ledger scrim — dims the hall when the drawer is open; click to close -->
+<div id="ledger-scrim" aria-hidden="true"></div>
 
 <!-- ======================================================================
      Machine rail — the works of the hall. Fixed full-bleed footer, a
