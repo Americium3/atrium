@@ -54,6 +54,15 @@ re-light reads even in the weakest cell (Bureau × Ivory).
   in the hall is byte-identical to the one the service's own favicon,
   taskbar tile and masthead show. Services with no mark fall back to the
   line-drawn keystone sigil, which still tints with `color`.
+- **Concourse vocabulary (v4)**: three new families, each fenced to one
+  surface. *Wall* — dentil cornice, fluted pilaster, dado panel run, sconce;
+  aisle walls only, one sconce per bay, and the sconce's light pool falls on
+  plaster (the ban on outer glows is a ban on glowing **gold**, not on
+  architectural lighting). *Board* — a **chamfered** outline with an inset
+  gilt line and four seating rivets; the gates keep stepped shoulders and
+  the Ledger keeps medallions, so a board is never either. *Floor inlay* —
+  compass rose and square-in-circle roundel, floor only; a compass rose is
+  not a rosette, and the masthead/settings rosettes stay unique.
 - Hairline tokens: 1px and 1.5px; a double rule = 2×1px with 3px gap.
 - **Ban list**: no multi-stop metallic gradients, no bevel/emboss, no outer
   glows on gold. The only specular effect is a single masked 30° sheen sweep
@@ -112,10 +121,33 @@ and reloads. Reduced motion: simple fade only. Entrance overlay is
 
 ## Layout & viewport
 
-Desktop-first: optimized 1440–1920px, supported down to 1280px. Below 1280px
-the Ledger moves beneath the stage; below ~900px everything stacks
-single-column (masthead → ticker → lever → active gates → receded gates →
-Ledger). Mobile is out of scope for v1 but must not break.
+Desktop-first: optimized 1440–1920px, supported down to 1280px, and opening
+into a full three-bay concourse above 1800px (see "The concourse (v4)").
+Below 1280px the Ledger moves beneath the stage; below ~900px everything
+stacks single-column (masthead → ticker → lever → active gates → receded
+gates → Ledger). Mobile is out of scope for v1 but must not break.
+
+**The hall stands on one screen.** No vertical scrollbar at any supported
+size — a grand entrance you have to scroll is not an entrance. The vertical
+budget is spent in this order: masthead, ticker, arch module, floor. The
+module is capped by `min(13.6vw, 22vh)`, so a short viewport shortens the
+arches instead of pushing the plinth off the bottom, and `--floor-h` takes
+what is left (`100vh` minus the module minus the chrome, clamped 90–330px)
+rather than a fixed share. The concourse's grid row is exactly `--stage-h`:
+a board is never allowed to dictate the hall's height.
+
+**Optical scale (`--ui`).** What a 34" desk display changes is physical
+size, not pixel count — the 12.5px engraving that reads at arm's length on a
+laptop is illegible from across a room. One multiplier drives every piece of
+hall lettering and the arch module: `--ui-auto` steps with the viewport
+(1 → 1.12 at 1900px → 1.24 at 2400px → 1.40 at 3000px), `--ui-user` is the
+reader's own correction from PREFERENCES (0.90 / 1 / 1.15), and `--ui` is
+their product — registered with `@property` as a `<number>` so scripts read
+the computed value instead of the raw `calc()` token. The arch module takes
+only part of the rise (`0.62 + 0.38 × --ui`): the lettering was the
+complaint, and a module scaled 1:1 with it costs the floor its depth.
+SVG-internal font sizes (gear plates, lever plate, gauge, clock numerals)
+are user units inside a viewBox and are deliberately **not** scaled.
 
 Masthead: monogram rosette · "ATRIUM · GRAND CONCOURSE" · localized date
 line · settings trigger at right edge. The settings trigger is a rosette of
@@ -182,6 +214,80 @@ fourth service slots into the flanks symmetrically.
 - Receded gates: remain in tab order (after active gates); clicking one opens
   its target directly — never throws the lever — and the click flash
   momentarily lifts the veil.
+
+## The concourse (v4) — the hall gets its aisles, its wall and its floor
+
+**The problem this solves.** The hall was drawn as an object, not a room. At
+1440px the object filled the frame and read as architecture; on a 3440px
+display the 1720px cap left 860px of bare ground either side and the whole
+composition read as a diorama in the middle of a beige desert. A room is
+made by a *continuous* wall and a *continuous* floor, so both now run the
+full width of the screen and the triptych stands on them.
+
+**Grid.** `#concourse` is `aisle-l · stage · aisle-r`, opening at 1800px;
+below that it collapses to the single centre column the hall shipped with
+and both boards are hidden (they are ultrawide furniture, not a fallback).
+`--aisle-w` spends the *surplus* — `clamp(300px, (100vw − 1400px) / 3.6,
+540px)` — rather than a flat fraction, so decoration can never squeeze the
+stage. The hall cap rises 1720px → `min(3280px, 100%)`.
+
+**Full bleed from inside a centred grid.** Both scenery layers use
+`left: calc(50% - 50vw); width: 100vw`. 50% is half the concourse, 50vw half
+the viewport, and the concourse is centred, so the difference is exactly its
+left offset — no wrapper element, and it survives the max-width cap.
+
+**Back wall.** Plaster field (one two-stop wash, top-lit), a dentil cornice,
+and a dado of chair rail + recessed panels + skirting whose top edge lands
+on `--gh2 × 0.079` — the gates' own plinth rule, so wall and arches share
+one horizontal. Aisle bays carry fluted pilasters (stepped capital, shaft
+proud of the field with a shadow behind it, plinth block), one sconce per
+bay throwing a pool on the plaster, and a Roman bay number engraved on the
+chair rail.
+
+**Bays are measured, not assumed.** `layoutStage()` publishes
+`triptychHalf` — how far the composition actually reaches from the axis,
+flanks at 0.62 scale included — and the walls are cut against *that*, not
+against the stage column, which is far wider than the triptych standing in
+it. Each wall then skips the stretch its board is hung over: bays spaced
+evenly across the whole span put every sconce and every bay number behind
+the board, articulation built and then covered up. Laying them in the
+daylight either side also lands a pilaster hard against each edge of the
+board, so the board reads as set into the wall rather than stuck onto it.
+
+**Boards.** `DIRECTORY` (left) lists every registered service — mark, name,
+address, live stat, status lamp — and a row *is* the gate said twice: same
+click, same champagne flash on the same arch, same dark-service notice.
+`BULLETIN` (right) is a glazed notice case showing the latest dispatches and
+a footer that opens the Ledger; like the ticker it draws from the unfiltered
+feed and ignores both the lever and the Ledger chips (R11). Empty slots
+render as ghost rails — a case with one notice and a void under it reads as
+broken furniture. Rows shrink and clip *inside themselves* before the list
+clips a whole row off the bottom: a board that quietly drops its last
+service is worse than a board with a cramped one.
+
+**Floor.** One `rotateX(59deg)` plane: terrazzo field with chip speckle,
+converging slab seams, a skylight-spill gradient falling toward the viewer,
+and a contact shadow where it meets the skirting — a wall and a floor share
+a hard junction, not a horizon, so there is no atmospheric fade there. It
+runs *under* the machine rail (`--hall-foot` + `--rail-h`); stopping it at
+the concourse's own edge left a strip of raw page tone between terrazzo and
+machine housing, the one place the illusion visibly ended. Inlays: a
+16-point compass rose under the clock with ATRIUM lettering, plus a smaller
+square-in-circle roundel over each aisle. The inlay is a *child* of the
+plane, never a sibling with a matching transform — it inherits the one
+projection instead of trying to reproduce it. Everything on the plane lives
+in its top ~60%: past that the perspective divide throws the geometry behind
+the rail. A foreground balustrade runs along the flanks only — carried edge
+to edge it read as a fence pinned across the view, arguing with the machine
+rail below it and flattening the very depth it exists to create.
+
+**Two traps, recorded so they are not re-sprung.** (1) A 3D-transformed
+child still contributes to the scrollable overflow area: the plane's near
+edge projects ~1400px past its own box and hung a scrollbar on a hall that
+otherwise fit the screen exactly — `#floorplane` clips it. (2) Sizing a
+floor inlay off the plane's *width* makes a circle whose diameter runs off
+the near edge, so only its far arc ever reaches the screen; inlays are sized
+off the plane's height.
 
 ## Gates (R9)
 
@@ -264,6 +370,11 @@ close button top-right. Engraved plaque radios:
 - Appearance: Onyx / Ivory / Follow system (follow-system attaches a
   `matchMedia` change listener and applies the 400 ms crossfade live)
 - Language: English / 中文
+- Engraving size: Fine / Standard / Signboard — the reader's `--ui-user`
+  correction on top of the viewport's own step. Resolved pre-paint from
+  `atrium.ui` like the theme: type that resizes after first paint reflows
+  the whole hall in front of the reader. Changing it re-solves the stage,
+  because `--ui` moves the arch module as well as the lettering.
 - Motion: Full / Reduced (default from `prefers-reduced-motion`)
 - Replay entrance
 

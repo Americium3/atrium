@@ -68,7 +68,17 @@ var STR = {
     'k.outreach.error': 'Check the Outreach Desk',
     'k.press.digest_ready.head': "Today's edition is out",
     'k.press.digest_ready': '{stories} stories across {sections} sections',
+    directorySub: 'Every hall in this building',
+    bulletinSub: "Today's dispatches",
+    bulletinEmpty: 'The case is empty',
+    openLedger: 'OPEN THE LEDGER',
+    bayLabel: 'BAY {n}',
+    floorMotto: 'EVERY HALL, ONE DOOR',
     appearance: 'APPEARANCE', language: 'LANGUAGE', motion: 'MOTION',
+    uiScale: 'ENGRAVING SIZE',
+    uiSmall: 'FINE', uiSmallDesc: 'Close reading',
+    uiMedium: 'STANDARD', uiMediumDesc: 'Scales with the screen',
+    uiLarge: 'SIGNBOARD', uiLargeDesc: 'Legible from across the room',
     onyx: 'ONYX', ivory: 'IVORY', system: 'FOLLOW SYSTEM',
     onyxDesc: 'Black & gold', ivoryDesc: 'Platinum & gold', systemDesc: 'Match the OS',
     motionFull: 'FULL', motionReduced: 'REDUCED',
@@ -78,6 +88,9 @@ var STR = {
     ariaRail: 'Machine rail — mode lever',
     ariaFilter: 'Filter dispatches', ariaClose: 'Close',
     ariaGates: 'Gates', ariaLedger: 'Ledger — dispatch timeline',
+    ariaDirectory: 'Directory — every registered service',
+    ariaBulletin: 'Bulletin — latest dispatches',
+    dirTitle: 'Directory', bulTitle: 'Bulletin',
     salonWing: 'Play wing', bureauWing: 'Work wing',
     ledgerBtnLabel: 'LEDGER',
     unreadCount: '{n} new dispatches', unreadCountOne: '1 new dispatch'
@@ -129,7 +142,17 @@ var STR = {
     'k.outreach.error': '请到 Outreach Desk 查看',
     'k.press.digest_ready.head': '今日晨报已出版',
     'k.press.digest_ready': '{sections} 个版面 · {stories} 条',
+    directorySub: '本楼全部厅室',
+    bulletinSub: '今日快讯',
+    bulletinEmpty: '橱窗暂空',
+    openLedger: '打开消息总台',
+    bayLabel: '第 {n} 间',
+    floorMotto: '万厅一门',
     appearance: '外观', language: '语言', motion: '动效',
+    uiScale: '字号',
+    uiSmall: '精细', uiSmallDesc: '凑近细读',
+    uiMedium: '标准', uiMediumDesc: '随屏幕尺寸自动放大',
+    uiLarge: '招牌', uiLargeDesc: '隔着房间也看得清',
     onyx: '黑金 · ONYX', ivory: '白金 · IVORY', system: '跟随系统',
     onyxDesc: '玄色与鎏金', ivoryDesc: '铂色与鎏金', systemDesc: '与操作系统一致',
     motionFull: '完整', motionReduced: '减弱',
@@ -139,6 +162,9 @@ var STR = {
     ariaRail: '机械横轨——模式拨杆',
     ariaFilter: '筛选快讯', ariaClose: '关闭',
     ariaGates: '门廊', ariaLedger: '账本 — 派发时间轴',
+    ariaDirectory: '名录 —— 全部已登记的厅室',
+    ariaBulletin: '布告栏 —— 最新快讯',
+    dirTitle: '厅室名录', bulTitle: '布告栏',
     salonWing: '娱乐翼 · 沙龙', bureauWing: '工作翼 · 事务所',
     ledgerBtnLabel: '账本',
     unreadCount: '{n} 条新消息', unreadCountOne: '1 条新消息'
@@ -1080,6 +1106,7 @@ function renderGates() {
     wrap.appendChild(a);
   });
   buildGauge(services.length);
+  renderDirectory();
   layoutStage(true);
   applyStatuses();
   applyStats();
@@ -1152,9 +1179,12 @@ function layoutStage(initial) {
     // Receding gates lead by 80ms; each group cascades at 60ms.
     a.style.setProperty('--slot-delay', initial ? '0ms' : (80 + i * 60) + 'ms');
   });
-  // Flanks tuck just inside the stage; z-order lets them slip behind the
-  // active pair rather than bleed into the Ledger column.
-  var edge = W / 2 - gateW * 0.31;
+  // Flanks tuck just outside the outermost arch — NOT at the stage's own
+  // edge. With the aisles open the stage column is much wider than the
+  // triptych standing in it, and an edge-anchored flank would drift across
+  // the bays and moor itself against a board.
+  var outermost = half + gateW / 2 + Math.max(0, left - 1) * spacing;
+  var edge = Math.min(W / 2 - gateW * 0.31, outermost + spacing * 0.86);
   receded.forEach(function (svc, i) {
     var a = $('#gate-' + svc.id);
     if (!a) return;
@@ -1170,6 +1200,16 @@ function layoutStage(initial) {
     a.style.setProperty('--slot-delay', initial ? '0ms' : (i * 60) + 'ms');
     a.style.setProperty('--side', String(side));   // triptych inward tilt
   });
+  // How far the composition actually reaches from the axis — the flanks at
+  // 0.62 scale included. The bays are cut against THIS, not against the
+  // stage column: the column is far wider than the triptych standing in it,
+  // and measuring the column would leave the widest stretch of bare wall
+  // (the one between the outermost arch and the boards) unarticulated.
+  triptychHalf = Math.max(
+    outermost + gateW / 2,
+    receded.length ? edge + gateW * 0.31 : 0
+  );
+  buildAisles();
 }
 
 var resizeT;
@@ -1177,6 +1217,314 @@ window.addEventListener('resize', function () {
   clearTimeout(resizeT);
   resizeT = setTimeout(function () { layoutStage(true); }, 120);
 });
+
+/* ========================================================================
+   The concourse — aisle walls, boards, floor inlay
+   ========================================================================
+   Everything below exists because a hall that stops 860px short of the
+   screen edge is a diorama, not a room. The wall is articulated only where
+   the triptych does not stand, so the bays are measured from the stage's
+   own box rather than guessed from a breakpoint.
+   ======================================================================== */
+var triptychHalf = 0;   // half-width the composition actually occupies
+var ROMAN = ['', 'I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X',
+             'XI', 'XII'];
+function roman(n) { return ROMAN[n] || String(n); }
+
+function uiScale() {
+  var v = parseFloat(getComputedStyle(root).getPropertyValue('--ui'));
+  return isFinite(v) && v > 0 ? v : 1;
+}
+
+/* One pilaster: stepped capital, fluted shaft, plinth block. */
+function pilaster(x) {
+  var d = el('div', 'pilaster');
+  d.style.left = x + 'px';
+  var cap = svgEl('svg', { viewBox: '0 0 40 26', 'aria-hidden': 'true' }, 'pil-cap');
+  cap.appendChild(svgEl('path',
+    { d: 'M0 0 H40 V7 H36 V14 H34 V26 H6 V14 H4 V7 H0 Z' }));
+  var shaft = el('div', 'pil-shaft');
+  var base = svgEl('svg', { viewBox: '0 0 40 22', 'aria-hidden': 'true' }, 'pil-base');
+  base.appendChild(svgEl('path',
+    { d: 'M6 0 H34 V8 H36 V15 H40 V22 H0 V15 H4 V8 H6 Z' }));
+  d.appendChild(cap); d.appendChild(shaft); d.appendChild(base);
+  return d;
+}
+
+/* One sconce: bracket, stepped shell, a flame, and the pool it throws. */
+function sconce(x) {
+  var d = el('div', 'sconce');
+  d.style.left = x + 'px';
+  d.appendChild(el('div', 'sc-pool'));
+  var svg = svgEl('svg', { viewBox: '0 0 46 56', 'aria-hidden': 'true' }, 'sc-body');
+  svg.appendChild(svgEl('path', { d: 'M23 3 V16' }, 'sc-bracket'));
+  svg.appendChild(svgEl('path', { d: 'M23 8 L28 25 H18 Z' }, 'sc-flame'));
+  svg.appendChild(svgEl('path', { d: 'M8 50 L13 25 H33 L38 50 Z' }, 'sc-shell'));
+  svg.appendChild(svgEl('path', { d: 'M11 39 H35 M12.6 32 H33.4' }, 'sc-step'));
+  svg.appendChild(svgEl('rect',
+    { x: '17', y: '50', width: '12', height: '4' }, 'sc-shell'));
+  d.appendChild(svg);
+  return d;
+}
+
+/* Lay a rhythm of bays across one clear stretch of wall, a pilaster at each
+   end. Returns how many bays it used. */
+function fillSpan(node, x0, x1, firstBay) {
+  var u = uiScale();
+  var w = x1 - x0;
+  if (w < 40 * u) return 0;
+  var n = Math.max(1, Math.round(w / (300 * u)));
+  var bay = w / n;
+  for (var i = 0; i <= n; i++) node.appendChild(pilaster(x0 + i * bay));
+  if (w < 90 * u) return 0;   // too tight to light or to letter
+  for (var j = 0; j < n; j++) {
+    var mid = x0 + (j + 0.5) * bay;
+    node.appendChild(sconce(mid));
+    var plate = el('div', 'bay-plate display', t('bayLabel', { n: roman(firstBay + j) }));
+    plate.style.left = mid + 'px';
+    node.appendChild(plate);
+  }
+  return n;
+}
+
+/* Fill one aisle wall, skipping the stretch a board is hung over. Spacing
+   bays evenly across the whole span put every sconce and every bay number
+   behind the board hung in the middle of it — articulation built and then
+   covered up. The bays go in the daylight either side instead, which also
+   lands a pilaster hard against each edge of the board, so the board reads
+   as set into the wall rather than stuck onto it. */
+function fillWall(node, width, hole, firstBay) {
+  node.textContent = '';
+  node.style.setProperty('--aw', Math.max(0, width) + 'px');
+  if (width <= 0) return 0;
+  var spans = [];
+  if (hole && hole[1] > 0 && hole[0] < width) {
+    if (hole[0] > 0) spans.push([0, Math.min(hole[0], width)]);
+    if (hole[1] < width) spans.push([Math.max(0, hole[1]), width]);
+  } else {
+    spans.push([0, width]);
+  }
+  var used = 0;
+  spans.forEach(function (sp) {
+    used += fillSpan(node, sp[0], sp[1], firstBay + used);
+  });
+  return used;
+}
+
+/* Where a board sits, in its own wall's coordinate space. */
+function boardHole(board, originX) {
+  if (!board || getComputedStyle(board).display === 'none') return null;
+  var r = board.getBoundingClientRect();
+  if (!r.width) return null;
+  return [r.left - originX - 9, r.right - originX + 9];
+}
+
+/* The wall is measured against the stage, not against a media query: the
+   triptych grows with --ui and the boards resize with it, so the only
+   honest source for "where does the bare wall start" is the live box. */
+function buildAisles() {
+  var wall = $('#backwall'), stage = $('#stage');
+  if (!wall || !stage) return;
+  var wl = $('.wall-l', wall), wr = $('.wall-r', wall);
+  if (!wl || !wr) return;
+  var bw = wall.getBoundingClientRect();
+  var sr = stage.getBoundingClientRect();
+  if (!bw.width) return;
+  var axis = sr.left + sr.width / 2;
+  var reach = (triptychHalf || sr.width / 2) + 28;
+  var lw = Math.max(0, (axis - reach) - bw.left);
+  var rw = Math.max(0, bw.right - (axis + reach));
+  var used = fillWall(wl, lw, boardHole($('#directory'), bw.left), 1);
+  fillWall(wr, rw, boardHole($('#bulletin'), axis + reach), used + 1);
+}
+
+/* The floor medallion: a 16-point compass rose inlaid in the terrazzo,
+   two-tone the way a real terrazzo compass is cut. Not a rosette — that
+   construction stays the masthead's and the settings trigger's. */
+function buildFloorInlay() {
+  var host = $('.fl-inlay');
+  if (!host || host.firstChild) return;
+  var C = 500, svg = svgEl('svg', { viewBox: '0 0 1000 1000', 'aria-hidden': 'true' });
+  var rings = [[470, 'in-rule'], [452, 'in-hair'], [300, 'in-hair'], [150, 'in-hair']];
+  rings.forEach(function (r) {
+    svg.appendChild(svgEl('circle',
+      { cx: C, cy: C, r: r[0], fill: 'none' }, r[1]));
+  });
+  // 32 ticks around the bearing ring
+  for (var k = 0; k < 32; k++) {
+    var a = (k / 32) * Math.PI * 2;
+    var deep = k % 4 === 0 ? 22 : 12;
+    svg.appendChild(svgEl('line', {
+      x1: C + Math.cos(a) * 452, y1: C + Math.sin(a) * 452,
+      x2: C + Math.cos(a) * (452 - deep), y2: C + Math.sin(a) * (452 - deep)
+    }, 'in-tick'));
+  }
+  // 16 points: cardinals longest, then intercardinals, then the by-points.
+  for (var i = 0; i < 16; i++) {
+    var ang = (i / 16) * Math.PI * 2 - Math.PI / 2;
+    var R = i % 4 === 0 ? 430 : (i % 2 === 0 ? 330 : 235);
+    var w = i % 2 === 0 ? 0.11 : 0.07;
+    var ax = C + Math.cos(ang) * R, ay = C + Math.sin(ang) * R;
+    var bx = C + Math.cos(ang + w) * 96, by = C + Math.sin(ang + w) * 96;
+    var cx = C + Math.cos(ang - w) * 96, cy = C + Math.sin(ang - w) * 96;
+    svg.appendChild(svgEl('polygon',
+      { points: ax + ',' + ay + ' ' + bx + ',' + by + ' ' + C + ',' + C }, 'in-pt-a'));
+    svg.appendChild(svgEl('polygon',
+      { points: ax + ',' + ay + ' ' + cx + ',' + cy + ' ' + C + ',' + C }, 'in-pt-b'));
+  }
+  svg.appendChild(svgEl('circle', { cx: C, cy: C, r: 96, fill: 'none' }, 'in-rule'));
+  var word = svgEl('text', { x: C, y: C + 34 }, 'in-word');
+  word.setAttribute('font-size', '92');
+  word.textContent = 'ATRIUM';
+  svg.appendChild(word);
+  host.appendChild(svg);
+  // The aisles get their own smaller roundels — square-in-circle, a
+  // different construction from the compass so the floor reads as a set of
+  // inlays rather than one motif stamped three times.
+  var plane = $('.fl-plane');
+  // Placed in plane space, where the perspective divide magnifies outward:
+  // 22% of the plane lands near the screen edge once projected, so the
+  // roundels sit further in than the aisle axes they end up over.
+  [39, 61].forEach(function (pct, i) {
+    var d = el('div', 'fl-round');
+    d.style.left = pct + '%';
+    var r = svgEl('svg', { viewBox: '0 0 400 400', 'aria-hidden': 'true' });
+    r.appendChild(svgEl('circle', { cx: 200, cy: 200, r: 190, fill: 'none' }, 'in-rule'));
+    r.appendChild(svgEl('circle', { cx: 200, cy: 200, r: 172, fill: 'none' }, 'in-hair'));
+    r.appendChild(svgEl('rect',
+      { x: 78, y: 78, width: 244, height: 244, fill: 'none',
+        transform: 'rotate(' + (i ? -45 : 45) + ' 200 200)' }, 'in-hair'));
+    r.appendChild(svgEl('rect',
+      { x: 100, y: 100, width: 200, height: 200, fill: 'none' }, 'in-hair'));
+    for (var k = 0; k < 8; k++) {
+      var a = (k / 8) * Math.PI * 2;
+      r.appendChild(svgEl('polygon', {
+        points: [200 + Math.cos(a) * 150, 200 + Math.sin(a) * 150,
+                 200 + Math.cos(a + 0.13) * 40, 200 + Math.sin(a + 0.13) * 40,
+                 200 + Math.cos(a - 0.13) * 40, 200 + Math.sin(a - 0.13) * 40].join(' ')
+      }, k % 2 ? 'in-pt-b' : 'in-pt-a'));
+    }
+    r.appendChild(svgEl('circle', { cx: 200, cy: 200, r: 34, fill: 'none' }, 'in-rule'));
+    d.appendChild(r);
+    if (plane) plane.appendChild(d);
+  });
+}
+
+/* ----- The DIRECTORY ----------------------------------------------------- */
+function renderDirectory() {
+  var box = $('#dir-rows');
+  if (!box) return;
+  box.textContent = '';
+  services.slice().sort(function (a, b) { return a.order - b.order; })
+    .forEach(function (svc) {
+      var b = el('button', 'bd-row');
+      b.setAttribute('role', 'listitem');
+      b.dataset.service = svc.id;
+      b.dataset.wing = svc.wing;
+      b.dataset.state = 'checking';
+      var sig = KNOWN_SIGILS[svc.sigil] ? svc.sigil : null;
+      b.appendChild(svgUse('bd-mark' + (sig ? ' mark' : ''), '0 0 96 96',
+        sig ? '#mark-' + sig : '#sig-fallback'));
+      var mid = el('span', 'bd-mid');
+      mid.appendChild(el('span', 'bd-name display', svc.name));
+      mid.appendChild(el('span', 'bd-line addr', svc.addr));
+      b.appendChild(mid);
+      var lamp = el('span', 'bd-lamp');
+      lamp.appendChild(el('span', 'lamp-d'));
+      lamp.appendChild(el('span', 'lamp-t display', '…'));
+      b.appendChild(lamp);
+      // A directory row is the gate said twice: the same click, the same
+      // flash on the same arch, the same dark-service notice.
+      b.addEventListener('click', function (e) {
+        gateClick(e, $('#gate-' + svc.id) || b, svc);
+      });
+      box.appendChild(b);
+    });
+  syncDirectory();
+}
+
+/* Lamps and live stats, shared with the gates' own pass. */
+function syncDirectory() {
+  var box = $('#dir-rows');
+  if (!box) return;
+  var open = 0, known = 0;
+  services.forEach(function (svc) {
+    var row = box.querySelector('[data-service="' + svc.id + '"]');
+    if (!row) return;
+    var st = statuses[svc.id];
+    var state = st ? st.state : 'checking';
+    row.dataset.state = state;
+    if (state === 'open') { open++; known++; } else if (state === 'dark') known++;
+    var lampT = $('.lamp-t', row);
+    lampT.textContent = state === 'open' ? 'OPEN' : state === 'dark' ? 'DARK' : '…';
+    lampT.title = t(state === 'open' ? 'lampOpen' :
+                    state === 'dark' ? 'lampDark' : 'lampChecking');
+    var stat = statText(svc);
+    $('.bd-line', row).textContent = svc.addr + (stat ? '  ·  ' + stat : '');
+    row.title = svc.name + ' — ' + svc.url;
+  });
+  var tally = $('#dir-tally');
+  if (tally && services.length) {
+    tally.textContent = t('linesOpen', { n: open, m: services.length });
+  }
+}
+
+/* ----- The BULLETIN ------------------------------------------------------ */
+var BULLETIN_SLOTS = 4;
+
+function renderBulletin() {
+  var box = $('#bul-notes');
+  if (!box) return;
+  box.textContent = '';
+  // The case shows the hall's own feed: it ignores the lever and the Ledger
+  // chips exactly as the ticker does (R11).
+  var shown = feed.slice(0, BULLETIN_SLOTS);
+  shown.forEach(function (d) {
+    var h = headline(d);
+    var a = el('a', 'bd-note' + (d.ts > watermark ? ' new' : '') + (h.warn ? ' warn' : ''));
+    a.setAttribute('role', 'listitem');
+    a.href = d.url;
+    a.addEventListener('click', function (e) {
+      e.preventDefault();
+      window.open(d.url, 'atrium-' + d.origin);
+    });
+    var svg = svgEl('svg', { viewBox: '0 0 40 40', 'aria-hidden': 'true' }, 'bn-medal');
+    var rim = svgEl('use', {}, 'rim');
+    rim.setAttribute('href', '#medallion');
+    svg.appendChild(rim);
+    var sig = svgEl('use', {}, KNOWN_SIGILS[d.origin] ? 'm-sig m-mark' : 'm-sig');
+    sig.setAttribute('href', KNOWN_SIGILS[d.origin] ? '#mark-' + d.origin : '#sig-fallback');
+    svg.appendChild(sig);
+    a.appendChild(svg);
+    var mid = el('span', 'bn-mid');
+    mid.appendChild(el('span', 'bn-head zh-sentence', h.head || ''));
+    if (h.detail) mid.appendChild(el('span', 'bn-detail zh-sentence', h.detail));
+    mid.appendChild(el('span', 'bn-time num', relTime(d.ts)));
+    a.appendChild(mid);
+    box.appendChild(a);
+  });
+  if (!shown.length) {
+    var empty = el('div', 'bd-note ghost');
+    empty.appendChild(el('span', 'bn-medal'));
+    var m = el('span', 'bn-mid');
+    m.appendChild(el('span', 'bn-detail zh-sentence', t('bulletinEmpty')));
+    empty.appendChild(m);
+    box.appendChild(empty);
+  }
+  // A notice case with three empty rails still reads as a notice case; a
+  // case with one notice and a void under it reads as broken furniture.
+  for (var i = Math.max(shown.length, shown.length ? 0 : 1); i < BULLETIN_SLOTS; i++) {
+    var g = el('div', 'bd-note ghost');
+    g.appendChild(el('span', 'bn-medal'));
+    var gm = el('span', 'bn-mid');
+    gm.appendChild(el('span', 'bn-head'));
+    g.appendChild(gm);
+    box.appendChild(g);
+  }
+}
+
+var bulOpen = $('#bul-open');
+if (bulOpen) bulOpen.addEventListener('click', function () { openLedger(); });
 
 /* Pointer parallax — one rAF writer of two custom properties on #stage;
    shells consume them via calc. Gated on fine pointers, live reduced-motion
@@ -1298,6 +1646,7 @@ function applyStatuses() {
     var msg = t('linesOpen', { n: openCount, m: services.length });
     if (st.textContent !== msg) st.textContent = msg;
   }
+  syncDirectory();
 }
 
 function statText(svc) {
@@ -1339,6 +1688,9 @@ function applyStats() {
       }
     }
   });
+  // The directory prints the same stat on one line with the address; it has
+  // no odometer, so it just takes the new text.
+  syncDirectory();
 }
 
 /* ========================================================================
@@ -1735,6 +2087,7 @@ function refresh() {
     if (res[1]) {
       feed = res[1].dispatches || [];
       renderLedger();
+      renderBulletin();
       firstFeed = false;
     }
     updateLedgerBadge();
@@ -1835,7 +2188,8 @@ function syncPrefRadios() {
   var current = {
     theme: root.dataset.themePref || 'system',
     lang: lang,
-    motion: root.dataset.motion
+    motion: root.dataset.motion,
+    ui: root.dataset.ui || 'm'
   };
   Array.prototype.forEach.call(prefs.querySelectorAll('[data-pref]'), function (group) {
     var pref = group.dataset.pref;
@@ -1869,6 +2223,13 @@ prefs.addEventListener('click', function (e) {
     store('atrium.motion', val);
     // The clock drives itself; tell it to swap sweep for deadbeat.
     window.dispatchEvent(new Event('atrium:motionchange'));
+  } else if (pref === 'ui') {
+    root.dataset.ui = val;
+    store('atrium.ui', val);
+    // --ui moves the arch module as well as the lettering, so the slots the
+    // stage was solved against are stale the moment the property lands.
+    // Re-solve after the style recalc, and re-hang the aisle boards with it.
+    requestAnimationFrame(function () { layoutStage(true); });
   }
   syncPrefRadios();
 });
@@ -1905,8 +2266,12 @@ function setLang(next) {
   applyStatuses();
   applyStats();
   renderLedger();
+  renderBulletin();
   updateLedgerBadge();
   renderTicker();
+  // Bay numbers are localized ("BAY III" / "第 III 间"), so the wall is
+  // re-lettered with everything else.
+  buildAisles();
 }
 
 function applyI18nStatic() {
@@ -1944,6 +2309,9 @@ renderDateline();
 renderGhosts();
 buildRosetteKnurl();
 buildRail();
+buildFloorInlay();
+buildAisles();
+renderBulletin();   // the case shows its empty rails before the feed lands
 // Seed the inline --drive: without it the first throw's getDrive() would
 // read the wing-attribute CSS rule AFTER setWing flips the attribute —
 // from === target, so the ease and the 55% steam latch would both vanish.
