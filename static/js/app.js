@@ -66,6 +66,8 @@ var STR = {
     'k.outreach.invites': '{n} of {target} sent',
     'k.outreach.error.head': 'Drafter hit an error',
     'k.outreach.error': 'Check the Outreach Desk',
+    'k.press.digest_ready.head': "Today's edition is out",
+    'k.press.digest_ready': '{stories} stories across {sections} sections',
     appearance: 'APPEARANCE', language: 'LANGUAGE', motion: 'MOTION',
     onyx: 'ONYX', ivory: 'IVORY', system: 'FOLLOW SYSTEM',
     onyxDesc: 'Black & gold', ivoryDesc: 'Platinum & gold', systemDesc: 'Match the OS',
@@ -124,6 +126,8 @@ var STR = {
     'k.outreach.invites': '已发出 {n}/{target}',
     'k.outreach.error.head': '草稿引擎出错',
     'k.outreach.error': '请到 Outreach Desk 查看',
+    'k.press.digest_ready.head': '今日晨报已出版',
+    'k.press.digest_ready': '{sections} 个版面 · {stories} 条',
     appearance: '外观', language: '语言', motion: '动效',
     onyx: '黑金 · ONYX', ivory: '白金 · IVORY', system: '跟随系统',
     onyxDesc: '玄色与鎏金', ivoryDesc: '铂色与鎏金', systemDesc: '与操作系统一致',
@@ -1361,6 +1365,8 @@ function headline(d) {
       return { head: t('k.outreach.invites.head'), detail: t('k.outreach.invites', p) };
     case 'outreach.error':
       return { head: t('k.outreach.error.head'), detail: t('k.outreach.error'), warn: true };
+    case 'press.digest_ready':
+      return { head: t('k.press.digest_ready.head'), detail: t('k.press.digest_ready', p) };
   }
   return { head: k, detail: '' };
 }

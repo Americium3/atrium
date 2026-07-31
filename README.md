@@ -37,7 +37,8 @@ Atrium serves `http://127.0.0.1:8769` and currently fronts:
   capped so a long feed still lands quickly. It collects today's news from all
   services: which anime got a new episode, premieres auto-subscribed, shows
   auto-completed, which watched workshop mod updated or got pulled, outreach
-  daily-queue readiness and invites sent. Dispatches newer than your last visit
+  daily-queue readiness and invites sent, and the morning edition going to
+  press. Dispatches newer than your last visit
   carry a champagne rim. Filter chips (ALL / SALON / BUREAU) are session-only
   and never touched by the mode lever — both wings' news always arrives.
   Escape, the scrim and the button all close it.
@@ -143,6 +144,30 @@ Adapter notes:
 - **Outreach Desk**: privacy hard rule — only aggregate counts ever leave
   the hub process (allowlisted param keys); names, drafts and per-person
   URLs never appear in the feed. Enforced server-side and covered by a test.
+  Daily-queue readiness keys on the drafter's completion stamp, not on its
+  live counters: the queue rotates as invitations go out, so `done` falls
+  back to zero once the morning's candidates have been contacted, and a hall
+  that was not running at 04:00 could otherwise never learn the queue was
+  prepared. `finishedAt` is authoritative; the drafts file's mtime stands in
+  when the desk itself has been restarted since.
+- **The Press Room**: one line per edition, derived from `/api/status` and
+  keyed `press:digest:<date>`. The batch runs at 05:00 and the hall is not
+  always up at 05:00, so nothing here depends on witnessing it: an edition
+  keeps its file and its own `generated_at`, which means the line can be
+  recomputed at any hour and still lands on the morning it was published
+  rather than the moment the hall noticed.
+
+### Surviving a restart
+
+Dispatches live in memory; seq cursors live on disk. After a restart the two
+disagree — the cursor sits at the head, the catch-up finds nothing, and the
+Ledger comes up empty over events still sitting in the sources' own ledgers.
+So the first tick of each process re-reads the recent window regardless of the
+cursor. Dispatch ids are derived from the source's seq, so this is idempotent,
+and the timestamps are the events' own, so nothing resurfaces as unread.
+
+The two state-derived adapters — press room and outreach queue readiness — get
+this for free, because they recompute from what is on disk on every tick.
 
 ## Run
 

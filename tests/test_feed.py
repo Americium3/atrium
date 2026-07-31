@@ -6,7 +6,7 @@ import re
 import sys
 import traceback
 from contextlib import contextmanager
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
@@ -26,15 +26,95 @@ def test_outreach_privacy():
     assert out["outreach:progress"]["params"] == {"done": 13, "total": 20}
 
 
+def _noon(days_ago: int = 0):
+    """Pinned to noon so a run near local midnight cannot flake a day compare."""
+    noon = datetime.now().replace(hour=12, minute=0, second=0, microsecond=0)
+    return noon - timedelta(days=days_ago)
+
+
 def test_outreach_queue_ready_and_error():
+    finished = _noon()
+    today = finished.strftime("%Y-%m-%d")
     progress = {"running": False, "total": 20, "done": 20,
-                "current": "", "finishedAt": 1785397487.7, "error": "boom"}
-    out = server.outreach_progress_to_dispatches(progress, "2026-07-30", 0)
-    ready = out["outreach:queue-ready:2026-07-30"]
+                "current": "", "finishedAt": finished.timestamp(), "error": "boom"}
+    out = server.outreach_progress_to_dispatches(progress, today, 0)
+    ready = out[f"outreach:queue-ready:{today}"]
     assert ready["params"] == {"n": 20}
-    assert ready["ts"] == int(1785397487.7 * 1000)
-    assert out["outreach:error:2026-07-30"]["params"] == {}
+    assert ready["ts"] == int(finished.timestamp() * 1000)
+    assert out[f"outreach:error:{today}"]["params"] == {}
     assert "outreach:progress" not in out  # not running -> no progress item
+
+
+def test_outreach_queue_ready_survives_the_queue_rotating():
+    """The bug of 2026-07-31: `done` is not a record of the morning's work.
+
+    Once the day's invitations go out, the sent candidates leave the queue and
+    undrafted ones replace them, so done drops back to 0 with total unchanged.
+    Keying on done >= total meant the hall could only ever learn the queue was
+    ready by watching it happen — and it was down at 04:00 that day.
+    """
+    finished = _noon()
+    today = finished.strftime("%Y-%m-%d")
+    progress = {"running": False, "total": 20, "done": 0, "current": "",
+                "finishedAt": finished.timestamp(), "error": None,
+                "pending": 20}
+    out = server.outreach_progress_to_dispatches(progress, today, 0)
+    assert out[f"outreach:queue-ready:{today}"]["params"] == {"n": 20}
+
+
+def test_outreach_queue_ready_falls_back_to_the_drafts_file():
+    """finishedAt lives in the desk's memory; the drafts file outlives it."""
+    stamp = int(_noon().timestamp() * 1000)
+    today = _noon().strftime("%Y-%m-%d")
+    progress = {"running": False, "total": 20, "done": 0, "current": "",
+                "finishedAt": None, "error": None}
+    out = server.outreach_progress_to_dispatches(progress, today, stamp)
+    assert out[f"outreach:queue-ready:{today}"]["ts"] == stamp
+
+
+def test_outreach_queue_ready_does_not_relive_yesterday():
+    yesterday = _noon(days_ago=1)
+    today = _noon().strftime("%Y-%m-%d")
+    progress = {"running": False, "total": 20, "done": 0, "current": "",
+                "finishedAt": yesterday.timestamp(), "error": None}
+    out = server.outreach_progress_to_dispatches(progress, today, 0)
+    assert out == {}
+
+
+def test_press_digest_is_keyed_and_timed_by_the_edition():
+    """Derived from the edition on disk, so a hall that missed 05:00 still
+    reports it, and reports it at the hour it was actually published."""
+    status = {"ok": True, "date": "2026-07-31",
+              "generated_at": "2026-07-31T05:10:54.133626-04:00",
+              "counts": {"stories": 30, "sections": 8}}
+    out = server.press_status_to_dispatches(status)
+    d = out["press:digest:2026-07-31"]
+    assert d["kind"] == "press.digest_ready"
+    assert d["origin"] == "pressroom" and d["wing"] == "bureau"
+    assert d["params"] == {"stories": 30, "sections": 8}
+    assert d["ts"] == int(
+        datetime.fromisoformat("2026-07-31T05:10:54.133626-04:00").timestamp() * 1000)
+
+
+def test_press_digest_is_idempotent_across_polls():
+    """The tick recomputes this every 60s; the id must not multiply."""
+    status = {"ok": True, "date": "2026-07-31",
+              "generated_at": "2026-07-31T05:10:54.133626-04:00",
+              "counts": {"stories": 30, "sections": 8}}
+    first = server.press_status_to_dispatches(status)
+    second = server.press_status_to_dispatches(status)
+    assert first == second and len(first) == 1
+
+
+def test_press_digest_absent_when_there_is_no_paper():
+    assert server.press_status_to_dispatches({}) == {}
+    assert server.press_status_to_dispatches({"ok": False}) == {}
+    assert server.press_status_to_dispatches(
+        {"ok": True, "date": None, "generated_at": None}) == {}
+    # A readable date with an unparseable stamp must not fall back to "now" —
+    # that would park a three-day-old edition at the top of today's Ledger.
+    assert server.press_status_to_dispatches(
+        {"ok": True, "date": "2026-07-31", "generated_at": "garbage"}) == {}
 
 
 def test_anime_kind_classification():
@@ -101,12 +181,29 @@ def test_gs_unknown_kind_is_dropped_not_muted():
     assert out == {}
 
 
+KIND_LITERAL = re.compile(r"[\"']((?:anime|mods|outreach|press)\.[a-z_]+)[\"']")
+
+
+def relayed_kinds() -> set:
+    """Every kind server.py can put on the wire, read out of its own source.
+
+    Enumerated rather than hand-listed so that adding a kind and forgetting its
+    headline fails here instead of on the Ledger.
+    """
+    src = Path(server.__file__).read_text(encoding="utf-8")
+    return set(KIND_LITERAL.findall(src)) | set(server.GS_EVENT_KINDS.values())
+
+
 def test_every_relayed_kind_has_a_headline_in_both_languages():
     """server.py and app.js drift apart easily — a dispatch kind with no i18n
     key renders as a blank detail line, which reads as a bug, not a mute."""
     app_js = (Path(__file__).resolve().parent.parent
               / "static" / "js" / "app.js").read_text(encoding="utf-8")
-    for kind in sorted(set(server.GS_EVENT_KINDS.values())):
+    kinds = relayed_kinds()
+    # Every wing must be represented, or a regex that quietly stopped matching
+    # would leave this test passing over an empty set.
+    assert {k.split(".")[0] for k in kinds} == {"anime", "mods", "outreach", "press"}
+    for kind in sorted(kinds):
         assert f"case '{kind}':" in app_js, kind
         assert app_js.count(f"'k.{kind}':") == 2, kind   # en + zh
     for muted in sorted(server.GS_MUTED_KINDS):
@@ -250,6 +347,55 @@ def test_ap_catchup_pages_forward_oldest_first():
 def test_ap_catchup_no_backlog():
     fake = _FakeApFeed(top_seq=30)
     assert asyncio.run(server._ap_catchup(fake, 30)) == ([], True)
+
+
+@contextmanager
+def _fresh_process(source: str, cursor: int):
+    """A process that has just started: cursor loaded from disk, hall empty."""
+    src = server.SOURCES[source]
+    saved_groups, saved_cursors = src.groups, dict(server._cursors)
+    saved_warm = set(server._warmed)
+    real_save = server.save_cursors
+    src.groups = {}
+    server._warmed.clear()
+    server._cursors.clear()
+    server._cursors[{"autopilot": "ap_seq", "groundstation": "gs_seq"}[source]] = cursor
+    server.save_cursors = lambda: None
+    try:
+        yield src
+    finally:
+        server.save_cursors = real_save
+        src.groups = saved_groups
+        server._cursors.clear()
+        server._cursors.update(saved_cursors)
+        server._warmed.clear()
+        server._warmed.update(saved_warm)
+
+
+def test_ap_restart_refills_the_hall_it_already_consumed():
+    """The cursor records what was consumed, not what is on display.
+
+    Dispatches live in memory and the cursor lives on disk, so after a restart
+    the catch-up finds nothing and the Ledger comes up blank over events that
+    are still in Autopilot's own file. Restarting at 13:20 on 2026-07-31 wiped
+    that morning exactly this way.
+    """
+    fake = _FakeApFeed(top_seq=10)
+    with _fresh_process("autopilot", cursor=10) as src:
+        asyncio.run(server._ap_events(fake))
+        assert set(src.groups.get("events", {})) == {f"ap:{n}" for n in range(1, 11)}
+        assert server._cursors["ap_seq"] == 10   # cursor must not move backwards
+
+
+def test_ap_second_tick_does_not_refetch():
+    """Warming is once per process — after that the cursor rules again."""
+    fake = _FakeApFeed(top_seq=10)
+    with _fresh_process("autopilot", cursor=10):
+        asyncio.run(server._ap_events(fake))
+        calls_after_warm = fake.calls
+        asyncio.run(server._ap_events(fake))
+        # Only the one-line head probe, no second backfill.
+        assert fake.calls == calls_after_warm + 1
 
 
 def test_ap_catchup_reports_a_short_walk():

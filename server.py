@@ -143,6 +143,10 @@ def local_date() -> str:
     return datetime.now().strftime("%Y-%m-%d")
 
 
+def ms_to_local_date(ms: int) -> str:
+    return datetime.fromtimestamp(ms / 1000).strftime("%Y-%m-%d")
+
+
 def strip_html(html: str, limit: int = 140) -> str:
     text = re.sub(r"<[^>]+>", " ", html or "")
     text = re.sub(r"\s+", " ", text).strip()
@@ -344,16 +348,56 @@ def outreach_progress_to_dispatches(progress: dict, today: str,
         out["outreach:progress"] = _dispatch(
             "outreach:progress", "outreach", "bureau", "outreach.progress",
             clean_outreach_params({"done": done, "total": total}), now_ms())
-    if total > 0 and done >= total:
-        fin = progress.get("finishedAt")
-        ts = int(float(fin) * 1000) if fin else fallback_ts
+
+    # `done` counts queue members that already hold a draft, and the queue
+    # rotates as invitations go out: once the morning's twenty are sent, twenty
+    # undrafted candidates take their place and done falls back to zero. So
+    # done >= total only holds while the drafter is mid-pass, and a hall that
+    # was not running at 04:00 could never learn the queue had been prepared --
+    # which is exactly what happened on 2026-07-31.
+    #
+    # The completion stamp outlives that rotation. finishedAt is authoritative
+    # but lives in the desk's memory, so the drafts file's mtime stands in when
+    # the desk itself has been restarted since.
+    fin = progress.get("finishedAt")
+    finished_ms = int(float(fin) * 1000) if fin else fallback_ts
+    if total > 0 and finished_ms and ms_to_local_date(finished_ms) == today:
         did = f"outreach:queue-ready:{today}"
         out[did] = _dispatch(did, "outreach", "bureau", "outreach.queue_ready",
-                             clean_outreach_params({"n": total}), ts)
+                             clean_outreach_params({"n": total}), finished_ms)
     if progress.get("error"):
         did = f"outreach:error:{today}"
         out[did] = _dispatch(did, "outreach", "bureau", "outreach.error",
                              {}, now_ms())
+    return out
+
+
+def press_status_to_dispatches(status: dict) -> dict:
+    """One dispatch per edition, keyed and timed by the edition itself.
+
+    Read off what the press room has on disk rather than caught as the batch
+    finishes. The batch runs at 05:00 and the hall is not always up at 05:00 --
+    it was down through that window on 2026-07-31 -- so anything that had to be
+    witnessed live would simply be lost. An edition keeps its file, so this can
+    be recomputed at any hour and still lands on the morning it was published.
+
+    Nothing here gates on the edition being *today's*: the timestamp is the
+    edition's own, so a paper that stopped being published three days ago sinks
+    down the Ledger on its own rather than pretending to be this morning's.
+    """
+    out: dict[str, dict] = {}
+    if not status or not status.get("ok"):
+        return out
+    date = status.get("date")
+    ts = naive_iso_to_ms(status.get("generated_at") or "")
+    if not date or ts is None:
+        return out
+    counts = status.get("counts") or {}
+    did = f"press:digest:{date}"
+    out[did] = _dispatch(
+        did, "pressroom", "bureau", "press.digest_ready",
+        {"stories": int(counts.get("stories") or 0),
+         "sections": int(counts.get("sections") or 0)}, ts)
     return out
 
 
@@ -418,6 +462,21 @@ SOURCES: dict[str, Source] = {s["id"]: Source(s["id"]) for s in SERVICES}
 
 _cursors: dict = {}
 _gs_games: dict[str, str] = {}
+
+# Sources whose Ledger lines this process has already filled in.
+#
+# The cursor says what has been *consumed*; it says nothing about what is
+# currently on display, because dispatches live in memory and the cursor lives
+# on disk. After a restart the two disagree: the cursor is at the head, so the
+# catch-up finds nothing, and the hall comes up empty even though the events
+# are still sitting in the source's own ledger. Restarting at 13:20 on
+# 2026-07-31 erased that morning from the Ledger exactly this way.
+#
+# So the first tick of each process re-reads the recent window regardless of
+# the cursor. Dispatch ids are derived from the source's seq, so re-reading is
+# idempotent, and their timestamps are the events' own — nothing resurfaces as
+# unread.
+_warmed: set[str] = set()
 
 
 def load_cursors() -> None:
@@ -514,8 +573,9 @@ async def _ap_events(client: httpx.AsyncClient) -> None:
     resp, _ = await _timed_get(client, f"{AUTOPILOT_URL}/api/events?limit=1")
     seq = int(resp.json().get("seq") or 0)
     cursor = _cursors.get("ap_seq")
-    if cursor is None:
-        # Cold start: backfill only the recent window, then set the cursor.
+    if cursor is None or "autopilot" not in _warmed:
+        # Cold start, or a restart that left the cursor ahead of an empty hall:
+        # backfill the recent window either way, then set the cursor.
         fetched, caught_up = await _ap_backfill_recent(client)
     elif seq < cursor:
         # events.json was deleted/reset — resync or we stall forever.
@@ -532,6 +592,7 @@ async def _ap_events(client: httpx.AsyncClient) -> None:
     # next tick re-requests the same events rather than losing them.
     _ap_ingest(fetched)
     _ap_advance(fetched, seq, caught_up)
+    _warmed.add("autopilot")
 
 
 def _ap_offline_fallback() -> None:
@@ -659,11 +720,13 @@ async def tick_groundstation(client: httpx.AsyncClient) -> None:
         src.state, src.latency_ms, src.note = "open", ms, None
         seq = int(resp.json().get("seq") or 0)
         cursor = _cursors.get("gs_seq")
-        if cursor is None:
-            # Cold start: backfill only the recent window, then set cursor.
+        if cursor is None or "groundstation" not in _warmed:
+            # Cold start, or a restart that left the cursor ahead of an empty
+            # hall: backfill the recent window either way, then set the cursor.
             await _gs_ingest(client, await _gs_backfill_recent(client))
             _cursors["gs_seq"] = seq
             save_cursors()
+            _warmed.add("groundstation")
         elif seq < cursor:
             # GS data was reset/reinstalled — resync or we stall forever.
             # gs:<seq> ids restart too, so drop pre-reset dispatches.
@@ -673,10 +736,12 @@ async def tick_groundstation(client: httpx.AsyncClient) -> None:
             await _gs_ingest(client, await _gs_backfill_recent(client))
             _cursors["gs_seq"] = seq
             save_cursors()
+            _warmed.add("groundstation")
         elif seq > cursor:
             await _gs_ingest(client, await _gs_catchup(client, cursor))
             _cursors["gs_seq"] = seq
             save_cursors()
+            _warmed.add("groundstation")
     except Exception as exc:
         src.state = "dark"
         src.latency_ms = None
@@ -815,12 +880,12 @@ def _outreach_offline_progress() -> dict | None:
 # --------------------------------------------------------------------------
 
 async def tick_pressroom(client: httpx.AsyncClient) -> None:
-    """The press room publishes once a night, so there is nothing to stream
-    into the Ledger — only a lamp and a count of what is on today's front page.
+    """The press room publishes once a night: a lamp, a front-page count, and
+    one Ledger line for the edition itself.
 
-    Staleness is reported by the room itself rather than inferred from the
-    lamp: the server answers fine at 09:00 whether or not the 05:00 batch
-    actually ran, so a lit gate says nothing about whether the paper is today's.
+    Staleness is reported by the room rather than inferred from the lamp: the
+    server answers fine at 09:00 whether or not the 05:00 batch actually ran,
+    so a lit gate says nothing about whether the paper is today's.
     """
     src = SOURCES["pressroom"]
     try:
@@ -833,6 +898,7 @@ async def tick_pressroom(client: httpx.AsyncClient) -> None:
             "sections": int(counts.get("sections") or 0),
             "date": data.get("date"),
         }
+        src.groups["digest"] = press_status_to_dispatches(data)
         src.note_slow = "digest_stale" if data.get("stale") else None
     except Exception as exc:
         src.state = "dark"
