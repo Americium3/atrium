@@ -261,14 +261,50 @@ function moonAge(d) {
   return ((days % SYNODIC) + SYNODIC) % SYNODIC;
 }
 
+/* ---- the niche -----------------------------------------------------------
+   The recess the dial is set into: a stepped deco surround on a 200x260 box,
+   with the same three-step shoulder the gates use at their springing line, a
+   sill under the dial and a keystone lozenge at the head. Drawn as a stretched
+   overlay (preserveAspectRatio: none) so it tracks the recess at any size —
+   only the shoulders and the sill carry meaning, and neither is a circle. */
+function niche() {
+  return '<svg class="n-frame" viewBox="0 0 200 260" preserveAspectRatio="none"' +
+    ' aria-hidden="true" focusable="false">' +
+    // outer reveal + inner hairline
+    '<rect x="0.75" y="0.75" width="198.5" height="258.5" stroke-width="1.5"/>' +
+    '<rect x="7" y="7" width="186" height="246" stroke-width="1"/>' +
+    // three-step shoulders, the gates' language, at both heads
+    '<path d="M0.75 26 h7 v-7 h7 v-7 h7 M199.25 26 h-7 v-7 h-7 v-7 h-7" stroke-width="1"/>' +
+    // sill: a single rule with the plinth diamond, echoing a gate's foot
+    '<path class="nf-metal" d="M12 236 H188" stroke-width="1"/>' +
+    '<rect class="nf-metal" x="95" y="231" width="10" height="10"' +
+    ' transform="rotate(45 100 236)" stroke-width="1"/>' +
+    // head keystone
+    '<path class="nf-metal" d="M84 13 L100 4 L116 13" stroke-width="1.5"/>' +
+    '</svg>';
+}
+
 /* ---- the clock ----------------------------------------------------------- */
 function build(host) {
+  var wrap = document.createElement('div');
+  wrap.className = 'niche';
+  wrap.innerHTML = niche();
+
   var svg = document.createElementNS(NS, 'svg');
+  svg.setAttribute('class', 'dial');
   svg.setAttribute('viewBox', '0 0 1000 1000');
   svg.setAttribute('aria-hidden', 'true');
   svg.setAttribute('focusable', 'false');
   svg.innerHTML = markup();
-  host.appendChild(svg);
+  wrap.appendChild(svg);
+  host.appendChild(wrap);
+
+  /* The dial itself is decorative art, but it is the hall's only clock — so
+     the time also exists as text for assistive technology, rewritten only
+     when the displayed minute actually changes. */
+  var reader = document.createElement('time');
+  reader.className = 'sr-only';
+  host.appendChild(reader);
 
   var parts = {
     h: svg.querySelector('.ck-h'), m: svg.querySelector('.ck-m'),
@@ -276,7 +312,7 @@ function build(host) {
     gB: svg.querySelector('.ck-gB'), date: svg.querySelector('#ck-date'),
     shade: svg.querySelector('#ck-shade'),
   };
-  var lastDate = -1, lastShade = -1;
+  var lastDate = -1, lastShade = -1, lastMinute = -1;
 
   function paint(now, deadbeat) {
     var ms = deadbeat ? 0 : now.getMilliseconds();
@@ -291,6 +327,16 @@ function build(host) {
     /* The works turn off the seconds arbor at 1:4, meshed 14:9 and opposed. */
     parts.gA.setAttribute('transform', 'rotate(' + (sec * 0.25) + ')');
     parts.gB.setAttribute('transform', 'rotate(' + (-sec * 0.25 * 14 / 9) + ')');
+
+    var minute = now.getHours() * 60 + now.getMinutes();
+    if (minute !== lastMinute) {
+      lastMinute = minute;
+      var pad = function (n) { return n < 10 ? '0' + n : String(n); };
+      reader.dateTime = pad(now.getHours()) + ':' + pad(now.getMinutes());
+      reader.textContent = now.toLocaleTimeString(
+        document.documentElement.lang === 'zh' ? 'zh-CN' : 'en-GB',
+        { hour: '2-digit', minute: '2-digit' });
+    }
 
     var dom = now.getDate();
     if (dom !== lastDate) {

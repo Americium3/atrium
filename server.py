@@ -48,6 +48,7 @@ AUTOPILOT_URL = "http://127.0.0.1:8767"
 GS_URL = "http://127.0.0.1:8768"
 GS_HEADERS = {"X-PMH": "1"}          # required by every Ground Station route
 OUTREACH_URL = "http://127.0.0.1:8802"
+PRESSROOM_URL = "http://127.0.0.1:8765"
 
 GS_DATA_DIR = Path(r"X:\Github\pdx-mod-hub\data")
 AP_DATA_DIR = Path(r"X:\Github\anime-rss-auto")
@@ -97,6 +98,17 @@ SERVICES = [
         "desc_key": "outreach",
         "launch_hint": r"X:\Github\linkedin-networking\run_server_hidden.vbs",
         "order": 3,
+    },
+    {
+        "id": "pressroom",
+        "name": "THE PRESS ROOM",
+        "wing": "bureau",
+        "url": PRESSROOM_URL + "/",
+        "addr": "127.0.0.1:8765",
+        "sigil": "pressroom",
+        "desc_key": "pressroom",
+        "launch_hint": r"X:\Github\yorha-news\scripts\run_server.py",
+        "order": 4,
     },
 ]
 
@@ -802,12 +814,39 @@ def _outreach_offline_progress() -> dict | None:
 # Background refresher
 # --------------------------------------------------------------------------
 
+async def tick_pressroom(client: httpx.AsyncClient) -> None:
+    """The press room publishes once a night, so there is nothing to stream
+    into the Ledger — only a lamp and a count of what is on today's front page.
+
+    Staleness is reported by the room itself rather than inferred from the
+    lamp: the server answers fine at 09:00 whether or not the 05:00 batch
+    actually ran, so a lit gate says nothing about whether the paper is today's.
+    """
+    src = SOURCES["pressroom"]
+    try:
+        resp, ms = await _timed_get(client, f"{PRESSROOM_URL}/api/status")
+        src.state, src.latency_ms, src.note = "open", ms, None
+        data = resp.json()
+        counts = data.get("counts") or {}
+        src.stat = {
+            "stories": int(counts.get("stories") or 0),
+            "sections": int(counts.get("sections") or 0),
+            "date": data.get("date"),
+        }
+        src.note_slow = "digest_stale" if data.get("stale") else None
+    except Exception as exc:
+        src.state = "dark"
+        src.latency_ms = None
+        src.note = None
+        log.debug("pressroom dark: %s", exc)
+
+
 async def refresher() -> None:
     async with httpx.AsyncClient(timeout=HTTP_TIMEOUT_S) as client:
         tick_no = 0
         while True:
             fast = [tick_autopilot(client), tick_groundstation(client),
-                    tick_outreach(client)]
+                    tick_outreach(client), tick_pressroom(client)]
             if tick_no % SLOW_EVERY == 0:
                 fast.append(tick_autopilot_slow(client))
                 fast.append(_gs_refresh_state(client))

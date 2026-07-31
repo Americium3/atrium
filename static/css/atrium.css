@@ -89,7 +89,9 @@
 
 :root {
   --serif: 'EB Garamond', Georgia, 'Palatino Linotype', serif;
-  --gate-w: clamp(200px, 16vw, 280px);
+  /* The stage now seats a clock between the arches — the gates give up some
+     width so all three stand on one screen without crowding. */
+  --gate-w: clamp(182px, 13.6vw, 248px);
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
   --ease-stage: cubic-bezier(0.4, 0, 0.2, 1);
   --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -121,6 +123,11 @@ body::after {
     radial-gradient(ellipse at 50% 42%, transparent 55%, var(--vignette)),
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='linear' slope='0.045'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23n)'/%3E%3C/svg%3E");
   background-size: auto, 220px 220px;
+}
+/* Text alternatives that carry meaning but take no space. */
+.sr-only {
+  position: absolute; width: 1px; height: 1px; margin: -1px;
+  clip-path: inset(50%); overflow: hidden; white-space: nowrap;
 }
 a { color: inherit; text-decoration: none; }
 button {
@@ -164,7 +171,11 @@ html[lang="zh"] .display { letter-spacing: 0.26em; }
 .gauge path, .gauge circle, .gauge line, .gauge text,
 .builder-plate rect, .builder-plate circle, .builder-plate text,
 .lever-svg path, .lever-svg circle, .lever-svg rect, .lever-svg text,
-.lever-svg polygon, .gearA-svg path, .gearB-svg path {
+.lever-svg polygon, .lever-svg ellipse,
+.gearA-svg path, .gearA-svg circle, .gearA-svg rect, .gearA-svg polygon,
+.gearA-svg ellipse, .gearA-svg text,
+.gearB-svg path, .gearB-svg circle, .gearB-svg rect, .gearB-svg polygon,
+.gearB-svg ellipse, .gearB-svg text {
   transition: stroke 0.4s, fill 0.4s, color 0.4s,
               background-color 0.4s, border-color 0.4s;
 }
@@ -172,59 +183,20 @@ html[lang="zh"] .display { letter-spacing: 0.26em; }
 /* ==========================================================================
    HALL LAYOUT
    ========================================================================== */
-/* Two compositions, both centred on the clock:
-
-   "band"  — the station clock hangs above the gates while the Ledger keeps
-             its standing right-hand column. Nothing is hidden; the dial sits
-             on the stage axis rather than the viewport axis.
-   "hall"  — the concourse clock owns the viewport axis and the gates stand
-             in a row beneath it. The Ledger withdraws into a right-hand
-             drawer, called by the dispatches trigger in the masthead.
-
-   Chosen in PREFERENCES; the pre-paint head script writes data-clock. */
+/* One composition. The clock is not hung above the hall — it stands IN it,
+   set into a niche on the back wall with a gate to either side, sharing the
+   gates' baseline and their cornice line. A dial floating over the stage
+   reads as a moon; a dial framed by architecture reads as the building. */
 #hall {
   max-width: 1720px;
   margin: 0 auto;
   padding: 20px 44px 48px;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 400px;
-  grid-template-areas:
-    "masthead masthead"
-    "ticker   ticker"
-    "clock    ledger"
-    "stage    ledger";
-  /* The clock row is sized explicitly. The Ledger spans rows 3-4 and is far
-     taller than either; with an auto row the surplus would be distributed
-     into the clock row and stretch it to the Ledger's full height. Pinning
-     row 3 sends every bit of that surplus to the stage row instead, where
-     `#stage { align-self: start }` already parks the gates at the top. */
-  grid-template-rows: auto auto var(--clock-row) auto;
-  column-gap: 44px;
-  --clock-w: min(34vh, 380px);
-  --clock-mt: 10px;
-  --clock-mb: 2px;
-  --clock-row: calc(var(--clock-w) + var(--clock-mt) + var(--clock-mb));
-}
-/* The dial and the gates share one screen: the arches step down so both the
-   clock and the full triptych land above the fold at 1050px and taller. */
-:root[data-clock="band"] { --gate-w: clamp(150px, 11vw, 208px); }
-/* The Ledger heads its own column, so it must not be dragged down by the
-   clock row — it starts at the clock row and runs to the foot of the stage. */
-:root[data-clock="band"] #ledger { grid-row: 3 / span 2; }
-
-:root[data-clock="hall"] {
-  --gate-w: clamp(150px, 12.5vw, 232px);
-}
-:root[data-clock="hall"] #hall {
   grid-template-columns: minmax(0, 1fr);
   grid-template-areas:
     "masthead"
     "ticker"
-    "clock"
     "stage";
-  --clock-w: min(44vh, 540px);
-  --clock-mt: 2px;
-  --clock-mb: 0;
 }
 /* Suppressed loads only — a played entrance flipping data-entered later
    must not re-run this fade (the hall is already fully visible). */
@@ -264,6 +236,67 @@ html[data-boot="suppressed"] #hall { animation: hall-fade 0.3s var(--ease-out) b
 #prefs-btn:hover { color: var(--gold-text); }
 #prefs-btn:hover svg { transform: rotate(22.5deg); }
 #prefs-btn svg { transition: transform 0.5s var(--ease-spring), stroke 0.4s; }
+
+/* ----- Ledger hatch button ----------------------------------------------- */
+#ledger-btn {
+  position: relative;
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  width: 48px;
+  color: var(--ink-faint);
+}
+/* Engine-turned texture overlay behind the hatch SVG disc */
+#ledger-btn::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 18px 0;   /* exclude the .p-caption strip */
+  border-radius: 50%;
+  background: url('/static/assets/tex/engine_turned.png') center/56px;
+  opacity: 0.18;
+  mix-blend-mode: overlay;
+  pointer-events: none;
+}
+#ledger-btn svg { display: block; }
+#ledger-btn .p-caption { font-size: 10px; letter-spacing: 0.18em; }
+#ledger-btn:hover { color: var(--gold-text); }
+/* Sheen on hover — sanctioned one-pass shimmer */
+#ledger-btn:hover .hatch-face {
+  animation: hatch-sheen 0.6s linear both;
+}
+@keyframes hatch-sheen {
+  0%   { opacity: 1; }
+  40%  { opacity: 0.78; }
+  100% { opacity: 1; }
+}
+/* Bayonet "locks" when drawer is open — disc rotates 45deg */
+#ledger-btn[aria-expanded="true"] .hatch-disc {
+  transform: rotate(45deg);
+  transform-origin: center;
+  transform-box: fill-box;
+  transition: transform 0.25s var(--ease-out);
+}
+#ledger-btn[aria-expanded="false"] .hatch-disc {
+  transform: rotate(0deg);
+  transform-origin: center;
+  transform-box: fill-box;
+  transition: transform 0.25s var(--ease-out);
+}
+/* Unread badge */
+.l-badge {
+  position: absolute;
+  top: -4px; right: -4px;
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  background: var(--gold);
+  color: var(--base);
+  font-size: 9px;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0;
+  line-height: 16px;
+  text-align: center;
+  pointer-events: none;
+  font-family: var(--serif);
+}
+.l-badge[hidden] { display: none; }
 
 /* ----- Ticker (status band; double rules live here) ---------------------- */
 #ticker {
@@ -445,8 +478,112 @@ html[data-entered="no"] #machine-rail {
   width: 60px; height: 60px;
   transform: rotate(calc((var(--drive, 0) - 0.5) * -180deg));
 }
+/* Legacy single-path fill — overridden by per-class rules below when the
+   multi-element gear is built. Kept so a fallback single path still renders. */
 .gearA-svg path, .gearB-svg path {
   fill: var(--bronze); stroke: var(--machine-edge); stroke-width: 1;
+}
+
+/* ---- Gear A per-element classes ----------------------------------------- */
+.gearA-svg .ga-rim        { fill: var(--bronze); stroke: none; }
+.gearA-svg .ga-rim-lit    { fill: none; stroke: var(--champagne); stroke-width: 1.5; }
+.gearA-svg .ga-rim-shd    { fill: none; stroke: var(--bronze-deep); stroke-width: 1; }
+.gearA-svg .ga-fillet     { fill: none; stroke: var(--bronze-deep); stroke-width: 1; }
+.gearA-svg .ga-tip-lit    { fill: none; stroke: var(--champagne); stroke-width: 2; }
+.gearA-svg .ga-tip-shd    { fill: none; stroke: var(--bronze-deep); stroke-width: 1; }
+.gearA-svg .ga-web        { fill: var(--bronze); stroke: none; }
+.gearA-svg .ga-web-shd    { fill: var(--bronze-deep); stroke: none; opacity: 0.45; }
+.gearA-svg .ga-web-lit    { fill: var(--champagne); stroke: none; opacity: 0.18; }
+.gearA-svg .ga-spoke      { fill: var(--bronze-deep); stroke: none; }
+.gearA-svg .ga-spoke-shd  { fill: var(--machine-edge); stroke: none; opacity: 0.7; }
+.gearA-svg .ga-lhole      { fill: var(--machine-edge); stroke: var(--bronze-deep); stroke-width: 0.75; }
+.gearA-svg .ga-boss       { fill: var(--bronze); stroke: var(--bronze-deep); stroke-width: 1; }
+.gearA-svg .ga-boss-lit   { fill: none; stroke: var(--champagne); stroke-width: 2; }
+.gearA-svg .ga-boss-shd   { fill: none; stroke: var(--bronze-deep); stroke-width: 1; }
+.gearA-svg .ga-bore       { fill: var(--machine-edge); stroke: none; }
+.gearA-svg .ga-keyway     { fill: var(--machine-edge); stroke: none; }
+.gearA-svg .ga-key        { fill: var(--bronze); stroke: var(--bronze-deep); stroke-width: 0.5; }
+.gearA-svg .ga-ssboss     { fill: var(--bronze); stroke: var(--machine-edge); stroke-width: 0.75; }
+.gearA-svg .ga-sshex      { fill: var(--machine-edge); stroke: none; }
+.gearA-svg .ga-bhole      { fill: var(--machine-edge); stroke: var(--bronze); stroke-width: 0.75; }
+.gearA-svg .ga-witness    { fill: none; stroke: var(--ink-faint); stroke-width: 0.5; }
+.gearA-svg .ga-index      { fill: none; stroke: var(--champagne); stroke-width: 1; }
+.gearA-svg .ga-pno-bg     { fill: var(--bronze-deep); stroke: none; }
+.gearA-svg .ga-pno-t      { fill: var(--ink-faint); font-family: var(--serif); font-size: 4.5px; }
+
+/* ---- Gear B per-element classes ----------------------------------------- */
+.gearB-svg .gb-rim        { fill: var(--bronze); stroke: none; }
+.gearB-svg .gb-rim-lit    { fill: none; stroke: var(--champagne); stroke-width: 1.5; }
+.gearB-svg .gb-rim-shd    { fill: none; stroke: var(--bronze-deep); stroke-width: 1; }
+.gearB-svg .gb-fillet     { fill: none; stroke: var(--bronze-deep); stroke-width: 1; }
+.gearB-svg .gb-web        { fill: var(--bronze); stroke: none; }
+.gearB-svg .gb-web-shd    { fill: var(--bronze-deep); stroke: none; opacity: 0.45; }
+.gearB-svg .gb-web-lit    { fill: var(--champagne); stroke: none; opacity: 0.18; }
+.gearB-svg .gb-spoke      { fill: var(--bronze-deep); stroke: none; }
+.gearB-svg .gb-flange     { fill: var(--bronze); stroke: var(--bronze-deep); stroke-width: 1; }
+.gearB-svg .gb-fl-lit     { fill: none; stroke: var(--champagne); stroke-width: 1.5; }
+.gearB-svg .gb-fl-shd     { fill: none; stroke: var(--bronze-deep); stroke-width: 1; }
+.gearB-svg .gb-bore       { fill: var(--machine-edge); stroke: none; }
+.gearB-svg .gb-dflat      { fill: var(--bronze); stroke: none; }
+.gearB-svg .gb-tip-lit    { fill: none; stroke: var(--champagne); stroke-width: 2; }
+.gearB-svg .gb-tip-shd    { fill: none; stroke: var(--bronze-deep); stroke-width: 1; }
+.gearB-svg .gb-serial     { fill: none; stroke: var(--ink-faint); stroke-width: 0.5; stroke-dasharray: 1.5 3.5; }
+.gearB-svg .gb-sno        { fill: var(--ink-faint); font-family: var(--serif); font-size: 3.5px; }
+.gearB-svg .gb-index      { fill: none; stroke: var(--champagne); stroke-width: 1; }
+
+/* ---- Lever new per-element classes -------------------------------------- */
+.lever-svg .lv-arm-lit    { fill: var(--champagne); stroke: none; opacity: 0.35; }
+.lever-svg .lv-arm-shd    { fill: var(--bronze-deep); stroke: none; opacity: 0.6; }
+.lever-svg .lv-web        { fill: var(--bronze); stroke: none; opacity: 0.25; }
+.lever-svg .lv-rivet      { fill: var(--bronze-deep); stroke: var(--bronze); stroke-width: 0.75; }
+.lever-svg .lv-pin-boss   { fill: var(--bronze); stroke: var(--bronze-deep); stroke-width: 1; }
+.lever-svg .lv-pin-lit    { fill: none; stroke: var(--champagne); stroke-width: 1.5; }
+.lever-svg .lv-pin-hole   { fill: var(--machine-edge); stroke: none; }
+.lever-svg .lv-cotter     { fill: var(--machine-edge); stroke: none; }
+.lever-svg .lv-pawl-body  { fill: var(--bronze-deep); stroke: var(--bronze); stroke-width: 0.75; }
+.lever-svg .lv-pawl       { fill: var(--bronze); stroke: var(--machine-edge); stroke-width: 0.5; }
+.lever-svg .lv-spring     { fill: none; stroke: var(--bronze); stroke-width: 0.75; }
+.lever-svg .lv-roller     { fill: var(--bronze); stroke: var(--bronze-deep); stroke-width: 0.75; }
+.lever-svg .lv-roller-shd { fill: var(--bronze-deep); stroke: none; opacity: 0.55; }
+.lever-svg .lv-clevis     { fill: var(--bronze); stroke: var(--bronze-deep); stroke-width: 0.75; }
+.lever-svg .lv-clevis-t   { fill: var(--bronze-deep); stroke: var(--bronze); stroke-width: 0.5; }
+.lever-svg .lv-ferrule    { fill: var(--bronze-deep); stroke: var(--bronze); stroke-width: 1; }
+.lever-svg .lv-knurl      { fill: url(#knurl-a); stroke: none; }
+.lever-svg .lv-endcap     { fill: var(--bronze-deep); stroke: none; }
+.lever-svg .lv-endcap-lit { fill: var(--champagne); stroke: none; opacity: 0.7; }
+.lever-svg .lv-plate-ring { fill: none; stroke: var(--champagne); stroke-width: 0.75; stroke-dasharray: 1.2 2.4; }
+.lever-svg .lv-rspring    { fill: none; stroke: var(--bronze); stroke-width: 0.75; }
+/* Dual number texts — wing-state-toggled via data-wing */
+.lever-svg .lv-num-1 { opacity: 1; transition: opacity 0.15s; }
+.lever-svg .lv-num-2 { opacity: 0; transition: opacity 0.15s; }
+:root[data-wing="bureau"] .lever-svg .lv-num-1 { opacity: 0; }
+:root[data-wing="bureau"] .lever-svg .lv-num-2 { opacity: 1; }
+/* Pawl spring compressed tell in bureau mode */
+:root[data-wing="bureau"] .lever-svg .lv-spring { opacity: 0.4; }
+/* Flange + gaiter (on .quadrant, not lever-svg) */
+.quadrant .lv-flange  { fill: var(--bronze-deep); stroke: var(--bronze); stroke-width: 1; }
+.quadrant .lv-fbolt   { fill: var(--machine-edge); stroke: var(--bronze); stroke-width: 0.75; }
+.quadrant .lv-gaiter  { fill: var(--ink-faint); opacity: 0.5; }
+
+/* ---- Gear well riveted-iron texture via pseudo-element ------------------ */
+/* Do NOT add `.gear-well { position: relative }` here to "anchor" this
+   ::before. The well is already position:absolute (rule above) — that is what
+   sets it into the rail at bottom:14px. A later `relative` silently wins the
+   cascade and the whole gear assembly drops out of the rail into normal flow,
+   ~164px too high. Absolute positioning is already the containing block
+   ::before needs. */
+.gear-well::before {
+  content: ''; position: absolute; inset: 0;
+  background: url('/static/assets/tex/riveted_iron.png') center / 176px;
+  opacity: 0.22;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ---- Engine-turned texture overlay on grip (lever-svg defs) ------------ */
+.lv-tex-et {
+  opacity: 0.18;
+  mix-blend-mode: overlay;
 }
 
 .lever-svg {
@@ -779,24 +916,60 @@ html[data-entered="no"] #machine-rail {
    place a fourth wing-metal surface is permitted (quarter numerals, spandrel
    lozenges, subdial rings, the seconds baton) — it is the hall's one jewel.
    ========================================================================== */
+/* The niche: a recess in the back wall between the two arches. It stands on
+   the same floor line as the gates and its head reaches the same springing
+   line, so the three read as one wall rather than a dial and some doors.
+   Positioned like a gate — absolute, bottom-anchored, translated by a slot
+   the stage solves — so it re-composes with them under the same transform. */
+/* Every dimension derives from the gate height, so the niche is exactly as
+   tall as the arches beside it and its sill lands on their plinth rule. The
+   dial then fills the recess instead of floating in it. */
 #clock {
-  grid-area: clock;
-  justify-self: center;   /* NEVER `margin: ... auto` here — the vertical
-                             margin is a custom property and the shorthand
-                             would resolve margin-left:auto and end-align it */
-  align-self: start;      /* the clock row is definite (see #hall) — without
-                             this the box stretches into the row the Ledger
-                             inflates and drives the gates off-screen */
-  width: var(--clock-w);
-  aspect-ratio: 1;
-  max-width: 100%;
-  margin-top: var(--clock-mt);
-  margin-bottom: var(--clock-mb);
-  position: relative;
+  position: absolute;
+  left: 50%; bottom: 0;
+  transform: translateX(-50%);
   z-index: 1;
   pointer-events: none;   /* the dial is scenery, never a click target */
+  --gh: calc(var(--gate-w) * 1.9);
+  --reveal: calc(var(--gh) * 0.055);   /* wall left at the head and sides */
+  --sill: calc(var(--gh) * 0.125);     /* the shelf the dial stands on */
+  --dial: calc(var(--gh) - var(--sill) - var(--reveal));
+  width: calc(var(--dial) + 2 * var(--reveal));
 }
-#clock svg { width: 100%; height: auto; }
+.niche {
+  position: relative;
+  height: var(--gh);
+  padding: var(--reveal) var(--reveal) var(--sill);
+}
+/* Recess: a stepped deco surround, darker than the wall, with a sill. */
+.niche::before {
+  content: "";
+  position: absolute; inset: 0;
+  background-color: var(--surface);
+  border: 1px solid var(--line);
+  box-shadow: inset 0 2px 18px var(--shadow-soft);
+}
+.n-frame { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.n-frame path, .n-frame rect { stroke: var(--chrome); fill: none; transition: stroke 0.4s; }
+.n-frame .nf-metal { stroke: var(--metal); }
+.n-frame .nf-fill { fill: var(--metal); stroke: none; }
+#clock svg.dial {
+  position: relative; display: block;
+  width: var(--dial); height: var(--dial);
+}
+
+/* The wall rule: one hairline at the gates' plinth line, running the width of
+   the stage behind everything. It is what makes the three read as a single
+   facade rather than a dial parked between two doors. */
+.wall-rule {
+  position: absolute; left: 3%; right: 3%;
+  bottom: calc(var(--gate-w) * 1.9 * 0.079);
+  height: 1px;
+  background-color: var(--line);
+  opacity: 0.85;
+  pointer-events: none;
+  transition: background-color 0.4s;
+}
 
 /* Case and dial: flat tones, hairlines only. */
 .ck-case, .ck-case2 {
@@ -894,58 +1067,56 @@ html[data-entered="no"] #machine-rail {
 /* ==========================================================================
    LEDGER
    ========================================================================== */
-#ledger { grid-area: ledger; padding-top: 26px; min-width: 0; }
-
-/* ----- Ledger as a drawer (hall composition) -----------------------------
-   The dispatch office withdraws behind a door rather than disappearing: the
-   trigger keeps a live unread count, and the panel is a real dialog with a
-   scrim, an escape key and a focus return. */
-#ledger-scrim {
-  position: fixed; inset: 0; z-index: 96;
-  background-color: var(--veil);
-  opacity: 0; pointer-events: none;
-  transition: opacity 0.3s var(--ease-out);
-}
-:root[data-clock="hall"] #ledger {
-  position: fixed; z-index: 97;
-  top: 0; right: 0; bottom: 0; width: min(420px, 92vw);
-  padding: 26px 26px 128px 22px;
+/* Ledger: fixed drawer anchored to right edge of viewport.
+   Position: fixed removes it from grid flow regardless of DOM parent.
+   z-index 55: above hall content (1-40), above machine-rail (50),
+   below prefs scrim (60). */
+#ledger {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 372px;
+  max-width: 100vw;
+  height: 100dvh;
+  padding-top: 80px;
+  padding-bottom: 96px;
   overflow-y: auto;
+  overflow-x: hidden;
+  z-index: 55;
+  /* Off-screen right — slide in when .open */
+  transform: translateX(100%);
+  transition: transform 0.40s cubic-bezier(0.32, 0, 0.15, 1);
   background-color: var(--surface);
   border-left: 1px solid var(--line);
-  box-shadow: -18px 0 44px var(--shadow-drop);
-  transform: translateX(100%);
-  transition: transform 0.42s var(--ease-out);
+  box-shadow: -12px 0 40px var(--shadow-drop), -4px 0 8px var(--shadow-soft);
+  will-change: transform;
 }
-:root[data-clock="hall"][data-ledger="open"] #ledger { transform: none; }
-:root[data-clock="hall"][data-ledger="open"] #ledger-scrim {
-  opacity: 1; pointer-events: auto;
+/* Riveted-iron texture on the drawer's left door-plate strip */
+#ledger::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; bottom: 0;
+  width: 16px;
+  background: url('/static/assets/tex/riveted_iron.png') left/120px;
+  opacity: 0.22;
+  pointer-events: none;
 }
-/* The trigger only exists in the hall composition — in band the Ledger is
-   already standing in the open. */
-#ledger-btn { display: none; }
-:root[data-clock="hall"] #ledger-btn {
-  display: grid; grid-auto-flow: column; align-items: center; gap: 8px;
-  position: relative;
+#ledger.open { transform: translateX(0); }
+
+/* Scrim — dims the hall behind the drawer; click to close */
+#ledger-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 54;
+  background: var(--veil);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s;
 }
-#ledger-btn svg { width: 26px; height: 26px; color: var(--ink-faint); }
-#ledger-btn:hover svg { color: var(--metal); }
-#ledger-btn .lb-caption {
-  font-size: 9px; letter-spacing: 0.2em; color: var(--ink-faint);
+#ledger-scrim.visible {
+  opacity: 1;
+  pointer-events: auto;
 }
-#ledger-btn .lb-count {
-  font-size: 11px; letter-spacing: 0.06em;
-  font-variant-numeric: tabular-nums;
-  color: var(--base); background-color: var(--metal);
-  min-width: 18px; padding: 1px 5px; text-align: center;
-}
-#ledger-btn .lb-count[hidden] { display: none; }
-#ledger-close { display: none; }
-:root[data-clock="hall"] #ledger-close {
-  display: block; position: absolute; top: 20px; right: 22px;
-  font-size: 15px; color: var(--ink-faint); line-height: 1;
-}
-:root[data-clock="hall"] #ledger-close:hover { color: var(--ink); }
 
 .l-head {
   display: flex; align-items: baseline; justify-content: space-between;
@@ -994,6 +1165,11 @@ html[data-entered="no"] #machine-rail {
   --n: 10px;
 }
 .plaque:nth-child(even) { --pl-off: 10px; }
+/* Unclipped wrapper that carries drop-shadow filter so the li can animate
+   with compositor promotion (filter on an animating element blocks promotion). */
+.pl-shadow-wrap {
+  display: block;
+}
 .pl-frame {
   clip-path: polygon(var(--n) 0, calc(100% - var(--n)) 0, 100% var(--n),
     100% calc(100% - var(--n)), calc(100% - var(--n)) 100%, var(--n) 100%,
@@ -1003,12 +1179,16 @@ html[data-entered="no"] #machine-rail {
   transition: background-color 0.4s;
 }
 /* box-shadow dies under clip-path, and drop-shadow on the clipped element
-   itself gets clipped too — so the shadow lives on the UNCLIPPED li and
-   follows the chamfered silhouette (the medallion casts along with it,
-   which is physically right). Ghosts excluded (they re-raster on pulse). */
-.plaque:not(.ghost) {
+   itself gets clipped too — so the shadow lives on pl-shadow-wrap, which is
+   an unclipped wrapper around pl-frame. The li itself only carries transition
+   and animations (arrive/cascading) so the browser can promote those to
+   compositor layers without re-rasterizing the filter every frame.
+   Ghosts excluded (they re-raster on their own pulse). */
+.plaque:not(.ghost) .pl-shadow-wrap {
   filter: drop-shadow(0 3px 4px var(--shadow-drop))
           drop-shadow(0 12px 18px var(--shadow-soft));
+}
+.plaque:not(.ghost) {
   transition: transform 0.25s var(--ease-out);
 }
 .plaque:not(.ghost):hover { transform: translateY(-2px); }
@@ -1091,6 +1271,29 @@ html[data-entered="no"] #machine-rail {
   to { opacity: 1; transform: none; }
 }
 
+/* Waterfall cascade — plays when the drawer opens, not on re-polls.
+   Fast cubic-bezier: same curve as bvol in autopilot. translateY falls
+   into position. Capped delay: min(280ms + ci*48ms, 820ms). */
+@keyframes card-cascade {
+  from { opacity: 0; transform: translateY(-14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.plaque.cascading,
+.daybreak.cascading {
+  animation: card-cascade 0.42s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: min(calc(280ms + var(--ci, 0) * 48ms), 820ms);
+}
+
+/* Spine draws first: scaleY 0→1 from top when drawer opens */
+@keyframes spine-draw {
+  from { transform: scaleY(0); opacity: 0; }
+  to   { transform: scaleY(1); opacity: 0.7; }
+}
+#ledger.opening .spine {
+  transform-origin: top center;
+  animation: spine-draw 0.32s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
 /* ==========================================================================
    PREFERENCES OVERLAY
    ========================================================================== */
@@ -1163,49 +1366,112 @@ html[data-entered="no"] #machine-rail {
 }
 
 /* ==========================================================================
-   ENTRANCE — timeline per DESIGN.md; plays only when data-entered="no"
+   ENTRANCE — vault-door sequence per DESIGN.md spec v1.
+   Beat ladder: 0=circle+engrave(0ms) 1=wheel+bolts(500ms)
+   2=wheel-turn+bolt-retract(700ms) 3=seam(870ms) 4=doors-open(1030ms)
+   5=wordmark(1500ms) 6=dock(1800ms) 7=done-fade(2200ms) 8=finish(2700ms)
+   Performance: transform/opacity only. Static shadows on static layers.
    ========================================================================== */
 #entrance {
   position: fixed; inset: 0; z-index: 100;
   pointer-events: none;
-  /* Shared perspective so both door leaves converge on the seam. */
-  perspective: 1100px;
+  perspective: 1100px;   /* shared perspective; door leaves converge on seam */
 }
-/* While playing, the overlay swallows the skip gesture — otherwise the
-   click lands on the invisible hall underneath and opens a gate. */
 html[data-entered="no"] #entrance { pointer-events: auto; cursor: pointer; }
 html[data-entered="yes"] #entrance { display: none; }
+
 #entrance .e-void {
   position: absolute; inset: 0;
   background-color: var(--base);
 }
+
+/* ---- Door panels --------------------------------------------------------- */
 .e-panel {
   position: absolute; top: 0; bottom: 0; width: 51vw;
   background-color: var(--base);
-  /* FLUX.2 riveted-iron plate, flattened to mid-gray ±24 and overlay-
-     blended — the doors read as vault iron in both themes. */
   background-image: url('/static/assets/tex/riveted_iron.png');
   background-size: 460px;
   background-blend-mode: overlay;
-  transition: transform 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+  transition: transform 0.88s cubic-bezier(0.22, 1, 0.36, 1);
   backface-visibility: hidden;
+  will-change: transform;
 }
-.e-left { left: 0; transform-origin: left center; }
+.e-left  { left: 0;  transform-origin: left center; }
 .e-right { right: 0; transform-origin: right center; }
 .e-panel svg { width: 100%; height: 100%; }
-.e-engrave { stroke: var(--gold); opacity: 0; transition: opacity 0.5s; }
-.e-panel { will-change: transform; }
-#entrance.doors .e-engrave { opacity: 0.22; }
-/* Doors swing on their outer hinges (real 3D leaves, not a slide);
-   the outward translate guarantees full clearance. */
-#entrance.open .e-left { transform: translateX(-26%) rotateY(74deg); }
+
+/* Doors swing open — 74 deg rotateY + translate. Contract: DO NOT change
+   these values; the dock calc reads .e-burst getBCR after doors begin moving. */
+#entrance.open .e-left  { transform: translateX(-26%) rotateY(74deg); }
 #entrance.open .e-right { transform: translateX(26%) rotateY(-74deg); }
 
+/* ---- Jamb planes (static anatomy — never animated) ---------------------- */
+.e-jamb-left, .e-jamb-right,
+.e-jamb-shadow-left, .e-jamb-shadow-right { opacity: 1; }
+/* (Entire #entrance is display:none on non-played loads, so these never
+   show outside the entrance context.) */
+
+/* ---- Beat 0: Engraving — arcs, vlines, rivets, maker's plate ----------- */
+/* All engrave children default opacity:0; class .engrave drives animations. */
+.e-arc, .e-vline, .e-rivet { opacity: 0; }
+.e-maker-frame, .e-maker-t1, .e-maker-t2, .e-maker-t3 { opacity: 0; }
+
+/* Arc: scaleX from seam edge outward. transform-box:fill-box centres the
+   origin on the element itself. The inline transform-origin HTML attributes
+   on arc paths are SVG presentation attributes; CSS animations require the
+   CSS transform-origin, set here to match (left/right panels use separate
+   rules so the origin is at the seam-facing edge of each arc). */
+.e-arc {
+  transform-box: fill-box;
+}
+.e-left .e-arc  { transform-origin: right center; }
+.e-right .e-arc { transform-origin: left center; }
+#entrance.engrave .e-arc {
+  animation: engrave-arc 200ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
+  animation-delay: calc(80ms + var(--ai, 0) * 22ms);
+}
+@keyframes engrave-arc {
+  from { opacity: 0; transform: scaleX(0); }
+  to   { opacity: 0.5; transform: scaleX(1); }
+}
+
+/* Vline: scaleY from top downward */
+.e-vline { transform-box: fill-box; transform-origin: top center; }
+#entrance.engrave .e-vline {
+  animation: engrave-vline 200ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
+  animation-delay: calc(160ms + var(--vi, 0) * 35ms);
+}
+@keyframes engrave-vline {
+  from { opacity: 0; transform: scaleY(0); }
+  to   { opacity: 0.5; transform: scaleY(1); }
+}
+
+/* Rivet column: simple opacity fade */
+#entrance.engrave .e-rivet {
+  animation: engrave-rivet 180ms ease-out 310ms backwards;
+}
+@keyframes engrave-rivet {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* Maker's plate: frame then text blocks */
+#entrance.engrave .e-maker-frame { animation: engrave-rivet 120ms ease-out 360ms backwards; }
+#entrance.engrave .e-maker-t1   { animation: engrave-rivet 140ms ease-out 400ms backwards; }
+#entrance.engrave .e-maker-t2   { animation: engrave-rivet 140ms ease-out 440ms backwards; }
+#entrance.engrave .e-maker-t3   { animation: engrave-rivet 140ms ease-out 480ms backwards; }
+
+/* ---- Beat 0: Circle draws + Rays fan in --------------------------------- */
 .e-burst {
   position: absolute; left: 50%; top: 50%;
-  width: min(64vmin, 800px); height: min(64vmin, 800px);
-  margin: calc(min(64vmin, 800px) / -2) 0 0 calc(min(64vmin, 800px) / -2);
-  transition: transform 0.5s var(--ease-out), opacity 0.3s;
+  /* 88vmin, not 64: the burst's viewBox is 800 units, so at 64vmin on a
+     900px-tall viewport one unit rendered at 0.72 screen px and 43 of the
+     114 door parts came out as sub-pixel ghosts. At 88vmin a unit is ~0.99px
+     and the lock anatomy actually reads. */
+  width: min(88vmin, 1000px); height: min(88vmin, 1000px);
+  margin: calc(min(88vmin, 1000px) / -2) 0 0 calc(min(88vmin, 1000px) / -2);
+  /* translate: 480ms (arrives before 280ms fade so circle clicks in then dissolves) */
+  transition: transform 0.48s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.28s;
   will-change: transform;
 }
 .e-circle {
@@ -1214,9 +1480,10 @@ html[data-entered="yes"] #entrance { display: none; }
   stroke-dashoffset: 578;
 }
 #entrance.play .e-circle {
-  animation: circle-draw 0.45s var(--ease-out) forwards;
+  animation: circle-draw 420ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 @keyframes circle-draw { to { stroke-dashoffset: 0; } }
+
 .e-rays line {
   stroke: var(--gold); stroke-width: 1;
   opacity: 0;
@@ -1224,56 +1491,180 @@ html[data-entered="yes"] #entrance { display: none; }
   transform: scale(0.3);
 }
 #entrance.play .e-rays line {
-  animation: ray-in 0.3s var(--ease-out) forwards;
-  animation-delay: calc(300ms + var(--i) * 12ms);   /* last ray done by ~876ms */
+  animation: ray-in 300ms var(--ease-out) backwards;
+  animation-delay: calc(300ms + var(--i, 0) * 12ms);
 }
 @keyframes ray-in {
   from { opacity: 0; transform: scale(0.3); }
-  60% { opacity: 0.85; }
-  to { opacity: 0.5; transform: scale(1); }
+  60%  { opacity: 0.85; }
+  to   { opacity: 0.66; transform: scale(1); }
 }
-/* Group-level fade as the doors part — a per-line rule would lose to the
-   running ray-in animation. */
-#entrance.open .e-rays { opacity: 0; transition: opacity 0.4s; }
-#entrance.dock .e-burst {
-  transform: translate(var(--dock-x, 0px), var(--dock-y, 0px)) scale(var(--dock-s, 0.1));
+/* Group-level fade as doors part (beats class-level animation) */
+#entrance.open .e-rays { opacity: 0; transition: opacity 0.38s; }
+
+/* ---- Beat 0: Dial ring and marks ---------------------------------------- */
+.e-dial-ring, .e-dial-ring-inner { opacity: 0; }
+#entrance.play .e-dial-ring       { animation: engrave-rivet 200ms ease-out 200ms backwards; }
+#entrance.play .e-dial-ring-inner { animation: engrave-rivet 200ms ease-out 240ms backwards; }
+
+.e-dial-major { opacity: 0; }
+#entrance.play .e-dial-major {
+  animation: engrave-rivet 80ms ease-out backwards;
+  animation-delay: calc(120ms + var(--di, 0) * 15ms);
+}
+
+.e-dial-minor { opacity: 0; }
+#entrance.play .e-dial-minor {
+  animation: engrave-rivet 60ms ease-out backwards;
+  animation-delay: calc(200ms + var(--dmi, 0) * 8ms);
+}
+
+.e-dial-minor-group { opacity: 0; }
+#entrance.play .e-dial-minor-group { animation: engrave-rivet 180ms ease-out 300ms backwards; }
+
+/* ---- Beat 1: Handwheel materialises + lock case ------------------------- */
+/* Lock case appears with play (manufactured before the wheel loads) */
+.e-lock-case, .e-lock-case-lit, .e-relocker, .e-relocker-lit { opacity: 0; }
+#entrance.play .e-lock-case     { opacity: 0.88;  transition: opacity 0.35s 0ms; }
+#entrance.play .e-lock-case-lit { opacity: 0.42; transition: opacity 0.35s 30ms; }
+#entrance.play .e-relocker      { opacity: 0.82;  transition: opacity 0.35s 30ms; }
+#entrance.play .e-relocker-lit  { opacity: 0.62;  transition: opacity 0.35s 60ms; }
+#entrance.open .e-lock-case,
+#entrance.open .e-lock-case-lit,
+#entrance.open .e-relocker,
+#entrance.open .e-relocker-lit  { opacity: 0; transition: opacity 0.38s; }
+
+/* Wheel — appears on Beat 1; rotates on Beat 2. transform-box:view-box
+   so transform-origin 400px 400px references the SVG coordinate space. */
+.e-wheel {
+  opacity: 0;
+  transform-box: view-box;
+  transform-origin: 400px 400px;
+  transition: opacity 0.35s;
+}
+#entrance.doors .e-wheel { opacity: 0.9; }
+/* Beat 2: rotate 60 deg with 3% overshoot (cubic-bezier overshoot) */
+#entrance.wheel .e-wheel {
+  transform: rotate(60deg);
+  transition: transform 0.38s cubic-bezier(0.34, 1.08, 0.64, 1), opacity 0.35s;
+}
+
+/* Drive cams (4 inner groups, each inside a static base-rotation wrapper).
+   The outer wrapper's HTML transform attribute sets the base angle (45/135/225/315).
+   The inner .e-drive-cam group adds the CSS rotate(60deg) on Beat 2,
+   which composes with the outer wrapper's static rotation. */
+.e-drive-cam { transform-box: view-box; transform-origin: 400px 400px; }
+.e-drive-cam ellipse { opacity: 0; }
+#entrance.doors .e-drive-cam ellipse {
+  opacity: 0.78; transition: opacity 0.15s;
+}
+/* Beat 2: cams rotate 60 deg additional (keyed to wheel) */
+#entrance.wheel .e-drive-cam {
+  transform: rotate(60deg);
+  transition: transform 0.38s cubic-bezier(0.34, 1.08, 0.64, 1);
+}
+#entrance.open .e-drive-cam ellipse { opacity: 0; transition: opacity 0.28s; }
+
+/* Spindle: appears with wheel at beat 1 */
+.e-spindle { opacity: 0; }
+#entrance.doors .e-spindle { opacity: 1; transition: opacity 0.35s 0.2s; }
+#entrance.open .e-spindle  { opacity: 0; transition: opacity 0.28s; }
+
+/* ---- Beat 1: Bolt tick-in ----------------------------------------------- */
+/* Bolts are JS-populated lines inside .e-bolts with --bi index.
+   bolt-tick uses explicit opacity:0.75 at every stop to prevent the
+   flash bug (bolt in fill-mode:backwards snapping to opacity:0 when
+   .wheel is added). */
+.e-bolts line {
+  stroke: var(--gold);
   opacity: 0;
 }
+/* Stagger: bolt-0 fires immediately when 'doors' class applied,
+   bolt-7 fires 84ms later. Last bolt completes at ~184ms after doors. */
+#entrance.doors .e-bolts line {
+  animation: bolt-tick 100ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
+  animation-delay: calc(var(--bi, 0) * 12ms);
+}
+@keyframes bolt-tick {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 0.92; transform: none; }
+}
+
+/* Bolt carrier ring (circular track all bolts ride; translates with carrier tray) */
+.e-bolt-carrier {
+  opacity: 0;
+  transform-box: view-box;
+  transform-origin: 400px 400px;
+}
+#entrance.doors .e-bolt-carrier { opacity: 0.58; transition: opacity 0.28s; }
+/* Carrier moves with bolt tray on Beat 2 (defined in bolt-retract section) */
+#entrance.open  .e-bolt-carrier { opacity: 0;    transition: opacity 0.28s; }
+
+/* Bolt guide channels */
+.e-bolt-guide { opacity: 0; }
+#entrance.doors .e-bolt-guide { opacity: 0.68; transition: opacity 0.12s; }
+#entrance.open  .e-bolt-guide { opacity: 0;    transition: opacity 0.28s; }
+
+/* ---- Beat 2: Bolt retract ----------------------------------------------- */
+/* All opacity:0.75 stops are explicit to prevent flash bug when .wheel fires
+   during an in-progress bolt-tick animation. */
+#entrance.wheel .e-bolts line {
+  animation: bolt-retract 280ms linear forwards;
+}
+@keyframes bolt-retract {
+  0%   { opacity: 0.92; transform: none; }
+  78%  { opacity: 0.92; transform: translateY(32px); }
+  100% { opacity: 0.92; transform: translateY(30px); }
+}
+/* Carrier moves with bolt tray */
+#entrance.wheel .e-bolt-carrier {
+  transform: translateY(4px);
+  transition: transform 0.28s linear;
+}
+/* Group-level fade as doors open */
+#entrance.open .e-bolts { opacity: 0; transition: opacity 0.28s; }
+
+/* ---- Beat 3: Seam descends + threshold appears -------------------------- */
 .e-seam {
   position: absolute; left: 50%; top: 8vh; bottom: 8vh; width: 1px;
   background-color: var(--champagne);
   transform: scaleY(0);
-  transition: transform 0.12s linear, opacity 0.4s;
+  transform-origin: top center;
+  transition: transform 80ms linear, opacity 0.38s;
+  z-index: 1; /* paints above .e-panel siblings so the scaleY draw is visible */
 }
 #entrance.seam .e-seam { transform: scaleY(1); }
 #entrance.open .e-seam { opacity: 0; }
 
-/* Vault unlock beat: the drawn circle grows a handwheel and 8 radial
-   bolts; the wheel turns 60° and every bolt retracts in sync (a vault
-   throws all bolts at once — the synchrony is the luxury). The wheel then
-   docks with the burst into the rosette. */
-.e-wheel {
-  stroke: var(--gold);
+/* Threshold plate (visible in the structured 160ms hold after seam) */
+.e-threshold {
+  position: absolute;
+  left: calc(50% - 1px);
+  bottom: 8vh;
+  width: 2px; height: 8px;
+  background: var(--champagne);
   opacity: 0;
-  transform-box: view-box;
-  transform-origin: 400px 400px;
-  transition: transform 0.45s var(--ease-out), opacity 0.35s;
 }
-#entrance.doors .e-wheel { opacity: 0.9; }
-#entrance.wheel .e-wheel { transform: rotate(60deg); }
-.e-bolts line {
-  stroke: var(--gold); stroke-width: 5;
-  opacity: 0;
-  transition: transform 0.45s var(--ease-out) 0.05s, opacity 0.3s;
-}
-#entrance.doors .e-bolts line { opacity: 0.75; }
-#entrance.wheel .e-bolts line { transform: translateY(30px); }
-#entrance.open .e-bolts { opacity: 0; transition: opacity 0.3s; }
-.e-nozzle {
-  position: absolute; left: 50%; bottom: 8vh;
-  width: 0; height: 0;
-}
+/* 'both' warranted: threshold must persist through the 160ms hold;
+   #entrance is display:none on all non-playing loads so no leakage risk. */
+#entrance.seam .e-threshold { animation: engrave-rivet 120ms ease-out 0ms both; }
 
+/* ---- Beat 4: Dock transform --------------------------------------------- */
+/* The entire .e-burst (lock face assembly) flies to the masthead rosette.
+   --dock-x, --dock-y, --dock-s are set in JS at 1800ms.
+   The * 0.23 factor: circle r=92 on 800px viewBox = 184/800 = 23% of burst.
+   !! LOAD-BEARING: if masthead rise-in delay changes from 2000ms,
+   recompute the -14px offset in playEntrance() !! */
+#entrance.dock .e-burst {
+  transform: translate(var(--dock-x, 0px), var(--dock-y, 0px)) scale(var(--dock-s, 0.1));
+  opacity: 0;
+}
+#entrance.open .e-void { opacity: 0; transition: opacity 0.28s; }
+
+/* ---- Beat 5: Wordmark stamps down --------------------------------------- */
+/* Per-letter treatment: rotateX(-38deg) with per-letter perspective context.
+   fill-mode: backwards only (holds from-state before delay fires, but
+   returns to natural CSS state after — no fill-mode:both to avoid freeze). */
 .e-wordmark {
   position: absolute; left: 0; right: 0; top: 50%;
   transform: translateY(-50%);
@@ -1282,33 +1673,69 @@ html[data-entered="yes"] #entrance { display: none; }
   font-weight: 560;
   color: var(--gold);
   opacity: 0;
+  /* Local perspective so each letter has its own vanishing point */
+  perspective: 900px;
 }
 .e-wordmark span {
   display: inline-block;
-  padding: 0 0.11em;             /* visual tracking 0.22em — never animate letter-spacing */
-  transform: translateX(calc(var(--wx) * 0.9em));
-  transition: transform 0.5s var(--ease-out);
+  padding: 0 0.11em;
+  opacity: 0;
 }
-.e-wordmark span:nth-child(1) { --wx: -2.5; }
-.e-wordmark span:nth-child(2) { --wx: -1.5; }
-.e-wordmark span:nth-child(3) { --wx: -0.5; }
-.e-wordmark span:nth-child(4) { --wx: 0.5; }
-.e-wordmark span:nth-child(5) { --wx: 1.5; }
-.e-wordmark span:nth-child(6) { --wx: 2.5; }
-#entrance.word .e-wordmark { opacity: 1; transition: opacity 0.4s; }
-#entrance.word .e-wordmark span { transform: translateX(0); }
+#entrance.word .e-wordmark { opacity: 1; transition: opacity 0.3s; }
+/* word-stamp keyframe: per-letter translateX + rotateX press-home motion */
+#entrance.word .e-wordmark span {
+  animation: word-stamp 480ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
+}
+/* --wi index set inline on each span; JS also sets animationDelay inline */
+@keyframes word-stamp {
+  from {
+    opacity: 0;
+    transform: translateX(calc(var(--wx, 0) * 1em))
+               translateY(8px)
+               rotateX(-38deg);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+/* wx values (0.9 multiplier vs old ±2.5 — tighter range reads as press not drift) */
+.e-wordmark span:nth-child(1) { --wx: -2.25; }
+.e-wordmark span:nth-child(2) { --wx: -1.35; }
+.e-wordmark span:nth-child(3) { --wx: -0.45; }
+.e-wordmark span:nth-child(4) { --wx: 0.45;  }
+.e-wordmark span:nth-child(5) { --wx: 1.35;  }
+.e-wordmark span:nth-child(6) { --wx: 2.25;  }
+
+/* ---- Beat 7: Done-fade -------------------------------------------------- */
+/* done-fade fires at 2200ms — 30ms after last letter settles (2170ms).
+   This gap is load-bearing: the prior done-fade at 2100ms was a timing
+   bug (sixth letter still animating at 2170ms). */
 #entrance.done-fade .e-wordmark,
-#entrance.done-fade .e-void { opacity: 0; transition: opacity 0.4s; }
+#entrance.done-fade .e-void { opacity: 0; transition: opacity 0.36s; }
 #entrance.done-fade .e-panel { visibility: hidden; }
-#entrance.open .e-void { opacity: 0; transition: opacity 0.3s; }
+
+/* ---- Steam nozzle ------------------------------------------------------- */
+.e-nozzle {
+  position: absolute; left: 50%; bottom: 8vh;
+  width: 0; height: 0;
+}
 
 /* Hall assembly (only while the entrance plays) */
 html[data-entered="no"] #masthead { animation: rise-in 0.5s var(--ease-out) both; animation-delay: 2.0s; }
 html[data-entered="no"] #ticker { animation: rise-in 0.45s var(--ease-out) both; animation-delay: 2.05s; }
 html[data-entered="no"] #ticker::before { animation: rule-draw 0.4s var(--ease-out) both; animation-delay: 1.9s; }
 html[data-entered="no"] #ticker::after { animation: rule-draw 0.4s var(--ease-out) both; animation-delay: 2.0s; }
+/* The dial is set into the back wall, so it has to be standing there before
+   the gates rise in front of it: 1.88s puts it one beat ahead of the first
+   gate. It was missing from this list entirely and so arrived fully formed at
+   frame zero, which read as a rendering fault rather than as the centrepiece.
+   Like .gate below, its keyframes must carry the translateX(-50%) that centres
+   it — an animated transform replaces the static one outright, and without it
+   the clock snaps to the left edge for the length of the entrance. */
+html[data-entered="no"] #clock { animation: dial-wake 0.62s var(--ease-out) both; animation-delay: 1.88s; }
 html[data-entered="no"] .gate { animation: gate-rise 0.5s var(--ease-out) both; animation-delay: calc(1.9s + var(--gi, 0) * 80ms); }
-html[data-entered="no"] #ledger { animation: rise-in 0.5s var(--ease-out) both; animation-delay: 2.15s; }
+/* #ledger is a fixed drawer — it has no entrance animation; it opens via JS */
 /* The glow and floor light only once the gates have landed; the stage
    dollies in gently — the camera walks into the hall. */
 html[data-entered="no"] .stage-glow { animation: glow-in 0.45s var(--ease-out) both; animation-delay: 2.2s; }
@@ -1322,6 +1749,12 @@ html[data-entered="no"] #stage { animation: stage-dolly 0.9s var(--ease-out) bot
   to { opacity: 1; transform: none; }
 }
 @keyframes rule-draw { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+/* A clock does not fade in, it comes up to speed. The dial settles from
+   slightly small and slightly low, as though the works had just taken load. */
+@keyframes dial-wake {
+  from { opacity: 0; transform: translateX(-50%) translateY(8px) scale(0.955); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+}
 @keyframes gate-rise {
   from {
     opacity: 0;
@@ -1339,12 +1772,9 @@ html[data-entered="no"] #stage { animation: stage-dolly 0.9s var(--ease-out) bot
    RESPONSIVE
    ========================================================================== */
 @media (max-width: 1279px) {
-  #hall {
-    grid-template-columns: 1fr;
-    grid-template-areas: "masthead" "ticker" "stage" "ledger";
-  }
   #stage { margin-bottom: 170px; }   /* reserve room for the floor plane */
-  #ledger { max-width: 640px; margin: 30px auto 0; width: 100%; }
+  /* Drawer extends full-width on narrow viewports */
+  #ledger { width: 100%; padding-top: 64px; }
 }
 @media (max-width: 899px) {
   #hall { padding: 16px 18px 40px; }
@@ -1376,4 +1806,52 @@ html[data-entered="no"] #stage { animation: stage-dolly 0.9s var(--ease-out) bot
 }
 @media (prefers-reduced-motion: reduce) {
   :root[data-motion="full"] #ticker.rolling .t-track { animation: none; }
+}
+
+/* Ledger drawer: replace slide with fade in reduced-motion contexts.
+   Split into two separate rules: attribute selectors are not valid inside
+   @media query lists (browsers silently drop invalid items). */
+@media (prefers-reduced-motion: reduce) {
+  #ledger {
+    transition: opacity 0.2s linear;
+    transform: none !important;
+  }
+  #ledger:not(.open) { opacity: 0; pointer-events: none; }
+  #ledger.open { opacity: 1; pointer-events: auto; }
+  .plaque.cascading,
+  .daybreak.cascading {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+  #ledger.opening .spine {
+    animation: none;
+    opacity: 0.7;
+    transform: none;
+  }
+  .hatch-disc {
+    transition: none !important;
+  }
+}
+:root[data-motion="reduced"] {
+  #ledger {
+    transition: opacity 0.2s linear;
+    transform: none !important;
+  }
+  #ledger:not(.open) { opacity: 0; pointer-events: none; }
+  #ledger.open { opacity: 1; pointer-events: auto; }
+  .plaque.cascading,
+  .daybreak.cascading {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+  #ledger.opening .spine {
+    animation: none;
+    opacity: 0.7;
+    transform: none;
+  }
+  .hatch-disc {
+    transition: none !important;
+  }
 }
