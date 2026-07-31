@@ -10,10 +10,15 @@
 $services = @(
     @{ Name = 'ground-station'; Port = 8768; Launcher = 'X:\Github\pdx-mod-hub\scripts\run_hub_hidden.vbs' },
     @{ Name = 'outreach-desk';  Port = 8802; Launcher = 'X:\Github\linkedin-networking\run_server_hidden.vbs' },
-    @{ Name = 'atrium-hub';     Port = 8769; Launcher = 'X:\Github\atrium\run_hub_hidden.vbs' }
+    @{ Name = 'atrium-hub';     Port = 8769; Launcher = 'X:\Github\atrium\run_hub_hidden.vbs' },
+    @{ Name = 'press-room';     Port = 8765; Launcher = 'X:\Github\yorha-news\scripts\run_server_hidden.vbs' }
 )
 # Anime Autopilot (:8767) is intentionally absent: its .lnk files already
 # live in shell:startup and race a port probe at logon.
+#
+# The Press Room is listed as a safety net, not as its owner: the
+# "YoRHaNews-Server" scheduled task starts it at logon too. The port guard
+# below is what keeps the two from fighting.
 
 $log = 'X:\Github\atrium\state\concierge.log'
 New-Item -ItemType Directory -Force -Path (Split-Path $log) | Out-Null
@@ -27,9 +32,23 @@ function Test-Port([int]$port) {
     } catch { return $false }
 }
 
+# Probe, and if the port is silent give it one more look a few seconds later.
+# Several services are started at logon by their own mechanism (Startup
+# shortcuts, a dedicated logon task) at the same moment this script runs, and a
+# cold-boot uvicorn can take longer to bind than this task's trigger delay.
+# Without the second look the concierge launches a duplicate that dies on
+# "address already in use" and leaves a traceback in that service's log. The
+# extra wait is only ever paid on a port that is genuinely down, which is the
+# launch path anyway.
+function Wait-Port([int]$port) {
+    if (Test-Port $port) { return $true }
+    Start-Sleep -Seconds 3
+    return (Test-Port $port)
+}
+
 foreach ($s in $services) {
     $stamp = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
-    if (Test-Port $s.Port) {
+    if (Wait-Port $s.Port) {
         Add-Content $log "[$stamp] $($s.Name) already up on :$($s.Port)"
         continue
     }
