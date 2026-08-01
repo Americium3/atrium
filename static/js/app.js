@@ -68,7 +68,12 @@ var STR = {
     'k.outreach.error': 'Check the Outreach Desk',
     'k.press.digest_ready.head': "Today's edition is out",
     'k.press.digest_ready': '{stories} stories across {sections} sections',
-    directorySub: 'Every hall in this building',
+    worksSub: 'Readings from the engine room',
+    wkCpu: 'PROCESSOR', wkMem: 'MEMORY', wkGpu: 'GRAPHICS', wkNet: 'TRAFFIC',
+    wkHours: 'HOURS RUN', wkDisk: 'STORE', wkFree: '{n} FREE',
+    wkNoReading: 'NO READING',
+    wkCores: '{n} cores', wkOf: '{a} of {b} GB',
+    wkDown: '{d} down · {u} up MB/s',
     bulletinSub: "Today's dispatches",
     bulletinEmpty: 'The case is empty',
     openLedger: 'OPEN THE LEDGER',
@@ -85,12 +90,12 @@ var STR = {
     replay: 'REPLAY ENTRANCE',
     ariaTicker: 'Status band',
     ariaLever: 'Mode lever: off = Salon, the play wing; on = Bureau, the work wing',
-    ariaRail: 'Machine rail — mode lever',
+    ariaDesk: 'Signal desk — mode lever',
     ariaFilter: 'Filter dispatches', ariaClose: 'Close',
     ariaGates: 'Gates', ariaLedger: 'Ledger — dispatch timeline',
-    ariaDirectory: 'Directory — every registered service',
+    ariaWorks: 'The works — live readings from this machine',
     ariaBulletin: 'Bulletin — latest dispatches',
-    dirTitle: 'Directory', bulTitle: 'Bulletin',
+    worksTitle: 'The works', bulTitle: 'Bulletin',
     salonWing: 'Play wing', bureauWing: 'Work wing',
     ledgerBtnLabel: 'LEDGER',
     unreadCount: '{n} new dispatches', unreadCountOne: '1 new dispatch'
@@ -142,7 +147,12 @@ var STR = {
     'k.outreach.error': '请到 Outreach Desk 查看',
     'k.press.digest_ready.head': '今日晨报已出版',
     'k.press.digest_ready': '{sections} 个版面 · {stories} 条',
-    directorySub: '本楼全部厅室',
+    worksSub: '本机运转实况',
+    wkCpu: '处理器', wkMem: '内存', wkGpu: '显卡', wkNet: '网络',
+    wkHours: '已运转', wkDisk: '存储', wkFree: '余 {n}',
+    wkNoReading: '无读数',
+    wkCores: '{n} 核', wkOf: '{a} / {b} GB',
+    wkDown: '下 {d} · 上 {u} MB/s',
     bulletinSub: '今日快讯',
     bulletinEmpty: '橱窗暂空',
     openLedger: '打开消息总台',
@@ -159,12 +169,12 @@ var STR = {
     replay: '重播入场动画',
     ariaTicker: '状态带',
     ariaLever: '模式拨杆：关＝沙龙翼（娱乐），开＝事务翼（工作）',
-    ariaRail: '机械横轨——模式拨杆',
+    ariaDesk: '信号台——模式拨杆',
     ariaFilter: '筛选快讯', ariaClose: '关闭',
     ariaGates: '门廊', ariaLedger: '账本 — 派发时间轴',
-    ariaDirectory: '名录 —— 全部已登记的厅室',
+    ariaWorks: '机房仪表 —— 本机实时读数',
     ariaBulletin: '布告栏 —— 最新快讯',
-    dirTitle: '厅室名录', bulTitle: '布告栏',
+    worksTitle: '机房仪表', bulTitle: '布告栏',
     salonWing: '娱乐翼 · 沙龙', bureauWing: '工作翼 · 事务所',
     ledgerBtnLabel: '账本',
     unreadCount: '{n} 条新消息', unreadCountOne: '1 条新消息'
@@ -387,17 +397,17 @@ function finishEntrance() {
   // Re-enable ledger button now that entrance is done
   var lb = $('#ledger-btn');
   if (lb) lb.disabled = false;
-  // Relay: motion transfers from the overlay to the hall. The gear rail
+  // Relay: motion transfers from the overlay to the hall. The gear train
   // twitches one tooth — the machine exhales as the overlay clears.
-  railNudge();
+  deskNudge();
 }
 
-/* Rail nudge: one-tooth gear tick after the entrance clears.
+/* Desk nudge: one-tooth gear tick after the entrance clears.
    Amplitude 0.07 on --drive ≈ 6.3 deg on gearA (18 teeth × 5 deg/tooth).
    Self-terminates in ~480ms. Reduced motion: returns immediately. */
-function railNudge() {
+function deskNudge() {
   if (root.dataset.motion === 'reduced') return;
-  if (!rail) return;
+  if (!desk) return;
   var t0 = performance.now();
   var PUSH = 200, PULL = 280, AMP = 0.07;
   var base = getDrive();
@@ -419,13 +429,13 @@ function railNudge() {
 }
 
 /* ========================================================================
-   Machine rail — lever, gear train, gauge, steam (DESIGN.md v3.1).
-   One scalar --drive (0=salon, 1=bureau) written by a rAF driver; the
-   lever and both gears derive their rotation from it via calc, so sync
-   is structural.
+   Signal desk — lever, gear train, steam (DESIGN.md v4.1). One scalar
+   --drive (0=salon, 1=bureau) written by a rAF driver onto :root; the
+   lever, both gears and the works board's movement all derive from it via
+   calc, so sync is structural.
    ======================================================================== */
-var rail = $('#machine-rail');
-var railNozzle = $('#machine-rail .nozzle');
+var desk = $('#signal-desk');
+var deskNozzle = $('#signal-desk .nozzle');
 var NS = 'http://www.w3.org/2000/svg';
 
 function svgEl(tag, attrs, cls) {
@@ -483,8 +493,8 @@ function gearPath(N, m, o) {
    −N_A/N_B ratio; lever→gearA gearing is implied by the hidden rack. */
 var GEAR_NA = 18, GEAR_NB = 9, GEAR_M = 4.4, GEAR_PHI = -20;
 
-function buildRail() {
-  if (!rail) return;
+function buildDesk() {
+  if (!desk) return;
 
   var DEG = Math.PI / 180;
 
@@ -502,7 +512,7 @@ function buildRail() {
   }
 
   // ---- quadrant plate (static art) — pivot at (180, 212) ----
-  var q = $('.quadrant', rail);
+  var q = $('.quadrant', desk);
   var qp = function (r, deg) {
     var a = deg * Math.PI / 180;
     return (180 + r * Math.sin(a)).toFixed(1) + ' ' + (212 - r * Math.cos(a)).toFixed(1);
@@ -548,7 +558,7 @@ function buildRail() {
   q.appendChild(svgEl('ellipse', { cx: 180, cy: 100, rx: 36, ry: 8, opacity: 0.5 }, 'q-shadow ga-shadow'));
 
   // ---- lever (mover) — rebuild with full anatomy ----
-  var lv = $('.lever-svg', rail);
+  var lv = $('.lever-svg', desk);
 
   // Inject knurl pattern into a <defs> inside the lever SVG
   var lvDefs = document.createElementNS(NS, 'defs');
@@ -661,7 +671,7 @@ function buildRail() {
   // interleave phase: ((1 + NA/NB)·φ + 180 − 180/NB) mod (360/NB)
   var phaseB = (((1 + GEAR_NA / GEAR_NB) * GEAR_PHI + 180 - 180 / GEAR_NB)
                 % (360 / GEAR_NB) + 360 / GEAR_NB) % (360 / GEAR_NB);
-  var gA = $('.gearA-svg', rail), gB = $('.gearB-svg', rail);
+  var gA = $('.gearA-svg', desk), gB = $('.gearB-svg', desk);
 
   // ---- Gear A — 18 teeth, viewBox -52 -52 104 104 ----
   // Dimensions: rp=39.6, ra=40.6, rr=34.1
@@ -895,45 +905,6 @@ function buildRosetteKnurl() {
   def.appendChild(g);
 }
 
-/* Enamel gauge — LINES 0..m on a 240° scale, knurled bezel. Rebuilt only
-   when the registry size changes. */
-function buildGauge(m) {
-  var svg = rail && $('.gauge', rail);
-  if (!svg || svg._m === m || m < 1) return;
-  svg._m = m;
-  svg.textContent = '';
-  svg.appendChild(svgEl('circle', { cx: 50, cy: 50, r: 34, 'stroke-width': 1.5 }, 'g-bezel'));
-  svg.appendChild(svgEl('circle', { cx: 50, cy: 50, r: 30, 'stroke-width': 1 }, 'g-bezel'));
-  var knurl = svgEl('g', { 'stroke-width': 1 }, 'g-knurl');
-  for (var i = 0; i < 24; i++) {
-    var a = i * 15 * Math.PI / 180;
-    knurl.appendChild(svgEl('line', {
-      x1: (50 + 30.8 * Math.sin(a)).toFixed(2), y1: (50 - 30.8 * Math.cos(a)).toFixed(2),
-      x2: (50 + 33.2 * Math.sin(a)).toFixed(2), y2: (50 - 33.2 * Math.cos(a)).toFixed(2)
-    }));
-  }
-  svg.appendChild(knurl);
-  svg.appendChild(svgEl('circle', { cx: 50, cy: 50, r: 29 }, 'g-dial'));
-  for (var j = 0; j <= m; j++) {
-    var deg = -120 + 240 * j / m;
-    var r = deg * Math.PI / 180;
-    svg.appendChild(svgEl('line', {
-      x1: (50 + 22 * Math.sin(r)).toFixed(2), y1: (50 - 22 * Math.cos(r)).toFixed(2),
-      x2: (50 + 27.5 * Math.sin(r)).toFixed(2), y2: (50 - 27.5 * Math.cos(r)).toFixed(2),
-      'stroke-width': 1.5
-    }, 'g-tick'));
-    var tx = svgEl('text', {
-      x: (50 + 15.5 * Math.sin(r)).toFixed(2),
-      y: (50 - 15.5 * Math.cos(r) + 3.5).toFixed(2),
-      'text-anchor': 'middle'
-    });
-    tx.textContent = String(j);
-    svg.appendChild(tx);
-  }
-  svg.appendChild(svgEl('line', { x1: 50, y1: 58, x2: 50, y2: 26, 'stroke-width': 1.5 }, 'g-needle'));
-  svg.appendChild(svgEl('circle', { cx: 50, cy: 50, r: 3 }, 'g-hub'));
-}
-
 /* Steam — event-only. 4–6 soft sprites per burst, randomized via inline
    custom properties; cleanup on animationend plus a safety timeout. */
 var MAX_PUFFS = 14, STEAM_WIND = 9;
@@ -970,19 +941,19 @@ function easeWeighty(t) {
   return 1 + OVER * Math.cos(v * Math.PI * 2.2) * Math.exp(-4.5 * v);
 }
 
-var railRaf = null;
-function setDrive(v) { rail.style.setProperty('--drive', v.toFixed(4)); }
+var deskRaf = null;
+function setDrive(v) { root.style.setProperty('--drive', v.toFixed(4)); }
 function getDrive() {
-  var v = parseFloat(getComputedStyle(rail).getPropertyValue('--drive'));
+  var v = parseFloat(getComputedStyle(root).getPropertyValue('--drive'));
   return isNaN(v) ? 0 : v;
 }
 
 /* Interrupt-safe rAF driver: a re-toggle mid-throw reads the current
    --drive as its new start. Steam fires once past 55% of the throw
    (latched). Reduced motion: snap — the gears stay correct for free. */
-function railDrive(target) {
-  if (!rail) return;
-  cancelAnimationFrame(railRaf);
+function deskDrive(target) {
+  if (!desk) return;
+  cancelAnimationFrame(deskRaf);
   // Hidden pages never fire rAF — land the mechanism instantly.
   if (root.dataset.motion === 'reduced' ||
       document.visibilityState === 'hidden') { setDrive(target); return; }
@@ -996,10 +967,10 @@ function railDrive(target) {
     var p = from + (target - from) * easeWeighty(t);
     setDrive(t === 1 ? target : p);
     var prog = target === 1 ? p : 1 - p;
-    if (!latched && prog > 0.55) { latched = true; steamBurst(railNozzle, 5); }
-    if (t < 1) railRaf = requestAnimationFrame(frame);
+    if (!latched && prog > 0.55) { latched = true; steamBurst(deskNozzle, 5); }
+    if (t < 1) deskRaf = requestAnimationFrame(frame);
   };
-  railRaf = requestAnimationFrame(frame);
+  deskRaf = requestAnimationFrame(frame);
 }
 
 /* ========================================================================
@@ -1105,8 +1076,6 @@ function renderGates() {
     a.addEventListener('click', function (e) { gateClick(e, a, svc); });
     wrap.appendChild(a);
   });
-  buildGauge(services.length);
-  renderDirectory();
   layoutStage(true);
   applyStatuses();
   applyStats();
@@ -1184,7 +1153,22 @@ function layoutStage(initial) {
   // triptych standing in it, and an edge-anchored flank would drift across
   // the bays and moor itself against a board.
   var outermost = half + gateW / 2 + Math.max(0, left - 1) * spacing;
-  var edge = Math.min(W / 2 - gateW * 0.31, outermost + spacing * 0.86);
+  // A flank tucks BEHIND the outer arch; it must never end up UNDER it. On a
+  // narrow stage the 0.62 flank is wider than the clear column beside the
+  // triptych and half its lettering disappears, which stops reading as depth
+  // and starts reading as a bug. Give it the room that is actually there.
+  // outermost is the outer arch's CENTRE, so its edge is half a gate on.
+  //
+  // The room is short by a fixed AIR gap as well. Sized to the bare
+  // remainder, the flank grows until it abuts the arch in front of it, and
+  // two arches sharing an edge read as one torn shape rather than as two
+  // planes at different depths — the separation is what carries the
+  // recession, so it is reserved before the flank is sized, not hoped for.
+  var air = gateW * 0.14;
+  var room = W / 2 - (outermost + gateW / 2) - air;
+  var flankS = Math.max(0.34, Math.min(0.62, room / gateW));
+  var edge = Math.min(W / 2 - gateW * flankS / 2,
+                      outermost + spacing * 0.86);
   receded.forEach(function (svc, i) {
     var a = $('#gate-' + svc.id);
     if (!a) return;
@@ -1196,7 +1180,7 @@ function layoutStage(initial) {
     var side = (receded.length === 1) ? 1 : (i % 2 === 0 ? -1 : 1);
     var rank = Math.floor(i / 2);
     a.style.setProperty('--slot-x', (side * (edge - rank * gateW * 0.5)) + 'px');
-    a.style.setProperty('--slot-s', '0.62');
+    a.style.setProperty('--slot-s', flankS.toFixed(3));
     a.style.setProperty('--slot-delay', initial ? '0ms' : (i * 60) + 'ms');
     a.style.setProperty('--side', String(side));   // triptych inward tilt
   });
@@ -1207,9 +1191,10 @@ function layoutStage(initial) {
   // (the one between the outermost arch and the boards) unarticulated.
   triptychHalf = Math.max(
     outermost + gateW / 2,
-    receded.length ? edge + gateW * 0.31 : 0
+    receded.length ? edge + gateW * flankS / 2 : 0
   );
   buildAisles();
+  if (!initial) scheduleMirror(680);
 }
 
 var resizeT;
@@ -1334,139 +1319,472 @@ function buildAisles() {
   var reach = (triptychHalf || sr.width / 2) + 28;
   var lw = Math.max(0, (axis - reach) - bw.left);
   var rw = Math.max(0, bw.right - (axis + reach));
-  var used = fillWall(wl, lw, boardHole($('#directory'), bw.left), 1);
+  var used = fillWall(wl, lw, boardHole($('#works'), bw.left), 1);
   fillWall(wr, rw, boardHole($('#bulletin'), axis + reach), used + 1);
+  sizeFloor();
+  // The reflections are cast from the live arch boxes, so they are repainted
+  // by whatever last moved them — a resize, a wing throw, a font swap.
+  scheduleMirror(0);
 }
 
-/* The floor medallion: a 16-point compass rose inlaid in the terrazzo,
-   two-tone the way a real terrazzo compass is cut. Not a rosette — that
-   construction stays the masthead's and the settings trigger's. */
+/* A gate takes 0.6s to cross the stage, and getBoundingClientRect during
+   that is the arch's CURRENT box, not its destination — so a reflection
+   painted on the spot would sit under nothing for half a second and then
+   jump. SVG polygon points do not transition, so the smears fade out while
+   the arches travel and come back up under wherever they landed, which is
+   also how a reflection behaves when the thing casting it moves. */
+var mirrorT = null;
+function scheduleMirror(wait) {
+  var svg = $('.fl-mirror');
+  if (!svg) return;
+  clearTimeout(mirrorT);
+  if (!wait || root.dataset.motion === 'reduced') {
+    svg.style.opacity = '';
+    paintFloorMirror();
+    return;
+  }
+  svg.style.opacity = '0';
+  mirrorT = setTimeout(function () {
+    paintFloorMirror();
+    svg.style.opacity = '';
+  }, wait);
+}
+
+/* The floor's perspective distance has to be a function of the floor's own
+   height, and CSS cannot read a box's used height back into a calc. The
+   plane is absolutely positioned, so writing --fh cannot feed back into the
+   height it was measured from. */
+function sizeFloor() {
+  var fp = $('#floorplane');
+  if (!fp) return;
+  var h = fp.offsetHeight;
+  if (h) fp.style.setProperty('--fh', h + 'px');
+}
+
+/* A fixed 32-bit hash. Every chip, every slab tone and every fleck on this
+   floor is placed off it: irregular, and irregular the SAME way on every
+   reload. Math.random would give a floor that reshuffles itself between two
+   screenshots, which is the one thing a floor may never do. */
+function hash01(n) {
+  n = (n ^ 61) ^ (n >>> 16);
+  n = (n + (n << 3)) | 0;
+  n = n ^ (n >>> 4);
+  n = Math.imul(n, 0x27d4eb2d);
+  n = n ^ (n >>> 15);
+  return (n >>> 0) / 4294967296;
+}
+
+/* An annular sector, which is the only primitive a stone medallion needs:
+   every ring, wedge, tessera and border course below is one of these. */
+function ringSeg(cx, cy, r0, r1, a0, a1) {
+  var big = (a1 - a0) > Math.PI ? 1 : 0;
+  var p = function (r, a) {
+    return (cx + Math.cos(a) * r).toFixed(2) + ' ' + (cy + Math.sin(a) * r).toFixed(2);
+  };
+  return 'M' + p(r1, a0) + ' A' + r1 + ' ' + r1 + ' 0 ' + big + ' 1 ' + p(r1, a1) +
+         ' L' + p(r0, a1) + ' A' + r0 + ' ' + r0 + ' 0 ' + big + ' 0 ' + p(r0, a0) + ' Z';
+}
+
+/* The floor medallion, cut from stone.
+   ------------------------------------
+   The version this replaces was hairline geometry: uniform strokes, perfect
+   symmetry, ATRIUM set dead centre. That is a LOGO lying on the ground, and
+   it read as one - stiff, and pasted on rather than built in. A terrazzo
+   medallion is quarried tones butted against each other with brass divider
+   strips in the joints. The pattern is carried by VALUE, because value is
+   the only thing that survives being laid flat and foreshortened to a third
+   of its height; the brass never outlines a shape, it only fills a joint.
+   The wordmark goes with the line work - the masthead already says it, and
+   a floor is not a letterhead. */
 function buildFloorInlay() {
   var host = $('.fl-inlay');
   if (!host || host.firstChild) return;
-  var C = 500, svg = svgEl('svg', { viewBox: '0 0 1000 1000', 'aria-hidden': 'true' });
-  var rings = [[470, 'in-rule'], [452, 'in-hair'], [300, 'in-hair'], [150, 'in-hair']];
-  rings.forEach(function (r) {
-    svg.appendChild(svgEl('circle',
-      { cx: C, cy: C, r: r[0], fill: 'none' }, r[1]));
+  var C = 500, TAU = Math.PI * 2;
+  var svg = svgEl('svg', { viewBox: '0 0 1000 1000', 'aria-hidden': 'true' });
+  var add = function (d, cls) { svg.appendChild(svgEl('path', { d: d }, cls)); };
+
+  // Outer border course: 64 setts, tone alternating.
+  for (var i = 0; i < 64; i++) {
+    add(ringSeg(C, C, 428, 470, (i / 64) * TAU, ((i + 1) / 64) * TAU),
+        i % 2 ? 'st-b' : 'st-a');
+  }
+  svg.appendChild(svgEl('circle', { cx: C, cy: C, r: 470, fill: 'none' }, 'st-strip'));
+  svg.appendChild(svgEl('circle', { cx: C, cy: C, r: 428, fill: 'none' }, 'st-strip'));
+
+  // Two fields, not one. A single radial fan is a paper doily; a real
+  // medallion is banded, and it is the CONCENTRIC break that stops the eye
+  // spinning. Outer band on 32 divisions, inner field on 16, so the two
+  // courses are visibly different work rather than the same wedge twice.
+  [[336, 420, 32], [196, 330, 16]].forEach(function (band, bi) {
+    for (var w = 0; w < band[2]; w++) {
+      var seg = svgEl('path', {
+        d: ringSeg(C, C, band[0], band[1], (w / band[2]) * TAU - Math.PI / 2,
+                   ((w + 1) / band[2]) * TAU - Math.PI / 2)
+      }, (w % 2 ? 'st-a' : 'st-b'));
+      // No two slabs of the same stone come out of the same block.
+      seg.setAttribute('opacity',
+        (0.84 + hash01(w * 7 + bi * 91 + 3) * 0.16).toFixed(3));
+      svg.appendChild(seg);
+    }
   });
-  // 32 ticks around the bearing ring
-  for (var k = 0; k < 32; k++) {
-    var a = (k / 32) * Math.PI * 2;
-    var deep = k % 4 === 0 ? 22 : 12;
-    svg.appendChild(svgEl('line', {
-      x1: C + Math.cos(a) * 452, y1: C + Math.sin(a) * 452,
-      x2: C + Math.cos(a) * (452 - deep), y2: C + Math.sin(a) * (452 - deep)
-    }, 'in-tick'));
+  svg.appendChild(svgEl('circle', { cx: C, cy: C, r: 333, fill: 'none' }, 'st-strip'));
+  // Eight bronze points laid OVER both fields: the star is cast metal set
+  // into the stone, which is what gives the medallion an axis and what the
+  // hall's own compass bearing hangs on.
+  for (var k = 0; k < 8; k++) {
+    var ang = (k / 8) * TAU - Math.PI / 2;
+    var R = k % 2 === 0 ? 412 : 322, spread = k % 2 === 0 ? 0.068 : 0.05;
+    svg.appendChild(svgEl('polygon', {
+      points: [C + Math.cos(ang) * R, C + Math.sin(ang) * R,
+               C + Math.cos(ang + spread) * 170, C + Math.sin(ang + spread) * 170,
+               C + Math.cos(ang - spread) * 170, C + Math.sin(ang - spread) * 170].join(' ')
+    }, k % 2 ? 'st-c' : 'st-bronze'));
   }
-  // 16 points: cardinals longest, then intercardinals, then the by-points.
-  for (var i = 0; i < 16; i++) {
-    var ang = (i / 16) * Math.PI * 2 - Math.PI / 2;
-    var R = i % 4 === 0 ? 430 : (i % 2 === 0 ? 330 : 235);
-    var w = i % 2 === 0 ? 0.11 : 0.07;
-    var ax = C + Math.cos(ang) * R, ay = C + Math.sin(ang) * R;
-    var bx = C + Math.cos(ang + w) * 96, by = C + Math.sin(ang + w) * 96;
-    var cx = C + Math.cos(ang - w) * 96, cy = C + Math.sin(ang - w) * 96;
-    svg.appendChild(svgEl('polygon',
-      { points: ax + ',' + ay + ' ' + bx + ',' + by + ' ' + C + ',' + C }, 'in-pt-a'));
-    svg.appendChild(svgEl('polygon',
-      { points: ax + ',' + ay + ' ' + cx + ',' + cy + ' ' + C + ',' + C }, 'in-pt-b'));
+  svg.appendChild(svgEl('circle', { cx: C, cy: C, r: 420, fill: 'none' }, 'st-hair'));
+  svg.appendChild(svgEl('circle', { cx: C, cy: C, r: 196, fill: 'none' }, 'st-strip'));
+
+  // Tessera ring, then the bronze boss with its own low relief.
+  for (var t = 0; t < 32; t++) {
+    add(ringSeg(C, C, 150, 186, (t / 32) * TAU, ((t + 0.62) / 32) * TAU),
+        t % 4 === 0 ? 'st-gold' : 'st-c');
   }
-  svg.appendChild(svgEl('circle', { cx: C, cy: C, r: 96, fill: 'none' }, 'in-rule'));
-  var word = svgEl('text', { x: C, y: C + 34 }, 'in-word');
-  word.setAttribute('font-size', '92');
-  word.textContent = 'ATRIUM';
-  svg.appendChild(word);
+  svg.appendChild(svgEl('circle', { cx: C, cy: C, r: 142 }, 'st-boss'));
+  svg.appendChild(svgEl('circle', { cx: C, cy: C, r: 142, fill: 'none' }, 'st-strip'));
+  var star = [];
+  for (var s = 0; s < 16; s++) {
+    var sa = (s / 16) * TAU - Math.PI / 2, sr = s % 2 ? 46 : 116;
+    star.push((C + Math.cos(sa) * sr).toFixed(1) + ',' + (C + Math.sin(sa) * sr).toFixed(1));
+  }
+  svg.appendChild(svgEl('polygon', { points: star.join(' ') }, 'st-bronze'));
+  svg.appendChild(svgEl('circle', { cx: C, cy: C, r: 30 }, 'st-gold'));
   host.appendChild(svg);
-  // The aisles get their own smaller roundels — square-in-circle, a
-  // different construction from the compass so the floor reads as a set of
-  // inlays rather than one motif stamped three times.
+
+  buildFloorRoundels();
+  buildTerrazzo();
+}
+
+/* A hall floor is not one medallion and 2500px of blank stone: the aisles
+   get their own smaller roundels so the terrazzo carries a rhythm the whole
+   way across. Square-in-circle, a different construction from the medallion
+   so the floor reads as a SET of inlays rather than one motif stamped three
+   times - and cut from the same two stones, for the same reason.
+   Placed in PLANE space, which is 204% of the screen wide and shrinks
+   outward from the axis by the perspective divide. At the roundels' own
+   depth that works out to x_screen = 0.5 + (p - 0.5) * 1.58, so 30/70 of
+   the plane lands on the aisle axes at roughly 22/78 of the screen. */
+function buildFloorRoundels() {
   var plane = $('.fl-plane');
-  // Placed in plane space, where the perspective divide magnifies outward:
-  // 22% of the plane lands near the screen edge once projected, so the
-  // roundels sit further in than the aisle axes they end up over.
-  [39, 61].forEach(function (pct, i) {
+  if (!plane) return;
+  var TAU = Math.PI * 2;
+  [30, 70].forEach(function (pct, i) {
     var d = el('div', 'fl-round');
     d.style.left = pct + '%';
     var r = svgEl('svg', { viewBox: '0 0 400 400', 'aria-hidden': 'true' });
-    r.appendChild(svgEl('circle', { cx: 200, cy: 200, r: 190, fill: 'none' }, 'in-rule'));
-    r.appendChild(svgEl('circle', { cx: 200, cy: 200, r: 172, fill: 'none' }, 'in-hair'));
-    r.appendChild(svgEl('rect',
-      { x: 78, y: 78, width: 244, height: 244, fill: 'none',
-        transform: 'rotate(' + (i ? -45 : 45) + ' 200 200)' }, 'in-hair'));
-    r.appendChild(svgEl('rect',
-      { x: 100, y: 100, width: 200, height: 200, fill: 'none' }, 'in-hair'));
-    for (var k = 0; k < 8; k++) {
-      var a = (k / 8) * Math.PI * 2;
-      r.appendChild(svgEl('polygon', {
-        points: [200 + Math.cos(a) * 150, 200 + Math.sin(a) * 150,
-                 200 + Math.cos(a + 0.13) * 40, 200 + Math.sin(a + 0.13) * 40,
-                 200 + Math.cos(a - 0.13) * 40, 200 + Math.sin(a - 0.13) * 40].join(' ')
-      }, k % 2 ? 'in-pt-b' : 'in-pt-a'));
+    for (var j = 0; j < 24; j++) {
+      r.appendChild(svgEl('path',
+        { d: ringSeg(200, 200, 152, 190, (j / 24) * TAU, ((j + 1) / 24) * TAU) },
+        j % 2 ? 'st-b' : 'st-a'));
     }
-    r.appendChild(svgEl('circle', { cx: 200, cy: 200, r: 34, fill: 'none' }, 'in-rule'));
+    r.appendChild(svgEl('circle', { cx: 200, cy: 200, r: 190, fill: 'none' }, 'st-strip'));
+    r.appendChild(svgEl('circle', { cx: 200, cy: 200, r: 152, fill: 'none' }, 'st-strip'));
+    r.appendChild(svgEl('rect',
+      { x: 62, y: 62, width: 276, height: 276,
+        transform: 'rotate(' + (i ? -45 : 45) + ' 200 200)' }, 'st-c'));
+    r.appendChild(svgEl('rect', { x: 92, y: 92, width: 216, height: 216 }, 'st-b'));
+    r.appendChild(svgEl('rect',
+      { x: 92, y: 92, width: 216, height: 216, fill: 'none' }, 'st-hair'));
+    for (var k = 0; k < 8; k++) {
+      var a = (k / 8) * TAU;
+      r.appendChild(svgEl('polygon', {
+        points: [200 + Math.cos(a) * 138, 200 + Math.sin(a) * 138,
+                 200 + Math.cos(a + 0.15) * 42, 200 + Math.sin(a + 0.15) * 42,
+                 200 + Math.cos(a - 0.15) * 42, 200 + Math.sin(a - 0.15) * 42].join(' ')
+      }, k % 2 ? 'st-a' : 'st-c'));
+    }
+    r.appendChild(svgEl('circle', { cx: 200, cy: 200, r: 34 }, 'st-gold'));
     d.appendChild(r);
-    if (plane) plane.appendChild(d);
+    plane.appendChild(d);
   });
 }
 
-/* ----- The DIRECTORY ----------------------------------------------------- */
-function renderDirectory() {
-  var box = $('#dir-rows');
-  if (!box) return;
-  box.textContent = '';
-  services.slice().sort(function (a, b) { return a.order - b.order; })
-    .forEach(function (svc) {
-      var b = el('button', 'bd-row');
-      b.setAttribute('role', 'listitem');
-      b.dataset.service = svc.id;
-      b.dataset.wing = svc.wing;
-      b.dataset.state = 'checking';
-      var sig = KNOWN_SIGILS[svc.sigil] ? svc.sigil : null;
-      b.appendChild(svgUse('bd-mark' + (sig ? ' mark' : ''), '0 0 96 96',
-        sig ? '#mark-' + sig : '#sig-fallback'));
-      var mid = el('span', 'bd-mid');
-      mid.appendChild(el('span', 'bd-name display', svc.name));
-      mid.appendChild(el('span', 'bd-line addr', svc.addr));
-      b.appendChild(mid);
-      var lamp = el('span', 'bd-lamp');
-      lamp.appendChild(el('span', 'lamp-d'));
-      lamp.appendChild(el('span', 'lamp-t display', '…'));
-      b.appendChild(lamp);
-      // A directory row is the gate said twice: the same click, the same
-      // flash on the same arch, the same dark-service notice.
-      b.addEventListener('click', function (e) {
-        gateClick(e, $('#gate-' + svc.id) || b, svc);
-      });
-      box.appendChild(b);
-    });
-  syncDirectory();
-}
-
-/* Lamps and live stats, shared with the gates' own pass. */
-function syncDirectory() {
-  var box = $('#dir-rows');
-  if (!box) return;
-  var open = 0, known = 0;
-  services.forEach(function (svc) {
-    var row = box.querySelector('[data-service="' + svc.id + '"]');
-    if (!row) return;
-    var st = statuses[svc.id];
-    var state = st ? st.state : 'checking';
-    row.dataset.state = state;
-    if (state === 'open') { open++; known++; } else if (state === 'dark') known++;
-    var lampT = $('.lamp-t', row);
-    lampT.textContent = state === 'open' ? 'OPEN' : state === 'dark' ? 'DARK' : '…';
-    lampT.title = t(state === 'open' ? 'lampOpen' :
-                    state === 'dark' ? 'lampDark' : 'lampChecking');
-    var stat = statText(svc);
-    $('.bd-line', row).textContent = svc.addr + (stat ? '  ·  ' + stat : '');
-    row.title = svc.name + ' — ' + svc.url;
-  });
-  var tally = $('#dir-tally');
-  if (tally && services.length) {
-    tally.textContent = t('linesOpen', { n: open, m: services.length });
+/* Aggregate. The tell that a floor is a gradient rather than a floor is that
+   no two square metres of it differ; the noise filter under the plane gives
+   grain but not CHIPS. These are the visible ones - three sizes, three
+   tones, one in eleven in brass - biased toward the viewer, because the
+   projection stacks the far half of the plane into a fifth of the band and
+   an even scatter turns to felt up there. */
+var CHIP_SQUASH = 0.22;
+function buildTerrazzo() {
+  var svg = $('.fl-chips');
+  if (!svg || svg.firstChild) return;
+  var frag = document.createDocumentFragment();
+  for (var i = 0; i < 700; i++) {
+    var y = Math.pow(hash01(i * 3 + 11), 0.62);
+    var x = hash01(i * 5 + 7);
+    var s = hash01(i * 9 + 23);
+    // The plane is between three and six times wider than it is long, and
+    // the viewBox is square with preserveAspectRatio="none" — so a chip with
+    // equal radii comes out an 8:1 horizontal sliver that reads as a scratch
+    // in the slab seams. CHIP_SQUASH puts rx back in the same ballpark as ry
+    // across every viewport the hall supports; there is no one number, and a
+    // chip that is a little oval either way is a chip.
+    var ry = 3 + s * 8;
+    frag.appendChild(svgEl('ellipse', {
+      cx: (x * 1000).toFixed(1), cy: (y * 1000).toFixed(1),
+      rx: (ry * CHIP_SQUASH * (0.72 + hash01(i * 17 + 2) * 0.62)).toFixed(2),
+      ry: ry.toFixed(2)
+    }, s > 0.91 ? 'ch-g' : (s > 0.5 ? 'ch-l' : 'ch-d')));
   }
+  svg.appendChild(frag);
+}
+
+/* The floor is waxed, so the room stands in it.
+   -------------------------------------------
+   Each arch and the clock come back up off the stone. The smears are drawn
+   in PLANE space and left to the one rotateX, which is what makes them
+   converge exactly as their own arches do - painted on the glass they would
+   stay parallel and read as stripes.
+   The mapping: a point at depth u along the plane divides by f = 1/(1 + u/L),
+   so a column that is vertical ON SCREEN is a WEDGE on the plane, widening
+   toward the viewer. Hence the trapezoid: 0.98 of the offset at the wall,
+   0.49 at the near edge. Reflections carry --metal, so the whole floor
+   changes temperature the moment the lever is thrown. */
+var MIRROR_FAR = 0.98, MIRROR_NEAR = 0.49, MIRROR_RUN = 560;
+function paintFloorMirror() {
+  var svg = $('.fl-mirror');
+  if (!svg) return;
+  var W = window.innerWidth || 1;
+  var seen = [];
+  Array.prototype.forEach.call(document.querySelectorAll('#gates .gate'),
+  function (g) {
+    var r = g.getBoundingClientRect();
+    if (r.width > 4) {
+      seen.push({ dx: (r.left + r.width / 2) / W - 0.5, hw: r.width / W / 2,
+                  lit: g.classList.contains('active') });
+    }
+  });
+  // The clock, and the two aisle cases: everything hanging on the wall is in
+  // the floor, or the flanks read as dry stone next to a wet middle.
+  [['#clock', true, true], ['#works', false, false], ['#bulletin', false, false]]
+  .forEach(function (spec) {
+    var e = $(spec[0]);
+    if (!e) return;
+    var r = e.getBoundingClientRect();
+    if (r.width > 4) {
+      seen.push({ dx: (r.left + r.width / 2) / W - 0.5, hw: r.width / W / 2,
+                  lit: spec[1], wide: spec[2] });
+    }
+  });
+  svg.textContent = '';
+  var defs = svgEl('defs');
+  svg.appendChild(defs);
+  seen.forEach(function (it, i) {
+    var id = 'mir' + i;
+    var grad = svgEl('linearGradient',
+      { id: id, x1: '0', y1: '0', x2: '0', y2: '1' });
+    var top = it.lit ? (it.wide ? 0.34 : 0.30) : 0.13;
+    // stop-color is set by CLASS, never as a presentation attribute: var()
+    // does not resolve in presentation attributes, so `stop-color="var(--metal)"`
+    // parses to nothing and the whole reflection paints transparent — which
+    // it did, silently, with all six polygons present in the DOM.
+    [[0, top], [0.42, top * 0.42], [1, 0]].forEach(function (st) {
+      grad.appendChild(svgEl('stop', {
+        offset: (st[0] * 100) + '%',
+        'stop-opacity': st[1].toFixed(3)
+      }, it.lit ? 'mir-lit' : 'mir-dim'));
+    });
+    defs.appendChild(grad);
+    var far = 500 + 1000 * MIRROR_FAR * it.dx, fw = 1000 * MIRROR_FAR * it.hw;
+    var near = 500 + 1000 * MIRROR_NEAR * it.dx, nw = 1000 * MIRROR_NEAR * it.hw;
+    svg.appendChild(svgEl('polygon', {
+      points: [(far - fw).toFixed(1) + ',0', (far + fw).toFixed(1) + ',0',
+               (near + nw).toFixed(1) + ',' + MIRROR_RUN,
+               (near - nw).toFixed(1) + ',' + MIRROR_RUN].join(' '),
+      fill: 'url(#' + id + ')'
+    }));
+  });
+}
+
+/* ----- THE WORKS ---------------------------------------------------------
+   Four needle dials on the same 240-degree scale the retired LINES gauge
+   used, so the case reads as instruments off one bench rather than four
+   widgets. The readings are the host's own: nothing here crosses the
+   machine, and the poll only runs while the board is genuinely on screen —
+   below 2200px the aisles fold away, and the hub must not be spawning
+   nvidia-smi for a panel nobody can see. */
+var WK_DIALS = [
+  { key: 'cpu', name: 'wkCpu' },
+  { key: 'mem', name: 'wkMem' },
+  { key: 'gpu', name: 'wkGpu' },
+  { key: 'net', name: 'wkNet' }
+];
+var works = null;
+var worksTimer = null;
+
+/* One enamel dial: knurled bezel, engraved 0..100 face, a red sector over
+   the last fifth, and the needle on the spring settle the CSS gives it. */
+function buildDial(key) {
+  var svg = svgEl('svg', { viewBox: '0 0 100 100', 'aria-hidden': 'true' }, 'wk-dial');
+  svg.appendChild(svgEl('circle', { cx: 50, cy: 50, r: 46, 'stroke-width': 1.5 }, 'g-bezel'));
+  svg.appendChild(svgEl('circle', { cx: 50, cy: 50, r: 41, 'stroke-width': 1 }, 'g-bezel'));
+  var knurl = svgEl('g', { 'stroke-width': 1 }, 'g-knurl');
+  for (var i = 0; i < 36; i++) {
+    var a = i * 10 * Math.PI / 180;
+    knurl.appendChild(svgEl('line', {
+      x1: (50 + 42 * Math.sin(a)).toFixed(2), y1: (50 - 42 * Math.cos(a)).toFixed(2),
+      x2: (50 + 45 * Math.sin(a)).toFixed(2), y2: (50 - 45 * Math.cos(a)).toFixed(2)
+    }));
+  }
+  svg.appendChild(knurl);
+  svg.appendChild(svgEl('circle', { cx: 50, cy: 50, r: 40 }, 'g-dial'));
+  var pt = function (v, r) {
+    var a = (-120 + 2.4 * v) * Math.PI / 180;
+    return (50 + r * Math.sin(a)).toFixed(2) + ' ' + (50 - r * Math.cos(a)).toFixed(2);
+  };
+  // Red sector over the last fifth of the scale.
+  svg.appendChild(svgEl('path', {
+    d: 'M ' + pt(85, 35) + ' A 35 35 0 0 1 ' + pt(100, 35), fill: 'none'
+  }, 'g-red'));
+  for (var j = 0; j <= 20; j++) {
+    var major = j % 5 === 0;
+    var a2 = (-120 + 12 * j) * Math.PI / 180;
+    var inner = major ? 28 : 32;
+    svg.appendChild(svgEl('line', {
+      x1: (50 + inner * Math.sin(a2)).toFixed(2), y1: (50 - inner * Math.cos(a2)).toFixed(2),
+      x2: (50 + 37 * Math.sin(a2)).toFixed(2), y2: (50 - 37 * Math.cos(a2)).toFixed(2),
+      'stroke-width': major ? 1.8 : 0.9
+    }, 'g-tick'));
+    if (!major) continue;
+    var tx = svgEl('text', {
+      x: (50 + 20 * Math.sin(a2)).toFixed(2),
+      y: (50 - 20 * Math.cos(a2) + 4).toFixed(2),
+      'text-anchor': 'middle'
+    });
+    tx.textContent = String(j * 5);
+    svg.appendChild(tx);
+  }
+  svg.appendChild(svgEl('line', { x1: 50, y1: 62, x2: 50, y2: 19, 'stroke-width': 2 }, 'g-needle'));
+  svg.appendChild(svgEl('circle', { cx: 50, cy: 50, r: 4 }, 'g-hub'));
+  return svg;
+}
+
+function renderWorks() {
+  var box = $('#wk-dials'), tape = $('#wk-tape');
+  if (!box || !tape || box.firstChild) return;
+  WK_DIALS.forEach(function (d) {
+    var cell = el('div', 'wk-cell');
+    cell.dataset.dial = d.key;
+    cell.appendChild(buildDial(d.key));
+    cell.appendChild(el('span', 'wk-name display', t(d.name)));
+    cell.appendChild(el('span', 'wk-read num', '—'));
+    box.appendChild(cell);
+  });
+  ['hours', 'disk'].forEach(function (k) {
+    var row = el('div', 'wk-strip');
+    row.dataset.strip = k;
+    row.appendChild(el('span', 'wk-slabel display',
+      t(k === 'hours' ? 'wkHours' : 'wkDisk')));
+    row.appendChild(el('span', 'wk-sval num', '—'));
+    tape.appendChild(row);
+  });
+  syncWorks();
+}
+
+/* Hours run reads as a plate, not a stopwatch — no seconds ticking on a
+   wall in a hall. */
+function pad2(n) { return (n < 10 ? '0' : '') + n; }
+function runFor(s) {
+  if (s === null || s === undefined) return '—';
+  var d = Math.floor(s / 86400), h = Math.floor((s % 86400) / 3600);
+  var m = Math.floor((s % 3600) / 60);
+  return d ? d + 'd ' + pad2(h) + 'h' : h ? h + 'h ' + pad2(m) + 'm' : m + 'm';
+}
+function tera(gb) {
+  return gb >= 1024 ? (gb / 1024).toFixed(1) + ' TB' : Math.round(gb) + ' GB';
+}
+
+/* Needle position plus what the caption under it says. Every reading is
+   optional: a machine with no NVIDIA card is a normal machine. */
+function dialRead(key, w) {
+  var d = w && w[key];
+  if (!d || d.pct === null || d.pct === undefined) return null;
+  if (key === 'cpu') {
+    return { pct: d.pct, text: Math.round(d.pct) + '%',
+             title: t('wkCores', { n: d.cores }) };
+  }
+  if (key === 'mem' || key === 'gpu') {
+    return { pct: d.pct,
+             text: d.used_gb.toFixed(1) + ' / ' + Math.round(d.total_gb) + ' GB',
+             title: key === 'gpu' ? d.name : t('wkOf', { a: d.used_gb, b: d.total_gb }) };
+  }
+  return { pct: d.pct,
+           text: d.down_mbs.toFixed(1) + ' ↓  ' + d.up_mbs.toFixed(1) + ' ↑',
+           title: t('wkDown', { d: d.down_mbs, u: d.up_mbs }) };
+}
+
+function syncWorks() {
+  var box = $('#wk-dials');
+  if (!box || !box.firstChild) return;
+  WK_DIALS.forEach(function (d) {
+    var cell = box.querySelector('[data-dial="' + d.key + '"]');
+    if (!cell) return;
+    var r = dialRead(d.key, works);
+    // A needle with no reading rests at zero rather than lying at a number.
+    cell.style.setProperty('--gauge', (-120 + (r ? r.pct : 0) * 2.4).toFixed(1));
+    cell.dataset.hot = r && r.pct >= 85 ? 'yes' : 'no';
+    cell.dataset.blank = r ? 'no' : 'yes';
+    $('.wk-read', cell).textContent = r ? r.text : t('wkNoReading');
+    cell.title = t(d.name) + (r && r.title ? ' — ' + r.title : '');
+  });
+  var tape = $('#wk-tape');
+  if (!tape) return;
+  var hours = tape.querySelector('[data-strip="hours"] .wk-sval');
+  if (hours) hours.textContent = runFor(works && works.hub_uptime_s);
+  var disk = tape.querySelector('[data-strip="disk"] .wk-sval');
+  if (disk) {
+    disk.textContent = works && works.disk
+      ? works.disk.label + '  ' + t('wkFree', { n: tera(works.disk.free_gb) })
+      : '—';
+  }
+}
+
+/* The dial faces are engraved once; only their lettering is language. */
+function relabelWorks() {
+  WK_DIALS.forEach(function (d) {
+    var cell = document.querySelector('#wk-dials [data-dial="' + d.key + '"]');
+    if (cell) $('.wk-name', cell).textContent = t(d.name);
+  });
+  ['hours', 'disk'].forEach(function (k) {
+    var row = document.querySelector('#wk-tape [data-strip="' + k + '"]');
+    if (row) {
+      $('.wk-slabel', row).textContent = t(k === 'hours' ? 'wkHours' : 'wkDisk');
+    }
+  });
+  syncWorks();
+}
+
+/* On screen only: the board is display:none below 2200px, and a hidden
+   panel must not keep the host sampling. */
+function worksVisible() {
+  var b = $('#works');
+  return !!b && getComputedStyle(b).display !== 'none' &&
+         document.visibilityState === 'visible';
+}
+
+function pollWorks() {
+  if (!worksVisible()) return Promise.resolve();
+  return fetchJson('/api/works').then(function (w) {
+    works = w;
+    syncWorks();
+  }).catch(function () { /* a restarting hub is not a reading */ });
+}
+
+/* Instruments read live or they are decoration, so the cadence is the
+   dial's rather than the hall's 45s poll. */
+function startWorks() {
+  clearInterval(worksTimer);
+  worksTimer = setInterval(pollWorks, 4000);
+  pollWorks();
 }
 
 /* ----- The BULLETIN ------------------------------------------------------ */
@@ -1577,7 +1895,7 @@ function setWing(w) {
     if (wingPending === w) wingPending = null;
     store('atrium.wing', w);
     lever.setAttribute('aria-checked', String(w === 'bureau'));
-    railDrive(w === 'bureau' ? 1 : 0);
+    deskDrive(w === 'bureau' ? 1 : 0);
     layoutStage(false);
     // After the slide settles, re-append gates active-first so the tab
     // order matches the new composition (pixels don't move — gates are
@@ -1632,11 +1950,6 @@ function applyStatuses() {
     $('.g-lamp', a).title = note || lampT.title;
   });
   $('#all-dark').hidden = !(known === services.length && known > 0 && openCount === 0);
-  // The rail gauge tracks lines open (needle spring-settles via CSS).
-  if (rail && services.length) {
-    rail.style.setProperty('--gauge',
-      (-120 + (openCount / services.length) * 240).toFixed(1));
-  }
 
   // The hall is a picture; say out loud how many lines are open, so a screen
   // reader learns the same thing the lamps show. Only on change — a live
@@ -1646,7 +1959,6 @@ function applyStatuses() {
     var msg = t('linesOpen', { n: openCount, m: services.length });
     if (st.textContent !== msg) st.textContent = msg;
   }
-  syncDirectory();
 }
 
 function statText(svc) {
@@ -1688,9 +2000,6 @@ function applyStats() {
       }
     }
   });
-  // The directory prints the same stat on one line with the address; it has
-  // no odometer, so it just takes the new text.
-  syncDirectory();
 }
 
 /* ========================================================================
@@ -2267,6 +2576,7 @@ function setLang(next) {
   applyStats();
   renderLedger();
   renderBulletin();
+  relabelWorks();
   updateLedgerBadge();
   renderTicker();
   // Bay numbers are localized ("BAY III" / "第 III 间"), so the wall is
@@ -2308,26 +2618,28 @@ applyI18nStatic();
 renderDateline();
 renderGhosts();
 buildRosetteKnurl();
-buildRail();
+buildDesk();
 buildFloorInlay();
+renderWorks();      // the dials stand engraved before the first reading
 buildAisles();
 renderBulletin();   // the case shows its empty rails before the feed lands
+startWorks();
 // Seed the inline --drive: without it the first throw's getDrive() would
 // read the wing-attribute CSS rule AFTER setWing flips the attribute —
 // from === target, so the ease and the 55% steam latch would both vanish.
-if (rail) setDrive(root.dataset.wing === 'bureau' ? 1 : 0);
+setDrive(root.dataset.wing === 'bureau' ? 1 : 0);
 lever.setAttribute('aria-checked', String(root.dataset.wing === 'bureau'));
 
 /* ?steam=1 (debug, not persisted): freeze a burst at four life stages so
    headless screenshots can QA the vapor without a pointer. */
-if (new URLSearchParams(location.search).get('steam') === '1' && railNozzle) {
+if (new URLSearchParams(location.search).get('steam') === '1' && deskNozzle) {
   [-100, -350, -650, -900].forEach(function (offset, i) {
     var p = document.createElement('div');
     p.className = 'puff';
     p.style.cssText = '--dx:' + (i * 10 - 8) + 'px;--rise:-84px;--s:2.6;' +
       '--rot:24deg;animation-duration:1200ms;' +
       'animation-delay:' + offset + 'ms;animation-play-state:paused;';
-    railNozzle.appendChild(p);
+    deskNozzle.appendChild(p);
   });
 }
 
