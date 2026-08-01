@@ -17,12 +17,18 @@ import json
 import logging
 import os
 import re
+import subprocess
 import time
 from contextlib import asynccontextmanager, suppress
 from datetime import datetime
 from pathlib import Path
 
 import httpx
+
+try:                                    # host instrumentation is optional
+    import psutil
+except ImportError:                     # pragma: no cover - environment dependent
+    psutil = None
 import uvicorn
 from fastapi import FastAPI, Request
 from fastapi.responses import FileResponse, JSONResponse, PlainTextResponse
@@ -907,6 +913,138 @@ async def tick_pressroom(client: httpx.AsyncClient) -> None:
         log.debug("pressroom dark: %s", exc)
 
 
+# --------------------------------------------------------------------------
+# The works — instrumentation for the west-aisle board.
+#
+# Everything here reads the machine the hub happens to be running on, and
+# nothing here leaves it. Sampling is lazy behind a TTL: with no panel open
+# nothing polls /api/works, so nothing spawns nvidia-smi. Both a missing
+# psutil and a machine with no NVIDIA card are normal states, not errors —
+# the dial simply reads nothing.
+# --------------------------------------------------------------------------
+
+WORKS_TTL_S = 3.5
+GPU_TTL_S = 6.0
+SMI_TIMEOUT_S = 2.0
+DISK_ROOT = "X:\\" if os.name == "nt" else "/"
+# Full deflection on the traffic dial. A saturated gigabit line in bytes.
+NET_FULL_BPS = 125_000_000.0
+GIB = 1024 ** 3
+
+
+def pct(part: float | None, whole: float | None) -> float | None:
+    """Clamp a reading onto the 0..100 the dial faces are engraved for."""
+    if part is None or not whole:
+        return None
+    return round(max(0.0, min(100.0, 100.0 * part / whole)), 1)
+
+
+def works_payload(cpu, mem, gpu, net, disk, hub_up, host_up) -> dict:
+    """Pure shaping — every reading is optional and nulls through cleanly."""
+    return {
+        "cpu": None if cpu is None else {
+            "pct": round(max(0.0, min(100.0, cpu[0])), 1), "cores": cpu[1]},
+        "mem": None if mem is None else {
+            "pct": pct(mem[0], mem[1]),
+            "used_gb": round(mem[0] / GIB, 1), "total_gb": round(mem[1] / GIB, 1)},
+        "gpu": None if gpu is None else {
+            "pct": pct(gpu["used_mb"], gpu["total_mb"]),
+            "used_gb": round(gpu["used_mb"] / 1024, 1),
+            "total_gb": round(gpu["total_mb"] / 1024, 1),
+            "util_pct": round(gpu["util_pct"], 1),
+            "name": gpu["name"]},
+        "net": None if net is None else {
+            "pct": pct(net[0] + net[1], NET_FULL_BPS),
+            "down_mbs": round(net[0] / 1e6, 2), "up_mbs": round(net[1] / 1e6, 2)},
+        "disk": None if disk is None else {
+            "pct": pct(disk[0] - disk[1], disk[0]),
+            "free_gb": round(disk[1] / GIB, 1),
+            "total_gb": round(disk[0] / GIB, 1),
+            "label": DISK_ROOT.rstrip("\\/") or "/"},
+        "hub_uptime_s": hub_up,
+        "host_uptime_s": host_up,
+        "generated": now_ms(),
+    }
+
+
+_gpu_at = -1e9
+_gpu_last: dict | None = None
+_net_mark: tuple[float, int, int] | None = None
+_works_at = -1e9
+_works_last: dict | None = None
+HUB_STARTED = time.time()
+
+if psutil is not None:                  # lay the deltas' baselines at import,
+    with suppress(Exception):           # so the first reading is a reading
+        psutil.cpu_percent(interval=None)
+
+
+def read_gpu() -> dict | None:
+    global _gpu_at, _gpu_last
+    mono = time.monotonic()
+    if mono - _gpu_at < GPU_TTL_S:
+        return _gpu_last
+    _gpu_at = mono
+    _gpu_last = None
+    try:
+        proc = subprocess.run(
+            ["nvidia-smi",
+             "--query-gpu=name,memory.used,memory.total,utilization.gpu",
+             "--format=csv,noheader,nounits"],
+            capture_output=True, text=True, timeout=SMI_TIMEOUT_S,
+            creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
+        name, used, total, util = (
+            p.strip() for p in proc.stdout.strip().splitlines()[0].split(","))
+        _gpu_last = {"name": name, "used_mb": float(used),
+                     "total_mb": float(total), "util_pct": float(util)}
+    except Exception as exc:            # no card, no driver, no nvidia-smi
+        log.debug("no gpu reading: %s", exc)
+    return _gpu_last
+
+
+def read_net() -> tuple[float, float] | None:
+    """Throughput needs two marks; the first call only lays the baseline."""
+    global _net_mark
+    if psutil is None:
+        return None
+    try:
+        c = psutil.net_io_counters()
+    except Exception:
+        return None
+    mono = time.monotonic()
+    prev, _net_mark = _net_mark, (mono, c.bytes_recv, c.bytes_sent)
+    if prev is None or mono <= prev[0]:
+        return None
+    dt = mono - prev[0]
+    return (max(0, c.bytes_recv - prev[1]) / dt,
+            max(0, c.bytes_sent - prev[2]) / dt)
+
+
+def read_works() -> dict:
+    global _works_at, _works_last
+    mono = time.monotonic()
+    if _works_last is not None and mono - _works_at < WORKS_TTL_S:
+        return _works_last
+    _works_at = mono
+    cpu = mem = disk = host_up = None
+    if psutil is not None:
+        with suppress(Exception):
+            # interval=None reports the load since the previous call, which
+            # the TTL makes a ~3.5s window rather than a meaningless instant.
+            cpu = (psutil.cpu_percent(interval=None), psutil.cpu_count())
+        with suppress(Exception):
+            vm = psutil.virtual_memory()
+            mem = (vm.total - vm.available, vm.total)
+        with suppress(Exception):
+            du = psutil.disk_usage(DISK_ROOT)
+            disk = (du.total, du.free)
+        with suppress(Exception):
+            host_up = int(time.time() - psutil.boot_time())
+    _works_last = works_payload(cpu, mem, read_gpu(), read_net(), disk,
+                                int(time.time() - HUB_STARTED), host_up)
+    return _works_last
+
+
 async def refresher() -> None:
     async with httpx.AsyncClient(timeout=HTTP_TIMEOUT_S) as client:
         tick_no = 0
@@ -995,6 +1133,13 @@ async def api_feed():
 @app.get("/api/stats")
 async def api_stats():
     return JSONResponse({"stats": {sid: src.stat for sid, src in SOURCES.items()}})
+
+
+@app.get("/api/works")
+async def api_works():
+    # nvidia-smi is a subprocess and psutil's disk call hits the filesystem —
+    # neither belongs on the event loop thread.
+    return JSONResponse(await asyncio.to_thread(read_works))
 
 
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")

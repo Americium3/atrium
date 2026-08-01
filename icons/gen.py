@@ -26,28 +26,29 @@ import sys
 
 SIGILS = {
     # The press room is the only rectilinear silhouette in the array. Every
-    # other gate is a circle or a polygon, so the broadsheet shape alone says
+    # other gate is a circle or a polygon, so the plaque shape alone says
     # "this one is a document, not a service" before the emblem is even read.
+    #
+    # It must still be a BADGE. An untouched rectangle reads as a broken image
+    # at gate size, and the rays and chevrons the template lays down at r=37
+    # fall outside a narrow one entirely — the silhouette is full-bleed with
+    # chamfered shoulders so the whole apparatus lands on brass.
     "pressroom": {
         "dark": "#1c2f10",
         "mid": "#2d6428",
         "light": "#eef4e6",
         "gem": "#7ab870",
-        "shape": "M12 4 H84 V92 H12 Z",
-        "emblem": """<g fill="{light}"><rect x="26" y="66" width="44" height="5"/>"""
-                  """<rect x="30" y="24" width="36" height="40"/></g>"""
-                  """<g fill="{dark}"><rect x="41" y="29" width="21" height="4"/>"""
-                  """<rect x="34" y="38" width="28" height="1.6"/>"""
-                  """<rect x="34" y="42" width="28" height="1.6"/>"""
-                  """<rect x="34" y="46" width="13" height="1.6"/>"""
-                  """<rect x="49" y="46" width="13" height="1.6"/>"""
-                  """<rect x="34" y="50" width="13" height="1.6"/>"""
-                  """<rect x="49" y="50" width="13" height="1.6"/>"""
-                  """<rect x="34" y="54" width="28" height="1.6"/></g>"""
-                  # The compositing slug mark from inside the room, set at the
-                  # head of the sheet: the same square a letterpress compositor
-                  # puts at the start of a galley.
-                  """<rect x="34" y="28" width="5" height="5" fill="{gem}"/>""",
+        "shape": "M20 4 H76 L92 20 V92 H4 V20 Z",
+        # A single broadsheet with its corner turned, over the base bar every
+        # emblem in the array stands on. Four heavy rules, not nine hairlines:
+        # at directory size a 1.6-unit rule is a third of a pixel.
+        "emblem": """<g fill="{light}"><rect x="22" y="66" width="52" height="6"/>"""
+                  """<path d="M28 21 H58 L70 33 V61 H28 Z"/></g>"""
+                  """<g fill="{dark}"><path d="M58 21 L70 33 H58 Z"/>"""
+                  """<rect x="33" y="27" width="18" height="5.5"/>"""
+                  """<rect x="33" y="38" width="30" height="3.2"/>"""
+                  """<rect x="33" y="44" width="30" height="3.2"/>"""
+                  """<rect x="33" y="50" width="17" height="3.2"/></g>""",
     },
 }
 
