@@ -528,23 +528,51 @@
       <!-- The inlay is a child of the plane, not a sibling: it inherits the
            one rotateX projection instead of trying to match it, so the
            medallion is genuinely *in* the terrazzo. -->
+      <div class="fl-pool"></div>
       <div class="fl-plane">
+        <!-- Aggregate first: every course, inlay and reflection is laid ON
+             the terrazzo, so the chips have to be under all of them. -->
+        <svg class="fl-chips" viewBox="0 0 1000 1000"
+             preserveAspectRatio="none" aria-hidden="true"></svg>
         <div class="fl-key"></div>
+        <div class="fl-border"></div>
         <div class="fl-inlay"></div>
+        <!-- Waxed stone: the arches, the clock and the skylight come back up
+             off the floor. Drawn in plane space, so the one rotateX carries
+             them and each smear converges exactly as its arch does. -->
+        <svg class="fl-mirror" viewBox="0 0 1000 1000"
+             preserveAspectRatio="none" aria-hidden="true"></svg>
+        <div class="fl-runner"></div>
       </div>
       <div class="fl-rail"></div>
     </div>
 
-    <aside id="directory" class="board" data-i18n-aria="ariaDirectory"
-           aria-label="Directory" data-i18n-title="dirTitle">
+    <!-- The west board. It used to be a DIRECTORY, which said the gates'
+         own three facts back at them — name, address, lamp — a second time
+         and larger. An instrument case says something the arches cannot:
+         what the machine under all of this is actually doing.
+         The signage reads STATISTICS; the id, the classes and /api/works
+         stay "works" because that is the DATA — the works of the machine —
+         and because /api/stats is already the services' status route. -->
+    <aside id="works" class="board" data-i18n-aria="ariaWorks"
+           aria-label="Statistics" data-i18n-title="worksTitle">
       <div class="bd-frame" aria-hidden="true"></div>
       <header class="bd-head">
-        <h2 class="bd-title display">DIRECTORY</h2>
-        <p class="bd-sub zh-sentence" data-i18n="directorySub">Every hall in this building</p>
+        <h2 class="bd-title display">STATISTICS</h2>
+        <p class="bd-sub zh-sentence" data-i18n="worksSub">Readings from the engine room</p>
       </header>
-      <div class="bd-rows" id="dir-rows" role="list"></div>
+      <div class="wk-dials" id="wk-dials"></div>
+      <div class="wk-tape" id="wk-tape"></div>
       <footer class="bd-foot">
-        <span class="bd-tally display" id="dir-tally"></span>
+        <!-- The maker's plate, off the retired rail. Single frame: double
+             rules stay reserved for the ticker and the Ledger day-breaks. -->
+        <svg class="wk-plate" viewBox="0 0 208 52" aria-hidden="true">
+          <rect x="1.5" y="1.5" width="205" height="49" fill="none" stroke-width="1.5"/>
+          <circle cx="10" cy="10" r="1.6"/><circle cx="198" cy="10" r="1.6"/>
+          <circle cx="10" cy="42" r="1.6"/><circle cx="198" cy="42" r="1.6"/>
+          <text class="bp-name display" x="104" y="23" text-anchor="middle">ATRIUM WORKS</text>
+          <text class="bp-no addr" x="104" y="40" text-anchor="middle">No. 8769 · MMXXVI</text>
+        </svg>
       </footer>
     </aside>
 
@@ -598,25 +626,27 @@
 <div id="ledger-scrim" aria-hidden="true"></div>
 
 <!-- ======================================================================
-     Machine rail — the works of the hall. Fixed full-bleed footer, a
-     body-level sibling of #hall (never inside #stage: parallax vars are
-     scoped there, and a transformed ancestor would trap the fixed box).
-     Layers: .rail-art (static housing, contained) / .rail-fx (the three
-     movers + steam nozzle, overflow visible) / #lever (hit surface — same
-     id and contract as before, all JS bindings survive relocation).
+     Signal desk — the works of the hall, standing on the terrazzo. Fixed
+     and body-level (never inside #stage: parallax vars are scoped there,
+     and a transformed ancestor would trap the fixed box).
+
+     This was a full-bleed bronze rail across the foot of the page. The bar
+     read as a strip of UI taped under the picture rather than as anything
+     in the room, so the housing, the LINES dial (the ticker already counts
+     the lines) and the maker's plate are gone. What is left is the machine
+     itself, planted centre stage on the floor. It stays outside the aisle
+     grid on purpose: the boards fold away below 1800px and the wing switch
+     may never fold away with them.
+     Layers: .desk-art (static housing, contained) / .desk-fx (the three
+     movers + steam nozzle, overflow visible) / #lever (hit surface).
 ====================================================================== -->
-<footer id="machine-rail" data-i18n-aria="ariaRail" aria-label="Machine rail">
-  <div class="rail-band" aria-hidden="true"></div>
-  <div class="rail-core">
-    <div class="rail-inst rail-gauge" aria-hidden="true">
-      <svg class="gauge" viewBox="0 0 100 92"></svg>
-      <span class="inst-caption display">LINES</span>
-    </div>
+<footer id="signal-desk" data-i18n-aria="ariaDesk" aria-label="Signal desk">
+  <div class="desk-core">
     <div class="assembly" aria-hidden="true">
-      <div class="rail-art">
+      <div class="desk-art">
         <svg class="quadrant" viewBox="0 0 360 220"></svg>
       </div>
-      <div class="rail-fx">
+      <div class="desk-fx">
         <div class="gear-well" aria-hidden="true">
           <svg class="gearA-svg" viewBox="-52 -52 104 104"></svg>
           <svg class="gearB-svg" viewBox="-30 -30 60 60"></svg>
@@ -633,16 +663,6 @@
       <!-- The arm hit zone rides above the box so clicks land only where
            hardware is actually drawn — never a floating rectangle. -->
       <span class="hit-arm" aria-hidden="true"></span>
-    </div>
-    <div class="rail-inst rail-plate" aria-hidden="true">
-      <!-- Single frame: double rules stay reserved for ticker/day-breaks -->
-      <svg class="builder-plate" viewBox="0 0 208 52">
-        <rect x="1.5" y="1.5" width="205" height="49" fill="none" stroke-width="1.5"/>
-        <circle cx="10" cy="10" r="1.6"/><circle cx="198" cy="10" r="1.6"/>
-        <circle cx="10" cy="42" r="1.6"/><circle cx="198" cy="42" r="1.6"/>
-        <text class="bp-name display" x="104" y="23" text-anchor="middle">ATRIUM WORKS</text>
-        <text class="bp-no addr" x="104" y="40" text-anchor="middle">No. 8769 · MMXXVI</text>
-      </svg>
     </div>
   </div>
 </footer>
@@ -730,5 +750,75 @@
 
 <script src="/static/js/clock.js"></script>
 <script src="/static/js/app.js"></script>
+<script>
+/* ?probe=1 - layout read-out for scripts/probe.py.
+   A screenshot shows where a box ENDED UP; it cannot show how wide the box
+   was allowed to be, and CSS cannot report what a clamp() resolved to. This
+   writes the live boxes into document.title, which headless Chrome hands
+   back through --dump-dom with no debugger attached. Debug-only, in the same
+   spirit as the ?theme= and ?prefs=1 overrides above; it renders nothing. */
+if (location.search.indexOf('probe=1') >= 0) setTimeout(function () {
+  var out = [];
+  var sels = ['#hall', '#concourse', '#stage', '#floorplane', '#works',
+    '#bulletin', '#clock', '#gates', '.gate.active', '.gate.receded',
+    '#signal-desk', '.assembly', '.quadrant', '.gear-well', '.lever-svg'];
+  if (location.search.indexOf('probe=2') >= 0) {
+    /* Deep read for hardware work: the machinery is drawn inside three
+       nested transformed boxes, so a part's page position cannot be derived
+       from CSS by hand. Ask each part where it actually landed. */
+    sels = sels.concat(['.gearA-svg', '.gearB-svg', '.l-salon', '.l-bureau',
+                        '#lever', '.fl-plane', '.fl-rail']);
+  }
+  sels.forEach(function (sel) {
+    var e = document.querySelector(sel);
+    if (!e) { out.push(sel + '=none'); return; }
+    var r = e.getBoundingClientRect();
+    out.push(sel + '=' + [r.left, r.top, r.width, r.height].map(Math.round).join(','));
+  });
+  out.push('ui=' +
+    getComputedStyle(document.documentElement).getPropertyValue('--ui').trim());
+  out.push('vp=' + innerWidth + 'x' + innerHeight);
+  out.push('scrollH=' + document.documentElement.scrollHeight);
+  document.title = out.join(' | ');
+
+  /* ?probe=3 — the same read-out, but PAINTED. document.title comes back
+     through --dump-dom, which headless Chrome resolves in a viewport ~99px
+     shorter than the one --screenshot captures; for anything anchored to the
+     bottom of the screen (the whole signal desk) that is a 99px lie, and a
+     crop taken from those numbers lands on the floor instead of the machine.
+     Painting the numbers into the shot is the only read that cannot
+     disagree with the pixels next to it. */
+  if (location.search.indexOf('probe=3') >= 0) {
+    var tag = document.createElement('div');
+    tag.setAttribute('style', 'position:fixed;left:0;top:0;z-index:9999;' +
+      'background:#000;color:#0f0;font:12px monospace;padding:4px 6px;' +
+      'white-space:pre;pointer-events:none');
+    document.body.appendChild(tag);
+    /* Outline the hardware too. Numbers still have to be trusted against a
+       crop; an outline drawn by the page itself is in the same pixels as
+       the thing it surrounds and cannot be off by a viewport. */
+    [['.assembly', '#f0f'], ['.gear-well', '#f00'], ['#lever', '#0ff']]
+      .forEach(function (pair) {
+        var e = document.querySelector(pair[0]);
+        if (e) e.style.outline = '2px solid ' + pair[1];
+      });
+    /* Re-read on a timer, never once. The desk rises on a 2.1s delay and
+       the stage re-lays out as fonts land, so a single sample taken when
+       the title is written is stale by the time the shutter opens — which
+       is the same 100px lie in a different disguise. */
+    setInterval(function () {
+      tag.textContent = 'vp=' + innerWidth + 'x' + innerHeight +
+        ['.assembly', '.gear-well', '#lever'].map(function (s) {
+          var e = document.querySelector(s);
+          if (!e) return '\n' + s + '=none';
+          var r = e.getBoundingClientRect();
+          return '\n' + s + '=' + [r.left, r.top, r.width, r.height]
+            .map(Math.round).join(',');
+        }).join('');
+    }, 100);
+  }
+}, 2600);
+</script>
+
 </body>
 </html>
