@@ -269,6 +269,35 @@ immediately with the fallback sigil and a status lamp. Optionally add a sigil `<
 in `index.html`, `desc.<key>` strings in both i18n dictionaries, and an
 adapter tick if the service should feed the Ledger.
 
+## The marks
+
+`icons/gen.py` draws every local service's badge — silhouette, guilloche fan,
+quarter-chevrons, engraved subject, crown gem — and writes each one out as
+`icon.svg`, `favicon.ico`, three PNGs, a maskable tile and a manifest into that
+service's own repository, then inlines all of them into the generated block in
+`static/index.html`. The hall therefore shows the identical artwork each app's
+own favicon shows.
+
+A service that also carries its mark inline in its own page — so its masthead
+does not pay for a second request — lists that page in `SYMBOL_TARGETS`, and the
+script rewrites the `<symbol id="applogo">` there between its own sentinels. A
+generated asset with two homes needs the generator to own both; the first time
+this one was redrawn, only `static/brand/` was rewritten and the badge the page
+actually wore stayed the old colour.
+
+It lives here because the marks are shared by five projects that do not share a
+repository. `TARGETS` at the foot of the file is the checkout layout it writes
+to; rasterising shells out to headless Chrome.
+
+```
+python icons/gen.py              # every brand directory, then the hall's defs
+python icons/gen.py autopilot    # one directory, then the hall's defs
+```
+
+The generated block is rewritten wholesale on every run, so a mark left out of
+`APPS` is a mark deleted from the concourse — add new services to that dict,
+never to the block by hand.
+
 ## Debug URL parameters
 
 Not persisted, for testing only: `?theme=onyx|ivory` · `?lang=en|zh` ·
