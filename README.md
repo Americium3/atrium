@@ -246,6 +246,13 @@ service's own repository, then inlines all of them into the generated block in
 `static/index.html`. The hall therefore shows the identical artwork each app's
 own favicon shows.
 
+A service that also carries its mark inline in its own page — so its masthead
+does not pay for a second request — lists that page in `SYMBOL_TARGETS`, and the
+script rewrites the `<symbol id="applogo">` there between its own sentinels. A
+generated asset with two homes needs the generator to own both; the first time
+this one was redrawn, only `static/brand/` was rewritten and the badge the page
+actually wore stayed the old colour.
+
 It lives here because the marks are shared by five projects that do not share a
 repository. `TARGETS` at the foot of the file is the checkout layout it writes
 to; rasterising shells out to headless Chrome.

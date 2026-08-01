@@ -31,6 +31,7 @@ import io
 import json
 import math
 import os
+import re
 import subprocess
 import sys
 import tempfile
@@ -316,6 +317,42 @@ ATRIUM_INDEX = r'X:\Github\atrium\static\index.html'
 BEGIN = '  <!-- BEGIN generated marks (icons/gen.py) -->'
 END = '  <!-- END generated marks -->'
 
+# An app's own page carries the mark inline as well, so its masthead can wear it
+# without a second request. That copy is generated too. It was not, once: the
+# mark was redrawn, every file in static/brand/ was rewritten, the favicon and
+# the hall both changed — and the badge in the app's own header did not, because
+# it was a hand-kept duplicate of a generated asset and nothing was pointing at
+# it. A generated asset with two homes needs the generator to own both.
+SYMBOL_TARGETS = {
+    'autopilot': r'X:\Github\anime-rss-auto\static\index.html',
+}
+SYM_BEGIN = '    <!-- BEGIN generated app mark (icons/gen.py) -->'
+SYM_END = '    <!-- END generated app mark -->'
+SYM_RE = re.compile(r'[ \t]*<symbol id="applogo".*?</symbol>[ \t]*\n?', re.S)
+
+
+def write_app_symbol(app):
+    """Rewrite the inline <symbol id="applogo"> in the app's own page."""
+    path = SYMBOL_TARGETS.get(app)
+    if not path:
+        return
+    body = ('    <symbol id="applogo" viewBox="0 0 96 96">%s</symbol>'
+            % emblem(app))
+    block = '%s\n%s\n%s\n' % (SYM_BEGIN, body, SYM_END)
+    src = io.open(path, encoding='utf-8').read()
+    if SYM_BEGIN in src:
+        head, rest = src.split(SYM_BEGIN, 1)
+        src = head + block + rest.split(SYM_END + '\n', 1)[1]
+    else:
+        # First run against a page that still has the hand-kept copy: swap it
+        # for the sentinel-wrapped one so every run after this is a plain
+        # replacement.
+        src, n = SYM_RE.subn(block, src, count=1)
+        if not n:
+            raise SystemExit('no <symbol id="applogo"> to replace in %s' % path)
+    io.open(path, 'w', encoding='utf-8', newline='\n').write(src)
+    print('  %-14s -> %s (inline mark)' % (app, path))
+
 
 def write_atrium_defs():
     """Inline every mark into Atrium's shared <defs>.
@@ -345,5 +382,6 @@ if __name__ == '__main__':
     only = [a for a in sys.argv[1:] if a in TARGETS] or list(TARGETS)
     for app in only:
         build(app, TARGETS[app])
+        write_app_symbol(app)
     write_atrium_defs()
     print('done')
