@@ -530,9 +530,19 @@
            medallion is genuinely *in* the terrazzo. -->
       <div class="fl-pool"></div>
       <div class="fl-plane">
+        <!-- Aggregate first: every course, inlay and reflection is laid ON
+             the terrazzo, so the chips have to be under all of them. -->
+        <svg class="fl-chips" viewBox="0 0 1000 1000"
+             preserveAspectRatio="none" aria-hidden="true"></svg>
         <div class="fl-key"></div>
         <div class="fl-border"></div>
         <div class="fl-inlay"></div>
+        <!-- Waxed stone: the arches, the clock and the skylight come back up
+             off the floor. Drawn in plane space, so the one rotateX carries
+             them and each smear converges exactly as its arch does. -->
+        <svg class="fl-mirror" viewBox="0 0 1000 1000"
+             preserveAspectRatio="none" aria-hidden="true"></svg>
+        <div class="fl-runner"></div>
       </div>
       <div class="fl-rail"></div>
     </div>
@@ -737,7 +747,30 @@
 
 <script src="/static/js/clock.js"></script>
 <script src="/static/js/app.js"></script>
-
+<script>
+/* ?probe=1 - layout read-out for scripts/probe.py.
+   A screenshot shows where a box ENDED UP; it cannot show how wide the box
+   was allowed to be, and CSS cannot report what a clamp() resolved to. This
+   writes the live boxes into document.title, which headless Chrome hands
+   back through --dump-dom with no debugger attached. Debug-only, in the same
+   spirit as the ?theme= and ?prefs=1 overrides above; it renders nothing. */
+if (location.search.indexOf('probe=1') >= 0) setTimeout(function () {
+  var out = [];
+  ['#hall', '#concourse', '#stage', '#floorplane', '#works', '#bulletin',
+   '#clock', '#gates', '.gate.active', '.gate.receded', '#signal-desk']
+  .forEach(function (sel) {
+    var e = document.querySelector(sel);
+    if (!e) { out.push(sel + '=none'); return; }
+    var r = e.getBoundingClientRect();
+    out.push(sel + '=' + [r.left, r.top, r.width, r.height].map(Math.round).join(','));
+  });
+  out.push('ui=' +
+    getComputedStyle(document.documentElement).getPropertyValue('--ui').trim());
+  out.push('vp=' + innerWidth + 'x' + innerHeight);
+  out.push('scrollH=' + document.documentElement.scrollHeight);
+  document.title = out.join(' | ');
+}, 2600);
+</script>
 
 </body>
 </html>
