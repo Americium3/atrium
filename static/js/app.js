@@ -68,7 +68,12 @@ var STR = {
     'k.outreach.error': 'Check the Outreach Desk',
     'k.press.digest_ready.head': "Today's edition is out",
     'k.press.digest_ready': '{stories} stories across {sections} sections',
-    directorySub: 'Every hall in this building',
+    worksSub: 'Readings from the engine room',
+    wkCpu: 'PROCESSOR', wkMem: 'MEMORY', wkGpu: 'GRAPHICS', wkNet: 'TRAFFIC',
+    wkHours: 'HOURS RUN', wkDisk: 'STORE', wkFree: '{n} FREE',
+    wkNoReading: 'NO READING',
+    wkCores: '{n} cores', wkOf: '{a} of {b} GB',
+    wkDown: '{d} down · {u} up MB/s',
     bulletinSub: "Today's dispatches",
     bulletinEmpty: 'The case is empty',
     openLedger: 'OPEN THE LEDGER',
@@ -85,12 +90,12 @@ var STR = {
     replay: 'REPLAY ENTRANCE',
     ariaTicker: 'Status band',
     ariaLever: 'Mode lever: off = Salon, the play wing; on = Bureau, the work wing',
-    ariaRail: 'Machine rail — mode lever',
+    ariaDesk: 'Signal desk — mode lever',
     ariaFilter: 'Filter dispatches', ariaClose: 'Close',
     ariaGates: 'Gates', ariaLedger: 'Ledger — dispatch timeline',
-    ariaDirectory: 'Directory — every registered service',
+    ariaWorks: 'The works — live readings from this machine',
     ariaBulletin: 'Bulletin — latest dispatches',
-    dirTitle: 'Directory', bulTitle: 'Bulletin',
+    worksTitle: 'The works', bulTitle: 'Bulletin',
     salonWing: 'Play wing', bureauWing: 'Work wing',
     ledgerBtnLabel: 'LEDGER',
     unreadCount: '{n} new dispatches', unreadCountOne: '1 new dispatch'
@@ -142,7 +147,12 @@ var STR = {
     'k.outreach.error': '请到 Outreach Desk 查看',
     'k.press.digest_ready.head': '今日晨报已出版',
     'k.press.digest_ready': '{sections} 个版面 · {stories} 条',
-    directorySub: '本楼全部厅室',
+    worksSub: '本机运转实况',
+    wkCpu: '处理器', wkMem: '内存', wkGpu: '显卡', wkNet: '网络',
+    wkHours: '已运转', wkDisk: '存储', wkFree: '余 {n}',
+    wkNoReading: '无读数',
+    wkCores: '{n} 核', wkOf: '{a} / {b} GB',
+    wkDown: '下 {d} · 上 {u} MB/s',
     bulletinSub: '今日快讯',
     bulletinEmpty: '橱窗暂空',
     openLedger: '打开消息总台',
@@ -159,12 +169,12 @@ var STR = {
     replay: '重播入场动画',
     ariaTicker: '状态带',
     ariaLever: '模式拨杆：关＝沙龙翼（娱乐），开＝事务翼（工作）',
-    ariaRail: '机械横轨——模式拨杆',
+    ariaDesk: '信号台——模式拨杆',
     ariaFilter: '筛选快讯', ariaClose: '关闭',
     ariaGates: '门廊', ariaLedger: '账本 — 派发时间轴',
-    ariaDirectory: '名录 —— 全部已登记的厅室',
+    ariaWorks: '机房仪表 —— 本机实时读数',
     ariaBulletin: '布告栏 —— 最新快讯',
-    dirTitle: '厅室名录', bulTitle: '布告栏',
+    worksTitle: '机房仪表', bulTitle: '布告栏',
     salonWing: '娱乐翼 · 沙龙', bureauWing: '工作翼 · 事务所',
     ledgerBtnLabel: '账本',
     unreadCount: '{n} 条新消息', unreadCountOne: '1 条新消息'
@@ -387,17 +397,17 @@ function finishEntrance() {
   // Re-enable ledger button now that entrance is done
   var lb = $('#ledger-btn');
   if (lb) lb.disabled = false;
-  // Relay: motion transfers from the overlay to the hall. The gear rail
+  // Relay: motion transfers from the overlay to the hall. The gear train
   // twitches one tooth — the machine exhales as the overlay clears.
-  railNudge();
+  deskNudge();
 }
 
-/* Rail nudge: one-tooth gear tick after the entrance clears.
+/* Desk nudge: one-tooth gear tick after the entrance clears.
    Amplitude 0.07 on --drive ≈ 6.3 deg on gearA (18 teeth × 5 deg/tooth).
    Self-terminates in ~480ms. Reduced motion: returns immediately. */
-function railNudge() {
+function deskNudge() {
   if (root.dataset.motion === 'reduced') return;
-  if (!rail) return;
+  if (!desk) return;
   var t0 = performance.now();
   var PUSH = 200, PULL = 280, AMP = 0.07;
   var base = getDrive();
@@ -419,13 +429,13 @@ function railNudge() {
 }
 
 /* ========================================================================
-   Machine rail — lever, gear train, gauge, steam (DESIGN.md v3.1).
-   One scalar --drive (0=salon, 1=bureau) written by a rAF driver; the
-   lever and both gears derive their rotation from it via calc, so sync
-   is structural.
+   Signal desk — lever, gear train, steam (DESIGN.md v4.1). One scalar
+   --drive (0=salon, 1=bureau) written by a rAF driver onto :root; the
+   lever, both gears and the works board's movement all derive from it via
+   calc, so sync is structural.
    ======================================================================== */
-var rail = $('#machine-rail');
-var railNozzle = $('#machine-rail .nozzle');
+var desk = $('#signal-desk');
+var deskNozzle = $('#signal-desk .nozzle');
 var NS = 'http://www.w3.org/2000/svg';
 
 function svgEl(tag, attrs, cls) {
@@ -483,8 +493,8 @@ function gearPath(N, m, o) {
    −N_A/N_B ratio; lever→gearA gearing is implied by the hidden rack. */
 var GEAR_NA = 18, GEAR_NB = 9, GEAR_M = 4.4, GEAR_PHI = -20;
 
-function buildRail() {
-  if (!rail) return;
+function buildDesk() {
+  if (!desk) return;
 
   var DEG = Math.PI / 180;
 
@@ -502,7 +512,7 @@ function buildRail() {
   }
 
   // ---- quadrant plate (static art) — pivot at (180, 212) ----
-  var q = $('.quadrant', rail);
+  var q = $('.quadrant', desk);
   var qp = function (r, deg) {
     var a = deg * Math.PI / 180;
     return (180 + r * Math.sin(a)).toFixed(1) + ' ' + (212 - r * Math.cos(a)).toFixed(1);
@@ -548,7 +558,7 @@ function buildRail() {
   q.appendChild(svgEl('ellipse', { cx: 180, cy: 100, rx: 36, ry: 8, opacity: 0.5 }, 'q-shadow ga-shadow'));
 
   // ---- lever (mover) — rebuild with full anatomy ----
-  var lv = $('.lever-svg', rail);
+  var lv = $('.lever-svg', desk);
 
   // Inject knurl pattern into a <defs> inside the lever SVG
   var lvDefs = document.createElementNS(NS, 'defs');
@@ -661,7 +671,7 @@ function buildRail() {
   // interleave phase: ((1 + NA/NB)·φ + 180 − 180/NB) mod (360/NB)
   var phaseB = (((1 + GEAR_NA / GEAR_NB) * GEAR_PHI + 180 - 180 / GEAR_NB)
                 % (360 / GEAR_NB) + 360 / GEAR_NB) % (360 / GEAR_NB);
-  var gA = $('.gearA-svg', rail), gB = $('.gearB-svg', rail);
+  var gA = $('.gearA-svg', desk), gB = $('.gearB-svg', desk);
 
   // ---- Gear A — 18 teeth, viewBox -52 -52 104 104 ----
   // Dimensions: rp=39.6, ra=40.6, rr=34.1
@@ -895,45 +905,6 @@ function buildRosetteKnurl() {
   def.appendChild(g);
 }
 
-/* Enamel gauge — LINES 0..m on a 240° scale, knurled bezel. Rebuilt only
-   when the registry size changes. */
-function buildGauge(m) {
-  var svg = rail && $('.gauge', rail);
-  if (!svg || svg._m === m || m < 1) return;
-  svg._m = m;
-  svg.textContent = '';
-  svg.appendChild(svgEl('circle', { cx: 50, cy: 50, r: 34, 'stroke-width': 1.5 }, 'g-bezel'));
-  svg.appendChild(svgEl('circle', { cx: 50, cy: 50, r: 30, 'stroke-width': 1 }, 'g-bezel'));
-  var knurl = svgEl('g', { 'stroke-width': 1 }, 'g-knurl');
-  for (var i = 0; i < 24; i++) {
-    var a = i * 15 * Math.PI / 180;
-    knurl.appendChild(svgEl('line', {
-      x1: (50 + 30.8 * Math.sin(a)).toFixed(2), y1: (50 - 30.8 * Math.cos(a)).toFixed(2),
-      x2: (50 + 33.2 * Math.sin(a)).toFixed(2), y2: (50 - 33.2 * Math.cos(a)).toFixed(2)
-    }));
-  }
-  svg.appendChild(knurl);
-  svg.appendChild(svgEl('circle', { cx: 50, cy: 50, r: 29 }, 'g-dial'));
-  for (var j = 0; j <= m; j++) {
-    var deg = -120 + 240 * j / m;
-    var r = deg * Math.PI / 180;
-    svg.appendChild(svgEl('line', {
-      x1: (50 + 22 * Math.sin(r)).toFixed(2), y1: (50 - 22 * Math.cos(r)).toFixed(2),
-      x2: (50 + 27.5 * Math.sin(r)).toFixed(2), y2: (50 - 27.5 * Math.cos(r)).toFixed(2),
-      'stroke-width': 1.5
-    }, 'g-tick'));
-    var tx = svgEl('text', {
-      x: (50 + 15.5 * Math.sin(r)).toFixed(2),
-      y: (50 - 15.5 * Math.cos(r) + 3.5).toFixed(2),
-      'text-anchor': 'middle'
-    });
-    tx.textContent = String(j);
-    svg.appendChild(tx);
-  }
-  svg.appendChild(svgEl('line', { x1: 50, y1: 58, x2: 50, y2: 26, 'stroke-width': 1.5 }, 'g-needle'));
-  svg.appendChild(svgEl('circle', { cx: 50, cy: 50, r: 3 }, 'g-hub'));
-}
-
 /* Steam — event-only. 4–6 soft sprites per burst, randomized via inline
    custom properties; cleanup on animationend plus a safety timeout. */
 var MAX_PUFFS = 14, STEAM_WIND = 9;
@@ -970,19 +941,19 @@ function easeWeighty(t) {
   return 1 + OVER * Math.cos(v * Math.PI * 2.2) * Math.exp(-4.5 * v);
 }
 
-var railRaf = null;
-function setDrive(v) { rail.style.setProperty('--drive', v.toFixed(4)); }
+var deskRaf = null;
+function setDrive(v) { root.style.setProperty('--drive', v.toFixed(4)); }
 function getDrive() {
-  var v = parseFloat(getComputedStyle(rail).getPropertyValue('--drive'));
+  var v = parseFloat(getComputedStyle(root).getPropertyValue('--drive'));
   return isNaN(v) ? 0 : v;
 }
 
 /* Interrupt-safe rAF driver: a re-toggle mid-throw reads the current
    --drive as its new start. Steam fires once past 55% of the throw
    (latched). Reduced motion: snap — the gears stay correct for free. */
-function railDrive(target) {
-  if (!rail) return;
-  cancelAnimationFrame(railRaf);
+function deskDrive(target) {
+  if (!desk) return;
+  cancelAnimationFrame(deskRaf);
   // Hidden pages never fire rAF — land the mechanism instantly.
   if (root.dataset.motion === 'reduced' ||
       document.visibilityState === 'hidden') { setDrive(target); return; }
@@ -996,10 +967,10 @@ function railDrive(target) {
     var p = from + (target - from) * easeWeighty(t);
     setDrive(t === 1 ? target : p);
     var prog = target === 1 ? p : 1 - p;
-    if (!latched && prog > 0.55) { latched = true; steamBurst(railNozzle, 5); }
-    if (t < 1) railRaf = requestAnimationFrame(frame);
+    if (!latched && prog > 0.55) { latched = true; steamBurst(deskNozzle, 5); }
+    if (t < 1) deskRaf = requestAnimationFrame(frame);
   };
-  railRaf = requestAnimationFrame(frame);
+  deskRaf = requestAnimationFrame(frame);
 }
 
 /* ========================================================================
@@ -1105,8 +1076,6 @@ function renderGates() {
     a.addEventListener('click', function (e) { gateClick(e, a, svc); });
     wrap.appendChild(a);
   });
-  buildGauge(services.length);
-  renderDirectory();
   layoutStage(true);
   applyStatuses();
   applyStats();
@@ -1184,7 +1153,15 @@ function layoutStage(initial) {
   // triptych standing in it, and an edge-anchored flank would drift across
   // the bays and moor itself against a board.
   var outermost = half + gateW / 2 + Math.max(0, left - 1) * spacing;
-  var edge = Math.min(W / 2 - gateW * 0.31, outermost + spacing * 0.86);
+  // A flank tucks BEHIND the outer arch; it must never end up UNDER it. On a
+  // narrow stage the 0.62 flank is wider than the clear column beside the
+  // triptych and half its lettering disappears, which stops reading as depth
+  // and starts reading as a bug. Give it the room that is actually there.
+  // outermost is the outer arch's CENTRE, so its edge is half a gate on.
+  var room = W / 2 - (outermost + gateW / 2);
+  var flankS = Math.max(0.4, Math.min(0.62, room / gateW));
+  var edge = Math.min(W / 2 - gateW * flankS / 2,
+                      outermost + spacing * 0.86);
   receded.forEach(function (svc, i) {
     var a = $('#gate-' + svc.id);
     if (!a) return;
@@ -1196,7 +1173,7 @@ function layoutStage(initial) {
     var side = (receded.length === 1) ? 1 : (i % 2 === 0 ? -1 : 1);
     var rank = Math.floor(i / 2);
     a.style.setProperty('--slot-x', (side * (edge - rank * gateW * 0.5)) + 'px');
-    a.style.setProperty('--slot-s', '0.62');
+    a.style.setProperty('--slot-s', flankS.toFixed(3));
     a.style.setProperty('--slot-delay', initial ? '0ms' : (i * 60) + 'ms');
     a.style.setProperty('--side', String(side));   // triptych inward tilt
   });
@@ -1207,7 +1184,7 @@ function layoutStage(initial) {
   // (the one between the outermost arch and the boards) unarticulated.
   triptychHalf = Math.max(
     outermost + gateW / 2,
-    receded.length ? edge + gateW * 0.31 : 0
+    receded.length ? edge + gateW * flankS / 2 : 0
   );
   buildAisles();
 }
@@ -1334,8 +1311,20 @@ function buildAisles() {
   var reach = (triptychHalf || sr.width / 2) + 28;
   var lw = Math.max(0, (axis - reach) - bw.left);
   var rw = Math.max(0, bw.right - (axis + reach));
-  var used = fillWall(wl, lw, boardHole($('#directory'), bw.left), 1);
+  var used = fillWall(wl, lw, boardHole($('#works'), bw.left), 1);
   fillWall(wr, rw, boardHole($('#bulletin'), axis + reach), used + 1);
+  sizeFloor();
+}
+
+/* The floor's perspective distance has to be a function of the floor's own
+   height, and CSS cannot read a box's used height back into a calc. The
+   plane is absolutely positioned, so writing --fh cannot feed back into the
+   height it was measured from. */
+function sizeFloor() {
+  var fp = $('#floorplane');
+  if (!fp) return;
+  var h = fp.offsetHeight;
+  if (h) fp.style.setProperty('--fh', h + 'px');
 }
 
 /* The floor medallion: a 16-point compass rose inlaid in the terrazzo,
@@ -1382,10 +1371,11 @@ function buildFloorInlay() {
   // different construction from the compass so the floor reads as a set of
   // inlays rather than one motif stamped three times.
   var plane = $('.fl-plane');
-  // Placed in plane space, where the perspective divide magnifies outward:
-  // 22% of the plane lands near the screen edge once projected, so the
-  // roundels sit further in than the aisle axes they end up over.
-  [39, 61].forEach(function (pct, i) {
+  // Placed in PLANE space, which is 204% of the screen wide and shrinks
+  // outward from the axis by the perspective divide. At the roundels' own
+  // depth that works out to x_screen = 0.5 + (p - 0.5) * 1.58, so 32/68 of
+  // the plane lands on the aisle axes at roughly 22/78 of the screen.
+  [32, 68].forEach(function (pct, i) {
     var d = el('div', 'fl-round');
     d.style.left = pct + '%';
     var r = svgEl('svg', { viewBox: '0 0 400 400', 'aria-hidden': 'true' });
@@ -1410,63 +1400,186 @@ function buildFloorInlay() {
   });
 }
 
-/* ----- The DIRECTORY ----------------------------------------------------- */
-function renderDirectory() {
-  var box = $('#dir-rows');
-  if (!box) return;
-  box.textContent = '';
-  services.slice().sort(function (a, b) { return a.order - b.order; })
-    .forEach(function (svc) {
-      var b = el('button', 'bd-row');
-      b.setAttribute('role', 'listitem');
-      b.dataset.service = svc.id;
-      b.dataset.wing = svc.wing;
-      b.dataset.state = 'checking';
-      var sig = KNOWN_SIGILS[svc.sigil] ? svc.sigil : null;
-      b.appendChild(svgUse('bd-mark' + (sig ? ' mark' : ''), '0 0 96 96',
-        sig ? '#mark-' + sig : '#sig-fallback'));
-      var mid = el('span', 'bd-mid');
-      mid.appendChild(el('span', 'bd-name display', svc.name));
-      mid.appendChild(el('span', 'bd-line addr', svc.addr));
-      b.appendChild(mid);
-      var lamp = el('span', 'bd-lamp');
-      lamp.appendChild(el('span', 'lamp-d'));
-      lamp.appendChild(el('span', 'lamp-t display', '…'));
-      b.appendChild(lamp);
-      // A directory row is the gate said twice: the same click, the same
-      // flash on the same arch, the same dark-service notice.
-      b.addEventListener('click', function (e) {
-        gateClick(e, $('#gate-' + svc.id) || b, svc);
-      });
-      box.appendChild(b);
+/* ----- THE WORKS ---------------------------------------------------------
+   Four needle dials on the same 240-degree scale the retired LINES gauge
+   used, so the case reads as instruments off one bench rather than four
+   widgets. The readings are the host's own: nothing here crosses the
+   machine, and the poll only runs while the board is genuinely on screen —
+   below 2200px the aisles fold away, and the hub must not be spawning
+   nvidia-smi for a panel nobody can see. */
+var WK_DIALS = [
+  { key: 'cpu', name: 'wkCpu' },
+  { key: 'mem', name: 'wkMem' },
+  { key: 'gpu', name: 'wkGpu' },
+  { key: 'net', name: 'wkNet' }
+];
+var works = null;
+var worksTimer = null;
+
+/* One enamel dial: knurled bezel, engraved 0..100 face, a red sector over
+   the last fifth, and the needle on the spring settle the CSS gives it. */
+function buildDial(key) {
+  var svg = svgEl('svg', { viewBox: '0 0 100 100', 'aria-hidden': 'true' }, 'wk-dial');
+  svg.appendChild(svgEl('circle', { cx: 50, cy: 50, r: 46, 'stroke-width': 1.5 }, 'g-bezel'));
+  svg.appendChild(svgEl('circle', { cx: 50, cy: 50, r: 41, 'stroke-width': 1 }, 'g-bezel'));
+  var knurl = svgEl('g', { 'stroke-width': 1 }, 'g-knurl');
+  for (var i = 0; i < 36; i++) {
+    var a = i * 10 * Math.PI / 180;
+    knurl.appendChild(svgEl('line', {
+      x1: (50 + 42 * Math.sin(a)).toFixed(2), y1: (50 - 42 * Math.cos(a)).toFixed(2),
+      x2: (50 + 45 * Math.sin(a)).toFixed(2), y2: (50 - 45 * Math.cos(a)).toFixed(2)
+    }));
+  }
+  svg.appendChild(knurl);
+  svg.appendChild(svgEl('circle', { cx: 50, cy: 50, r: 40 }, 'g-dial'));
+  var pt = function (v, r) {
+    var a = (-120 + 2.4 * v) * Math.PI / 180;
+    return (50 + r * Math.sin(a)).toFixed(2) + ' ' + (50 - r * Math.cos(a)).toFixed(2);
+  };
+  // Red sector over the last fifth of the scale.
+  svg.appendChild(svgEl('path', {
+    d: 'M ' + pt(85, 35) + ' A 35 35 0 0 1 ' + pt(100, 35), fill: 'none'
+  }, 'g-red'));
+  for (var j = 0; j <= 20; j++) {
+    var major = j % 5 === 0;
+    var a2 = (-120 + 12 * j) * Math.PI / 180;
+    var inner = major ? 28 : 32;
+    svg.appendChild(svgEl('line', {
+      x1: (50 + inner * Math.sin(a2)).toFixed(2), y1: (50 - inner * Math.cos(a2)).toFixed(2),
+      x2: (50 + 37 * Math.sin(a2)).toFixed(2), y2: (50 - 37 * Math.cos(a2)).toFixed(2),
+      'stroke-width': major ? 1.8 : 0.9
+    }, 'g-tick'));
+    if (!major) continue;
+    var tx = svgEl('text', {
+      x: (50 + 20 * Math.sin(a2)).toFixed(2),
+      y: (50 - 20 * Math.cos(a2) + 4).toFixed(2),
+      'text-anchor': 'middle'
     });
-  syncDirectory();
+    tx.textContent = String(j * 5);
+    svg.appendChild(tx);
+  }
+  svg.appendChild(svgEl('line', { x1: 50, y1: 62, x2: 50, y2: 19, 'stroke-width': 2 }, 'g-needle'));
+  svg.appendChild(svgEl('circle', { cx: 50, cy: 50, r: 4 }, 'g-hub'));
+  return svg;
 }
 
-/* Lamps and live stats, shared with the gates' own pass. */
-function syncDirectory() {
-  var box = $('#dir-rows');
-  if (!box) return;
-  var open = 0, known = 0;
-  services.forEach(function (svc) {
-    var row = box.querySelector('[data-service="' + svc.id + '"]');
-    if (!row) return;
-    var st = statuses[svc.id];
-    var state = st ? st.state : 'checking';
-    row.dataset.state = state;
-    if (state === 'open') { open++; known++; } else if (state === 'dark') known++;
-    var lampT = $('.lamp-t', row);
-    lampT.textContent = state === 'open' ? 'OPEN' : state === 'dark' ? 'DARK' : '…';
-    lampT.title = t(state === 'open' ? 'lampOpen' :
-                    state === 'dark' ? 'lampDark' : 'lampChecking');
-    var stat = statText(svc);
-    $('.bd-line', row).textContent = svc.addr + (stat ? '  ·  ' + stat : '');
-    row.title = svc.name + ' — ' + svc.url;
+function renderWorks() {
+  var box = $('#wk-dials'), tape = $('#wk-tape');
+  if (!box || !tape || box.firstChild) return;
+  WK_DIALS.forEach(function (d) {
+    var cell = el('div', 'wk-cell');
+    cell.dataset.dial = d.key;
+    cell.appendChild(buildDial(d.key));
+    cell.appendChild(el('span', 'wk-name display', t(d.name)));
+    cell.appendChild(el('span', 'wk-read num', '—'));
+    box.appendChild(cell);
   });
-  var tally = $('#dir-tally');
-  if (tally && services.length) {
-    tally.textContent = t('linesOpen', { n: open, m: services.length });
+  ['hours', 'disk'].forEach(function (k) {
+    var row = el('div', 'wk-strip');
+    row.dataset.strip = k;
+    row.appendChild(el('span', 'wk-slabel display',
+      t(k === 'hours' ? 'wkHours' : 'wkDisk')));
+    row.appendChild(el('span', 'wk-sval num', '—'));
+    tape.appendChild(row);
+  });
+  syncWorks();
+}
+
+/* Hours run reads as a plate, not a stopwatch — no seconds ticking on a
+   wall in a hall. */
+function pad2(n) { return (n < 10 ? '0' : '') + n; }
+function runFor(s) {
+  if (s === null || s === undefined) return '—';
+  var d = Math.floor(s / 86400), h = Math.floor((s % 86400) / 3600);
+  var m = Math.floor((s % 3600) / 60);
+  return d ? d + 'd ' + pad2(h) + 'h' : h ? h + 'h ' + pad2(m) + 'm' : m + 'm';
+}
+function tera(gb) {
+  return gb >= 1024 ? (gb / 1024).toFixed(1) + ' TB' : Math.round(gb) + ' GB';
+}
+
+/* Needle position plus what the caption under it says. Every reading is
+   optional: a machine with no NVIDIA card is a normal machine. */
+function dialRead(key, w) {
+  var d = w && w[key];
+  if (!d || d.pct === null || d.pct === undefined) return null;
+  if (key === 'cpu') {
+    return { pct: d.pct, text: Math.round(d.pct) + '%',
+             title: t('wkCores', { n: d.cores }) };
   }
+  if (key === 'mem' || key === 'gpu') {
+    return { pct: d.pct,
+             text: d.used_gb.toFixed(1) + ' / ' + Math.round(d.total_gb) + ' GB',
+             title: key === 'gpu' ? d.name : t('wkOf', { a: d.used_gb, b: d.total_gb }) };
+  }
+  return { pct: d.pct,
+           text: d.down_mbs.toFixed(1) + ' ↓  ' + d.up_mbs.toFixed(1) + ' ↑',
+           title: t('wkDown', { d: d.down_mbs, u: d.up_mbs }) };
+}
+
+function syncWorks() {
+  var box = $('#wk-dials');
+  if (!box || !box.firstChild) return;
+  WK_DIALS.forEach(function (d) {
+    var cell = box.querySelector('[data-dial="' + d.key + '"]');
+    if (!cell) return;
+    var r = dialRead(d.key, works);
+    // A needle with no reading rests at zero rather than lying at a number.
+    cell.style.setProperty('--gauge', (-120 + (r ? r.pct : 0) * 2.4).toFixed(1));
+    cell.dataset.hot = r && r.pct >= 85 ? 'yes' : 'no';
+    cell.dataset.blank = r ? 'no' : 'yes';
+    $('.wk-read', cell).textContent = r ? r.text : t('wkNoReading');
+    cell.title = t(d.name) + (r && r.title ? ' — ' + r.title : '');
+  });
+  var tape = $('#wk-tape');
+  if (!tape) return;
+  var hours = tape.querySelector('[data-strip="hours"] .wk-sval');
+  if (hours) hours.textContent = runFor(works && works.hub_uptime_s);
+  var disk = tape.querySelector('[data-strip="disk"] .wk-sval');
+  if (disk) {
+    disk.textContent = works && works.disk
+      ? works.disk.label + '  ' + t('wkFree', { n: tera(works.disk.free_gb) })
+      : '—';
+  }
+}
+
+/* The dial faces are engraved once; only their lettering is language. */
+function relabelWorks() {
+  WK_DIALS.forEach(function (d) {
+    var cell = document.querySelector('#wk-dials [data-dial="' + d.key + '"]');
+    if (cell) $('.wk-name', cell).textContent = t(d.name);
+  });
+  ['hours', 'disk'].forEach(function (k) {
+    var row = document.querySelector('#wk-tape [data-strip="' + k + '"]');
+    if (row) {
+      $('.wk-slabel', row).textContent = t(k === 'hours' ? 'wkHours' : 'wkDisk');
+    }
+  });
+  syncWorks();
+}
+
+/* On screen only: the board is display:none below 2200px, and a hidden
+   panel must not keep the host sampling. */
+function worksVisible() {
+  var b = $('#works');
+  return !!b && getComputedStyle(b).display !== 'none' &&
+         document.visibilityState === 'visible';
+}
+
+function pollWorks() {
+  if (!worksVisible()) return Promise.resolve();
+  return fetchJson('/api/works').then(function (w) {
+    works = w;
+    syncWorks();
+  }).catch(function () { /* a restarting hub is not a reading */ });
+}
+
+/* Instruments read live or they are decoration, so the cadence is the
+   dial's rather than the hall's 45s poll. */
+function startWorks() {
+  clearInterval(worksTimer);
+  worksTimer = setInterval(pollWorks, 4000);
+  pollWorks();
 }
 
 /* ----- The BULLETIN ------------------------------------------------------ */
@@ -1577,7 +1690,7 @@ function setWing(w) {
     if (wingPending === w) wingPending = null;
     store('atrium.wing', w);
     lever.setAttribute('aria-checked', String(w === 'bureau'));
-    railDrive(w === 'bureau' ? 1 : 0);
+    deskDrive(w === 'bureau' ? 1 : 0);
     layoutStage(false);
     // After the slide settles, re-append gates active-first so the tab
     // order matches the new composition (pixels don't move — gates are
@@ -1632,11 +1745,6 @@ function applyStatuses() {
     $('.g-lamp', a).title = note || lampT.title;
   });
   $('#all-dark').hidden = !(known === services.length && known > 0 && openCount === 0);
-  // The rail gauge tracks lines open (needle spring-settles via CSS).
-  if (rail && services.length) {
-    rail.style.setProperty('--gauge',
-      (-120 + (openCount / services.length) * 240).toFixed(1));
-  }
 
   // The hall is a picture; say out loud how many lines are open, so a screen
   // reader learns the same thing the lamps show. Only on change — a live
@@ -1646,7 +1754,6 @@ function applyStatuses() {
     var msg = t('linesOpen', { n: openCount, m: services.length });
     if (st.textContent !== msg) st.textContent = msg;
   }
-  syncDirectory();
 }
 
 function statText(svc) {
@@ -1688,9 +1795,6 @@ function applyStats() {
       }
     }
   });
-  // The directory prints the same stat on one line with the address; it has
-  // no odometer, so it just takes the new text.
-  syncDirectory();
 }
 
 /* ========================================================================
@@ -2267,6 +2371,7 @@ function setLang(next) {
   applyStats();
   renderLedger();
   renderBulletin();
+  relabelWorks();
   updateLedgerBadge();
   renderTicker();
   // Bay numbers are localized ("BAY III" / "第 III 间"), so the wall is
@@ -2308,26 +2413,28 @@ applyI18nStatic();
 renderDateline();
 renderGhosts();
 buildRosetteKnurl();
-buildRail();
+buildDesk();
 buildFloorInlay();
+renderWorks();      // the dials stand engraved before the first reading
 buildAisles();
 renderBulletin();   // the case shows its empty rails before the feed lands
+startWorks();
 // Seed the inline --drive: without it the first throw's getDrive() would
 // read the wing-attribute CSS rule AFTER setWing flips the attribute —
 // from === target, so the ease and the 55% steam latch would both vanish.
-if (rail) setDrive(root.dataset.wing === 'bureau' ? 1 : 0);
+setDrive(root.dataset.wing === 'bureau' ? 1 : 0);
 lever.setAttribute('aria-checked', String(root.dataset.wing === 'bureau'));
 
 /* ?steam=1 (debug, not persisted): freeze a burst at four life stages so
    headless screenshots can QA the vapor without a pointer. */
-if (new URLSearchParams(location.search).get('steam') === '1' && railNozzle) {
+if (new URLSearchParams(location.search).get('steam') === '1' && deskNozzle) {
   [-100, -350, -650, -900].forEach(function (offset, i) {
     var p = document.createElement('div');
     p.className = 'puff';
     p.style.cssText = '--dx:' + (i * 10 - 8) + 'px;--rise:-84px;--s:2.6;' +
       '--rot:24deg;animation-duration:1200ms;' +
       'animation-delay:' + offset + 'ms;animation-play-state:paused;';
-    railNozzle.appendChild(p);
+    deskNozzle.appendChild(p);
   });
 }
 
