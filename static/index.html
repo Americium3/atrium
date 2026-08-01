@@ -20,6 +20,11 @@
   d.lang = (q.get('lang') || get('atrium.lang', 'en')) === 'zh' ? 'zh' : 'en';
   d.dataset.wing =
     (q.get('wing') || get('atrium.wing', 'salon')) === 'bureau' ? 'bureau' : 'salon';
+  // Reader's optical correction, on top of the viewport's own step. Resolved
+  // pre-paint like the theme: type that resizes after first paint reflows the
+  // whole hall in front of the reader.
+  var ui = q.get('ui') || get('atrium.ui', 'm');
+  d.dataset.ui = (ui === 's' || ui === 'l') ? ui : 'm';
   var motion = q.get('motion') || get('atrium.motion',
     matchMedia('(prefers-reduced-motion: reduce)').matches ? 'reduced' : 'full');
   d.dataset.motion = motion;
@@ -500,19 +505,77 @@
     <div class="t-track" id="ticker-track"></div>
   </div>
 
-  <main id="stage" data-i18n-aria="ariaGates" aria-label="Gates">
-    <div class="floor" aria-hidden="true"></div>
-    <div class="stage-glow" aria-hidden="true"></div>
-    <div class="wall-rule" aria-hidden="true"></div>
-    <!-- The hall's centrepiece, set into the back wall between the gates.
-         Built by clock.js — the 1000-unit geometry stays in one place with
-         its drive loop. It sits inside #stage so the stage solves its slot
-         alongside the gates and the three re-compose together. -->
-    <div id="clock" aria-hidden="true"></div>
-    <div id="gates"></div>
-    <p id="hall-status" class="sr-only" role="status" aria-live="polite"></p>
-  <div id="all-dark" hidden data-i18n="allDark">The hall is dark — no services reachable.</div>
-  </main>
+  <!-- ====================================================================
+       The concourse: left aisle · stage · right aisle, standing on one
+       floor in front of one wall. Above ~2000px the aisles open and the
+       hall stops being a 1720px diorama with a void either side; below
+       that the boards fold under the stage and the grid collapses to the
+       single centre column it has always been.
+  ==================================================================== -->
+  <div id="concourse">
+
+    <!-- Full-bleed scenery layer: the wall everything hangs on, and the
+         floor everything stands on. `left: calc(50% - 50vw)` reaches the
+         screen edges because the concourse is centred in the viewport. -->
+    <div id="backwall" aria-hidden="true">
+      <div class="wall-field"></div>
+      <div class="wall-cornice"></div>
+      <div class="wall-dado"></div>
+      <div class="aisle-wall wall-l"></div>
+      <div class="aisle-wall wall-r"></div>
+    </div>
+    <div id="floorplane" aria-hidden="true">
+      <!-- The inlay is a child of the plane, not a sibling: it inherits the
+           one rotateX projection instead of trying to match it, so the
+           medallion is genuinely *in* the terrazzo. -->
+      <div class="fl-plane">
+        <div class="fl-key"></div>
+        <div class="fl-inlay"></div>
+      </div>
+      <div class="fl-rail"></div>
+    </div>
+
+    <aside id="directory" class="board" data-i18n-aria="ariaDirectory"
+           aria-label="Directory" data-i18n-title="dirTitle">
+      <div class="bd-frame" aria-hidden="true"></div>
+      <header class="bd-head">
+        <h2 class="bd-title display">DIRECTORY</h2>
+        <p class="bd-sub zh-sentence" data-i18n="directorySub">Every hall in this building</p>
+      </header>
+      <div class="bd-rows" id="dir-rows" role="list"></div>
+      <footer class="bd-foot">
+        <span class="bd-tally display" id="dir-tally"></span>
+      </footer>
+    </aside>
+
+    <main id="stage" data-i18n-aria="ariaGates" aria-label="Gates">
+      <div class="stage-glow" aria-hidden="true"></div>
+      <div class="wall-rule" aria-hidden="true"></div>
+      <!-- The hall's centrepiece, set into the back wall between the gates.
+           Built by clock.js — the 1000-unit geometry stays in one place with
+           its drive loop. It sits inside #stage so the stage solves its slot
+           alongside the gates and the three re-compose together. -->
+      <div id="clock" aria-hidden="true"></div>
+      <div id="gates"></div>
+      <p id="hall-status" class="sr-only" role="status" aria-live="polite"></p>
+      <div id="all-dark" hidden data-i18n="allDark">The hall is dark — no services reachable.</div>
+    </main>
+
+    <aside id="bulletin" class="board" data-i18n-aria="ariaBulletin"
+           aria-label="Bulletin" data-i18n-title="bulTitle">
+      <div class="bd-frame" aria-hidden="true"></div>
+      <header class="bd-head">
+        <h2 class="bd-title display">BULLETIN</h2>
+        <p class="bd-sub zh-sentence" data-i18n="bulletinSub">Today's dispatches</p>
+      </header>
+      <div class="bd-notes" id="bul-notes" role="list"></div>
+      <footer class="bd-foot">
+        <button class="bd-open display" id="bul-open" data-i18n="openLedger">OPEN THE LEDGER</button>
+      </footer>
+      <div class="bd-glass" aria-hidden="true"></div>
+    </aside>
+
+  </div>
 
   <aside id="ledger" data-i18n-aria="ariaLedger" aria-label="Dispatches">
     <div class="l-head">
@@ -622,6 +685,24 @@
         </button>
         <button class="p-plaque" role="radio" data-value="zh">
           <span class="p-name display" lang="zh">中文</span>
+        </button>
+      </div>
+    </section>
+
+    <section class="p-group">
+      <h3 class="p-label display" id="lbl-uiscale" data-i18n="uiScale">ENGRAVING SIZE</h3>
+      <div class="p-options" role="radiogroup" aria-labelledby="lbl-uiscale" data-pref="ui">
+        <button class="p-plaque" role="radio" data-value="s">
+          <span class="p-name display" data-i18n="uiSmall">FINE</span>
+          <span class="p-desc" data-i18n="uiSmallDesc">Close reading</span>
+        </button>
+        <button class="p-plaque" role="radio" data-value="m">
+          <span class="p-name display" data-i18n="uiMedium">STANDARD</span>
+          <span class="p-desc" data-i18n="uiMediumDesc">Scales with the screen</span>
+        </button>
+        <button class="p-plaque" role="radio" data-value="l">
+          <span class="p-name display" data-i18n="uiLarge">SIGNBOARD</span>
+          <span class="p-desc" data-i18n="uiLargeDesc">Legible from across the room</span>
         </button>
       </div>
     </section>

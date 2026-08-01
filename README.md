@@ -11,9 +11,26 @@ Atrium serves `http://127.0.0.1:8769` and currently fronts:
 | Anime Autopilot | Salon (play) | `127.0.0.1:8767` — anime RSS automation panel |
 | Ground Station | Salon (play) | `127.0.0.1:8768` — Paradox workshop mod tracker |
 | Outreach Desk | Bureau (work) | `127.0.0.1:8802` — LinkedIn outreach console |
+| The Press Room | Bureau (work) | `127.0.0.1:8765` — overnight news digest |
 
 ## What's on the page
 
+- **The concourse** — above 1800px the hall opens into three bays: an aisle
+  either side of the stage, under one continuous wall and standing on one
+  continuous floor. The wall carries a dentil cornice, fluted pilasters, a
+  panelled dado and a sconce per bay, and the bays are cut against however
+  much wall the arches leave over. The floor is a single perspective plane
+  of terrazzo with a 16-point compass rose inlaid under the clock, a roundel
+  over each aisle, and a balustrade along the flanks. Below 1800px the grid
+  collapses to the centre column the hall shipped with.
+- **The Directory** (left aisle) — the building directory: every registered
+  service with its mark, address, live stat and status lamp. A row is the
+  gate said twice — the same click, the same flash on the same arch, the
+  same launcher hint when a service is dark.
+- **The Bulletin** (right aisle) — a glazed notice case holding the latest
+  dispatches, so today's news is on the wall instead of only behind the
+  Ledger's hatch. Its footer opens the Ledger; empty slots show as ghost
+  rails rather than a gap.
 - **The concourse clock** — the hall's centrepiece, showing your machine's
   local time. A grande-complication regulator in a stepped octagonal deco
   case: knurled bronze bezel, guilloche field, twelve Roman numerals, and
@@ -102,6 +119,11 @@ right) — nothing is exposed in the main chrome:
   system (reacts live to OS theme changes)
 - **Language**: English / 中文 (headlines localize retroactively — they are
   composed client-side from structured data)
+- **Engraving size**: Fine / Standard / Signboard — your own correction on
+  top of the automatic one. The hall already grows its lettering with the
+  screen (+12% at 1900px, +24% at 2400px, +40% at 3000px and up), because
+  what a 34" display changes is physical size, not pixel count. This is the
+  dial for when that still isn't right for where you sit.
 - **Motion**: Full / Reduced (defaults from `prefers-reduced-motion`)
 - **Replay entrance**
 
@@ -210,17 +232,17 @@ Tests: `python tests/test_feed.py`
 ## Adding a future web UI
 
 Add one entry to `SERVICES` in `server.py` (id, name, wing, url, addr,
-sigil, desc_key, launch_hint, order) — the gate renders immediately with the
-fallback sigil and a status lamp. Optionally add a sigil `<g id="sig-<id>">`
+sigil, desc_key, launch_hint, order) — the gate and its Directory row render
+immediately with the fallback sigil and a status lamp. Optionally add a sigil `<g id="sig-<id>">`
 in `index.html`, `desc.<key>` strings in both i18n dictionaries, and an
 adapter tick if the service should feed the Ledger.
 
 ## Debug URL parameters
 
 Not persisted, for testing only: `?theme=onyx|ivory` · `?lang=en|zh` ·
-`?wing=salon|bureau` · `?motion=full|reduced` · `?entrance=0|1` ·
-`?prefs=1` · `?steam=1` (freezes a steam burst at four life stages for
-screenshot QA).
+`?wing=salon|bureau` · `?motion=full|reduced` · `?ui=s|m|l` (engraving
+size) · `?entrance=0|1` · `?prefs=1` · `?steam=1` (freezes a steam burst at
+four life stages for screenshot QA).
 
 ## Fonts and textures
 

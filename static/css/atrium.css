@@ -49,6 +49,16 @@
   --rivet: rgba(232, 220, 192, 0.34);
   --steam-core: rgba(248, 240, 220, 0.60);
   --steam-mid: rgba(248, 240, 220, 0.26);
+  /* Concourse fabric (v4) — plaster, stone and the light that falls on them.
+     The wall must separate from the void behind the hall without becoming a
+     second surface tone: these sit between --base and --surface. */
+  --wall: #100d09;
+  --wall-hi: #17130c;
+  --wall-rec: #0a0806;
+  --terrazzo: #16120b;
+  --silhouette: rgba(4, 3, 2, 0.92);
+  --terrazzo-chip: rgba(232, 220, 192, 0.05);
+  --sconce-pool: rgba(212, 175, 55, 0.16);
   color-scheme: dark;
 }
 :root[data-theme="ivory"] {
@@ -80,6 +90,16 @@
   --rivet: rgba(42, 36, 22, 0.30);
   --steam-core: rgba(42, 36, 22, 0.15);
   --steam-mid: rgba(42, 36, 22, 0.07);
+  /* Ivory plaster is *darker* than the paper ground: on this theme the void
+     behind the hall is the brightest thing on screen, so a wall lighter than
+     --base would read as a hole rather than a plane. */
+  --wall: #ece5d4;
+  --wall-hi: #f1ebdd;
+  --wall-rec: #e2dac6;
+  --terrazzo: #d9d1bd;
+  --silhouette: rgba(42, 36, 22, 0.44);
+  --terrazzo-chip: rgba(42, 36, 22, 0.06);
+  --sconce-pool: rgba(154, 123, 45, 0.15);
   color-scheme: light;
 }
 /* Wing metal — carried by exactly three surfaces:
@@ -90,12 +110,40 @@
 :root {
   --serif: 'EB Garamond', Georgia, 'Palatino Linotype', serif;
   /* The stage now seats a clock between the arches — the gates give up some
-     width so all three stand on one screen without crowding. */
-  --gate-w: clamp(182px, 13.6vw, 248px);
+     width so all three stand on one screen without crowding. On a wide wall
+     the module grows with the lettering (--ui): a 1720px diorama stranded in
+     the middle of a 3440px screen is the thing this pass exists to end. */
+  --gate-w: clamp(182px, min(13.6vw, 22vh),
+                  calc(248px * (0.62 + 0.38 * var(--ui))));
+  --rail-h: 96px;          /* the fixed machine rail's own height */
+  --hall-foot: 30px;       /* #hall's bottom padding, shared with the floor */
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
   --ease-stage: cubic-bezier(0.4, 0, 0.2, 1);
   --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
 }
+
+/* ----- Optical scale ------------------------------------------------------
+   One multiplier drives every piece of hall lettering and the arch module.
+   What a 34" desk display changes is physical size, not pixel count: the
+   12.5px engraving that reads at arm's length on a laptop is illegible from
+   across a room. --ui-auto tracks the viewport, --ui-user is the reader's own
+   correction from PREFERENCES, and the product is what the sheet consumes.
+   Custom properties substitute lazily, so a media query that moves --ui-auto
+   re-resolves --ui everywhere without restating a single rule.
+   SVG-internal font sizes (gear plates, lever plate, gauge, clock numerals)
+   are user units inside a viewBox and are deliberately NOT scaled — they
+   already ride their own art's scale. */
+/* Registered, so the value the sheet computes is the value scripts read: an
+   unregistered custom property hands back its raw token — literally
+   "calc(var(--ui-auto) * var(--ui-user))" — which parseFloat reads as NaN,
+   and every JS-side `* u` silently falls back to 1. */
+@property --ui { syntax: "<number>"; inherits: true; initial-value: 1; }
+:root { --ui-auto: 1; --ui-user: 1; --ui: calc(var(--ui-auto) * var(--ui-user)); }
+@media (min-width: 1900px) { :root { --ui-auto: 1.12; } }
+@media (min-width: 2400px) { :root { --ui-auto: 1.24; } }
+@media (min-width: 3000px) { :root { --ui-auto: 1.40; } }
+:root[data-ui="s"] { --ui-user: 0.90; }
+:root[data-ui="l"] { --ui-user: 1.15; }
 
 /* ----- Base -------------------------------------------------------------- */
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -105,12 +153,13 @@ body {
   background-color: var(--base);
   color: var(--ink);
   font-family: var(--serif);
-  font-size: 16px;
+  font-size: calc(16px * var(--ui));
   line-height: 1.5;
   transition: background-color 0.4s, color 0.4s;
   overflow-x: hidden;
-  padding-bottom: 116px;   /* the fixed machine rail must never cover the
-                              Ledger tail or the floor's near edge */
+  padding-bottom: var(--rail-h);   /* clearance for the fixed machine rail.
+                              Exactly the rail's height, so the floor plane's
+                              clip box lands on the page's own bottom edge. */
 }
 html[lang="zh"] body { font-family: 'EB Garamond', 'Noto Serif SC', 'Microsoft YaHei', serif; }
 /* Atmosphere sheet: vignette + fine grain in front of the hall — implies
@@ -156,7 +205,7 @@ html[lang="zh"] .display { letter-spacing: 0.26em; }
 .addr, .num {
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.08em;
-  font-size: 12px;
+  font-size: calc(12px * var(--ui));
 }
 
 /* Themed strokes/fills pick up variable flips with a scoped transition —
@@ -188,15 +237,19 @@ html[lang="zh"] .display { letter-spacing: 0.26em; }
    gates' baseline and their cornice line. A dial floating over the stage
    reads as a moon; a dial framed by architecture reads as the building. */
 #hall {
-  max-width: 1720px;
+  /* The cap is now a wall, not a picture frame: on a 3440px display the old
+     1720px ceiling left 860px of bare ground either side. The masthead rule
+     and the ticker run the full width of the hall so the architecture reads
+     as one building rather than a panel floated in a void. */
+  max-width: min(3280px, 100%);
   margin: 0 auto;
-  padding: 20px 44px 48px;
+  padding: 20px clamp(24px, 2.6vw, 72px) var(--hall-foot);
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   grid-template-areas:
     "masthead"
     "ticker"
-    "stage";
+    "concourse";
 }
 /* Suppressed loads only — a played entrance flipping data-entered later
    must not re-run this fade (the hall is already fully visible). */
@@ -216,23 +269,23 @@ html[data-boot="suppressed"] #hall { animation: hall-fade 0.3s var(--ease-out) b
 #monogram { width: 48px; height: 48px; color: var(--gold); }
 .m-title { display: flex; align-items: baseline; gap: 18px; }
 .m-title h1 {
-  font-size: 30px; font-weight: 560; letter-spacing: 0.28em;
+  font-size: calc(30px * var(--ui)); font-weight: 560; letter-spacing: 0.28em;
   color: var(--gold); line-height: 1;
 }
-.m-sub { font-size: 12px; color: var(--ink-faint); letter-spacing: 0.28em; }
+.m-sub { font-size: calc(12px * var(--ui)); color: var(--ink-faint); letter-spacing: 0.28em; }
 .m-underline {
   position: absolute; left: 0; right: 0; bottom: 0; height: 1px;
   background-color: var(--metal);
   transition: background-color 0.4s;
 }
 .m-right { display: flex; align-items: center; gap: 26px; }
-#dateline { font-size: 14px; color: var(--ink-faint); letter-spacing: 0.06em; }
+#dateline { font-size: calc(14px * var(--ui)); color: var(--ink-faint); letter-spacing: 0.06em; }
 #prefs-btn {
   display: flex; flex-direction: column; align-items: center; gap: 3px;
   color: var(--ink-faint);
 }
 #prefs-btn svg { width: 30px; height: 30px; }
-#prefs-btn .p-caption { font-size: 9px; letter-spacing: 0.24em; }
+#prefs-btn .p-caption { font-size: calc(9px * var(--ui)); letter-spacing: 0.24em; }
 #prefs-btn:hover { color: var(--gold-text); }
 #prefs-btn:hover svg { transform: rotate(22.5deg); }
 #prefs-btn svg { transition: transform 0.5s var(--ease-spring), stroke 0.4s; }
@@ -256,7 +309,7 @@ html[data-boot="suppressed"] #hall { animation: hall-fade 0.3s var(--ease-out) b
   pointer-events: none;
 }
 #ledger-btn svg { display: block; }
-#ledger-btn .p-caption { font-size: 10px; letter-spacing: 0.18em; }
+#ledger-btn .p-caption { font-size: calc(10px * var(--ui)); letter-spacing: 0.18em; }
 #ledger-btn:hover { color: var(--gold-text); }
 /* Sheen on hover — sanctioned one-pass shimmer */
 #ledger-btn:hover .hatch-face {
@@ -337,7 +390,7 @@ html[data-boot="suppressed"] #hall { animation: hall-fade 0.3s var(--ease-out) b
 #ticker::after { bottom: 3px; }
 .t-track {
   display: inline-block;
-  font-size: 13px;
+  font-size: calc(13px * var(--ui));
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--ink-faint);
@@ -363,7 +416,7 @@ html[data-boot="suppressed"] #hall { animation: hall-fade 0.3s var(--ease-out) b
    ========================================================================== */
 #machine-rail {
   position: fixed; left: 0; right: 0; bottom: 0;
-  height: 96px;
+  height: var(--rail-h);
   z-index: 50;
   isolation: isolate;
   pointer-events: none;   /* only the lever hit surface takes the pointer */
@@ -446,7 +499,7 @@ html[data-entered="no"] #machine-rail {
 }
 .gauge .g-hub { fill: var(--bronze); stroke: none; }
 .inst-caption {
-  font-size: 10px; letter-spacing: 0.24em;
+  font-size: calc(10px * var(--ui)); letter-spacing: 0.24em;
   color: var(--ink); margin-top: 2px;
 }
 .rail-plate { right: 44px; bottom: 24px; }
@@ -454,8 +507,8 @@ html[data-entered="no"] #machine-rail {
 .builder-plate rect { stroke: var(--bronze); fill: none; }
 .builder-plate circle { fill: var(--rivet); stroke: none; }
 .builder-plate text { fill: var(--ink); font-family: var(--serif); }
-.bp-name { font-size: 13px; letter-spacing: 0.2em; }
-.bp-no { font-size: 12px; letter-spacing: 0.08em; font-variant-numeric: tabular-nums; }
+.bp-name { font-size: calc(13px * var(--ui)); letter-spacing: 0.2em; }
+.bp-no { font-size: calc(12px * var(--ui)); letter-spacing: 0.08em; font-variant-numeric: tabular-nums; }
 
 /* ----- Lever assembly ---------------------------------------------------- */
 .assembly {
@@ -624,7 +677,7 @@ html[data-entered="no"] #machine-rail {
 
 .assembly .l-label {
   position: absolute; top: 46px;
-  font-size: 12px; letter-spacing: 0.2em;
+  font-size: calc(12px * var(--ui)); letter-spacing: 0.2em;
   color: var(--ink-faint);
   transition: color 0.4s;
 }
@@ -687,12 +740,53 @@ html[data-entered="no"] #machine-rail {
 /* ==========================================================================
    STAGE — triptych; gates positioned by transform only (60 fps law)
    ========================================================================== */
+/* ==========================================================================
+   THE CONCOURSE — aisle · stage · aisle, one wall, one floor
+   ==========================================================================
+   Bays open only when there is genuinely spare wall: below 2000px the grid
+   collapses to the single centre column the hall shipped with, and the two
+   boards fold underneath the stage. --aisle-w spends the surplus rather than
+   a flat fraction, so the stage never gets squeezed by its own decoration:
+   at 2000px each aisle takes its 300px floor, at 3440px it takes 620px and
+   the triptych still stands clear in the middle. */
+#concourse {
+  grid-area: concourse;
+  position: relative;
+  --gh2: calc(var(--gate-w) * 1.9);      /* the arch module everything shares */
+  --stage-h: calc(var(--gh2) + 80px);
+  /* The floor takes the room that is left, never room the hall needs: the
+     hall must stand on one screen without a scrollbar at any height. The
+     subtrahend tracks --ui because the masthead, ticker and rules above the
+     stage all grow with it. */
+  --floor-h: clamp(90px,
+    calc(100vh - var(--gh2) - 320px - 170px * var(--ui)), 330px);
+  --aisle-w: clamp(300px, calc((100vw - 1400px) / 3.6), 540px);
+  --bay-gap: clamp(20px, 2vw, 56px);
+  --skirt-h: calc(var(--gh2) * 0.079);   /* = the gates' own plinth rule */
+  --dado-h: calc(var(--gh2) * 0.19);
+  --cornice-h: calc(30px * var(--ui));
+  padding-top: 16px;
+  padding-bottom: var(--floor-h);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas: "stage";
+  grid-template-rows: var(--stage-h);
+}
+@media (min-width: 1800px) {
+  #concourse {
+    grid-template-columns:
+      minmax(0, var(--aisle-w)) minmax(0, 1fr) minmax(0, var(--aisle-w));
+    grid-template-areas: "aisle-l stage aisle-r";
+    column-gap: var(--bay-gap);
+  }
+}
+
 #stage {
   grid-area: stage;
   position: relative;
-  min-height: calc(var(--gate-w) * 1.9 + 70px);
-  padding-top: 26px;
-  align-self: start;   /* never stretch to the Ledger's row height */
+  min-height: var(--stage-h);
+  align-self: stretch;   /* the plinth line is shared with the aisles */
+  z-index: 2;
 }
 .stage-glow {
   position: absolute; left: 50%; bottom: 0;
@@ -706,23 +800,521 @@ html[data-entered="no"] #machine-rail {
 /* One-point-perspective floor: a real rotated plane whose deco seams
    converge behind the stage; the far edge dissolves into the base color
    (atmospheric falloff — the fade also hides aliasing at the horizon). */
-.floor {
-  position: absolute; left: -12%; right: -12%; bottom: -170px;
-  height: 230px;
-  transform: perspective(820px) rotateX(56deg);
-  transform-origin: top center;
-  background-image:
-    linear-gradient(to top, transparent 30%, var(--base) 96%),
-    repeating-linear-gradient(90deg, var(--line) 0 1px, transparent 1px 84px),
-    repeating-linear-gradient(0deg, var(--line) 0 1px, transparent 1px 46px);
-  opacity: 0.85;
+/* ==========================================================================
+   THE BACK WALL — one plane behind gates, clock and boards alike
+   ==========================================================================
+   The hall used to be an object floating in a void: at 1440px the object
+   filled the frame and read as a room, at 3440px it read as a diorama on a
+   beige desert. What makes it a room is a continuous wall — so the plaster,
+   the cornice and the dado run the whole width, and the aisles articulate
+   the stretch the triptych does not occupy.
+
+   `left: calc(50% - 50vw); width: 100vw` reaches the screen edges from
+   inside a centred grid: 50% is half the concourse, 50vw half the viewport,
+   and the concourse is centred, so the difference is exactly its left
+   offset. Full-bleed without a wrapper, and it survives the max-width cap. */
+#backwall {
+  position: absolute;
+  top: 0; bottom: 0;
+  left: calc(50% - 50vw); width: 100vw;
+  z-index: 0;
   pointer-events: none;
 }
+/* Plaster: lit from the skylight, so the wash runs top-bright. A single
+   two-stop tone — the ban on multi-stop metallic gradients is about metal;
+   plaster with one falloff is how a wall has always been drawn. */
+.wall-field {
+  position: absolute; inset: 0;
+  background-image: linear-gradient(to bottom,
+    var(--wall-hi) 0%, var(--wall) 46%, var(--wall-rec) 100%);
+  transition: background-image 0.4s;
+}
+/* Cornice: hairline soffit + a dentil course. Dentils are a wall-only
+   ornament (the ticker keeps the double rule; this is single + blocks). */
+.wall-cornice {
+  position: absolute; top: 0; left: 0; right: 0;
+  height: var(--cornice-h);
+  background-image:
+    linear-gradient(to bottom, var(--line) 0 1px, transparent 1px),
+    repeating-linear-gradient(90deg,
+      var(--chrome) 0 calc(7px * var(--ui)),
+      transparent calc(7px * var(--ui)) calc(20px * var(--ui))),
+    linear-gradient(to bottom, transparent 0 calc(100% - 1px), var(--line) 0);
+  background-size: 100% 100%, 100% calc(9px * var(--ui)), 100% 100%;
+  background-position: 0 0, 0 calc(11px * var(--ui)), 0 0;
+  background-repeat: no-repeat, repeat-x, no-repeat;
+  opacity: 0.75;
+}
+/* Dado: chair rail, a run of recessed panels, then the skirting the gates'
+   plinth line sits on. Panel dividers every 156px keep the run articulated
+   at any width without a single extra node. */
+.wall-dado {
+  position: absolute; left: 0; right: 0; bottom: 0;
+  height: var(--dado-h);
+  background-color: var(--wall-rec);
+  background-image:
+    /* chair rail (top) */
+    linear-gradient(to bottom, var(--line) 0 1px, transparent 1px),
+    /* panel dividers */
+    repeating-linear-gradient(90deg,
+      transparent 0 calc(156px * var(--ui)),
+      var(--line) calc(156px * var(--ui)) calc(157px * var(--ui))),
+    /* skirting */
+    linear-gradient(to top, var(--edge) 0 var(--skirt-h), transparent var(--skirt-h));
+  background-position: 0 0, 0 calc(12px * var(--ui)), 0 0;
+  background-size: 100% 100%, 100% calc(100% - var(--skirt-h) - 24px), 100% 100%;
+  background-repeat: no-repeat;
+  opacity: 0.9;
+  transition: background-color 0.4s;
+}
+
+/* ----- Aisle bays --------------------------------------------------------
+   Two spans of articulated wall, sized by JS to the ground the stage does
+   not stand on. Everything inside is placed on a bay rhythm so the wall
+   keeps a beat instead of a texture. */
+.aisle-wall {
+  position: absolute; top: 0; bottom: 0;
+  width: var(--aw, 0px);
+}
+.wall-l { left: 0; }
+.wall-r { right: 0; }
+
+/* Pilaster: fluted shaft between a stepped capital and a plinth block.
+   Fixed width, full height, flexed so the shaft eats the slack. */
+.pilaster {
+  position: absolute; top: var(--cornice-h); bottom: 0;
+  width: calc(38px * var(--ui));
+  margin-left: calc(-19px * var(--ui));
+  display: flex; flex-direction: column;
+}
+.pil-cap, .pil-base { width: 100%; height: auto; flex: none; }
+.pil-cap path, .pil-cap rect, .pil-base path, .pil-base rect {
+  fill: var(--wall-hi); stroke: var(--line); stroke-width: 1;
+  transition: fill 0.4s, stroke 0.4s;
+}
+.pil-shaft {
+  flex: 1 1 auto;
+  margin: 0 calc(5px * var(--ui));
+  background-color: var(--wall-hi);
+  box-shadow: calc(5px * var(--ui)) 0 calc(9px * var(--ui))
+              calc(-5px * var(--ui)) var(--shadow-soft);
+  /* three flutes: hairline pairs, not shading */
+  background-image:
+    linear-gradient(90deg, var(--line) 0 1px, transparent 1px),
+    linear-gradient(90deg, transparent calc(100% - 1px), var(--line) 0),
+    repeating-linear-gradient(90deg,
+      transparent 0 calc(8px * var(--ui)),
+      var(--chrome) calc(8px * var(--ui)) calc(9px * var(--ui)));
+  background-position: 0 0, 0 0, calc(5px * var(--ui)) 0;
+  background-size: 100% 100%, 100% 100%, calc(28px * var(--ui)) 100%;
+  background-repeat: no-repeat, no-repeat, repeat-x;
+  opacity: 0.92;
+  transition: background-color 0.4s;
+}
+
+/* Sconce: one lamp per bay, bracketed to the wall, throwing a pool on the
+   plaster. Architectural lighting on plaster — not an outer glow on gold,
+   which stays banned. One per bay is the whole density law. */
+.sconce {
+  position: absolute;
+  top: calc(var(--cornice-h) + 8%);
+  width: calc(46px * var(--ui));
+  margin-left: calc(-23px * var(--ui));
+}
+.sc-pool {
+  position: absolute; left: 50%; top: calc(-40px * var(--ui));
+  width: calc(230px * var(--ui)); height: calc(300px * var(--ui));
+  transform: translateX(-50%);
+  background-image: radial-gradient(ellipse at 50% 42%,
+    var(--sconce-pool) 0%, transparent 72%);
+  pointer-events: none;
+}
+.sc-body { position: relative; width: 100%; height: auto; }
+.sc-body .sc-shell { fill: var(--bronze-deep); stroke: var(--bronze); stroke-width: 1; }
+.sc-body .sc-step { fill: none; stroke: var(--bronze); stroke-width: 1; opacity: 0.8; }
+.sc-body .sc-flame { fill: var(--gold); opacity: 0.55; }
+.sc-body .sc-bracket { fill: none; stroke: var(--bronze); stroke-width: 1; }
+:root[data-motion="full"] .sc-flame { animation: sconce-breathe 5.5s ease-in-out infinite; }
+@keyframes sconce-breathe { 50% { opacity: 0.34; } }
+
+/* Bay number: each bay is engraved on the chair rail, so no two spans of
+   wall are the same span of wall. */
+.bay-plate {
+  position: absolute;
+  bottom: calc(var(--dado-h) - 15px * var(--ui));
+  transform: translateX(-50%);
+  font-size: calc(10px * var(--ui));
+  letter-spacing: 0.28em;
+  color: var(--ink-faint);
+  opacity: 0.5;
+  white-space: nowrap;
+}
+
+/* ==========================================================================
+   THE FLOOR — terrazzo, an inlaid compass, and a rail to stand behind
+   ========================================================================== */
+#floorplane {
+  position: absolute;
+  left: calc(50% - 50vw); width: 100vw;
+  bottom: calc(-1 * (var(--hall-foot) + var(--rail-h)));
+  height: calc(var(--floor-h) + var(--hall-foot) + var(--rail-h));
+  z-index: 0;
+  pointer-events: none;
+  /* A 3D-transformed child still contributes to the scrollable overflow
+     area, and the perspective divide throws this plane's near edge ~1400px
+     past its own box — enough to hang a scrollbar on a hall that otherwise
+     fits the screen exactly. Clip the floor to the band it is allowed to
+     occupy; that clip line is behind the machine rail either way. */
+  overflow: hidden;
+}
+/* One rotated plane. Children (the inlay) are projected with it, which is
+   the whole reason the medallion is nested rather than transformed twice. */
+.fl-plane {
+  position: absolute; left: -14%; right: -14%; top: 0;
+  height: 168%;
+  transform: perspective(900px) rotateX(59deg);
+  transform-origin: top center;
+  background-color: var(--terrazzo);
+  background-image:
+    /* skylight spill at the far edge, falling away to the near edge */
+    linear-gradient(to bottom,
+      color-mix(in srgb, var(--champagne) 13%, transparent) 0%,
+      transparent 42%,
+      color-mix(in srgb, var(--edge) 26%, transparent) 100%),
+    /* atmospheric falloff into the base tone at the far edge */
+    linear-gradient(to top, transparent 62%,
+      color-mix(in srgb, var(--edge) 62%, transparent) 100%),
+    /* terrazzo chip speckle */
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='c'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.62' numOctaves='3'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='discrete' tableValues='0 0 0 0 0 0 1'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23c)' opacity='0.5'/%3E%3C/svg%3E"),
+    /* slab seams */
+    repeating-linear-gradient(90deg,
+      color-mix(in srgb, var(--ink) 22%, transparent) 0 1px, transparent 1px 168px),
+    repeating-linear-gradient(0deg,
+      color-mix(in srgb, var(--ink) 22%, transparent) 0 1px, transparent 1px 92px);
+  transition: background-color 0.4s;
+}
+.fl-inlay {
+  /* Sized off the plane's HEIGHT: the inlay is a circle in floor space, so
+     a width-derived diameter runs straight off the near edge and only its
+     far arc ever reaches the screen. */
+  position: absolute; left: 50%; top: 2%;
+  height: 56%; aspect-ratio: 1; width: auto;
+  transform: translateX(-50%);
+}
+.fl-inlay svg { width: 100%; height: 100%; overflow: visible; }
+.fl-inlay .in-rule { fill: none; stroke: var(--gold); stroke-width: 2; opacity: 0.75; }
+.fl-inlay .in-hair { fill: none; stroke: var(--ink-faint); stroke-width: 1.2; opacity: 0.6; }
+.fl-inlay .in-pt-a { fill: var(--gold); opacity: 0.46; }
+.fl-inlay .in-pt-b { fill: var(--ink); opacity: 0.24; }
+.fl-inlay .in-tick { stroke: var(--ink-faint); stroke-width: 1.5; opacity: 0.7; }
+.fl-inlay .in-word {
+  fill: var(--gold); opacity: 0.62;
+  font-family: var(--serif); font-weight: 540;
+  letter-spacing: 14px; text-anchor: middle;
+}
+/* Deco key band running parallel to the plinth, just in front of the wall. */
+.fl-key {
+  /* Two courses of key: one along the wall, one across the front of the
+     field. Percentages stay inside the top ~65% of the plane — past that the
+     perspective divide puts the geometry behind the machine rail. */
+  position: absolute; left: 0; right: 0; top: 3.5%;
+  height: calc(20px * var(--ui));
+  background-image:
+    repeating-linear-gradient(90deg,
+      var(--gold) 0 1px, transparent 1px calc(13px * var(--ui))),
+    linear-gradient(to bottom, var(--gold) 0 1px, transparent 1px),
+    linear-gradient(to top, var(--gold) 0 1px, transparent 1px);
+  opacity: 0.8;
+}
+/* A hall floor is not one medallion and 2500px of blank stone: the aisles
+   get their own smaller roundels so the terrazzo carries a rhythm the whole
+   way across. Placed by JS at the aisle axes. */
+.fl-round {
+  position: absolute; top: 12%;
+  height: 34%; aspect-ratio: 1;
+  transform: translateX(-50%);
+}
+.fl-round svg { width: 100%; height: 100%; overflow: visible; }
+.fl-round .in-rule { stroke-width: 1.5; opacity: 0.55; }
+.fl-round .in-pt-a { opacity: 0.3; }
+.fl-round .in-pt-b { opacity: 0.16; }
+
+/* Foreground balustrade: the near edge of the floor gets something to stand
+   behind. Dark, low, unlit — it is in front of the key light, so it is drawn
+   as a silhouette rather than in the wall's own tones. It runs along the
+   flanks only: carried edge to edge it read as a fence pinned across the
+   view, arguing with the machine rail below it and flattening the very
+   depth it was put there to create. Open in the middle, it reads as the
+   head of a stair, and the compass keeps its clear ground. */
+.fl-rail {
+  position: absolute; left: -2%; right: -2%;
+  bottom: calc(var(--rail-h) + 4px);
+  height: calc(50px * var(--ui));
+  -webkit-mask-image: linear-gradient(90deg, #000 0 25%, transparent 31% 69%, #000 75%);
+  mask-image: linear-gradient(90deg, #000 0 25%, transparent 31% 69%, #000 75%);
+  background-image:
+    /* top rail + under-rail hairline */
+    linear-gradient(to bottom, var(--silhouette) 0 calc(6px * var(--ui)),
+      transparent calc(6px * var(--ui))),
+    linear-gradient(to bottom, transparent 0 calc(9px * var(--ui)),
+      var(--silhouette) calc(9px * var(--ui)) calc(10px * var(--ui)), transparent 0),
+    /* balusters */
+    repeating-linear-gradient(90deg,
+      transparent 0 calc(38px * var(--ui)),
+      var(--silhouette) calc(38px * var(--ui)) calc(45px * var(--ui))),
+    /* base rail */
+    linear-gradient(to top, var(--silhouette) 0 calc(5px * var(--ui)), transparent 0);
+  background-size: 100% 100%, 100% 100%,
+    100% calc(100% - 12px * var(--ui)), 100% 100%;
+  background-position: 0 0, 0 0, 0 calc(9px * var(--ui)), 0 0;
+  background-repeat: no-repeat, no-repeat, repeat-x, no-repeat;
+}
+
+/* ==========================================================================
+   AISLE BOARDS — the DIRECTORY and the BULLETIN
+   ==========================================================================
+   Two pieces of lobby furniture hung on the aisle walls: the building
+   directory on the left, the glazed notice case on the right. Their outline
+   is CHAMFERED, never stepped — stepped shoulders stay the gates' alone, and
+   the Ledger keeps its medallions. Both boards hang from the cornice and land
+   on the chair rail, so they share the architecture's two horizontals. */
+.board {
+  position: relative;
+  z-index: 2;
+  display: none;   /* opened by the aisle breakpoint below */
+  flex-direction: column;
+  align-self: stretch;
+  margin: calc(var(--cornice-h) + 0.6vh) 0 calc(var(--dado-h) * 0.8);
+  padding: calc(20px * var(--ui)) calc(22px * var(--ui)) calc(14px * var(--ui));
+  min-height: 0;
+  color: var(--ink);
+}
+#directory { grid-area: aisle-l; }
+#bulletin { grid-area: aisle-r; }
+@media (min-width: 1800px) {
+  .board { display: flex; }
+}
+/* The plate itself. clip-path kills box-shadow, so the lift is a pair of
+   drop-shadow filters (same contract as the Ledger plaques). */
+.bd-frame {
+  position: absolute; inset: 0;
+  background-color: var(--surface);
+  border: 1px solid var(--chrome);
+  clip-path: polygon(
+    calc(16px * var(--ui)) 0, calc(100% - 16px * var(--ui)) 0,
+    100% calc(16px * var(--ui)), 100% calc(100% - 16px * var(--ui)),
+    calc(100% - 16px * var(--ui)) 100%, calc(16px * var(--ui)) 100%,
+    0 calc(100% - 16px * var(--ui)), 0 calc(16px * var(--ui)));
+  filter: drop-shadow(0 3px 4px var(--shadow-drop))
+          drop-shadow(0 26px 42px var(--shadow-soft));
+  transition: background-color 0.4s, border-color 0.4s;
+}
+/* Inner gilt line, inset from the chamfer, plus the four seating rivets. */
+.bd-frame::before {
+  content: "";
+  position: absolute; inset: calc(7px * var(--ui));
+  border: 1px solid var(--gold);
+  opacity: 0.35;
+  clip-path: polygon(
+    calc(11px * var(--ui)) 0, calc(100% - 11px * var(--ui)) 0,
+    100% calc(11px * var(--ui)), 100% calc(100% - 11px * var(--ui)),
+    calc(100% - 11px * var(--ui)) 100%, calc(11px * var(--ui)) 100%,
+    0 calc(100% - 11px * var(--ui)), 0 calc(11px * var(--ui)));
+}
+.bd-frame::after {
+  content: "";
+  position: absolute; inset: calc(15px * var(--ui));
+  background-image:
+    radial-gradient(circle 2px at 0 0, var(--rivet) 99%, transparent),
+    radial-gradient(circle 2px at 100% 0, var(--rivet) 99%, transparent),
+    radial-gradient(circle 2px at 0 100%, var(--rivet) 99%, transparent),
+    radial-gradient(circle 2px at 100% 100%, var(--rivet) 99%, transparent);
+  background-repeat: no-repeat;
+}
+/* Glazing: transparent at rest — the one masked 30° sweep, on hover only. */
+.bd-glass {
+  position: absolute; inset: 0; z-index: 3;
+  overflow: hidden; pointer-events: none;
+  clip-path: polygon(3% 0, 97% 0, 97% 100%, 3% 100%);
+}
+.bd-glass::after {
+  content: "";
+  position: absolute; top: -60%; left: -120%;
+  width: 40%; height: 220%;
+  background-image: linear-gradient(90deg, transparent,
+    color-mix(in srgb, var(--champagne) 26%, transparent), transparent);
+  transform: rotate(30deg);
+  opacity: 0;
+}
+.board:hover .bd-glass::after { animation: sheen-sweep 0.6s var(--ease-out) 1; }
+
+.bd-head { position: relative; z-index: 1; text-align: center; padding-bottom: calc(12px * var(--ui)); }
+.bd-title {
+  font-size: calc(17px * var(--ui));
+  color: var(--gold);
+  letter-spacing: 0.3em;
+  line-height: 1;
+}
+/* Flanking lozenges — the board's own mark of rank. */
+.bd-title::before, .bd-title::after {
+  content: "◆";
+  font-size: 0.52em;
+  color: var(--metal);
+  vertical-align: middle;
+  opacity: 0.8;
+}
+.bd-title::before { margin-right: 0.9em; }
+.bd-title::after { margin-left: 0.9em; letter-spacing: 0; }
+.bd-sub {
+  margin-top: calc(6px * var(--ui));
+  font-size: calc(12.5px * var(--ui));
+  color: var(--ink-faint);
+  letter-spacing: 0.06em;
+}
+.bd-head::after {
+  content: "";
+  position: absolute; left: 6%; right: 6%; bottom: 0;
+  height: 1px; background-color: var(--gold); opacity: 0.4;
+}
+.bd-foot {
+  position: relative; z-index: 1;
+  margin-top: auto;
+  padding-top: calc(10px * var(--ui));
+  border-top: 1px solid var(--line);
+  text-align: center;
+}
+.bd-tally {
+  font-size: calc(11px * var(--ui));
+  letter-spacing: 0.24em;
+  color: var(--ink-faint);
+}
+.bd-open {
+  font-size: calc(11px * var(--ui));
+  letter-spacing: 0.24em;
+  color: var(--gold-text);
+  padding: calc(6px * var(--ui)) calc(10px * var(--ui));
+}
+.bd-open:hover { color: var(--champagne); }
+
+/* ----- Directory rows ---------------------------------------------------- */
+.bd-rows, .bd-notes {
+  position: relative; z-index: 1;
+  list-style: none;
+  display: flex; flex-direction: column;
+  justify-content: space-evenly;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+}
+.bd-row {
+  display: grid;
+  grid-template-columns: calc(34px * var(--ui)) minmax(0, 1fr) auto;
+  align-items: center;
+  gap: calc(14px * var(--ui));
+  padding: calc(9px * var(--ui)) calc(6px * var(--ui));
+  /* A board that quietly drops its last service is worse than a board with a
+     cramped one. Rows shrink and clip inside themselves before the list
+     clips a whole row off the bottom. */
+  min-height: 0; overflow: hidden;
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+  transition: background-color 0.25s;
+}
+.bd-row + .bd-row { border-top: 1px solid var(--line); }
+.bd-row:hover, .bd-row:focus-visible { background-color: var(--wall-rec); }
+.bd-row .bd-mark { width: 100%; height: auto; aspect-ratio: 1; }
+.bd-name {
+  font-size: calc(13.5px * var(--ui));
+  letter-spacing: 0.16em;
+  color: var(--ink);
+  display: block;
+}
+.bd-line {
+  display: block;
+  margin-top: calc(3px * var(--ui));
+  font-size: calc(11.5px * var(--ui));
+  color: var(--ink-faint);
+  letter-spacing: 0.06em;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.bd-row:hover .bd-name { color: var(--champagne); }
+.bd-lamp { display: flex; align-items: center; gap: calc(6px * var(--ui)); }
+.bd-lamp .lamp-d {
+  width: calc(8px * var(--ui)); height: calc(8px * var(--ui));
+  transform: rotate(45deg);
+  border: 1.5px solid var(--ink-faint);
+  transition: background-color 0.4s, border-color 0.4s;
+}
+.bd-lamp .lamp-t { font-size: calc(9.5px * var(--ui)); letter-spacing: 0.2em; color: var(--ink-faint); }
+.bd-row[data-state="open"] .lamp-d {
+  background-color: var(--gold-text); border-color: var(--gold-text);
+}
+.bd-row[data-state="open"] .lamp-t { color: var(--gold-text); }
+.bd-row[data-state="dark"] .bd-mark { opacity: 0.4; }
+.bd-row[data-wing="bureau"] .bd-name { letter-spacing: 0.16em; }
+
+/* ----- Bulletin notes ---------------------------------------------------- */
+.bd-note {
+  display: grid;
+  grid-template-columns: calc(26px * var(--ui)) minmax(0, 1fr);
+  gap: calc(12px * var(--ui));
+  padding: calc(9px * var(--ui)) calc(4px * var(--ui));
+  align-items: start;
+  min-height: 0; overflow: hidden;
+}
+.bd-note + .bd-note { border-top: 1px solid var(--line); }
+.bn-medal { width: 100%; height: auto; aspect-ratio: 1; }
+.bn-medal .rim { fill: none; stroke: var(--gold); stroke-width: 1.5; opacity: 0.7; }
+.bn-head {
+  display: block;
+  font-size: calc(13px * var(--ui));
+  color: var(--ink);
+  line-height: 1.35;
+}
+.bn-detail {
+  display: block;
+  margin-top: calc(3px * var(--ui));
+  font-size: calc(11.5px * var(--ui));
+  color: var(--ink-faint);
+  line-height: 1.45;
+}
+.bn-time {
+  display: block;
+  margin-top: calc(4px * var(--ui));
+  font-size: calc(10px * var(--ui));
+  letter-spacing: 0.14em;
+  color: var(--ink-faint);
+  opacity: 0.85;
+}
+a.bd-note:hover .bn-head { color: var(--champagne); }
+.bd-note.new .bn-head::after {
+  content: "◆"; font-size: calc(8px * var(--ui));
+  color: var(--champagne); margin-left: 0.5em; vertical-align: 0.15em;
+}
+/* Empty slots keep the case looking like a case, not a gap. */
+.bd-note.ghost { opacity: 0.5; }
+.bd-note.ghost .bn-head {
+  height: calc(11px * var(--ui));
+  border-bottom: 1px dashed var(--line);
+  max-width: 62%;
+}
+.bd-note.ghost .bn-medal {
+  width: calc(11px * var(--ui)); height: calc(11px * var(--ui));
+  margin: calc(5px * var(--ui)) auto 0;
+  border: 1px solid var(--line);
+  transform: rotate(45deg);
+}
+.bd-note.warn .bn-detail { color: var(--gold-text); }
+/* Both boards run text in a middle column that must be allowed to shrink;
+   without min-width:0 a long headline blows the grid track out and the
+   board pushes into the stage. */
+.bd-mid, .bn-mid { min-width: 0; display: block; }
 #gates { position: absolute; inset: 26px 0 0 0; }
 #all-dark {
   position: absolute; left: 50%; top: 46%;
   transform: translate(-50%, -50%);
-  font-size: 15px; letter-spacing: 0.12em; color: var(--ink-faint);
+  font-size: calc(15px * var(--ui)); letter-spacing: 0.12em; color: var(--ink-faint);
   text-transform: uppercase;
 }
 
@@ -825,7 +1417,7 @@ html[data-entered="no"] #machine-rail {
 .sigil.mark, .medal .m-mark { transition: none; }
 .g-name {
   margin-top: 26%;
-  font-size: clamp(14px, 1.15vw, 18px);
+  font-size: calc(clamp(14px, 1.15vw, 18px) * var(--ui));
   font-weight: 560;
   letter-spacing: 0.2em;
   color: var(--ink);
@@ -833,7 +1425,7 @@ html[data-entered="no"] #machine-rail {
 }
 .g-desc {
   margin-top: 10px;
-  font-size: 12.5px;
+  font-size: calc(12.5px * var(--ui));
   line-height: 1.55;
   color: var(--ink-faint);
   letter-spacing: 0.04em;
@@ -841,7 +1433,7 @@ html[data-entered="no"] #machine-rail {
 }
 .g-stat {
   margin-top: auto;
-  font-size: 13px;
+  font-size: calc(13px * var(--ui));
   letter-spacing: 0.14em;
   color: var(--gold-text);
   text-transform: uppercase;
@@ -860,7 +1452,7 @@ html[data-entered="no"] #machine-rail {
   margin-top: 10px;
   margin-bottom: 24%;   /* clears the plinth double rule */
   display: flex; align-items: center; gap: 7px;
-  font-size: 11px; letter-spacing: 0.22em;
+  font-size: calc(11px * var(--ui)); letter-spacing: 0.22em;
   color: var(--ink-faint);
   z-index: 3;
 }
@@ -918,7 +1510,7 @@ html[data-entered="no"] #machine-rail {
 .g-notice {
   position: absolute; left: 8%; right: 8%; bottom: 4%;
   z-index: 4;
-  font-size: 11px; line-height: 1.6;
+  font-size: calc(11px * var(--ui)); line-height: 1.6;
   color: var(--ink);
   background-color: var(--surface);
   border: 1px solid var(--line);
@@ -1142,10 +1734,10 @@ html[data-entered="no"] #machine-rail {
   display: flex; align-items: baseline; justify-content: space-between;
   margin-bottom: 14px;
 }
-.l-head h2 { font-size: 15px; color: var(--gold-text); letter-spacing: 0.28em; }
+.l-head h2 { font-size: calc(15px * var(--ui)); color: var(--gold-text); letter-spacing: 0.28em; }
 .chips { display: flex; gap: 6px; }
 .chip {
-  font-size: 10px; letter-spacing: 0.18em;
+  font-size: calc(10px * var(--ui)); letter-spacing: 0.18em;
   color: var(--ink-faint);
   padding: 4px 10px;
   border: 1px solid transparent;
@@ -1225,7 +1817,7 @@ html[data-entered="no"] #machine-rail {
 }
 .pl-frame > a:hover { background-color: var(--base); }
 .plaque.new .pl-head::after {
-  content: "◆"; font-size: 9px; color: var(--champagne);
+  content: "◆"; font-size: calc(9px * var(--ui)); color: var(--champagne);
   margin-left: 8px; vertical-align: 2px;
 }
 .medal {
@@ -1243,9 +1835,9 @@ html[data-entered="no"] #machine-rail {
 /* The mark fills the carrier end-cap rather than sitting inside it as a
    line drawing — 22 of the 40-unit medallion, centred. */
 .medal .m-mark { transform: translate(9px, 9px) scale(0.229); }
-.pl-head { font-size: 14.5px; color: var(--ink); letter-spacing: 0.03em; }
-.pl-detail { font-size: 12.5px; color: var(--ink-faint); margin-top: 2px; line-height: 1.5; }
-.pl-time { font-size: 11px; color: var(--ink-faint); margin-top: 5px; letter-spacing: 0.1em; }
+.pl-head { font-size: calc(14.5px * var(--ui)); color: var(--ink); letter-spacing: 0.03em; }
+.pl-detail { font-size: calc(12.5px * var(--ui)); color: var(--ink-faint); margin-top: 2px; line-height: 1.5; }
+.pl-time { font-size: calc(11px * var(--ui)); color: var(--ink-faint); margin-top: 5px; letter-spacing: 0.1em; }
 .plaque.warn .pl-head { color: var(--gold-text); }
 
 /* Day breaks: full-width double rule (the ledger's only double rules). */
@@ -1254,7 +1846,7 @@ html[data-entered="no"] #machine-rail {
   display: flex; align-items: center; gap: 12px;
   margin: 18px 0 14px calc(-44px + 0px);
   padding-left: 0;
-  font-size: 10.5px; letter-spacing: 0.28em;
+  font-size: calc(10.5px * var(--ui)); letter-spacing: 0.28em;
   color: var(--ink-faint);
   text-transform: uppercase;
 }
@@ -1279,7 +1871,7 @@ html[data-entered="no"] #machine-rail {
 
 .l-empty {
   text-align: center; color: var(--ink-faint);
-  font-size: 13px; letter-spacing: 0.1em;
+  font-size: calc(13px * var(--ui)); letter-spacing: 0.1em;
   padding: 30px 0;
 }
 .l-empty svg { width: 60px; height: 40px; margin: 0 auto 10px; color: var(--chrome); }
@@ -1357,11 +1949,11 @@ html[data-entered="no"] #machine-rail {
   border-bottom: 1px solid var(--line);
   padding-bottom: 14px; margin-bottom: 22px;
 }
-.p-head h2 { font-size: 16px; color: var(--gold-text); letter-spacing: 0.28em; }
-#prefs-close { color: var(--ink-faint); font-size: 16px; padding: 4px 8px; }
+.p-head h2 { font-size: calc(16px * var(--ui)); color: var(--gold-text); letter-spacing: 0.28em; }
+#prefs-close { color: var(--ink-faint); font-size: calc(16px * var(--ui)); padding: 4px 8px; }
 #prefs-close:hover { color: var(--ink); }
 .p-group { margin-bottom: 24px; }
-.p-label { font-size: 11px; color: var(--ink-faint); letter-spacing: 0.26em; margin-bottom: 10px; }
+.p-label { font-size: calc(11px * var(--ui)); color: var(--ink-faint); letter-spacing: 0.26em; margin-bottom: 10px; }
 .p-options { display: flex; gap: 10px; flex-wrap: wrap; }
 .p-plaque {
   flex: 1 1 140px;
@@ -1376,8 +1968,8 @@ html[data-entered="no"] #machine-rail {
   border-color: var(--gold);
   color: var(--ink);
 }
-.p-name { font-size: 12px; letter-spacing: 0.2em; }
-.p-desc { font-size: 11.5px; }
+.p-name { font-size: calc(12px * var(--ui)); letter-spacing: 0.2em; }
+.p-desc { font-size: calc(11.5px * var(--ui)); }
 .swatch { width: 34px; height: 12px; border: 1px solid var(--line); }
 .sw-onyx { background-color: #0c0a07; }
 .sw-ivory { background-color: #f4efe4; }
@@ -1792,7 +2384,6 @@ html[data-entered="no"] #stage { animation: stage-dolly 0.9s var(--ease-out) bot
    RESPONSIVE
    ========================================================================== */
 @media (max-width: 1279px) {
-  #stage { margin-bottom: 170px; }   /* reserve room for the floor plane */
   /* Drawer extends full-width on narrow viewports */
   #ledger { width: 100%; padding-top: 64px; }
 }
@@ -1800,7 +2391,7 @@ html[data-entered="no"] #stage { animation: stage-dolly 0.9s var(--ease-out) bot
   #hall { padding: 16px 18px 40px; }
   :root { --gate-w: clamp(170px, 44vw, 230px); }
   #masthead { grid-template-columns: 36px 1fr auto; }
-  .m-title h1 { font-size: 22px; }
+  .m-title h1 { font-size: calc(22px * var(--ui)); }
   .m-sub { display: none; }
   #dateline { display: none; }
   .rail-inst { display: none; }
