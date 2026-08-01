@@ -61,8 +61,11 @@ re-light reads even in the weakest cell (Bureau × Ivory).
   architectural lighting). *Board* — a **chamfered** outline with an inset
   gilt line and four seating rivets; the gates keep stepped shoulders and
   the Ledger keeps medallions, so a board is never either. *Floor inlay* —
-  compass rose and square-in-circle roundel, floor only; a compass rose is
-  not a rosette, and the masthead/settings rosettes stay unique.
+  banded medallion and square-in-circle roundel, floor only; a medallion is
+  not a rosette, and the masthead/settings rosettes stay unique. The floor is
+  the one surface where ornament is **cut rather than stroked**: filled stone
+  with brass only in the joints, because a hairline laid flat and
+  foreshortened to a third of its height reads as a decal.
 - Hairline tokens: 1px and 1.5px; a double rule = 2×1px with 3px gap.
 - **Ban list**: no multi-stop metallic gradients, no bevel/emboss, no outer
   glows on gold. The only specular effect is a single masked 30° sheen sweep
@@ -130,11 +133,21 @@ gates → Ledger). Mobile is out of scope for v1 but must not break.
 **The hall stands on one screen.** No vertical scrollbar at any supported
 size — a grand entrance you have to scroll is not an entrance. The vertical
 budget is spent in this order: masthead, ticker, arch module, floor. The
-module is capped by `min(13.6vw, 22vh)`, so a short viewport shortens the
-arches instead of pushing the plinth off the bottom, and `--floor-h` takes
-what is left (`100vh` minus the module minus the chrome, clamped 90–330px)
-rather than a fixed share. The concourse's grid row is exactly `--stage-h`:
-a board is never allowed to dictate the hall's height.
+module is capped by `min(13.6vw, 26.5vh)` and by `296px x (0.62 + 0.38 x
+--ui)`, so a short viewport shortens the arches instead of pushing the plinth
+off the bottom, and the floor takes what is left — `--floor-min` is only the
+*reservation* it insists on when the hall is taller than the screen. The
+concourse's grid row is exactly `--stage-h`: a board is never allowed to
+dictate the hall's height.
+
+**The wall claims its headroom back above 1080px.** The arch is aspect-locked,
+so on a tall screen every pixel the wall does not take goes to the floor — and
+the floor was reading as the largest object in the room. `--stage-h` is
+`--gh2 + clamp(80px, 100vh - 1080px, 100px)`: the term is inert below 1080px,
+so no short screen inherits a taller hall than it can stand, and above it the
+surplus goes to the wall and to the two cases hanging on it. On a 3440x1330
+display that moves the floor from 31.6% of the viewport to 27.1%, the arches
+up 6% and the boards up 9%.
 
 **Optical scale (`--ui`).** What a 34" desk display changes is physical
 size, not pixel count — the 12.5px engraving that reads at arm's length on a
@@ -157,8 +170,24 @@ visibly distinct construction (keyhole center), with a persistent caption
 **Short screens.** Under 860px of viewport height the hall gives up floor
 and a little of the arch module before it gives up the one-screen rule:
 `--gate-w`'s floor drops to 164px, `--floor-min` to `clamp(62px, 8vh,
-210px)`, and the hall's top padding to 12px. A 1280×800 laptop has ~700px of
+210px)`, and the hall's top padding to 12px. A 1280x800 laptop has ~700px of
 usable height for a composition whose stage alone wants 425 of it.
+
+**And the machine comes down with the floor.** The signal desk stands *on* the
+stone, so once the floor is a band rather than a field the console has to fit
+inside that band: `.assembly` scales 0.78 under 860px and 0.62 under 760px.
+Its main-scale coefficient is `0.80 + 0.14 x --ui` rather than tracking the
+lettering 1:1 — at the old slope a 3440 screen stood it 275px tall, which was
+taller than the stone under it once the wall took its headroom back, and the
+lever tip came up level with the skirting.
+
+**And the machine comes down with the floor.** The signal desk stands *on* the
+stone, so once the floor is a band rather than a field the console has to fit
+inside that band: `.assembly` scales 0.78 under 860px and 0.62 under 760px.
+Its main-scale coefficient is `0.80 + 0.14 x --ui` rather than tracking the
+lettering 1:1 — at the old slope a 3440 screen stood it 275px tall, which was
+taller than the stone under it once the wall took its headroom back, and the
+lever tip came up level with the skirting.
 
 ## The concourse clock (v3.2)
 
@@ -233,17 +262,22 @@ full width of the screen and the triptych stands on them.
 **Grid.** `#concourse` is `aisle-l · stage · aisle-r`, opening at 2200px;
 below that it collapses to the single centre column the hall shipped with
 and both boards are hidden (they are ultrawide furniture, not a fallback).
-`--aisle-w` spends the *surplus* — `clamp(300px, (100vw − 1700px) / 3.2,
-540px)` — rather than a flat fraction, so decoration can never squeeze the
-stage. The hall cap rises 1720px → `min(3280px, 100%)`.
+`--aisle-w` spends the *surplus* — `clamp(300px, (100vw − 1700px) / 3.05,
+560px)` — rather than a flat fraction, so decoration can never squeeze the
+stage. The hall cap rises 1720px → `min(3360px, 100%)`.
 
 The breakpoint is 2200px and not 1800 because two 300px aisles plus their
 gaps take ~680px off the stage: at 1920 that left the triptych a column
 narrower than itself and the flanking arches ended up half-swallowed by the
 arches in front of them, which reads as a bug rather than as depth. As a
 second guard `layoutStage()` sizes each flank to the clear column actually
-beside the outer arch (`room / gateW`, floored at 0.4) instead of a flat
-0.62, so a flank can tuck behind an arch but never disappear under one.
+beside the outer arch (`room / gateW`, floored at 0.34) instead of a flat
+0.62, so a flank can tuck behind an arch but never disappear under one. That
+room is short by a fixed **air gap** of `0.14 × gateW` before the flank is
+sized: given the bare remainder the flank grows until it *abuts* the arch in
+front of it, and two arches sharing an edge read as one torn shape rather
+than as two planes at different depths. The separation is what carries the
+recession, so it is reserved, not hoped for.
 
 **Full bleed from inside a centred grid.** Both scenery layers use
 `left: calc(50% - 50vw); width: 100vw`. 50% is half the concourse, 50vw half
@@ -294,23 +328,60 @@ screen. Below 2200px it is `display:none`, and a hidden panel must never
 keep the host sampling: `worksVisible()` gates every tick, and the hub's own
 TTL means an unopened panel spawns no `nvidia-smi` at all.
 
-**Floor (v4.1).** One plane hinged on its NEAR edge — `transform-origin:
-bottom center` with `rotateX(58deg)` — so the hall recedes *toward* the wall
-the way a floor does. Hinged at the top it receded downward, which is a
-ceiling seen from underneath; at a 161px floor nobody noticed, and at 460px
-everybody would. Its box now runs from the stage baseline to the screen's
-own bottom edge, and `#floorplane` is *backed* in `--terrazzo` so whatever
-the plane's length and the perspective divide leave uncovered is still
-stone. Over it: a terrazzo field with chip speckle, converging slab seams in
-plane units, a border course laid in plane space (uniform in floor units,
-which is what a real course is, and therefore converging on screen), a
-16-point compass rose with ATRIUM lettering, a square-in-circle roundel over
-each aisle, a skylight pool, the room's own shadow across the near ground,
+**Floor (v4.2) — cut, not drawn.** One plane hinged on its NEAR edge —
+`transform-origin: bottom center` with `rotateX(58deg)` — so the hall recedes
+*toward* the wall the way a floor does. Hinged at the top it receded downward,
+which is a ceiling seen from underneath. Its box runs from the stage baseline
+to the screen's own bottom edge, and `#floorplane` is *backed* in `--terrazzo`
+so whatever the plane's length and the perspective divide leave uncovered is
+still stone.
+
+v4.1 laid a 16-point compass rose over it in hairline geometry: uniform
+strokes, perfect radial symmetry, ATRIUM set dead centre. That is a *logo
+lying on the ground*, and it read as one — stiff, and pasted on rather than
+built in. A real deco lobby floor is not drawn at all; it is quarried tones
+butted against each other with brass divider strips in the joints. So the
+whole inlay is now cut from stone (`--stone-a/-b/-c`, per theme), the pattern
+is carried by VALUE because value is the only thing that survives being laid
+flat and foreshortened to a third of its height, and the brass never outlines
+a shape — it only fills a joint. The wordmark went with the line work: the
+masthead already says it, and a floor is not a letterhead.
+
+What is on the plane, near to far: a **runner** (a rectangle in floor space,
+which the projection turns into the trapezoid a runner actually is), running
+off the near edge with its fringe at the far end; the **medallion**, two
+banded courses of alternating wedges on 32 and 16 divisions with a bronze
+eight-point star, a tessera ring and a bronze boss — the *concentric* break is
+what stops a radial fan reading as a paper doily; a **square-in-circle
+roundel** over each aisle, a different construction so the floor reads as a
+set of inlays rather than one motif stamped three times; **aggregate**, 700
+chips on a fixed hash, three tones, one in eleven in brass, biased toward the
+viewer; a border course and key band in plane units; and **reflections**.
+
+**Reflections.** The stone is waxed, so every arch, the clock and both aisle
+cases come back up off it. The smears are drawn in *plane* space and left to
+the one `rotateX`, which is what makes each converge exactly as its own arch
+does — painted on the glass they would stay parallel and read as stripes. A
+point at depth `u` divides by `f = 1/(1 + u/L)`, so a column that is vertical
+*on screen* is a wedge on the plane: hence the trapezoid, 0.98 of the offset
+at the wall and 0.49 at the near edge. They carry `--metal`, so the whole
+floor changes temperature the moment the lever is thrown.
+
+Over all of it: a skylight pool, the room's own shadow across the near ground,
 and a contact shadow where the stone meets the skirting — a wall and a floor
-share a hard junction, not a horizon, so there is no atmospheric fade there.
-A foreground balustrade runs along the flanks only: carried edge to edge it
-read as a fence pinned across the view, flattening the very depth it exists
-to create.
+share a hard junction, not a horizon, so there is no atmospheric fade there. A
+foreground balustrade runs along the flanks only: carried edge to edge it read
+as a fence pinned across the view, flattening the very depth it exists to
+create.
+
+**Throw plates.** `SALON` and `BUREAU` used to float on the terrazzo either
+side of the lever: engraved ink on pale stone, foreshortened by the floor's
+own projection, at the one place in the hall with no plate behind them — the
+least legible lettering in the building, and it labelled its only control.
+They are brass plates on the quadrant now, countersunk screws and all, with
+the live wing lit. A signal lever's throws are named on metal because a plate
+is a *thing* and not a caption, and it answers the question the bare machine
+left open: what does pulling this do.
 
 **The perspective distance is a function of the floor's height.** `d = 2H ·
 tan θ` puts the horizon at twice the box height, and `377% = 2H / cos θ` is
@@ -323,7 +394,7 @@ one. The plane is 204% of the screen wide for the same reason: at the
 skirting the divide compresses it by exactly 2, and a plane only as wide as
 the screen pulls away from the corners.
 
-**Four traps, recorded so they are not re-sprung.** (1) A 3D-transformed
+**Six traps, recorded so they are not re-sprung.** (1) A 3D-transformed
 child still contributes to the scrollable overflow area: the plane's near
 edge projects far past its own box and hung a scrollbar on a hall that
 otherwise fit the screen exactly — `#floorplane` clips it. (2) Sizing a
@@ -338,6 +409,15 @@ floor cannot be mixed from `--edge`: in ivory that token is within four
 levels of `--terrazzo`, so the near-field gradient was invisible and the
 whole floor sat inside an 18-level range. Shadows come from `--shade`, which
 each theme derives from ink.
+(5) A square `viewBox` with
+`preserveAspectRatio="none"` stretched over a plane three to six times wider
+than it is long turns a round chip into an 8:1 sliver that reads as a scratch
+in the slab seams; `CHIP_SQUASH` puts `rx` back in the same ballpark as `ry`
+across every viewport the hall supports. (6) `var()` does not resolve in an
+SVG *presentation attribute*, so `stop-color="var(--metal)"` parses to
+nothing and the reflections painted fully transparent — with all six polygons
+present and correct in the DOM. Gradient stops take a class and the colour
+comes from the stylesheet.
 
 ## Gates (R9)
 

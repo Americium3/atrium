@@ -21,9 +21,15 @@ Atrium serves `http://127.0.0.1:8769` and currently fronts:
   panelled dado and a sconce per bay, and the bays are cut against however
   much wall the arches leave over. The floor is a single perspective plane
   of terrazzo, hinged on its near edge so the hall recedes toward the wall,
-  and it runs to the bottom edge of the screen: a border course laid in the
-  floor's own units (so it converges the way a real one does), a 16-point
-  compass rose inlaid under the clock, a roundel over each aisle, the
+  and it runs to the bottom edge of the screen. Everything on it is cut from
+  stone rather than drawn in line: a banded medallion under the clock with a
+  bronze star at its centre, a square-in-circle roundel over each aisle, a
+  border course laid in the floor's own units (so it converges the way a real
+  one does), 700 chips of aggregate scattered on a fixed hash, and a woven
+  runner leading in from the near edge with the signal desk standing on it.
+  The stone is waxed, so the arches, the clock and both aisle cases come back
+  up off it — and because the reflections carry the wing metal, the whole
+  floor changes temperature when the lever is thrown. Over all of it: the
   skylight's pool, the room's shadow across the near ground and a balustrade
   along the flanks. Below 2200px the grid collapses to the centre column the
   hall shipped with — two aisles cost the stage ~680px, and a narrower
@@ -75,7 +81,11 @@ Atrium serves `http://127.0.0.1:8769` and currently fronts:
 - **The ticker** — a status band (lines open, per-gate stats) that also
   scrolls dispatches you haven't seen yet; static when nothing is new.
 - **The signal desk** — a floor-mounted signal-box lever in a notched
-  quadrant (SALON ◆ BUREAU), standing on the terrazzo dead centre. Throwing
+  quadrant, standing on the runner dead centre, its two throws named on brass
+  plates screwed to the quadrant with the live wing lit. (The names used to
+  float on the terrazzo either side of it: engraved ink on pale stone,
+  foreshortened by the floor's own perspective, and the least legible
+  lettering in the hall — labelling its only control.) Throwing
   it re-lights the hall (gold ↔ platinum), re-composes the stage, spins the
   meshed gear pair in the aperture below (trapezoid teeth on ISO
   proportions, exact center distance and interleave phase), and vents a
@@ -213,7 +223,14 @@ this for free, because they recompute from what is on disk on every tick.
 run_hub.bat            # foreground-ish (logs to hub.log)
 run_hub_hidden.vbs     # hidden starter
 scripts/concierge.ps1  # port-guarded fleet autostart (see below)
+scripts/shot.py        # headless screenshot, e.g. shot.py wide 3440,1330 theme=ivory
+scripts/probe.py       # live layout boxes at each breakpoint, via ?probe=1
 ```
+
+`shot.py` and `probe.py` are the visual-check pair: a screenshot shows where a
+box ended up, and the probe shows how wide it was *allowed* to be — which is
+the number a `clamp()` never reports. Both drive headless Chrome and neither
+needs the hub restarted.
 
 Python 3.11 with `fastapi`, `uvicorn`, `httpx` (all present on the global
 interpreter). `psutil` is optional and only feeds the instrument case —

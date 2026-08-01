@@ -1158,8 +1158,15 @@ function layoutStage(initial) {
   // triptych and half its lettering disappears, which stops reading as depth
   // and starts reading as a bug. Give it the room that is actually there.
   // outermost is the outer arch's CENTRE, so its edge is half a gate on.
-  var room = W / 2 - (outermost + gateW / 2);
-  var flankS = Math.max(0.4, Math.min(0.62, room / gateW));
+  //
+  // The room is short by a fixed AIR gap as well. Sized to the bare
+  // remainder, the flank grows until it abuts the arch in front of it, and
+  // two arches sharing an edge read as one torn shape rather than as two
+  // planes at different depths — the separation is what carries the
+  // recession, so it is reserved before the flank is sized, not hoped for.
+  var air = gateW * 0.14;
+  var room = W / 2 - (outermost + gateW / 2) - air;
+  var flankS = Math.max(0.34, Math.min(0.62, room / gateW));
   var edge = Math.min(W / 2 - gateW * flankS / 2,
                       outermost + spacing * 0.86);
   receded.forEach(function (svc, i) {
@@ -1187,6 +1194,7 @@ function layoutStage(initial) {
     receded.length ? edge + gateW * flankS / 2 : 0
   );
   buildAisles();
+  if (!initial) scheduleMirror(680);
 }
 
 var resizeT;
@@ -1314,6 +1322,32 @@ function buildAisles() {
   var used = fillWall(wl, lw, boardHole($('#works'), bw.left), 1);
   fillWall(wr, rw, boardHole($('#bulletin'), axis + reach), used + 1);
   sizeFloor();
+  // The reflections are cast from the live arch boxes, so they are repainted
+  // by whatever last moved them — a resize, a wing throw, a font swap.
+  scheduleMirror(0);
+}
+
+/* A gate takes 0.6s to cross the stage, and getBoundingClientRect during
+   that is the arch's CURRENT box, not its destination — so a reflection
+   painted on the spot would sit under nothing for half a second and then
+   jump. SVG polygon points do not transition, so the smears fade out while
+   the arches travel and come back up under wherever they landed, which is
+   also how a reflection behaves when the thing casting it moves. */
+var mirrorT = null;
+function scheduleMirror(wait) {
+  var svg = $('.fl-mirror');
+  if (!svg) return;
+  clearTimeout(mirrorT);
+  if (!wait || root.dataset.motion === 'reduced') {
+    svg.style.opacity = '';
+    paintFloorMirror();
+    return;
+  }
+  svg.style.opacity = '0';
+  mirrorT = setTimeout(function () {
+    paintFloorMirror();
+    svg.style.opacity = '';
+  }, wait);
 }
 
 /* The floor's perspective distance has to be a function of the floor's own
@@ -1327,76 +1361,247 @@ function sizeFloor() {
   if (h) fp.style.setProperty('--fh', h + 'px');
 }
 
-/* The floor medallion: a 16-point compass rose inlaid in the terrazzo,
-   two-tone the way a real terrazzo compass is cut. Not a rosette — that
-   construction stays the masthead's and the settings trigger's. */
+/* A fixed 32-bit hash. Every chip, every slab tone and every fleck on this
+   floor is placed off it: irregular, and irregular the SAME way on every
+   reload. Math.random would give a floor that reshuffles itself between two
+   screenshots, which is the one thing a floor may never do. */
+function hash01(n) {
+  n = (n ^ 61) ^ (n >>> 16);
+  n = (n + (n << 3)) | 0;
+  n = n ^ (n >>> 4);
+  n = Math.imul(n, 0x27d4eb2d);
+  n = n ^ (n >>> 15);
+  return (n >>> 0) / 4294967296;
+}
+
+/* An annular sector, which is the only primitive a stone medallion needs:
+   every ring, wedge, tessera and border course below is one of these. */
+function ringSeg(cx, cy, r0, r1, a0, a1) {
+  var big = (a1 - a0) > Math.PI ? 1 : 0;
+  var p = function (r, a) {
+    return (cx + Math.cos(a) * r).toFixed(2) + ' ' + (cy + Math.sin(a) * r).toFixed(2);
+  };
+  return 'M' + p(r1, a0) + ' A' + r1 + ' ' + r1 + ' 0 ' + big + ' 1 ' + p(r1, a1) +
+         ' L' + p(r0, a1) + ' A' + r0 + ' ' + r0 + ' 0 ' + big + ' 0 ' + p(r0, a0) + ' Z';
+}
+
+/* The floor medallion, cut from stone.
+   ------------------------------------
+   The version this replaces was hairline geometry: uniform strokes, perfect
+   symmetry, ATRIUM set dead centre. That is a LOGO lying on the ground, and
+   it read as one - stiff, and pasted on rather than built in. A terrazzo
+   medallion is quarried tones butted against each other with brass divider
+   strips in the joints. The pattern is carried by VALUE, because value is
+   the only thing that survives being laid flat and foreshortened to a third
+   of its height; the brass never outlines a shape, it only fills a joint.
+   The wordmark goes with the line work - the masthead already says it, and
+   a floor is not a letterhead. */
 function buildFloorInlay() {
   var host = $('.fl-inlay');
   if (!host || host.firstChild) return;
-  var C = 500, svg = svgEl('svg', { viewBox: '0 0 1000 1000', 'aria-hidden': 'true' });
-  var rings = [[470, 'in-rule'], [452, 'in-hair'], [300, 'in-hair'], [150, 'in-hair']];
-  rings.forEach(function (r) {
-    svg.appendChild(svgEl('circle',
-      { cx: C, cy: C, r: r[0], fill: 'none' }, r[1]));
+  var C = 500, TAU = Math.PI * 2;
+  var svg = svgEl('svg', { viewBox: '0 0 1000 1000', 'aria-hidden': 'true' });
+  var add = function (d, cls) { svg.appendChild(svgEl('path', { d: d }, cls)); };
+
+  // Outer border course: 64 setts, tone alternating.
+  for (var i = 0; i < 64; i++) {
+    add(ringSeg(C, C, 428, 470, (i / 64) * TAU, ((i + 1) / 64) * TAU),
+        i % 2 ? 'st-b' : 'st-a');
+  }
+  svg.appendChild(svgEl('circle', { cx: C, cy: C, r: 470, fill: 'none' }, 'st-strip'));
+  svg.appendChild(svgEl('circle', { cx: C, cy: C, r: 428, fill: 'none' }, 'st-strip'));
+
+  // Two fields, not one. A single radial fan is a paper doily; a real
+  // medallion is banded, and it is the CONCENTRIC break that stops the eye
+  // spinning. Outer band on 32 divisions, inner field on 16, so the two
+  // courses are visibly different work rather than the same wedge twice.
+  [[336, 420, 32], [196, 330, 16]].forEach(function (band, bi) {
+    for (var w = 0; w < band[2]; w++) {
+      var seg = svgEl('path', {
+        d: ringSeg(C, C, band[0], band[1], (w / band[2]) * TAU - Math.PI / 2,
+                   ((w + 1) / band[2]) * TAU - Math.PI / 2)
+      }, (w % 2 ? 'st-a' : 'st-b'));
+      // No two slabs of the same stone come out of the same block.
+      seg.setAttribute('opacity',
+        (0.84 + hash01(w * 7 + bi * 91 + 3) * 0.16).toFixed(3));
+      svg.appendChild(seg);
+    }
   });
-  // 32 ticks around the bearing ring
-  for (var k = 0; k < 32; k++) {
-    var a = (k / 32) * Math.PI * 2;
-    var deep = k % 4 === 0 ? 22 : 12;
-    svg.appendChild(svgEl('line', {
-      x1: C + Math.cos(a) * 452, y1: C + Math.sin(a) * 452,
-      x2: C + Math.cos(a) * (452 - deep), y2: C + Math.sin(a) * (452 - deep)
-    }, 'in-tick'));
+  svg.appendChild(svgEl('circle', { cx: C, cy: C, r: 333, fill: 'none' }, 'st-strip'));
+  // Eight bronze points laid OVER both fields: the star is cast metal set
+  // into the stone, which is what gives the medallion an axis and what the
+  // hall's own compass bearing hangs on.
+  for (var k = 0; k < 8; k++) {
+    var ang = (k / 8) * TAU - Math.PI / 2;
+    var R = k % 2 === 0 ? 412 : 322, spread = k % 2 === 0 ? 0.068 : 0.05;
+    svg.appendChild(svgEl('polygon', {
+      points: [C + Math.cos(ang) * R, C + Math.sin(ang) * R,
+               C + Math.cos(ang + spread) * 170, C + Math.sin(ang + spread) * 170,
+               C + Math.cos(ang - spread) * 170, C + Math.sin(ang - spread) * 170].join(' ')
+    }, k % 2 ? 'st-c' : 'st-bronze'));
   }
-  // 16 points: cardinals longest, then intercardinals, then the by-points.
-  for (var i = 0; i < 16; i++) {
-    var ang = (i / 16) * Math.PI * 2 - Math.PI / 2;
-    var R = i % 4 === 0 ? 430 : (i % 2 === 0 ? 330 : 235);
-    var w = i % 2 === 0 ? 0.11 : 0.07;
-    var ax = C + Math.cos(ang) * R, ay = C + Math.sin(ang) * R;
-    var bx = C + Math.cos(ang + w) * 96, by = C + Math.sin(ang + w) * 96;
-    var cx = C + Math.cos(ang - w) * 96, cy = C + Math.sin(ang - w) * 96;
-    svg.appendChild(svgEl('polygon',
-      { points: ax + ',' + ay + ' ' + bx + ',' + by + ' ' + C + ',' + C }, 'in-pt-a'));
-    svg.appendChild(svgEl('polygon',
-      { points: ax + ',' + ay + ' ' + cx + ',' + cy + ' ' + C + ',' + C }, 'in-pt-b'));
+  svg.appendChild(svgEl('circle', { cx: C, cy: C, r: 420, fill: 'none' }, 'st-hair'));
+  svg.appendChild(svgEl('circle', { cx: C, cy: C, r: 196, fill: 'none' }, 'st-strip'));
+
+  // Tessera ring, then the bronze boss with its own low relief.
+  for (var t = 0; t < 32; t++) {
+    add(ringSeg(C, C, 150, 186, (t / 32) * TAU, ((t + 0.62) / 32) * TAU),
+        t % 4 === 0 ? 'st-gold' : 'st-c');
   }
-  svg.appendChild(svgEl('circle', { cx: C, cy: C, r: 96, fill: 'none' }, 'in-rule'));
-  var word = svgEl('text', { x: C, y: C + 34 }, 'in-word');
-  word.setAttribute('font-size', '92');
-  word.textContent = 'ATRIUM';
-  svg.appendChild(word);
+  svg.appendChild(svgEl('circle', { cx: C, cy: C, r: 142 }, 'st-boss'));
+  svg.appendChild(svgEl('circle', { cx: C, cy: C, r: 142, fill: 'none' }, 'st-strip'));
+  var star = [];
+  for (var s = 0; s < 16; s++) {
+    var sa = (s / 16) * TAU - Math.PI / 2, sr = s % 2 ? 46 : 116;
+    star.push((C + Math.cos(sa) * sr).toFixed(1) + ',' + (C + Math.sin(sa) * sr).toFixed(1));
+  }
+  svg.appendChild(svgEl('polygon', { points: star.join(' ') }, 'st-bronze'));
+  svg.appendChild(svgEl('circle', { cx: C, cy: C, r: 30 }, 'st-gold'));
   host.appendChild(svg);
-  // The aisles get their own smaller roundels — square-in-circle, a
-  // different construction from the compass so the floor reads as a set of
-  // inlays rather than one motif stamped three times.
+
+  buildFloorRoundels();
+  buildTerrazzo();
+}
+
+/* A hall floor is not one medallion and 2500px of blank stone: the aisles
+   get their own smaller roundels so the terrazzo carries a rhythm the whole
+   way across. Square-in-circle, a different construction from the medallion
+   so the floor reads as a SET of inlays rather than one motif stamped three
+   times - and cut from the same two stones, for the same reason.
+   Placed in PLANE space, which is 204% of the screen wide and shrinks
+   outward from the axis by the perspective divide. At the roundels' own
+   depth that works out to x_screen = 0.5 + (p - 0.5) * 1.58, so 30/70 of
+   the plane lands on the aisle axes at roughly 22/78 of the screen. */
+function buildFloorRoundels() {
   var plane = $('.fl-plane');
-  // Placed in PLANE space, which is 204% of the screen wide and shrinks
-  // outward from the axis by the perspective divide. At the roundels' own
-  // depth that works out to x_screen = 0.5 + (p - 0.5) * 1.58, so 32/68 of
-  // the plane lands on the aisle axes at roughly 22/78 of the screen.
-  [32, 68].forEach(function (pct, i) {
+  if (!plane) return;
+  var TAU = Math.PI * 2;
+  [30, 70].forEach(function (pct, i) {
     var d = el('div', 'fl-round');
     d.style.left = pct + '%';
     var r = svgEl('svg', { viewBox: '0 0 400 400', 'aria-hidden': 'true' });
-    r.appendChild(svgEl('circle', { cx: 200, cy: 200, r: 190, fill: 'none' }, 'in-rule'));
-    r.appendChild(svgEl('circle', { cx: 200, cy: 200, r: 172, fill: 'none' }, 'in-hair'));
-    r.appendChild(svgEl('rect',
-      { x: 78, y: 78, width: 244, height: 244, fill: 'none',
-        transform: 'rotate(' + (i ? -45 : 45) + ' 200 200)' }, 'in-hair'));
-    r.appendChild(svgEl('rect',
-      { x: 100, y: 100, width: 200, height: 200, fill: 'none' }, 'in-hair'));
-    for (var k = 0; k < 8; k++) {
-      var a = (k / 8) * Math.PI * 2;
-      r.appendChild(svgEl('polygon', {
-        points: [200 + Math.cos(a) * 150, 200 + Math.sin(a) * 150,
-                 200 + Math.cos(a + 0.13) * 40, 200 + Math.sin(a + 0.13) * 40,
-                 200 + Math.cos(a - 0.13) * 40, 200 + Math.sin(a - 0.13) * 40].join(' ')
-      }, k % 2 ? 'in-pt-b' : 'in-pt-a'));
+    for (var j = 0; j < 24; j++) {
+      r.appendChild(svgEl('path',
+        { d: ringSeg(200, 200, 152, 190, (j / 24) * TAU, ((j + 1) / 24) * TAU) },
+        j % 2 ? 'st-b' : 'st-a'));
     }
-    r.appendChild(svgEl('circle', { cx: 200, cy: 200, r: 34, fill: 'none' }, 'in-rule'));
+    r.appendChild(svgEl('circle', { cx: 200, cy: 200, r: 190, fill: 'none' }, 'st-strip'));
+    r.appendChild(svgEl('circle', { cx: 200, cy: 200, r: 152, fill: 'none' }, 'st-strip'));
+    r.appendChild(svgEl('rect',
+      { x: 62, y: 62, width: 276, height: 276,
+        transform: 'rotate(' + (i ? -45 : 45) + ' 200 200)' }, 'st-c'));
+    r.appendChild(svgEl('rect', { x: 92, y: 92, width: 216, height: 216 }, 'st-b'));
+    r.appendChild(svgEl('rect',
+      { x: 92, y: 92, width: 216, height: 216, fill: 'none' }, 'st-hair'));
+    for (var k = 0; k < 8; k++) {
+      var a = (k / 8) * TAU;
+      r.appendChild(svgEl('polygon', {
+        points: [200 + Math.cos(a) * 138, 200 + Math.sin(a) * 138,
+                 200 + Math.cos(a + 0.15) * 42, 200 + Math.sin(a + 0.15) * 42,
+                 200 + Math.cos(a - 0.15) * 42, 200 + Math.sin(a - 0.15) * 42].join(' ')
+      }, k % 2 ? 'st-a' : 'st-c'));
+    }
+    r.appendChild(svgEl('circle', { cx: 200, cy: 200, r: 34 }, 'st-gold'));
     d.appendChild(r);
-    if (plane) plane.appendChild(d);
+    plane.appendChild(d);
+  });
+}
+
+/* Aggregate. The tell that a floor is a gradient rather than a floor is that
+   no two square metres of it differ; the noise filter under the plane gives
+   grain but not CHIPS. These are the visible ones - three sizes, three
+   tones, one in eleven in brass - biased toward the viewer, because the
+   projection stacks the far half of the plane into a fifth of the band and
+   an even scatter turns to felt up there. */
+var CHIP_SQUASH = 0.22;
+function buildTerrazzo() {
+  var svg = $('.fl-chips');
+  if (!svg || svg.firstChild) return;
+  var frag = document.createDocumentFragment();
+  for (var i = 0; i < 700; i++) {
+    var y = Math.pow(hash01(i * 3 + 11), 0.62);
+    var x = hash01(i * 5 + 7);
+    var s = hash01(i * 9 + 23);
+    // The plane is between three and six times wider than it is long, and
+    // the viewBox is square with preserveAspectRatio="none" — so a chip with
+    // equal radii comes out an 8:1 horizontal sliver that reads as a scratch
+    // in the slab seams. CHIP_SQUASH puts rx back in the same ballpark as ry
+    // across every viewport the hall supports; there is no one number, and a
+    // chip that is a little oval either way is a chip.
+    var ry = 3 + s * 8;
+    frag.appendChild(svgEl('ellipse', {
+      cx: (x * 1000).toFixed(1), cy: (y * 1000).toFixed(1),
+      rx: (ry * CHIP_SQUASH * (0.72 + hash01(i * 17 + 2) * 0.62)).toFixed(2),
+      ry: ry.toFixed(2)
+    }, s > 0.91 ? 'ch-g' : (s > 0.5 ? 'ch-l' : 'ch-d')));
+  }
+  svg.appendChild(frag);
+}
+
+/* The floor is waxed, so the room stands in it.
+   -------------------------------------------
+   Each arch and the clock come back up off the stone. The smears are drawn
+   in PLANE space and left to the one rotateX, which is what makes them
+   converge exactly as their own arches do - painted on the glass they would
+   stay parallel and read as stripes.
+   The mapping: a point at depth u along the plane divides by f = 1/(1 + u/L),
+   so a column that is vertical ON SCREEN is a WEDGE on the plane, widening
+   toward the viewer. Hence the trapezoid: 0.98 of the offset at the wall,
+   0.49 at the near edge. Reflections carry --metal, so the whole floor
+   changes temperature the moment the lever is thrown. */
+var MIRROR_FAR = 0.98, MIRROR_NEAR = 0.49, MIRROR_RUN = 560;
+function paintFloorMirror() {
+  var svg = $('.fl-mirror');
+  if (!svg) return;
+  var W = window.innerWidth || 1;
+  var seen = [];
+  Array.prototype.forEach.call(document.querySelectorAll('#gates .gate'),
+  function (g) {
+    var r = g.getBoundingClientRect();
+    if (r.width > 4) {
+      seen.push({ dx: (r.left + r.width / 2) / W - 0.5, hw: r.width / W / 2,
+                  lit: g.classList.contains('active') });
+    }
+  });
+  // The clock, and the two aisle cases: everything hanging on the wall is in
+  // the floor, or the flanks read as dry stone next to a wet middle.
+  [['#clock', true, true], ['#works', false, false], ['#bulletin', false, false]]
+  .forEach(function (spec) {
+    var e = $(spec[0]);
+    if (!e) return;
+    var r = e.getBoundingClientRect();
+    if (r.width > 4) {
+      seen.push({ dx: (r.left + r.width / 2) / W - 0.5, hw: r.width / W / 2,
+                  lit: spec[1], wide: spec[2] });
+    }
+  });
+  svg.textContent = '';
+  var defs = svgEl('defs');
+  svg.appendChild(defs);
+  seen.forEach(function (it, i) {
+    var id = 'mir' + i;
+    var grad = svgEl('linearGradient',
+      { id: id, x1: '0', y1: '0', x2: '0', y2: '1' });
+    var top = it.lit ? (it.wide ? 0.34 : 0.30) : 0.13;
+    // stop-color is set by CLASS, never as a presentation attribute: var()
+    // does not resolve in presentation attributes, so `stop-color="var(--metal)"`
+    // parses to nothing and the whole reflection paints transparent — which
+    // it did, silently, with all six polygons present in the DOM.
+    [[0, top], [0.42, top * 0.42], [1, 0]].forEach(function (st) {
+      grad.appendChild(svgEl('stop', {
+        offset: (st[0] * 100) + '%',
+        'stop-opacity': st[1].toFixed(3)
+      }, it.lit ? 'mir-lit' : 'mir-dim'));
+    });
+    defs.appendChild(grad);
+    var far = 500 + 1000 * MIRROR_FAR * it.dx, fw = 1000 * MIRROR_FAR * it.hw;
+    var near = 500 + 1000 * MIRROR_NEAR * it.dx, nw = 1000 * MIRROR_NEAR * it.hw;
+    svg.appendChild(svgEl('polygon', {
+      points: [(far - fw).toFixed(1) + ',0', (far + fw).toFixed(1) + ',0',
+               (near + nw).toFixed(1) + ',' + MIRROR_RUN,
+               (near - nw).toFixed(1) + ',' + MIRROR_RUN].join(' '),
+      fill: 'url(#' + id + ')'
+    }));
   });
 }
 

@@ -56,6 +56,15 @@
   --wall-hi: #17130c;
   --wall-rec: #0a0806;
   --terrazzo: #16120b;
+  /* The inlay is cut from STONE, not drawn in line. Two quarried tones plus
+     the brass divider strips are what a real terrazzo medallion is made of,
+     and value contrast is the only thing that survives being laid flat and
+     foreshortened to a third of its height. --rug is the runner's pile. */
+  --stone-a: #251d12;
+  --stone-b: #0e0b06;
+  --stone-c: #35291a;
+  --rug: #2a1e12;
+  --rug-hi: #8a6a2c;
   --shade: rgba(0, 0, 0, 0.55);
   --silhouette: rgba(4, 3, 2, 0.92);
   --terrazzo-chip: rgba(232, 220, 192, 0.05);
@@ -98,6 +107,11 @@
   --wall-hi: #f1ebdd;
   --wall-rec: #e2dac6;
   --terrazzo: #cec5ae;
+  --stone-a: #ddd6c3;
+  --stone-b: #ab9f80;
+  --stone-c: #bdb298;
+  --rug: #b3a381;
+  --rug-hi: #6d5a34;
   --shade: rgba(42, 36, 22, 0.30);
   --silhouette: rgba(42, 36, 22, 0.44);
   --terrazzo-chip: rgba(42, 36, 22, 0.06);
@@ -115,8 +129,8 @@
      width so all three stand on one screen without crowding. On a wide wall
      the module grows with the lettering (--ui): a 1720px diorama stranded in
      the middle of a 3440px screen is the thing this pass exists to end. */
-  --gate-w: clamp(182px, min(13.6vw, 25vh),
-                  calc(268px * (0.62 + 0.38 * var(--ui))));
+  --gate-w: clamp(182px, min(13.6vw, 26.5vh),
+                  calc(296px * (0.62 + 0.38 * var(--ui))));
   --desk-h: 210px;         /* the signal desk's own standing height */
   --hall-foot: 30px;       /* #hall's bottom padding, shared with the floor */
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
@@ -242,9 +256,9 @@ html[lang="zh"] .display { letter-spacing: 0.26em; }
      1720px ceiling left 860px of bare ground either side. The masthead rule
      and the ticker run the full width of the hall so the architecture reads
      as one building rather than a panel floated in a void. */
-  max-width: min(3280px, 100%);
+  max-width: min(3360px, 100%);
   margin: 0 auto;
-  padding: 20px clamp(24px, 2.6vw, 72px) var(--hall-foot);
+  padding: 20px clamp(24px, 2.4vw, 68px) var(--hall-foot);
   /* The hall stands the full screen, and the concourse row eats whatever the
      masthead and ticker leave. Content-height alone left ~270px of page
      ground below the floor on a 1235px viewport — a bright dead band under
@@ -457,7 +471,11 @@ html[data-entered="no"] #signal-desk {
 .assembly {
   position: absolute; left: 50%; bottom: 0;
   width: 360px; height: 220px;
-  transform: translateX(-50%) scale(calc(0.72 + 0.28 * var(--ui)));
+  /* Tracks the lettering, but at a third of its slope. On a 3440 screen the
+     old coefficient stood the machine 275px tall — taller than the stone it
+     stands on once the wall took its headroom back, so the lever tip came up
+     level with the skirting and the hall lost its floor to its furniture. */
+  transform: translateX(-50%) scale(calc(0.80 + 0.14 * var(--ui)));
   transform-origin: center bottom;
   pointer-events: none;
 }
@@ -618,17 +636,50 @@ html[data-entered="no"] #signal-desk {
   fill: var(--ink-faint); font-family: var(--serif); font-size: 11px;
 }
 
+/* Throw plates.
+   -----------
+   These were two bare words floating on the terrazzo either side of the
+   lever: engraved ink on pale stone, foreshortened by the floor's own
+   projection, at the one place in the hall with no plate behind them — so
+   they were the least legible lettering in the building, and they were the
+   labels for its only control. A signal lever's throws are named on brass
+   screwed to the quadrant, which is legible because it is a THING and not a
+   caption, and which incidentally answers the question the bare machine
+   left open: what does pulling this do.
+   The plates ride at the quadrant's own height, one per throw, and the live
+   wing is the one that is lit. */
 .assembly .l-label {
-  position: absolute; top: 46px;
-  font-size: calc(12px * var(--ui)); letter-spacing: 0.2em;
+  position: absolute; top: 30px;
+  padding: calc(4px * var(--ui)) calc(9px * var(--ui)) calc(3px * var(--ui));
+  font-size: calc(11px * var(--ui)); letter-spacing: 0.2em;
   color: var(--ink-faint);
-  transition: color 0.4s;
+  background-color: var(--bronze-deep);
+  border: 1px solid var(--bronze);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--machine-edge) 55%, transparent);
+  transition: color 0.4s, background-color 0.4s, border-color 0.4s;
 }
-.assembly .l-salon { right: calc(50% + 88px); }
-.assembly .l-bureau { left: calc(50% + 88px); }
-/* Active label brightens to ink — only the GRIP carries the wing metal. */
+/* The two countersunk screws that hold the plate on. */
+.assembly .l-label::before,
+.assembly .l-label::after {
+  content: "";
+  position: absolute; top: 50%;
+  width: 3px; height: 3px; margin-top: -1.5px;
+  border-radius: 50%;
+  background-color: var(--machine-edge);
+}
+.assembly .l-label::before { left: 3.5px; }
+.assembly .l-label::after { right: 3.5px; }
+.assembly .l-salon { right: calc(50% + 74px); }
+.assembly .l-bureau { left: calc(50% + 74px); }
+/* The live throw is lit. Only the GRIP carries the wing metal, so the plate
+   brightens to champagne rather than joining the wing-metal contract. */
 :root[data-wing="salon"] .l-salon,
-:root[data-wing="bureau"] .l-bureau { color: var(--ink); }
+:root[data-wing="bureau"] .l-bureau {
+  color: var(--champagne); border-color: var(--gold);
+  background-color: color-mix(in srgb, var(--gold) 16%, var(--bronze-deep));
+}
+:root[data-theme="ivory"][data-wing="salon"] .l-salon,
+:root[data-theme="ivory"][data-wing="bureau"] .l-bureau { color: var(--gold-text); }
 
 /* Hit surface = the machine base box; the arm zone is a child riding above
    it, so clicks land only where hardware is drawn (never a floating
@@ -696,7 +747,13 @@ html[data-entered="no"] #signal-desk {
   grid-area: concourse;
   position: relative;
   --gh2: calc(var(--gate-w) * 1.9);      /* the arch module everything shares */
-  --stage-h: calc(var(--gh2) + 80px);
+  /* Headroom over the arches, which is also what the boards hang in. The
+     arch is aspect-locked, so on a tall screen every pixel the wall does not
+     take goes to the floor — and the floor was reading as the largest thing
+     in the room. The room claims it back above 1080px of viewport and gives
+     it to the wall and the two cases; below that the term is inert, so no
+     short screen inherits a taller hall than it can stand. */
+  --stage-h: calc(var(--gh2) + clamp(80px, calc(100vh - 1080px), 100px));
   --pad-top: 16px;
   /* Only the RESERVATION. The concourse is the hall's 1fr row, so on any
      screen with room to spare the floor simply takes everything under the
@@ -704,7 +761,7 @@ html[data-entered="no"] #signal-desk {
      taller than the screen, and it is deliberately modest so a short
      viewport gives up floor before it gives up a scrollbar. */
   --floor-min: clamp(84px, 12vh, 210px);
-  --aisle-w: clamp(300px, calc((100vw - 1700px) / 3.2), 540px);
+  --aisle-w: clamp(300px, calc((100vw - 1700px) / 3.05), 560px);
   --bay-gap: clamp(20px, 2vw, 56px);
   --skirt-h: calc(var(--gh2) * 0.079);   /* = the gates' own plinth rule */
   --dado-h: calc(var(--gh2) * 0.19);
@@ -903,7 +960,7 @@ html[data-entered="no"] #signal-desk {
 }
 
 /* ==========================================================================
-   THE FLOOR — terrazzo, an inlaid compass, and a rail to stand behind
+   THE FLOOR — terrazzo, a stone medallion, a runner, and the room in it
    ========================================================================== */
 #floorplane {
   position: absolute;
@@ -1003,36 +1060,41 @@ html[data-entered="no"] #signal-desk {
      which is the convergence, and the whole point of laying it on the
      plane instead of drawing a rectangle on the glass. */
   position: absolute; inset: 3.5% 29.4%;
-  border: calc(var(--fh, 320px) * 0.045) solid
-          color-mix(in srgb, var(--ink) 15%, transparent);
-  outline: 2px solid color-mix(in srgb, var(--ink) 26%, transparent);
+  border: calc(var(--fh, 320px) * 0.045) solid var(--stone-b);
+  outline: 2px solid color-mix(in srgb, var(--gold) 42%, transparent);
   outline-offset: 0;
 }
 .fl-border::after {
   content: "";
   position: absolute; inset: -1px;
-  border: 2px solid color-mix(in srgb, var(--ink) 26%, transparent);
+  border: 2px solid color-mix(in srgb, var(--gold) 42%, transparent);
 }
 .fl-inlay {
   /* Sized off the plane's HEIGHT: the inlay is a circle in floor space, so
      a width-derived diameter runs straight off the near edge and only its
      far arc ever reaches the screen. Anchored to the NEAR edge — hung from
      the far one it climbs into the compressed band by the skirting. */
-  position: absolute; left: 50%; bottom: 5%;
-  height: 58%; aspect-ratio: 1; width: auto;
+  position: absolute; left: 50%; bottom: 25%;
+  height: 56%; aspect-ratio: 1; width: auto;
   transform: translateX(-50%);
 }
 .fl-inlay svg { width: 100%; height: 100%; overflow: visible; }
-.fl-inlay .in-rule { fill: none; stroke: var(--gold); stroke-width: 3; opacity: 0.92; }
-.fl-inlay .in-hair { fill: none; stroke: var(--ink-faint); stroke-width: 2; opacity: 0.78; }
-.fl-inlay .in-pt-a { fill: var(--gold); opacity: 0.6; }
-.fl-inlay .in-pt-b { fill: var(--ink); opacity: 0.34; }
-.fl-inlay .in-tick { stroke: var(--ink-faint); stroke-width: 2.4; opacity: 0.85; }
-.fl-inlay .in-word {
-  fill: var(--gold); opacity: 0.8;
-  font-family: var(--serif); font-weight: 540;
-  letter-spacing: 14px; text-anchor: middle;
-}
+/* Cut stone, not draughtsmanship. The old medallion was hairline geometry —
+   uniform strokes, perfect symmetry, a wordmark set dead centre — which is a
+   LOGO lying on the ground, and it read as one. A terrazzo medallion is
+   quarried tones butted against each other with brass divider strips in the
+   joints; the pattern is carried by VALUE, which is the only thing that
+   survives being laid flat and squashed to a third of its height. */
+.fl-inlay .st-a { fill: var(--stone-a); }
+.fl-inlay .st-b { fill: var(--stone-b); }
+.fl-inlay .st-c { fill: var(--stone-c); }
+.fl-inlay .st-boss { fill: var(--bronze-deep); }
+.fl-inlay .st-bronze { fill: var(--bronze); }
+/* Divider strips: real brass, set INTO the joint, so they are always the
+   thinnest thing on the floor and never outline a shape on their own. */
+.fl-inlay .st-strip { fill: none; stroke: var(--gold); stroke-width: 3.5; opacity: 0.62; }
+.fl-inlay .st-hair { fill: none; stroke: var(--gold); stroke-width: 2; opacity: 0.36; }
+.fl-inlay .st-gold { fill: var(--gold); opacity: 0.5; }
 /* Deco key band running parallel to the plinth, just in front of the wall.
    Everything on the plane is sized in PLANE percentages, not pixels: the
    projection halves the far field, so a px band engraved for a 400px floor
@@ -1041,11 +1103,14 @@ html[data-entered="no"] #signal-desk {
   position: absolute; left: 0; right: 0; top: 3.4%;
   height: 2.6%;
   background-image:
-    repeating-linear-gradient(90deg,
-      var(--gold) 0 1px, transparent 1px 0.6%),
     linear-gradient(to bottom, var(--gold) 0 1px, transparent 1px),
-    linear-gradient(to top, var(--gold) 0 1px, transparent 1px);
-  opacity: 0.8;
+    linear-gradient(to top, var(--gold) 0 1px, transparent 1px),
+    /* alternating setts, cut from the two quarried tones rather than
+       ticked off in gold hairline — the band has to read as coursing at
+       the depth where the projection has already halved it */
+    repeating-linear-gradient(90deg,
+      var(--stone-b) 0 0.62%, var(--stone-a) 0.62% 1.24%);
+  opacity: 0.85;
 }
 /* A hall floor is not one medallion and 2500px of blank stone: the aisles
    get their own smaller roundels so the terrazzo carries a rhythm the whole
@@ -1056,9 +1121,99 @@ html[data-entered="no"] #signal-desk {
   transform: translateX(-50%);
 }
 .fl-round svg { width: 100%; height: 100%; overflow: visible; }
-.fl-round .in-rule { stroke-width: 2.6; opacity: 0.75; }
-.fl-round .in-pt-a { opacity: 0.44; }
-.fl-round .in-pt-b { opacity: 0.24; }
+.fl-round .st-a { fill: var(--stone-a); }
+.fl-round .st-b { fill: var(--stone-b); }
+.fl-round .st-c { fill: var(--stone-c); }
+.fl-round .st-strip { fill: none; stroke: var(--gold); stroke-width: 4; opacity: 0.42; }
+.fl-round .st-gold { fill: var(--gold); opacity: 0.34; }
+
+/* ----- Aggregate --------------------------------------------------------
+   Terrazzo is chips of stone in a matrix, and the giveaway that a floor is a
+   gradient rather than a floor is that no two square metres of it differ.
+   Every chip is placed off a fixed hash: irregular, and identical on every
+   reload — a floor that reshuffles between two screenshots is not a floor. */
+.fl-chips { position: absolute; inset: 0; width: 100%; height: 100%; }
+.fl-chips .ch-l { fill: var(--stone-a); opacity: 0.5; }
+.fl-chips .ch-d { fill: var(--stone-b); opacity: 0.45; }
+.fl-chips .ch-g { fill: var(--gold); opacity: 0.13; }
+
+/* ----- Reflections ------------------------------------------------------
+   Waxed stone. Each arch, the clock and the skylight come back up off the
+   floor as a soft column that converges exactly the way its own arch does —
+   which is why the smears are drawn in PLANE space and left to the one
+   rotateX rather than painted onto the glass. They carry --metal, so the
+   whole floor changes temperature when the lever is thrown. */
+.fl-mirror {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  filter: blur(calc(var(--fh, 320px) * 0.017));
+  opacity: 0.85;
+  transition: opacity 0.45s var(--ease-out);
+}
+.fl-mirror .mir-lit { stop-color: var(--metal); }
+.fl-mirror .mir-dim { stop-color: var(--ink-faint); }
+
+/* ----- The runner -------------------------------------------------------
+   A rectangle in floor space, which the projection turns into the trapezoid
+   a runner actually is. It runs off the near edge — a rug that begins in
+   full view begins nowhere — and carries its fringe at the far end. Every
+   band is in PLANE percentages so the weave compresses toward the wall. */
+.fl-runner {
+  position: absolute; left: 50%; bottom: -6%;
+  width: 11%; height: 33%;
+  transform: translateX(-50%);
+  background-color: var(--rug);
+  /* Four courses, FRONT to back: the border bands (opaque at both selvedges,
+     clear between), the two brass guard rules just inside them, and the
+     lozenge lattice woven across the whole field. The bands ride on top on
+     purpose — that is what confines the lattice to the field without a
+     wrapper element per course.
+     The lattice was first laid as a single column down the centre, where the
+     machine stands: correct, invisible, and only findable by measuring the
+     rug against the console. It is woven full width now. */
+  background-image:
+    linear-gradient(90deg,
+      var(--rug-hi) 0 7%, transparent 7% 93%, var(--rug-hi) 93%),
+    linear-gradient(90deg,
+      transparent 0 10.5%, color-mix(in srgb, var(--gold) 62%, transparent) 10.5% 11.8%,
+      transparent 11.8% 88.2%,
+      color-mix(in srgb, var(--gold) 62%, transparent) 88.2% 89.5%, transparent 89.5%),
+    linear-gradient(45deg, transparent 44%,
+      color-mix(in srgb, var(--rug-hi) 56%, var(--rug)) 44% 56%, transparent 56%),
+    linear-gradient(135deg, transparent 44%,
+      color-mix(in srgb, var(--rug-hi) 56%, var(--rug)) 44% 56%, transparent 56%);
+  /* The motif tiles are sized in PIXELS off the floor's own height, not in
+     percentages of this box. The rug is roughly 770 x 420 in plane units, so
+     a percentage tile comes out twenty times wider than it is tall and a
+     45-degree lattice flattens into horizontal banding — which is exactly
+     what the first cut of this looked like. Square tiles, square lozenges. */
+  background-size:
+    100% 100%, 100% 100%,
+    calc(var(--fh, 320px) * 0.17) calc(var(--fh, 320px) * 0.17),
+    calc(var(--fh, 320px) * 0.17) calc(var(--fh, 320px) * 0.17);
+  background-position: 0 0, 0 0, center top, center top;
+  background-repeat: no-repeat, no-repeat, repeat, repeat;
+  box-shadow: 0 0 calc(var(--fh, 320px) * 0.045)
+              color-mix(in srgb, var(--shade) 62%, transparent);
+  transition: background-color 0.4s;
+}
+/* Fringe at the far end, where the rug stops short of the medallion. */
+.fl-runner::after {
+  content: "";
+  position: absolute; left: -1.5%; right: -1.5%;
+  top: calc(var(--fh, 320px) * -0.05); height: calc(var(--fh, 320px) * 0.05);
+  background-image: repeating-linear-gradient(90deg,
+    var(--rug-hi) 0 1.6%, transparent 1.6% 3.6%);
+  opacity: 0.7;
+}
+/* Pile catches the skylight along its length, not evenly. */
+.fl-runner::before {
+  content: "";
+  position: absolute; inset: 0;
+  background-image: linear-gradient(to top,
+    color-mix(in srgb, var(--shade) 26%, transparent) 0%,
+    transparent 34%,
+    color-mix(in srgb, var(--champagne) 12%, transparent) 100%);
+}
 
 /* Foreground balustrade: the near edge of the floor gets something to stand
    behind. Dark, low, unlit — it is in front of the key light, so it is drawn
@@ -1066,7 +1221,7 @@ html[data-entered="no"] #signal-desk {
    flanks only: carried edge to edge it read as a fence pinned across the
    view, arguing with the machine rail below it and flattening the very
    depth it was put there to create. Open in the middle, it reads as the
-   head of a stair, and the compass keeps its clear ground. */
+   head of a stair, and the runner keeps its clear ground. */
 .fl-rail {
   position: absolute; left: -2%; right: -2%;
   bottom: calc(14px * var(--ui));
@@ -1927,10 +2082,18 @@ a.bd-note:hover .bn-head { color: var(--champagne); }
 .medal svg { width: 40px; height: 40px; position: absolute; inset: 0; }
 .medal .rim { color: var(--gold); }
 .medal.m-bureau .rim { color: var(--plat); }
-.medal .m-sig { color: var(--ink-faint); transform: translate(8px, 8px) scale(0.25); }
+/* Both medallion carriers draw into a 40-unit viewBox, and the sigils are
+   drawn on a 96-unit grid, so a <use> with no transform renders at 2.4x and
+   bursts straight out of its rim — which is exactly the broken-image read.
+   The Ledger's carrier is a .medal SPAN wrapping the svg; the Bulletin's is
+   the svg ITSELF, class .bn-medal. Descendant selectors written for one miss
+   the other entirely, so every rule that places a mark names both. */
+.medal .m-sig, .bn-medal .m-sig {
+  color: var(--ink-faint); transform: translate(8px, 8px) scale(0.25);
+}
 /* The mark fills the carrier end-cap rather than sitting inside it as a
    line drawing — 22 of the 40-unit medallion, centred. */
-.medal .m-mark { transform: translate(9px, 9px) scale(0.229); }
+.medal .m-mark, .bn-medal .m-mark { transform: translate(9px, 9px) scale(0.229); }
 .pl-head { font-size: calc(14.5px * var(--ui)); color: var(--ink); letter-spacing: 0.03em; }
 .pl-detail { font-size: calc(12.5px * var(--ui)); color: var(--ink-faint); margin-top: 2px; line-height: 1.5; }
 .pl-time { font-size: calc(11px * var(--ui)); color: var(--ink-faint); margin-top: 5px; letter-spacing: 0.1em; }
@@ -2493,6 +2656,14 @@ html[data-entered="no"] #stage { animation: stage-dolly 0.9s var(--ease-out) bot
   }
   #hall { padding-top: 12px; }
   #concourse { --floor-min: clamp(62px, 8vh, 210px); }
+  /* And the machine comes down with it. It stands ON the stone, so once the
+     floor is a band rather than a field the console has to fit inside that
+     band — at full height its lever tip cleared the skirting and the thing
+     read as standing in the wall. */
+  .assembly { transform: translateX(-50%) scale(0.78); }
+}
+@media (max-height: 760px) {
+  .assembly { transform: translateX(-50%) scale(0.62); }
 }
 
 @media (max-width: 899px) {
