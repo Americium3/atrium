@@ -206,6 +206,28 @@ def test_unread_signal_strings_exist_in_both_languages():
     assert app_js.count("'{n} 条新消息'") == 1
 
 
+def test_nothing_marks_a_dispatch_read_except_the_reader():
+    """Reading is per-dispatch and driven by the pointer resting on a card.
+
+    The failure this guards is a regression to the old wholesale marking: any
+    code path that stamps `atrium.lastVisit` forward again silently clears the
+    whole feed, and the badge would go back to meaning "have you opened the
+    drawer today" instead of "how much is still outstanding". The floor is
+    read once at load and never written.
+    """
+    app_js = (Path(__file__).resolve().parent.parent
+              / "static" / "js" / "app.js").read_text(encoding="utf-8")
+    # store(k) reads, store(k, v) writes — the comma is the whole difference.
+    assert app_js.count("store('atrium.lastVisit')") == 1, "read the floor once"
+    assert "store('atrium.lastVisit'," not in app_js, "never re-stamp the floor"
+    # Both surfaces that show a dispatch have to be armed, or a card the reader
+    # rested on stays lit on the other one.
+    assert app_js.count("armDwell(") == 3          # definition + plaque + note
+    # Every unread decision goes through one predicate; a stray `ts > watermark`
+    # comparison would ignore the read set and resurrect cleared dispatches.
+    assert app_js.count("d.ts > watermark") == 1   # inside isNew() only
+
+
 def test_every_relayed_kind_has_a_headline_in_both_languages():
     """server.py and app.js drift apart easily — a dispatch kind with no i18n
     key renders as a blank detail line, which reads as a bug, not a mute."""

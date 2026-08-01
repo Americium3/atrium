@@ -46,8 +46,9 @@ Atrium serves `http://127.0.0.1:8769` and currently fronts:
   is, and `/api/stats` already serves the services' status.)
 - **The Bulletin** (right aisle) — a glazed notice case holding the latest
   dispatches, so today's news is on the wall instead of only behind the
-  Ledger's hatch. Its footer opens the Ledger; empty slots show as ghost
-  rails rather than a gap.
+  Ledger's hatch. Resting on a notice marks it read here too, and clears the
+  same dispatch on the plaque behind the hatch. Its footer opens the Ledger;
+  empty slots show as ghost rails rather than a gap.
 - **The concourse clock** — the hall's centrepiece, showing your machine's
   local time. A grande-complication regulator in a stepped octagonal deco
   case: knurled bronze bezel, guilloche field, twelve Roman numerals, and
@@ -72,11 +73,14 @@ Atrium serves `http://127.0.0.1:8769` and currently fronts:
   services: which anime got a new episode, premieres auto-subscribed, shows
   auto-completed, which watched workshop mod updated or got pulled, outreach
   daily-queue readiness and invites sent, and the morning edition going to
-  press. Dispatches newer than your last visit
-  carry a champagne rim, and the hatch button wears a single disc on its
-  housing ring while any of them are unread — the count behind it is in the
-  button's tooltip rather than on the disc. The watermark only advances when
-  the drawer has actually been open, so the signal survives a reload.
+  press. Dispatches you have not read carry a champagne rim, and the hatch
+  button wears a single disc on its housing ring while any of them are
+  unread — the count behind it is in the button's tooltip rather than on the
+  disc. **Reading is done by resting on it**: leave the cursor on a card for
+  a moment and the rim drains, the ◆ closes and that one dispatch is marked
+  read. Following a dispatch to its service, or tabbing onto it, does the
+  same. Opening and closing the drawer marks nothing, so the count means what
+  is still outstanding rather than whether you looked in today.
   Filter chips (ALL / SALON / BUREAU) are session-only
   and never touched by the mode lever — both wings' news always arrives.
   Escape, the scrim and the button all close it.
