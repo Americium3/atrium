@@ -1291,6 +1291,7 @@ a.bd-note:hover .bn-head { color: var(--champagne); }
 .bd-note.new .bn-head::after {
   content: "◆"; font-size: calc(8px * var(--ui));
   color: var(--champagne); margin-left: 0.5em; vertical-align: 0.15em;
+  display: inline-block;   /* the dwell strike scales it — see .mark-struck */
 }
 /* Empty slots keep the case looking like a case, not a gap. */
 .bd-note.ghost { opacity: 0.5; }
@@ -1819,6 +1820,27 @@ a.bd-note:hover .bn-head { color: var(--champagne); }
 .plaque.new .pl-head::after {
   content: "◆"; font-size: calc(9px * var(--ui)); color: var(--champagne);
   margin-left: 8px; vertical-align: 2px;
+  display: inline-block;                     /* so the strike can scale it */
+}
+
+/* Struck by dwelling. There is no button to press, so the dwell says so out
+   loud: the champagne rim drains back to the ordinary hairline and the
+   diamond closes, both over the 420ms the timer actually runs. Leaving early
+   drops .reading and the rim fills again on its own 0.4s transition, so an
+   aborted read looks aborted rather than silently ignored.
+   Named .reading on the plaque itself — the same class the Bulletin uses. */
+.plaque.new.reading .pl-frame { background-color: var(--line); }
+.plaque.new.reading .pl-head::after,
+.bd-note.new.reading .bn-head::after {
+  animation: mark-struck 420ms linear both;
+}
+@keyframes mark-struck {
+  from { opacity: 1; transform: scale(1); }
+  to   { opacity: 0; transform: scale(0.35); }
+}
+@keyframes mark-struck-flat {
+  from { opacity: 1; }
+  to   { opacity: 0; }
 }
 .medal {
   position: absolute; left: -34px; top: 10px;
@@ -2443,6 +2465,11 @@ html[data-entered="no"] #stage { animation: stage-dolly 0.9s var(--ease-out) bot
   .hatch-disc {
     transition: none !important;
   }
+  /* The dwell still has to be legible without motion, or resting on a plaque
+     does something invisible for 420ms and then jumps. Keep the timing, drop
+     the travel: the diamond fades where it stands. */
+  .plaque.new.reading .pl-head::after,
+  .bd-note.new.reading .bn-head::after { animation-name: mark-struck-flat; }
 }
 :root[data-motion="reduced"] {
   #ledger {
@@ -2465,4 +2492,9 @@ html[data-entered="no"] #stage { animation: stage-dolly 0.9s var(--ease-out) bot
   .hatch-disc {
     transition: none !important;
   }
+  /* The dwell still has to be legible without motion, or resting on a plaque
+     does something invisible for 420ms and then jumps. Keep the timing, drop
+     the travel: the diamond fades where it stands. */
+  .plaque.new.reading .pl-head::after,
+  .bd-note.new.reading .bn-head::after { animation-name: mark-struck-flat; }
 }

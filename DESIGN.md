@@ -321,12 +321,28 @@ full column width. Plaque anatomy: medallion (service sigil; gold rim Salon,
 platinum rim Bureau) + localized headline + detail line + relative time.
 Plaques are links opening the dispatch url.
 
-- **Seen/unseen watermark**: localStorage timestamp of the last time the
-  drawer was *open*. Dispatches newer than the watermark get a champagne rim
-  + small ◆ marker. The Ledger itself always shows the full window. The
-  watermark advances on close, and on unload only if the drawer was open —
-  stamping it on every unload marked dispatches read that were never looked
-  at, which leaves nothing for the unread signal to report.
+- **Read is what the pointer rested on**: unread dispatches get a champagne
+  rim + small ◆ marker; the Ledger itself always shows the full window. A
+  dispatch is marked read when the pointer has rested on its card for
+  **420 ms**, when it is focused by keyboard, or when it is followed through
+  to its service. Nothing else marks anything: opening or closing the drawer
+  clears no plaque, because a card three screens down was not read by the act
+  of shutting a drawer over it. Two localStorage keys back this — `atrium.read`
+  is the set of dispatch ids, pruned to the ids still inside the feed window
+  so it cannot grow forever; `atrium.lastVisit` is now a frozen **floor** left
+  by the old close-stamp, kept only so the change of model does not resurface
+  a fortnight of dispatches the reader already dismissed.
+- **The dwell shows its work**: resting adds `.reading`, which drains the
+  champagne rim back to the ordinary hairline and closes the ◆ over exactly
+  the 420 ms the timer runs. A mechanic with no button to press otherwise does
+  something invisible and then jumps; leaving early drops the class and the
+  rim refills, so an aborted read looks aborted. Reduced motion keeps the
+  timing and drops the travel (the diamond fades where it stands).
+- 420 ms is chosen against the traverse, not the glance: reaching the drawer's
+  close button crosses every plaque in the column, and marking on bare
+  `pointerenter` would empty the badge as a side effect of aiming at the
+  hatch. Touch is excluded outright — a tap fires `pointerenter`, which would
+  mark dispatches read for being scrolled past under a thumb.
 - **Unread signal (masthead)**: one 9 px disc seated at 45° on the hatch
   housing ring — an annunciator on the dispatch cap, not a badge pinned to
   the button's bounding box. Carries no numeral: the count is exposed through
@@ -349,11 +365,13 @@ Plaques are links opening the dispatch url.
 ## Ticker (status band, not an echo)
 
 The band under the masthead carries **status segments** (LINES OPEN n/3 ·
-per-gate live stats) plus only dispatches **newer than the watermark**. When
-nothing is new: a static line, no scroll. Pauses on hover AND focus; reduced
-motion = static line with at most a slow crossfade rotation. The ticker draws
-from the same unfiltered feed as the Ledger and ignores both the lever and
-the chips (R11).
+per-gate live stats) plus only dispatches **still unread**. When nothing is
+new: a static line, no scroll. Pauses on hover AND focus; reduced motion =
+static line with at most a slow crossfade rotation. The ticker draws from the
+same unfiltered feed as the Ledger and ignores both the lever and the chips
+(R11). It is the one surface a read does **not** update on the spot: it is a
+marquee, and rebuilding the track mid-scroll snaps it back to the start, so it
+catches up on its own poll instead.
 
 ## Mode lever (R11)
 

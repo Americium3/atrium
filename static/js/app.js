@@ -189,7 +189,6 @@ var statuses = {};
 var stats = {};
 var feed = [];
 var firstFeed = true;
-var watermark = +(store('atrium.lastVisit') || 0);
 var plaqueEls = {};   // dispatch id -> element (re-polls never re-animate)
 var chipFilter = 'all';   // session-only, resets to ALL on every load (R11)
 /* Ledger drawer state */
@@ -197,15 +196,102 @@ var ledgerOpening = false;    // true only during openLedger() render pass
 var cascadeIndex = 0;         // counter for --ci stamps in cascading pass
 var KNOWN_SIGILS = { autopilot: 1, groundstation: 1, outreach: 1, pressroom: 1 };
 
-window.addEventListener('pagehide', function () {
-  // Only a Ledger that was actually open counts as read. Stamping the
-  // watermark on every unload marked every dispatch read whether or not the
-  // drawer was ever opened, so the unread signal could not survive a reload —
-  // which is the one thing a notification dot has to do.
-  var drawer = document.getElementById('ledger');
-  if (!drawer || !drawer.classList.contains('open')) return;
-  store('atrium.lastVisit', String(Date.now()));
-});
+/* ========================================================================
+   Read state — the cursor is what reads
+   ------------------------------------------------------------------------
+   A dispatch counts as read once the pointer has RESTED on it. Opening the
+   drawer no longer clears the feed wholesale: that marked plaques the eye
+   never reached and turned the unread signal into a "have you opened this
+   today" lamp rather than a count of what is still outstanding.
+
+   Two stores, and both are load-bearing:
+   - `atrium.lastVisit` is now a FLOOR, frozen at whatever the old
+     close-stamp last wrote. Everything at or below it stays read, so moving
+     to this model does not resurface a fortnight of dispatches the reader
+     already dismissed. Nothing advances it any more.
+   - `atrium.read` is the per-dispatch set above that floor.
+   ======================================================================== */
+var READ_KEY = 'atrium.read';
+var READ_CAP = 400;   // the feed window is far smaller; this is only a lid
+/* Rest, not sweep. Reaching the Ledger's close button crosses every plaque
+   in the column, and marking on bare `pointerenter` would empty the badge as
+   a side effect of aiming at the hatch. 420 ms outlasts a traverse and comes
+   in under a glance. */
+var DWELL_MS = 420;
+
+var watermark = +(store('atrium.lastVisit') || 0);
+var readIds = (function () {
+  var out = {};
+  try {
+    JSON.parse(store(READ_KEY) || '[]').forEach(function (id) { out[id] = 1; });
+  } catch (e) { /* a corrupt store just means nothing is read yet */ }
+  return out;
+})();
+
+function isNew(d) {
+  return d.ts > watermark && !readIds[d.id];
+}
+
+function markRead(id) {
+  if (!id || readIds[id]) return;
+  readIds[id] = 1;
+  // Persist only ids still inside the feed window, plus the newcomer: a
+  // dispatch that has aged out can never be shown again, so carrying its id
+  // forward would grow the store forever to no effect.
+  var live = feed.filter(function (d) { return readIds[d.id]; })
+                 .map(function (d) { return d.id; });
+  if (live.indexOf(id) < 0) live.push(id);
+  store(READ_KEY, JSON.stringify(live.slice(-READ_CAP)));
+  syncReadMarks();
+}
+
+function cssEsc(s) {
+  return window.CSS && CSS.escape ? CSS.escape(String(s)) : String(s);
+}
+
+/* Both surfaces carry the same dispatches, so a plaque marked in the drawer
+   has to clear its twin in the Bulletin case behind it. The ticker is left
+   to its own poll: it is a marquee, and rebuilding the track mid-scroll
+   snaps it back to the start — a jump the hall would then have to explain. */
+function syncReadMarks() {
+  feed.forEach(function (d) {
+    var fresh = isNew(d);
+    var li = plaqueEls[d.id];
+    if (li) li.classList.toggle('new', fresh);
+    var note = document.querySelector('.bd-note[data-id="' + cssEsc(d.id) + '"]');
+    if (note) note.classList.toggle('new', fresh);
+  });
+  updateLedgerBadge();
+}
+
+/* Arm a card so resting on it marks its dispatch read. Touch is excluded on
+   purpose: a tap fires pointerenter, which would mark dispatches read for
+   the crime of being scrolled past under a thumb. Keyboard gets the same
+   deal as the pointer — focus IS the caret coming to rest, so it marks at
+   once rather than after a dwell nobody could see. */
+function armDwell(node, id) {
+  var timer = null;
+  function cancel() {
+    clearTimeout(timer);
+    timer = null;
+    node.classList.remove('reading');
+  }
+  node.addEventListener('pointerenter', function (e) {
+    if (e.pointerType && e.pointerType !== 'mouse' && e.pointerType !== 'pen') return;
+    cancel();
+    // .reading runs the dwell out loud — the champagne rim drains and the
+    // diamond closes over exactly DWELL_MS, so a mechanic with no button to
+    // press still shows its work, and leaving early visibly aborts it.
+    node.classList.add('reading');
+    timer = setTimeout(function () {
+      timer = null;
+      node.classList.remove('reading');
+      markRead(id);
+    }, DWELL_MS);
+  });
+  node.addEventListener('pointerleave', cancel);
+  node.addEventListener('focusin', function () { cancel(); markRead(id); });
+}
 
 /* ========================================================================
    Entrance — the sequence assembles the chrome (see DESIGN.md timeline)
@@ -1481,13 +1567,18 @@ function renderBulletin() {
   var shown = feed.slice(0, BULLETIN_SLOTS);
   shown.forEach(function (d) {
     var h = headline(d);
-    var a = el('a', 'bd-note' + (d.ts > watermark ? ' new' : '') + (h.warn ? ' warn' : ''));
+    var a = el('a', 'bd-note' + (isNew(d) ? ' new' : '') + (h.warn ? ' warn' : ''));
     a.setAttribute('role', 'listitem');
     a.href = d.url;
+    // The case rebuilds wholesale on every poll, so syncReadMarks() finds its
+    // notes by dispatch id rather than holding a reference that goes stale.
+    a.dataset.id = d.id;
     a.addEventListener('click', function (e) {
       e.preventDefault();
+      markRead(d.id);
       window.open(d.url, 'atrium-' + d.origin);
     });
+    armDwell(a, d.id);
     var svg = svgEl('svg', { viewBox: '0 0 40 40', 'aria-hidden': 'true' }, 'bn-medal');
     var rim = svgEl('use', {}, 'rim');
     rim.setAttribute('href', '#medallion');
@@ -1752,8 +1843,12 @@ function buildPlaque(d) {
   a.href = d.url;
   a.addEventListener('click', function (e) {
     e.preventDefault();
+    markRead(d.id);   // following a dispatch is the least ambiguous read there is
     window.open(d.url, 'atrium-' + d.origin);
   });
+  // Armed on the li, not the anchor: the medallion overhangs the spine
+  // outside the frame, and a reader who rests on the sigil is on the plaque.
+  armDwell(li, d.id);
   var medal = el('span', 'medal' + (d.wing === 'bureau' ? ' m-bureau' : ''));
   var ns = 'http://www.w3.org/2000/svg';
   var svg = document.createElementNS(ns, 'svg');
@@ -1782,7 +1877,7 @@ function buildPlaque(d) {
 function updatePlaque(li, d) {
   var h = headline(d);
   li.classList.toggle('warn', !!h.warn);
-  li.classList.toggle('new', d.ts > watermark);
+  li.classList.toggle('new', isNew(d));
   $('.pl-head', li).textContent = h.head || '';
   $('.pl-detail', li).textContent = h.detail || '';
   $('.pl-time', li).textContent = relTime(d.ts);
@@ -1886,7 +1981,7 @@ function updateLedgerBadge() {
   var badge = $('#ledger-badge');
   var btn = $('#ledger-btn');
   if (!badge) return;
-  var count = feed.filter(function (d) { return d.ts > watermark; }).length;
+  var count = feed.filter(isNew).length;
   var was = badgeCount;
   badgeCount = count;
 
@@ -1937,9 +2032,9 @@ function closeLedger() {
   ledgerEl.classList.remove('open');
   scrimEl.classList.remove('visible');
   ledgerBtnEl.setAttribute('aria-expanded', 'false');
-  // Update watermark on close — zeroes the badge on next check
-  watermark = Date.now();
-  store('atrium.lastVisit', String(watermark));
+  // Closing marks nothing. Reading is what the pointer did while the drawer
+  // was open, and a plaque three screens down was not read by the act of
+  // shutting the drawer over it.
   renderLedger();
   updateLedgerBadge();
 }
@@ -2013,7 +2108,7 @@ function renderTicker() {
     var txt = statText(s);
     if (txt) segs.push(txt);
   });
-  var fresh = feed.filter(function (d) { return d.ts > watermark; }).slice(0, 6);
+  var fresh = feed.filter(isNew).slice(0, 6);
   var freshTexts = fresh.map(function (d) {
     var h = headline(d);
     return (h.head + ' — ' + h.detail);
