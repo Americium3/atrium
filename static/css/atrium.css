@@ -42,8 +42,18 @@
   --shadow-drop: rgba(0, 0, 0, 0.55);
   --shadow-soft: rgba(0, 0, 0, 0.42);
   --vignette: rgba(0, 0, 0, 0.26);
-  /* Oiled-bronze machine family (v3.1) — flat tones, never gradients */
+  /* Oiled-bronze machine family (v3.1) — flat tones, never gradients.
+     --bronze-face (v4.3) is the lit front of casework that STANDS ON THE
+     FLOOR. --bronze-deep was specified when the desk was a rail across the
+     foot of the page and had the page behind it; against the terrazzo it
+     measures 1.05:1, so every housing face went invisible and the machine
+     read as a handful of loose strokes. Faces need their own tone: this one
+     is 2.18:1 on the floor, with --bronze above it for the cap and
+     --bronze-deep below it for recesses, so the casework has three flat
+     planes and therefore volume. (scripts/contrast.py checks the pair.) */
   --bronze-deep: #1e170d;
+  --bronze-face: #614829;
+  --bronze-cap: #7a5c31;     /* top surfaces — 1.37:1 over the face */
   --bronze: #6e522c;
   --machine-edge: #060504;   /* wells, slots, notches — darkest machine tone */
   --rivet: rgba(232, 220, 192, 0.34);
@@ -95,6 +105,11 @@
      dark against the greige housing (--edge is a paper tone here and would
      vanish, ~1.07:1). */
   --bronze-deep: #ddd3bc;
+  /* Ivory inverts the stack: a bronze console on pale stone is the DARK
+     object in the room, so the face goes below the floor tone (2.29:1) and
+     the cap sits above it. --bronze-deep stays the pale highlight. */
+  --bronze-face: #8f7f58;
+  --bronze-cap: #a89572;
   --bronze: #8a6a34;
   --machine-edge: #57492f;
   --rivet: rgba(42, 36, 22, 0.30);
@@ -481,19 +496,59 @@ html[data-entered="no"] #signal-desk {
 }
 .desk-art { position: absolute; inset: 0; contain: layout paint; }
 .quadrant { position: absolute; inset: 0; width: 100%; height: 100%; }
+
+/* ---- Console casework (v4.3) -------------------------------------------
+   The desk used to be three loose parts sharing a patch of floor: a lever
+   pivoting on nothing, a quadrant hanging in mid-air, and an aperture cut
+   into no surface. The stance in DESIGN.md is that mechanism is sublimated
+   by CASEWORK — the machine lives inside architecture and is revealed at
+   one opening — so the parts are now housed in a bronze console that stands
+   on the terrazzo: stepped plinth, fluted pilasters, frieze, cornice cap.
+   Every profile is borrowed from something already in the hall (the gates'
+   3-step shoulders, the aisle pilasters, the dado's chair rail), which is
+   what keeps it furniture in this room rather than a machine parked in it.
+
+   Three flat planes, no gradients: cap (lit top), face (front), deep
+   (recess). See the --bronze-face note in the token block for why the
+   front could not stay --bronze-deep. */
+.quadrant .cw-face     { fill: var(--bronze-face); stroke: none; }
+.quadrant .cw-cap      { fill: var(--bronze-cap); stroke: none; }
+.quadrant .cw-deep     { fill: var(--bronze-deep); stroke: none; }
+.quadrant .cw-recess   { fill: var(--machine-edge); stroke: none; }
+.quadrant .cw-edge     { fill: none; stroke: var(--bronze); stroke-width: 1; }
+.quadrant .cw-lit      { fill: none; stroke: var(--champagne); stroke-width: 1; opacity: 0.30; }
+.quadrant .cw-flute    { fill: none; stroke: var(--bronze-deep); stroke-width: 1.5; }
+.quadrant .cw-knurl    { fill: none; stroke: var(--bronze); stroke-width: 1; opacity: 0.55; }
+.quadrant .cw-rivet    { fill: var(--rivet); stroke: none; }
+/* Contact shadow where the plinth meets stone, and the waxed-floor return.
+   Every other thing standing in this hall comes back up off the terrazzo —
+   the arches, the clock, both aisle cases — and the machine was the one
+   object with no reflection, which is exactly why it read as pasted onto
+   the floor rather than set on it. The return is short and steep, so the
+   parallel-smear error a fixed element cannot avoid stays under a pixel. */
+.quadrant .cw-contact  { fill: var(--shade); stroke: none; }
+.quadrant .cw-return   { fill: var(--bronze-face); stroke: none; }
 .quadrant .q-plate { fill: var(--bronze-deep); stroke: var(--bronze); stroke-width: 1; }
 .quadrant .q-face { fill: none; stroke: var(--bronze); stroke-width: 1; }
 .quadrant .q-teeth { stroke: var(--ink-faint); stroke-width: 1; fill: none; }
 .quadrant .q-notch { fill: var(--machine-edge); stroke: none; }
 .quadrant .q-slot { fill: var(--machine-edge); stroke: var(--line); stroke-width: 1; }
 .quadrant .q-pipe { fill: var(--bronze-deep); stroke: var(--bronze); stroke-width: 1; }
-.quadrant .q-shadow { fill: var(--shadow-soft); stroke: none; }
 
 .desk-fx { position: absolute; inset: 0; }
+/* The aperture. It was a 176×56 rectangle — the only bare rectangle in a
+   hall built entirely from arches, stepped shoulders and arcs — and it was
+   so wide and so short that an 88px gear crossing it showed as a single
+   shallow band with no centre and no visible teeth: a stray arc, not a
+   machine. It is an ARCH now, on the hall's own semicircular head, and
+   narrow enough that the gear reads as round: 128 wide against a gear that
+   spans 88, showing 48px of it instead of 34. One deliberate opening per
+   region is the whole rule; this is the region's. */
 .gear-well {
-  position: absolute; left: 50%; bottom: 14px;
-  width: 176px; height: 56px;
-  margin-left: -88px;
+  position: absolute; left: 50%; bottom: 42px;
+  width: 112px; height: 60px;
+  margin-left: -56px;
+  border-radius: 56px 56px 2px 2px;   /* semicircular head, r = half width */
   overflow: hidden;               /* the one sanctioned clip — not clip-path */
   background-color: var(--machine-edge);
   border: 1px solid var(--bronze);
@@ -608,7 +663,7 @@ html[data-entered="no"] #signal-desk {
    ::before needs. */
 .gear-well::before {
   content: ''; position: absolute; inset: 0;
-  background: url('/static/assets/tex/riveted_iron.png') center / 176px;
+  background: url('/static/assets/tex/riveted_iron.png') center / 112px;
   opacity: 0.22;
   pointer-events: none;
   z-index: 0;
@@ -620,12 +675,20 @@ html[data-entered="no"] #signal-desk {
   mix-blend-mode: overlay;
 }
 
+/* The lever is BOLTED TO THE CONSOLE, not standing beside it. Its pivot
+   used to sit at assembly y=212 — below the console's own foot at 196 —
+   which made the arm a separate object that happened to lean across the
+   casework, and no amount of housing detail fixes two things sharing a
+   patch of floor. bottom:26px lands the pivot on the plinth's top face.
+   scale(.7) about that same pivot shortens the throw so the arm stops
+   sweeping wider than the machine it belongs to; every part on it scales
+   with it, so the anatomy keeps its proportions. */
 .lever-svg {
-  position: absolute; left: 110px; bottom: 0;
+  position: absolute; left: 110px; bottom: 26px;
   width: 140px; height: 210px;
   overflow: visible;
   transform-origin: 70px 202px;
-  transform: rotate(calc(-16deg + var(--drive, 0) * 32deg));
+  transform: rotate(calc(-16deg + var(--drive, 0) * 32deg)) scale(0.7);
   will-change: transform;
 }
 .lever-svg .lv-arm { fill: var(--bronze); stroke: var(--bronze-deep); stroke-width: 1; }
@@ -648,8 +711,11 @@ html[data-entered="no"] #signal-desk {
    left open: what does pulling this do.
    The plates ride at the quadrant's own height, one per throw, and the live
    wing is the one that is lit. */
+/* Bottom-anchored, not top-anchored: the plates SIT ON the cornice at
+   y=96, and the label's own height changes with --ui. Anchored from the
+   top they float off the cap the moment the user rescales the interface. */
 .assembly .l-label {
-  position: absolute; top: 30px;
+  position: absolute; bottom: 124px;
   padding: calc(4px * var(--ui)) calc(9px * var(--ui)) calc(3px * var(--ui));
   font-size: calc(11px * var(--ui)); letter-spacing: 0.2em;
   color: var(--ink-faint);
@@ -702,8 +768,9 @@ html[data-entered="no"] #signal-desk {
 }
 
 /* ----- Steam ------------------------------------------------------------- */
+/* Tracks the vent stack's mouth — moved with it onto the cornice. */
 .nozzle {
-  position: absolute; left: 269px; top: 112px;
+  position: absolute; left: 245px; top: 24px;
   width: 0; height: 0;
   pointer-events: none; z-index: 3;
 }

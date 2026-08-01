@@ -302,13 +302,22 @@ the board, articulation built and then covered up. Laying them in the
 daylight either side also lands a pilaster hard against each edge of the
 board, so the board reads as set into the wall rather than stuck onto it.
 
-**Boards.** `THE WORKS` (left) is an instrument case reading the machine the
+**Boards.** `STATISTICS` (left) is an instrument case reading the machine the
 hub runs on: four needle dials — processor, memory, graphics, traffic — on
 one 240° scale with a red sector over the last fifth, a tape of hours run
 and store remaining, and the maker's plate off the retired rail at its foot.
 It replaced a `DIRECTORY` that listed every service's mark, name, address
 and lamp, i.e. said the gates' own three facts back at them a second time
 and larger; a board in a hall has to say something the architecture cannot.
+
+The signage reads STATISTICS; the DOM id, the CSS prefix and the route stay
+`works`/`wk-`/`/api/works`. That is not drift — the board's *name* is what
+it shows the reader, and `the works` is what the data IS (the works of the
+machine, read out of the host). `/api/stats` was already taken by the
+services' own status route and a JS `stats` binding already holds it, so
+renaming the internals would have collided with a live name to make two
+different things share one word. The maker's plate still reads ATRIUM
+WORKS because that is a manufacturer's mark, not the board's title.
 Dials are sized by the ROW the grid gives them, never by their own width —
 a flexed replaced box with an aspect ratio resolves off its intrinsic width
 and shrinks to a thumbnail the moment the case is short, taking its own
@@ -791,6 +800,83 @@ away with them.
   fade; under a playing entrance the desk rises at ~2.1 s. Tab order is now masthead → ticker → gates → chips →
   plaques → lever (footer-last, re-documented).
 
+### The console casework (v4.3)
+
+**What was wrong.** v4.1 put the machine on the floor but never gave it a
+body. What stood there was three loose parts sharing a patch of terrazzo: a
+lever pivoting at y=212 on nothing, a quadrant arc hanging in mid-air above
+it, and an aperture cut into no surface at all. Two measurements say it
+better than any amount of looking:
+
+- the housing tone `--bronze-deep` against `--terrazzo` is **1.05:1**. Every
+  solid face on the machine was invisible; only the `--bronze` hairlines
+  (2.58:1) survived, so the eye received a handful of strokes and no volume.
+  `scripts/contrast.py` is the check.
+- the aperture was **176×56** — the one bare rectangle in a hall built out
+  of arches, arcs and stepped shoulders — and an 88-wide gear crossing a
+  56-tall slot shows as a shallow band with no centre. The drive train was
+  drawn in full (63 nodes) and read as a stray arc.
+
+**The fix is the stance already in this document**: mechanism is sublimated
+by casework, and revealed at exactly one deliberate opening. So the parts
+are housed in a bronze console that *stands* on the stone —
+
+- **Body**: stepped plinth (two courses on the gates' own 6px shoulder),
+  fluted pilasters (the aisle bays' articulation at furniture scale), a
+  knurl frieze, a two-step cornice cap. Every profile is already in this
+  building; that is what keeps it furniture in this room rather than a
+  machine parked in it.
+- **Tone**: three flat planes — `--bronze-cap` (lit tops and proud faces),
+  `--bronze-face` (fronts), `--bronze-deep` (recesses). `--bronze-face` is
+  new and exists because the old housing tone was specified when the desk
+  was a rail with the page behind it. Face-over-floor is 2.19:1 (onyx) and
+  2.29:1 (ivory); cap-over-face is 1.38:1 and 1.35:1, so both themes get the
+  same turn between planes. Ivory inverts the stack: a bronze console on
+  pale stone is the *dark* object in the room.
+- **Aperture**: a semicircular arch, 112×60, with archivolt and keystone —
+  the hall's own figure, and narrow enough that the gear inside reads as
+  round (48px of it showing instead of 34, across a 112 opening instead of
+  176).
+- **The lever is bolted to it.** The pivot moved from the floor (y=212,
+  *below* the console's own foot) onto the plinth top at y=186, and the arm
+  is `scale(.7)` about that pivot so its throw stops sweeping wider than the
+  machine it belongs to. The quadrant plate is on the same 0.7 — it is what
+  the arm's pawl runs on, and if one scales without the other they stop
+  being one mechanism. At 0.7 the arc band lands at y 90-102, which is the
+  frieze: the plate is screwed to the console's face instead of floating.
+- **It stands, so it returns.** The waxed floor brings back every arch, the
+  clock and both aisle cases; the machine was the one object in the hall
+  with no reflection, which is precisely why it read as pasted onto the
+  floor. It gets a contact shadow and a three-course return (flat tones, not
+  a gradient — over 14px the parallel-smear error is sub-pixel, so the
+  plane-space rule the tall reflections need does not bind here).
+- **The vent leaves at the top.** The stack used to run *down* the front
+  from y=112 to 202, which — once there was a console behind it — read as a
+  black post driven through the casework. It rises off the cornice at x=240,
+  the one gap clear of both the arch (ends 236) and the BUREAU plate
+  (starts 254).
+- **The throw plates sit on the cap**, bottom-anchored at y=96. Anchored
+  from the top they drifted off the cornice as soon as `--ui` changed the
+  label's own height.
+
+**Verifying it (and the trap that eats an afternoon).** Headless Chrome
+reports `innerHeight` ~99px SHORTER than the surface it composites the
+screenshot onto. Document-flow layout is unaffected — the masthead lands
+where `getBoundingClientRect` says — but everything `position:fixed` to the
+BOTTOM of the screen, which is this entire desk, is *painted* 99px lower
+than it measures. Crops taken from raw probe numbers therefore land on the
+floor tiles just under the machine, which reads exactly like "the gears
+aren't rendering" and sends you debugging drawing code that was correct all
+along (the parts were in the DOM the whole time: 42 + 21 + 37 nodes).
+
+- `scripts/look.py <name> <selector>` is the fix: one Chrome run for both
+  the PNG and the box read-out, with the offset re-applied to the
+  bottom-anchored parts. Use it instead of pairing shot.py with probe.py.
+- `?probe=3` paints the live boxes into the shot and outlines the hardware
+  from inside the page — numbers and pixels in the same image cannot
+  disagree. That is what settled it.
+- `scripts/contrast.py "#a" "#b"` before trusting any machine tone against
+  the floor it stands on.
 ### Entrance beat — the vault unlock
 
 One new beat inside the existing timeline (total unchanged, ≤2.7 s): the

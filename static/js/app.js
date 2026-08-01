@@ -93,9 +93,9 @@ var STR = {
     ariaDesk: 'Signal desk — mode lever',
     ariaFilter: 'Filter dispatches', ariaClose: 'Close',
     ariaGates: 'Gates', ariaLedger: 'Ledger — dispatch timeline',
-    ariaWorks: 'The works — live readings from this machine',
+    ariaWorks: 'Statistics — live readings from this machine',
     ariaBulletin: 'Bulletin — latest dispatches',
-    worksTitle: 'The works', bulTitle: 'Bulletin',
+    worksTitle: 'Statistics', bulTitle: 'Bulletin',
     salonWing: 'Play wing', bureauWing: 'Work wing',
     ledgerBtnLabel: 'LEDGER',
     unreadCount: '{n} new dispatches', unreadCountOne: '1 new dispatch'
@@ -172,9 +172,9 @@ var STR = {
     ariaDesk: '信号台——模式拨杆',
     ariaFilter: '筛选快讯', ariaClose: '关闭',
     ariaGates: '门廊', ariaLedger: '账本 — 派发时间轴',
-    ariaWorks: '机房仪表 —— 本机实时读数',
+    ariaWorks: '运转统计 —— 本机实时读数',
     ariaBulletin: '布告栏 —— 最新快讯',
-    worksTitle: '机房仪表', bulTitle: '布告栏',
+    worksTitle: '运转统计', bulTitle: '布告栏',
     salonWing: '娱乐翼 · 沙龙', bureauWing: '工作翼 · 事务所',
     ledgerBtnLabel: '账本',
     unreadCount: '{n} 条新消息', unreadCountOne: '1 条新消息'
@@ -511,17 +511,143 @@ function buildDesk() {
     return 'M 0 0 L ' + P(r, a0) + ' A ' + r + ' ' + r + ' 0 ' + large + ' 1 ' + P(r, a1) + ' Z';
   }
 
-  // ---- quadrant plate (static art) — pivot at (180, 212) ----
+  // ---- console casework (static art) — drawn FIRST so everything else on
+  //      this desk reads as mounted on it ---------------------------------
+  // Geometry is the 360×220 assembly space. The console's floor line is
+  // y=196, deliberately ABOVE the lever's own contact near y=209: the case
+  // stands further back in the room, and on a floor that recedes, further
+  // away is higher up the screen. That 13px is the whole depth cue.
+  //
+  // The quadrant arc was hanging in mid-air. Its inner ends land at
+  // (131, 91) and (229, 91) — which is why the cornice slab is y 84-92 and
+  // runs x 22-338: the arc now comes down onto the cap instead of stopping
+  // in the air above the terrazzo. Move one and the other has to follow.
   var q = $('.quadrant', desk);
+  var CW_L = 32, CW_R = 328;              // body sides
+  var CW_CAP_T = 84, CW_CAP_B = 92;       // cornice slab (arc lands here)
+  var CW_RISE_B = 100;                    // second cornice step
+  var CW_FRZ_B = 114;                     // frieze band foot
+  var CW_BODY_B = 182;                    // body foot
+  var CW_FLOOR = 196;                     // plinth meets stone
+  var ARCH_CX = 180, ARCH_CY = 178, ARCH_R = 56;   // MUST match .gear-well
+
+  // Waxed-floor return, in three flat courses rather than a gradient: the
+  // material law is flat tones, and three steps read as a reflection while
+  // staying inside it. Narrowing each course fakes the convergence a real
+  // plane-space smear would have — over 14px the error is sub-pixel.
+  [[24, 196, 312, 5, 0.17], [32, 201, 296, 5, 0.10], [44, 206, 272, 4, 0.05]]
+    .forEach(function (r) {
+      q.appendChild(svgEl('rect', {
+        x: r[0], y: r[1], width: r[2], height: r[3], opacity: r[4]
+      }, 'cw-return'));
+    });
+  // Contact shadow — the hard junction where a thing meets stone.
+  q.appendChild(svgEl('ellipse', {
+    cx: 180, cy: CW_FLOOR, rx: 168, ry: 4.5, opacity: 0.5
+  }, 'cw-contact'));
+
+  // Stepped plinth, two courses, lit top + front face each. The step depth
+  // is the gates' own 6px shoulder, which is what makes the console read as
+  // part of this building's kit of parts.
+  [[20, 189, 320], [26, 182, 308]].forEach(function (p) {
+    q.appendChild(svgEl('rect', { x: p[0], y: p[1] + 2, width: p[2], height: 5 }, 'cw-face'));
+    q.appendChild(svgEl('rect', { x: p[0], y: p[1], width: p[2], height: 2 }, 'cw-cap'));
+  });
+
+  // Body
+  q.appendChild(svgEl('rect', {
+    x: CW_L, y: CW_FRZ_B, width: CW_R - CW_L, height: CW_BODY_B - CW_FRZ_B
+  }, 'cw-face'));
+
+  // Fluted pilasters — the aisle bays' own articulation, brought down to
+  // furniture scale. Proud of the field, so they take the lit plane.
+  [40, 288].forEach(function (px) {
+    q.appendChild(svgEl('rect', {
+      x: px, y: CW_FRZ_B, width: 32, height: CW_BODY_B - CW_FRZ_B
+    }, 'cw-cap'));
+    q.appendChild(svgEl('rect', {
+      x: px, y: CW_FRZ_B, width: 32, height: CW_BODY_B - CW_FRZ_B
+    }, 'cw-edge'));
+    [8, 16, 24].forEach(function (fx) {
+      q.appendChild(svgEl('path', {
+        d: 'M ' + (px + fx) + ',' + (CW_FRZ_B + 6) +
+           ' L ' + (px + fx) + ',' + (CW_BODY_B - 6)
+      }, 'cw-flute'));
+    });
+  });
+
+  // Frieze: a knurl band, the machined cousin of the Greek key. One ring
+  // per element — this is the console's one, and it is what carries the
+  // machine idiom up into the architecture instead of stopping at the well.
+  q.appendChild(svgEl('rect', {
+    x: CW_L, y: CW_RISE_B, width: CW_R - CW_L, height: CW_FRZ_B - CW_RISE_B
+  }, 'cw-deep'));
+  var knurl = '';
+  for (var kx = CW_L + 6; kx <= CW_R - 6; kx += 6) {
+    knurl += 'M ' + kx + ',' + (CW_RISE_B + 3) + ' L ' + kx + ',' + (CW_FRZ_B - 3) + ' ';
+  }
+  q.appendChild(svgEl('path', { d: knurl }, 'cw-knurl'));
+
+  // Cornice: two steps, slab on riser.
+  q.appendChild(svgEl('rect', {
+    x: 28, y: CW_CAP_B, width: 304, height: CW_RISE_B - CW_CAP_B
+  }, 'cw-face'));
+  q.appendChild(svgEl('rect', {
+    x: 22, y: CW_CAP_T, width: 316, height: CW_CAP_B - CW_CAP_T
+  }, 'cw-cap'));
+  q.appendChild(svgEl('path', {
+    d: 'M 22,' + CW_CAP_T + ' L 338,' + CW_CAP_T
+  }, 'cw-lit'));
+
+  // Archivolt around the aperture + keystone. The arch is the hall's own
+  // figure; the well is the only opening in the region, so it gets the one
+  // piece of order the architecture would actually give it.
+  q.appendChild(svgEl('path', {
+    d: 'M ' + (ARCH_CX - ARCH_R - 6) + ',' + ARCH_CY +
+       ' A ' + (ARCH_R + 6) + ' ' + (ARCH_R + 6) + ' 0 0 1 ' + (ARCH_CX + ARCH_R + 6) + ',' + ARCH_CY +
+       ' L ' + (ARCH_CX + ARCH_R + 1) + ',' + ARCH_CY +
+       ' A ' + (ARCH_R + 1) + ' ' + (ARCH_R + 1) + ' 0 0 0 ' + (ARCH_CX - ARCH_R - 1) + ',' + ARCH_CY + ' Z'
+  }, 'cw-cap'));
+  q.appendChild(svgEl('path', {
+    d: 'M ' + (ARCH_CX - ARCH_R - 6) + ',' + ARCH_CY +
+       ' A ' + (ARCH_R + 6) + ' ' + (ARCH_R + 6) + ' 0 0 1 ' + (ARCH_CX + ARCH_R + 6) + ',' + ARCH_CY
+  }, 'cw-edge'));
+  q.appendChild(svgEl('polygon', {
+    points: '171,' + (ARCH_CY - ARCH_R - 12) + ' 189,' + (ARCH_CY - ARCH_R - 12) +
+            ' 192,' + (ARCH_CY - ARCH_R + 6) + ' 168,' + (ARCH_CY - ARCH_R + 6)
+  }, 'cw-cap'));
+  q.appendChild(svgEl('polygon', {
+    points: '171,' + (ARCH_CY - ARCH_R - 12) + ' 189,' + (ARCH_CY - ARCH_R - 12) +
+            ' 192,' + (ARCH_CY - ARCH_R + 6) + ' 168,' + (ARCH_CY - ARCH_R + 6)
+  }, 'cw-edge'));
+
+  // Seam rivets, at the two plate joints only (cornice foot, plinth head).
+  [[CW_RISE_B - 4], [CW_BODY_B + 4]].forEach(function (ry) {
+    for (var rx = CW_L + 14; rx <= CW_R - 14; rx += 28) {
+      q.appendChild(svgEl('circle', { cx: rx, cy: ry[0], r: 1.5 }, 'cw-rivet'));
+    }
+  });
+
+  // ---- quadrant plate (static art) ---------------------------------------
+  // The pivot moved with the lever, from the floor at y=212 up onto the
+  // plinth at y=186, and the plate is on the same 0.7 as the arm — the
+  // quadrant is what the arm's pawl runs on, so if one scales and the other
+  // does not, the machine stops being one mechanism. The reward for keeping
+  // them locked: at 0.7 the arc band lands at y 90-102, which is the frieze,
+  // so the plate is now screwed to the console's own face instead of
+  // floating in the air above the terrazzo.
+  var QPIV = 186, QS = 0.7;
   var qp = function (r, deg) {
     var a = deg * Math.PI / 180;
-    return (180 + r * Math.sin(a)).toFixed(1) + ' ' + (212 - r * Math.cos(a)).toFixed(1);
+    return (180 + r * QS * Math.sin(a)).toFixed(1) + ' ' +
+           (QPIV - r * QS * Math.cos(a)).toFixed(1);
   };
+  var qr = function (r) { return (r * QS).toFixed(1); };
   q.appendChild(svgEl('path', { d:
-    'M ' + qp(148, -22) + ' A 148 148 0 0 1 ' + qp(148, 22) +
-    ' L ' + qp(130, 22) + ' A 130 130 0 0 0 ' + qp(130, -22) + ' Z' }, 'q-plate'));
+    'M ' + qp(148, -22) + ' A ' + qr(148) + ' ' + qr(148) + ' 0 0 1 ' + qp(148, 22) +
+    ' L ' + qp(130, 22) + ' A ' + qr(130) + ' ' + qr(130) + ' 0 0 0 ' + qp(130, -22) + ' Z' }, 'q-plate'));
   q.appendChild(svgEl('path', { d:
-    'M ' + qp(140, -19) + ' A 140 140 0 0 1 ' + qp(140, 19) }, 'q-face'));
+    'M ' + qp(140, -19) + ' A ' + qr(140) + ' ' + qr(140) + ' 0 0 1 ' + qp(140, 19) }, 'q-face'));
   // ratchet teeth on the inner edge; deep notches at the ±16° detents
   var teeth = '';
   for (var d = -18; d <= 18; d += 4) {
@@ -534,28 +660,26 @@ function buildDesk() {
       qp(126, deg - 1.8), qp(126, deg + 1.8), qp(138, deg + 1.3), qp(138, deg - 1.3)
     ].join(' ') }, 'q-notch'));
   });
-  // painted static contact shadow under the gear-well aperture
-  q.appendChild(svgEl('rect', { x: 92, y: 206, width: 176, height: 4 }, 'q-shadow'));
-  // steam vent pipe + collars + mouth
-  q.appendChild(svgEl('rect', { x: 263.5, y: 112, width: 11, height: 90 }, 'q-pipe'));
-  q.appendChild(svgEl('rect', { x: 260.5, y: 119, width: 17, height: 2.5 }, 'q-pipe'));
-  q.appendChild(svgEl('rect', { x: 260.5, y: 126, width: 17, height: 2.5 }, 'q-pipe'));
-  q.appendChild(svgEl('ellipse', { cx: 269, cy: 112, rx: 5.5, ry: 2 }, 'q-slot'));
+  // Steam vent: a stack rising off the cornice above the right pilaster.
+  // It used to run down the front of the machine from y=112 to y=202,
+  // which — once there was a console there — read as a black post planted
+  // through the casework. A vent leaves at the top; pipes must plumb
+  // something, and this one now plumbs the housing it stands on.
+  // x=240 threads the one gap on this elevation: clear of the arch (ends at
+  // 236) and clear of the BUREAU plate (starts at 254). At 292 it stood
+  // behind the plate and read as a chimney growing out of the lettering.
+  q.appendChild(svgEl('rect', { x: 240, y: 24, width: 11, height: 62 }, 'q-pipe'));
+  q.appendChild(svgEl('rect', { x: 237, y: 34, width: 17, height: 2.5 }, 'q-pipe'));
+  q.appendChild(svgEl('rect', { x: 237, y: 44, width: 17, height: 2.5 }, 'q-pipe'));
+  q.appendChild(svgEl('ellipse', { cx: 245.5, cy: 24, rx: 5.5, ry: 2 }, 'q-slot'));
 
-  // Base flange plate (static — does not rotate with lever)
-  q.appendChild(svgEl('rect', { x: 155, y: 208, width: 50, height: 8, rx: 1 }, 'lv-flange'));
+  // Base flange + gaiter, on the plinth top where the pivot now lands.
+  q.appendChild(svgEl('rect', { x: 155, y: 182, width: 50, height: 8, rx: 1 }, 'lv-flange'));
   [159, 165, 175, 181].forEach(function (cx) {
-    q.appendChild(svgEl('circle', { cx: cx, cy: 212, r: 1.4 }, 'lv-fbolt'));
+    q.appendChild(svgEl('circle', { cx: cx, cy: 186, r: 1.4 }, 'lv-fbolt'));
   });
-  // Two-layer floor gaiter (replaces the old q-slot rect)
-  q.appendChild(svgEl('rect', { x: 162, y: 200, width: 36, height: 9, rx: 3 }, 'q-slot'));
-  q.appendChild(svgEl('rect', { x: 163, y: 201, width: 34, height: 7, rx: 2.5 }, 'lv-gaiter'));
-
-  // Static gear-A shadow ellipse (on quadrant, never on the mover)
-  // ax=58 in well coords; well is at left:50%-88px, so in the 360x220
-  // quadrant space the center is near (180,66). We offset +34px downward
-  // for the contact shadow.
-  q.appendChild(svgEl('ellipse', { cx: 180, cy: 100, rx: 36, ry: 8, opacity: 0.5 }, 'q-shadow ga-shadow'));
+  q.appendChild(svgEl('rect', { x: 162, y: 178, width: 36, height: 9, rx: 3 }, 'q-slot'));
+  q.appendChild(svgEl('rect', { x: 163, y: 179, width: 34, height: 7, rx: 2.5 }, 'lv-gaiter'));
 
   // ---- lever (mover) — rebuild with full anatomy ----
   var lv = $('.lever-svg', desk);
@@ -665,7 +789,11 @@ function buildDesk() {
   // ---- gear pair (movers) — placed on exact mesh geometry ----
   var rpA = GEAR_NA * GEAR_M / 2, rpB = GEAR_NB * GEAR_M / 2;
   var phi = GEAR_PHI * Math.PI / 180;
-  var ax = 58, ay = 66;                        // gearA center in the well
+  // gearA center in the well. The well is 112×60 now (was 176×56): narrower
+  // than the 88-wide gear crossing it, so the wheel reads as ROUND instead
+  // of as a shallow band. The pair is set so the MESH POINT — the one place
+  // the drive train is legible — lands at (75, 43), inside the arch.
+  var ax = 38, ay = 56;
   var bx = ax + (rpA + rpB) * Math.cos(phi);
   var by = ay + (rpA + rpB) * Math.sin(phi);
   // interleave phase: ((1 + NA/NB)·φ + 180 − 180/NB) mod (360/NB)

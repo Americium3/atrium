@@ -34,14 +34,16 @@ Atrium serves `http://127.0.0.1:8769` and currently fronts:
   along the flanks. Below 2200px the grid collapses to the centre column the
   hall shipped with — two aisles cost the stage ~680px, and a narrower
   screen would be spending them on furniture instead of architecture.
-- **The Works** (left aisle) — an instrument case reading the machine all of
+- **Statistics** (left aisle) — an instrument case reading the machine all of
   this runs on: four needle dials for processor, memory, graphics and
   traffic, each on a 240° scale with a red sector over the last fifth, plus
   a tape of hours run and store remaining and the maker's plate at its foot.
   It replaced a service directory that said the gates' own name, address and
   lamp back at them a second time. Readings come from `/api/works` on a 4s
   cadence, and only while the board is actually on screen — nothing is
-  sampled for a panel nobody can see.
+  sampled for a panel nobody can see. (The route and the CSS keep the older
+  name: the board's title is what it shows you, `the works` is what the data
+  is, and `/api/stats` already serves the services' status.)
 - **The Bulletin** (right aisle) — a glazed notice case holding the latest
   dispatches, so today's news is on the wall instead of only behind the
   Ledger's hatch. Its footer opens the Ledger; empty slots show as ghost
@@ -99,6 +101,17 @@ Atrium serves `http://127.0.0.1:8769` and currently fronts:
   full-bleed bronze rail across the foot of the page; once the hall had a
   floor, the bar read as a strip of UI taped under the picture, so the
   housing went and the machine stayed. It never filters the Ledger.
+
+  All of that now lives **inside a bronze console** that stands on the
+  stone — stepped plinth, fluted pilasters, knurl frieze, cornice cap, and
+  one arched aperture with the gear train behind it. Before, the lever
+  pivoted on nothing, the quadrant hung in mid-air and the aperture was cut
+  into no surface: three loose parts sharing a patch of floor, in a housing
+  tone that measured 1.05:1 against the terrazzo, so every solid face was
+  invisible and only the hairlines survived. The lever is bolted to the
+  plinth now, the quadrant is screwed to the console's face, and the case
+  comes back up off the waxed floor like everything else standing in this
+  hall.
 - **Entrance** — a ~2.4 s sequence that assembles the chrome. The lock face
   is built from a real vault door: case and relocker, a handwheel of rim,
   fillets, hub and grip knobs, a dial ring whose graduations tick in, bolt
@@ -223,14 +236,28 @@ this for free, because they recompute from what is on disk on every tick.
 run_hub.bat            # foreground-ish (logs to hub.log)
 run_hub_hidden.vbs     # hidden starter
 scripts/concierge.ps1  # port-guarded fleet autostart (see below)
-scripts/shot.py        # headless screenshot, e.g. shot.py wide 3440,1330 theme=ivory
+scripts/shot.py        # headless screenshot, e.g. shot.py wide 3440,1330 theme=ivory 2
 scripts/probe.py       # live layout boxes at each breakpoint, via ?probe=1
+scripts/look.py        # shot + measured box in ONE run, e.g. look.py desk .assembly
+scripts/crop.py        # crop a region out of a shot for close reading
+scripts/contrast.py    # relative-luminance ratio between two tokens
+scripts/dumpdom.py     # dump the live DOM; summarises the desk's node counts
 ```
 
 `shot.py` and `probe.py` are the visual-check pair: a screenshot shows where a
 box ended up, and the probe shows how wide it was *allowed* to be — which is
 the number a `clamp()` never reports. Both drive headless Chrome and neither
 needs the hub restarted.
+
+For anything anchored to the bottom of the screen — the whole signal desk —
+use **`look.py`** instead of pairing the two. Headless Chrome reports
+`innerHeight` about 99px shorter than the surface it composites the shot
+onto, so a crop taken from probe coordinates lands under the machine and
+reads as "the part isn't rendering". `look.py` takes both from one render
+and re-applies that offset; `?probe=3` paints the boxes into the shot and
+outlines the hardware if you want to see it with your own eyes. Check any
+new machine tone with `contrast.py` before trusting it against the floor —
+the old housing colour measured 1.05:1 there.
 
 Python 3.11 with `fastapi`, `uvicorn`, `httpx` (all present on the global
 interpreter). `psutil` is optional and only feeds the instrument case —
