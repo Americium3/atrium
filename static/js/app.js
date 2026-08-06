@@ -1342,30 +1342,51 @@ function layoutStage(initial) {
      viewport that shrinks the dial pulls the gates in with it. */
   var clock = $('#clock');
   var half = clock ? clock.offsetWidth / 2 + gateW * 0.10 : 0;
-  var left = Math.ceil(active.length / 2);
 
-  active.forEach(function (svc, i) {
+  // Symmetric composition: the active gates split EQUALLY to either side of the
+  // clock. When there is an odd active gate, the median one stands dead-centre
+  // in front of a raised dial (the concourse gets a `.has-center` flag so the
+  // clock lifts into a pediment above it). This keeps the facade mirror-balanced
+  // for any count instead of piling the odd gate onto stage-left.
+  var perSide = Math.floor(active.length / 2);
+  var centerGate = (active.length % 2 === 1) ? active[perSide] : null;
+  var sideActives = active.filter(function (s) { return s !== centerGate; });
+  var leftActives = sideActives.slice(0, perSide);          // innermost → outermost
+  var rightActives = sideActives.slice(perSide);
+  root.classList.toggle('has-center', !!centerGate);
+
+  function placeActive(svc, x, side, order) {
     var a = $('#gate-' + svc.id);
     if (!a) return;
-    var onLeft = i < left;
-    var rank = onLeft ? (left - 1 - i) : (i - left);
-    var x = (onLeft ? -1 : 1) * (half + gateW / 2 + rank * spacing);
     a.classList.add('active'); a.classList.remove('receded');
-    // Depth order is set here, not left to DOM order. The gates are absolutely
-    // positioned siblings, so without an explicit z-index the later ones in
-    // markup paint on top — and a gate on its way out to the flank sweeps
-    // straight across the pair coming forward, briefly eclipsing them. Setting
-    // it at the start of the move rather than the end means the gate that is
-    // about to recede drops behind before it travels.
+    // Depth order is set here, not left to DOM order (absolutely positioned
+    // siblings), so a gate sweeping out to a flank drops behind before it
+    // travels rather than eclipsing the pair coming forward.
     a.style.zIndex = '3';
     a.style.setProperty('--slot-x', x + 'px');
     a.style.setProperty('--slot-s', '1');
-    // Gates flanking a centrepiece turn a few degrees toward it — the wall
-    // reads as a shallow apse rather than three flat panels.
-    a.style.setProperty('--side', onLeft ? '0.55' : '-0.55');
-    // Receding gates lead by 80ms; each group cascades at 60ms.
-    a.style.setProperty('--slot-delay', initial ? '0ms' : (80 + i * 60) + 'ms');
+    a.style.setProperty('--side', String(side));
+    a.style.setProperty('--slot-delay', initial ? '0ms' : (80 + order * 60) + 'ms');
+  }
+  leftActives.forEach(function (svc, i) {
+    var rank = leftActives.length - 1 - i;                  // 0 = nearest clock
+    placeActive(svc, -(half + gateW / 2 + rank * spacing), 0.55, i);
   });
+  rightActives.forEach(function (svc, i) {
+    placeActive(svc, +(half + gateW / 2 + i * spacing), -0.55, i);   // mirror
+  });
+  if (centerGate) {
+    var c = $('#gate-' + centerGate.id);
+    if (c) {
+      c.classList.add('active'); c.classList.remove('receded');
+      c.style.zIndex = '0';                                 // seated behind the raised dial
+      c.style.setProperty('--slot-x', '0px');
+      c.style.setProperty('--slot-s', '0.86');
+      c.style.setProperty('--side', '0');
+      c.style.setProperty('--slot-delay', initial ? '0ms' : '80ms');
+    }
+  }
+  var left = perSide;                                        // outermost active rank base
   // Flanks tuck just outside the outermost arch — NOT at the stage's own
   // edge. With the aisles open the stage column is much wider than the
   // triptych standing in it, and an edge-anchored flank would drift across

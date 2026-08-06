@@ -1867,6 +1867,14 @@ a.bd-note:hover .bn-head { color: var(--champagne); }
   --dial: calc(var(--gh) - var(--sill) - var(--reveal));
   width: calc(var(--dial) + 2 * var(--reveal));
 }
+/* When an odd active gate stands dead-centre, the dial lifts into a pediment
+   above it so the two share the axis instead of colliding — the facade stays
+   mirror-symmetric. Transform-only; the niche box is unchanged. The transition
+   lives on the base rule so it animates BOTH ways (raise and lower). */
+#clock { transition: transform 0.5s cubic-bezier(.22,1,.36,1); }
+:root.has-center #clock {
+  transform: translateX(-50%) translateY(-34%) scale(0.82);
+}
 .niche {
   position: relative;
   height: var(--gh);
