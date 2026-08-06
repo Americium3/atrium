@@ -55,6 +55,7 @@ GS_URL = "http://127.0.0.1:8768"
 GS_HEADERS = {"X-PMH": "1"}          # required by every Ground Station route
 OUTREACH_URL = "http://127.0.0.1:8802"
 PRESSROOM_URL = "http://127.0.0.1:8765"
+ARSENAL_URL = "http://127.0.0.1:8770"
 
 GS_DATA_DIR = Path(r"X:\Github\pdx-mod-hub\data")
 AP_DATA_DIR = Path(r"X:\Github\anime-rss-auto")
@@ -115,6 +116,17 @@ SERVICES = [
         "desc_key": "pressroom",
         "launch_hint": r"X:\Github\yorha-news\scripts\run_server.py",
         "order": 4,
+    },
+    {
+        "id": "arsenal",
+        "name": "ARSENAL",
+        "wing": "salon",
+        "url": ARSENAL_URL + "/",
+        "addr": "127.0.0.1:8770",
+        "sigil": "arsenal",
+        "desc_key": "arsenal",
+        "launch_hint": r"X:\Github\arsenal\run_server_hidden.vbs",
+        "order": 5,
     },
 ]
 
@@ -881,6 +893,23 @@ def _outreach_offline_progress() -> dict | None:
             "error": None}
 
 
+async def tick_arsenal(client: httpx.AsyncClient) -> None:
+    """Arsenal is a tool hub, not a dispatch source: a health lamp plus the
+    count of ready tools on the rack. No Ledger lines — it never notifies."""
+    src = SOURCES["arsenal"]
+    try:
+        resp, ms = await _timed_get(client, f"{ARSENAL_URL}/api/status")
+        data = resp.json()
+        src.state, src.latency_ms, src.note = "open", ms, None
+        ready = int(data.get("tools_ready") or 0)
+        src.stat = {"tools": ready} if ready else {}
+    except Exception as exc:
+        src.state = "dark"
+        src.latency_ms = None
+        src.stat = {}
+        log.debug("arsenal dark: %s", exc)
+
+
 # --------------------------------------------------------------------------
 # Background refresher
 # --------------------------------------------------------------------------
@@ -1050,7 +1079,8 @@ async def refresher() -> None:
         tick_no = 0
         while True:
             fast = [tick_autopilot(client), tick_groundstation(client),
-                    tick_outreach(client), tick_pressroom(client)]
+                    tick_outreach(client), tick_pressroom(client),
+                    tick_arsenal(client)]
             if tick_no % SLOW_EVERY == 0:
                 fast.append(tick_autopilot_slow(client))
                 fast.append(_gs_refresh_state(client))

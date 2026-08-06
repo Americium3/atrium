@@ -37,11 +37,13 @@ var STR = {
     'desc.groundstation': 'Workshop mods tracked, updates caught in orbit.',
     'desc.outreach': "The day's introductions, briefed and dealt.",
     'desc.pressroom': 'The world overnight, set in type by morning.',
+    'desc.arsenal': 'A workbench of small utility tools for games.',
     'desc.fallback': 'A newly registered hall.',
     'stat.airing': '{n} AIRING TODAY', 'stat.watching': '{n} WATCHING',
     'stat.pending': '{n} UPDATES PENDING', 'stat.mods': '{n} MODS TRACKED',
     'stat.queue': 'QUEUE {done}/{total}', 'stat.invited': 'SENT {n}/{target}',
     'stat.stories': '{n} STORIES · {m} SECTIONS', 'stat.stale': 'EDITION STALE',
+    'stat.tools': '{n} TOOLS ON THE RACK',
     'note.qb_down': 'qBittorrent unreachable — downloads paused',
     'note.daemon_stale': 'Sync daemon looks stalled',
     'note.fallback': 'Reading state files directly (server down)',
@@ -116,11 +118,13 @@ var STR = {
     'desc.groundstation': '创意工坊 Mod 尽在轨道监测之中。',
     'desc.outreach': '今日的引荐名单，已备好草稿待发。',
     'desc.pressroom': '昨夜的世界，天亮前已排版付印。',
+    'desc.arsenal': '一张游戏实用小工具的工作台。',
     'desc.fallback': '新登记的厅室。',
     'stat.airing': '今日 {n} 部放送', 'stat.watching': '在看 {n} 部',
     'stat.pending': '{n} 个更新待装', 'stat.mods': '追踪 {n} 个 MOD',
     'stat.queue': '队列 {done}/{total}', 'stat.invited': '已发 {n}/{target}',
     'stat.stories': '{n} 条 · {m} 栏', 'stat.stale': '早报未更新',
+    'stat.tools': '架上 {n} 件工具',
     'note.qb_down': 'qBittorrent 不可达——下载已暂停',
     'note.daemon_stale': '同步守护进程疑似卡住',
     'note.fallback': '服务器离线——正在直读状态文件',
@@ -204,7 +208,7 @@ var chipFilter = 'all';   // session-only, resets to ALL on every load (R11)
 /* Ledger drawer state */
 var ledgerOpening = false;    // true only during openLedger() render pass
 var cascadeIndex = 0;         // counter for --ci stamps in cascading pass
-var KNOWN_SIGILS = { autopilot: 1, groundstation: 1, outreach: 1, pressroom: 1 };
+var KNOWN_SIGILS = { autopilot: 1, groundstation: 1, outreach: 1, pressroom: 1, arsenal: 1 };
 
 /* ========================================================================
    Read state — the cursor is what reads
@@ -2190,6 +2194,8 @@ function statText(svc) {
     if (s.mods !== undefined) return t('stat.mods', { n: s.mods });
   } else if (svc.id === 'pressroom') {
     if (s.stories > 0) return t('stat.stories', { n: s.stories, m: s.sections || 0 });
+  } else if (svc.id === 'arsenal') {
+    if (s.tools > 0) return t('stat.tools', { n: s.tools });
   } else if (svc.id === 'outreach') {
     var parts = [];
     if (s.total > 0) parts.push(t('stat.queue', { done: s.ready || 0, total: s.total }));

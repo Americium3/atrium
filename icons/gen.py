@@ -59,6 +59,10 @@ HUE = {
     # Not built into a brand directory of its own — it exists here so the hall's
     # <defs> keeps all five marks when this script rewrites them.
     'pressroom':     {'field': '#2d6428', 'deep': '#1c2f10', 'ink': '#eef4e6', 'pop': '#7ab870'},
+    # Arsenal is a games-tools workbench — gunmetal steel with a brass spark,
+    # the one cool-grey field among the jewel tones, so the anvil reads as a
+    # forge and not another warm badge next to autopilot and ground station.
+    'arsenal':       {'field': '#6b747f', 'deep': '#3b434c', 'ink': '#eef1f5', 'pop': '#e2b552'},
 }
 
 APPS = {
@@ -67,6 +71,7 @@ APPS = {
     'outreach':      {'name': 'Outreach Desk',   'short': 'Outreach'},
     'atrium':        {'name': 'Atrium',          'short': 'Atrium'},
     'pressroom':     {'name': 'Press Room',      'short': 'Press Room'},
+    'arsenal':       {'name': 'Arsenal',         'short': 'Arsenal'},
 }
 
 # The colour the browser paints its own chrome with. It defaults to the mark's
@@ -100,6 +105,7 @@ OCT = '<polygon points="30,2 66,2 94,30 94,66 66,94 30,94 2,66 2,30"/>'
 SHIELD = '<path d="M4 4 H92 V64 L48 94 L4 64 Z"/>'
 KEYSTONE = '<path d="M4 94 V44 A44 44 0 0 1 92 44 V94 Z"/>'
 PLAQUE = '<path d="M20 4 H76 L92 20 V92 H4 V20 Z"/>'
+HEX = '<polygon points="4,48 26,10 70,10 92,48 70,86 26,86"/>'  # bolt-head / nut
 
 SIL = {
     'autopilot': reel(),
@@ -107,6 +113,7 @@ SIL = {
     'outreach': SHIELD,
     'atrium': KEYSTONE,
     'pressroom': PLAQUE,
+    'arsenal': HEX,
 }
 
 
@@ -169,6 +176,19 @@ def glyph(app, ink, pop, deep):
             '<rect x="33" y="38" width="30" height="3.2"/>'
             '<rect x="33" y="44" width="30" height="3.2"/>'
             '<rect x="33" y="50" width="17" height="3.2"/></g>' % (ink, deep),
+        # An anvil on the bench bar, with a brass spark off the face. The whole
+        # hub is a workbench; the one shape that says "workshop" at 16px is the
+        # anvil's wide-face/narrow-waist/wide-foot silhouette.
+        'arsenal':
+            '<g fill="%s">'
+            '<rect x="22" y="66" width="52" height="5"/>'                # bench bar
+            '<rect x="24" y="34" width="44" height="9" rx="2"/>'         # top face
+            '<polygon points="24,34 24,43 10,39"/>'                      # horn / beak
+            '<rect x="40" y="43" width="12" height="11"/>'               # waist
+            '<rect x="28" y="54" width="36" height="9" rx="1"/>'         # splayed foot
+            '</g>'
+            '<circle cx="61" cy="29" r="4" fill="%s"/>'                  # brass spark
+            % (ink, pop),
     }[app]
 
 
@@ -311,6 +331,7 @@ TARGETS = {
     'groundstation': r'X:\Github\pdx-mod-hub\web\public\brand',
     'outreach':      r'X:\Github\linkedin-networking\static\brand',
     'atrium':        r'X:\Github\atrium\static\brand',
+    'arsenal':       r'X:\Github\arsenal\static\brand',
 }
 
 ATRIUM_INDEX = r'X:\Github\atrium\static\index.html'
