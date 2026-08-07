@@ -1322,14 +1322,15 @@ function gateClick(e, a, svc) {
   }, 150);
 }
 
-/* The centre arch's scale when a wing holds an odd number of gates. It stands
-   shorter than its neighbours so the dial can sit in the crown above it without
-   covering a single line of the card. The stage is only 1.18 arch-heights tall,
-   so this and the clock's own scale share one budget:
-       CENTER_S + clock scale + clearance <= 1.18
-   The clock side of the pair lives in atrium.css (:root.has-center #clock);
-   change one and the other has to move with it. */
-var CENTER_S = 0.64;
+/* How far the centre arch steps DOWN into the floor when a wing holds an odd
+   number of gates. The arch stays full size and full width; it sinks so the
+   full-size dial behind it (lifted -18% of its own height, atrium.css) shows
+   its upper face over the arch's head. 0.42 gate-widths = 0.22 arch-heights,
+   which keeps the arch's foot clear of the signal desk at every supported
+   viewport (the floor reserve is 84px minimum; 0.42 * 182px min gate = 76px).
+   The dial side of the pair lives in :root.has-center #clock — move one and
+   the other has to move with it. */
+var CENTER_SINK = 0.42;   // in gate-widths
 
 /* Triptych stage: slots computed from the registry so future services
    flank symmetrically. Transform-only (60 fps law). */
@@ -1374,6 +1375,7 @@ function layoutStage(initial) {
     a.style.zIndex = '3';
     a.style.setProperty('--slot-x', x + 'px');
     a.style.setProperty('--slot-s', '1');
+    a.style.setProperty('--sink', '0px');   // a former centre gate rises back
     a.style.setProperty('--side', String(side));
     a.style.setProperty('--slot-delay', initial ? '0ms' : (80 + order * 60) + 'ms');
   }
@@ -1388,13 +1390,15 @@ function layoutStage(initial) {
     var c = $('#gate-' + centerGate.id);
     if (c) {
       c.classList.add('active'); c.classList.remove('receded');
-      // The centre arch stands SHORTER than its neighbours so the dial, lifted
-      // into the crown above it, clears its head entirely — nothing of the card
-      // is ever covered. Gates scale from `center bottom`, so a smaller scale
-      // lowers the top while the arch keeps its footing on the plinth line.
-      c.style.zIndex = '3';
+      // Full size, stepped FORWARD and DOWN: the arch keeps its neighbours'
+      // scale and sinks into the floor (over the compass inlay — scenery),
+      // stopping short of the signal desk. The full-size dial stands behind
+      // it (z:1 vs z:4) showing its upper face over the arch's head; what the
+      // arch covers is the dial's own skirt, never any card content.
+      c.style.zIndex = '4';
       c.style.setProperty('--slot-x', '0px');
-      c.style.setProperty('--slot-s', String(CENTER_S));
+      c.style.setProperty('--slot-s', '1');
+      c.style.setProperty('--sink', (gateW * CENTER_SINK).toFixed(1) + 'px');
       c.style.setProperty('--side', '0');
       c.style.setProperty('--slot-delay', initial ? '0ms' : '80ms');
     }
@@ -1427,6 +1431,7 @@ function layoutStage(initial) {
     a.classList.add('receded'); a.classList.remove('active');
     // Behind the active pair for the whole journey, not just on arrival.
     a.style.zIndex = '1';
+    a.style.setProperty('--sink', '0px');   // a former centre gate rises back
     // Alternate flanks; extra flankmates on a side step inward so they
     // never stack exactly on top of each other.
     var side = (receded.length === 1) ? 1 : (i % 2 === 0 ? -1 : 1);

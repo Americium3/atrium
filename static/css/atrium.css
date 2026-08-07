@@ -1637,7 +1637,7 @@ a.bd-note:hover .bn-head { color: var(--champagne); }
   width: var(--gate-w);
   aspect-ratio: 300 / 570;
   transform: translateX(calc(-50% + var(--slot-x, 0px)))
-             translateY(var(--rise, 0px))
+             translateY(calc(var(--rise, 0px) + var(--sink, 0px)))
              scale(var(--slot-s, 1));
   transform-origin: center bottom;
   transition: transform 0.6s var(--ease-stage);
@@ -1867,23 +1867,24 @@ a.bd-note:hover .bn-head { color: var(--champagne); }
   --dial: calc(var(--gh) - var(--sill) - var(--reveal));
   width: calc(var(--dial) + 2 * var(--reveal));
 }
-/* When an odd active gate stands dead-centre, the dial climbs into the crown
-   above it and gives up size to make the room. The arch below is scaled to
-   CENTER_S (0.64, in app.js) from its own footing, so the dial's underside
-   clears the card's head and not one line of it is ever covered:
+/* When an odd active gate stands dead-centre, the dial does NOT shrink out of
+   its way — it stays full size and simply stands BEHIND the centre arch, which
+   steps forward and down into the floor. The arch (z:3) covers the dial's
+   skirt; the dial's upper face looks out over the arch's head like a station
+   clock behind a foreground building. Nothing of the CARD is ever covered —
+   what hides is the dial's own lower rim, which is scenery.
 
-       0.64 (arch) + 0.03 (clearance) + 0.51 (dial) = 1.18 arch-heights,
-       which is exactly the stage's height. Move one, move the others.
-
-   Scaling from `center bottom` is what makes the pair separable at all — the
-   arch keeps its footing on the plinth line while its head drops. The
-   transition lives on the base rule so the dial animates BOTH ways. */
+   The -18% lift (of the dial's own height) plus the arch's 0.42-gate-width
+   sink (app.js, --sink) together expose ~0.4 of the dial above the arch —
+   crown, XII and the moon window — while the lift stays inside the stage's
+   80-100px headroom at every supported viewport. The transition lives on the
+   base rule so the dial animates BOTH ways when the wing changes. */
 #clock {
   transform-origin: center bottom;
   transition: transform 0.5s cubic-bezier(.22,1,.36,1);
 }
 :root.has-center #clock {
-  transform: translateX(-50%) translateY(-67%) scale(0.51);
+  transform: translateX(-50%) translateY(-18%);
 }
 .niche {
   position: relative;
