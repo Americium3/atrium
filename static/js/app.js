@@ -37,11 +37,13 @@ var STR = {
     'desc.groundstation': 'Workshop mods tracked, updates caught in orbit.',
     'desc.outreach': "The day's introductions, briefed and dealt.",
     'desc.pressroom': 'The world overnight, set in type by morning.',
+    'desc.arsenal': 'A workbench of small utility tools for games.',
     'desc.fallback': 'A newly registered hall.',
     'stat.airing': '{n} AIRING TODAY', 'stat.watching': '{n} WATCHING',
     'stat.pending': '{n} UPDATES PENDING', 'stat.mods': '{n} MODS TRACKED',
     'stat.queue': 'QUEUE {done}/{total}', 'stat.invited': 'SENT {n}/{target}',
     'stat.stories': '{n} STORIES · {m} SECTIONS', 'stat.stale': 'EDITION STALE',
+    'stat.tools': '{n} TOOLS ON THE RACK',
     'note.qb_down': 'qBittorrent unreachable — downloads paused',
     'note.daemon_stale': 'Sync daemon looks stalled',
     'note.fallback': 'Reading state files directly (server down)',
@@ -116,11 +118,13 @@ var STR = {
     'desc.groundstation': '创意工坊 Mod 尽在轨道监测之中。',
     'desc.outreach': '今日的引荐名单，已备好草稿待发。',
     'desc.pressroom': '昨夜的世界，天亮前已排版付印。',
+    'desc.arsenal': '一张游戏实用小工具的工作台。',
     'desc.fallback': '新登记的厅室。',
     'stat.airing': '今日 {n} 部放送', 'stat.watching': '在看 {n} 部',
     'stat.pending': '{n} 个更新待装', 'stat.mods': '追踪 {n} 个 MOD',
     'stat.queue': '队列 {done}/{total}', 'stat.invited': '已发 {n}/{target}',
     'stat.stories': '{n} 条 · {m} 栏', 'stat.stale': '早报未更新',
+    'stat.tools': '架上 {n} 件工具',
     'note.qb_down': 'qBittorrent 不可达——下载已暂停',
     'note.daemon_stale': '同步守护进程疑似卡住',
     'note.fallback': '服务器离线——正在直读状态文件',
@@ -204,7 +208,7 @@ var chipFilter = 'all';   // session-only, resets to ALL on every load (R11)
 /* Ledger drawer state */
 var ledgerOpening = false;    // true only during openLedger() render pass
 var cascadeIndex = 0;         // counter for --ci stamps in cascading pass
-var KNOWN_SIGILS = { autopilot: 1, groundstation: 1, outreach: 1, pressroom: 1 };
+var KNOWN_SIGILS = { autopilot: 1, groundstation: 1, outreach: 1, pressroom: 1, arsenal: 1 };
 
 /* ========================================================================
    Read state — the cursor is what reads
@@ -1338,30 +1342,76 @@ function layoutStage(initial) {
      viewport that shrinks the dial pulls the gates in with it. */
   var clock = $('#clock');
   var half = clock ? clock.offsetWidth / 2 + gateW * 0.10 : 0;
-  var left = Math.ceil(active.length / 2);
 
-  active.forEach(function (svc, i) {
+  // Symmetric composition: the active gates split EQUALLY to either side of the
+  // clock. When there is an odd active gate, the median one stands dead-centre
+  // in front of a raised dial (the concourse gets a `.has-center` flag so the
+  // clock lifts into a pediment above it). This keeps the facade mirror-balanced
+  // for any count instead of piling the odd gate onto stage-left.
+  var perSide = Math.floor(active.length / 2);
+  var centerGate = (active.length % 2 === 1) ? active[perSide] : null;
+  var sideActives = active.filter(function (s) { return s !== centerGate; });
+  var leftActives = sideActives.slice(0, perSide);          // innermost → outermost
+  var rightActives = sideActives.slice(perSide);
+  root.classList.toggle('has-center', !!centerGate);
+
+  function placeActive(svc, x, side, order) {
     var a = $('#gate-' + svc.id);
     if (!a) return;
-    var onLeft = i < left;
-    var rank = onLeft ? (left - 1 - i) : (i - left);
-    var x = (onLeft ? -1 : 1) * (half + gateW / 2 + rank * spacing);
     a.classList.add('active'); a.classList.remove('receded');
-    // Depth order is set here, not left to DOM order. The gates are absolutely
-    // positioned siblings, so without an explicit z-index the later ones in
-    // markup paint on top — and a gate on its way out to the flank sweeps
-    // straight across the pair coming forward, briefly eclipsing them. Setting
-    // it at the start of the move rather than the end means the gate that is
-    // about to recede drops behind before it travels.
+    // Depth order is set here, not left to DOM order (absolutely positioned
+    // siblings), so a gate sweeping out to a flank drops behind before it
+    // travels rather than eclipsing the pair coming forward.
     a.style.zIndex = '3';
     a.style.setProperty('--slot-x', x + 'px');
     a.style.setProperty('--slot-s', '1');
-    // Gates flanking a centrepiece turn a few degrees toward it — the wall
-    // reads as a shallow apse rather than three flat panels.
-    a.style.setProperty('--side', onLeft ? '0.55' : '-0.55');
-    // Receding gates lead by 80ms; each group cascades at 60ms.
-    a.style.setProperty('--slot-delay', initial ? '0ms' : (80 + i * 60) + 'ms');
+    a.style.setProperty('--sink', '0px');   // a former centre gate rises back
+    a.style.setProperty('--side', String(side));
+    a.style.setProperty('--slot-delay', initial ? '0ms' : (80 + order * 60) + 'ms');
+  }
+  leftActives.forEach(function (svc, i) {
+    var rank = leftActives.length - 1 - i;                  // 0 = nearest clock
+    placeActive(svc, -(half + gateW / 2 + rank * spacing), 0.55, i);
   });
+  rightActives.forEach(function (svc, i) {
+    placeActive(svc, +(half + gateW / 2 + i * spacing), -0.55, i);   // mirror
+  });
+  if (centerGate) {
+    var c = $('#gate-' + centerGate.id);
+    if (c) {
+      c.classList.add('active'); c.classList.remove('receded');
+      // Full size, standard footing, dead centre — indistinguishable from its
+      // neighbours except for position. The dial makes ALL the room: it is
+      // winched up into the cornice (below) with only its lower rim showing,
+      // and comes down for a look on hover.
+      c.style.zIndex = '3';
+      c.style.setProperty('--slot-x', '0px');
+      c.style.setProperty('--slot-s', '1');
+      c.style.setProperty('--sink', '0px');
+      c.style.setProperty('--side', '0');
+      c.style.setProperty('--slot-delay', initial ? '0ms' : '80ms');
+    }
+  }
+  // The dial's stowage. With a centre gate the full-size dial is hoisted so
+  // only its lower rim hangs into the headroom above the arches; everything
+  // above the stage's top edge is clipped away, which reads as the clock
+  // sliding up into a slot behind the cornice. Hovering the exposed rim
+  // lowers it back down for a full look (CSS, .has-center #clock:hover).
+  if (clock) {
+    if (centerGate) {
+      var gateH = gateW * 1.9;
+      var headroom = Math.max(0, wrap.clientHeight - gateH);
+      var exposed = gateH * 0.26;                       // the rim left showing
+      var tuck = gateH - exposed + headroom * 0.5;      // lift, px
+      var tuckClip = Math.max(0, tuck - headroom);      // part above the stage
+      clock.style.setProperty('--tuck', tuck.toFixed(1) + 'px');
+      clock.style.setProperty('--tuck-clip', tuckClip.toFixed(1) + 'px');
+    } else {
+      clock.style.setProperty('--tuck', '0px');
+      clock.style.setProperty('--tuck-clip', '0px');
+    }
+  }
+  var left = perSide;                                        // outermost active rank base
   // Flanks tuck just outside the outermost arch — NOT at the stage's own
   // edge. With the aisles open the stage column is much wider than the
   // triptych standing in it, and an edge-anchored flank would drift across
@@ -1389,6 +1439,7 @@ function layoutStage(initial) {
     a.classList.add('receded'); a.classList.remove('active');
     // Behind the active pair for the whole journey, not just on arrival.
     a.style.zIndex = '1';
+    a.style.setProperty('--sink', '0px');   // a former centre gate rises back
     // Alternate flanks; extra flankmates on a side step inward so they
     // never stack exactly on top of each other.
     var side = (receded.length === 1) ? 1 : (i % 2 === 0 ? -1 : 1);
@@ -2190,6 +2241,8 @@ function statText(svc) {
     if (s.mods !== undefined) return t('stat.mods', { n: s.mods });
   } else if (svc.id === 'pressroom') {
     if (s.stories > 0) return t('stat.stories', { n: s.stories, m: s.sections || 0 });
+  } else if (svc.id === 'arsenal') {
+    if (s.tools > 0) return t('stat.tools', { n: s.tools });
   } else if (svc.id === 'outreach') {
     var parts = [];
     if (s.total > 0) parts.push(t('stat.queue', { done: s.ready || 0, total: s.total }));

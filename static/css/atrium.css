@@ -1637,7 +1637,7 @@ a.bd-note:hover .bn-head { color: var(--champagne); }
   width: var(--gate-w);
   aspect-ratio: 300 / 570;
   transform: translateX(calc(-50% + var(--slot-x, 0px)))
-             translateY(var(--rise, 0px))
+             translateY(calc(var(--rise, 0px) + var(--sink, 0px)))
              scale(var(--slot-s, 1));
   transform-origin: center bottom;
   transition: transform 0.6s var(--ease-stage);
@@ -1866,6 +1866,30 @@ a.bd-note:hover .bn-head { color: var(--champagne); }
   --sill: calc(var(--gh) * 0.125);     /* the shelf the dial stands on */
   --dial: calc(var(--gh) - var(--sill) - var(--reveal));
   width: calc(var(--dial) + 2 * var(--reveal));
+}
+/* When an odd active gate stands dead-centre, the dial is winched up into a
+   slot behind the cornice: full size, never shrunk, with only its lower rim
+   left hanging in the headroom above the arches — enough to say "the clock is
+   up there". Everything above the stage's top edge is clipped away (--tuck /
+   --tuck-clip, computed per viewport in layoutStage), so it reads as stowage
+   rather than an escape. Hovering the exposed rim lowers the whole dial back
+   down over the stage for a proper look; leaving hoists it again. Both moves
+   ride the base transition, and clip-path animates alongside transform. */
+#clock {
+  transform-origin: center bottom;
+  transition: transform 0.55s cubic-bezier(.22,1,.36,1),
+              clip-path 0.55s cubic-bezier(.22,1,.36,1);
+}
+:root.has-center #clock {
+  transform: translateX(-50%) translateY(calc(-1 * var(--tuck, 0px)));
+  clip-path: inset(var(--tuck-clip, 0px) 0 0 0);
+  pointer-events: auto;          /* the rim is a handle while stowed */
+  cursor: pointer;
+}
+:root.has-center #clock:hover {
+  transform: translateX(-50%);
+  clip-path: inset(0 0 0 0);
+  z-index: 6;                    /* over the centre gate while summoned */
 }
 .niche {
   position: relative;
