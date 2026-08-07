@@ -1867,24 +1867,29 @@ a.bd-note:hover .bn-head { color: var(--champagne); }
   --dial: calc(var(--gh) - var(--sill) - var(--reveal));
   width: calc(var(--dial) + 2 * var(--reveal));
 }
-/* When an odd active gate stands dead-centre, the dial does NOT shrink out of
-   its way — it stays full size and simply stands BEHIND the centre arch, which
-   steps forward and down into the floor. The arch (z:3) covers the dial's
-   skirt; the dial's upper face looks out over the arch's head like a station
-   clock behind a foreground building. Nothing of the CARD is ever covered —
-   what hides is the dial's own lower rim, which is scenery.
-
-   The -18% lift (of the dial's own height) plus the arch's 0.42-gate-width
-   sink (app.js, --sink) together expose ~0.4 of the dial above the arch —
-   crown, XII and the moon window — while the lift stays inside the stage's
-   80-100px headroom at every supported viewport. The transition lives on the
-   base rule so the dial animates BOTH ways when the wing changes. */
+/* When an odd active gate stands dead-centre, the dial is winched up into a
+   slot behind the cornice: full size, never shrunk, with only its lower rim
+   left hanging in the headroom above the arches — enough to say "the clock is
+   up there". Everything above the stage's top edge is clipped away (--tuck /
+   --tuck-clip, computed per viewport in layoutStage), so it reads as stowage
+   rather than an escape. Hovering the exposed rim lowers the whole dial back
+   down over the stage for a proper look; leaving hoists it again. Both moves
+   ride the base transition, and clip-path animates alongside transform. */
 #clock {
   transform-origin: center bottom;
-  transition: transform 0.5s cubic-bezier(.22,1,.36,1);
+  transition: transform 0.55s cubic-bezier(.22,1,.36,1),
+              clip-path 0.55s cubic-bezier(.22,1,.36,1);
 }
 :root.has-center #clock {
-  transform: translateX(-50%) translateY(-18%);
+  transform: translateX(-50%) translateY(calc(-1 * var(--tuck, 0px)));
+  clip-path: inset(var(--tuck-clip, 0px) 0 0 0);
+  pointer-events: auto;          /* the rim is a handle while stowed */
+  cursor: pointer;
+}
+:root.has-center #clock:hover {
+  transform: translateX(-50%);
+  clip-path: inset(0 0 0 0);
+  z-index: 6;                    /* over the centre gate while summoned */
 }
 .niche {
   position: relative;

@@ -1322,16 +1322,6 @@ function gateClick(e, a, svc) {
   }, 150);
 }
 
-/* How far the centre arch steps DOWN into the floor when a wing holds an odd
-   number of gates. The arch stays full size and full width; it sinks so the
-   full-size dial behind it (lifted -18% of its own height, atrium.css) shows
-   its upper face over the arch's head. 0.42 gate-widths = 0.22 arch-heights,
-   which keeps the arch's foot clear of the signal desk at every supported
-   viewport (the floor reserve is 84px minimum; 0.42 * 182px min gate = 76px).
-   The dial side of the pair lives in :root.has-center #clock — move one and
-   the other has to move with it. */
-var CENTER_SINK = 0.42;   // in gate-widths
-
 /* Triptych stage: slots computed from the registry so future services
    flank symmetrically. Transform-only (60 fps law). */
 function layoutStage(initial) {
@@ -1390,17 +1380,35 @@ function layoutStage(initial) {
     var c = $('#gate-' + centerGate.id);
     if (c) {
       c.classList.add('active'); c.classList.remove('receded');
-      // Full size, stepped FORWARD and DOWN: the arch keeps its neighbours'
-      // scale and sinks into the floor (over the compass inlay — scenery),
-      // stopping short of the signal desk. The full-size dial stands behind
-      // it (z:1 vs z:4) showing its upper face over the arch's head; what the
-      // arch covers is the dial's own skirt, never any card content.
-      c.style.zIndex = '4';
+      // Full size, standard footing, dead centre — indistinguishable from its
+      // neighbours except for position. The dial makes ALL the room: it is
+      // winched up into the cornice (below) with only its lower rim showing,
+      // and comes down for a look on hover.
+      c.style.zIndex = '3';
       c.style.setProperty('--slot-x', '0px');
       c.style.setProperty('--slot-s', '1');
-      c.style.setProperty('--sink', (gateW * CENTER_SINK).toFixed(1) + 'px');
+      c.style.setProperty('--sink', '0px');
       c.style.setProperty('--side', '0');
       c.style.setProperty('--slot-delay', initial ? '0ms' : '80ms');
+    }
+  }
+  // The dial's stowage. With a centre gate the full-size dial is hoisted so
+  // only its lower rim hangs into the headroom above the arches; everything
+  // above the stage's top edge is clipped away, which reads as the clock
+  // sliding up into a slot behind the cornice. Hovering the exposed rim
+  // lowers it back down for a full look (CSS, .has-center #clock:hover).
+  if (clock) {
+    if (centerGate) {
+      var gateH = gateW * 1.9;
+      var headroom = Math.max(0, wrap.clientHeight - gateH);
+      var exposed = gateH * 0.26;                       // the rim left showing
+      var tuck = gateH - exposed + headroom * 0.5;      // lift, px
+      var tuckClip = Math.max(0, tuck - headroom);      // part above the stage
+      clock.style.setProperty('--tuck', tuck.toFixed(1) + 'px');
+      clock.style.setProperty('--tuck-clip', tuckClip.toFixed(1) + 'px');
+    } else {
+      clock.style.setProperty('--tuck', '0px');
+      clock.style.setProperty('--tuck-clip', '0px');
     }
   }
   var left = perSide;                                        // outermost active rank base
