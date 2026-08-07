@@ -1867,13 +1867,23 @@ a.bd-note:hover .bn-head { color: var(--champagne); }
   --dial: calc(var(--gh) - var(--sill) - var(--reveal));
   width: calc(var(--dial) + 2 * var(--reveal));
 }
-/* When an odd active gate stands dead-centre, the dial lifts into a pediment
-   above it so the two share the axis instead of colliding — the facade stays
-   mirror-symmetric. Transform-only; the niche box is unchanged. The transition
-   lives on the base rule so it animates BOTH ways (raise and lower). */
-#clock { transition: transform 0.5s cubic-bezier(.22,1,.36,1); }
+/* When an odd active gate stands dead-centre, the dial climbs into the crown
+   above it and gives up size to make the room. The arch below is scaled to
+   CENTER_S (0.64, in app.js) from its own footing, so the dial's underside
+   clears the card's head and not one line of it is ever covered:
+
+       0.64 (arch) + 0.03 (clearance) + 0.51 (dial) = 1.18 arch-heights,
+       which is exactly the stage's height. Move one, move the others.
+
+   Scaling from `center bottom` is what makes the pair separable at all — the
+   arch keeps its footing on the plinth line while its head drops. The
+   transition lives on the base rule so the dial animates BOTH ways. */
+#clock {
+  transform-origin: center bottom;
+  transition: transform 0.5s cubic-bezier(.22,1,.36,1);
+}
 :root.has-center #clock {
-  transform: translateX(-50%) translateY(-34%) scale(0.82);
+  transform: translateX(-50%) translateY(-67%) scale(0.51);
 }
 .niche {
   position: relative;

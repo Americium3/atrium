@@ -1322,6 +1322,15 @@ function gateClick(e, a, svc) {
   }, 150);
 }
 
+/* The centre arch's scale when a wing holds an odd number of gates. It stands
+   shorter than its neighbours so the dial can sit in the crown above it without
+   covering a single line of the card. The stage is only 1.18 arch-heights tall,
+   so this and the clock's own scale share one budget:
+       CENTER_S + clock scale + clearance <= 1.18
+   The clock side of the pair lives in atrium.css (:root.has-center #clock);
+   change one and the other has to move with it. */
+var CENTER_S = 0.64;
+
 /* Triptych stage: slots computed from the registry so future services
    flank symmetrically. Transform-only (60 fps law). */
 function layoutStage(initial) {
@@ -1379,9 +1388,13 @@ function layoutStage(initial) {
     var c = $('#gate-' + centerGate.id);
     if (c) {
       c.classList.add('active'); c.classList.remove('receded');
-      c.style.zIndex = '0';                                 // seated behind the raised dial
+      // The centre arch stands SHORTER than its neighbours so the dial, lifted
+      // into the crown above it, clears its head entirely — nothing of the card
+      // is ever covered. Gates scale from `center bottom`, so a smaller scale
+      // lowers the top while the arch keeps its footing on the plinth line.
+      c.style.zIndex = '3';
       c.style.setProperty('--slot-x', '0px');
-      c.style.setProperty('--slot-s', '0.86');
+      c.style.setProperty('--slot-s', String(CENTER_S));
       c.style.setProperty('--side', '0');
       c.style.setProperty('--slot-delay', initial ? '0ms' : '80ms');
     }
