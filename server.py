@@ -56,6 +56,7 @@ GS_HEADERS = {"X-PMH": "1"}          # required by every Ground Station route
 OUTREACH_URL = "http://127.0.0.1:8802"
 PRESSROOM_URL = "http://127.0.0.1:8765"
 ARSENAL_URL = "http://127.0.0.1:8770"
+BOURSE_URL = "http://127.0.0.1:8771"
 
 GS_DATA_DIR = Path(r"X:\Github\pdx-mod-hub\data")
 AP_DATA_DIR = Path(r"X:\Github\anime-rss-auto")
@@ -127,6 +128,17 @@ SERVICES = [
         "desc_key": "arsenal",
         "launch_hint": r"X:\Github\arsenal\run_server_hidden.vbs",
         "order": 5,
+    },
+    {
+        "id": "bourse",
+        "name": "BOURSE",
+        "wing": "bureau",
+        "url": BOURSE_URL + "/",
+        "addr": "127.0.0.1:8771",
+        "sigil": "bourse",
+        "desc_key": "bourse",
+        "launch_hint": r"X:\Github\bourse\run_server_hidden.vbs",
+        "order": 6,
     },
 ]
 

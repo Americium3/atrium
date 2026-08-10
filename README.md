@@ -10,8 +10,10 @@ Atrium serves `http://127.0.0.1:8769` and currently fronts:
 |---|---|---|
 | Anime Autopilot | Salon (play) | `127.0.0.1:8767` — anime RSS automation panel |
 | Ground Station | Salon (play) | `127.0.0.1:8768` — Paradox workshop mod tracker |
+| Arsenal | Salon (play) | `127.0.0.1:8770` — game utility tool bench |
 | Outreach Desk | Bureau (work) | `127.0.0.1:8802` — LinkedIn outreach console |
 | The Press Room | Bureau (work) | `127.0.0.1:8765` — overnight news digest |
+| Bourse | Bureau (work) | `127.0.0.1:8771` — personal market briefing desk |
 
 ## What's on the page
 
