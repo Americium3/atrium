@@ -12,7 +12,8 @@ $services = @(
     @{ Name = 'outreach-desk';  Port = 8802; Launcher = 'X:\Github\linkedin-networking\run_server_hidden.vbs' },
     @{ Name = 'atrium-hub';     Port = 8769; Launcher = 'X:\Github\atrium\run_hub_hidden.vbs' },
     @{ Name = 'press-room';     Port = 8765; Launcher = 'X:\Github\yorha-news\scripts\run_server_hidden.vbs' },
-    @{ Name = 'arsenal';        Port = 8770; Launcher = 'X:\Github\arsenal\run_server_hidden.vbs' }
+    @{ Name = 'arsenal';        Port = 8770; Launcher = 'X:\Github\arsenal\run_server_hidden.vbs' },
+    @{ Name = 'bourse';         Port = 8771; Launcher = 'X:\Github\bourse\run_server_hidden.vbs' }
 )
 # Anime Autopilot (:8767) is intentionally absent: its .lnk files already
 # live in shell:startup and race a port probe at logon.

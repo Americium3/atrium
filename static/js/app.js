@@ -38,6 +38,7 @@ var STR = {
     'desc.outreach': "The day's introductions, briefed and dealt.",
     'desc.pressroom': 'The world overnight, set in type by morning.',
     'desc.arsenal': 'A workbench of small utility tools for games.',
+    'desc.bourse': 'The morning market brief, ranked and ready.',
     'desc.fallback': 'A newly registered hall.',
     'stat.airing': '{n} AIRING TODAY', 'stat.watching': '{n} WATCHING',
     'stat.pending': '{n} UPDATES PENDING', 'stat.mods': '{n} MODS TRACKED',
@@ -119,6 +120,7 @@ var STR = {
     'desc.outreach': '今日的引荐名单，已备好草稿待发。',
     'desc.pressroom': '昨夜的世界，天亮前已排版付印。',
     'desc.arsenal': '一张游戏实用小工具的工作台。',
+    'desc.bourse': '每日行情晨报，排好名次候审。',
     'desc.fallback': '新登记的厅室。',
     'stat.airing': '今日 {n} 部放送', 'stat.watching': '在看 {n} 部',
     'stat.pending': '{n} 个更新待装', 'stat.mods': '追踪 {n} 个 MOD',
@@ -208,7 +210,7 @@ var chipFilter = 'all';   // session-only, resets to ALL on every load (R11)
 /* Ledger drawer state */
 var ledgerOpening = false;    // true only during openLedger() render pass
 var cascadeIndex = 0;         // counter for --ci stamps in cascading pass
-var KNOWN_SIGILS = { autopilot: 1, groundstation: 1, outreach: 1, pressroom: 1, arsenal: 1 };
+var KNOWN_SIGILS = { autopilot: 1, groundstation: 1, outreach: 1, pressroom: 1, arsenal: 1, bourse: 1 };
 
 /* ========================================================================
    Read state — the cursor is what reads
