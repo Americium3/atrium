@@ -45,6 +45,7 @@ var STR = {
     'stat.queue': 'QUEUE {done}/{total}', 'stat.invited': 'SENT {n}/{target}',
     'stat.stories': '{n} STORIES · {m} SECTIONS', 'stat.stale': 'EDITION STALE',
     'stat.tools': '{n} TOOLS ON THE RACK',
+    'stat.orders_await': '{n} ORDER(S) AWAIT REVIEW', 'stat.brief_of': 'BRIEF OF {date}',
     'note.qb_down': 'qBittorrent unreachable — downloads paused',
     'note.daemon_stale': 'Sync daemon looks stalled',
     'note.fallback': 'Reading state files directly (server down)',
@@ -71,6 +72,13 @@ var STR = {
     'k.outreach.error': 'Check the Outreach Desk',
     'k.press.digest_ready.head': "Today's edition is out",
     'k.press.digest_ready': '{stories} stories across {sections} sections',
+    'k.bourse.briefing.head': 'The morning brief is out',
+    'k.bourse.briefing': '{orders} order(s) await your review',
+    'k.bourse.briefing.hold': 'No action today — the desk holds',
+    'k.bourse.canary.head': 'Watchtower alarm',
+    'k.bourse.canary': '{sym} momentum turned negative — sheltering part of the book',
+    'k.bourse.allclear.head': 'Watchtower all clear',
+    'k.bourse.allclear': 'Every canary healthy — back on offense',
     worksSub: 'Readings from the engine room',
     wkCpu: 'PROCESSOR', wkMem: 'MEMORY', wkGpu: 'GRAPHICS', wkNet: 'TRAFFIC',
     wkHours: 'HOURS RUN', wkDisk: 'STORE', wkFree: '{n} FREE',
@@ -127,6 +135,7 @@ var STR = {
     'stat.queue': '队列 {done}/{total}', 'stat.invited': '已发 {n}/{target}',
     'stat.stories': '{n} 条 · {m} 栏', 'stat.stale': '早报未更新',
     'stat.tools': '架上 {n} 件工具',
+    'stat.orders_await': '{n} 条指令候审', 'stat.brief_of': '晨报 {date}',
     'note.qb_down': 'qBittorrent 不可达——下载已暂停',
     'note.daemon_stale': '同步守护进程疑似卡住',
     'note.fallback': '服务器离线——正在直读状态文件',
@@ -153,6 +162,13 @@ var STR = {
     'k.outreach.error': '请到 Outreach Desk 查看',
     'k.press.digest_ready.head': '今日晨报已出版',
     'k.press.digest_ready': '{sections} 个版面 · {stories} 条',
+    'k.bourse.briefing.head': '证券所晨报已付印',
+    'k.bourse.briefing': '{orders} 条指令候您审阅',
+    'k.bourse.briefing.hold': '今日无操作——按兵不动',
+    'k.bourse.canary.head': '瞭望塔报警',
+    'k.bourse.canary': '{sym} 动量转负——部分仓位转入避险',
+    'k.bourse.allclear.head': '瞭望塔解除警报',
+    'k.bourse.allclear': '金丝雀全数安好——恢复进攻',
     worksSub: '本机运转实况',
     wkCpu: '处理器', wkMem: '内存', wkGpu: '显卡', wkNet: '网络',
     wkHours: '已运转', wkDisk: '存储', wkFree: '余 {n}',
@@ -2245,6 +2261,9 @@ function statText(svc) {
     if (s.stories > 0) return t('stat.stories', { n: s.stories, m: s.sections || 0 });
   } else if (svc.id === 'arsenal') {
     if (s.tools > 0) return t('stat.tools', { n: s.tools });
+  } else if (svc.id === 'bourse') {
+    if (s.orders > 0) return t('stat.orders_await', { n: s.orders });
+    if (s.date) return t('stat.brief_of', { date: s.date });
   } else if (svc.id === 'outreach') {
     var parts = [];
     if (s.total > 0) parts.push(t('stat.queue', { done: s.ready || 0, total: s.total }));
@@ -2310,6 +2329,13 @@ function headline(d) {
       return { head: t('k.outreach.error.head'), detail: t('k.outreach.error'), warn: true };
     case 'press.digest_ready':
       return { head: t('k.press.digest_ready.head'), detail: t('k.press.digest_ready', p) };
+    case 'bourse.briefing':
+      return { head: t('k.bourse.briefing.head'),
+               detail: p.orders > 0 ? t('k.bourse.briefing', p) : t('k.bourse.briefing.hold') };
+    case 'bourse.canary':
+      return { head: t('k.bourse.canary.head'), detail: t('k.bourse.canary', p), warn: true };
+    case 'bourse.allclear':
+      return { head: t('k.bourse.allclear.head'), detail: t('k.bourse.allclear') };
   }
   return { head: k, detail: '' };
 }

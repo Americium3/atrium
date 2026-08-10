@@ -117,6 +117,45 @@ def test_press_digest_absent_when_there_is_no_paper():
         {"ok": True, "date": "2026-07-31", "generated_at": "garbage"}) == {}
 
 
+def test_bourse_events_map_validate_and_window():
+    """The desk pre-times its own events; this side re-keys, maps kinds, and
+    drops anything unknown, unstamped, or outside the feed window."""
+    now = server.now_ms()
+    items = [
+        {"id": "briefing:2026-08-10", "kind": "briefing", "ts": now - 1000,
+         "params": {"date": "2026-08-10", "orders": 3}},
+        {"id": "canary:2026-08-10:BND", "kind": "canary_alarm", "ts": now - 2000,
+         "params": {"sym": "BND", "date": "2026-08-10"}},
+        {"id": "allclear:2026-08-11", "kind": "canary_clear", "ts": now - 3000,
+         "params": {"date": "2026-08-11"}},
+        {"id": "old:brief", "kind": "briefing",
+         "ts": now - server.FEED_WINDOW_MS - 1, "params": {}},   # aged out
+        {"id": "odd", "kind": "mystery", "ts": now, "params": {}},  # unknown kind
+        {"kind": "briefing", "ts": now, "params": {}},              # no id
+        {"id": "x", "kind": "briefing", "ts": None, "params": {}},  # no stamp
+    ]
+    out = server.bourse_events_to_dispatches(items, now)
+    assert set(out) == {"bourse:briefing:2026-08-10",
+                        "bourse:canary:2026-08-10:BND",
+                        "bourse:allclear:2026-08-11"}
+    d = out["bourse:briefing:2026-08-10"]
+    assert d["kind"] == "bourse.briefing"
+    assert d["origin"] == "bourse" and d["wing"] == "bureau"
+    assert d["params"] == {"date": "2026-08-10", "orders": 3}
+    assert out["bourse:canary:2026-08-10:BND"]["kind"] == "bourse.canary"
+    assert out["bourse:allclear:2026-08-11"]["kind"] == "bourse.allclear"
+
+
+def test_bourse_events_idempotent_and_empty_safe():
+    now = server.now_ms()
+    items = [{"id": "briefing:2026-08-10", "kind": "briefing", "ts": now,
+              "params": {"date": "2026-08-10", "orders": 0}}]
+    assert server.bourse_events_to_dispatches(items, now) == \
+        server.bourse_events_to_dispatches(items, now)
+    assert server.bourse_events_to_dispatches(None, now) == {}
+    assert server.bourse_events_to_dispatches([], now) == {}
+
+
 def test_anime_kind_classification():
     """completed -> completed; ABSENT kind -> premiere; unknown kind ->
     dropped (never defaulted into the premiere branch)."""

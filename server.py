@@ -453,6 +453,28 @@ def outreach_invites_dispatch(panel_state: dict, today_local: datetime) -> dict:
     return out
 
 
+def bourse_events_to_dispatches(items: list, now: int) -> dict:
+    """The bourse desk reports its own events pre-timed: the morning edition
+    (timed by the artifact on disk, press-room style) and watchtower alarms.
+    This side only validates, windows, and re-keys them into the feed."""
+    kind_map = {"briefing": "bourse.briefing",
+                "canary_alarm": "bourse.canary",
+                "canary_clear": "bourse.allclear"}
+    out: dict[str, dict] = {}
+    for it in items or []:
+        kind = kind_map.get(it.get("kind"))
+        ts = it.get("ts")
+        iid = it.get("id")
+        if not kind or not iid or not isinstance(ts, int):
+            continue
+        if now - ts > FEED_WINDOW_MS:
+            continue
+        did = f"bourse:{iid}"
+        out[did] = _dispatch(did, "bourse", "bureau", kind,
+                             dict(it.get("params") or {}), ts)
+    return out
+
+
 def _dispatch(did: str, origin: str, wing: str, kind: str,
               params: dict, ts: int, url: str | None = None) -> dict:
     if url is None:
@@ -926,6 +948,27 @@ async def tick_arsenal(client: httpx.AsyncClient) -> None:
 # Background refresher
 # --------------------------------------------------------------------------
 
+async def tick_bourse(client: httpx.AsyncClient) -> None:
+    """The bourse desk speaks at most twice a day: the morning edition and
+    the odd watchtower alarm. Lamp, one stat, and those ledger lines."""
+    src = SOURCES["bourse"]
+    try:
+        resp, ms = await _timed_get(client, f"{BOURSE_URL}/api/status")
+        src.state, src.latency_ms, src.note = "open", ms, None
+        data = resp.json()
+        src.stat = {"date": data.get("date"),
+                    "orders": int(data.get("orders_pending") or 0)}
+        d2 = await client.get(f"{BOURSE_URL}/api/dispatches")
+        d2.raise_for_status()
+        src.groups["desk"] = bourse_events_to_dispatches(
+            (d2.json() or {}).get("dispatches"), now_ms())
+    except Exception as exc:
+        src.state = "dark"
+        src.latency_ms = None
+        src.stat = {}
+        log.debug("bourse dark: %s", exc)
+
+
 async def tick_pressroom(client: httpx.AsyncClient) -> None:
     """The press room publishes once a night: a lamp, a front-page count, and
     one Ledger line for the edition itself.
@@ -1092,7 +1135,7 @@ async def refresher() -> None:
         while True:
             fast = [tick_autopilot(client), tick_groundstation(client),
                     tick_outreach(client), tick_pressroom(client),
-                    tick_arsenal(client)]
+                    tick_arsenal(client), tick_bourse(client)]
             if tick_no % SLOW_EVERY == 0:
                 fast.append(tick_autopilot_slow(client))
                 fast.append(_gs_refresh_state(client))
