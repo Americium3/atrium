@@ -59,6 +59,7 @@ var STR = {
     'k.anime.subscribed.nogroup': 'Now subscribed',
     'k.anime.unresolved': 'No release group matched yet',
     'k.anime.grace': 'Waiting for the preferred group',
+    'k.unknown': 'Fresh word from this hall — refresh the page to read it in full',
     'k.mods.updated': 'Workshop update · {game}',
     'k.mods.removed': 'Delisted from the Workshop',
     'k.mods.banned': 'Banned on the Workshop',
@@ -149,6 +150,7 @@ var STR = {
     'k.anime.subscribed.nogroup': '已订阅',
     'k.anime.unresolved': '尚未匹配到字幕组源',
     'k.anime.grace': '等待首选字幕组中',
+    'k.unknown': '该厅室有新消息——刷新页面即可完整阅读',
     'k.mods.updated': '创意工坊更新 · {game}',
     'k.mods.removed': '已从创意工坊下架',
     'k.mods.banned': '已被创意工坊封禁',
@@ -2337,7 +2339,13 @@ function headline(d) {
     case 'bourse.allclear':
       return { head: t('k.bourse.allclear.head'), detail: t('k.bourse.allclear') };
   }
-  return { head: k, detail: '' };
+  // A kind this page has never heard of — a hall deployed a new dispatch
+  // while this tab sat open. Name the hall instead of leaking the raw kind.
+  var svc = null;
+  for (var i = 0; i < services.length; i++) {
+    if (services[i].id === d.origin) { svc = services[i]; break; }
+  }
+  return { head: (svc ? svc.name : d.origin), detail: t('k.unknown') };
 }
 
 function relTime(ts) {
