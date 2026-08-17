@@ -282,6 +282,7 @@ def anime_grace_to_dispatches(overview: dict) -> dict:
 AP_EVENT_KINDS = {
     "episode.landed": "anime.landed",
     "show.subscribed": "anime.subscribed",
+    "show.imported": "anime.imported",
 }
 
 

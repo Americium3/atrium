@@ -73,7 +73,8 @@ Atrium serves `http://127.0.0.1:8769` and currently fronts:
   spine draws downward and the dispatches cascade after it, staggered and
   capped so a long feed still lands quickly. It collects today's news from all
   services: which anime got a new episode, premieres auto-subscribed, shows
-  auto-completed, which watched workshop mod updated or got pulled, outreach
+  auto-completed, one-shots imported by hand, which watched workshop mod
+  updated or got pulled, outreach
   daily-queue readiness and invites sent, the morning edition going to
   press, and the bourse desk's brief (with its order count) plus any
   watchtower alarms. Dispatches you have not read carry a champagne rim, and the hatch

@@ -291,6 +291,8 @@ def test_ap_events_ids_and_ts_units():
                     "file": "x.mkv", "season": "Season 01"}},
         {"seq": 8, "kind": "show.subscribed", "ts": 1785300100,
          "params": {"title": "New", "bgm_id": 1, "group": "ANi"}},
+        {"seq": 9, "kind": "show.imported", "ts": 1785300200,
+         "params": {"title": "Movie", "bgm_id": 2, "hash": "cafe"}},
     ]
     out = server.anime_events_to_dispatches(events)
     landed = out["ap:7"]
@@ -298,6 +300,11 @@ def test_ap_events_ids_and_ts_units():
     assert landed["kind"] == "anime.landed"
     assert landed["params"] == {"show": "Show", "cour": "2026.07", "ep": "4"}
     assert out["ap:8"]["params"] == {"title": "New", "group": "ANi"}
+    imported = out["ap:9"]
+    assert imported["kind"] == "anime.imported"
+    # A hand-import names no release group, and the torrent hash is plumbing —
+    # only the title goes on the wire.
+    assert imported["params"] == {"title": "Movie"}
 
 
 def test_ap_events_missing_optionals_and_unknown_kind():
