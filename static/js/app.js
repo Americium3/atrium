@@ -57,6 +57,7 @@ var STR = {
     'k.anime.landed.noep': 'New episode shelved · {cour}',
     'k.anime.subscribed': 'Now subscribed · {group}',
     'k.anime.subscribed.nogroup': 'Now subscribed',
+    'k.anime.imported': 'Imported by hand',
     'k.anime.unresolved': 'No release group matched yet',
     'k.anime.grace': 'Waiting for the preferred group',
     'k.unknown': 'Fresh word from this hall — refresh the page to read it in full',
@@ -148,6 +149,7 @@ var STR = {
     'k.anime.landed.noep': '新一话已入库 · {cour}',
     'k.anime.subscribed': '已订阅 · {group}',
     'k.anime.subscribed.nogroup': '已订阅',
+    'k.anime.imported': '已手动入库',
     'k.anime.unresolved': '尚未匹配到字幕组源',
     'k.anime.grace': '等待首选字幕组中',
     'k.unknown': '该厅室有新消息——刷新页面即可完整阅读',
@@ -2311,6 +2313,8 @@ function headline(d) {
       return { head: p.show, detail: t(p.ep ? 'k.anime.landed' : 'k.anime.landed.noep', p) };
     case 'anime.subscribed':
       return { head: p.title, detail: t(p.group ? 'k.anime.subscribed' : 'k.anime.subscribed.nogroup', p) };
+    case 'anime.imported':
+      return { head: p.title, detail: t('k.anime.imported') };
     case 'anime.unresolved':
       return { head: p.title, detail: t('k.anime.unresolved'), warn: true };
     case 'anime.grace':
