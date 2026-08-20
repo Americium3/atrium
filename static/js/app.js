@@ -39,12 +39,14 @@ var STR = {
     'desc.pressroom': 'The world overnight, set in type by morning.',
     'desc.arsenal': 'A workbench of small utility tools for games.',
     'desc.bourse': 'The morning market brief, ranked and ready.',
+    'desc.workshop': 'Where code gets worked, by a hand that never leaves the building.',
     'desc.fallback': 'A newly registered hall.',
     'stat.airing': '{n} AIRING TODAY', 'stat.watching': '{n} WATCHING',
     'stat.pending': '{n} UPDATES PENDING', 'stat.mods': '{n} MODS TRACKED',
     'stat.queue': 'QUEUE {done}/{total}', 'stat.invited': 'SENT {n}/{target}',
     'stat.stories': '{n} STORIES · {m} SECTIONS', 'stat.stale': 'EDITION STALE',
     'stat.tools': '{n} TOOLS ON THE RACK',
+    'stat.bench': '{n} ON THE BENCH',
     'stat.orders_await': '{n} ORDER(S) AWAIT REVIEW', 'stat.brief_of': 'BRIEF OF {date}',
     'note.qb_down': 'qBittorrent unreachable — downloads paused',
     'note.daemon_stale': 'Sync daemon looks stalled',
@@ -130,12 +132,14 @@ var STR = {
     'desc.pressroom': '昨夜的世界，天亮前已排版付印。',
     'desc.arsenal': '一张游戏实用小工具的工作台。',
     'desc.bourse': '每日行情晨报，排好名次候审。',
+    'desc.workshop': '一间替你动手写码的工坊，从不离开这栋楼。',
     'desc.fallback': '新登记的厅室。',
     'stat.airing': '今日 {n} 部放送', 'stat.watching': '在看 {n} 部',
     'stat.pending': '{n} 个更新待装', 'stat.mods': '追踪 {n} 个 MOD',
     'stat.queue': '队列 {done}/{total}', 'stat.invited': '已发 {n}/{target}',
     'stat.stories': '{n} 条 · {m} 栏', 'stat.stale': '早报未更新',
     'stat.tools': '架上 {n} 件工具',
+    'stat.bench': '台上 {n} 件',
     'stat.orders_await': '{n} 条指令候审', 'stat.brief_of': '晨报 {date}',
     'note.qb_down': 'qBittorrent 不可达——下载已暂停',
     'note.daemon_stale': '同步守护进程疑似卡住',
@@ -228,7 +232,7 @@ var chipFilter = 'all';   // session-only, resets to ALL on every load (R11)
 /* Ledger drawer state */
 var ledgerOpening = false;    // true only during openLedger() render pass
 var cascadeIndex = 0;         // counter for --ci stamps in cascading pass
-var KNOWN_SIGILS = { autopilot: 1, groundstation: 1, outreach: 1, pressroom: 1, arsenal: 1, bourse: 1 };
+var KNOWN_SIGILS = { autopilot: 1, groundstation: 1, outreach: 1, pressroom: 1, arsenal: 1, bourse: 1, workshop: 1 };
 
 /* ========================================================================
    Read state — the cursor is what reads
@@ -2266,6 +2270,8 @@ function statText(svc) {
   } else if (svc.id === 'bourse') {
     if (s.orders > 0) return t('stat.orders_await', { n: s.orders });
     if (s.date) return t('stat.brief_of', { date: s.date });
+  } else if (svc.id === 'workshop') {
+    if (s.bench > 0) return t('stat.bench', { n: s.bench });
   } else if (svc.id === 'outreach') {
     var parts = [];
     if (s.total > 0) parts.push(t('stat.queue', { done: s.ready || 0, total: s.total }));
