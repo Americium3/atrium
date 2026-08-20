@@ -13,8 +13,13 @@ $services = @(
     @{ Name = 'atrium-hub';     Port = 8769; Launcher = 'X:\Github\atrium\run_hub_hidden.vbs' },
     @{ Name = 'press-room';     Port = 8765; Launcher = 'X:\Github\yorha-news\scripts\run_server_hidden.vbs' },
     @{ Name = 'arsenal';        Port = 8770; Launcher = 'X:\Github\arsenal\run_server_hidden.vbs' },
-    @{ Name = 'bourse';         Port = 8771; Launcher = 'X:\Github\bourse\run_server_hidden.vbs' }
+    @{ Name = 'bourse';         Port = 8771; Launcher = 'X:\Github\bourse\run_server_hidden.vbs' },
+    @{ Name = 'workshop';       Port = 8772; Launcher = 'X:\Github\workshop\run_hidden.vbs' }
 )
+# The Workshop is a container rather than a script. Docker Desktop
+# autostarts at logon and the container carries "--restart unless-stopped", so
+# the port is normally open before this runs; its launcher earns its keep only
+# when the container was stopped by hand, and it waits for the engine itself.
 # Anime Autopilot (:8767) is intentionally absent: its .lnk files already
 # live in shell:startup and race a port probe at logon.
 #

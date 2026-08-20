@@ -57,6 +57,7 @@ OUTREACH_URL = "http://127.0.0.1:8802"
 PRESSROOM_URL = "http://127.0.0.1:8765"
 ARSENAL_URL = "http://127.0.0.1:8770"
 BOURSE_URL = "http://127.0.0.1:8771"
+WORKSHOP_URL = "http://127.0.0.1:8772"
 
 GS_DATA_DIR = Path(r"X:\Github\pdx-mod-hub\data")
 AP_DATA_DIR = Path(r"X:\Github\anime-rss-auto")
@@ -139,6 +140,19 @@ SERVICES = [
         "desc_key": "bourse",
         "launch_hint": r"X:\Github\bourse\run_server_hidden.vbs",
         "order": 6,
+    },
+    {
+        "id": "workshop",
+        "name": "THE WORKSHOP",
+        "wing": "bureau",
+        "url": WORKSHOP_URL + "/",
+        "addr": "127.0.0.1:8772",
+        "sigil": "workshop",
+        "desc_key": "workshop",
+        # The only gate behind a container rather than a hidden script: the
+        # starter waits for the Docker engine before asking it for the app.
+        "launch_hint": r"X:\Github\workshop\run_hidden.vbs",
+        "order": 7,
     },
 ]
 
@@ -970,6 +984,29 @@ async def tick_bourse(client: httpx.AsyncClient) -> None:
         log.debug("bourse dark: %s", exc)
 
 
+async def tick_workshop(client: httpx.AsyncClient) -> None:
+    """The workshop is a bench, not a dispatch source: a health lamp and the
+    number of jobs standing on it. No Ledger lines -- it never notifies.
+
+    The route polled here belongs to the app server, not to the agent, so this
+    tick can run every 60s forever without ever waking the model: the card is
+    only touched when a task is actually given. That distinction matters --
+    a health probe that loads 17 GB of weights would keep the GPU busy all day
+    for nobody. (The outreach desk was bitten by exactly that once.)"""
+    src = SOURCES["workshop"]
+    try:
+        resp, ms = await _timed_get(
+            client, f"{WORKSHOP_URL}/api/v1/app-conversations/count")
+        src.state, src.latency_ms, src.note = "open", ms, None
+        n = int(resp.json() or 0)
+        src.stat = {"bench": n} if n else {}
+    except Exception as exc:
+        src.state = "dark"
+        src.latency_ms = None
+        src.stat = {}
+        log.debug("workshop dark: %s", exc)
+
+
 async def tick_pressroom(client: httpx.AsyncClient) -> None:
     """The press room publishes once a night: a lamp, a front-page count, and
     one Ledger line for the edition itself.
@@ -1136,7 +1173,8 @@ async def refresher() -> None:
         while True:
             fast = [tick_autopilot(client), tick_groundstation(client),
                     tick_outreach(client), tick_pressroom(client),
-                    tick_arsenal(client), tick_bourse(client)]
+                    tick_arsenal(client), tick_bourse(client),
+                    tick_workshop(client)]
             if tick_no % SLOW_EVERY == 0:
                 fast.append(tick_autopilot_slow(client))
                 fast.append(_gs_refresh_state(client))
