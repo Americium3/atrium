@@ -14,6 +14,7 @@ Atrium serves `http://127.0.0.1:8769` and currently fronts:
 | Outreach Desk | Bureau (work) | `127.0.0.1:8802` — LinkedIn outreach console |
 | The Press Room | Bureau (work) | `127.0.0.1:8765` — overnight news digest |
 | Bourse | Bureau (work) | `127.0.0.1:8771` — personal market briefing desk |
+| The Drafting Room | Bureau (work) | `127.0.0.1:8772` — local coding agent (OpenHands) |
 
 ## What's on the page
 
@@ -282,7 +283,17 @@ bind than this task's trigger delay; without that pause the concierge starts
 a duplicate that dies on "address already in use". The Press Room is listed
 as a safety net rather than as its owner — YoRHa News registers its own
 `YoRHaNews-Server` logon task, and the port guard is what keeps the two from
-fighting. Register the concierge as a logon scheduled task; services are
+fighting.
+
+The Drafting Room is the one gate behind a container rather than a script.
+Docker Desktop starts at logon and the `openhands-app` container carries
+`--restart unless-stopped`, so it normally answers before the concierge looks;
+its launcher (`X:\Github\drafting-room\run_hidden.vbs`) waits for the Docker
+engine and then asks it for the app, which only matters if the container was
+stopped by hand. Opening the page never loads a model — the GPU stays free
+until a task is actually given.
+
+Register the concierge as a logon scheduled task; services are
 spawned via WMI so they are parented outside the task's job object and
 survive its execution time limit:
 
