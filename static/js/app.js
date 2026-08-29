@@ -87,9 +87,20 @@ var STR = {
     wkNoReading: 'NO READING',
     wkCores: '{n} cores', wkOf: '{a} of {b} GB',
     wkDown: '{d} down · {u} up MB/s',
-    bulletinSub: "Today's dispatches",
-    bulletinEmpty: 'The case is empty',
-    openLedger: 'OPEN THE LEDGER',
+    almSub: 'The sky over {place}',
+    almHigh: 'HIGH', almLow: 'LOW', almPrecip: 'PRECIP', almWind: 'WIND',
+    almRise: 'RISE', almSet: 'SET',
+    almPolarDay: 'MIDNIGHT SUN', almPolarNight: 'POLAR NIGHT',
+    almAge: 'AGE',
+    almDaylight: 'DAYLIGHT', almLonger: 'LONGER', almShorter: 'SHORTER',
+    almDays: '{n} d', almWindUnit: '{n} km/h',
+    almFahrenheit: '{high} / {low} °F',
+    /* The eight phases, in order from new moon. Sentences, not signage: the
+       hall's engraved caps stay English, a moon's name does not. */
+    almPhase0: 'New', almPhase1: 'Waxing crescent',
+    almPhase2: 'First quarter', almPhase3: 'Waxing gibbous',
+    almPhase4: 'Full', almPhase5: 'Waning gibbous',
+    almPhase6: 'Last quarter', almPhase7: 'Waning crescent',
     bayLabel: 'BAY {n}',
     floorMotto: 'EVERY HALL, ONE DOOR',
     appearance: 'APPEARANCE', language: 'LANGUAGE', motion: 'MOTION',
@@ -107,8 +118,8 @@ var STR = {
     ariaFilter: 'Filter dispatches', ariaClose: 'Close',
     ariaGates: 'Gates', ariaLedger: 'Ledger — dispatch timeline',
     ariaWorks: 'Statistics — live readings from this machine',
-    ariaBulletin: 'Bulletin — latest dispatches',
-    worksTitle: 'Statistics', bulTitle: 'Bulletin',
+    ariaAlmanac: 'Almanac — sun, moon and weather over this hall',
+    worksTitle: 'Statistics', almTitle: 'Almanac',
     salonWing: 'Play wing', bureauWing: 'Work wing',
     ledgerBtnLabel: 'LEDGER',
     unreadCount: '{n} new dispatches', unreadCountOne: '1 new dispatch'
@@ -179,9 +190,18 @@ var STR = {
     wkNoReading: '无读数',
     wkCores: '{n} 核', wkOf: '{a} / {b} GB',
     wkDown: '下 {d} · 上 {u} MB/s',
-    bulletinSub: '今日快讯',
-    bulletinEmpty: '橱窗暂空',
-    openLedger: '打开消息总台',
+    almSub: '{place}上空的天象',
+    almHigh: '高', almLow: '低', almPrecip: '降水', almWind: '风',
+    almRise: '日出', almSet: '日落',
+    almPolarDay: '极昼', almPolarNight: '极夜',
+    almAge: '月龄',
+    almDaylight: '昼长', almLonger: '比昨日长', almShorter: '比昨日短',
+    almDays: '{n} 日', almWindUnit: '{n} 公里/时',
+    almFahrenheit: '{high} / {low} °F',
+    almPhase0: '朔', almPhase1: '蛾眉月',
+    almPhase2: '上弦', almPhase3: '盈凸',
+    almPhase4: '望', almPhase5: '亏凸',
+    almPhase6: '下弦', almPhase7: '残月',
     bayLabel: '第 {n} 间',
     floorMotto: '万厅一门',
     appearance: '外观', language: '语言', motion: '动效',
@@ -199,8 +219,8 @@ var STR = {
     ariaFilter: '筛选快讯', ariaClose: '关闭',
     ariaGates: '门廊', ariaLedger: '账本 — 派发时间轴',
     ariaWorks: '运转统计 —— 本机实时读数',
-    ariaBulletin: '布告栏 —— 最新快讯',
-    worksTitle: '运转统计', bulTitle: '布告栏',
+    ariaAlmanac: '天象 —— 本厅上空的日月与天气',
+    worksTitle: '运转统计', almTitle: '天象',
     salonWing: '娱乐翼 · 沙龙', bureauWing: '工作翼 · 事务所',
     ledgerBtnLabel: '账本',
     unreadCount: '{n} 条新消息', unreadCountOne: '1 条新消息'
@@ -281,21 +301,14 @@ function markRead(id) {
   syncReadMarks();
 }
 
-function cssEsc(s) {
-  return window.CSS && CSS.escape ? CSS.escape(String(s)) : String(s);
-}
-
-/* Both surfaces carry the same dispatches, so a plaque marked in the drawer
-   has to clear its twin in the Bulletin case behind it. The ticker is left
-   to its own poll: it is a marquee, and rebuilding the track mid-scroll
-   snaps it back to the start — a jump the hall would then have to explain. */
+/* The drawer's plaques are the only surface that carries a per-dispatch mark
+   now, so a read updates there and in the badge. The ticker is left to its
+   own poll: it is a marquee, and rebuilding the track mid-scroll snaps it
+   back to the start — a jump the hall would then have to explain. */
 function syncReadMarks() {
   feed.forEach(function (d) {
-    var fresh = isNew(d);
     var li = plaqueEls[d.id];
-    if (li) li.classList.toggle('new', fresh);
-    var note = document.querySelector('.bd-note[data-id="' + cssEsc(d.id) + '"]');
-    if (note) note.classList.toggle('new', fresh);
+    if (li) li.classList.toggle('new', isNew(d));
   });
   updateLedgerBadge();
 }
@@ -1607,7 +1620,7 @@ function buildAisles() {
   var lw = Math.max(0, (axis - reach) - bw.left);
   var rw = Math.max(0, bw.right - (axis + reach));
   var used = fillWall(wl, lw, boardHole($('#works'), bw.left), 1);
-  fillWall(wr, rw, boardHole($('#bulletin'), axis + reach), used + 1);
+  fillWall(wr, rw, boardHole($('#almanac'), axis + reach), used + 1);
   sizeFloor();
   // The reflections are cast from the live arch boxes, so they are repainted
   // by whatever last moved them — a resize, a wing throw, a font swap.
@@ -1852,7 +1865,7 @@ function paintFloorMirror() {
   });
   // The clock, and the two aisle cases: everything hanging on the wall is in
   // the floor, or the flanks read as dry stone next to a wet middle.
-  [['#clock', true, true], ['#works', false, false], ['#bulletin', false, false]]
+  [['#clock', true, true], ['#works', false, false], ['#almanac', false, false]]
   .forEach(function (spec) {
     var e = $(spec[0]);
     if (!e) return;
@@ -2074,67 +2087,435 @@ function startWorks() {
   pollWorks();
 }
 
-/* ----- The BULLETIN ------------------------------------------------------ */
-var BULLETIN_SLOTS = 4;
+/* ----- THE ALMANAC -------------------------------------------------------
+   The east board. Where STATISTICS reads the machine, this reads the sky
+   over it — and it is deliberately built out of two halves that fail
+   independently.
 
-function renderBulletin() {
-  var box = $('#bul-notes');
-  if (!box) return;
-  box.textContent = '';
-  // The case shows the hall's own feed: it ignores the lever and the Ledger
-  // chips exactly as the ticker does (R11).
-  var shown = feed.slice(0, BULLETIN_SLOTS);
-  shown.forEach(function (d) {
-    var h = headline(d);
-    var a = el('a', 'bd-note' + (isNew(d) ? ' new' : '') + (h.warn ? ' warn' : ''));
-    a.setAttribute('role', 'listitem');
-    a.href = d.url;
-    // The case rebuilds wholesale on every poll, so syncReadMarks() finds its
-    // notes by dispatch id rather than holding a reference that goes stale.
-    a.dataset.id = d.id;
-    a.addEventListener('click', function (e) {
-      e.preventDefault();
-      markRead(d.id);
-      window.open(d.url, 'atrium-' + d.origin);
-    });
-    armDwell(a, d.id);
-    var svg = svgEl('svg', { viewBox: '0 0 40 40', 'aria-hidden': 'true' }, 'bn-medal');
-    var rim = svgEl('use', {}, 'rim');
-    rim.setAttribute('href', '#medallion');
-    svg.appendChild(rim);
-    var sig = svgEl('use', {}, KNOWN_SIGILS[d.origin] ? 'm-sig m-mark' : 'm-sig');
-    sig.setAttribute('href', KNOWN_SIGILS[d.origin] ? '#mark-' + d.origin : '#sig-fallback');
-    svg.appendChild(sig);
-    a.appendChild(svg);
-    var mid = el('span', 'bn-mid');
-    mid.appendChild(el('span', 'bn-head zh-sentence', h.head || ''));
-    if (h.detail) mid.appendChild(el('span', 'bn-detail zh-sentence', h.detail));
-    mid.appendChild(el('span', 'bn-time num', relTime(d.ts)));
-    a.appendChild(mid);
-    box.appendChild(a);
-  });
-  if (!shown.length) {
-    var empty = el('div', 'bd-note ghost');
-    empty.appendChild(el('span', 'bn-medal'));
-    var m = el('span', 'bn-mid');
-    m.appendChild(el('span', 'bn-detail zh-sentence', t('bulletinEmpty')));
-    empty.appendChild(m);
-    box.appendChild(empty);
-  }
-  // A notice case with three empty rails still reads as a notice case; a
-  // case with one notice and a void under it reads as broken furniture.
-  for (var i = Math.max(shown.length, shown.length ? 0 : 1); i < BULLETIN_SLOTS; i++) {
-    var g = el('div', 'bd-note ghost');
-    g.appendChild(el('span', 'bn-medal'));
-    var gm = el('span', 'bn-mid');
-    gm.appendChild(el('span', 'bn-head'));
-    g.appendChild(gm);
-    box.appendChild(g);
+   The sun and the moon are ARITHMETIC, run here on the coordinates the hub
+   hands over. That is what lets the bead keep moving through the day on a
+   board whose forecast is a quarter of an hour old, and what leaves the case
+   with an instrument in it when the weather service is unreachable.
+
+   The forecast comes from /api/almanac, which is TTL'd well below this poll:
+   the cadence below is the board's, not the service's.
+   ======================================================================== */
+var ALM_POLL_MS = 600000;    // the forecast — behind a 15 min TTL at the hub
+var SKY_TICK_MS = 60000;     // the bead — the one live thing on the board
+var RAD = Math.PI / 180;
+var SYNODIC = 29.530588853;                       // mean lunar month, days
+var MOON_EPOCH = Date.UTC(2000, 0, 6, 18, 14);    // a known new moon
+
+var almanac = null;          // last payload from /api/almanac
+var almTimer = null, skyTimer = null;
+
+function fmod(a, n) { return ((a % n) + n) % n; }
+
+/* Hours to a wall clock. Rounded in MINUTES rather than per field: rounding
+   the minutes of 23:59.7 on their own prints 23:60. */
+function hhmm(h) {
+  var m = Math.round(fmod(h, 24) * 60);
+  return pad2(Math.floor(m / 60) % 24) + ':' + pad2(m % 60);
+}
+
+/* How far the named place's clock is from UTC right now, DST included. Falls
+   back to the reader's own offset when the hub names no zone — the reader is
+   usually standing in the place anyway. */
+function offsetOf(tz, at) {
+  if (!tz) return -at.getTimezoneOffset() / 60;
+  try {
+    var parts = {};
+    new Intl.DateTimeFormat('en-US', {
+      timeZone: tz, hour12: false,
+      year: 'numeric', month: '2-digit', day: '2-digit',
+      hour: '2-digit', minute: '2-digit', second: '2-digit'
+    }).formatToParts(at).forEach(function (p) { parts[p.type] = p.value; });
+    var asUTC = Date.UTC(+parts.year, +parts.month - 1, +parts.day,
+                         +parts.hour % 24, +parts.minute, +parts.second);
+    return Math.round((asUTC - at.getTime()) / 60000) / 60;
+  } catch (e) {
+    return -at.getTimezoneOffset() / 60;
   }
 }
 
-var bulOpen = $('#bul-open');
-if (bulOpen) bulOpen.addEventListener('click', function () { openLedger(); });
+/* The wall clock at the place, as plain fields. Everything the board prints
+   is measured from here. */
+function localAt(tz, at) {
+  var s = new Date(at.getTime() + offsetOf(tz, at) * 3600000);
+  return {
+    year: s.getUTCFullYear(), month: s.getUTCMonth(), day: s.getUTCDate(),
+    hours: s.getUTCHours() + s.getUTCMinutes() / 60 + s.getUTCSeconds() / 3600
+  };
+}
+
+/* NOAA's sunrise equation, short form. Returns clock hours at `tzHours`.
+   Checked against Open-Meteo for Pittsburgh: 06:17 against their 06:16. */
+function sunTimes(lat, lon, date, tzHours) {
+  var days = Math.floor((Date.UTC(date.year, date.month, date.day)
+                         - Date.UTC(2000, 0, 1)) / 86400000);
+  var n = days + 0.0008 - lon / 360;
+  var M = fmod(357.5291 + 0.98560028 * n, 360) * RAD;
+  var C = 1.9148 * Math.sin(M) + 0.02 * Math.sin(2 * M) + 0.0003 * Math.sin(3 * M);
+  var L = fmod(M / RAD + C + 180 + 102.9372, 360) * RAD;
+  var J = 2451545.0 + n + 0.0053 * Math.sin(M) - 0.0069 * Math.sin(2 * L);
+  var dec = Math.asin(Math.sin(L) * Math.sin(23.4397 * RAD));
+  var la = lat * RAD;
+  var cosw = (Math.sin(-0.833 * RAD) - Math.sin(la) * Math.sin(dec))
+           / (Math.cos(la) * Math.cos(dec));
+  // Inside a polar circle the sun never crosses the horizon at all.
+  if (cosw > 1) return { polar: 'night' };
+  if (cosw < -1) return { polar: 'day' };
+  var w = Math.acos(cosw);
+  // Wrapped into the local day HERE, not at the point of display. West of
+  // Greenwich a summer sunset lands after midnight UTC, so the unwrapped
+  // figure comes out negative — it formats correctly and every comparison
+  // made against it is backwards, which puts the bead on the wrong horizon.
+  var clock = function (j) { return fmod(fmod(j - 2451545.0 + 0.5, 1) * 24 + tzHours, 24); };
+  var jset = J + (w / RAD) / 360;
+  var rise = clock(J - (jset - J));
+  var set = clock(jset);
+  var noon = clock(J);
+  // A clock offset far from its own meridian can set after local midnight;
+  // keep the pair ordered so the day still runs forwards.
+  if (set < rise) set += 24;
+  if (noon < rise) noon += 24;
+  return { rise: rise, set: set, noon: noon, hours: (w / RAD) * 2 / 15 };
+}
+
+function moonPhase(at) {
+  var age = fmod((at.getTime() - MOON_EPOCH) / 86400000, SYNODIC);
+  return {
+    age: age,
+    lit: (1 - Math.cos(2 * Math.PI * age / SYNODIC)) / 2,
+    waxing: age < SYNODIC / 2,
+    idx: Math.round(age / SYNODIC * 8) % 8
+  };
+}
+
+/* The terminator is an ELLIPSE. Drawing it as a straight chord, or as a
+   second circle offset sideways, is the usual shortcut and it gets gibbous
+   phases visibly wrong — which is the first thing an almanac reader looks
+   at. The waning half is the waxing path mirrored. */
+function moonDisc(phase, r) {
+  var box = r + 2;
+  var svg = svgEl('svg', {
+    viewBox: (-box) + ' ' + (-box) + ' ' + (box * 2) + ' ' + (box * 2),
+    'aria-hidden': 'true'
+  }, 'al-disc');
+  svg.appendChild(svgEl('circle', { cx: 0, cy: 0, r: r }, 'm-dark'));
+  var xt = r * (1 - 2 * phase.lit);     // where the terminator crosses the equator
+  var lit = svgEl('path', {
+    d: 'M 0 ' + (-r) + ' A ' + r + ' ' + r + ' 0 0 1 0 ' + r + ' '
+     + 'A ' + Math.abs(xt).toFixed(3) + ' ' + r + ' 0 0 ' + (xt > 0 ? 0 : 1)
+     + ' 0 ' + (-r) + ' Z'
+  }, 'm-lit');
+  if (!phase.waxing) lit.setAttribute('transform', 'scale(-1,1)');
+  svg.appendChild(lit);
+  // The bezel last, so the mount reads over the disc the way a case does.
+  svg.appendChild(svgEl('circle', { cx: 0, cy: 0, r: r, 'stroke-width': 1 }, 'm-bezel'));
+  return svg;
+}
+
+/* ----- The heliograph ----------------------------------------------------
+   A horizon dial. The sun runs the whole 24 hours round one ellipse: the
+   solid half above the horizon rule is the day, the dotted half below it is
+   the night, and the two crossings are sunrise and sunset — so the bead is
+   somewhere on the plate at every hour, instead of parking on a foot all
+   evening. The elapsed daylight is inked as far as the day has got, which
+   after sunset is all of it: the plate reports how much daylight has been
+   SPENT, not merely where the sun is standing.
+
+   The one thing it does not draw is a meridian. Local noon is the midpoint
+   of sunrise and sunset by construction, so a line dropped from it would sit
+   dead centre on every plate ever printed and carry no information at all —
+   ornament pretending to be an instrument. The apex and nadir get a fiducial
+   tick each and nothing more.
+
+   Nothing here is a fixed viewBox. The aisle is 300px wide at 2200 and 560
+   at 3440, and the case is the same height either way, so a plate drawn to
+   one aspect either letterboxes into a third of its register or balloons out
+   of it — and a void inside a lit case reads as a board that failed to draw
+   rather than as air. The box is measured, the ellipse is inscribed in it. */
+function skyBox(host) {
+  var w = (host && host.clientWidth) || 300;
+  var h = (host && host.clientHeight) || 150;
+  var H = Math.max(150, Math.min(300, Math.round(300 * h / Math.max(w, 1))));
+  return {
+    // The ellipse stops well short of the plate edge on purpose: the two
+    // crossings are where the only lettering on the instrument lives, and an
+    // ellipse drawn to the full width leaves it nowhere to stand but on the
+    // curve itself.
+    W: 300, H: H, cx: 150, cy: H / 2, rx: 112,
+    ry: Math.max(40, Math.min(124, H / 2 - 20))
+  };
+}
+
+/* u runs 0..1 from sunrise over the top to sunset; v runs 0..1 from sunset
+   under the bottom back to sunrise. */
+function dayPoint(g, u) {
+  return { x: g.cx - g.rx * Math.cos(Math.PI * u),
+           y: g.cy - g.ry * Math.sin(Math.PI * u) };
+}
+function nightPoint(g, v) {
+  return { x: g.cx + g.rx * Math.cos(Math.PI * v),
+           y: g.cy + g.ry * Math.sin(Math.PI * v) };
+}
+
+function skyText(x, y, cls, text, anchor) {
+  var n = svgEl('text', {
+    x: x.toFixed(1), y: y.toFixed(1), 'text-anchor': anchor || 'middle'
+  }, cls);
+  n.textContent = text;
+  return n;
+}
+
+/* A tick standing off the ellipse along its own radius. */
+function skyTick(g, p, len, cls) {
+  var vx = (p.x - g.cx) / g.rx, vy = (p.y - g.cy) / g.ry;
+  var n = Math.sqrt(vx * vx + vy * vy) || 1;
+  return svgEl('line', {
+    x1: p.x.toFixed(2), y1: p.y.toFixed(2),
+    x2: (p.x + len * vx / n).toFixed(2), y2: (p.y + len * vy / n).toFixed(2)
+  }, cls);
+}
+
+function buildSky(where, host) {
+  var g = skyBox(host);
+  var svg = svgEl('svg', {
+    viewBox: '0 0 ' + g.W + ' ' + g.H, preserveAspectRatio: 'xMidYMid meet',
+    'aria-hidden': 'true'
+  }, 'al-arc');
+  svg.appendChild(svgEl('line', {
+    x1: 6, y1: g.cy, x2: g.W - 6, y2: g.cy, 'stroke-width': 1
+  }, 'a-horizon'));
+  // Nothing has arrived yet: a bare horizon still reads as an instrument,
+  // where a blank panel reads as a case with its glass knocked out.
+  if (!where) return { svg: svg, sun: null };
+
+  var at = new Date();
+  var tzh = offsetOf(where.timezone, at);
+  var here = localAt(where.timezone, at);
+  var sun = sunTimes(where.lat, where.lon, here, tzh);
+
+  if (sun.polar) {
+    svg.appendChild(skyText(g.cx, g.cy - 12, 'a-polar',
+      t(sun.polar === 'day' ? 'almPolarDay' : 'almPolarNight')));
+    return { svg: svg, sun: sun, here: here, at: at, tz: tzh };
+  }
+
+  var day = 'M ' + (g.cx - g.rx) + ' ' + g.cy
+          + ' A ' + g.rx + ' ' + g.ry + ' 0 0 1 ' + (g.cx + g.rx) + ' ' + g.cy;
+  var night = 'M ' + (g.cx + g.rx) + ' ' + g.cy
+            + ' A ' + g.rx + ' ' + g.ry + ' 0 0 1 ' + (g.cx - g.rx) + ' ' + g.cy;
+  svg.appendChild(svgEl('path', {
+    d: night, fill: 'none', 'stroke-width': 1, 'stroke-dasharray': '1 4'
+  }, 'a-night'));
+  svg.appendChild(svgEl('path', { d: day, fill: 'none', 'stroke-width': 1 }, 'a-track'));
+
+  // The whole timeline runs [rise, rise+24), so a clock reading before dawn
+  // belongs to the END of the night that is still running — not to the front
+  // of a day that has not started. Wrapping it here is what keeps every
+  // comparison below pointing the same way round the dial.
+  var clock = here.hours < sun.rise ? here.hours + 24 : here.hours;
+  var dayLen = sun.set - sun.rise;
+  var up = clock <= sun.set;
+  var u = up ? (clock - sun.rise) / dayLen : 1;
+
+  if (u > 0) {
+    svg.appendChild(svgEl('path', {
+      d: day, fill: 'none', 'stroke-width': 1.5, pathLength: 1,
+      'stroke-dasharray': u.toFixed(4) + ' 1'
+    }, 'a-done'));
+  }
+
+  // The chapter ring, laid on the arc rather than round a dial: one tick per
+  // whole hour of daylight, which is what turns a curve into a scale.
+  var hours = svgEl('g', { 'stroke-width': 1 }, 'a-hour');
+  for (var h = Math.ceil(sun.rise); h < sun.set; h++) {
+    hours.appendChild(skyTick(g, dayPoint(g, (h - sun.rise) / dayLen), 4, null));
+  }
+  svg.appendChild(hours);
+  // Culmination and its opposite — the two fiducials a horizon dial owes the
+  // reader, and the only marks on the plate that never move.
+  svg.appendChild(skyTick(g, dayPoint(g, 0.5), 5, 'a-fid'));
+  svg.appendChild(skyTick(g, nightPoint(g, 0.5), 5, 'a-fid'));
+
+  // The crossings: label engraved above the horizon, time below it.
+  [[g.cx - g.rx, 4, 'start', 'almRise', sun.rise],
+   [g.cx + g.rx, g.W - 4, 'end', 'almSet', sun.set]]
+  .forEach(function (foot) {
+    svg.appendChild(svgEl('line', {
+      x1: foot[0], y1: g.cy - 4, x2: foot[0], y2: g.cy + 5, 'stroke-width': 1.5
+    }, 'a-foot'));
+    svg.appendChild(skyText(foot[1], g.cy - 7, 'a-lab', t(foot[3]), foot[2]));
+    svg.appendChild(skyText(foot[1], g.cy + 17, 'a-time', hhmm(foot[4]), foot[2]));
+  });
+
+  var s = up ? dayPoint(g, u)
+             : nightPoint(g, (clock - sun.set) / (24 - dayLen));
+  if (up) {
+    svg.appendChild(svgEl('circle', {
+      cx: s.x.toFixed(2), cy: s.y.toFixed(2), r: 8, 'stroke-width': 1
+    }, 'a-sun-ring'));
+  }
+  svg.appendChild(svgEl('circle', {
+    cx: s.x.toFixed(2), cy: s.y.toFixed(2), r: up ? 4.5 : 3.2
+  }, up ? 'a-sun' : 'a-sun down'));
+  // The bead carries no time label. A regulator the size of a doorway is
+  // standing between the two arches saying exactly that, and the plate's job
+  // is the one thing the clock cannot say — WHERE in the day this is.
+
+  return { svg: svg, sun: sun, here: here, at: at, tz: tzh };
+}
+
+/* ----- The board --------------------------------------------------------- */
+
+function almPlaceName(p) {
+  return (lang === 'zh' && p.name_zh) ? p.name_zh : (p.name || p.name_zh || '');
+}
+
+/* The station line is SIGNAGE — an address engraved on the case — so it
+   stays English and true caps in both languages, exactly as the gates'
+   addresses do. The localized name of the place is in the subtitle above. */
+function almStation(p) {
+  return (p.name || p.name_zh || '') + '  ·  '
+       + Math.abs(p.lat).toFixed(2) + '°' + (p.lat >= 0 ? 'N' : 'S') + '  '
+       + Math.abs(p.lon).toFixed(2) + '°' + (p.lon >= 0 ? 'E' : 'W');
+}
+
+function almDeg(v) {
+  return (v === null || v === undefined) ? '—' : Math.round(v) + '°';
+}
+
+function almVitals(w) {
+  var rows = [
+    ['almHigh', w ? almDeg(w.high_c) : '—'],
+    ['almLow', w ? almDeg(w.low_c) : '—'],
+    ['almPrecip', w && w.precip_prob !== null && w.precip_prob !== undefined
+                  ? w.precip_prob + '%' : '—'],
+    ['almWind', w && w.wind_kmh !== null && w.wind_kmh !== undefined
+                ? t('almWindUnit', { n: Math.round(w.wind_kmh) }) : '—']
+  ];
+  var box = el('div', 'al-vitals');
+  rows.forEach(function (r) {
+    var line = el('div', 'al-vrow');
+    line.appendChild(el('span', 'al-vlabel display', t(r[0])));
+    line.appendChild(el('span', 'al-vval num', r[1]));
+    box.appendChild(line);
+  });
+  return box;
+}
+
+function buildRead(w) {
+  var box = $('#al-read');
+  box.textContent = '';
+  box.dataset.blank = w ? 'no' : 'yes';
+  var now = el('div', 'al-now');
+  now.appendChild(el('span', 'al-temp num', w ? almDeg(w.now_c) : '—'));
+  now.appendChild(el('span', 'al-cond zh-sentence',
+    w ? (lang === 'zh' ? w.label_zh : w.label) : t('wkNoReading')));
+  box.appendChild(now);
+  box.appendChild(almVitals(w));
+  // Fahrenheit lives in the tooltip: this reader is standing in a country
+  // that speaks it, in a hall that does not.
+  box.title = w && w.high_f !== null && w.high_f !== undefined
+              && w.low_f !== null && w.low_f !== undefined
+    ? t('almFahrenheit', { high: Math.round(w.high_f), low: Math.round(w.low_f) })
+    : '';
+}
+
+function almStrip(label, value) {
+  var row = el('div', 'al-strip');
+  row.appendChild(el('span', 'al-slabel display', label));
+  row.appendChild(el('span', 'al-sval num', value));
+  return row;
+}
+
+function buildTape(sky, where) {
+  var box = $('#al-tape');
+  box.textContent = '';
+  var at = (sky && sky.at) || new Date();
+  var phase = moonPhase(at);
+
+  // The disc carries no MOON caption on purpose: a picture of the moon
+  // labelled "moon" is the redundancy the DIRECTORY board was struck for.
+  var moon = el('div', 'al-moon');
+  moon.appendChild(moonDisc(phase, 15));
+  var text = el('div', 'al-mtext');
+  text.appendChild(el('span', 'al-mname zh-sentence',
+    t('almPhase' + phase.idx) + '  ·  ' + Math.round(phase.lit * 100) + '%'));
+  text.appendChild(almStrip(t('almAge'), t('almDays', { n: phase.age.toFixed(1) })));
+  moon.appendChild(text);
+  box.appendChild(moon);
+
+  if (!sky || !sky.sun || sky.sun.polar || !where) return;
+  var sun = sky.sun;
+  var strips = el('div', 'al-strips');
+  var h = Math.floor(sun.hours);
+  strips.appendChild(almStrip(t('almDaylight'),
+    h + ':' + pad2(Math.round((sun.hours - h) * 60))));
+
+  var yest = sunTimes(where.lat, where.lon,
+    localAt(where.timezone, new Date(at.getTime() - 86400000)), sky.tz);
+  if (!yest.polar) {
+    // Seconds, because across one day the difference is under two minutes and
+    // rounding to minutes would print a flat zero for half the year. The
+    // LABEL carries the direction — this hall does not signal with colour.
+    var ds = Math.round((sun.hours - yest.hours) * 3600);
+    var abs = Math.abs(ds);
+    strips.appendChild(almStrip(t(ds >= 0 ? 'almLonger' : 'almShorter'),
+      Math.floor(abs / 60) + '′' + pad2(abs % 60) + '″'));
+  }
+  box.appendChild(strips);
+}
+
+function renderAlmanac() {
+  var sub = $('#al-sub');
+  if (!sub) return;
+  var where = almanac && almanac.place ? almanac.place : null;
+  var host = $('#al-sky');
+  // Measured BEFORE the old plate comes out: emptying the register first
+  // collapses it to nothing, and the new plate would be inscribed in a box
+  // of zero height.
+  var sky = buildSky(where, host);
+  host.textContent = '';
+  host.appendChild(sky.svg);
+  sub.textContent = where ? t('almSub', { place: almPlaceName(where) }) : '—';
+  $('#al-station').textContent = where ? almStation(where) : '—';
+  buildRead(almanac ? almanac.weather : null);
+  buildTape(sky, where);
+}
+
+/* On screen only: the board is display:none below 2200px, and a hidden panel
+   must never keep the hub calling out to a weather service. */
+function almanacVisible() {
+  var b = $('#almanac');
+  return !!b && getComputedStyle(b).display !== 'none' &&
+         document.visibilityState === 'visible';
+}
+
+function pollAlmanac() {
+  if (!almanacVisible()) return Promise.resolve();
+  return fetchJson('/api/almanac').then(function (a) {
+    almanac = a;
+    renderAlmanac();
+  }).catch(function () { /* a restarting hub is not a forecast */ });
+}
+
+function startAlmanac() {
+  clearInterval(almTimer);
+  clearInterval(skyTimer);
+  almTimer = setInterval(pollAlmanac, ALM_POLL_MS);
+  skyTimer = setInterval(function () {
+    if (!almanacVisible()) return;
+    // Also the board's way back from a cold start: the case can be opened by
+    // a window resize long after the boot fetch declined to run, and ten
+    // minutes of a blank plate is not a wait, it is a fault.
+    if (!almanac) { pollAlmanac(); return; }
+    renderAlmanac();
+  }, SKY_TICK_MS);
+  pollAlmanac();
+}
 
 /* Pointer parallax — one rAF writer of two custom properties on #stage;
    shells consume them via calc. Gated on fine pointers, live reduced-motion
@@ -2712,7 +3093,6 @@ function refresh() {
     if (res[1]) {
       feed = res[1].dispatches || [];
       renderLedger();
-      renderBulletin();
       firstFeed = false;
     }
     updateLedgerBadge();
@@ -2724,7 +3104,11 @@ setInterval(function () {
   if (document.visibilityState === 'visible') refresh();
 }, 45000);
 document.addEventListener('visibilitychange', function () {
-  if (document.visibilityState === 'visible') refresh();
+  if (document.visibilityState !== 'visible') return;
+  refresh();
+  // The bead goes at most a minute stale while the tab is hidden, but the
+  // reading behind it can be an hour old — both are re-read on the way back.
+  pollAlmanac();
 });
 
 /* ========================================================================
@@ -2891,8 +3275,8 @@ function setLang(next) {
   applyStatuses();
   applyStats();
   renderLedger();
-  renderBulletin();
   relabelWorks();
+  renderAlmanac();
   updateLedgerBadge();
   renderTicker();
   // Bay numbers are localized ("BAY III" / "第 III 间"), so the wall is
@@ -2938,8 +3322,9 @@ buildDesk();
 buildFloorInlay();
 renderWorks();      // the dials stand engraved before the first reading
 buildAisles();
-renderBulletin();   // the case shows its empty rails before the feed lands
+renderAlmanac();    // the plate is engraved before the first forecast lands
 startWorks();
+startAlmanac();
 // Seed the inline --drive: without it the first throw's getDrive() would
 // read the wing-attribute CSS rule AFTER setWing flips the attribute —
 // from === target, so the ease and the 55% steam latch would both vanish.

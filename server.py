@@ -25,6 +25,8 @@ from pathlib import Path
 
 import httpx
 
+import almanac
+
 try:                                    # host instrumentation is optional
     import psutil
 except ImportError:                     # pragma: no cover - environment dependent
@@ -1226,6 +1228,15 @@ async def api_works():
     # nvidia-smi is a subprocess and psutil's disk call hits the filesystem —
     # neither belongs on the event loop thread.
     return JSONResponse(await asyncio.to_thread(read_works))
+
+
+@app.get("/api/almanac")
+async def api_almanac():
+    # Where the hall stands, and the weather over it. Behind a 15-minute TTL
+    # in the module, so the board's own poll cadence never becomes the
+    # forecast service's request rate — and a hall nobody has opened above
+    # 2200px asks for nothing at all.
+    return JSONResponse(await almanac.snapshot(STATE_DIR))
 
 
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")

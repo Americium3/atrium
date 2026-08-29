@@ -1429,24 +1429,6 @@ html[data-entered="no"] #signal-desk {
   border-top: 1px solid var(--line);
   text-align: center;
 }
-.bd-open {
-  font-size: calc(11px * var(--ui));
-  letter-spacing: 0.24em;
-  color: var(--gold-text);
-  padding: calc(6px * var(--ui)) calc(10px * var(--ui));
-}
-.bd-open:hover { color: var(--champagne); }
-
-/* ----- Shared board body ------------------------------------------------- */
-.bd-notes {
-  position: relative; z-index: 1;
-  list-style: none;
-  display: flex; flex-direction: column;
-  justify-content: space-evenly;
-  flex: 1 1 auto;
-  min-height: 0;
-  overflow: hidden;
-}
 
 /* ----- The works: instrument case ---------------------------------------
    Four dials off one bench. Everything is derived from the cell width so a
@@ -1565,63 +1547,176 @@ html[data-entered="no"] #signal-desk {
   font-variant-numeric: tabular-nums;
 }
 
-/* ----- Bulletin notes ---------------------------------------------------- */
-.bd-note {
+/* ----- The almanac: the sky plate ---------------------------------------
+   The east case. Where the works board reads the machine, this reads the sky
+   over it, and it is built to the same law: flat fills, 1 and 1.5px
+   hairlines, no glow, and the wing metal untouched — a board is furniture,
+   not one of the three surfaces that carry the re-light.
+
+   Three registers down the case: the reading (what it is doing outside), the
+   heliograph (where the sun is standing), and the tape (the moon, and what
+   the day is doing to itself). Only the middle one flexes: the numbers
+   either side keep their size and the arc takes whatever height the aisle
+   turns out to have. */
+.al-read {
+  position: relative; z-index: 1;
+  flex: none;
   display: grid;
-  grid-template-columns: calc(26px * var(--ui)) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
   gap: calc(12px * var(--ui));
-  padding: calc(9px * var(--ui)) calc(4px * var(--ui));
-  align-items: start;
-  min-height: 0; overflow: hidden;
+  padding: calc(7px * var(--ui)) calc(4px * var(--ui)) calc(9px * var(--ui));
+  border-bottom: 1px solid var(--line);
 }
-.bd-note + .bd-note { border-top: 1px solid var(--line); }
-.bn-medal { width: 100%; height: auto; aspect-ratio: 1; }
-.bn-medal .rim { fill: none; stroke: var(--gold); stroke-width: 1.5; opacity: 0.7; }
-.bn-head {
+.al-now { min-width: 0; }
+.al-temp {
   display: block;
-  font-size: calc(13px * var(--ui));
-  color: var(--ink);
-  line-height: 1.35;
+  font-size: calc(38px * var(--ui));
+  line-height: 1;
+  letter-spacing: 0.01em;
+  color: var(--gold-text);
 }
-.bn-detail {
+.al-cond {
   display: block;
   margin-top: calc(3px * var(--ui));
-  font-size: calc(11.5px * var(--ui));
-  color: var(--ink-faint);
-  line-height: 1.45;
+  font-size: calc(13px * var(--ui));
+  line-height: 1.3;
+  color: var(--ink);
 }
-.bn-time {
+.al-vitals { display: grid; gap: calc(1px * var(--ui)); }
+.al-vrow {
+  display: flex; align-items: baseline; justify-content: space-between;
+  gap: calc(12px * var(--ui));
+  line-height: 1.35;
+}
+.al-vlabel {
+  font-size: calc(9.5px * var(--ui));
+  letter-spacing: 0.2em;
+  color: var(--ink-faint);
+  white-space: nowrap;
+}
+.al-vval {
+  font-size: calc(12px * var(--ui));
+  color: var(--ink);
+  white-space: nowrap;
+}
+/* A service that did not answer is not a temperature of zero. The plate
+   keeps every rail it had and drains the ink out of them, the way a dial
+   with no reading rests at zero rather than lying at a number. */
+.al-read[data-blank="yes"] .al-temp { color: var(--ink-faint); }
+.al-read[data-blank="yes"] .al-vitals { opacity: 0.45; }
+
+/* The heliograph. The only flexing register, so the arc is what a short
+   aisle takes its height out of. */
+.al-sky {
+  position: relative; z-index: 1;
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: calc(4px * var(--ui)) 0 calc(2px * var(--ui));
+}
+.al-arc { width: 100%; height: 100%; overflow: visible; }
+/* The plate is drawn in a 300-unit box and painted at whatever width the
+   aisle is, so the hairline law only holds if the strokes refuse to scale. */
+.al-arc line, .al-arc path, .al-arc circle, .al-arc rect {
+  vector-effect: non-scaling-stroke;
+}
+.al-arc .a-horizon { stroke: var(--ink-faint); opacity: 0.55; }
+.al-arc .a-track { stroke: var(--line); }
+/* Inked as far as the day has got. Gold, because this is the one reading on
+   the board that is genuinely elapsed rather than forecast. */
+.al-arc .a-done { stroke: var(--gold); opacity: 0.72; }
+.al-arc .a-night { stroke: var(--ink-faint); opacity: 0.5; }
+.al-arc .a-hour line { stroke: var(--ink-faint); opacity: 0.6; }
+.al-arc .a-fid { stroke: var(--bronze); }
+.al-arc .a-foot { stroke: var(--ink-faint); }
+.al-arc .a-sun { fill: var(--gold); }
+.al-arc .a-sun.down { fill: none; stroke: var(--ink-faint); }
+.al-arc .a-sun-ring { fill: none; stroke: var(--champagne); opacity: 0.5; }
+/* SVG-internal sizes are user units inside the viewBox and are deliberately
+   NOT multiplied by --ui: they already ride the plate's own scale. */
+.al-arc text {
+  font-family: var(--serif);
+  fill: var(--ink-faint);
+  font-variant-numeric: tabular-nums;
+}
+/* --serif carries no CJK face, and an SVG text node does not inherit the
+   body's zh stack — it takes whatever the browser substitutes, which is a
+   different serif from every other Chinese word in the hall. */
+html[lang="zh"] .al-arc text {
+  font-family: 'EB Garamond', 'Noto Serif SC', 'Microsoft YaHei', serif;
+}
+.al-arc .a-lab { font-size: 8px; letter-spacing: 1.5px; }
+.al-arc .a-time { font-size: 12px; fill: var(--ink); letter-spacing: 0.6px; }
+.al-arc .a-polar { font-size: 12px; letter-spacing: 1.5px; }
+
+/* The tape: the moon on its mount, and the two figures an arc cannot hold. */
+.al-tape {
+  position: relative; z-index: 1;
+  flex: none;
+  border-top: 1px solid var(--line);
+  padding-top: calc(7px * var(--ui));
+  margin-top: calc(2px * var(--ui));
+}
+.al-moon {
+  display: flex; align-items: center;
+  gap: calc(11px * var(--ui));
+  padding: 0 calc(4px * var(--ui)) calc(6px * var(--ui));
+}
+.al-disc {
+  width: calc(34px * var(--ui)); height: calc(34px * var(--ui));
+  flex: none;
+}
+/* The terminator carries the phase by VALUE, so the two faces have to keep
+   their order in both themes: lit lighter than shadow, or a gibbous moon
+   reads inside out. Onyx prints a lit moon on a night sky. Ivory prints the
+   engraver's moon — shadow inked, lit face left as paper — and the paper has
+   to be the PAGE tone rather than the case tone, or a full moon comes out as
+   an empty ring on a case exactly its own colour, which reads as a disc that
+   failed to draw. The bezel is what says there is an object there at all. */
+.al-disc .m-dark { fill: var(--edge); }
+.al-disc .m-lit { fill: var(--champagne); }
+.al-disc .m-bezel { fill: none; stroke: var(--bronze); }
+:root[data-theme="ivory"] .al-disc .m-dark { fill: var(--bronze-face); }
+:root[data-theme="ivory"] .al-disc .m-lit { fill: var(--base); }
+.al-mtext { min-width: 0; flex: 1 1 auto; }
+.al-mname {
   display: block;
-  margin-top: calc(4px * var(--ui));
+  font-size: calc(12.5px * var(--ui));
+  line-height: 1.25;
+  color: var(--ink);
+}
+.al-mtext .al-strip { padding-left: 0; }
+.al-strips { border-top: 1px solid var(--line); padding-top: calc(5px * var(--ui)); }
+.al-strip {
+  display: flex; align-items: baseline; justify-content: space-between;
+  gap: calc(10px * var(--ui));
+  padding: calc(1px * var(--ui)) calc(4px * var(--ui));
+  line-height: 1.35;
+}
+.al-slabel {
   font-size: calc(10px * var(--ui));
-  letter-spacing: 0.14em;
+  letter-spacing: 0.24em;
   color: var(--ink-faint);
-  opacity: 0.85;
+  white-space: nowrap;
 }
-a.bd-note:hover .bn-head { color: var(--champagne); }
-.bd-note.new .bn-head::after {
-  content: "◆"; font-size: calc(8px * var(--ui));
-  color: var(--champagne); margin-left: 0.5em; vertical-align: 0.15em;
-  display: inline-block;   /* the dwell strike scales it — see .mark-struck */
+.al-sval {
+  font-size: calc(12px * var(--ui));
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
-/* Empty slots keep the case looking like a case, not a gap. */
-.bd-note.ghost { opacity: 0.5; }
-.bd-note.ghost .bn-head {
-  height: calc(11px * var(--ui));
-  border-bottom: 1px dashed var(--line);
-  max-width: 62%;
+/* The station line is an ADDRESS engraved on the case, so it stays English
+   caps in both languages — the same contract the gates' addresses keep. */
+.al-station {
+  text-align: center;
+  font-size: calc(10.5px * var(--ui));
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  white-space: nowrap;
+  overflow: hidden; text-overflow: ellipsis;
 }
-.bd-note.ghost .bn-medal {
-  width: calc(11px * var(--ui)); height: calc(11px * var(--ui));
-  margin: calc(5px * var(--ui)) auto 0;
-  border: 1px solid var(--line);
-  transform: rotate(45deg);
-}
-.bd-note.warn .bn-detail { color: var(--gold-text); }
-/* Both boards run text in a middle column that must be allowed to shrink;
-   without min-width:0 a long headline blows the grid track out and the
-   board pushes into the stage. */
-.bd-mid, .bn-mid { min-width: 0; display: block; }
+
 #gates { position: absolute; inset: 26px 0 0 0; }
 #all-dark {
   position: absolute; left: 50%; top: 46%;
@@ -2170,10 +2265,9 @@ a.bd-note:hover .bn-head { color: var(--champagne); }
    diamond closes, both over the 420ms the timer actually runs. Leaving early
    drops .reading and the rim fills again on its own 0.4s transition, so an
    aborted read looks aborted rather than silently ignored.
-   Named .reading on the plaque itself — the same class the Bulletin uses. */
+   Named .reading on the plaque itself. */
 .plaque.new.reading .pl-frame { background-color: var(--line); }
-.plaque.new.reading .pl-head::after,
-.bd-note.new.reading .bn-head::after {
+.plaque.new.reading .pl-head::after {
   animation: mark-struck 420ms linear both;
 }
 @keyframes mark-struck {
@@ -2195,18 +2289,15 @@ a.bd-note:hover .bn-head { color: var(--champagne); }
 .medal svg { width: 40px; height: 40px; position: absolute; inset: 0; }
 .medal .rim { color: var(--gold); }
 .medal.m-bureau .rim { color: var(--plat); }
-/* Both medallion carriers draw into a 40-unit viewBox, and the sigils are
+/* The medallion carrier draws into a 40-unit viewBox and the sigils are
    drawn on a 96-unit grid, so a <use> with no transform renders at 2.4x and
-   bursts straight out of its rim — which is exactly the broken-image read.
-   The Ledger's carrier is a .medal SPAN wrapping the svg; the Bulletin's is
-   the svg ITSELF, class .bn-medal. Descendant selectors written for one miss
-   the other entirely, so every rule that places a mark names both. */
-.medal .m-sig, .bn-medal .m-sig {
+   bursts straight out of its rim — which is exactly the broken-image read. */
+.medal .m-sig {
   color: var(--ink-faint); transform: translate(8px, 8px) scale(0.25);
 }
 /* The mark fills the carrier end-cap rather than sitting inside it as a
    line drawing — 22 of the 40-unit medallion, centred. */
-.medal .m-mark, .bn-medal .m-mark { transform: translate(9px, 9px) scale(0.229); }
+.medal .m-mark { transform: translate(9px, 9px) scale(0.229); }
 .pl-head { font-size: calc(14.5px * var(--ui)); color: var(--ink); letter-spacing: 0.03em; }
 .pl-detail { font-size: calc(12.5px * var(--ui)); color: var(--ink-faint); margin-top: 2px; line-height: 1.5; }
 .pl-time { font-size: calc(11px * var(--ui)); color: var(--ink-faint); margin-top: 5px; letter-spacing: 0.1em; }
@@ -2837,8 +2928,7 @@ html[data-entered="no"] #stage { animation: stage-dolly 0.9s var(--ease-out) bot
   /* The dwell still has to be legible without motion, or resting on a plaque
      does something invisible for 420ms and then jumps. Keep the timing, drop
      the travel: the diamond fades where it stands. */
-  .plaque.new.reading .pl-head::after,
-  .bd-note.new.reading .bn-head::after { animation-name: mark-struck-flat; }
+  .plaque.new.reading .pl-head::after { animation-name: mark-struck-flat; }
 }
 :root[data-motion="reduced"] {
   #ledger {
@@ -2864,6 +2954,5 @@ html[data-entered="no"] #stage { animation: stage-dolly 0.9s var(--ease-out) bot
   /* The dwell still has to be legible without motion, or resting on a plaque
      does something invisible for 420ms and then jumps. Keep the timing, drop
      the travel: the diamond fades where it stands. */
-  .plaque.new.reading .pl-head::after,
-  .bd-note.new.reading .bn-head::after { animation-name: mark-struck-flat; }
+  .plaque.new.reading .pl-head::after { animation-name: mark-struck-flat; }
 }
