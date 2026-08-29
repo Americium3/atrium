@@ -267,6 +267,41 @@ def test_nothing_marks_a_dispatch_read_except_the_reader():
     assert app_js.count("d.ts > watermark") == 1   # inside isNew() only
 
 
+def test_the_stamp_is_the_only_wholesale_read_path():
+    """One control clears the window, and it is a button the reader presses.
+
+    The rule this guards is not "nothing may mark wholesale" — it is that
+    nothing marks except the reader. So the stamp exists, and neither
+    openLedger nor closeLedger may reach it: a drawer that clears its own
+    column on the way past would put the badge back to meaning "have you
+    opened this today".
+    """
+    app_js = (Path(__file__).resolve().parent.parent
+              / "static" / "js" / "app.js").read_text(encoding="utf-8")
+    html = (Path(__file__).resolve().parent.parent
+            / "static" / "index.html").read_text(encoding="utf-8")
+    assert 'id="mark-all"' in html
+    # Both languages, or one of them silently falls back to English caps.
+    for key in ("markAll", "markAllHint", "markAllDone"):
+        assert app_js.count(f"{key}:") == 2, key
+    # Every wholesale write goes through one path, and the single-dispatch
+    # call is a one-element case of it rather than a second implementation.
+    assert app_js.count("function markReadMany(") == 1
+    assert "markReadMany([id]);" in app_js
+    # The drawer never strikes on its own.
+    for fn in ("function openLedger()", "function closeLedger()"):
+        body = app_js.split(fn, 1)[1].split("\n}", 1)[0]
+        assert "stampAll" not in body, fn
+    # Inert must not be the disabled attribute: a disabled button drops focus
+    # to the body the moment the last dispatch is struck, and the keyboard
+    # reader loses the drawer. (The entrance disabling the hatch button is a
+    # different thing — that one is unreachable, not idle.)
+    stamp = html.split('id="mark-all"', 1)[1].split(">", 1)[0]
+    assert "aria-disabled" in stamp and "disabled=" not in stamp.replace(
+        "aria-disabled=", "")
+    assert "btn.setAttribute('aria-disabled'" in app_js
+
+
 def test_every_relayed_kind_has_a_headline_in_both_languages():
     """server.py and app.js drift apart easily — a dispatch kind with no i18n
     key renders as a blank detail line, which reads as a bug, not a mute."""

@@ -2190,6 +2190,48 @@ html[lang="zh"] .al-arc text {
 }
 .chip:hover { color: var(--ink); }
 
+/* ----- The stamp ---------------------------------------------------------
+   A desk stamp standing on its own inked rule, under the head rather than
+   in it: the head is a title and a radiogroup, and a fourth control wedged
+   onto that baseline reads as a fourth filter. Bronze, because it is the
+   one piece of MACHINERY in the drawer — everything else here is paper. */
+.l-tools {
+  display: flex; justify-content: flex-end;
+  margin: -6px 0 12px;
+}
+.l-stamp {
+  display: flex; align-items: center;
+  gap: calc(7px * var(--ui));
+  padding: calc(4px * var(--ui)) calc(9px * var(--ui));
+  border: 1px solid transparent;
+  color: var(--ink-faint);
+  transition: color 0.25s, border-color 0.25s, opacity 0.25s;
+}
+.l-stamp-cap { font-size: calc(10px * var(--ui)); letter-spacing: 0.18em; }
+.l-stamp-ico { width: calc(15px * var(--ui)); height: calc(15px * var(--ui)); }
+.l-stamp-ico .s-head, .l-stamp-ico .s-grip { fill: var(--bronze); }
+.l-stamp-ico .s-base { fill: var(--bronze-cap); }
+.l-stamp-ico .s-rule { stroke: var(--gold); stroke-width: 1.5; opacity: 0.55; }
+.l-stamp:hover, .l-stamp:focus-visible {
+  color: var(--gold-text);
+  border-color: var(--line);
+}
+/* The press: the stamp travels down onto its rule and the rule takes the
+   ink. 140ms, once — the confirmation is the column draining, not this. */
+.l-stamp:active .l-stamp-ico .s-head,
+.l-stamp:active .l-stamp-ico .s-grip,
+.l-stamp:active .l-stamp-ico .s-base { transform: translateY(2px); }
+.l-stamp:active .l-stamp-ico .s-rule { opacity: 1; }
+.l-stamp-ico path { transition: transform 0.14s var(--ease-out); }
+/* Nothing to strike: inert, not gone. A control that vanishes when it has
+   no work moves every other control on the drawer out from under the
+   pointer, and comes back in a place the reader is no longer looking. */
+.l-stamp.inert {
+  opacity: 0.38;
+  cursor: default;
+}
+.l-stamp.inert:hover { color: var(--ink-faint); border-color: transparent; }
+
 .l-col { position: relative; padding-left: 44px; }
 /* The spine is a pneumatic dispatch main: a brass tube (edge hairlines)
    with a flap-door terminal at its head; day-break collars girdle it. */

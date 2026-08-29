@@ -42,7 +42,25 @@ STATE_DIR = ROOT / "state"
 STATIC_DIR = ROOT / "static"
 
 HOST = "127.0.0.1"
-PORT = 8769
+# 8769 is the hall's address and is engraved on the maker's plate. The
+# override exists so a SECOND instance can be stood up beside the live one
+# for UI verification without taking the reader's hub down to do it. A
+# malformed value falls back rather than raising: an unparseable env var
+# must not be able to stop the hall from opening.
+def _port() -> int:
+    for name in ("ATRIUM_PORT", "PORT"):
+        raw = os.environ.get(name)
+        if raw:
+            try:
+                return int(raw)
+            except ValueError:
+                # `log` is bound further down; this runs at import time.
+                logging.getLogger("atrium").warning(
+                    "ignoring %s=%r, not a port number", name, raw)
+    return 8769
+
+
+PORT = _port()
 
 FAST_TICK_S = 60
 SLOW_EVERY = 5          # slow tick every N fast ticks (5 min)

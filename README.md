@@ -100,7 +100,12 @@ Atrium serves `http://127.0.0.1:8769` and currently fronts:
   a moment and the rim drains, the ◆ closes and that one dispatch is marked
   read. Following a dispatch to its service, or tabbing onto it, does the
   same. Opening and closing the drawer marks nothing, so the count means what
-  is still outstanding rather than whether you looked in today.
+  is still outstanding rather than whether you looked in today. When you would
+  rather not rest on twenty of them, the **stamp** under the head clears the
+  whole window in one press — both wings, even while a chip is filtering the
+  column, because the disc on the masthead counts both. It runs the same
+  420 ms drain down the column that a dwell runs on one card, and goes inert
+  (dimmed, still focusable) when there is nothing left to strike.
   Filter chips (ALL / SALON / BUREAU) are session-only
   and never touched by the mode lever — both wings' news always arrives.
   Escape, the scrim and the button all close it.
@@ -359,8 +364,9 @@ never to the block by hand.
 
 Not persisted, for testing only: `?theme=onyx|ivory` · `?lang=en|zh` ·
 `?wing=salon|bureau` · `?motion=full|reduced` · `?ui=s|m|l` (engraving
-size) · `?entrance=0|1` · `?prefs=1` · `?steam=1` (freezes a steam burst at
-four life stages for screenshot QA).
+size) · `?entrance=0|1` · `?prefs=1` · `?ledger=1` (opens the drawer, which
+a headless screenshot otherwise cannot reach — it takes a click) ·
+`?steam=1` (freezes a steam burst at four life stages for screenshot QA).
 
 ## Fonts and textures
 
