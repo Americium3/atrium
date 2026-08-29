@@ -52,7 +52,7 @@
 <link rel="manifest" href="/static/brand/manifest.webmanifest">
 <meta name="theme-color" content="#8a6c12">
 <link rel="preload" href="/static/fonts/EBGaramond-wght.ttf" as="font" type="font/ttf" crossorigin>
-<link rel="preload" href="/static/fonts/NotoSerifSC-VF.ttf" as="font" type="font/ttf" crossorigin>
+<link rel="preload" href="/static/fonts/LXGWHeartSerif.ttf" as="font" type="font/ttf" crossorigin>
 <link rel="stylesheet" href="/static/css/atrium.css">
 </head>
 <body>
@@ -591,16 +591,26 @@
       <div id="all-dark" hidden data-i18n="allDark">The hall is dark — no services reachable.</div>
     </main>
 
-    <aside id="bulletin" class="board" data-i18n-aria="ariaBulletin"
-           aria-label="Bulletin" data-i18n-title="bulTitle">
+    <!-- The east board. It was a BULLETIN — four dispatch stubs under a
+         ticker already scrolling them and beside a Ledger already listing
+         them, which made it the hall's third telling of one feed. An almanac
+         says the one thing no other surface in the building can: where the
+         sun is standing over this machine at this minute. Same case, same
+         chamfer, same rivets; the instrument inside it is new. -->
+    <aside id="almanac" class="board" data-i18n-aria="ariaAlmanac"
+           aria-label="Almanac" data-i18n-title="almTitle">
       <div class="bd-frame" aria-hidden="true"></div>
       <header class="bd-head">
-        <h2 class="bd-title display">BULLETIN</h2>
-        <p class="bd-sub zh-sentence" data-i18n="bulletinSub">Today's dispatches</p>
+        <h2 class="bd-title display">ALMANAC</h2>
+        <p class="bd-sub zh-sentence" id="al-sub"></p>
       </header>
-      <div class="bd-notes" id="bul-notes" role="list"></div>
+      <!-- Built by app.js: the reading, the heliograph, the moon and the
+           daylight tape. Empty at rest so the case is never half-engraved. -->
+      <div class="al-read" id="al-read"></div>
+      <div class="al-sky" id="al-sky"></div>
+      <div class="al-tape" id="al-tape"></div>
       <footer class="bd-foot">
-        <button class="bd-open display" id="bul-open" data-i18n="openLedger">OPEN THE LEDGER</button>
+        <p class="al-station addr" id="al-station">&mdash;</p>
       </footer>
       <div class="bd-glass" aria-hidden="true"></div>
     </aside>
@@ -762,14 +772,19 @@
 if (location.search.indexOf('probe=1') >= 0) setTimeout(function () {
   var out = [];
   var sels = ['#hall', '#concourse', '#stage', '#floorplane', '#works',
-    '#bulletin', '#clock', '#gates', '.gate.active', '.gate.receded',
+    '#almanac', '#clock', '#gates', '.gate.active', '.gate.receded',
     '#signal-desk', '.assembly', '.quadrant', '.gear-well', '.lever-svg'];
   if (location.search.indexOf('probe=2') >= 0) {
     /* Deep read for hardware work: the machinery is drawn inside three
        nested transformed boxes, so a part's page position cannot be derived
        from CSS by hand. Ask each part where it actually landed. */
     sels = sels.concat(['.gearA-svg', '.gearB-svg', '.l-salon', '.l-bureau',
-                        '#lever', '.fl-plane', '.fl-rail']);
+                        '#lever', '.fl-plane', '.fl-rail',
+                        /* The almanac's four registers: the case has a fixed
+                           height and only the arc may flex, so the way this
+                           board fails is one register quietly pushing the
+                           others out of the bottom of the frame. */
+                        '.al-read', '.al-sky', '.al-arc', '.al-tape', '#almanac .bd-foot']);
   }
   sels.forEach(function (sel) {
     var e = document.querySelector(sel);

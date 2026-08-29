@@ -46,11 +46,27 @@ Atrium serves `http://127.0.0.1:8769` and currently fronts:
   sampled for a panel nobody can see. (The route and the CSS keep the older
   name: the board's title is what it shows you, `the works` is what the data
   is, and `/api/stats` already serves the services' status.)
-- **The Bulletin** (right aisle) — a glazed notice case holding the latest
-  dispatches, so today's news is on the wall instead of only behind the
-  Ledger's hatch. Resting on a notice marks it read here too, and clears the
-  same dispatch on the plaque behind the hatch. Its footer opens the Ledger;
-  empty slots show as ghost rails rather than a gap.
+- **The Almanac** (right aisle) — where the sun is standing over the machine
+  this hall runs on. A horizon dial: the sun travels one ellipse through the
+  whole 24 hours, solid above the horizon rule and dotted below it, with the
+  crossings engraved as sunrise and sunset and the elapsed daylight inked in
+  gold as far as the day has got. Above it, the reading — temperature,
+  condition, high/low, precipitation and wind; below it, the moon drawn with
+  a real elliptical terminator (so gibbous phases are the right shape), its
+  age, the length of the day and how much it has gained or lost since
+  yesterday. It replaced a Bulletin case that showed four dispatch stubs
+  under a ticker already scrolling them and beside a Ledger already listing
+  them — the hall's third telling of one feed.
+
+  The two halves fail independently on purpose. Sun and moon are arithmetic
+  the page runs on one pair of coordinates, so the plate keeps its sky when
+  the forecast service is unreachable; the weather comes from
+  `/api/almanac`, which the hub fetches from Open-Meteo behind a 15-minute
+  TTL and only when the board is genuinely on screen. An outage prints NO
+  READING and costs nothing else. The hall stands in Pittsburgh unless
+  `state/almanac.json` says otherwise — `{"name": "Hangzhou", "name_zh":
+  "杭州", "lat": 30.2936, "lon": 120.1614, "timezone": "Asia/Shanghai"}` —
+  and a broken override is ignored rather than reported.
 - **The concourse clock** — the hall's centrepiece, showing your machine's
   local time. A grande-complication regulator in a stepped octagonal deco
   case: knurled bronze bezel, guilloche field, twelve Roman numerals, and
@@ -178,12 +194,18 @@ server.py            FastAPI on 127.0.0.1:8769
                      memory, graphics, traffic, store, hours run. Sampled
                      lazily behind a TTL, so an unopened panel spawns
                      nothing; every reading is optional and nulls through.
+  /api/almanac       where the hall stands, and the weather over it
+almanac.py           the one call that leaves this machine (Open-Meteo,
+                     no key, 15 min TTL, never raises). Sun and moon are
+                     NOT in here — the page computes those itself.
 static/              vanilla HTML/CSS/JS frontend, all ornament inline SVG
-state/               runtime state (seq cursors), gitignored
+state/               runtime state (seq cursors, almanac override), gitignored
 ```
 
 Everything is read-only against the aggregated services — the hub only ever
-issues idempotent GETs and never mutates their state. All feed timestamps
+issues idempotent GETs and never mutates their state. The forecast is the
+one call that leaves this machine at all, and it carries a pair of
+coordinates and nothing else. All feed timestamps
 are epoch milliseconds; dispatch ids are deterministic, so re-polls and hub
 restarts never duplicate or re-animate entries. Sources degrade
 independently: a dead service turns its gate DARK and, where possible, the
@@ -342,9 +364,12 @@ four life stages for screenshot QA).
 
 ## Fonts and textures
 
-Fonts are bundled locally (no CDN, no external fetches): EB Garamond and
-Noto Serif SC variable fonts, both SIL OFL 1.1 — see
-`static/fonts/LICENSE.txt`.
+Fonts are bundled locally (no CDN, no external fetches): **EB Garamond**
+(OFL 1.1) and **LXGW Heart Serif** — 霞鹜铭心宋, a Kokoro Mincho derivative
+under the IPA Font License, shipped byte-for-byte because a subset would be
+a derived work under that licence. It replaced Noto Serif SC, which was a
+modern Songti reading as a web page beside Garamond, and 25 MB to Heart
+Serif's 11. See `static/fonts/LICENSE.txt`.
 
 The two material textures in `static/assets/tex/` (engine-turned steel,
 riveted iron plate) were generated locally with FLUX.2 [dev] via ComfyUI,

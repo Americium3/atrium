@@ -88,16 +88,25 @@ services without custom art.
   `font-variant-ligatures: none` on tracked caps.
 - Addresses / stat numerals: true caps + `font-variant-numeric: tabular-nums`,
   11–12px, tracking 0.08em. (Not "small caps" — digits have none.)
-- CJK: `:lang(zh)` scope, Noto Serif SC wght 600; tracking 0.25–0.35em on
-  display lines only, body tracking 0, `text-transform: none`. Slightly larger
-  CJK body size to reconcile x-height with Garamond.
+- CJK: `:lang(zh)` scope, **LXGW Heart Serif** (霞鹜铭心宋, a Kokoro Mincho
+  derivative); tracking 0.25–0.35em on display lines only, body tracking 0,
+  `text-transform: none`. Slightly larger CJK body size to reconcile x-height
+  with Garamond. It replaced Noto Serif SC: a modern Songti reads as a web
+  page beside Garamond's old-style, where a warm Mincho reads as the same
+  hand cutting both alphabets. The face has ONE weight, and the `@font-face`
+  declares 200–900 anyway — a face that claims the range is never
+  synthetically bolded, and CJK strokes at 10px do not survive faux bold.
 - **Signage stays English** in both languages: ATRIUM, SALON, BUREAU, lamp
   words OPEN/DARK — engraved architectural terms (zh translation provided as
   `title`/aria). Sentences (descriptions, headlines, day breaks, settings
   labels) localize fully with tracking 0.
 - `@font-face`: `font-weight: 400 800` (EBGaramond-wght.ttf) and `200 900`
-  (NotoSerifSC-VF.ttf), `font-display: swap`, both preloaded; no italic
+  (LXGWHeartSerif.ttf), `font-display: swap`, both preloaded; no italic
   styles anywhere. Long-lived Cache-Control on `/static/fonts`.
+- The CJK face ships **byte-for-byte**. It is under the IPA Font License,
+  where a subset is a "Derived Program" that must be renamed and shipped
+  with its source — so the 11 MB file is not an optimization target, and
+  woff2 recompression is off the table for this face.
 
 ## Entrance animation (timeline)
 
@@ -323,13 +332,7 @@ a flexed replaced box with an aspect ratio resolves off its intrinsic width
 and shrinks to a thumbnail the moment the case is short, taking its own
 caption out under the cell's clip. Captions run at 1.15 leading for the same
 reason: the default 1.5 under two stacked lines costs the dial above them a
-third of its face. `BULLETIN` (right) is a glazed notice case showing the latest dispatches and
-a footer that opens the Ledger; like the ticker it draws from the unfiltered
-feed and ignores both the lever and the Ledger chips (R11). Empty slots
-render as ghost rails — a case with one notice and a void under it reads as
-broken furniture. Rows shrink and clip *inside themselves* before the list
-clips a whole row off the bottom: a board that quietly drops its last
-notice is worse than a board with a cramped one.
+third of its face.
 
 **The works poll.** `/api/works` on a 4s cadence of its own — instruments
 read live or they are decoration — but only while the board is genuinely on
@@ -427,6 +430,82 @@ SVG *presentation attribute*, so `stop-color="var(--metal)"` parses to
 nothing and the reflections painted fully transparent — with all six polygons
 present and correct in the DOM. Gradient stops take a class and the colour
 comes from the stylesheet.
+
+## The Almanac (v4.4) — the east board
+
+`BULLETIN` (right) was a glazed notice case: four dispatch stubs, drawn from
+the unfiltered feed, under a ticker already scrolling those dispatches and
+beside a Ledger already listing them. That is the DIRECTORY mistake a second
+time — a board saying back what the architecture around it already says, and
+this one said it three times. `ALMANAC` replaces it with the one fact
+nothing else in the building carries: where the sun is standing over the
+machine, right now.
+
+**Two halves that fail independently.** Sun and moon are ARITHMETIC — NOAA's
+sunrise equation and a synodic phase, run in the page on the coordinates the
+hub hands over. That is what keeps the bead moving through the day on a
+board whose forecast is a quarter of an hour old, and what leaves an
+instrument in the case when the weather service is unreachable. The forecast
+is the only call in this hub that leaves the machine: `/api/almanac` behind
+a 15-minute TTL and an `asyncio.Lock` (two tabs on a cold cache are two GETs
+otherwise), a 6s timeout, and it never raises. An outage prints an em dash
+and NO READING in the reading register, drains the vitals to 45% and leaves
+the sky untouched — the same law as a dial with no reading resting at zero.
+
+**The plate is a horizon dial, not a dome.** The sun runs one ellipse
+through the whole 24 hours: solid above the horizon rule, dotted below it,
+the two crossings engraved RISE and SET with their times at the plate's
+outer edges (an ellipse drawn to the full width leaves the only lettering on
+the instrument nowhere to stand but on the curve). Elapsed daylight is inked
+in gold as far as the day has got — after sunset that is all of it, because
+the plate reports daylight SPENT, not merely where the sun is. Hour ticks
+stand off the day arc as a chapter ring; the apex and nadir carry a fiducial
+each.
+
+Two things it deliberately does not draw. A **meridian**: local noon is the
+midpoint of sunrise and sunset by construction, so the line would sit dead
+centre on every plate ever printed — ornament impersonating an instrument.
+A **clock**: there is a grande-complication regulator the size of a doorway
+standing between the arches, and the bead's job is the one thing it cannot
+say, which is *where in the day* this is.
+
+**The viewBox is measured, never fixed.** The aisle is 300px wide at 2200
+and 560 at 3440 while the case keeps its height, so one fixed aspect either
+letterboxes the plate into a third of its register or balloons out of it —
+and a void inside a lit case reads as a board that failed to draw. `skyBox()`
+reads the register and inscribes the ellipse in it, measuring BEFORE the old
+plate is removed (emptying the register first collapses it to nothing and
+the new plate is inscribed in a box of zero height).
+
+**The moon is a real terminator.** An ellipse, not a chord and not a second
+circle offset sideways — both shortcuts get gibbous phases visibly wrong,
+which is the first thing an almanac reader looks at. The phase is carried by
+VALUE, so the two faces keep their order in both themes: onyx prints a lit
+moon on a night sky, ivory prints the engraver's moon with the shadow inked
+and the lit face left as paper. That paper is `--base`, not `--surface`: on
+the case's own tone a full moon comes out as an empty ring, which reads as a
+disc that failed to render. The bezel is what says an object is there.
+
+**Signage stays English, sentences localize** — as everywhere else. The
+station line at the foot (`PITTSBURGH · 40.44°N 80.00°W`) is an ADDRESS
+engraved on the case and keeps the gates' contract; the localized place name
+lives in the subtitle. One trap: an SVG `<text>` does not inherit the body's
+zh stack, and `--serif` carries no CJK face, so the plate's own labels need
+`html[lang="zh"] .al-arc text` or they come out in a different serif from
+every other Chinese word in the hall.
+
+**Where the hall stands.** `almanac.PLACE`, overridable by dropping
+`state/almanac.json`. There is no place picker: this board is furniture, and
+a hall does not get a control for moving itself. A malformed override is
+ignored — a lobby board has nowhere to report a parse error to.
+
+**The almanac poll.** `/api/almanac` every 10 minutes and the plate re-drawn
+every 60 seconds, both gated on `almanacVisible()` for the same reason the
+works board is: below 2200px the case is `display:none`, and a hidden panel
+must not have the hub calling a weather service on the reader's behalf. The
+60s tick is also the way back from a cold start — the case can be opened by
+a resize long after the boot fetch declined to run, and ten minutes of a
+blank plate is not a wait, it is a fault.
 
 ## Gates (R9)
 
@@ -570,6 +649,13 @@ Endpoints:
   the card; both sit behind TTLs (3.5s and 6s) and run in a worker thread,
   so an idle hub samples nothing and a subprocess never touches the loop.
   The traffic dial's full deflection is a saturated gigabit line.
+- `GET /api/almanac` — the east board: `{place:{name, name_zh, lat, lon,
+  timezone}, weather:{code, label, label_zh, now_c/f, high_c/f, low_c/f,
+  precip_prob, wind_kmh, sunrise, sunset, utc_offset_s}|null, age_s,
+  generated}`. `weather` is nullable and the board is built for it; `place`
+  never is, because the sun and the moon are drawn from it alone. Open-Meteo,
+  no key, one GET per 15 min — 120 s after a miss, since a service that is
+  down stays down past one board poll — serialized on a lock.
 
 **Time contract**: feed `ts` is **epoch milliseconds**. Normalization:
 Ground Station `ts*1000`; Autopilot ledger `ts*1000` (epoch seconds on the
@@ -923,5 +1009,7 @@ the ritual must not delay the actual mode switch beyond ~450 ms or break
 ## Non-goals (v1)
 
 No auth (localhost only), no write actions against services, no process
-management, mobile layout, woff2 recompression (future: halves the 24 MB CJK
-font).
+management, mobile layout. (woff2 recompression of the CJK face was a
+standing future item under Noto Serif SC; it is now ruled out by the IPA
+licence — see Typography. The face is 11 MB rather than 25, which is most of
+what the recompression was for.)

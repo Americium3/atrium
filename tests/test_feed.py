@@ -259,9 +259,9 @@ def test_nothing_marks_a_dispatch_read_except_the_reader():
     # store(k) reads, store(k, v) writes — the comma is the whole difference.
     assert app_js.count("store('atrium.lastVisit')") == 1, "read the floor once"
     assert "store('atrium.lastVisit'," not in app_js, "never re-stamp the floor"
-    # Both surfaces that show a dispatch have to be armed, or a card the reader
-    # rested on stays lit on the other one.
-    assert app_js.count("armDwell(") == 3          # definition + plaque + note
+    # Since the notice case became the Almanac the Ledger's plaques are the
+    # only surface carrying a per-dispatch mark, so the dwell is armed once.
+    assert app_js.count("armDwell(") == 2          # definition + plaque
     # Every unread decision goes through one predicate; a stray `ts > watermark`
     # comparison would ignore the read set and resurrect cleared dispatches.
     assert app_js.count("d.ts > watermark") == 1   # inside isNew() only
