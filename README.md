@@ -48,9 +48,14 @@ Atrium serves `http://127.0.0.1:8769` and currently fronts:
   is, and `/api/stats` already serves the services' status.)
 - **The Almanac** (right aisle) — where the sun is standing over the machine
   this hall runs on. A horizon dial: the sun travels one ellipse through the
-  whole 24 hours, solid above the horizon rule and dotted below it, with the
-  crossings engraved as sunrise and sunset and the elapsed daylight inked in
-  gold as far as the day has got. Above it, the reading — temperature,
+  whole 24 hours at a constant 15° an hour, with the horizon cutting across
+  it as a chord — solid arc above, dotted below, crossings engraved as
+  sunrise and sunset, elapsed daylight inked in gold as far as the day has
+  got. The chord is what makes it an instrument rather than a decoration:
+  it sits wherever it has to for the lit arc to be daylight's true share of
+  the day, so the dome is fat in June, a shallow cap in December, and cut in
+  half only at an equinox. `scripts/dial.py` measures all of that back out of
+  the drawing. Above it, the reading — temperature,
   condition, high/low, precipitation and wind; below it, the moon drawn with
   a real elliptical terminator (so gibbous phases are the right shape), its
   age, the length of the day and how much it has gained or lost since
@@ -276,6 +281,7 @@ scripts/probe.py       # live layout boxes at each breakpoint, via ?probe=1
 scripts/look.py        # shot + measured box in ONE run, e.g. look.py desk .assembly
 scripts/crop.py        # crop a region out of a shot for close reading
 scripts/contrast.py    # relative-luminance ratio between two tokens
+scripts/dial.py        # measures the almanac's dial against the sun it draws
 scripts/dumpdom.py     # dump the live DOM; summarises the desk's node counts
 ```
 
@@ -293,6 +299,13 @@ and re-applies that offset; `?probe=3` paints the boxes into the shot and
 outlines the hardware if you want to see it with your own eyes. Check any
 new machine tone with `contrast.py` before trusting it against the floor —
 the old housing colour measured 1.05:1 there.
+
+`dial.py` exists because the almanac's plate is the one thing in the hall a
+screenshot cannot check. Its first version drew a day arc of exactly half the
+ring under a tape reading DAYLIGHT 13:13, and an hour ring on the wrong pitch
+— both of which render as a perfectly handsome dial. The script reads the SVG
+back out of the page and measures the arc, the pitch and the tick normals
+against the times engraved on the plate's own crossings.
 
 Python 3.11 with `fastapi`, `uvicorn`, `httpx` (all present on the global
 interpreter). `psutil` is optional and only feeds the instrument case —

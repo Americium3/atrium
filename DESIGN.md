@@ -453,14 +453,44 @@ and NO READING in the reading register, drains the vitals to 45% and leaves
 the sky untouched — the same law as a dial with no reading resting at zero.
 
 **The plate is a horizon dial, not a dome.** The sun runs one ellipse
-through the whole 24 hours: solid above the horizon rule, dotted below it,
-the two crossings engraved RISE and SET with their times at the plate's
-outer edges (an ellipse drawn to the full width leaves the only lettering on
-the instrument nowhere to stand but on the curve). Elapsed daylight is inked
-in gold as far as the day has got — after sunset that is all of it, because
-the plate reports daylight SPENT, not merely where the sun is. Hour ticks
-stand off the day arc as a chapter ring; the apex and nadir carry a fiducial
-each.
+through the whole 24 hours — the circle of its own path, seen edge-on — with
+the horizon cutting across it: solid above, dotted below, the two crossings
+engraved RISE and SET with their times at the plate's outer edges (an ellipse
+drawn to the full width leaves the only lettering on the instrument nowhere
+to stand but on the curve). Elapsed daylight is inked in gold as far as the
+day has got — after sunset that is all of it, because the plate reports
+daylight SPENT, not merely where the sun is.
+
+**Two corrections (v4.6), because the first draft was decorative rather than
+true.** A dial is a claim about the sky, and this one was making two false
+ones — both invisible in a screenshot, both obvious the moment the drawing is
+measured against the times engraved on it.
+
+*The horizon is a chord, not a diameter.* Cutting the ellipse through its
+centre draws a day of exactly half the ring — twelve hours — under a tape
+reading DAYLIGHT 13:13 a centimetre below. On 2026-08-29 in Pittsburgh the
+sun is above the horizon for 198° of the ring, so the chord sits at
+`cy − ry·cos(180°·daylight/24)`, which today is 0.16 of the minor radius
+BELOW the centre. That one term is the season made visible: a fat dome in
+June, a shallow cap in December, two equal halves only at an equinox — the
+single day the old drawing was right.
+
+*The hour ring is 15° an hour.* Spreading the daylight hours evenly across a
+half circle stretches them to fit: pinned at the crossings, wrong everywhere
+between, by up to 8.8° — which is exactly where an eye checks a dial against
+itself. The ring now runs all 24 hours at a constant 15°, longer marks at the
+quarters, and the ones below the horizon keep the pitch while giving up the
+ink.
+
+Ticks stand on the ellipse's own **normal**, not on the radius from its
+centre. Those agree only on a circle; on a squashed one the radius leans,
+worst at the diagonals, and the marks read as if they had come loose from the
+curve.
+
+`scripts/dial.py` measures all three out of the SVG the browser actually drew
+and exits non-zero on any of them. It is the check that would have caught
+this, and the reason it exists is that every one of these faults renders as a
+perfectly handsome dial.
 
 Two things it deliberately does not draw. A **meridian**: local noon is the
 midpoint of sunrise and sunset by construction, so the line would sit dead
@@ -468,6 +498,15 @@ centre on every plate ever printed — ornament impersonating an instrument.
 A **clock**: there is a grande-complication regulator the size of a doorway
 standing between the arches, and the bead's job is the one thing it cannot
 say, which is *where in the day* this is.
+
+**Whose sunrise.** The page computes its own from NOAA's short-form equation,
+which is what leaves it with a sky when the forecast service is down — but
+that form lands 2–3 minutes off Open-Meteo, and the service's own times ride
+in the payload already. When they are there they win, for the dial's geometry
+as well as its lettering: the times engraved at the crossings have to be the
+times those crossings stand for, and DAYLIGHT in the tape has to be the same
+pair subtracted. The day-length delta against yesterday stays on the computed
+pair — a difference wants one consistent source, not the better one.
 
 **The viewBox is measured, never fixed.** The aisle is 300px wide at 2200
 and 560 at 3440 while the case keeps its height, so one fixed aspect either
