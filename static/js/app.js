@@ -2237,25 +2237,33 @@ function moonDisc(phase, r) {
 }
 
 /* ----- The heliograph ----------------------------------------------------
-   A horizon dial. The sun runs the whole 24 hours round one ellipse: the
-   solid half above the horizon rule is the day, the dotted half below it is
-   the night, and the two crossings are sunrise and sunset — so the bead is
-   somewhere on the plate at every hour, instead of parking on a foot all
-   evening. The elapsed daylight is inked as far as the day has got, which
-   after sunset is all of it: the plate reports how much daylight has been
-   SPENT, not merely where the sun is standing.
+   A diurnal circle: the sun's path for the day, drawn as the ellipse you get
+   looking at that circle edge-on, with the horizon cutting across it. The
+   solid arc above the cut is the day, the dotted arc below it is the night,
+   and the sun runs the whole ring at a constant 15° an hour.
 
-   The one thing it does not draw is a meridian. Local noon is the midpoint
-   of sunrise and sunset by construction, so a line dropped from it would sit
-   dead centre on every plate ever printed and carry no information at all —
-   ornament pretending to be an instrument. The apex and nadir get a fiducial
-   tick each and nothing more.
+   Two things about that are load-bearing, and the first version of this plate
+   got both of them wrong.
 
-   Nothing here is a fixed viewBox. The aisle is 300px wide at 2200 and 560
-   at 3440, and the case is the same height either way, so a plate drawn to
-   one aspect either letterboxes into a third of its register or balloons out
-   of it — and a void inside a lit case reads as a board that failed to draw
-   rather than as air. The box is measured, the ellipse is inscribed in it. */
+   THE HORIZON IS A CHORD, NOT A DIAMETER. Cutting the ellipse through its
+   centre draws a day that is exactly half the circle — twelve hours — under a
+   tape that says DAYLIGHT 13:13. On 2026-08-29 in Pittsburgh the sun is up
+   for 198° of the ring, not 180°, so the chord sits 0.16 of the minor radius
+   BELOW the centre. That offset is the season made visible: a fat dome in
+   June, a shallow cap in December, and the two equal halves only at an
+   equinox — which is the one day the old drawing was right.
+
+   THE HOUR RING IS 15° AN HOUR. Spreading the daylight hours evenly across a
+   half circle stretches them to fit, which put every tick in the wrong place
+   — zero error at the crossings, where it is pinned, and up to 8.8° in
+   between, which is where the eye checks a dial against itself.
+
+   Ticks stand on the ellipse's own NORMAL, not on the radius from its centre.
+   Those are the same direction only on a circle; on a squashed one the radius
+   leans, worst at the diagonals, and the marks read as though they had come
+   loose from the curve. */
+var SKY_TICK_HOURS = 24;
+
 function skyBox(host) {
   var w = (host && host.clientWidth) || 300;
   var h = (host && host.clientHeight) || 150;
@@ -2270,15 +2278,27 @@ function skyBox(host) {
   };
 }
 
-/* u runs 0..1 from sunrise over the top to sunset; v runs 0..1 from sunset
-   under the bottom back to sunrise. */
-function dayPoint(g, u) {
-  return { x: g.cx - g.rx * Math.cos(Math.PI * u),
-           y: g.cy - g.ry * Math.sin(Math.PI * u) };
+/* Degrees from culmination — the sun's own clock, 15° an hour, positive
+   after noon. */
+function sunAngle(hours, noon) { return 15 * (hours - noon); }
+
+function wrapDeg(d) { return ((d + 180) % 360 + 360) % 360 - 180; }
+
+/* The ring, seen edge-on: 0° at the apex, +90° at the right, 180° at the
+   nadir. */
+function spot(g, deg) {
+  var a = deg * RAD;
+  return { x: g.cx + g.rx * Math.sin(a), y: g.cy - g.ry * Math.cos(a) };
 }
-function nightPoint(g, v) {
-  return { x: g.cx + g.rx * Math.cos(Math.PI * v),
-           y: g.cy + g.ry * Math.sin(Math.PI * v) };
+
+/* One elliptical arc between two angles, the short way round unless the
+   sweep is more than half the ring. */
+function ringArc(g, from, to) {
+  var p0 = spot(g, from), p1 = spot(g, to);
+  var large = Math.abs(to - from) > 180 ? 1 : 0;
+  return 'M ' + p0.x.toFixed(2) + ' ' + p0.y.toFixed(2)
+       + ' A ' + g.rx + ' ' + g.ry + ' 0 ' + large + ' 1 '
+       + p1.x.toFixed(2) + ' ' + p1.y.toFixed(2);
 }
 
 function skyText(x, y, cls, text, anchor) {
@@ -2289,28 +2309,54 @@ function skyText(x, y, cls, text, anchor) {
   return n;
 }
 
-/* A tick standing off the ellipse along its own radius. */
-function skyTick(g, p, len, cls) {
-  var vx = (p.x - g.cx) / g.rx, vy = (p.y - g.cy) / g.ry;
-  var n = Math.sqrt(vx * vx + vy * vy) || 1;
+/* A tick standing off the curve along its true normal. For a point at
+   parametric angle d the outward normal runs (sin d / rx, −cos d / ry) —
+   the radius from the centre only agrees with it on a circle. */
+function ringTick(g, deg, len, cls) {
+  var p = spot(g, deg);
+  var a = deg * RAD;
+  var nx = Math.sin(a) / g.rx, ny = -Math.cos(a) / g.ry;
+  var m = Math.sqrt(nx * nx + ny * ny) || 1;
   return svgEl('line', {
     x1: p.x.toFixed(2), y1: p.y.toFixed(2),
-    x2: (p.x + len * vx / n).toFixed(2), y2: (p.y + len * vy / n).toFixed(2)
+    x2: (p.x + len * nx / m).toFixed(2), y2: (p.y + len * ny / m).toFixed(2)
   }, cls);
 }
 
-function buildSky(where, host) {
+/* Open-Meteo's own sunrise and sunset, in the place's local clock. The plate
+   computes its own so it still has a sky with no forecast, but when the
+   service HAS answered its times are the better ones — the short-form NOAA
+   equation below lands 2-3 minutes off them — and, more to the point, the
+   times engraved at the crossings must be the times those crossings stand
+   for. */
+function isoClockHours(s) {
+  var m = /T(\d{2}):(\d{2})/.exec(String(s || ''));
+  return m ? (+m[1]) + (+m[2]) / 60 : null;
+}
+
+function shownTimes(sun, weather) {
+  var r = isoClockHours(weather && weather.sunrise);
+  var s = isoClockHours(weather && weather.sunset);
+  if (r === null || s === null || s <= r) {
+    return { rise: sun.rise, set: sun.set, hours: sun.hours, measured: false };
+  }
+  return { rise: r, set: s, hours: s - r, measured: true };
+}
+
+function buildSky(where, host, weather) {
   var g = skyBox(host);
   var svg = svgEl('svg', {
     viewBox: '0 0 ' + g.W + ' ' + g.H, preserveAspectRatio: 'xMidYMid meet',
     'aria-hidden': 'true'
   }, 'al-arc');
-  svg.appendChild(svgEl('line', {
-    x1: 6, y1: g.cy, x2: g.W - 6, y2: g.cy, 'stroke-width': 1
-  }, 'a-horizon'));
   // Nothing has arrived yet: a bare horizon still reads as an instrument,
   // where a blank panel reads as a case with its glass knocked out.
-  if (!where) return { svg: svg, sun: null };
+  if (!where) {
+    svg.appendChild(svgEl('line', {
+      x1: 6, y1: g.cy, x2: g.W - 6, y2: g.cy, 'stroke-width': 1
+    }, 'a-horizon'));
+    return { svg: svg, sun: null };
+  }
 
   var at = new Date();
   var tzh = offsetOf(where.timezone, at);
@@ -2318,61 +2364,74 @@ function buildSky(where, host) {
   var sun = sunTimes(where.lat, where.lon, here, tzh);
 
   if (sun.polar) {
+    svg.appendChild(svgEl('line', {
+      x1: 6, y1: g.cy, x2: g.W - 6, y2: g.cy, 'stroke-width': 1
+    }, 'a-horizon'));
     svg.appendChild(skyText(g.cx, g.cy - 12, 'a-polar',
       t(sun.polar === 'day' ? 'almPolarDay' : 'almPolarNight')));
     return { svg: svg, sun: sun, here: here, at: at, tz: tzh };
   }
 
-  var day = 'M ' + (g.cx - g.rx) + ' ' + g.cy
-          + ' A ' + g.rx + ' ' + g.ry + ' 0 0 1 ' + (g.cx + g.rx) + ' ' + g.cy;
-  var night = 'M ' + (g.cx + g.rx) + ' ' + g.cy
-            + ' A ' + g.rx + ' ' + g.ry + ' 0 0 1 ' + (g.cx - g.rx) + ' ' + g.cy;
+  var shown = shownTimes(sun, weather);
+  var noon = (shown.rise + shown.set) / 2;
+  // Half the day arc. 180° × daylight/24 — 90° at an equinox, and the whole
+  // asymmetry of the plate falls out of this one number.
+  var half = 180 * shown.hours / 24;
+  var horizonY = g.cy - g.ry * Math.cos(half * RAD);
+
   svg.appendChild(svgEl('path', {
-    d: night, fill: 'none', 'stroke-width': 1, 'stroke-dasharray': '1 4'
+    d: ringArc(g, half, 360 - half), fill: 'none', 'stroke-width': 1,
+    'stroke-dasharray': '1 4'
   }, 'a-night'));
-  svg.appendChild(svgEl('path', { d: day, fill: 'none', 'stroke-width': 1 }, 'a-track'));
+  svg.appendChild(svgEl('path', {
+    d: ringArc(g, -half, half), fill: 'none', 'stroke-width': 1
+  }, 'a-track'));
+  svg.appendChild(svgEl('line', {
+    x1: 6, y1: horizonY.toFixed(2), x2: g.W - 6, y2: horizonY.toFixed(2),
+    'stroke-width': 1
+  }, 'a-horizon'));
 
-  // The whole timeline runs [rise, rise+24), so a clock reading before dawn
-  // belongs to the END of the night that is still running — not to the front
-  // of a day that has not started. Wrapping it here is what keeps every
-  // comparison below pointing the same way round the dial.
-  var clock = here.hours < sun.rise ? here.hours + 24 : here.hours;
-  var dayLen = sun.set - sun.rise;
-  var up = clock <= sun.set;
-  var u = up ? (clock - sun.rise) / dayLen : 1;
+  // Where the sun is now, on its own clock rather than on the drawing's.
+  var phi = wrapDeg(sunAngle(here.hours, noon));
+  var up = Math.abs(phi) <= half;
 
-  if (u > 0) {
+  // Inked as far as the day has got, which after sunset is all of it: the
+  // plate reports how much daylight has been SPENT, not merely where the sun
+  // is standing.
+  var inkTo = up ? phi : half;
+  if (inkTo > -half) {
     svg.appendChild(svgEl('path', {
-      d: day, fill: 'none', 'stroke-width': 1.5, pathLength: 1,
-      'stroke-dasharray': u.toFixed(4) + ' 1'
+      d: ringArc(g, -half, inkTo), fill: 'none', 'stroke-width': 1.5
     }, 'a-done'));
   }
 
-  // The chapter ring, laid on the arc rather than round a dial: one tick per
-  // whole hour of daylight, which is what turns a curve into a scale.
+  // The hour ring: one tick per whole hour of the local day, all twenty-four
+  // of them, longer at the quarters. Below the horizon they go short and
+  // faint — the night is still measured, just not lit.
   var hours = svgEl('g', { 'stroke-width': 1 }, 'a-hour');
-  for (var h = Math.ceil(sun.rise); h < sun.set; h++) {
-    hours.appendChild(skyTick(g, dayPoint(g, (h - sun.rise) / dayLen), 4, null));
+  for (var h = 0; h < SKY_TICK_HOURS; h++) {
+    var d = wrapDeg(sunAngle(h, noon));
+    var lit = Math.abs(d) <= half;
+    hours.appendChild(ringTick(g, d, h % 6 === 0 ? 6 : 4,
+                               lit ? 'a-h-day' : 'a-h-night'));
   }
   svg.appendChild(hours);
-  // Culmination and its opposite — the two fiducials a horizon dial owes the
-  // reader, and the only marks on the plate that never move.
-  svg.appendChild(skyTick(g, dayPoint(g, 0.5), 5, 'a-fid'));
-  svg.appendChild(skyTick(g, nightPoint(g, 0.5), 5, 'a-fid'));
 
-  // The crossings: label engraved above the horizon, time below it.
-  [[g.cx - g.rx, 4, 'start', 'almRise', sun.rise],
-   [g.cx + g.rx, g.W - 4, 'end', 'almSet', sun.set]]
+  // The crossings: label engraved above the horizon, time below it, both at
+  // the plate's outer edges where the curve cannot reach them.
+  [[-half, 4, 'start', 'almRise', shown.rise],
+   [half, g.W - 4, 'end', 'almSet', shown.set]]
   .forEach(function (foot) {
+    var p = spot(g, foot[0]);
     svg.appendChild(svgEl('line', {
-      x1: foot[0], y1: g.cy - 4, x2: foot[0], y2: g.cy + 5, 'stroke-width': 1.5
+      x1: p.x.toFixed(2), y1: (p.y - 4).toFixed(2),
+      x2: p.x.toFixed(2), y2: (p.y + 5).toFixed(2), 'stroke-width': 1.5
     }, 'a-foot'));
-    svg.appendChild(skyText(foot[1], g.cy - 7, 'a-lab', t(foot[3]), foot[2]));
-    svg.appendChild(skyText(foot[1], g.cy + 17, 'a-time', hhmm(foot[4]), foot[2]));
+    svg.appendChild(skyText(foot[1], horizonY - 7, 'a-lab', t(foot[3]), foot[2]));
+    svg.appendChild(skyText(foot[1], horizonY + 17, 'a-time', hhmm(foot[4]), foot[2]));
   });
 
-  var s = up ? dayPoint(g, u)
-             : nightPoint(g, (clock - sun.set) / (24 - dayLen));
+  var s = spot(g, phi);
   if (up) {
     svg.appendChild(svgEl('circle', {
       cx: s.x.toFixed(2), cy: s.y.toFixed(2), r: 8, 'stroke-width': 1
@@ -2385,7 +2444,7 @@ function buildSky(where, host) {
   // standing between the two arches saying exactly that, and the plate's job
   // is the one thing the clock cannot say — WHERE in the day this is.
 
-  return { svg: svg, sun: sun, here: here, at: at, tz: tzh };
+  return { svg: svg, sun: sun, shown: shown, here: here, at: at, tz: tzh };
 }
 
 /* ----- The board --------------------------------------------------------- */
@@ -2471,9 +2530,12 @@ function buildTape(sky, where) {
   if (!sky || !sky.sun || sky.sun.polar || !where) return;
   var sun = sky.sun;
   var strips = el('div', 'al-strips');
-  var h = Math.floor(sun.hours);
+  // The same figure the crossings were engraved with, or the tape and the
+  // dial print two different day lengths a centimetre apart.
+  var dayLen = (sky.shown || sun).hours;
+  var h = Math.floor(dayLen);
   strips.appendChild(almStrip(t('almDaylight'),
-    h + ':' + pad2(Math.round((sun.hours - h) * 60))));
+    h + ':' + pad2(Math.round((dayLen - h) * 60))));
 
   var yest = sunTimes(where.lat, where.lon,
     localAt(where.timezone, new Date(at.getTime() - 86400000)), sky.tz);
@@ -2497,7 +2559,7 @@ function renderAlmanac() {
   // Measured BEFORE the old plate comes out: emptying the register first
   // collapses it to nothing, and the new plate would be inscribed in a box
   // of zero height.
-  var sky = buildSky(where, host);
+  var sky = buildSky(where, host, almanac ? almanac.weather : null);
   host.textContent = '';
   host.appendChild(sky.svg);
   sub.textContent = where ? t('almSub', { place: almPlaceName(where) }) : '—';

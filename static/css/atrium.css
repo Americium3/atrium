@@ -1630,8 +1630,10 @@ html[data-entered="no"] #signal-desk {
    the board that is genuinely elapsed rather than forecast. */
 .al-arc .a-done { stroke: var(--gold); opacity: 0.72; }
 .al-arc .a-night { stroke: var(--ink-faint); opacity: 0.5; }
-.al-arc .a-hour line { stroke: var(--ink-faint); opacity: 0.6; }
-.al-arc .a-fid { stroke: var(--bronze); }
+/* The hour ring runs the whole twenty-four. Night is still measured, just
+   not lit, so its ticks keep the pitch and give up the ink. */
+.al-arc .a-h-day { stroke: var(--ink-faint); opacity: 0.7; }
+.al-arc .a-h-night { stroke: var(--ink-faint); opacity: 0.35; }
 .al-arc .a-foot { stroke: var(--ink-faint); }
 .al-arc .a-sun { fill: var(--gold); }
 .al-arc .a-sun.down { fill: none; stroke: var(--ink-faint); }
