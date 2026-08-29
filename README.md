@@ -364,9 +364,12 @@ four life stages for screenshot QA).
 
 ## Fonts and textures
 
-Fonts are bundled locally (no CDN, no external fetches): EB Garamond and
-Noto Serif SC variable fonts, both SIL OFL 1.1 — see
-`static/fonts/LICENSE.txt`.
+Fonts are bundled locally (no CDN, no external fetches): **EB Garamond**
+(OFL 1.1) and **LXGW Heart Serif** — 霞鹜铭心宋, a Kokoro Mincho derivative
+under the IPA Font License, shipped byte-for-byte because a subset would be
+a derived work under that licence. It replaced Noto Serif SC, which was a
+modern Songti reading as a web page beside Garamond, and 25 MB to Heart
+Serif's 11. See `static/fonts/LICENSE.txt`.
 
 The two material textures in `static/assets/tex/` (engine-turned steel,
 riveted iron plate) were generated locally with FLUX.2 [dev] via ComfyUI,

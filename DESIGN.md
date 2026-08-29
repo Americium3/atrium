@@ -88,16 +88,25 @@ services without custom art.
   `font-variant-ligatures: none` on tracked caps.
 - Addresses / stat numerals: true caps + `font-variant-numeric: tabular-nums`,
   11–12px, tracking 0.08em. (Not "small caps" — digits have none.)
-- CJK: `:lang(zh)` scope, Noto Serif SC wght 600; tracking 0.25–0.35em on
-  display lines only, body tracking 0, `text-transform: none`. Slightly larger
-  CJK body size to reconcile x-height with Garamond.
+- CJK: `:lang(zh)` scope, **LXGW Heart Serif** (霞鹜铭心宋, a Kokoro Mincho
+  derivative); tracking 0.25–0.35em on display lines only, body tracking 0,
+  `text-transform: none`. Slightly larger CJK body size to reconcile x-height
+  with Garamond. It replaced Noto Serif SC: a modern Songti reads as a web
+  page beside Garamond's old-style, where a warm Mincho reads as the same
+  hand cutting both alphabets. The face has ONE weight, and the `@font-face`
+  declares 200–900 anyway — a face that claims the range is never
+  synthetically bolded, and CJK strokes at 10px do not survive faux bold.
 - **Signage stays English** in both languages: ATRIUM, SALON, BUREAU, lamp
   words OPEN/DARK — engraved architectural terms (zh translation provided as
   `title`/aria). Sentences (descriptions, headlines, day breaks, settings
   labels) localize fully with tracking 0.
 - `@font-face`: `font-weight: 400 800` (EBGaramond-wght.ttf) and `200 900`
-  (NotoSerifSC-VF.ttf), `font-display: swap`, both preloaded; no italic
+  (LXGWHeartSerif.ttf), `font-display: swap`, both preloaded; no italic
   styles anywhere. Long-lived Cache-Control on `/static/fonts`.
+- The CJK face ships **byte-for-byte**. It is under the IPA Font License,
+  where a subset is a "Derived Program" that must be renamed and shipped
+  with its source — so the 11 MB file is not an optimization target, and
+  woff2 recompression is off the table for this face.
 
 ## Entrance animation (timeline)
 
@@ -1000,5 +1009,7 @@ the ritual must not delay the actual mode switch beyond ~450 ms or break
 ## Non-goals (v1)
 
 No auth (localhost only), no write actions against services, no process
-management, mobile layout, woff2 recompression (future: halves the 24 MB CJK
-font).
+management, mobile layout. (woff2 recompression of the CJK face was a
+standing future item under Noto Serif SC; it is now ruled out by the IPA
+licence — see Typography. The face is 11 MB rather than 25, which is most of
+what the recompression was for.)

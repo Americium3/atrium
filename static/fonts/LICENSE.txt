@@ -1,8 +1,24 @@
-Bundled fonts, both licensed under the SIL Open Font License 1.1:
+Bundled fonts.
 
 - EBGaramond-wght.ttf — EB Garamond (variable weight), by Georg Duffner /
-  Octavio Pardo. https://github.com/octaviopardo/EBGaramond12
-- NotoSerifSC-VF.ttf — Noto Serif SC (variable weight), by Google / Adobe.
-  https://github.com/notofonts/noto-cjk
+  Octavio Pardo. SIL Open Font License 1.1.
+  https://github.com/octaviopardo/EBGaramond12
+  Full OFL 1.1 text: https://openfontlicense.org
 
-Full OFL 1.1 text: https://openfontlicense.org
+- LXGWHeartSerif.ttf — 霞鹜铭心宋 / LXGW Heart Serif, by lxgw, derived from
+  こころ明朝体 (Kokoro Mincho), itself derived from IPA Mincho.
+  IPA Font License Agreement v1.0 — full text in IPA_Font_License_v1.0.txt
+  beside this file, as that licence requires.
+  https://github.com/lxgw/LxgwHeartSerif
+
+  Two conditions worth stating plainly, because they bind what this repo may
+  DO with the file rather than only what it must ship:
+
+  * The file is redistributed byte-for-byte. Subsetting it — the obvious
+    optimization for an 11 MB face — produces a "Derived Program" under this
+    licence, which must then be renamed and shipped with its source. So the
+    hall carries the whole font or it carries none of it.
+  * The font keeps its name, and the licence travels with the file.
+
+  It replaced Noto Serif SC (OFL, 25 MB): a modern Songti in a hall that is
+  engraved Art-Deco and wanted a warmer Mincho next to EB Garamond.

@@ -14,9 +14,13 @@
   font-style: normal;
   font-display: swap;
 }
+/* The CJK face is a SINGLE weight, and the range is declared anyway on
+   purpose: a face that claims 200-900 is never synthetically bolded, so the
+   hall's display lines get the type as it was drawn instead of a smeared
+   copy of it. CJK strokes at 10px do not survive faux bold. */
 @font-face {
-  font-family: 'Noto Serif SC';
-  src: url('/static/fonts/NotoSerifSC-VF.ttf') format('truetype');
+  font-family: 'LXGW Heart Serif';
+  src: url('/static/fonts/LXGWHeartSerif.ttf') format('truetype');
   font-weight: 200 900;
   font-style: normal;
   font-display: swap;
@@ -191,7 +195,7 @@ body {
   /* No bottom clearance any more. The signal desk stands ON the floor rather
      than under the page, so the hall owns every pixel down to the edge. */
 }
-html[lang="zh"] body { font-family: 'EB Garamond', 'Noto Serif SC', 'Microsoft YaHei', serif; }
+html[lang="zh"] body { font-family: 'EB Garamond', 'LXGW Heart Serif', 'Microsoft YaHei', serif; }
 /* Atmosphere sheet: vignette + fine grain in front of the hall — implies
    air, unifies the depth layers, kills gradient banding on dark ground. */
 body::after {
@@ -1643,7 +1647,7 @@ html[data-entered="no"] #signal-desk {
    body's zh stack — it takes whatever the browser substitutes, which is a
    different serif from every other Chinese word in the hall. */
 html[lang="zh"] .al-arc text {
-  font-family: 'EB Garamond', 'Noto Serif SC', 'Microsoft YaHei', serif;
+  font-family: 'EB Garamond', 'LXGW Heart Serif', 'Microsoft YaHei', serif;
 }
 .al-arc .a-lab { font-size: 8px; letter-spacing: 1.5px; }
 .al-arc .a-time { font-size: 12px; fill: var(--ink); letter-spacing: 0.6px; }
