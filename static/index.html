@@ -626,6 +626,26 @@
         <button class="chip display" role="radio" aria-checked="false" data-chip="bureau" data-i18n-title="bureauWing" tabindex="-1">BUREAU</button>
       </div>
     </div>
+    <!-- The stamp. Resting on a plaque strikes one dispatch; this strikes the
+         whole window at once, and it is a BUTTON — the hall's rule was never
+         "nothing may mark wholesale", it was "nothing marks except the
+         reader", and a control pressed on purpose is the reader. It goes
+         inert with nothing to strike rather than disappearing, so its place
+         on the drawer does not move under the pointer. -->
+    <div class="l-tools">
+      <button class="l-stamp inert" id="mark-all" type="button" aria-disabled="true">
+        <svg class="l-stamp-ico" viewBox="0 0 24 24" aria-hidden="true">
+          <path class="s-head" d="M6.5 3.5h11v4h-11z"/>
+          <path class="s-grip" d="M10 7.5h4v3.5h-4z"/>
+          <path class="s-base" d="M3.5 11h17v3.5h-17z"/>
+          <line class="s-rule" x1="3.5" y1="19" x2="20.5" y2="19"/>
+        </svg>
+        <span class="l-stamp-cap display" data-i18n="markAll">MARK ALL READ</span>
+      </button>
+      <!-- The drain down the column is invisible to a screen reader, so the
+           strike says so once, out loud. -->
+      <span class="sr-only" id="mark-all-status" role="status" aria-live="polite"></span>
+    </div>
     <div class="l-col">
       <div class="spine" aria-hidden="true"></div>
       <ol id="plaques"></ol>

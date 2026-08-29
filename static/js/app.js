@@ -115,6 +115,9 @@ var STR = {
     ariaTicker: 'Status band',
     ariaLever: 'Mode lever: off = Salon, the play wing; on = Bureau, the work wing',
     ariaDesk: 'Signal desk — mode lever',
+    markAll: 'MARK ALL READ',
+    markAllHint: 'Strike every dispatch in the window, both wings',
+    markAllDone: 'Nothing left to strike',
     ariaFilter: 'Filter dispatches', ariaClose: 'Close',
     ariaGates: 'Gates', ariaLedger: 'Ledger — dispatch timeline',
     ariaWorks: 'Statistics — live readings from this machine',
@@ -216,6 +219,9 @@ var STR = {
     ariaTicker: '状态带',
     ariaLever: '模式拨杆：关＝沙龙翼（娱乐），开＝事务翼（工作）',
     ariaDesk: '信号台——模式拨杆',
+    markAll: '全部标为已读',
+    markAllHint: '把窗口内两翼的消息一次全部盖章',
+    markAllDone: '没有未读了',
     ariaFilter: '筛选快讯', ariaClose: '关闭',
     ariaGates: '门廊', ariaLedger: '账本 — 派发时间轴',
     ariaWorks: '运转统计 —— 本机实时读数',
@@ -288,17 +294,31 @@ function isNew(d) {
   return d.ts > watermark && !readIds[d.id];
 }
 
-function markRead(id) {
-  if (!id || readIds[id]) return;
-  readIds[id] = 1;
-  // Persist only ids still inside the feed window, plus the newcomer: a
+/* One write and one re-sync however many dispatches are struck: the stamp
+   clears a whole window at once, and doing that a dispatch at a time would
+   serialize a localStorage write and a full re-sync per card. */
+function markReadMany(ids) {
+  var added = [];
+  ids.forEach(function (id) {
+    if (!id || readIds[id]) return;
+    readIds[id] = 1;
+    added.push(id);
+  });
+  if (!added.length) return;
+  // Persist only ids still inside the feed window, plus the newcomers: a
   // dispatch that has aged out can never be shown again, so carrying its id
   // forward would grow the store forever to no effect.
   var live = feed.filter(function (d) { return readIds[d.id]; })
                  .map(function (d) { return d.id; });
-  if (live.indexOf(id) < 0) live.push(id);
+  added.forEach(function (id) {
+    if (live.indexOf(id) < 0) live.push(id);
+  });
   store(READ_KEY, JSON.stringify(live.slice(-READ_CAP)));
   syncReadMarks();
+}
+
+function markRead(id) {
+  markReadMany([id]);
 }
 
 /* The drawer's plaques are the only surface that carries a per-dispatch mark
@@ -2915,6 +2935,69 @@ function updateLedgerBadge() {
     void badge.offsetWidth;            // restart the animation
     badge.classList.add('seating');
   }
+  syncStamp();
+}
+
+/* ----- The stamp ---------------------------------------------------------
+   Resting on a plaque strikes one dispatch; this strikes the window. The
+   hall's rule was never "nothing may mark wholesale" — it was that nothing
+   marks except the READER, which is why opening and closing the drawer still
+   clears nothing. A button pressed on purpose is the reader saying so.
+
+   It clears BOTH WINGS even while a chip is filtering the column, because
+   the annunciator on the masthead counts both wings: a control labelled
+   "mark all read" that leaves the disc lit has not done what it says. The
+   tooltip states it rather than leaving it to be discovered.
+   ======================================================================== */
+function syncStamp() {
+  var btn = $('#mark-all');
+  if (!btn) return;
+  var idle = badgeCount <= 0;
+  // aria-disabled, not the disabled attribute: a disabled button drops
+  // focus to the body the moment the last dispatch is struck, and the
+  // keyboard reader loses the drawer.
+  btn.setAttribute('aria-disabled', String(idle));
+  btn.classList.toggle('inert', idle);
+  btn.title = idle ? t('markAllDone') : t('markAllHint');
+  // Re-arm the live region while there is something to strike, so the next
+  // run announces itself instead of writing a message that is already there.
+  var say = $('#mark-all-status');
+  if (say && !idle) say.textContent = '';
+}
+
+function stampAll() {
+  var ids = feed.filter(isNew).map(function (d) { return d.id; });
+  if (!ids.length) return;
+  var nodes = Array.prototype.slice.call(
+    document.querySelectorAll('#plaques .plaque.new'));
+
+  function done() {
+    nodes.forEach(function (li) { li.classList.remove('reading'); });
+    markReadMany(ids);
+    var say = $('#mark-all-status');
+    if (say) say.textContent = t('markAllDone');
+  }
+
+  if (!nodes.length || root.dataset.motion === 'reduced') { done(); return; }
+
+  // The column stamps itself clear from the top down, running the same
+  // 420ms drain a dwell runs — one mechanic, shown at scale. The stagger is
+  // capped in TOTAL: at a flat 40ms a full window would take longer to
+  // clear than the drawer takes to open, and the reader would be watching
+  // an animation instead of a confirmation.
+  var step = Math.min(40, 640 / nodes.length);
+  nodes.forEach(function (li, i) {
+    setTimeout(function () { li.classList.add('reading'); }, i * step);
+  });
+  setTimeout(done, (nodes.length - 1) * step + DWELL_MS);
+}
+
+var markAllBtn = $('#mark-all');
+if (markAllBtn) {
+  markAllBtn.addEventListener('click', function () {
+    if (markAllBtn.getAttribute('aria-disabled') === 'true') return;
+    stampAll();
+  });
 }
 
 function openLedger() {
@@ -3353,8 +3436,12 @@ fetchJson('/api/services').then(function (payload) {
 }).catch(function () {
   // Hub API unreachable — leave ghosts; refresh() retries the registry.
 }).then(function () {
-  // Deep links run regardless of how the boot fetch fared.
-  if (new URLSearchParams(location.search).get('prefs') === '1') openPrefs();
+  // Deep links run regardless of how the boot fetch fared. ?ledger=1 is the
+  // debug-only twin of ?prefs=1 — the drawer is the one surface a headless
+  // screenshot cannot reach, since opening it takes a click.
+  var q = new URLSearchParams(location.search);
+  if (q.get('prefs') === '1') openPrefs();
+  if (q.get('ledger') === '1') openLedger();
 });
 
 })();
