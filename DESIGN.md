@@ -543,13 +543,45 @@ Plaques are links opening the dispatch url.
   rim + small ◆ marker; the Ledger itself always shows the full window. A
   dispatch is marked read when the pointer has rested on its card for
   **420 ms**, when it is focused by keyboard, or when it is followed through
-  to its service. Nothing else marks anything: opening or closing the drawer
-  clears no plaque, because a card three screens down was not read by the act
-  of shutting a drawer over it. Two localStorage keys back this — `atrium.read`
+  to its service, or when the reader presses the stamp. Nothing else marks
+  anything: opening or closing the drawer clears no plaque, because a card
+  three screens down was not read by the act of shutting a drawer over it.
+  Two localStorage keys back this — `atrium.read`
   is the set of dispatch ids, pruned to the ids still inside the feed window
   so it cannot grow forever; `atrium.lastVisit` is now a frozen **floor** left
   by the old close-stamp, kept only so the change of model does not resurface
   a fortnight of dispatches the reader already dismissed.
+- **The stamp (v4.5)** — one control that clears the whole window, docked
+  under the head on its own line rather than beside the chips, where a fourth
+  control on that baseline would read as a fourth filter. This does not
+  reverse the rule above; it completes it. The rule was never *nothing may
+  mark wholesale* — it was that **nothing marks except the reader**, which is
+  why the drawer's own open and close still clear nothing. A button pressed
+  on purpose is the reader saying so out loud, and it is the only wholesale
+  path that exists.
+  * It clears **both wings** even while a chip is filtering the column,
+    because the annunciator on the masthead counts both: a control labelled
+    "mark all read" that leaves the disc lit has not done what it says. The
+    tooltip states this rather than leaving it to be found.
+  * It runs the **dwell's own 420 ms drain**, staggered down the column from
+    the top, so the confirmation is the same mechanic the reader already
+    knows — shown at scale — rather than a new one. The stagger is capped in
+    TOTAL (`min(40ms, 640ms / n)`): at a flat per-card delay a full window
+    takes longer to clear than the drawer takes to open, and the reader ends
+    up watching an animation instead of receiving a confirmation. Reduced
+    motion strikes in one tick.
+  * With nothing to strike it goes **inert, not gone** — a control that
+    vanishes when idle moves every other control out from under the pointer
+    and returns in a place nobody is looking. Inert is `aria-disabled` plus a
+    class, never the `disabled` attribute, which would drop focus to the body
+    at the exact moment the last dispatch is struck and lose the keyboard
+    reader the drawer.
+  * The drain is invisible to a screen reader, so the strike announces itself
+    once through a polite live region, re-armed whenever the count grows.
+  * One write and one re-sync for the whole window: `markReadMany()` is the
+    single path and `markRead()` is a one-element call into it. Striking a
+    window a dispatch at a time serializes a localStorage write and a full
+    re-sync per card.
 - **The dwell shows its work**: resting adds `.reading`, which drains the
   champagne rim back to the ordinary hairline and closes the ◆ over exactly
   the 420 ms the timer runs. A mechanic with no button to press otherwise does
