@@ -313,26 +313,61 @@ without it the processor, memory, traffic and store dials simply read
 nothing. Graphics comes from `nvidia-smi` if there is one on `PATH`; a
 machine with no NVIDIA card is a normal machine and that dial rests at zero.
 
-Autostart: `scripts/concierge.vbs` runs `concierge.ps1`, which probes each
-service port and launches only what is down (Atrium, Ground Station,
-Outreach Desk, the Press Room — Anime Autopilot keeps its own Startup
-shortcuts). A silent port gets a second look three seconds later before
-anything is launched, because several of these are started at logon by their
-own mechanism at the same moment and a cold-boot uvicorn can take longer to
-bind than this task's trigger delay; without that pause the concierge starts
-a duplicate that dies on "address already in use". The Press Room is listed
-as a safety net rather than as its owner — YoRHa News registers its own
-`YoRHaNews-Server` logon task, and the port guard is what keeps the two from
-fighting. Register the concierge as a logon scheduled task; services are
-spawned via WMI so they are parented outside the task's job object and
-survive its execution time limit:
+Keepalive: `scripts/concierge.vbs` runs `concierge.ps1` at logon **and every
+five minutes after**, which is the difference between a fleet that comes back
+after a reboot and one that comes back at all. On 2026-09-04 six of these
+services died together mid-session; nothing noticed until a human did, the
+next morning. A logon task cannot help with that, because nobody logs on.
+
+Each gate is asked for a real endpoint, not a TCP handshake: a wedged uvicorn
+keeps its listening socket open long after it stops answering. Headers are
+part of the probe — Ground Station rejects anything without `X-PMH` and would
+otherwise look permanently sick. The two failure modes are then treated very
+differently, because they carry different risk:
+
+- **Port silent** — just launch it. Nothing is running, so there is nothing to
+  break, and the launch happens on the first cycle that sees it.
+- **Port open but not serving** — something is holding the port without doing
+  its job. Killing is destructive and a false positive would take down a
+  healthy service on a loop, so this path needs the failure to repeat across
+  cycles, and only ever kills a PID read off the listening socket whose
+  process name is a known server (`python3.11` among them — the Store
+  launcher's name is why killing by the name `python` misses these).
+
+Both paths are rate limited: no service is touched more than once every ten
+minutes, or more than three times an hour. A service that crashes on startup
+is a job for a human, and relaunching it forever is worse than leaving it
+down. A healthy fleet writes nothing to `state/concierge.log` — every line in
+that file is a change of state, so it stays readable by eye.
+
+Anime Autopilot is in the list now. Its Startup shortcuts still start it at
+logon, and the Press Room still has its own `YoRHaNews-Server` logon task;
+both are listed here as a safety net rather than as their owner, and the port
+guard is what keeps the two mechanisms from fighting. Services are spawned via
+WMI so they are parented outside the task's job object and survive its
+execution time limit:
 
 ```powershell
 $a = New-ScheduledTaskAction -Execute 'wscript.exe' `
        -Argument '"X:\Github\atrium\scripts\concierge.vbs"'
-$t = New-ScheduledTaskTrigger -AtLogOn -User $env:USERNAME; $t.Delay = 'PT15S'
-Register-ScheduledTask -TaskName 'AtriumConcierge' -Action $a -Trigger $t
+$logon = New-ScheduledTaskTrigger -AtLogOn -User $env:USERNAME
+$logon.Delay = 'PT15S'
+# A repetition on the logon trigger alone only starts at the NEXT logon, so a
+# second, time-based trigger carries the five-minute cycle on this session too.
+$every = New-ScheduledTaskTrigger -Once -At (Get-Date).AddMinutes(1) `
+           -RepetitionInterval (New-TimeSpan -Minutes 5)
+$every.Repetition.Duration = ''          # empty means indefinitely
+$s = New-ScheduledTaskSettingsSet -MultipleInstances IgnoreNew `
+       -ExecutionTimeLimit (New-TimeSpan -Minutes 5) -StartWhenAvailable
+Register-ScheduledTask -TaskName 'AtriumConcierge' `
+  -Action $a -Trigger @($logon, $every) -Settings $s
 ```
+
+`run_hub.bat` is ASCII with CRLF line endings, and must stay that way.
+`cmd.exe` parses a `.bat` by byte: bare LF endings make it drop the first
+characters of every line — `setlocal` runs as `ocal`, `python server.py` as
+`server.py` — and the hall then fails to start with an empty log, because the
+redirect that was supposed to capture the error never parsed either.
 
 Tests: `python tests/test_feed.py`
 
