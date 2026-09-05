@@ -21,6 +21,7 @@ import subprocess
 import time
 from contextlib import asynccontextmanager, suppress
 from datetime import datetime
+from logging.handlers import RotatingFileHandler
 from pathlib import Path
 
 import httpx
@@ -42,6 +43,7 @@ STATE_DIR = ROOT / "state"
 STATIC_DIR = ROOT / "static"
 
 HOST = "127.0.0.1"
+DEFAULT_PORT = 8769
 # 8769 is the hall's address and is engraved on the maker's plate. The
 # override exists so a SECOND instance can be stood up beside the live one
 # for UI verification without taking the reader's hub down to do it. A
@@ -57,10 +59,47 @@ def _port() -> int:
                 # `log` is bound further down; this runs at import time.
                 logging.getLogger("atrium").warning(
                     "ignoring %s=%r, not a port number", name, raw)
-    return 8769
+    return DEFAULT_PORT
 
 
 PORT = _port()
+
+# --------------------------------------------------------------------------
+# Logging
+# --------------------------------------------------------------------------
+# The hall polls a dozen downstream endpoints once a minute forever, and httpx
+# narrates every one of them at INFO. Left alone those lines ARE hub.log, and
+# the file only ever grows (49 MB before anyone looked at it).
+#
+# Rotation is set up here rather than in the launcher so it holds however the
+# process is started — and the launcher must no longer redirect into hub.log
+# itself: a second writer keeps an open handle on the file, and Windows then
+# refuses the rename that rotation needs.
+LOG_MAX_BYTES = 5 * 1024 * 1024
+LOG_BACKUPS = 5
+# A verification instance on an override port gets its own file. Two processes
+# rotating one log is the same open-handle problem as above, and the side that
+# loses the race cannot rotate at all.
+LOG_FILE = ROOT / ("hub.log" if PORT == DEFAULT_PORT else f"hub-{PORT}.log")
+
+
+def _setup_logging() -> None:
+    root = logging.getLogger()
+    if any(isinstance(h, RotatingFileHandler) for h in root.handlers):
+        return                      # already configured; don't stack handlers
+    handler = RotatingFileHandler(LOG_FILE, maxBytes=LOG_MAX_BYTES,
+                                  backupCount=LOG_BACKUPS, encoding="utf-8")
+    handler.setFormatter(
+        logging.Formatter("%(asctime)s %(levelname)s %(message)s"))
+    root.addHandler(handler)
+    root.setLevel(logging.INFO)
+    # A successful poll is noise sixty times an hour. A failed one is not
+    # dropped with it: the gate that made the call reports the outage itself
+    # (see _report_lamps), once per outage instead of once per minute.
+    logging.getLogger("httpx").setLevel(logging.WARNING)
+
+
+_setup_logging()
 
 FAST_TICK_S = 60
 SLOW_EVERY = 5          # slow tick every N fast ticks (5 min)
@@ -519,6 +558,9 @@ class Source:
         self.note_slow: str | None = None  # owned by the slow tick
         self.groups: dict[str, dict[str, dict]] = {}
         self.stat: dict = {}
+        # Why the gate last went dark. Only meaningful while state == "dark";
+        # read once, by the outage report at the end of the tick round.
+        self.last_error: str | None = None
 
     def dispatches(self) -> list[dict]:
         merged: dict[str, dict] = {}
@@ -578,6 +620,22 @@ def gs_changelog_snippet(mod_id, event_ts):
 # --------------------------------------------------------------------------
 # Tick functions (network I/O)
 # --------------------------------------------------------------------------
+
+def _note_failure(src: Source, exc: Exception) -> str:
+    """Park the reason a gate is dark on the gate itself.
+
+    Nothing is written here on purpose. A service that stays down fails on
+    every tick, so logging at the call site would put one line per gate per
+    minute in the file — the shape of noise this module already had once.
+    _report_lamps turns these into a single line per outage.
+    """
+    # Several httpx errors (ConnectTimeout among them) stringify to nothing,
+    # so the class name carries the meaning and the detail is optional.
+    detail = str(exc).strip()
+    src.last_error = f"{type(exc).__name__}: {detail}" if detail \
+        else type(exc).__name__
+    return src.last_error
+
 
 async def _timed_get(client: httpx.AsyncClient, url: str, **kw):
     t0 = time.perf_counter()
@@ -721,7 +779,7 @@ async def tick_autopilot(client: httpx.AsyncClient) -> None:
         src.state = "dark"
         src.latency_ms = None
         src.note = None
-        log.debug("autopilot dark: %s", exc)
+        _note_failure(src, exc)
         _ap_offline_fallback()
 
 
@@ -819,7 +877,7 @@ async def tick_groundstation(client: httpx.AsyncClient) -> None:
         src.state = "dark"
         src.latency_ms = None
         src.note = None
-        log.debug("groundstation dark: %s", exc)
+        _note_failure(src, exc)
         _gs_offline_fallback()
 
 
@@ -901,7 +959,7 @@ async def tick_outreach(client: httpx.AsyncClient) -> None:
     except Exception as exc:
         src.state = "dark"
         src.latency_ms = None
-        log.debug("outreach dark: %s", exc)
+        _note_failure(src, exc)
         progress = _outreach_offline_progress()
         src.note = "fallback" if progress else None
 
@@ -962,7 +1020,7 @@ async def tick_arsenal(client: httpx.AsyncClient) -> None:
         src.state = "dark"
         src.latency_ms = None
         src.stat = {}
-        log.debug("arsenal dark: %s", exc)
+        _note_failure(src, exc)
 
 
 # --------------------------------------------------------------------------
@@ -987,7 +1045,7 @@ async def tick_bourse(client: httpx.AsyncClient) -> None:
         src.state = "dark"
         src.latency_ms = None
         src.stat = {}
-        log.debug("bourse dark: %s", exc)
+        _note_failure(src, exc)
 
 
 async def tick_pressroom(client: httpx.AsyncClient) -> None:
@@ -1015,7 +1073,7 @@ async def tick_pressroom(client: httpx.AsyncClient) -> None:
         src.state = "dark"
         src.latency_ms = None
         src.note = None
-        log.debug("pressroom dark: %s", exc)
+        _note_failure(src, exc)
 
 
 # --------------------------------------------------------------------------
@@ -1150,6 +1208,41 @@ def read_works() -> dict:
     return _works_last
 
 
+# What was last reported for each gate, as (state, reason), so a standing
+# outage is not re-announced every minute.
+_lamp_logged: dict[str, tuple[str, str | None]] = {}
+
+
+def _report_lamps() -> None:
+    """Write one line per lamp CHANGE, at the end of a tick round.
+
+    This is the file's only account of a downstream failure now that httpx
+    sits at WARNING and no longer narrates the polls themselves. It is also
+    strictly more than the log used to hold: the per-gate handlers report at
+    DEBUG, which the INFO root level was already swallowing, so a refused
+    connection previously left no trace at all.
+
+    The reason is part of the key, not just the state: a gate that drops from
+    "unreachable" to "answering 500" is a different fact about a service that
+    was already dark, and httpx is no longer around to say so. Reasons are
+    error class names and httpx's fixed messages, so they don't flap.
+    """
+    for sid, src in SOURCES.items():
+        if src.state == "checking":
+            continue
+        seen = (src.state, src.last_error if src.state == "dark" else None)
+        if seen == _lamp_logged.get(sid):
+            continue
+        if src.state == "dark":
+            log.warning("%s is dark: %s", sid, src.last_error or "no reason given")
+        elif sid in _lamp_logged:
+            log.info("%s is back", sid)
+        # else: first sighting of a healthy gate. Recorded, not announced —
+        # a cold start would otherwise open with a recovery line per gate for
+        # outages that never happened.
+        _lamp_logged[sid] = seen
+
+
 async def refresher() -> None:
     async with httpx.AsyncClient(timeout=HTTP_TIMEOUT_S) as client:
         tick_no = 0
@@ -1164,6 +1257,7 @@ async def refresher() -> None:
             for r in results:
                 if isinstance(r, Exception):
                     log.warning("tick error: %s", r)
+            _report_lamps()
             tick_no += 1
             await asyncio.sleep(FAST_TICK_S)
 
@@ -1174,8 +1268,9 @@ async def refresher() -> None:
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    logging.basicConfig(level=logging.INFO,
-                        format="%(asctime)s %(levelname)s %(message)s")
+    # Handlers are installed at import time (_setup_logging) so anything that
+    # runs before the app starts is captured too.
+    log.info("hall opening on %s:%s, logging to %s", HOST, PORT, LOG_FILE.name)
     load_cursors()
     task = asyncio.create_task(refresher())
     try:
@@ -1261,4 +1356,7 @@ app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 
 if __name__ == "__main__":
-    uvicorn.run(app, host=HOST, port=PORT, log_level="warning")
+    # log_config=None leaves uvicorn's loggers propagating to the root handler
+    # set up above; its own dictConfig would pin them to stderr instead, and a
+    # startup failure ("address already in use") would miss the log entirely.
+    uvicorn.run(app, host=HOST, port=PORT, log_level="warning", log_config=None)
