@@ -34,6 +34,14 @@ $services = @(
        Launcher = 'X:\Github\yorha-news\scripts\run_server_hidden.vbs' },
     @{ Name = 'anime-autopilot'; Port = 8767; Path = '/';          Headers = @{}
        Launcher = 'X:\Github\anime-rss-auto\run_webui_hidden.vbs' },
+    # The watch daemon is the half of Autopilot that actually does the work:
+    # it mirrors new episodes into the Jellyfin library and writes the event
+    # ledger the Ledger reads. Its only socket is the Jellyfin webhook listener
+    # it carries along, so :8766 is the sole way to see whether it is alive.
+    # Without this entry it was invisible: it died on 2026-09-04, the panel on
+    # :8767 kept answering, and nothing noticed for two days.
+    @{ Name = 'anime-watch';    Port = 8766; Path = '/';           Headers = @{}
+       Launcher = 'X:\Github\anime-rss-auto\run_watch_hidden.vbs' },
     @{ Name = 'arsenal';        Port = 8770; Path = '/api/status'; Headers = @{}
        Launcher = 'X:\Github\arsenal\run_server_hidden.vbs' },
     @{ Name = 'bourse';         Port = 8771; Path = '/api/status'; Headers = @{}

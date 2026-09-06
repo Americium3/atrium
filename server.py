@@ -338,6 +338,43 @@ def anime_grace_to_dispatches(overview: dict) -> dict:
     return out
 
 
+def anime_health_to_dispatches(overview: dict, now: int) -> dict:
+    """The daemon's own pulse, raised from a hover title to a Ledger line.
+
+    Autopilot is two processes: the panel on :8767, and the watch daemon that
+    mirrors episodes into the library and appends the ledger this hub reads.
+    Only the panel answers this API, so a dead daemon leaves the gate looking
+    perfectly open. That is how it stayed dead from 2026-09-04 to 09-06 —
+    `last_sync` went stale within the quarter hour and was correctly flagged,
+    but the flag's only outlet was the status lamp's tooltip, which nobody
+    hovers over a gate that is lit green.
+
+    Two deliberate departures from every other transform in this file:
+
+    - `ts` is *now*, not when the trouble began. These are conditions still
+      true, not events that happened. Stamped at onset, the line would sink
+      down the Ledger exactly as far as the outage is long — the longer the
+      silence, the better hidden the warning, which is backwards. Refreshed
+      each slow tick it stays at the top for as long as it is true, and is
+      gone the moment the group is rebuilt without it.
+    - the id carries the stalled-since stamp, so one outage is one line the
+      reader can strike. A second outage after a recovery earns a new id and
+      speaks up again rather than arriving pre-read.
+    """
+    out: dict[str, dict] = {}
+    sync_ms = local_dt_to_ms(overview.get("last_sync") or "")
+    if sync_ms and now - sync_ms > DAEMON_STALE_S * 1000:
+        did = f"autopilot:stalled:{sync_ms}"
+        out[did] = _dispatch(did, "autopilot", "salon", "autopilot.stalled",
+                             {"since": (overview.get("last_sync") or "")[:16],
+                              "hours": (now - sync_ms) // 3_600_000}, now)
+    elif overview.get("qb_ok") is False:
+        did = "autopilot:qb-down"
+        out[did] = _dispatch(did, "autopilot", "salon", "autopilot.qb_down",
+                             {}, now)
+    return out
+
+
 AP_EVENT_KINDS = {
     "episode.landed": "anime.landed",
     "show.subscribed": "anime.subscribed",
@@ -797,13 +834,15 @@ async def tick_autopilot_slow(client: httpx.AsyncClient) -> None:
             if s.get("airing_at")
             and datetime.fromtimestamp(s["airing_at"]).date() == today)
         src.stat = {"watching": len(shows), "airing": airing}
-        sync_ms = local_dt_to_ms(overview.get("last_sync") or "")
-        if sync_ms and now_ms() - sync_ms > DAEMON_STALE_S * 1000:
-            src.note_slow = "daemon_stale"
-        elif overview.get("qb_ok") is False:
-            src.note_slow = "qb_down"
-        else:
-            src.note_slow = None   # healthy again — clear our own channel
+        health = anime_health_to_dispatches(overview, now_ms())
+        src.groups["health"] = health
+        # The lamp's tooltip still says the same thing, for a reader already
+        # looking at the gate. The Ledger line above is for the one who is not
+        # — and that is the only reader who ever needs to be told.
+        kinds = {d["kind"] for d in health.values()}
+        src.note_slow = ("daemon_stale" if "autopilot.stalled" in kinds else
+                         "qb_down" if "autopilot.qb_down" in kinds else
+                         None)   # healthy again — clear our own channel
     except Exception as exc:
         log.debug("autopilot overview failed: %s", exc)
 

@@ -755,6 +755,18 @@ item, replaced in place) · `outreach:invites:<local-date>` (mutable).
 - 5 min: `GET /api/overview` → grace alerts (`status=='grace'`,
   `grace.expires` epoch s), daemon health (`last_sync` stale >15 min,
   `qb_ok`), watching count stat.
+- Daemon health is a **Ledger line**, not just the lamp's hover title:
+  `autopilot.stalled` (`since`, `hours`) or `autopilot.qb_down`, with the
+  stall winning when both are true — a daemon that is not running is not
+  running to reach qB either, and naming the symptom would point at the wrong
+  box. Both are stamped `now` and re-stamped every slow tick, because these
+  are conditions still true rather than events that happened: dated at onset
+  they would sink down the Ledger exactly as far as the outage is long. The
+  id carries the stalled-since ms, so one outage is one line the reader can
+  strike, while a stall after a recovery is a new id that speaks up again.
+  Only the panel on `:8767` answers this API, so from here a dead watch
+  daemon and a healthy one look identical apart from `last_sync` — which is
+  how 2026-09-04 went unnoticed for two days behind a green lamp.
 - Episodes ("which anime landed"): `GET /api/events?after_seq=<cursor>&limit=200`,
   Autopilot's append-only ledger, with the cursor in `state/cursors.json`.
   Kinds `episode.landed` / `show.subscribed`; any other kind → drop and log.

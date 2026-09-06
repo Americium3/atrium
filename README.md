@@ -231,6 +231,13 @@ Adapter notes:
   "queued", every episode is announced exactly once, and nothing is missed
   while the hub itself is down. Offline fallback reads `events.json`
   directly. Never POSTs — the panel's unread banners belong to the user.
+  The overview poll also carries the watch daemon's pulse, and a stalled
+  daemon or an unreachable qBittorrent takes a Ledger line of its own rather
+  than only a tooltip on the gate's lamp. Those two lines are timestamped
+  *now* rather than at onset, so the warning rises to the top of the Ledger
+  the longer it holds instead of sinking out of sight; the id carries the
+  stalled-since stamp, so one outage is one strikeable line and the next
+  outage still speaks up.
 - **Ground Station**: `X-PMH: 1` header on every call; cheap `/api/ping`
   seq probe, then `/api/feed?after_seq=` with a cursor persisted in
   `state/cursors.json`. Changelog snippets come from the local prefetched
@@ -340,12 +347,22 @@ is a job for a human, and relaunching it forever is worse than leaving it
 down. A healthy fleet writes nothing to `state/concierge.log` — every line in
 that file is a change of state, so it stays readable by eye.
 
-Anime Autopilot is in the list now. Its Startup shortcuts still start it at
-logon, and the Press Room still has its own `YoRHaNews-Server` logon task;
-both are listed here as a safety net rather than as their owner, and the port
-guard is what keeps the two mechanisms from fighting. Services are spawned via
-WMI so they are parented outside the task's job object and survive its
-execution time limit:
+Anime Autopilot is in the list now — twice, because it is two processes. The
+panel on `:8767` is the half a human looks at; the watch daemon behind `:8766`
+is the half that does the work, mirroring new episodes into the Jellyfin
+library and writing the ledger this hub reads. The daemon holds a socket only
+by accident — the Jellyfin webhook listener it starts alongside its sync loop —
+and that accident is the only way to ask whether it is alive. It died on
+2026-09-04 and did not come back at the next logon. The panel kept answering
+perfectly, so nothing looked wrong from here; for two days the Ledger gained an
+`anime.landed` line only when a human pressed Sync by hand. A guard that
+watches only the door people knock on will keep missing exactly this.
+
+Startup shortcuts still start both halves at logon, and the Press Room still
+has its own `YoRHaNews-Server` logon task; all of them are listed here as a
+safety net rather than as their owner, and the port guard is what keeps the two
+mechanisms from fighting. Services are spawned via WMI so they are parented
+outside the task's job object and survive its execution time limit:
 
 ```powershell
 $a = New-ScheduledTaskAction -Execute 'wscript.exe' `
