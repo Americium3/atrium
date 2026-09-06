@@ -231,6 +231,13 @@ Adapter notes:
   "queued", every episode is announced exactly once, and nothing is missed
   while the hub itself is down. Offline fallback reads `events.json`
   directly. Never POSTs — the panel's unread banners belong to the user.
+  The overview poll also carries the watch daemon's pulse, and a stalled
+  daemon or an unreachable qBittorrent takes a Ledger line of its own rather
+  than only a tooltip on the gate's lamp. Those two lines are timestamped
+  *now* rather than at onset, so the warning rises to the top of the Ledger
+  the longer it holds instead of sinking out of sight; the id carries the
+  stalled-since stamp, so one outage is one strikeable line and the next
+  outage still speaks up.
 - **Ground Station**: `X-PMH: 1` header on every call; cheap `/api/ping`
   seq probe, then `/api/feed?after_seq=` with a cursor persisted in
   `state/cursors.json`. Changelog snippets come from the local prefetched

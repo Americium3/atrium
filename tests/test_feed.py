@@ -664,6 +664,54 @@ def test_grace_ts_deterministic():
     assert d["ts"] == int((1785400000 - 1800) * 1000)
 
 
+def _overview_synced(minutes_ago: float, qb_ok: bool = True):
+    stamp = datetime.now() - timedelta(minutes=minutes_ago)
+    return {"last_sync": stamp.strftime("%Y-%m-%d %H:%M:%S"), "qb_ok": qb_ok}
+
+
+def test_stalled_daemon_reaches_the_ledger():
+    """The failure of 2026-09-04: the watch daemon died, the panel it does not
+    live in kept answering, and the staleness was only ever a lamp tooltip."""
+    now = server.now_ms()
+    out = server.anime_health_to_dispatches(_overview_synced(43 * 60), now)
+    d = next(iter(out.values()))
+    assert d["kind"] == "autopilot.stalled"
+    assert d["params"]["hours"] == 43
+    # Timestamped NOW, not at onset: an outage must not bury its own warning
+    # deeper the longer it lasts.
+    assert d["ts"] == now
+
+
+def test_a_healthy_daemon_says_nothing():
+    now = server.now_ms()
+    assert server.anime_health_to_dispatches(_overview_synced(3), now) == {}
+    # No last_sync at all (log rotated away, daemon never ran here) is not
+    # evidence of a stall — it is absence of evidence, and must stay quiet.
+    assert server.anime_health_to_dispatches({"qb_ok": True}, now) == {}
+
+
+def test_a_stall_keeps_one_id_but_a_second_stall_earns_a_new_one():
+    """One outage is one strikeable line; the reader who struck the last one
+    must still be told about the next."""
+    now = server.now_ms()
+    first = _overview_synced(43 * 60)
+    assert (set(server.anime_health_to_dispatches(first, now)) ==
+            set(server.anime_health_to_dispatches(first, now + 300_000)))
+    assert not server.anime_health_to_dispatches(_overview_synced(3), now)
+    assert (set(server.anime_health_to_dispatches(_overview_synced(30), now)) !=
+            set(server.anime_health_to_dispatches(first, now)))
+
+
+def test_a_dead_qbittorrent_yields_to_a_dead_daemon():
+    """Both true at once means the daemon is not running to notice qB either.
+    Reporting the downstream symptom would point the reader at the wrong box."""
+    now = server.now_ms()
+    out = server.anime_health_to_dispatches(_overview_synced(43 * 60, qb_ok=False), now)
+    assert [d["kind"] for d in out.values()] == ["autopilot.stalled"]
+    out = server.anime_health_to_dispatches(_overview_synced(3, qb_ok=False), now)
+    assert out["autopilot:qb-down"]["kind"] == "autopilot.qb_down"
+
+
 if __name__ == "__main__":
     failures = 0
     for name, fn in sorted(globals().items()):

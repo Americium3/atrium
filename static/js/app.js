@@ -60,6 +60,11 @@ var STR = {
     'k.anime.imported': 'Imported by hand',
     'k.anime.unresolved': 'No release group matched yet',
     'k.anime.grace': 'Waiting for the preferred group',
+    'k.autopilot.stalled.head': 'The sync daemon has stopped',
+    'k.autopilot.stalled': 'Last pass {since} — stalled {hours}h and counting',
+    'k.autopilot.stalled.fresh': 'Last pass {since} — nothing has landed since',
+    'k.autopilot.qb_down.head': 'qBittorrent is unreachable',
+    'k.autopilot.qb_down': 'Downloads stay paused until it answers again',
     'k.unknown': 'Fresh word from this hall — refresh the page to read it in full',
     'k.mods.updated': 'Workshop update · {game}',
     'k.mods.removed': 'Delisted from the Workshop',
@@ -166,6 +171,11 @@ var STR = {
     'k.anime.imported': '已手动入库',
     'k.anime.unresolved': '尚未匹配到字幕组源',
     'k.anime.grace': '等待首选字幕组中',
+    'k.autopilot.stalled.head': '同步守护进程已停摆',
+    'k.autopilot.stalled': '最后一轮 {since}——已停摆 {hours} 小时',
+    'k.autopilot.stalled.fresh': '最后一轮 {since}——此后再无剧集入库',
+    'k.autopilot.qb_down.head': 'qBittorrent 不可达',
+    'k.autopilot.qb_down': '下载将保持暂停，直到它恢复响应',
     'k.unknown': '该厅室有新消息——刷新页面即可完整阅读',
     'k.mods.updated': '创意工坊更新 · {game}',
     'k.mods.removed': '已从创意工坊下架',
@@ -2782,6 +2792,12 @@ function headline(d) {
       return { head: p.title, detail: t('k.anime.unresolved'), warn: true };
     case 'anime.grace':
       return { head: p.title, detail: t('k.anime.grace') };
+    case 'autopilot.stalled':
+      return { head: t('k.autopilot.stalled.head'),
+               detail: t(p.hours >= 1 ? 'k.autopilot.stalled' : 'k.autopilot.stalled.fresh', p),
+               warn: true };
+    case 'autopilot.qb_down':
+      return { head: t('k.autopilot.qb_down.head'), detail: t('k.autopilot.qb_down'), warn: true };
     case 'mods.updated':
       return { head: p.title, detail: t('k.mods.updated', p) + (p.note ? ' — ' + p.note : '') };
     case 'mods.removed':
