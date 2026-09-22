@@ -42,17 +42,17 @@ var STR = {
     'desc.fallback': 'A newly registered hall.',
     'desc.vacant': 'Held for the next hall.',
     'stat.airing': '{n} AIRING TODAY', 'stat.watching': '{n} WATCHING',
-    'stat.pending': '{n} UPDATES PENDING', 'stat.mods': '{n} MODS TRACKED',
+    'stat.pending': '{n} {n|UPDATE|UPDATES} PENDING', 'stat.mods': '{n} {n|MOD|MODS} TRACKED',
     'stat.queue': 'QUEUE {done}/{total}', 'stat.invited': 'SENT {n}/{target}',
-    'stat.stories': '{n} STORIES · {m} SECTIONS', 'stat.stale': 'EDITION STALE',
-    'stat.tools': '{n} TOOLS ON THE RACK',
-    'stat.orders_await': '{n} ORDER(S) AWAIT REVIEW', 'stat.brief_of': 'BRIEF OF {date}',
+    'stat.stories': '{n} {n|STORY|STORIES} · {m} {m|SECTION|SECTIONS}', 'stat.stale': 'EDITION STALE',
+    'stat.tools': '{n} {n|TOOL|TOOLS} ON THE RACK',
+    'stat.orders_await': '{n} {n|ORDER AWAITS|ORDERS AWAIT} REVIEW', 'stat.brief_of': 'BRIEF OF {date}',
     'note.qb_down': 'qBittorrent unreachable, downloads paused',
     'note.daemon_stale': 'Sync daemon looks stalled',
     'note.fallback': 'Reading state files directly (server down)',
     'k.anime.premiere': 'Premiered',
     'k.anime.premiere.promoted': 'Premiered and auto-subscribed',
-    'k.anime.completed': 'Finished, all {eps} episodes watched',
+    'k.anime.completed': 'Finished, all {eps} {eps|episode|episodes} watched',
     'k.anime.completed.noeps': 'Finished and marked as watched',
     'k.anime.landed': 'Episode {ep} shelved · {cour}',
     'k.anime.landed.noep': 'New episode shelved · {cour}',
@@ -71,7 +71,7 @@ var STR = {
     'k.mods.removed': 'Delisted from the Workshop',
     'k.mods.banned': 'Banned on the Workshop',
     'k.outreach.queue_ready.head': 'Daily queue ready',
-    'k.outreach.queue_ready': '{n} introductions briefed',
+    'k.outreach.queue_ready': '{n} {n|introduction|introductions} briefed',
     'k.outreach.progress.head': 'Drafting the queue',
     'k.outreach.progress': '{done} of {total} briefed',
     'k.outreach.invites.head': 'Invitations today',
@@ -79,9 +79,9 @@ var STR = {
     'k.outreach.error.head': 'Drafter hit an error',
     'k.outreach.error': 'Check the Outreach Desk',
     'k.press.digest_ready.head': "Today's edition is out",
-    'k.press.digest_ready': '{stories} stories across {sections} sections',
+    'k.press.digest_ready': '{stories} {stories|story|stories} across {sections} {sections|section|sections}',
     'k.bourse.briefing.head': 'The morning brief is out',
-    'k.bourse.briefing': '{orders} order(s) await your review',
+    'k.bourse.briefing': '{orders} {orders|order awaits|orders await} your review',
     'k.bourse.briefing.hold': 'No action today. The desk holds',
     'k.bourse.canary.head': 'Watchtower alarm',
     'k.bourse.canary': '{sym} momentum turned negative, sheltering part of the book',
@@ -246,11 +246,16 @@ var STR = {
 };
 
 var lang = root.lang === 'zh' ? 'zh' : 'en';
+/* {k} substitutes a parameter; {k|one|many} picks a word by the count in
+   k, so "1 SECTIONS" and "1 order(s)" never reach the wall. Chinese has no
+   plural and simply does not use the second form. */
 function t(key, params) {
   var s = STR[lang][key];
   if (s === undefined) s = STR.en[key];
   if (s === undefined) return key;
-  return s.replace(/\{(\w+)\}/g, function (_, k) {
+  return s.replace(/\{(\w+)\|([^|}]*)\|([^}]*)\}/g, function (_, k, one, many) {
+    return params && Number(params[k]) === 1 ? one : many;
+  }).replace(/\{(\w+)\}/g, function (_, k) {
     return params && params[k] !== undefined ? String(params[k]) : '';
   });
 }
