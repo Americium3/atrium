@@ -3339,8 +3339,13 @@ function renderTicker() {
 
   track.textContent = '';
   function sep() {
-    var s = el('span', 't-sep', '\u25c6');
-    s.setAttribute('aria-hidden', 'true');
+    // The diamond is ornament; a screen reader hears a pause instead of
+    // "black diamond", and the segments no longer run together.
+    var s = el('span', 't-sep');
+    var d = el('span', '', '\u25c6');
+    d.setAttribute('aria-hidden', 'true');
+    s.appendChild(d);
+    s.appendChild(el('span', 'sr-only', '; '));
     return s;
   }
   function pushSegs(list, cls) {
