@@ -449,13 +449,13 @@
   <header id="masthead">
     <svg id="monogram" viewBox="0 0 48 48" aria-hidden="true"><use href="#rosette"/></svg>
     <div class="m-title">
-      <h1 class="display">ATRIUM</h1>
+      <h1 class="display" lang="en">ATRIUM</h1>
       <div class="m-sub display" data-i18n="subtitle">GRAND CONCOURSE</div>
     </div>
     <div class="m-underline" aria-hidden="true"></div>
     <div class="m-right">
       <div id="dateline"></div>
-      <button id="ledger-btn" aria-keyshortcuts="L" aria-label="Open Ledger" aria-expanded="false"
+      <button id="ledger-btn" aria-keyshortcuts="L" aria-label="Open Ledger" aria-describedby="ledger-badge-count" aria-expanded="false"
               aria-controls="ledger" data-i18n-aria="ariaLedger">
         <!-- Pneumatic-tube dispatch hatch: anatomically flat-shaded brass cap -->
         <svg viewBox="0 0 48 48" aria-hidden="true" width="40" height="40">
@@ -523,7 +523,7 @@
     </div>
   </header>
 
-  <div id="ticker" aria-live="off" tabindex="0" data-i18n-aria="ariaTicker">
+  <div id="ticker" role="marquee" aria-live="off" tabindex="0" data-i18n-aria="ariaTicker">
     <div class="t-track" id="ticker-track"></div>
   </div>
 
@@ -580,7 +580,7 @@
            aria-label="Statistics" data-i18n-title="worksTitle">
       <div class="bd-frame" aria-hidden="true"></div>
       <header class="bd-head">
-        <h2 class="bd-title display">STATISTICS</h2>
+        <h2 class="bd-title display" lang="en">STATISTICS</h2>
         <p class="bd-sub zh-sentence" data-i18n="worksSub">Readings from the engine room</p>
       </header>
       <div class="wk-dials" id="wk-dials"></div>
@@ -598,7 +598,9 @@
       </footer>
     </aside>
 
-    <main id="stage" data-i18n-aria="ariaGates" aria-label="Gates">
+    <main id="stage" aria-labelledby="stage-title">
+      <h2 id="stage-title" class="sr-only" data-i18n="ariaGates">Gates</h2>
+      <span id="opens-tab" class="sr-only" data-i18n="opensTab">Opens in its own tab.</span>
       <div class="stage-glow" aria-hidden="true"></div>
       <div class="wall-rule" aria-hidden="true"></div>
       <!-- The hall's centrepiece, set into the back wall between the gates.
@@ -621,7 +623,7 @@
            aria-label="Almanac" data-i18n-title="almTitle">
       <div class="bd-frame" aria-hidden="true"></div>
       <header class="bd-head">
-        <h2 class="bd-title display">ALMANAC</h2>
+        <h2 class="bd-title display" lang="en">ALMANAC</h2>
         <p class="bd-sub zh-sentence" id="al-sub"></p>
       </header>
       <!-- Built by app.js: the reading, the heliograph, the moon and the
@@ -644,13 +646,13 @@
      suppressed boot the hall's fade made #hall a context of its own, so the
      drawer (z 55) painted under its body-level scrim (z 54), and a click on
      any plaque landed on the scrim and closed the drawer. -->
-  <aside id="ledger" data-i18n-aria="ariaLedger" aria-label="Dispatches" inert>
+  <aside id="ledger" aria-labelledby="ledger-title" inert>
     <div class="l-head">
-      <h2 class="display" data-i18n="ledger" tabindex="-1">THE LEDGER</h2>
+      <h2 id="ledger-title" class="display" data-i18n="ledger" tabindex="-1">THE LEDGER</h2>
       <div class="chips" role="radiogroup" data-i18n-aria="ariaFilter" aria-label="Filter">
         <button class="chip display" role="radio" aria-checked="true" data-chip="all" data-i18n="chipAll">ALL</button>
-        <button class="chip display" role="radio" aria-checked="false" data-chip="salon" data-i18n-title="salonWing" tabindex="-1">SALON</button>
-        <button class="chip display" role="radio" aria-checked="false" data-chip="bureau" data-i18n-title="bureauWing" tabindex="-1">BUREAU</button>
+        <button class="chip display" role="radio" aria-checked="false" data-chip="salon" data-i18n-title="salonWing" tabindex="-1" lang="en">SALON</button>
+        <button class="chip display" role="radio" aria-checked="false" data-chip="bureau" data-i18n-title="bureauWing" tabindex="-1" lang="en">BUREAU</button>
       </div>
     </div>
     <!-- The stamp. Resting on a plaque strikes one dispatch; this strikes the
@@ -718,11 +720,12 @@
         <svg class="lever-svg" viewBox="0 0 140 210"></svg>
         <div class="nozzle"></div>
       </div>
-      <span class="l-label l-salon display" data-i18n-title="salonWing">SALON</span>
-      <span class="l-label l-bureau display" data-i18n-title="bureauWing">BUREAU</span>
+      <span class="l-label l-salon display" data-i18n-title="salonWing" lang="en">SALON</span>
+      <span class="l-label l-bureau display" data-i18n-title="bureauWing" lang="en">BUREAU</span>
     </div>
+    <span id="lever-desc" class="sr-only" data-i18n="leverDesc">Off lights the Salon, the play wing. On lights the Bureau, the work wing.</span>
     <div id="lever" role="switch" aria-checked="false" tabindex="0" aria-keyshortcuts="W"
-         data-i18n-aria="ariaLever" data-i18n-title="ariaLever"
+         aria-describedby="lever-desc" data-i18n-aria="ariaLever"
          aria-label="Mode lever: off = Salon, on = Bureau">
       <!-- The arm hit zone rides above the box so clicks land only where
            hardware is actually drawn — never a floating rectangle. -->
@@ -765,7 +768,7 @@
       <h3 class="p-label display" id="lbl-language" data-i18n="language">LANGUAGE</h3>
       <div class="p-options" role="radiogroup" aria-labelledby="lbl-language" data-pref="lang">
         <button class="p-plaque" role="radio" data-value="en">
-          <span class="p-name display">ENGLISH</span>
+          <span class="p-name display" lang="en">ENGLISH</span>
         </button>
         <button class="p-plaque" role="radio" data-value="zh">
           <span class="p-name display" lang="zh">中文</span>

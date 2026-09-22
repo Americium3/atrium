@@ -477,6 +477,8 @@ html[data-boot="suppressed"] #hall { animation: hall-fade 0.3s var(--ease-out) b
 #ticker.static { text-align: center; }
 @keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 .t-sep { color: var(--gold); padding: 0 14px; }
+/* The loop's second copy; aria-hidden, and layout-neutral. */
+.t-twin { display: inline; }
 .t-new { color: var(--gold-text); }
 
 /* ==========================================================================
@@ -1453,7 +1455,7 @@ html[data-entered="no"] #signal-desk {
 }
 /* Flanking lozenges — the board's own mark of rank. */
 .bd-title::before, .bd-title::after {
-  content: "◆";
+  content: "◆" / "";
   font-size: 0.52em;
   color: var(--metal);
   vertical-align: middle;
@@ -2370,7 +2372,7 @@ html[lang="zh"] .al-arc text {
 }
 .pl-frame > a:hover { background-color: var(--base); }
 .plaque.new .pl-head::after {
-  content: "◆"; font-size: calc(9px * var(--ui)); color: var(--champagne);
+  content: "◆" / ""; font-size: calc(9px * var(--ui)); color: var(--champagne);
   margin-left: 8px; vertical-align: 2px;
   display: inline-block;                     /* so the strike can scale it */
 }
@@ -3048,3 +3050,16 @@ html[data-entered="no"] #stage { animation: stage-dolly 0.9s var(--ease-out) bot
      the travel: the diamond fades where it stands. */
   .plaque.new.reading .pl-head::after { animation-name: mark-struck-flat; }
 }
+
+/* A plaque says "unread" to a screen reader only while it is. */
+.plaque:not(.new) .pl-unread { display: none; }
+/* A service's own warning, engraved under its lamp. */
+.g-note {
+  margin-top: 4px;
+  max-width: 100%;
+  font-size: calc(10.5px * var(--ui)); line-height: 1.35;
+  letter-spacing: 0.04em;
+  color: var(--ink-faint);
+  z-index: 3;
+}
+.g-note[hidden] { display: none; }

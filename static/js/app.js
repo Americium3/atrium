@@ -119,11 +119,20 @@ var STR = {
     motionFull: 'FULL', motionReduced: 'REDUCED',
     replay: 'REPLAY ENTRANCE',
     ariaTicker: 'Status band',
-    ariaLever: 'Mode lever: off = Salon, the play wing; on = Bureau, the work wing',
+    ariaLever: 'Bureau wing',
     ariaDesk: 'Signal desk: mode lever',
     markAll: 'MARK ALL READ',
     markAllHint: 'Strike every dispatch in the window, both wings',
     markAllDone: 'Nothing left to strike',
+    markAllStruck: '{n} {n|dispatch|dispatches} struck',
+    srOpen: 'open', srDark: 'dark', srChecking: 'checking',
+    opensTab: 'Opens in its own tab.',
+    unread: 'unread',
+    wkHot: 'in the red',
+    almSrTimes: 'Sunrise {rise}, sunset {set}.',
+    almSrHours: '{h} {h|hour|hours} {m} {m|minute|minutes}',
+    almSrMinutes: '{m} {m|minute|minutes} {s} {s|second|seconds}',
+    leverDesc: 'Off lights the Salon, the play wing. On lights the Bureau, the work wing.',
     ariaFilter: 'Filter dispatches', ariaClose: 'Close',
     ariaGates: 'Gates', ariaLedger: 'Ledger: dispatch timeline',
     ariaWorks: 'Statistics: live readings from this machine',
@@ -234,18 +243,27 @@ var STR = {
     motionFull: '完整', motionReduced: '减弱',
     replay: '重播入场动画',
     ariaTicker: '状态带',
-    ariaLever: '模式拨杆：关＝沙龙翼（娱乐），开＝事务翼（工作）',
+    ariaLever: '事务翼',
     ariaDesk: '信号台：模式拨杆',
     markAll: '全部标为已读',
     markAllHint: '把窗口内两翼的消息一次全部盖章',
     markAllDone: '没有未读了',
+    markAllStruck: '已划去 {n} 条',
+    srOpen: '已点亮', srDark: '未点亮', srChecking: '检查中',
+    opensTab: '在单独的标签页中打开。',
+    unread: '未读',
+    wkHot: '已入红区',
+    almSrTimes: '日出 {rise}，日落 {set}。',
+    almSrHours: '{h} 小时 {m} 分',
+    almSrMinutes: '{m} 分 {s} 秒',
+    leverDesc: '关：点亮沙龙翼（娱乐）。开：点亮事务翼（工作）。',
     ariaFilter: '筛选快讯', ariaClose: '关闭',
-    ariaGates: '门廊', ariaLedger: '账本：派发时间轴',
+    ariaGates: '门廊', ariaLedger: '消息总台：快讯时间轴',
     ariaWorks: '运转统计：本机实时读数',
     ariaAlmanac: '天象：本厅上空的日月与天气',
     worksTitle: '运转统计', almTitle: '天象',
     salonWing: '娱乐翼 · 沙龙', bureauWing: '工作翼 · 事务所',
-    ledgerBtnLabel: '账本',
+    ledgerBtnLabel: '消息总台',
     keysTitle: '按键',
     keyGates: '在门廊间移动', keyJump: '直达某扇门', keyOpen: '打开',
     keyLever: '扳动拉杆', keyLedger: '消息总台', keyPrefs: '偏好设置',
@@ -1364,7 +1382,12 @@ function renderGates() {
       a.setAttribute('aria-hidden', 'true');
     } else {
       a.href = svc.url;
-      a.setAttribute('aria-label', svc.name);
+      // Named by its engraved name and its lamp, described by everything
+      // else it says. An aria-label of the bare name used to hide the lamp,
+      // the description and the status line from a screen reader.
+      a.setAttribute('aria-labelledby', 'gn-' + svc.id + ' gl-' + svc.id);
+      a.setAttribute('aria-describedby', ['gd-', 'gs-', 'gnote-', 'gx-']
+        .map(function (p) { return p + svc.id; }).join(' ') + ' opens-tab');
     }
     a.dataset.service = svc.id;
     a.dataset.state = svc.vacant ? 'vacant' : 'checking';
@@ -1384,16 +1407,35 @@ function renderGates() {
     face.appendChild(sig
       ? svgUse('sigil mark', '0 0 96 96', '#mark-' + sig)
       : svgUse('sigil', '0 0 96 96', '#sig-fallback'));
-    face.appendChild(el('h3', 'g-name display', svc.name));
-    face.appendChild(el('p', 'g-desc', t(descKey(svc))));
+    var gname = el('h3', 'g-name display', svc.name);
+    gname.id = 'gn-' + svc.id;
+    gname.lang = 'en';                 // signage stays English in both languages
+    face.appendChild(gname);
+    var gdesc = el('p', 'g-desc', t(descKey(svc)));
+    gdesc.id = 'gd-' + svc.id;
+    face.appendChild(gdesc);
     var stat = el('div', 'g-stat');
+    stat.id = 'gs-' + svc.id;
     stat.appendChild(el('span', 'num-roll num', ''));
     face.appendChild(stat);
     face.appendChild(el('div', 'g-addr addr', svc.vacant ? '' : svc.addr));
     var lamp = el('div', 'g-lamp');
     lamp.appendChild(el('span', 'lamp-d'));
-    lamp.appendChild(el('span', 'lamp-t display', svc.vacant ? 'SHUT' : '…'));
+    var lampT = el('span', 'lamp-t display', svc.vacant ? 'SHUT' : '…');
+    lampT.lang = 'en';
+    lampT.setAttribute('aria-hidden', 'true');
+    lamp.appendChild(lampT);
+    var lampSr = el('span', 'sr-only lamp-sr', '');
+    lampSr.id = 'gl-' + svc.id;
+    lamp.appendChild(lampSr);
     face.appendChild(lamp);
+    // A service's own warning (qBittorrent down, the daemon stalled, a
+    // stale edition) used to live only in the lamp's hover title. It is
+    // engraved under the lamp instead, where focus and touch reach it too.
+    var note = el('div', 'g-note');
+    note.id = 'gnote-' + svc.id;
+    note.hidden = true;
+    face.appendChild(note);
     shell.appendChild(face);
 
     shell.appendChild(el('div', 'g-veil'));
@@ -1407,6 +1449,7 @@ function renderGates() {
     a.appendChild(pose);
     // The launch-hint notice stays screen-flat, outside the tilt chain.
     var notice = el('div', 'g-notice');
+    notice.id = 'gx-' + svc.id;
     notice.hidden = true;
     a.appendChild(notice);
 
@@ -1432,6 +1475,8 @@ function gateClick(e, a, svc) {
     var n = $('.g-notice', a);
     n.textContent = t('darkNotice', { hint: svc.launch_hint || svc.url });
     n.hidden = !n.hidden;
+    // Shown on screen, so said out loud once as well.
+    if (!n.hidden) { var hs = $('#hall-status'); if (hs) hs.textContent = n.textContent; }
     return;
   }
   a.classList.add('flash');
@@ -2083,8 +2128,18 @@ function syncWorks() {
     cell.style.setProperty('--gauge', (-120 + (r ? r.pct : 0) * 2.4).toFixed(1));
     cell.dataset.hot = r && r.pct >= 85 ? 'yes' : 'no';
     cell.dataset.blank = r ? 'no' : 'yes';
-    $('.wk-read', cell).textContent = r ? r.text : t('wkNoReading');
-    cell.title = t(d.name) + (r && r.title ? ' — ' + r.title : '');
+    var read = $('.wk-read', cell);
+    read.textContent = r ? r.text : t('wkNoReading');
+    read.setAttribute('aria-hidden', 'true');
+    cell.title = t(d.name) + (r && r.title ? ': ' + r.title : '');
+    // The caption's arrows and the red sector say nothing aloud; this does.
+    var sr = $('.wk-sr', cell);
+    if (!sr) { sr = el('span', 'sr-only wk-sr'); cell.appendChild(sr); }
+    sr.textContent = t(d.name) + ': ' +
+      (r ? (d.key === 'net' ? t('wkDown', { d: works.net.down_mbs, u: works.net.up_mbs }) : r.text) +
+           (r.title && d.key !== 'net' ? ', ' + r.title : '') +
+           (r.pct >= 85 ? ', ' + t('wkHot') : '')
+         : t('wkNoReading'));
   });
   var tape = $('#wk-tape');
   if (!tape) return;
@@ -2533,10 +2588,16 @@ function buildRead(w) {
     : '';
 }
 
-function almStrip(label, value) {
+function almStrip(label, value, spoken) {
   var row = el('div', 'al-strip');
   row.appendChild(el('span', 'al-slabel display', label));
-  row.appendChild(el('span', 'al-sval num', value));
+  var v = el('span', 'al-sval num', value);
+  row.appendChild(v);
+  // "12:10" and "2'39"" are engraving, not speech.
+  if (spoken) {
+    v.setAttribute('aria-hidden', 'true');
+    row.appendChild(el('span', 'sr-only', spoken));
+  }
   return row;
 }
 
@@ -2564,8 +2625,9 @@ function buildTape(sky, where) {
   // dial print two different day lengths a centimetre apart.
   var dayLen = (sky.shown || sun).hours;
   var h = Math.floor(dayLen);
-  strips.appendChild(almStrip(t('almDaylight'),
-    h + ':' + pad2(Math.round((dayLen - h) * 60))));
+  var mins = Math.round((dayLen - h) * 60);
+  strips.appendChild(almStrip(t('almDaylight'), h + ':' + pad2(mins),
+    t('almSrHours', { h: h, m: mins })));
 
   var yest = sunTimes(where.lat, where.lon,
     localAt(where.timezone, new Date(at.getTime() - 86400000)), sky.tz);
@@ -2576,7 +2638,8 @@ function buildTape(sky, where) {
     var ds = Math.round((sun.hours - yest.hours) * 3600);
     var abs = Math.abs(ds);
     strips.appendChild(almStrip(t(ds >= 0 ? 'almLonger' : 'almShorter'),
-      Math.floor(abs / 60) + '′' + pad2(abs % 60) + '″'));
+      Math.floor(abs / 60) + '\u2032' + pad2(abs % 60) + '\u2033',
+      t('almSrMinutes', { m: Math.floor(abs / 60), s: abs % 60 })));
   }
   box.appendChild(strips);
 }
@@ -2592,6 +2655,10 @@ function renderAlmanac() {
   var sky = buildSky(where, host, almanac ? almanac.weather : null);
   host.textContent = '';
   host.appendChild(sky.svg);
+  // The plate is a picture (aria-hidden); what it engraves is said here.
+  var said = sky.shown ? t('almSrTimes', { rise: hhmm(sky.shown.rise), set: hhmm(sky.shown.set) })
+    : sky.sun && sky.sun.polar ? t(sky.sun.polar === 'day' ? 'almPolarDay' : 'almPolarNight') : '';
+  if (said) host.appendChild(el('p', 'sr-only', said));
   sub.textContent = where ? t('almSub', { place: almPlaceName(where) }) : '—';
   $('#al-station').textContent = where ? almStation(where) : '—';
   buildRead(almanac ? almanac.weather : null);
@@ -2739,18 +2806,25 @@ function applyStatuses() {
     else { lampT.textContent = '…'; }
     lampT.title = t(state === 'open' ? 'lampOpen' :
                     state === 'dark' ? 'lampDark' : 'lampChecking');
+    var sr = $('.lamp-sr', a);
+    if (sr) sr.textContent = t(state === 'open' ? 'srOpen' : state === 'dark' ? 'srDark' : 'srChecking');
     if (state !== 'dark') $('.g-notice', a).hidden = true;
     var note = st && st.note ? t('note.' + st.note) : '';
     $('.g-lamp', a).title = note || lampT.title;
+    var noteEl = $('.g-note', a);
+    if (noteEl) { noteEl.textContent = note; noteEl.hidden = !note; }
   });
-  $('#all-dark').hidden = !(known === services.length && known > 0 && openCount === 0);
+  var allDark = known === services.length && known > 0 && openCount === 0;
+  $('#all-dark').hidden = !allDark;
 
   // The hall is a picture; say out loud how many lines are open, so a screen
   // reader learns the same thing the lamps show. Only on change — a live
   // region rewritten every poll would announce itself every poll.
+  // Nothing is said until a status is known: before the first answer (or
+  // when /api/status fails) "LINES OPEN 0/6" was announced as fact.
   var st = $('#hall-status');
-  if (st && services.length) {
-    var msg = t('linesOpen', { n: openCount, m: services.length });
+  if (st && services.length && known) {
+    var msg = allDark ? t('allDark') : t('linesOpen', { n: openCount, m: services.length });
     if (st.textContent !== msg) st.textContent = msg;
   }
 }
@@ -2904,6 +2978,7 @@ function buildPlaque(d) {
   medal.appendChild(svg);
   li.appendChild(medal);   // outside the clipped layers — overhangs the spine
   a.appendChild(el('div', 'pl-head'));
+  a.appendChild(el('span', 'sr-only pl-unread', t('unread')));
   a.appendChild(el('div', 'pl-detail'));
   a.appendChild(el('div', 'pl-time num'));
   frame.appendChild(a);
@@ -2916,7 +2991,12 @@ function updatePlaque(li, d) {
   var h = headline(d);
   li.classList.toggle('warn', !!h.warn);
   li.classList.toggle('new', isNew(d));
-  $('.pl-head', li).textContent = h.head || '';
+  var head = $('.pl-head', li);
+  head.textContent = h.head || '';
+  var cjk = /[\u3040-\u30ff\u3400-\u9fff]/.test(h.head || '');
+  if (cjk !== (lang === 'zh')) head.lang = cjk ? 'zh' : 'en';
+  else head.removeAttribute('lang');
+  $('.pl-unread', li).textContent = t('unread');
   $('.pl-detail', li).textContent = h.detail || '';
   $('.pl-time', li).textContent = relTime(d.ts);
 }
@@ -2975,7 +3055,15 @@ function renderLedger() {
       var db = oldBreaks[bucket] || el('li', 'daybreak display');
       delete oldBreaks[bucket];
       db.dataset.bucket = bucket;
-      db.textContent = t(bucket);
+      db.setAttribute('role', 'presentation');
+      var dbh = db.firstElementChild;
+      if (!dbh) {
+        dbh = el('span', 'db-h');
+        dbh.setAttribute('role', 'heading');
+        dbh.setAttribute('aria-level', '3');
+        db.appendChild(dbh);
+      }
+      dbh.textContent = t(bucket);
       if (ledgerOpening) {
         db.classList.add('cascading');
         db.style.setProperty('--ci', String(cascadeIndex));
@@ -3104,7 +3192,7 @@ function stampAll() {
     nodes.forEach(function (li) { li.classList.remove('reading'); });
     markReadMany(ids);
     var say = $('#mark-all-status');
-    if (say) say.textContent = t('markAllDone');
+    if (say) say.textContent = t('markAllStruck', { n: ids.length });
   }
 
   if (!nodes.length || root.dataset.motion === 'reduced') { done(); return; }
@@ -3246,25 +3334,38 @@ function renderTicker() {
   var fresh = feed.filter(isNew).slice(0, 6);
   var freshTexts = fresh.map(function (d) {
     var h = headline(d);
-    return (h.head + ' — ' + h.detail);
+    return (h.head + ' · ' + h.detail);
   });
 
   track.textContent = '';
+  function sep() {
+    var s = el('span', 't-sep', '\u25c6');
+    s.setAttribute('aria-hidden', 'true');
+    return s;
+  }
   function pushSegs(list, cls) {
     list.forEach(function (s, i) {
-      if (track.childNodes.length) track.appendChild(el('span', 't-sep', '◆'));
-      track.appendChild(el('span', cls || '', s));
+      if (track.childNodes.length) track.appendChild(sep());
+      var seg = el('span', cls || '', s);
+      // A CJK title in the English hall (or a Latin one in the Chinese) is
+      // tagged, so a screen reader switches voice instead of spelling it.
+      var cjk = /[\u3040-\u30ff\u3400-\u9fff]/.test(s);
+      if (cjk !== (lang === 'zh')) seg.lang = cjk ? 'zh' : 'en';
+      track.appendChild(seg);
     });
   }
   function makeRolling() {
     // Append the trailing separator FIRST, then clone — the track becomes
     // (A◆)(A◆) so the -50% loop lands exactly on the period (a clone taken
     // before the separator would jump by half a separator every cycle).
-    track.appendChild(el('span', 't-sep', '◆'));
-    var copy = Array.prototype.slice.call(track.childNodes).map(function (n) {
-      return n.cloneNode(true);
+    track.appendChild(sep());
+    // The loop needs a second copy of the band; a screen reader does not.
+    var twin = el('span', 't-twin');
+    twin.setAttribute('aria-hidden', 'true');
+    Array.prototype.slice.call(track.childNodes).forEach(function (n) {
+      twin.appendChild(n.cloneNode(true));
     });
-    copy.forEach(function (n) { track.appendChild(n); });
+    track.appendChild(twin);
     var chars = track.textContent.length;
     ticker.style.setProperty('--t-dur', Math.max(26, chars * 0.32) + 's');
     ticker.classList.add('rolling');
@@ -3362,8 +3463,12 @@ function prefsKeydown(e) {
   }
 }
 
+/* aria-modal promises the rest of the page is out of reach; inert makes
+   it true for a screen reader's virtual cursor as well as for Tab. */
+var PREFS_BEHIND = ['#hall', '#signal-desk', '#ledger', '#ledger-scrim', '#keyplate'];
 function openPrefs() {
   lastFocus = document.activeElement;
+  PREFS_BEHIND.forEach(function (s) { var n = $(s); if (n) n.inert = true; });
   prefs.hidden = false;
   syncPrefRadios();
   document.addEventListener('keydown', prefsKeydown);
@@ -3372,6 +3477,10 @@ function openPrefs() {
   if (first) first.focus();
 }
 function closePrefs() {
+  PREFS_BEHIND.forEach(function (s) { var n = $(s); if (n) n.inert = false; });
+  // The drawer keeps its own rule: inert whenever it is shut.
+  var l = $('#ledger');
+  if (l) l.inert = !l.classList.contains('open');
   prefs.hidden = true;
   document.removeEventListener('keydown', prefsKeydown);
   if (lastFocus) lastFocus.focus();
