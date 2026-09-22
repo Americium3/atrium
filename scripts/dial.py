@@ -22,7 +22,8 @@ import math
 import re
 import subprocess
 import sys
-import tempfile
+
+from safe_chrome import profile   # never a bare temp profile: see safe_chrome.py
 
 CHROME = r"C:\Program Files\Google\Chrome\Application\chrome.exe"
 URL = "http://127.0.0.1:8769/?entrance=0"
@@ -39,7 +40,7 @@ def dump(size):
         [CHROME, "--headless=new", "--disable-gpu",
          "--window-size=" + size.replace("x", ","), "--hide-scrollbars",
          "--dump-dom", "--virtual-time-budget=5000",
-         "--user-data-dir=" + tempfile.mkdtemp(prefix="atr-dial-"), URL],
+         "--user-data-dir=" + profile("atr-dial-"), URL],
         capture_output=True, timeout=180).stdout.decode("utf-8", "replace")
 
 

@@ -38,6 +38,9 @@ import tempfile
 
 from PIL import Image
 
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'scripts'))
+from safe_chrome import profile   # never a bare temp profile: see scripts/safe_chrome.py
+
 CHROME = r'C:\Program Files\Google\Chrome\Application\chrome.exe'
 if not os.path.exists(CHROME):
     CHROME = r'C:\Program Files (x86)\Google\Chrome\Application\chrome.exe'
@@ -263,6 +266,7 @@ def render(svg, size):
                     % (size, size, svg))
         r = subprocess.run(
             [CHROME, '--headless=new', '--disable-gpu', '--hide-scrollbars',
+             '--user-data-dir=' + profile('atr-icon-'),
              '--run-all-compositor-stages-before-draw',
              '--default-background-color=00000000',
              '--force-device-scale-factor=1',

@@ -7,7 +7,8 @@ import os
 import re
 import subprocess
 import sys
-import tempfile
+
+from safe_chrome import profile   # never a bare temp profile: see safe_chrome.py
 
 CHROME = r"C:\Program Files\Google\Chrome\Application\chrome.exe"
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -20,7 +21,7 @@ args = [CHROME, "--headless=new", "--disable-gpu",
         "--window-size=%s,%s" % (w, h),
         "--dump-dom", "--virtual-time-budget=5000",
         "--force-prefers-reduced-motion",
-        "--user-data-dir=" + tempfile.mkdtemp(prefix="atr-dom-"),
+        "--user-data-dir=" + profile("atr-dom-"),
         "http://127.0.0.1:8769/" + (("?" + query) if query else "")]
 dom = subprocess.run(args, capture_output=True, timeout=180).stdout.decode("utf-8", "replace")
 

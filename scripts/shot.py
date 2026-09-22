@@ -8,7 +8,8 @@ machinery is drawn at 1-2px stroke widths and a 1x crop of it is mush.
 import os
 import subprocess
 import sys
-import tempfile
+
+from safe_chrome import profile   # never a bare temp profile: see safe_chrome.py
 
 CHROME = r"C:\Program Files\Google\Chrome\Application\chrome.exe"
 OUT = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
@@ -23,7 +24,7 @@ def shot(name, size="3440,1330", query="", scrollbars=False, dpr=1):
             "--window-size=" + size,
             "--screenshot=" + path,
             "--virtual-time-budget=3500",
-            "--user-data-dir=" + tempfile.mkdtemp(prefix="atr-shot-"),
+            "--user-data-dir=" + profile("atr-shot-"),
             "--force-device-scale-factor=" + str(dpr)]
     if not scrollbars:
         args.append("--hide-scrollbars")

@@ -11,7 +11,8 @@ Usage:  python scripts/probe.py [WxH ...] [--deep]
 import re
 import subprocess
 import sys
-import tempfile
+
+from safe_chrome import profile   # never a bare temp profile: see safe_chrome.py
 
 CHROME = r"C:\Program Files\Google\Chrome\Application\chrome.exe"
 SIZES = ["3440x1330", "2560x1440", "2200x1300", "1920x1080",
@@ -29,7 +30,7 @@ def probe(size, query="probe=1"):
             "--hide-scrollbars",
             "--dump-dom", "--virtual-time-budget=4000",
             "--force-prefers-reduced-motion",
-            "--user-data-dir=" + tempfile.mkdtemp(prefix="atr-probe-"),
+            "--user-data-dir=" + profile("atr-probe-"),
             "http://127.0.0.1:8769/?" + query]
     dom = subprocess.run(args, capture_output=True, timeout=120).stdout.decode(
         "utf-8", "replace")
