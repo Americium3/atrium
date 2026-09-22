@@ -34,7 +34,7 @@ except ImportError:                     # pragma: no cover - environment depende
     psutil = None
 import uvicorn
 from fastapi import FastAPI, Request
-from fastapi.responses import FileResponse, JSONResponse, PlainTextResponse
+from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse
 from fastapi.staticfiles import StaticFiles
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 
@@ -1338,12 +1338,43 @@ async def cache_headers(request: Request, call_next):
         raise
     if request.url.path.startswith("/static/fonts/"):
         resp.headers["Cache-Control"] = "public, max-age=31536000, immutable"
+    elif request.url.path.startswith("/static/"):
+        # StaticFiles sends an ETag and a Last-Modified but no Cache-Control,
+        # which lets a browser apply heuristic freshness and skip asking at
+        # all. On localhost a revalidation is a free 304, so always ask.
+        resp.headers["Cache-Control"] = "no-cache"
     return resp
+
+
+_ASSET_REF = re.compile(r'(href|src)="(/static/[^"?#]+)"')
+
+
+def _serve_page(page: Path) -> HTMLResponse:
+    """Send the page with its stylesheets and scripts stamped by mtime.
+
+    A changed asset becomes a different URL, so a browser holding last
+    week's CSS can never pair it with today's markup, whether or not it
+    decides to revalidate. The page itself goes out no-cache (it still
+    revalidates into a 304; it is just never served from cache unasked).
+    """
+    def stamp(m: re.Match[str]) -> str:
+        # Fonts are immutable and preloaded: the preload URL has to match
+        # the one @font-face asks for byte for byte, or the face downloads
+        # twice and the preload is thrown away.
+        if m.group(2).startswith("/static/fonts/"):
+            return m.group(0)
+        asset = STATIC_DIR / m.group(2)[len("/static/"):]
+        if not asset.is_file():
+            return m.group(0)
+        return f'{m.group(1)}="{m.group(2)}?v={int(asset.stat().st_mtime)}"'
+
+    html = _ASSET_REF.sub(stamp, page.read_text(encoding="utf-8"))
+    return HTMLResponse(html, headers={"Cache-Control": "no-cache"})
 
 
 @app.get("/")
 async def index():
-    return FileResponse(STATIC_DIR / "index.html")
+    return _serve_page(STATIC_DIR / "index.html")
 
 
 @app.get("/api/services")
