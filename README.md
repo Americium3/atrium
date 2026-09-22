@@ -17,7 +17,7 @@ Atrium serves `http://127.0.0.1:8769` and currently fronts:
 
 ## What's on the page
 
-- **The concourse.** Above 2200px the hall opens into three bays: an aisle
+- **The concourse.** From 2800px up the hall opens into three bays: an aisle
   either side of the stage, under one continuous wall and standing on one
   continuous floor. The wall carries a dentil cornice, fluted pilasters, a
   panelled dado and a sconce per bay, and the bays are cut against however
@@ -33,9 +33,9 @@ Atrium serves `http://127.0.0.1:8769` and currently fronts:
   up off it, and because the reflections carry the wing metal, the whole
   floor changes temperature when the lever is thrown. Over all of it: the
   skylight's pool, the room's shadow across the near ground and a balustrade
-  along the flanks. Below 2200px the grid collapses to the centre column the
-  hall shipped with. Two aisles cost the stage ~680px, and a narrower
-  screen would be spending them on furniture instead of architecture.
+  along the flanks. Below 2800px the grid collapses to the centre column the
+  hall shipped with. Two aisles cost the stage ~680px, and below that width
+  the arches would have to shrink by a quarter to make room for them.
 - **Statistics** (left aisle). An instrument case reading the machine all of
   this runs on: four needle dials for processor, memory, graphics and
   traffic, each on a 240° scale with a red sector over the last fifth, plus
@@ -81,14 +81,23 @@ Atrium serves `http://127.0.0.1:8769` and currently fronts:
   every frame and never accumulates, so it cannot drift and a DST step or a
   laptop suspend corrects itself on the next frame; reduced motion swaps the
   sweep for a boundary-aligned deadbeat tick. It is set
-  into a niche in the back wall between the arches, on their baseline and
-  under their head line, with one hairline wall rule running behind all three.
+  into a niche at the centre of the back wall, on the arches' baseline and
+  under their head line, and it is always in view at full size.
 - **Gates.** Each destination is an arched deco portal carrying that
   service's own mark (the identical artwork its favicon and taskbar tile
   show), plus a one-line description, the literal address it opens, an
-  OPEN/DARK status lamp (live health checks) and one live stat. Clicking an OPEN gate opens
-  the target in a named tab (one tab per service, reused). Clicking a DARK
-  gate shows the launcher hint instead of a dead tab.
+  OPEN/DARK status lamp (live health checks) and one live stat. A service's
+  own warning (qBittorrent down, the sync daemon stalled) is engraved under
+  its lamp. Clicking an OPEN gate opens the target in a named tab (one tab
+  per service, reused). Clicking a DARK gate shows the launcher hint instead
+  of a dead tab.
+- **The row.** The lit wing stands in pairs either side of the clock, two
+  arches left and two right. A wing with an odd number of services gets a
+  shuttered RESERVED gate at its right-hand end, which the next service to
+  register in that wing takes over. The other wing waits behind the lever in
+  the same bays, and a throw swaps them in place. Nothing on the stage covers
+  anything else at any size; if the row would not fit, the arches and the
+  clock come down together until it does.
 - **The Ledger.** The message center, kept off the main page behind a hatch
   button in the masthead. Opening it slides a drawer over the right edge; its
   spine draws downward and the dispatches cascade after it, staggered and
@@ -158,12 +167,11 @@ Atrium serves `http://127.0.0.1:8769` and currently fronts:
   train ticks one tooth so the hall is already in motion. It plays on **every**
   load. It used to be gated to once per six hours, which made the hall's
   best moment something you saw once a morning and never again. Any click or
-  keypress cuts it short, `?entrance=0` suppresses it, and reduced motion
-  collapses it to a fade.
+  keypress cuts it short (browser shortcuts such as F5 still work),
+  `?entrance=0` suppresses it, and reduced motion collapses it to a fade.
 - **Depth.** The hall is dimensional, not flat: a one-point-perspective
   floor converges behind the stage, gates are slabs with thickness, contact
-  shadows and polished-floor reflections, receded wings tilt inward like a
-  triptych's side panels, and the whole stage tilts subtly with the pointer
+  shadows and polished-floor reflections, and the whole stage tilts subtly with the pointer
   (fine pointers only; fully off under reduced motion, though the static depth
   stays). One near-vertical key light governs every shadow.
 - **Deco-machine fusion**: the steampunk layer follows the BioShock
@@ -189,8 +197,31 @@ right). Nothing is exposed in the main chrome:
   screen (+12% at 1900px, +24% at 2400px, +40% at 3000px and up), because
   what a 34" display changes is physical size, not pixel count. This is the
   dial for when that still isn't right for where you sit.
-- **Motion**: Full / Reduced (defaults from `prefers-reduced-motion`)
-- **Replay entrance**
+- **Motion**: Full / Reduced / Follow system (the default, and it reacts
+  live when the OS setting changes)
+- **Replay entrance**: plays the entrance once on the next load (the quiet
+  fade if motion is reduced)
+
+Changes carry to any other open hall tab, and so do read marks.
+
+## Keys
+
+Tab walks everything. On top of that:
+
+| Key | Does |
+|---|---|
+| ← → | Walk the lit wing's gates, left to right |
+| 1 to 4 | Go to a gate |
+| Enter | Open it |
+| W | Throw the lever (focus lands on the gate in the same bay of the other wing) |
+| L | Open or close the Ledger |
+| ↑ ↓ | Walk the dispatches while the Ledger is open |
+| P | Preferences |
+| ? | Show or hide the key plate |
+| Esc | Close the top layer |
+
+Nothing fires with a modifier held, over Preferences or while the entrance
+is playing.
 
 ## Architecture
 
@@ -428,7 +459,7 @@ never to the block by hand.
 ## Debug URL parameters
 
 Not persisted, for testing only: `?theme=onyx|ivory` · `?lang=en|zh` ·
-`?wing=salon|bureau` · `?motion=full|reduced` · `?ui=s|m|l` (engraving
+`?wing=salon|bureau` · `?motion=full|reduced|system` · `?ui=s|m|l` (engraving
 size) · `?entrance=0|1` · `?prefs=1` · `?ledger=1` (opens the drawer, which
 a headless screenshot otherwise cannot reach, since it takes a click) ·
 `?steam=1` (freezes a steam burst at four life stages for screenshot QA).

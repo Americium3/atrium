@@ -110,12 +110,15 @@ services without custom art.
 
 ## Entrance animation (timeline)
 
-Total ~2.4 s. Skippable (click/keypress → jump to assembled end state).
-Suppression: pre-paint head script sets `data-entered` alongside
-`data-theme`; plays at most once per 6 h (localStorage timestamp), suppressed
-loads render the hall with a 300 ms fade. Settings → Replay clears the key
-and reloads. Reduced motion: simple fade only. Entrance overlay is
-`aria-hidden`; the app is usable underneath once assembled.
+Total ~2.4 s. It plays on every load. A click or a keypress cuts it short
+and lands the assembled hall; only the keys the hall would act on are
+swallowed, so F5, Ctrl+R and other browser shortcuts still work. `?entrance=0`
+skips it. Under reduced motion a load gets the 300 ms fade instead.
+PREFERENCES > REPLAY ENTRANCE sets a one-shot `sessionStorage` flag and
+reloads; the pre-paint script reads and clears it, so nothing sticks to the
+address bar, and under reduced motion a replay is the same quiet fade. The
+entrance overlay is `aria-hidden`; the app is usable underneath once
+assembled.
 
 - 0–450 ms: hairline gold circle draws itself (stroke-dashoffset,
   `cubic-bezier(0.22,1,0.36,1)`).
@@ -134,7 +137,7 @@ and reloads. Reduced motion: simple fade only. Entrance overlay is
 ## Layout & viewport
 
 Desktop-first: optimized 1440–1920px, supported down to 1280px, and opening
-into a full three-bay concourse above 1800px (see "The concourse (v4)").
+into a full three-bay concourse at 2800px and up (see "The concourse (v4)").
 Below 1280px the Ledger moves beneath the stage; below ~900px everything
 stacks single-column (masthead → ticker → lever → active gates → receded
 gates → Ledger). Mobile is out of scope for v1 but must not break.
@@ -220,36 +223,51 @@ colour. All strokes carry `vector-effect: non-scaling-stroke`, so the 1 /
 
 ### Composition
 
-The clock is set into a niche in the back wall, between the arches: same
-baseline, same head height, one hairline wall rule running behind all three at
-the gates' plinth line. `layoutStage()` splits the active gates either side of
-the niche and turns each a few degrees toward it, so the wall reads as a
-shallow apse rather than three flat panels. Every niche dimension derives from
-`--gate-w`, so the dial tracks the arches at any viewport.
+The clock is set into a niche in the back wall at the centre of the stage:
+same baseline, same head height as the arches, one hairline wall rule running
+behind them at the gates' plinth line. It is always fully visible at full
+size. (It used to be winched up behind the cornice whenever a wing had an odd
+number of gates, which with three in each wing was always; that stowage is
+gone, see "Composition (v5)".) Every niche dimension derives from
+`--gate-fit`, so the dial tracks the arches at any viewport.
 
 Never write `margin: <custom-property> auto` on the clock box. The shorthand
 resolves the property's second value into `margin-right` and `auto` into
 `margin-left`, which end-aligns the dial. Vertical margin goes on its own
 longhands; centring is `justify-self`.
 
-## Stage (triptych composition)
+## Composition (v5): the clock holds the axis, the wings stand in pairs
 
-Stage slots are computed from the service registry (`/api/services`), so a
-fourth service slots into the flanks symmetrically.
+The owner's brief: the clock and every gate of a wing visible at once, the
+clock never stowed, and nothing on the stage covering any part of anything
+else.
 
-- Active gates stand centered on the axis at scale 1.0.
-- Receded gates flank at scale ~0.62, veiled by `rgba(base, 0.55)` + 1px
-  hairline, metal desaturated to theme neutral, but name + lamp stay legible
-  above the veil.
-- Bureau-active: one grand arch center, a Salon gate on each side (symmetric).
-- Salon-active: two arches center, Bureau gate stage-right.
-- Transition: 600 ms, **transform-only** (translate/scale via FLIP from
-  registry-computed slots; no reflow), 60 ms stagger, receding gates start
-  80 ms before rising ones, `cubic-bezier(0.4,0,0.2,1)`. Lever re-light
-  queues until any in-flight theme crossfade finishes (serialized).
-- Receded gates: remain in tab order (after active gates); clicking one opens
-  its target directly, never throwing the lever, and the click flash
-  momentarily lifts the veil.
+- **The clock stands at the centre**, full size, always.
+- **Each wing stands in pairs**, two arches left of the clock and two right.
+  `slots()` pads a wing with an odd number of services with one RESERVED
+  gate at its right-hand end: a `div.gate.vacant`, not a link and not a tab
+  stop, `aria-hidden`, lamp reading SHUT, description "Held for the next
+  hall." It must read as architecture waiting for a tenant, never as a
+  service that is down (DARK means that). When a new service registers in
+  that wing it takes the slot. Placeholders exist only in the stage's view of
+  the registry; status, stats, the Ledger and the ticker read the real
+  `services`.
+- **Only the lit wing stands in the hall.** The other wing waits in the same
+  bays, `opacity: 0`, `visibility: hidden` and `inert`. Throwing the lever
+  lets one wing's arches sink and fade while the other's rise in place. The
+  flanking arches this replaced (receded wing at 0.62 either side) could not
+  keep their width without either shrinking every arch by a fifth or letting
+  one arch cover another; the owner chose the full-size row. The fade sits on
+  `.gate`, the parent of the `preserve-3d` pose, never on the pose itself.
+- **No overlap, at any size.** `layoutStage()` solves the row as one line,
+  `[arches] [clock] [arches]`, at pitch 1.16 gate widths and a 0.10 gate-width
+  clearance to the niche. If that line is wider than the stage, it writes
+  `--fit` (0..1) on `#stage`, and the arches, the niche and the plinth rule
+  all size from `--gate-fit = --gate-w × --fit`. Widths are measured at fit 1
+  so the solve never chases its own output. Checked at twelve sizes from
+  1280x800 to 3440x1440 in both wings with a Playwright overlap audit.
+- Transition: 600 ms, **transform-only** for position, opacity for the swap.
+  Lever re-light queues until any in-flight theme crossfade finishes.
 
 ## The concourse (v4): the hall gets its aisles, its wall and its floor
 
@@ -260,25 +278,20 @@ composition read as a diorama in the middle of a beige desert. A room is
 made by a *continuous* wall and a *continuous* floor, so both now run the
 full width of the screen and the triptych stands on them.
 
-**Grid.** `#concourse` is `aisle-l · stage · aisle-r`, opening at 2200px;
+**Grid.** `#concourse` is `aisle-l · stage · aisle-r`, opening at 2800px (v5; it was 2200);
 below that it collapses to the single centre column the hall shipped with
 and both boards are hidden (they are ultrawide furniture, not a fallback).
-`--aisle-w` spends the *surplus*, `clamp(300px, (100vw − 1700px) / 3.05,
-560px)`, rather than a flat fraction, so decoration can never squeeze the
+`--aisle-w` spends the *surplus*, `clamp(300px, (100vw − 2150px) / 2.4,
+520px)`, rather than a flat fraction, so decoration can never squeeze the
 stage. The hall cap rises 1720px → `min(3360px, 100%)`.
 
-The breakpoint is 2200px and not 1800 because two 300px aisles plus their
-gaps take ~680px off the stage: at 1920 that left the triptych a column
-narrower than itself and the flanking arches ended up half-swallowed by the
-arches in front of them, which reads as a bug rather than as depth. As a
-second guard `layoutStage()` sizes each flank to the clear column actually
-beside the outer arch (`room / gateW`, floored at 0.34) instead of a flat
-0.62, so a flank can tuck behind an arch but never disappear under one. That
-room is short by a fixed **air gap** of `0.14 × gateW` before the flank is
-sized: given the bare remainder the flank grows until it *abuts* the arch in
-front of it, and two arches sharing an edge read as one torn shape rather
-than as two planes at different depths. The separation is what carries the
-recession, so it is reserved, not hoped for.
+The breakpoint was 2200px until v5. The row the stage has to hold since then
+(four full-size arches either side of the full-size clock, about 6.3 arch
+widths, nothing touching) does not fit between two 300px aisles below about
+2800px without shrinking the arches by a quarter, so the aisles now open at
+2800 and cap at 520 (560 made the arches shrink at 3440). The flank-sizing
+guard that used to live here (flanks sized to the clear column with an air
+gap) went with the flanks; `--fit` is its successor, see "Composition (v5)".
 
 **Full bleed from inside a centred grid.** Both scenery layers use
 `left: calc(50% - 50vw); width: 100vw`. 50% is half the concourse, 50vw half
@@ -328,7 +341,7 @@ third of its face.
 
 **The works poll.** `/api/works` on a 4s cadence of its own, because instruments
 read live or they are decoration, but only while the board is genuinely on
-screen. Below 2200px it is `display:none`, and a hidden panel must never
+screen. Below 2800px it is `display:none`, and a hidden panel must never
 keep the host sampling: `worksVisible()` gates every tick, and the hub's own
 TTL means an unopened panel spawns no `nvidia-smi` at all.
 
@@ -500,7 +513,7 @@ times those crossings stand for, and DAYLIGHT in the tape has to be the same
 pair subtracted. The day-length delta against yesterday stays on the computed
 pair. A difference wants one consistent source, not the better one.
 
-**The viewBox is measured, never fixed.** The aisle is 300px wide at 2200
+**The viewBox is measured, never fixed.** The aisle is 300px wide at 2800
 and 560 at 3440 while the case keeps its height, so one fixed aspect either
 letterboxes the plate into a third of its register or balloons out of it,
 and a void inside a lit case reads as a board that failed to draw. `skyBox()`
@@ -532,7 +545,7 @@ ignored. A lobby board has nowhere to report a parse error to.
 
 **The almanac poll.** `/api/almanac` every 10 minutes and the plate re-drawn
 every 60 seconds, both gated on `almanacVisible()` for the same reason the
-works board is: below 2200px the case is `display:none`, and a hidden panel
+works board is: below 2800px the case is `display:none`, and a hidden panel
 must not have the hub calling a weather service on the reader's behalf. The
 60s tick is also the way back from a cold start: the case can be opened by
 a resize long after the boot fetch declined to run, and ten minutes of a
@@ -656,9 +669,11 @@ catches up on its own poll instead.
 
 ## Mode lever (R11)
 
-Two-position lever plaque, SALON ◆ BUREAU: `role="switch"`, Space/Enter
-toggles, aria-checked. Throwing it re-lights the three metal surfaces and
-re-composes the stage; it never touches the Ledger or ticker content.
+Two-position lever plaque, SALON ◆ BUREAU: `role="switch"`, named for the
+wing it lights ("Bureau wing"), with the Salon/Bureau explanation as its
+description. Space or Enter toggles, a held key does not repeat, W throws it
+from anywhere in the hall. Throwing it re-lights the three metal surfaces and
+swaps the wings in place; it never touches the Ledger or ticker content.
 Persisted in localStorage.
 
 ## Settings: PREFERENCES (R4/R5)
@@ -674,10 +689,17 @@ close button top-right. Engraved plaque radios:
   `atrium.ui` like the theme: type that resizes after first paint reflows
   the whole hall in front of the reader. Changing it re-solves the stage,
   because `--ui` moves the arch module as well as the lettering.
-- Motion: Full / Reduced (default from `prefers-reduced-motion`)
-- Replay entrance
+- Motion: Full / Reduced / Follow system (the default). The choice is
+  `data-motion-pref`; `data-motion` is what it resolves to, re-resolved live
+  when the OS setting changes, and it is the only thing the stylesheet and
+  the scripts read. There are no raw `prefers-reduced-motion` queries: they
+  used to override a reader who chose Full.
+- Replay entrance (a one-shot flag, see "Entrance animation")
 
-All persisted in localStorage. No theme/language controls anywhere else.
+All persisted in localStorage, and carried to other open hall tabs by a
+`storage` listener that applies without writing back. No theme or language
+controls anywhere else. The dialog is `aria-modal` and makes everything
+behind it `inert` while open.
 
 ## i18n
 
@@ -830,10 +852,31 @@ Motion setting collapse all of the above to fades/instant.
 
 ## Accessibility summary
 
-Tab order (v3.1): masthead → ticker → active gates → receded gates → chips
-→ Ledger plaques → signal-desk lever (footer-last). Lever `role=switch`;
-chips radiogroup; settings overlay focus-trapped + Esc; entrance overlay
-aria-hidden; lamps always carry text; AA contrast per the token matrix.
+- **Tab order (v5)**: masthead (Ledger hatch, Preferences) > ticker > the lit
+  wing's gates, left to right > lever. The waiting wing and the shut Ledger
+  are `inert`: the drawer used to sit in the tab order off screen, and since
+  focus marks a dispatch read, one pass of Tab struck the whole Ledger.
+- **Keys**: arrows walk the lit gates, digits jump to one, Enter opens it, W
+  throws the lever (focus lands on the gate in the same bay of the other
+  wing), L opens and closes the Ledger (arrows then walk its dispatches), P
+  opens Preferences, ? shows the key plate, Esc closes the top layer. Nothing
+  fires with a modifier held, over Preferences or during the entrance.
+- **The Ledger drawer** lives at body level beside its scrim (inside `#hall`
+  it painted under the scrim on every quiet boot). Opening it moves focus to
+  its heading; while open, Tab cycles the drawer and its hatch. The poll
+  moves a plaque only when it is out of place, so focus survives it.
+- **Names**: a gate is named by its engraved name and lamp word and described
+  by its description, status line, service note and "opens in its own tab".
+  Service warnings are engraved under the lamp, not hidden in a title. The
+  ticker is a `marquee` whose loop copy is `aria-hidden`. Day breaks are
+  headings. Plaques say "unread" while they are. The Almanac and Statistics
+  speak their readings. English signage carries `lang="en"` in the Chinese
+  hall.
+- **Forced colours**: every selected or lit state gets a Highlight border or
+  fill; the wall and floor keep their own colours. Readers who ask for more
+  contrast or less transparency get an opaque scrim.
+- Chips radiogroup; lamps always carry text; AA contrast per the token
+  matrix.
 
 ## Depth pass (v3, client mandate: keep the motion, kill the flatness)
 
@@ -849,9 +892,12 @@ light, near-vertical (skylight): every shadow offset points down, slight x.
   intra-gate z-index stack survives verbatim).
 - **Triptych pose**: receded flanks tilt inward `rotateY(±10deg)` via
   `--side` set by layoutStage, an altar-wing composition.
-- **Pointer parallax**: one rAF lerp loop (k≈0.1) writes `--par-x/--par-y`
-  (unitless −1..1) on #stage; shells consume via calc (±5°/−3°), receded
-  shells at half strength. Gated on `(hover:hover) and (pointer:fine)`,
+- **Pointer parallax**: one rAF lerp loop (k≈0.1) writes each `.g-shell`'s
+  transform directly (±5°/−3°). It used to write `--par-x/--par-y` on
+  #stage for the shells to read through calc(), and because custom
+  properties inherit, every frame recalculated style for the whole stage:
+  1.1-1.3 s of style work over a three-second pointer sweep at 3440, now
+  80 ms. Gated on `(hover:hover) and (pointer:fine)`,
   `data-motion!=reduced` (checked live, because the CSS kill-switch can't stop rAF
   writes), `visibilityState`, and starts only after the entrance finishes.
 - **Slab thickness**: `.g-back`, an arch-shaped backing layer (border-radius
@@ -943,7 +989,7 @@ housing band, the LINES dial (the ticker already counts the lines) and the
 maker's plate are struck, and what remains is the machine itself, planted
 centre stage on the terrazzo. The maker's plate is re-hung at the foot of
 the works board it names. The desk deliberately stays OUTSIDE the aisle
-grid: the boards fold away below 1800px, and the wing switch may never fold
+grid: the boards fold away below 2800px, and the wing switch may never fold
 away with them.
 
 - **Placement**: `position:fixed; bottom: 10px·--ui` centred, a body-level
