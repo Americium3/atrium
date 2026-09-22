@@ -3402,6 +3402,9 @@ function fetchJson(url) {
 }
 
 function refresh() {
+  // The dateline was written once at load, so a hall left open overnight
+  // printed yesterday under a clock whose date aperture had already turned.
+  renderDateline();
   // Self-heal a failed boot: if the registry never arrived (hub restarting
   // when the tab loaded), retry it on the regular poll cadence.
   var reg = services.length ? Promise.resolve(null)
@@ -3651,7 +3654,8 @@ function applyI18nStatic() {
 function renderDateline() {
   var fmt = new Intl.DateTimeFormat(lang === 'zh' ? 'zh-CN' : 'en-US',
     { weekday: 'long', month: 'long', day: 'numeric' });
-  $('#dateline').textContent = fmt.format(new Date());
+  var txt = fmt.format(new Date());
+  if ($('#dateline').textContent !== txt) $('#dateline').textContent = txt;
 }
 
 // Replay leaves a one-shot flag for the pre-paint script and reloads. Every
