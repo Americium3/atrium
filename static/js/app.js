@@ -40,6 +40,7 @@ var STR = {
     'desc.arsenal': 'A workbench of small utility tools for games.',
     'desc.bourse': 'The morning market brief, ranked and ready.',
     'desc.fallback': 'A newly registered hall.',
+    'desc.vacant': 'Held for the next hall.',
     'stat.airing': '{n} AIRING TODAY', 'stat.watching': '{n} WATCHING',
     'stat.pending': '{n} UPDATES PENDING', 'stat.mods': '{n} MODS TRACKED',
     'stat.queue': 'QUEUE {done}/{total}', 'stat.invited': 'SENT {n}/{target}',
@@ -151,6 +152,7 @@ var STR = {
     'desc.arsenal': '一张游戏实用小工具的工作台。',
     'desc.bourse': '每日行情晨报，排好名次候审。',
     'desc.fallback': '新登记的厅室。',
+    'desc.vacant': '留给下一间厅。',
     'stat.airing': '今日 {n} 部放送', 'stat.watching': '在看 {n} 部',
     'stat.pending': '{n} 个更新待装', 'stat.mods': '追踪 {n} 个 MOD',
     'stat.queue': '队列 {done}/{total}', 'stat.invited': '已发 {n}/{target}',
@@ -1293,11 +1295,31 @@ function el(tag, cls, text) {
   return e;
 }
 
+/* Every wing stands in pairs either side of the clock, so the clock never
+   has to give up the axis. A wing with an odd number of services gets one
+   reserved gate at its right-hand end; the day a new service registers in
+   that wing it takes the slot, and the reserved gate is gone. Placeholders
+   live only here, in the stage's view of the registry: status, stats, the
+   Ledger and the ticker all keep reading the real `services`. */
+function slots() {
+  var out = services.slice();
+  var wings = [];
+  services.forEach(function (s) { if (wings.indexOf(s.wing) < 0) wings.push(s.wing); });
+  wings.forEach(function (w) {
+    var n = services.filter(function (s) { return s.wing === w; }).length;
+    if (n % 2 === 1) {
+      out.push({ id: 'vacant-' + w, wing: w, vacant: true,
+                 name: 'RESERVED', order: 1e6 });
+    }
+  });
+  return out;
+}
+
 /* Gates are absolutely positioned, so DOM order is free — keep it
    active-wing-first so the tab order is active → receded in both wings. */
 function gateDomOrder() {
   var wing = root.dataset.wing;
-  return services.slice().sort(function (a, b) {
+  return slots().sort(function (a, b) {
     var aw = a.wing === wing ? 0 : 1;
     var bw = b.wing === wing ? 0 : 1;
     return aw - bw || a.order - b.order;
@@ -1308,13 +1330,19 @@ function renderGates() {
   var wrap = $('#gates');
   wrap.textContent = '';
   gateDomOrder().forEach(function (svc, i) {
-    var a = el('a', 'gate');
+    // A reserved gate opens onto nothing, so it is not a link and not a tab
+    // stop, and a screen reader has nothing to be told about it.
+    var a = el(svc.vacant ? 'div' : 'a', 'gate' + (svc.vacant ? ' vacant' : ''));
     a.id = 'gate-' + svc.id;
-    a.href = svc.url;
+    if (svc.vacant) {
+      a.setAttribute('aria-hidden', 'true');
+    } else {
+      a.href = svc.url;
+      a.setAttribute('aria-label', svc.name);
+    }
     a.dataset.service = svc.id;
-    a.dataset.state = 'checking';
+    a.dataset.state = svc.vacant ? 'vacant' : 'checking';
     a.style.setProperty('--gi', String(i));
-    a.setAttribute('aria-label', svc.name);
 
     // 3D chain: pose (static wing tilt) > shell (pointer parallax) > flat
     // children — the intra-gate z-index stack survives inside the shell.
@@ -1335,10 +1363,10 @@ function renderGates() {
     var stat = el('div', 'g-stat');
     stat.appendChild(el('span', 'num-roll num', ''));
     face.appendChild(stat);
-    face.appendChild(el('div', 'g-addr addr', svc.addr));
+    face.appendChild(el('div', 'g-addr addr', svc.vacant ? '' : svc.addr));
     var lamp = el('div', 'g-lamp');
     lamp.appendChild(el('span', 'lamp-d'));
-    lamp.appendChild(el('span', 'lamp-t display', '…'));
+    lamp.appendChild(el('span', 'lamp-t display', svc.vacant ? 'SHUT' : '…'));
     face.appendChild(lamp);
     shell.appendChild(face);
 
@@ -1356,7 +1384,7 @@ function renderGates() {
     notice.hidden = true;
     a.appendChild(notice);
 
-    a.addEventListener('click', function (e) { gateClick(e, a, svc); });
+    if (!svc.vacant) a.addEventListener('click', function (e) { gateClick(e, a, svc); });
     wrap.appendChild(a);
   });
   layoutStage(true);
@@ -1367,6 +1395,7 @@ function renderGates() {
 /* A future registry entry with no dictionary string falls back to the
    generic description instead of rendering the raw key. */
 function descKey(svc) {
+  if (svc.vacant) return 'desc.vacant';
   var key = 'desc.' + svc.desc_key;
   return STR.en[key] !== undefined ? key : 'desc.fallback';
 }
@@ -1395,30 +1424,43 @@ function layoutStage(initial) {
   if (!W) return;
   var wing = root.dataset.wing;
   var first = wrap.querySelector('.gate');
-  var gateW = first ? first.offsetWidth : 260;
-  var active = services.filter(function (s) { return s.wing === wing; });
-  var receded = services.filter(function (s) { return s.wing !== wing; });
-  var spacing = gateW * 1.16;
+  var all = slots();
+  var active = all.filter(function (s) { return s.wing === wing; });
+  var receded = all.filter(function (s) { return s.wing !== wing; });
+  var clock = $('#clock');
+  var stage = $('#stage');
+
+  /* Only the lit wing stands in the hall. The other wing waits behind the
+     lever: its arches used to flank the row at 0.62, but with the clock
+     holding the axis and the wings in pairs there is no width left for them
+     that does not either shrink every arch by a fifth or let one arch cover
+     another, and nothing on this stage may cover anything (the owner's rule,
+     after a flank spent a release half hidden behind its neighbour).
+     The row is solved as one line, [arches] [clock] [arches]; if it is wider
+     than the stage, the whole arch module (arches and niche together, via
+     --fit) comes down until it is not. Widths are measured at fit 1 so the
+     solve does not chase its own output. */
+  var fitNow = parseFloat(stage.style.getPropertyValue('--fit')) || 1;
+  var g0 = (first ? first.offsetWidth : 260) / fitNow;
+  var c0 = clock ? clock.offsetWidth / fitNow : 0;
+  var PITCH = 1.16;        // arch centre to arch centre, in gate widths
+  var CLEAR = 0.10;        // clock to its nearest arch
+  var nSide = Math.ceil(active.length / 2);
+  var rowG = 2 * CLEAR + 2 * (nSide ? 1 + (nSide - 1) * PITCH : 0);
+  var fit = Math.min(1, (W * 0.985) / (c0 + g0 * rowG));
+  if (Math.abs(fit - fitNow) > 0.002) stage.style.setProperty('--fit', fit.toFixed(4));
+  var gateW = g0 * fit;
+  var spacing = gateW * PITCH;
 
   /* The clock holds the axis: active gates split evenly to either side of the
-     niche rather than straddling the centre. With an odd count the extra gate
-     goes stage-left, which keeps the composition weighted like a facade
-     instead of drifting. The niche is measured, not assumed, so a narrow
-     viewport that shrinks the dial pulls the gates in with it. */
-  var clock = $('#clock');
-  var half = clock ? clock.offsetWidth / 2 + gateW * 0.10 : 0;
+     niche rather than straddling the centre. */
+  var half = clock ? (c0 * fit) / 2 + gateW * CLEAR : 0;
 
-  // Symmetric composition: the active gates split EQUALLY to either side of the
-  // clock. When there is an odd active gate, the median one stands dead-centre
-  // in front of a raised dial (the concourse gets a `.has-center` flag so the
-  // clock lifts into a pediment above it). This keeps the facade mirror-balanced
-  // for any count instead of piling the odd gate onto stage-left.
+  // The active gates split equally to either side of the clock; slots()
+  // has already made the count even, so the dial keeps the axis at full size.
   var perSide = Math.floor(active.length / 2);
-  var centerGate = (active.length % 2 === 1) ? active[perSide] : null;
-  var sideActives = active.filter(function (s) { return s !== centerGate; });
-  var leftActives = sideActives.slice(0, perSide);          // innermost → outermost
-  var rightActives = sideActives.slice(perSide);
-  root.classList.toggle('has-center', !!centerGate);
+  var leftActives = active.slice(0, perSide);          // outermost → innermost
+  var rightActives = active.slice(perSide);            // innermost → outermost
 
   function placeActive(svc, x, side, order) {
     var a = $('#gate-' + svc.id);
@@ -1441,88 +1483,40 @@ function layoutStage(initial) {
   rightActives.forEach(function (svc, i) {
     placeActive(svc, +(half + gateW / 2 + i * spacing), -0.55, i);   // mirror
   });
-  if (centerGate) {
-    var c = $('#gate-' + centerGate.id);
-    if (c) {
-      c.classList.add('active'); c.classList.remove('receded');
-      // Full size, standard footing, dead centre — indistinguishable from its
-      // neighbours except for position. The dial makes ALL the room: it is
-      // winched up into the cornice (below) with only its lower rim showing,
-      // and comes down for a look on hover.
-      c.style.zIndex = '3';
-      c.style.setProperty('--slot-x', '0px');
-      c.style.setProperty('--slot-s', '1');
-      c.style.setProperty('--sink', '0px');
-      c.style.setProperty('--side', '0');
-      c.style.setProperty('--slot-delay', initial ? '0ms' : '80ms');
-    }
-  }
-  // The dial's stowage. With a centre gate the full-size dial is hoisted so
-  // only its lower rim hangs into the headroom above the arches; everything
-  // above the stage's top edge is clipped away, which reads as the clock
-  // sliding up into a slot behind the cornice. Hovering the exposed rim
-  // lowers it back down for a full look (CSS, .has-center #clock:hover).
-  if (clock) {
-    if (centerGate) {
-      var gateH = gateW * 1.9;
-      var headroom = Math.max(0, wrap.clientHeight - gateH);
-      var exposed = gateH * 0.26;                       // the rim left showing
-      var tuck = gateH - exposed + headroom * 0.5;      // lift, px
-      var tuckClip = Math.max(0, tuck - headroom);      // part above the stage
-      clock.style.setProperty('--tuck', tuck.toFixed(1) + 'px');
-      clock.style.setProperty('--tuck-clip', tuckClip.toFixed(1) + 'px');
-    } else {
-      clock.style.setProperty('--tuck', '0px');
-      clock.style.setProperty('--tuck-clip', '0px');
-    }
-  }
-  var left = perSide;                                        // outermost active rank base
-  // Flanks tuck just outside the outermost arch — NOT at the stage's own
-  // edge. With the aisles open the stage column is much wider than the
-  // triptych standing in it, and an edge-anchored flank would drift across
-  // the bays and moor itself against a board.
-  var outermost = half + gateW / 2 + Math.max(0, left - 1) * spacing;
-  // A flank tucks BEHIND the outer arch; it must never end up UNDER it. On a
-  // narrow stage the 0.62 flank is wider than the clear column beside the
-  // triptych and half its lettering disappears, which stops reading as depth
-  // and starts reading as a bug. Give it the room that is actually there.
-  // outermost is the outer arch's CENTRE, so its edge is half a gate on.
-  //
-  // The room is short by a fixed AIR gap as well. Sized to the bare
-  // remainder, the flank grows until it abuts the arch in front of it, and
-  // two arches sharing an edge read as one torn shape rather than as two
-  // planes at different depths — the separation is what carries the
-  // recession, so it is reserved before the flank is sized, not hoped for.
-  var air = gateW * 0.14;
-  var room = W / 2 - (outermost + gateW / 2) - air;
-  var flankS = Math.max(0.34, Math.min(0.62, room / gateW));
-  var edge = Math.min(W / 2 - gateW * flankS / 2,
-                      outermost + spacing * 0.86);
+  // The waiting wing stands exactly where its counterparts stand, out of the
+  // room: a throw of the lever lets one wing's arches sink and fade while the
+  // other's rise in the same bays, so the doors change places rather than
+  // slide across the hall. It is inert while it waits, so it takes no tab
+  // stop, no pointer and no screen-reader attention.
+  var slotX = [];
+  leftActives.forEach(function (svc, i) {
+    slotX.push(-(half + gateW / 2 + (leftActives.length - 1 - i) * spacing));
+  });
+  rightActives.forEach(function (svc, i) {
+    slotX.push(+(half + gateW / 2 + i * spacing));
+  });
   receded.forEach(function (svc, i) {
     var a = $('#gate-' + svc.id);
     if (!a) return;
     a.classList.add('receded'); a.classList.remove('active');
-    // Behind the active pair for the whole journey, not just on arrival.
     a.style.zIndex = '1';
-    a.style.setProperty('--sink', '0px');   // a former centre gate rises back
-    // Alternate flanks; extra flankmates on a side step inward so they
-    // never stack exactly on top of each other.
-    var side = (receded.length === 1) ? 1 : (i % 2 === 0 ? -1 : 1);
-    var rank = Math.floor(i / 2);
-    a.style.setProperty('--slot-x', (side * (edge - rank * gateW * 0.5)) + 'px');
-    a.style.setProperty('--slot-s', flankS.toFixed(3));
-    a.style.setProperty('--slot-delay', initial ? '0ms' : (i * 60) + 'ms');
-    a.style.setProperty('--side', String(side));   // triptych inward tilt
+    a.style.setProperty('--sink', '0px');
+    a.style.setProperty('--slot-x', (slotX[i] !== undefined ? slotX[i] : 0) + 'px');
+    a.style.setProperty('--slot-s', '1');
+    a.style.setProperty('--slot-delay', '0ms');
+    a.style.setProperty('--side', '0');
   });
-  // How far the composition actually reaches from the axis — the flanks at
-  // 0.62 scale included. The bays are cut against THIS, not against the
-  // stage column: the column is far wider than the triptych standing in it,
-  // and measuring the column would leave the widest stretch of bare wall
-  // (the one between the outermost arch and the boards) unarticulated.
-  triptychHalf = Math.max(
-    outermost + gateW / 2,
-    receded.length ? edge + gateW * flankS / 2 : 0
-  );
+  all.forEach(function (svc) {
+    var a = $('#gate-' + svc.id);
+    if (!a) return;
+    var waiting = svc.wing !== wing;
+    a.inert = waiting;
+    if (waiting) a.setAttribute('aria-hidden', 'true');
+    else if (!svc.vacant) a.removeAttribute('aria-hidden');
+  });
+  // How far the row actually reaches from the axis. The bays are cut against
+  // THIS, not against the stage column, which is wider than the row.
+  triptychHalf = half + (nSide ? gateW + (nSide - 1) * spacing : 0);
   buildAisles();
   if (!initial) scheduleMirror(680);
 }
@@ -3429,7 +3423,7 @@ function setLang(next) {
   store('atrium.lang', lang);
   applyI18nStatic();
   renderDateline();
-  services.forEach(function (svc) {
+  slots().forEach(function (svc) {
     var a = $('#gate-' + svc.id);
     if (a) $('.g-desc', a).textContent = t(descKey(svc));
   });

@@ -832,7 +832,10 @@ html[data-entered="no"] #signal-desk {
      taller than the screen, and it is deliberately modest so a short
      viewport gives up floor before it gives up a scrollbar. */
   --floor-min: clamp(84px, 12vh, 210px);
-  --aisle-w: clamp(300px, calc((100vw - 1700px) / 3.05), 560px);
+  /* Capped at 520 (it was 560 at 3440): the stage carries four arches and
+     the full-size clock in one row, and at 560 the arches had to shrink to
+     fit between the boards. */
+  --aisle-w: clamp(300px, calc((100vw - 2150px) / 2.4), 520px);
   --bay-gap: clamp(20px, 2vw, 56px);
   --skirt-h: calc(var(--gh2) * 0.079);   /* = the gates' own plinth rule */
   --dado-h: calc(var(--gh2) * 0.19);
@@ -844,12 +847,12 @@ html[data-entered="no"] #signal-desk {
   grid-template-areas: "stage";
   grid-template-rows: var(--stage-h);
 }
-/* 2200px, not 1800. Two 300px aisles plus their gaps take ~680px off the
-   stage, and at 1920 that left the triptych a column narrower than itself:
-   the flanking arches ended up half-swallowed by the arches in front of
-   them, which reads as a bug rather than as depth. The aisles are ultrawide
-   furniture — they open when there is genuinely room for them. */
-@media (min-width: 2200px) {
+/* 2800px. Two 300px aisles plus their gaps take ~680px off the stage, and
+   the stage has to hold four arches and the clock side by side (about 6.3
+   arch widths) without shrinking them. Below 2800 the boards would cost the
+   arches a quarter of their size, so the aisles, which are ultrawide
+   furniture, wait until there is genuinely room. */
+@media (min-width: 2800px) {
   #concourse {
     grid-template-columns:
       minmax(0, var(--aisle-w)) minmax(0, 1fr) minmax(0, var(--aisle-w));
@@ -861,6 +864,11 @@ html[data-entered="no"] #signal-desk {
 #stage {
   grid-area: stage;
   position: relative;
+  /* The arch module as drawn. --fit (0..1) is written by layoutStage when the
+     row of arches, the clock and the flanks would not otherwise stand side by
+     side without touching; everything that must line up with an arch (the
+     gates, the niche, the plinth rule) reads this, not --gate-w. */
+  --gate-fit: calc(var(--gate-w) * var(--fit, 1));
   min-height: var(--stage-h);
   align-self: stretch;   /* the plinth line is shared with the aisles */
   z-index: 2;
@@ -899,6 +907,9 @@ html[data-entered="no"] #signal-desk {
   left: calc(50% - 50vw); width: 100vw;
   z-index: 0;
   pointer-events: none;
+  /* The last pilaster and its sconce's pool are centred on the wall's edge,
+     so half of each hung past the screen and widened the page. */
+  overflow: clip;
 }
 /* Plaster: lit from the skylight, so the wash runs top-bright. A single
    two-stop tone — the ban on multi-stop metallic gradients is about metal;
@@ -1340,8 +1351,8 @@ html[data-entered="no"] #signal-desk {
   color: var(--ink);
 }
 #works { grid-area: aisle-l; }
-#bulletin { grid-area: aisle-r; }
-@media (min-width: 2200px) {
+#almanac { grid-area: aisle-r; }
+@media (min-width: 2800px) {
   .board { display: flex; }
 }
 /* The plate itself. clip-path kills box-shadow, so the lift is a pair of
@@ -1735,7 +1746,7 @@ html[lang="zh"] .al-arc text {
 .gate {
   position: absolute;
   left: 50%; bottom: 0;
-  width: var(--gate-w);
+  width: var(--gate-fit);
   aspect-ratio: 300 / 570;
   transform: translateX(calc(-50% + var(--slot-x, 0px)))
              translateY(calc(var(--rise, 0px) + var(--sink, 0px)))
@@ -1886,6 +1897,28 @@ html[lang="zh"] .al-arc text {
 }
 @keyframes lamp-breathe { 50% { border-color: var(--gold-text); } }
 
+/* A reserved gate: the arch is built, the doorway is shuttered. It keeps the
+   pair either side of the clock whole until a service takes the slot, so it
+   must read as architecture waiting, not as a service that is down (DARK
+   already means that). No lamp colour, no hover, no click. */
+.gate.vacant { cursor: default; }
+.gate.vacant:hover { --rise: 0px; }
+.gate.vacant .face::before {
+  content: ""; position: absolute; left: 12%; right: 12%; top: 40%; bottom: 13%;
+  background: repeating-linear-gradient(to bottom,
+      color-mix(in srgb, var(--ink) 10%, transparent) 0 1px,
+      transparent 1px 11px);
+  opacity: 0.8; pointer-events: none;
+}
+.gate.vacant .g-name, .gate.vacant .g-desc, .gate.vacant .g-lamp { opacity: 0.6; }
+.gate.vacant .sigil { opacity: 0.45; }
+.gate.vacant.active:hover .frame path, .gate.vacant.active:hover .frame rect,
+.gate.vacant.receded:hover .frame path, .gate.vacant.receded:hover .frame rect {
+  stroke: var(--chrome);
+}
+.gate.vacant.active .frame path, .gate.vacant.active .frame rect { stroke: var(--chrome); }
+.gate.vacant .sheen { display: none; }
+
 /* Distance haze on the flanking gates. It must wear the ARCH, not the gate's
    bounding box: a bordered rectangle of veil was invisible against the old
    dark backdrop, but on the concourse's pale plaster it lit up as a white
@@ -1900,8 +1933,21 @@ html[lang="zh"] .al-arc text {
   opacity: 0; pointer-events: none;
   transition: opacity 0.6s var(--ease-stage), background-color 0.4s;
 }
-.gate.receded .g-veil { opacity: 1; }
-.gate.receded:hover .g-veil, .gate.receded.flash .g-veil { opacity: 0.25; }
+/* The waiting wing: same bays, out of the room. Opacity sits on .gate, the
+   PARENT of the preserve-3d pose, never on the pose itself: on the pose it
+   would flatten the tilt. Visibility follows the fade so a hidden arch can
+   never take a pointer or a hover. */
+.gate.receded {
+  opacity: 0; visibility: hidden;
+  --rise: 14px;
+  transition: transform 0.6s var(--ease-stage), opacity 0.36s ease,
+              visibility 0s linear 0.36s;
+}
+.gate.active {
+  opacity: 1; visibility: visible;
+  transition: transform 0.6s var(--ease-stage),
+              opacity 0.42s ease var(--slot-delay, 0ms), visibility 0s;
+}
 .gate.receded .frame path, .gate.receded .frame rect { stroke: var(--chrome); }
 .gate.active { z-index: 2; }
 .gate.receded { z-index: 1; }
@@ -1962,35 +2008,11 @@ html[lang="zh"] .al-arc text {
   transform: translateX(-50%);
   z-index: 1;
   pointer-events: none;   /* the dial is scenery, never a click target */
-  --gh: calc(var(--gate-w) * 1.9);
+  --gh: calc(var(--gate-fit) * 1.9);
   --reveal: calc(var(--gh) * 0.055);   /* wall left at the head and sides */
   --sill: calc(var(--gh) * 0.125);     /* the shelf the dial stands on */
   --dial: calc(var(--gh) - var(--sill) - var(--reveal));
   width: calc(var(--dial) + 2 * var(--reveal));
-}
-/* When an odd active gate stands dead-centre, the dial is winched up into a
-   slot behind the cornice: full size, never shrunk, with only its lower rim
-   left hanging in the headroom above the arches — enough to say "the clock is
-   up there". Everything above the stage's top edge is clipped away (--tuck /
-   --tuck-clip, computed per viewport in layoutStage), so it reads as stowage
-   rather than an escape. Hovering the exposed rim lowers the whole dial back
-   down over the stage for a proper look; leaving hoists it again. Both moves
-   ride the base transition, and clip-path animates alongside transform. */
-#clock {
-  transform-origin: center bottom;
-  transition: transform 0.55s cubic-bezier(.22,1,.36,1),
-              clip-path 0.55s cubic-bezier(.22,1,.36,1);
-}
-:root.has-center #clock {
-  transform: translateX(-50%) translateY(calc(-1 * var(--tuck, 0px)));
-  clip-path: inset(var(--tuck-clip, 0px) 0 0 0);
-  pointer-events: auto;          /* the rim is a handle while stowed */
-  cursor: pointer;
-}
-:root.has-center #clock:hover {
-  transform: translateX(-50%);
-  clip-path: inset(0 0 0 0);
-  z-index: 6;                    /* over the centre gate while summoned */
 }
 .niche {
   position: relative;
@@ -2019,7 +2041,7 @@ html[lang="zh"] .al-arc text {
    facade rather than a dial parked between two doors. */
 .wall-rule {
   position: absolute; left: 3%; right: 3%;
-  bottom: calc(var(--gate-w) * 1.9 * 0.079);
+  bottom: calc(var(--gate-fit) * 1.9 * 0.079);
   height: 1px;
   background-color: var(--line);
   opacity: 0.85;
