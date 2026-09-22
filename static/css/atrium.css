@@ -800,7 +800,6 @@ html[data-entered="no"] #signal-desk {
 /* Belt and braces: the CSS kill-switch collapses the animation, but a
    spawned sprite would still flash — hide the class outright. */
 :root[data-motion="reduced"] .puff { display: none; }
-@media (prefers-reduced-motion: reduce) { .puff { display: none; } }
 
 /* ==========================================================================
    STAGE — triptych; gates positioned by transform only (60 fps law)
@@ -2974,39 +2973,11 @@ html[data-entered="no"] #stage { animation: stage-dolly 0.9s var(--ease-out) bot
 :root[data-motion="reduced"] #ticker.rolling .t-track {
   animation: none; transform: none;
 }
-@media (prefers-reduced-motion: reduce) {
-  :root[data-motion="full"] #ticker.rolling .t-track { animation: none; }
-}
 
-/* Ledger drawer: replace slide with fade in reduced-motion contexts.
-   Split into two separate rules: attribute selectors are not valid inside
-   @media query lists (browsers silently drop invalid items). */
-@media (prefers-reduced-motion: reduce) {
-  #ledger {
-    transition: opacity 0.2s linear;
-    transform: none !important;
-  }
-  #ledger:not(.open) { opacity: 0; pointer-events: none; }
-  #ledger.open { opacity: 1; pointer-events: auto; }
-  .plaque.cascading,
-  .daybreak.cascading {
-    animation: none;
-    opacity: 1;
-    transform: none;
-  }
-  #ledger.opening .spine {
-    animation: none;
-    opacity: 0.7;
-    transform: none;
-  }
-  .hatch-disc {
-    transition: none !important;
-  }
-  /* The dwell still has to be legible without motion, or resting on a plaque
-     does something invisible for 420ms and then jumps. Keep the timing, drop
-     the travel: the diamond fades where it stands. */
-  .plaque.new.reading .pl-head::after { animation-name: mark-struck-flat; }
-}
+/* Ledger drawer: a fade instead of the slide. data-motion is the one switch:
+   the pre-paint script and resolveMotion() already fold the OS setting into
+   it, and a raw prefers-reduced-motion query here used to override a reader
+   who had chosen FULL. */
 :root[data-motion="reduced"] {
   #ledger {
     transition: opacity 0.2s linear;

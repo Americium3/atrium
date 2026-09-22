@@ -362,9 +362,11 @@ function start(paint) {
   var root = document.documentElement;
   var timer = null, raf = null;
 
+  // data-motion is resolved from the reader's choice and the OS setting in
+  // one place (the pre-paint script, then resolveMotion in app.js). Reading
+  // the media query here as well overrode a reader who chose FULL.
   function reduced() {
-    return root.dataset.motion === 'reduced' ||
-      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    return root.dataset.motion === 'reduced';
   }
 
   function stop() {

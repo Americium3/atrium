@@ -11,7 +11,10 @@
   var d = document.documentElement, ls;
   try { ls = window.localStorage; } catch (e) { ls = null; }
   var q = new URLSearchParams(location.search);   // debug overrides, not persisted
-  function get(k, f) { return (ls && ls.getItem(k)) || f; }
+  // getItem can throw as well as the getter (storage disabled per site, a
+  // quota error in some browsers). Unguarded, one throw aborted this whole
+  // script and the page lost its theme, its motion and ?entrance=0 at once.
+  function get(k, f) { try { return (ls && ls.getItem(k)) || f; } catch (e) { return f; } }
   var pref = q.get('theme') || get('atrium.theme', 'system');
   var dark = pref === 'onyx' ||
     (pref === 'system' && matchMedia('(prefers-color-scheme: dark)').matches);
@@ -25,8 +28,15 @@
   // whole hall in front of the reader.
   var ui = q.get('ui') || get('atrium.ui', 'm');
   d.dataset.ui = (ui === 's' || ui === 'l') ? ui : 'm';
-  var motion = q.get('motion') || get('atrium.motion',
-    matchMedia('(prefers-reduced-motion: reduce)').matches ? 'reduced' : 'full');
+  // Motion, like the theme, has a FOLLOW SYSTEM setting (the default). The
+  // reader's choice is data-motion-pref; data-motion is what it resolves to,
+  // and it is the only thing the sheet and the scripts ever read.
+  var motionPref = q.get('motion') || get('atrium.motion', 'system');
+  if (motionPref !== 'full' && motionPref !== 'reduced') motionPref = 'system';
+  var motion = motionPref === 'system'
+    ? (matchMedia('(prefers-reduced-motion: reduce)').matches ? 'reduced' : 'full')
+    : motionPref;
+  d.dataset.motionPref = motionPref;
   d.dataset.motion = motion;
   // The entrance plays on every load. It was previously gated by a 6 h
   // localStorage stamp (`atrium.entered`), which meant the hall's best moment
@@ -37,6 +47,16 @@
   var play = motion === 'full';
   if (q.get('entrance') === '1') play = true;
   if (q.get('entrance') === '0') play = false;
+  // PREFERENCES > REPLAY ENTRANCE is a one-shot flag for the next load. It
+  // used to append ?entrance=1, which then stuck to the address bar and
+  // replayed on every reload. Under reduced motion a replay is the plain
+  // fade, like any other quiet boot: the beats would only be hard cuts.
+  try {
+    if (sessionStorage.getItem('atrium.replay')) {
+      sessionStorage.removeItem('atrium.replay');
+      play = motion === 'full';
+    }
+  } catch (e) { /* no session storage, no replay flag */ }
   d.dataset.entered = play ? 'no' : 'yes';
   // data-boot distinguishes a suppressed load (hall fades in at boot) from
   // a played entrance (flipping data-entered later must NOT re-fade).
@@ -772,6 +792,9 @@
         </button>
         <button class="p-plaque" role="radio" data-value="reduced">
           <span class="p-name display" data-i18n="motionReduced">REDUCED</span>
+        </button>
+        <button class="p-plaque" role="radio" data-value="system">
+          <span class="p-name display" data-i18n="system">FOLLOW SYSTEM</span>
         </button>
       </div>
     </section>

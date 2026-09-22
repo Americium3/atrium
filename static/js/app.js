@@ -314,6 +314,11 @@ function isNew(d) {
 /* One write and one re-sync however many dispatches are struck: the stamp
    clears a whole window at once, and doing that a dispatch at a time would
    serialize a localStorage write and a full re-sync per card. */
+function loadReadIds() {
+  var out = [];
+  try { out = JSON.parse(store(READ_KEY) || '[]'); } catch (e) { out = []; }
+  return Array.isArray(out) ? out : [];
+}
 function markReadMany(ids) {
   var added = [];
   ids.forEach(function (id) {
@@ -322,15 +327,17 @@ function markReadMany(ids) {
     added.push(id);
   });
   if (!added.length) return;
-  // Persist only ids still inside the feed window, plus the newcomers: a
-  // dispatch that has aged out can never be shown again, so carrying its id
-  // forward would grow the store forever to no effect.
-  var live = feed.filter(function (d) { return readIds[d.id]; })
-                 .map(function (d) { return d.id; });
-  added.forEach(function (id) {
-    if (live.indexOf(id) < 0) live.push(id);
-  });
-  store(READ_KEY, JSON.stringify(live.slice(-READ_CAP)));
+  // Read, merge, write. This tab's memory is not the whole truth: another
+  // tab may have struck dispatches since this one loaded, and writing only
+  // what this tab knows (as it used to) quietly brought those back as new.
+  // Order oldest first so the lid drops what has aged out of every feed.
+  var disk = loadReadIds();
+  var seen = {}, out = [];
+  function keep(id) { if (id && !seen[id]) { seen[id] = 1; out.push(id); readIds[id] = 1; } }
+  disk.forEach(keep);
+  feed.forEach(function (d) { if (readIds[d.id]) keep(d.id); });
+  added.forEach(keep);
+  store(READ_KEY, JSON.stringify(out.slice(-READ_CAP)));
   syncReadMarks();
 }
 
@@ -3367,7 +3374,7 @@ function syncPrefRadios() {
   var current = {
     theme: root.dataset.themePref || 'system',
     lang: lang,
-    motion: root.dataset.motion,
+    motion: root.dataset.motionPref || 'system',
     ui: root.dataset.ui || 'm'
   };
   Array.prototype.forEach.call(prefs.querySelectorAll('[data-pref]'), function (group) {
@@ -3398,10 +3405,9 @@ prefs.addEventListener('click', function (e) {
   if (pref === 'theme') setThemePref(val);
   else if (pref === 'lang') setLang(val);
   else if (pref === 'motion') {
-    root.dataset.motion = val;
+    root.dataset.motionPref = val;
     store('atrium.motion', val);
-    // The clock drives itself; tell it to swap sweep for deadbeat.
-    window.dispatchEvent(new Event('atrium:motionchange'));
+    resolveMotion();
   } else if (pref === 'ui') {
     root.dataset.ui = val;
     store('atrium.ui', val);
@@ -3472,13 +3478,49 @@ function renderDateline() {
   $('#dateline').textContent = fmt.format(new Date());
 }
 
-// Replay is now just a reload — every load plays the entrance, so there is no
-// suppression stamp left to clear. ?entrance=1 is appended so the replay still
-// works for someone browsing with motion set to reduced.
+// Replay leaves a one-shot flag for the pre-paint script and reloads. Every
+// load plays the entrance anyway; the flag is for a reader who set motion to
+// reduced, who then gets the quiet fade rather than a run of hard cuts.
 $('#replay').addEventListener('click', function () {
-  var u = new URL(location.href);
-  u.searchParams.set('entrance', '1');
-  location.href = u.toString();
+  try { sessionStorage.setItem('atrium.replay', '1'); } catch (e) { /* plain reload */ }
+  location.reload();
+});
+
+/* Motion follows the system unless the reader chose otherwise, and the OS
+   setting can change while the hall is open. */
+var mqMotion = matchMedia('(prefers-reduced-motion: reduce)');
+function resolveMotion() {
+  var pref = root.dataset.motionPref || 'system';
+  var next = pref === 'system' ? (mqMotion.matches ? 'reduced' : 'full') : pref;
+  if (root.dataset.motion !== next) {
+    root.dataset.motion = next;
+    // The clock drives itself; tell it to swap sweep for deadbeat.
+    window.dispatchEvent(new Event('atrium:motionchange'));
+  }
+}
+mqMotion.addEventListener('change', resolveMotion);
+
+/* Another tab changed something this one shows. Apply it without writing
+   it back, or two tabs would volley the same value forever. */
+window.addEventListener('storage', function (e) {
+  if (e.key === READ_KEY) {
+    loadReadIds().forEach(function (id) { readIds[id] = 1; });
+    syncReadMarks();
+  } else if (e.key === 'atrium.theme') {
+    root.dataset.themePref = e.newValue || 'system';
+    resolveTheme();
+  } else if (e.key === 'atrium.lang') {
+    if ((e.newValue === 'zh' ? 'zh' : 'en') !== lang) setLang(e.newValue);
+  } else if (e.key === 'atrium.motion') {
+    root.dataset.motionPref = e.newValue || 'system';
+    resolveMotion();
+  } else if (e.key === 'atrium.ui') {
+    root.dataset.ui = (e.newValue === 's' || e.newValue === 'l') ? e.newValue : 'm';
+    requestAnimationFrame(function () { layoutStage(true); });
+  } else {
+    return;
+  }
+  if (!prefs.hidden) syncPrefRadios();
 });
 
 /* ========================================================================
