@@ -1079,6 +1079,10 @@ html[data-entered="no"] #signal-desk {
     /* and the corners of the hall, which the skylight never reaches */
     radial-gradient(ellipse 62% 120% at 50% 108%,
       transparent 40%, color-mix(in srgb, var(--shade) 62%, transparent));
+  /* The corner term is still dark where this box begins, which cut a hard
+     line across the whole floor at 42% of its depth. Feather the top edge. */
+  -webkit-mask-image: linear-gradient(to top, #000 62%, transparent 100%);
+  mask-image: linear-gradient(to top, #000 62%, transparent 100%);
 }
 /* Contact shadow where the stone meets the skirting. */
 #floorplane::after {
