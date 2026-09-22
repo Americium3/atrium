@@ -190,14 +190,6 @@ lettering 1:1. At the old slope a 3440 screen stood it 275px tall, which was
 taller than the stone under it once the wall took its headroom back, and the
 lever tip came up level with the skirting.
 
-**And the machine comes down with the floor.** The signal desk stands *on* the
-stone, so once the floor is a band rather than a field the console has to fit
-inside that band: `.assembly` scales 0.78 under 860px and 0.62 under 760px.
-Its main-scale coefficient is `0.80 + 0.14 x --ui` rather than tracking the
-lettering 1:1. At the old slope a 3440 screen stood it 275px tall, which was
-taller than the stone under it once the wall took its headroom back, and the
-lever tip came up level with the skirting.
-
 ## The concourse clock (v3.2)
 
 A grande-complication regulator in a stepped octagonal deco case, showing the
