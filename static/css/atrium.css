@@ -3063,3 +3063,29 @@ html[data-entered="no"] #stage { animation: stage-dolly 0.9s var(--ease-out) bot
   z-index: 3;
 }
 .g-note[hidden] { display: none; }
+
+/* ==========================================================================
+   FORCED COLORS AND CONTRAST PREFERENCES
+   ==========================================================================
+   Under Windows high-contrast themes every state this hall shows with a
+   border hue or a fill disappears into the system palette. Each selected or
+   lit thing gets a Highlight border it cannot lose, and the scenery that is
+   pure ornament keeps its own colours instead of being redrawn as stark
+   system lines. */
+@media (forced-colors: active) {
+  .p-plaque[aria-checked="true"] { border: 3px solid Highlight; }
+  .p-plaque[aria-checked="true"] .p-name::before { content: "\25c6  " / ""; }
+  .swatch { forced-color-adjust: none; }
+  .chip { border-color: Canvas; }
+  .chip[aria-checked="true"] { border: 2px solid Highlight; color: Highlight; }
+  .l-badge { forced-color-adjust: none; background: Highlight; box-shadow: 0 0 0 1px CanvasText; }
+  :root[data-wing="salon"] .l-salon,
+  :root[data-wing="bureau"] .l-bureau { border: 2px solid Highlight; color: Highlight; }
+  .gate[data-state="open"] .g-lamp .lamp-d { background: Highlight; border-color: Highlight; }
+  #floorplane, #backwall { forced-color-adjust: none; }
+}
+/* Asked for more contrast or less transparency: the scrim stops being a
+   veil the hall shows through. */
+@media (prefers-contrast: more), (prefers-reduced-transparency: reduce) {
+  #ledger-scrim { background: var(--base); }
+}
