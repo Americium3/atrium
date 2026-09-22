@@ -617,7 +617,14 @@
 
   </div>
 
-  <aside id="ledger" data-i18n-aria="ariaLedger" aria-label="Dispatches">
+</div>
+
+<!-- The Ledger lives at body level, beside its scrim and the signal desk.
+     Inside #hall it shared whatever stacking context the hall was in: on a
+     suppressed boot the hall's fade made #hall a context of its own, so the
+     drawer (z 55) painted under its body-level scrim (z 54), and a click on
+     any plaque landed on the scrim and closed the drawer. -->
+  <aside id="ledger" data-i18n-aria="ariaLedger" aria-label="Dispatches" inert>
     <div class="l-head">
       <h2 class="display" data-i18n="ledger">THE LEDGER</h2>
       <div class="chips" role="radiogroup" data-i18n-aria="ariaFilter" aria-label="Filter">
@@ -651,8 +658,6 @@
       <ol id="plaques"></ol>
     </div>
   </aside>
-
-</div>
 
 <!-- Ledger scrim — dims the hall when the drawer is open; click to close -->
 <div id="ledger-scrim" aria-hidden="true"></div>

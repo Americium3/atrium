@@ -3086,6 +3086,7 @@ function openLedger() {
   // Add .opening so spine animation fires, then remove after spine draw
   ledgerEl.classList.add('opening');
   setTimeout(function () { ledgerEl.classList.remove('opening'); }, 400);
+  ledgerEl.inert = false;
   ledgerEl.classList.add('open');
   scrimEl.classList.add('visible');
   ledgerBtnEl.setAttribute('aria-expanded', 'true');
@@ -3098,6 +3099,12 @@ function closeLedger() {
   var scrimEl = $('#ledger-scrim');
   var ledgerBtnEl = $('#ledger-btn');
   if (!ledgerEl || !scrimEl || !ledgerBtnEl) return;
+  // A closed drawer is inert: off screen it still sat in the tab order, and
+  // because focus marks a dispatch read, one pass of Tab through the page
+  // struck the whole Ledger. Focus inside it goes back to the button first,
+  // or making it inert would drop the reader's place onto <body>.
+  if (ledgerEl.contains(document.activeElement)) ledgerBtnEl.focus();
+  ledgerEl.inert = true;
   ledgerEl.classList.remove('open');
   scrimEl.classList.remove('visible');
   ledgerBtnEl.setAttribute('aria-expanded', 'false');
