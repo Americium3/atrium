@@ -1771,10 +1771,8 @@ html[lang="zh"] .al-arc text {
 }
 .g-shell {
   position: absolute; inset: 0;
-  transform: rotateY(calc(var(--par-x, 0) * var(--par-k, 5) * 1deg))
-             rotateX(calc(var(--par-y, 0) * var(--par-k, 5) * -0.6deg));
+  /* transform is written per frame by the parallax loop in app.js */
 }
-.gate.receded .g-shell { --par-k: 2.5; }
 /* Slab thickness: arch-shaped backing offset along the key light, carrying
    the two-shadow grounding pair (contact + penumbra). */
 .g-back {

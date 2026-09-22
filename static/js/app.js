@@ -2603,17 +2603,20 @@ function startAlmanac() {
   pollAlmanac();
 }
 
-/* Pointer parallax — one rAF writer of two custom properties on #stage;
-   shells consume them via calc. Gated on fine pointers, live reduced-motion
-   (the CSS kill-switch can't stop rAF-written transforms), visibility, and
-   the entrance having finished. */
+/* Pointer parallax: one rAF writer. It writes each gate shell's transform
+   directly. It used to write two custom properties on #stage for the shells
+   to read through calc(), but a custom property inherits, so every frame
+   invalidated style for the whole stage subtree: at 3440 the median frame
+   during a pointer sweep was 83ms. Gated on fine pointers, live
+   reduced-motion (the CSS kill-switch can't stop rAF-written transforms),
+   visibility, and the entrance having finished. */
 (function () {
   if (!matchMedia('(hover: hover) and (pointer: fine)').matches) return;
-  var stage = $('#stage');
   var tx = 0, ty = 0, cx = 0, cy = 0, raf = null;
   function write() {
-    stage.style.setProperty('--par-x', cx.toFixed(4));
-    stage.style.setProperty('--par-y', cy.toFixed(4));
+    var t = 'rotateY(' + (cx * 5).toFixed(3) + 'deg) rotateX(' + (cy * -3).toFixed(3) + 'deg)';
+    var shells = document.querySelectorAll('#gates .g-shell');
+    for (var i = 0; i < shells.length; i++) shells[i].style.transform = t;
   }
   function frame() {
     raf = null;
