@@ -2667,12 +2667,17 @@ html[data-entered="yes"] #entrance { display: none; }
 
 /* ---- Beat 1: Handwheel materialises + lock case ------------------------- */
 /* Lock case appears with play (manufactured before the wheel loads) */
-.e-lock-case, .e-lock-case-lit, .e-relocker, .e-relocker-lit { opacity: 0; }
-#entrance.play .e-lock-case     { opacity: 0.88;  transition: opacity 0.35s 0ms; }
+/* The engine-turned overlay is its own rect and must ride the case's fades;
+   unclassed, it stayed at full opacity after the doors opened and left a
+   grey square hanging behind the handwheel. */
+.e-lock-case, .e-lock-case-tex, .e-lock-case-lit, .e-relocker, .e-relocker-lit { opacity: 0; }
+#entrance.play .e-lock-case,
+#entrance.play .e-lock-case-tex { opacity: 0.88;  transition: opacity 0.35s 0ms; }
 #entrance.play .e-lock-case-lit { opacity: 0.42; transition: opacity 0.35s 30ms; }
 #entrance.play .e-relocker      { opacity: 0.82;  transition: opacity 0.35s 30ms; }
 #entrance.play .e-relocker-lit  { opacity: 0.62;  transition: opacity 0.35s 60ms; }
 #entrance.open .e-lock-case,
+#entrance.open .e-lock-case-tex,
 #entrance.open .e-lock-case-lit,
 #entrance.open .e-relocker,
 #entrance.open .e-relocker-lit  { opacity: 0; transition: opacity 0.38s; }
