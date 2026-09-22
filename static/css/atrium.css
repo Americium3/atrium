@@ -219,6 +219,38 @@ button {
 svg { display: block; }
 /* Wing-neutral (the wing metal is reserved for exactly three surfaces). */
 :focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; }
+/* The lever's ring sits on bronze, which on ivory is a dark mid-tone the
+   palladium ring barely clears. A base-coloured halo under it keeps the
+   ring legible on the machine in both themes. */
+#lever:focus-visible { box-shadow: 0 0 0 5px var(--base); }
+
+/* The key plate. Dressed with the rest of the hall's plates in the
+   materials pass; here it only has to be legible and out of the way. */
+#keyplate {
+  position: fixed; left: calc(24px * var(--ui)); bottom: calc(24px * var(--ui));
+  z-index: 57;
+  min-width: calc(250px * var(--ui));
+  padding: calc(14px * var(--ui)) calc(18px * var(--ui));
+  background-color: var(--surface);
+  border: 1px solid var(--line);
+  box-shadow: 0 10px 30px var(--shadow-drop);
+  color: var(--ink);
+}
+#keyplate[hidden] { display: none; }
+.kp-title {
+  font-size: calc(12px * var(--ui)); letter-spacing: 0.28em;
+  color: var(--gold-text); margin-bottom: calc(10px * var(--ui));
+}
+.kp-row {
+  display: grid; grid-template-columns: calc(64px * var(--ui)) 1fr;
+  align-items: baseline; gap: 10px;
+  font-size: calc(12.5px * var(--ui)); line-height: 1.9;
+}
+.kp-key {
+  font-size: calc(11px * var(--ui)); letter-spacing: 0.14em;
+  color: var(--gold-text); font-family: inherit;
+}
+.kp-do { color: var(--ink-faint); }
 
 /* Display caps: tracked EB Garamond, never below 0.15em, no ligatures. */
 .display {
@@ -2200,6 +2232,18 @@ html[lang="zh"] .al-arc text {
 .l-head {
   display: flex; align-items: baseline; justify-content: space-between;
   margin-bottom: 14px;
+}
+/* Room on the right for a focus ring: flush with the drawer's edge, the
+   BUREAU chip's ring was cut off by the overflow. */
+#ledger .l-head, #ledger .l-tools { padding-right: 10px; }
+#ledger h2:focus { outline: none; }
+#ledger h2:focus-visible { outline: 2px solid var(--focus); outline-offset: 4px; }
+/* The plaque's link sits inside two clip-paths, which cut any outline away,
+   so a focused plaque drew no ring at all. The ring goes on the unclipped
+   list item instead. */
+.plaque:has(a:focus-visible) {
+  outline: 2px solid var(--focus);
+  outline-offset: 3px;
 }
 .l-head h2 { font-size: calc(15px * var(--ui)); color: var(--gold-text); letter-spacing: 0.28em; }
 .chips { display: flex; gap: 6px; }

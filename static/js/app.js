@@ -131,6 +131,11 @@ var STR = {
     worksTitle: 'Statistics', almTitle: 'Almanac',
     salonWing: 'Play wing', bureauWing: 'Work wing',
     ledgerBtnLabel: 'LEDGER',
+    keysTitle: 'KEYS',
+    keyGates: 'Walk the gates', keyJump: 'Go to a gate', keyOpen: 'Open it',
+    keyLever: 'Throw the lever', keyLedger: 'The Ledger', keyPrefs: 'Preferences',
+    keyWalk: 'Walk the dispatches, in the Ledger', keyPlate: 'Show or hide this plate',
+    keyClose: 'Close', keyEnter: 'ENTER',
     unreadCount: '{n} new dispatches', unreadCountOne: '1 new dispatch'
   },
   zh: {
@@ -241,6 +246,11 @@ var STR = {
     worksTitle: '运转统计', almTitle: '天象',
     salonWing: '娱乐翼 · 沙龙', bureauWing: '工作翼 · 事务所',
     ledgerBtnLabel: '账本',
+    keysTitle: '按键',
+    keyGates: '在门廊间移动', keyJump: '直达某扇门', keyOpen: '打开',
+    keyLever: '扳动拉杆', keyLedger: '消息总台', keyPrefs: '偏好设置',
+    keyWalk: '在消息总台里逐条移动', keyPlate: '显示或收起这块铭牌',
+    keyClose: '关闭', keyEnter: '回车',
     unreadCount: '{n} 条新消息', unreadCountOne: '1 条新消息'
   }
 };
@@ -542,7 +552,11 @@ function playEntrance() {
   // The overlay has pointer-events:auto while playing, so the skip gesture
   // is swallowed here and never reaches the invisible hall underneath.
   entranceSkip = function (e) {
-    if (e && e.preventDefault) e.preventDefault();
+    // Any input cuts the entrance short, but only the keys the hall itself
+    // would act on are swallowed: F5, Ctrl+R and the like keep working.
+    var own = !e || e.type !== 'keydown' ||
+      (!e.ctrlKey && !e.metaKey && !e.altKey && !/^F\d+$/.test(e.key));
+    if (own && e && e.preventDefault) e.preventDefault();
     finishEntrance();
   };
   entrance.addEventListener('pointerdown', entranceSkip);
@@ -2677,10 +2691,15 @@ function setWing(w) {
     clearTimeout(wingReorderT);
     wingReorderT = setTimeout(function () {
       var wrap = $('#gates');
-      gateDomOrder().forEach(function (svc) {
+      var had = document.activeElement;
+      gateDomOrder().forEach(function (svc, i) {
         var a = $('#gate-' + svc.id);
-        if (a) wrap.appendChild(a);
+        if (a && wrap.children[i] !== a) wrap.insertBefore(a, wrap.children[i] || null);
       });
+      // Moving the focused node drops focus to <body>; put it back.
+      if (had && had !== document.activeElement && had.isConnected && !had.inert) {
+        had.focus({ preventScroll: true });
+      }
     }, 750);
   };
   // Serialize: the lever re-light queues until a theme crossfade finishes.
@@ -2698,7 +2717,8 @@ lever.addEventListener('click', toggleWing);
 lever.addEventListener('keydown', function (e) {
   if (e.key === ' ' || e.key === 'Enter') {
     e.preventDefault();
-    toggleWing();
+    // A held key auto-repeats, and each repeat used to throw the lever back.
+    if (!e.repeat) toggleWing();
   }
 });
 
@@ -2922,11 +2942,13 @@ function renderLedger() {
       li.parentNode.removeChild(li);
     }
   });
-  // Clear old daybreaks/empty markers, rebuild order
-  Array.prototype.slice.call(ol.querySelectorAll('.daybreak, .l-empty, .ghost'))
+  // Clear empty markers and ghosts; day breaks are reused below.
+  Array.prototype.slice.call(ol.querySelectorAll('.l-empty, .ghost'))
     .forEach(function (n) { n.parentNode.removeChild(n); });
 
   if (!shown.length) {
+    Array.prototype.slice.call(ol.querySelectorAll('.daybreak'))
+      .forEach(function (n) { n.parentNode.removeChild(n); });
     var empty = el('li', 'l-empty');
     var fl = svgUse('', '0 0 60 40', '#fleuron');
     empty.appendChild(fl);
@@ -2937,11 +2959,23 @@ function renderLedger() {
   var midnight = new Date(); midnight.setHours(0, 0, 0, 0);
   var todayMs = midnight.getTime();
   var lastBucket = null;
+  // Every node goes into `order`, and only nodes out of place are moved at
+  // the end. The 45 s poll used to re-append every plaque, and moving the
+  // node that holds focus drops focus to <body>: a keyboard reader lost
+  // their place in the column every poll.
+  var order = [];
+  var oldBreaks = {};
+  Array.prototype.forEach.call(ol.querySelectorAll('.daybreak'), function (n) {
+    oldBreaks[n.dataset.bucket] = n;
+  });
   shown.forEach(function (d) {
     var bucket = d.ts >= todayMs ? 'today' : 'earlier';
     if (bucket !== lastBucket) {
       lastBucket = bucket;
-      var db = el('li', 'daybreak display', t(bucket));
+      var db = oldBreaks[bucket] || el('li', 'daybreak display');
+      delete oldBreaks[bucket];
+      db.dataset.bucket = bucket;
+      db.textContent = t(bucket);
       if (ledgerOpening) {
         db.classList.add('cascading');
         db.style.setProperty('--ci', String(cascadeIndex));
@@ -2955,7 +2989,7 @@ function renderLedger() {
         })(db);
       }
       cascadeIndex++;
-      ol.appendChild(db);
+      order.push(db);
     }
     var li = plaqueEls[d.id];
     var fresh = false;
@@ -2965,7 +2999,7 @@ function renderLedger() {
       fresh = true;
     }
     updatePlaque(li, d);
-    ol.appendChild(li);                      // reposition in sorted order
+    order.push(li);
     if (ledgerOpening) {
       // Cascade open: EVERY card falls, not just new ones. Plaque elements are
       // cached in plaqueEls across renders, so by the time the drawer is first
@@ -2990,6 +3024,14 @@ function renderLedger() {
         setTimeout(function () { el.classList.remove('arrive'); }, 700);
       })(li);
     }
+  });
+  Object.keys(oldBreaks).forEach(function (k) {
+    var n = oldBreaks[k];
+    if (n.parentNode) n.parentNode.removeChild(n);
+  });
+  order.forEach(function (node, i) {
+    var at = ol.children[i];
+    if (at !== node) ol.insertBefore(node, at || null);
   });
 }
 
@@ -3104,6 +3146,11 @@ function openLedger() {
   ledgerBtnEl.setAttribute('aria-expanded', 'true');
   renderLedger();
   ledgerOpening = false;
+  // The drawer covers the hatch that opened it, so focus moves in with it:
+  // to the drawer's heading, from where the chips, the stamp and the first
+  // plaque are one Tab away. Tab then cycles the drawer and the hatch.
+  var head = $('#ledger h2');
+  if (head) head.focus({ preventScroll: true });
 }
 
 function closeLedger() {
@@ -3361,12 +3408,26 @@ if (ledgerScrimEl) {
 /* Escape closes ledger (non-modal; does not fight prefs Escape which is
    bound while prefs is open and removed when it closes). */
 document.addEventListener('keydown', function (e) {
-  if (e.key === 'Escape') {
-    var ledgerEl = $('#ledger');
-    if (ledgerEl && ledgerEl.classList.contains('open')) {
-      closeLedger();
-      if (ledgerBtnEl) ledgerBtnEl.focus();
-    }
+  var ledgerEl = $('#ledger');
+  var open = ledgerEl && ledgerEl.classList.contains('open');
+  // Preferences sits above the drawer; one Escape closes one layer.
+  if (!prefs.hidden) return;
+  if (e.key === 'Escape' && open) {
+    closeLedger();
+    if (ledgerBtnEl) ledgerBtnEl.focus();
+    return;
+  }
+  if (e.key === 'Tab' && open) {
+    var ring = [ledgerBtnEl].concat(Array.prototype.slice.call(
+      ledgerEl.querySelectorAll(FOCUSABLE)));
+    // Handled in full: the hatch and the drawer are not neighbours in the
+    // document, so leaving Tab to the browser from the hatch walked straight
+    // on into the masthead behind the scrim.
+    var ring2 = ring.filter(function (n) { return n && n.offsetParent !== null; });
+    var i = ring2.indexOf(document.activeElement);
+    e.preventDefault();
+    var n2 = ring2.length;
+    ring2[i < 0 ? (e.shiftKey ? n2 - 1 : 0) : (i + (e.shiftKey ? n2 - 1 : 1)) % n2].focus();
   }
 });
 
@@ -3453,6 +3514,7 @@ function setLang(next) {
   renderLedger();
   relabelWorks();
   renderAlmanac();
+  if (keyplate && !keyplate.hidden) renderKeyplate();
   updateLedgerBadge();
   renderTicker();
   // Bay numbers are localized ("BAY III" / "第 III 间"), so the wall is
@@ -3521,6 +3583,131 @@ window.addEventListener('storage', function (e) {
     return;
   }
   if (!prefs.hidden) syncPrefRadios();
+});
+
+/* ========================================================================
+   Keys: the hall by keyboard
+   ------------------------------------------------------------------------
+   Tab still walks everything. On top of it: arrows walk the gates of the
+   lit wing left to right, digits jump to one, Enter opens it (it is a
+   link), W throws the lever, L opens and closes the Ledger (arrows then
+   walk its dispatches), P opens Preferences, ? shows the key plate, Esc
+   closes the top layer. Nothing fires while a modifier is held, while
+   Preferences is open or while the entrance is still playing.
+   ======================================================================== */
+var keyplate = $('#keyplate');
+
+function litGates() {
+  return Array.prototype.slice.call(
+    document.querySelectorAll('#gates .gate.active:not(.vacant)'))
+    .sort(function (a, b) {
+      return a.getBoundingClientRect().left - b.getBoundingClientRect().left;
+    });
+}
+
+function renderKeyplate() {
+  if (!keyplate) return;
+  var n = litGates().length;
+  var rows = [
+    ['\u2190 \u2192', 'keyGates'],
+    [n > 1 ? '1 \u2013 ' + n : '1', 'keyJump'],
+    [t('keyEnter'), 'keyOpen'],
+    ['W', 'keyLever'],
+    ['L', 'keyLedger'],
+    ['\u2191 \u2193', 'keyWalk'],
+    ['P', 'keyPrefs'],
+    ['?', 'keyPlate'],
+    ['ESC', 'keyClose'],
+  ];
+  var list = $('.kp-rows', keyplate);
+  list.textContent = '';
+  rows.forEach(function (r) {
+    var row = el('div', 'kp-row');
+    row.appendChild(el('kbd', 'kp-key display', r[0]));
+    row.appendChild(el('span', 'kp-do', t(r[1])));
+    list.appendChild(row);
+  });
+  $('.kp-title', keyplate).textContent = t('keysTitle');
+}
+
+function toggleKeyplate(show) {
+  if (!keyplate) return;
+  var next = show === undefined ? keyplate.hidden : show;
+  if (next) renderKeyplate();
+  keyplate.hidden = !next;
+}
+
+function focusGate(i) {
+  var gates = litGates();
+  if (!gates.length) return;
+  var g = gates[Math.max(0, Math.min(gates.length - 1, i))];
+  g.focus({ preventScroll: true });
+}
+
+document.addEventListener('keydown', function (e) {
+  if (e.defaultPrevented || e.ctrlKey || e.metaKey || e.altKey) return;
+  if (!prefs.hidden || root.dataset.entered !== 'yes') return;
+  var tgt = e.target;
+  if (tgt && (tgt.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(tgt.tagName))) return;
+  var k = e.key;
+  var ledgerEl = $('#ledger');
+  var ledgerOpen = ledgerEl && ledgerEl.classList.contains('open');
+
+  if (k === '?') { e.preventDefault(); toggleKeyplate(); return; }
+  if (k === 'Escape' && keyplate && !keyplate.hidden && !ledgerOpen) {
+    toggleKeyplate(false); return;
+  }
+
+  if (ledgerOpen) {
+    if (k === 'ArrowDown' || k === 'ArrowUp' || k === 'Home' || k === 'End') {
+      // Chips keep their own arrows (they are a radio group).
+      if (tgt && tgt.closest && tgt.closest('.chips')) return;
+      var links = Array.prototype.slice.call(ledgerEl.querySelectorAll('.plaque a'));
+      if (!links.length) return;
+      e.preventDefault();
+      var at = links.indexOf(document.activeElement);
+      var next = k === 'Home' ? 0 : k === 'End' ? links.length - 1 :
+        at < 0 ? 0 : Math.max(0, Math.min(links.length - 1, at + (k === 'ArrowDown' ? 1 : -1)));
+      links[next].focus();
+    } else if (k === 'l' || k === 'L') {
+      e.preventDefault();
+      closeLedger();
+      if (ledgerBtnEl) ledgerBtnEl.focus();
+    }
+    return;
+  }
+
+  var gates = litGates();
+  var ae = document.activeElement;
+  var onGate = gates.indexOf(ae);
+  if (k === 'ArrowLeft' || k === 'ArrowRight' || k === 'Home' || k === 'End') {
+    // Arrows belong to the gates only when focus is on one, or nowhere in
+    // particular; the lever, the chips and the radios keep theirs.
+    if (onGate < 0 && ae && ae !== document.body) return;
+    e.preventDefault();
+    if (k === 'Home') focusGate(0);
+    else if (k === 'End') focusGate(gates.length - 1);
+    else if (onGate < 0) focusGate(k === 'ArrowRight' ? 0 : gates.length - 1);
+    else focusGate(onGate + (k === 'ArrowRight' ? 1 : -1));
+  } else if (/^[1-9]$/.test(k)) {
+    var n = +k;
+    if (n <= gates.length) { e.preventDefault(); focusGate(n - 1); }
+  } else if (k === 'w' || k === 'W') {
+    e.preventDefault();
+    if (e.repeat) return;
+    var keep = onGate;
+    toggleWing();
+    // The wing that was lit goes inert, and focus with it. Land on the gate
+    // in the same bay of the wing coming forward.
+    if (keep >= 0) setTimeout(function () { focusGate(keep); }, themeBusy ? 480 : 60);
+    if (keyplate && !keyplate.hidden) setTimeout(renderKeyplate, 700);
+  } else if (k === 'l' || k === 'L') {
+    e.preventDefault();
+    openLedger();
+  } else if (k === 'p' || k === 'P') {
+    e.preventDefault();
+    openPrefs();
+  }
 });
 
 /* ========================================================================

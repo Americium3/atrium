@@ -455,7 +455,7 @@
     <div class="m-underline" aria-hidden="true"></div>
     <div class="m-right">
       <div id="dateline"></div>
-      <button id="ledger-btn" aria-label="Open Ledger" aria-expanded="false"
+      <button id="ledger-btn" aria-keyshortcuts="L" aria-label="Open Ledger" aria-expanded="false"
               aria-controls="ledger" data-i18n-aria="ariaLedger">
         <!-- Pneumatic-tube dispatch hatch: anatomically flat-shaded brass cap -->
         <svg viewBox="0 0 48 48" aria-hidden="true" width="40" height="40">
@@ -516,7 +516,7 @@
           ><span class="sr-only" id="ledger-badge-count"></span></span>
         <span class="p-caption display" data-i18n="ledgerBtnLabel">LEDGER</span>
       </button>
-      <button id="prefs-btn" aria-haspopup="dialog">
+      <button id="prefs-btn" aria-haspopup="dialog" aria-keyshortcuts="P">
         <svg viewBox="0 0 48 48" aria-hidden="true"><use href="#rosette-key"/></svg>
         <span class="p-caption" data-i18n="preferences">PREFERENCES</span>
       </button>
@@ -646,7 +646,7 @@
      any plaque landed on the scrim and closed the drawer. -->
   <aside id="ledger" data-i18n-aria="ariaLedger" aria-label="Dispatches" inert>
     <div class="l-head">
-      <h2 class="display" data-i18n="ledger">THE LEDGER</h2>
+      <h2 class="display" data-i18n="ledger" tabindex="-1">THE LEDGER</h2>
       <div class="chips" role="radiogroup" data-i18n-aria="ariaFilter" aria-label="Filter">
         <button class="chip display" role="radio" aria-checked="true" data-chip="all" data-i18n="chipAll">ALL</button>
         <button class="chip display" role="radio" aria-checked="false" data-chip="salon" data-i18n-title="salonWing" tabindex="-1">SALON</button>
@@ -678,6 +678,13 @@
       <ol id="plaques"></ol>
     </div>
   </aside>
+
+<!-- The key plate, shown and hidden with "?". Rows are written by app.js
+     so the gate count and the language are always current. -->
+<aside id="keyplate" aria-labelledby="keyplate-title" hidden>
+  <h2 id="keyplate-title" class="kp-title display">KEYS</h2>
+  <div class="kp-rows"></div>
+</aside>
 
 <!-- Ledger scrim — dims the hall when the drawer is open; click to close -->
 <div id="ledger-scrim" aria-hidden="true"></div>
@@ -714,7 +721,7 @@
       <span class="l-label l-salon display" data-i18n-title="salonWing">SALON</span>
       <span class="l-label l-bureau display" data-i18n-title="bureauWing">BUREAU</span>
     </div>
-    <div id="lever" role="switch" aria-checked="false" tabindex="0"
+    <div id="lever" role="switch" aria-checked="false" tabindex="0" aria-keyshortcuts="W"
          data-i18n-aria="ariaLever" data-i18n-title="ariaLever"
          aria-label="Mode lever: off = Salon, on = Bureau">
       <!-- The arm hit zone rides above the box so clicks land only where
