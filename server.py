@@ -13,8 +13,10 @@ Time contract: every dispatch `ts` is epoch **milliseconds**.
 from __future__ import annotations
 
 import asyncio
+import hashlib
 import json
 import logging
+import mimetypes
 import os
 import re
 import subprocess
@@ -41,6 +43,13 @@ from starlette.middleware.trustedhost import TrustedHostMiddleware
 ROOT = Path(__file__).resolve().parent
 STATE_DIR = ROOT / "state"
 STATIC_DIR = ROOT / "static"
+
+# StaticFiles guesses types from the platform table, and Python 3.11 on this
+# Windows box has no entry for these, so the faces and the texture tiles went
+# out as text/plain.
+mimetypes.add_type("font/ttf", ".ttf")
+mimetypes.add_type("font/woff2", ".woff2")
+mimetypes.add_type("image/webp", ".webp")
 
 HOST = "127.0.0.1"
 DEFAULT_PORT = 8769
@@ -1337,7 +1346,10 @@ async def cache_headers(request: Request, call_next):
             return PlainTextResponse("Not Found", status_code=404)
         raise
     if request.url.path.startswith("/static/fonts/"):
-        resp.headers["Cache-Control"] = "public, max-age=31536000, immutable"
+        # A week, not a year-long immutable: the font URLs are never stamped
+        # (the preload must match @font-face byte for byte), so a replaced
+        # face has to be able to reach a browser that already holds the old.
+        resp.headers["Cache-Control"] = "public, max-age=604800"
     elif request.url.path.startswith("/static/"):
         # StaticFiles sends an ETag and a Last-Modified but no Cache-Control,
         # which lets a browser apply heuristic freshness and skip asking at
@@ -1349,13 +1361,13 @@ async def cache_headers(request: Request, call_next):
 _ASSET_REF = re.compile(r'(href|src)="(/static/[^"?#]+)"')
 
 
-def _serve_page(page: Path) -> HTMLResponse:
+def _serve_page(page: Path, request: Request) -> HTMLResponse:
     """Send the page with its stylesheets and scripts stamped by mtime.
 
     A changed asset becomes a different URL, so a browser holding last
     week's CSS can never pair it with today's markup, whether or not it
-    decides to revalidate. The page itself goes out no-cache (it still
-    revalidates into a 304; it is just never served from cache unasked).
+    decides to revalidate. The page itself goes out no-cache with an ETag
+    over the stamped HTML, so a revisit revalidates into a 304.
     """
     def stamp(m: re.Match[str]) -> str:
         # Fonts are immutable and preloaded: the preload URL has to match
@@ -1369,12 +1381,16 @@ def _serve_page(page: Path) -> HTMLResponse:
         return f'{m.group(1)}="{m.group(2)}?v={int(asset.stat().st_mtime)}"'
 
     html = _ASSET_REF.sub(stamp, page.read_text(encoding="utf-8"))
-    return HTMLResponse(html, headers={"Cache-Control": "no-cache"})
+    etag = '"%s"' % hashlib.blake2b(html.encode("utf-8"), digest_size=12).hexdigest()
+    headers = {"Cache-Control": "no-cache", "ETag": etag}
+    if request.headers.get("if-none-match") == etag:
+        return HTMLResponse(status_code=304, headers=headers)
+    return HTMLResponse(html, headers=headers)
 
 
 @app.get("/")
-async def index():
-    return _serve_page(STATIC_DIR / "index.html")
+async def index(request: Request):
+    return _serve_page(STATIC_DIR / "index.html", request)
 
 
 @app.get("/api/services")
