@@ -65,8 +65,8 @@ var STR = {
     'k.anime.imported': 'Imported by hand',
     'k.anime.unresolved': 'No release group matched yet',
     'k.anime.grace': 'Waiting for the preferred group',
-    'k.autopilot.stalled.head': 'The sync daemon has stopped',
-    'k.autopilot.stalled': 'Last pass {since}, stalled {hours}h and counting',
+    'k.autopilot.stalled.head': 'The sync daemon looks stalled',
+    'k.autopilot.stalled': 'Last pass {since}, silent {hours} {hours|hour|hours} and counting',
     'k.autopilot.stalled.fresh': 'Last pass {since}, and nothing has landed since',
     'k.autopilot.qb_down.head': 'qBittorrent is unreachable',
     'k.autopilot.qb_down': 'Downloads stay paused until it answers again',
@@ -94,6 +94,7 @@ var STR = {
     'k.bourse.canary': '{sym} momentum turned negative, sheltering part of the book',
     'k.bourse.allclear.head': 'Watchtower all clear',
     'k.bourse.allclear': 'Every canary healthy, back on offense',
+    dayTime: '{day}, {time}',
     worksSub: 'Readings from the engine room',
     wkCpu: 'PROCESSOR', wkMem: 'MEMORY', wkGpu: 'GRAPHICS', wkNet: 'TRAFFIC',
     wkHours: 'HOURS RUN', wkDisk: 'STORE', wkFree: '{n} FREE',
@@ -188,7 +189,7 @@ var STR = {
     'stat.tools': '架上 {n} 件工具',
     'stat.orders_await': '{n} 条指令候审', 'stat.brief_of': '证券所晨报 {date}',
     'note.qb_down': 'qBittorrent 不可达，下载已暂停',
-    'note.daemon_stale': '同步守护进程疑似卡住',
+    'note.daemon_stale': '同步守护进程疑似停摆',
     'note.fallback': '服务器离线，正在直读状态文件',
     'note.digest_stale': '这一期晨报已超过一天未更新',
     'note.slow': '仍在运行，只是应答迟缓',
@@ -203,8 +204,8 @@ var STR = {
     'k.anime.imported': '已手动入库',
     'k.anime.unresolved': '尚未匹配到字幕组源',
     'k.anime.grace': '等待首选字幕组中',
-    'k.autopilot.stalled.head': '同步守护进程已停摆',
-    'k.autopilot.stalled': '最后一轮 {since}，已停摆 {hours} 小时',
+    'k.autopilot.stalled.head': '同步守护进程疑似停摆',
+    'k.autopilot.stalled': '最后一轮 {since}，已沉寂 {hours} 小时',
     'k.autopilot.stalled.fresh': '最后一轮 {since}，此后再无剧集入库',
     'k.autopilot.qb_down.head': 'qBittorrent 不可达',
     'k.autopilot.qb_down': '下载将保持暂停，直到它恢复响应',
@@ -232,6 +233,7 @@ var STR = {
     'k.bourse.canary': '{sym} 动量转负，部分仓位转入避险',
     'k.bourse.allclear.head': '瞭望塔解除警报',
     'k.bourse.allclear': '金丝雀全数安好，恢复进攻',
+    dayTime: '{day} {time}',
     worksSub: '本机运转实况',
     wkCpu: '处理器', wkMem: '内存', wkGpu: '显卡', wkNet: '网络',
     wkHours: '已运转', wkDisk: '存储', wkFree: '余 {n}',
@@ -2945,6 +2947,14 @@ function briefDay(iso) {
     { month: 'short', day: 'numeric' }).format(new Date(+m[1], m[2] - 1, +m[3]));
 }
 
+/* "2026-09-21 22:10" on the wire (the daemon's last_sync), "Sep 21, 22:10"
+   / "9月21日 22:10" on the card, dated as every other card is. */
+function passDay(stamp) {
+  var m = /^(\d{4}-\d{2}-\d{2})[ T](\d{2}:\d{2})/.exec(stamp || '');
+  var day = m ? briefDay(m[1]) : '';
+  return day ? t('dayTime', { day: day, time: m[2] }) : (stamp || '');
+}
+
 /* Every line here must stay true after its day ends: a plaque filed under
    EARLIER is read tomorrow, so no string says "today". */
 function headline(d) {
@@ -2966,7 +2976,8 @@ function headline(d) {
       return { head: p.title, detail: t('k.anime.grace') };
     case 'autopilot.stalled':
       return { head: t('k.autopilot.stalled.head'),
-               detail: t(p.hours >= 1 ? 'k.autopilot.stalled' : 'k.autopilot.stalled.fresh', p),
+               detail: t(p.hours >= 1 ? 'k.autopilot.stalled' : 'k.autopilot.stalled.fresh',
+                         { since: passDay(p.since), hours: p.hours }),
                warn: true };
     case 'autopilot.qb_down':
       return { head: t('k.autopilot.qb_down.head'), detail: t('k.autopilot.qb_down'), warn: true };
