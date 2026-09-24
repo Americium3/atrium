@@ -304,6 +304,14 @@ html[lang="zh"] .display { letter-spacing: 0.26em; }
               background-color 0.4s, border-color 0.4s;
 }
 
+/* The theme crossfade (resolveTheme): the old hall, captured as a picture,
+   fades out over the new one in 400ms. Under it the flip lands with every
+   transition cut, so the new hall is drawn once, already finished. */
+::view-transition-old(root),
+::view-transition-new(root) { animation-duration: 0.4s; }
+:root.theme-cut, :root.theme-cut *,
+:root.theme-cut *::before, :root.theme-cut *::after { transition: none !important; }
+
 /* ==========================================================================
    HALL LAYOUT
    ========================================================================== */

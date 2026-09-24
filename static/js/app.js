@@ -3752,14 +3752,39 @@ prefs.addEventListener('click', function (e) {
 });
 
 var mq = matchMedia('(prefers-color-scheme: dark)');
+/* The theme changes as one picture. Flipping data-theme under the scoped
+   colour transitions never made a crossfade: the wall, floor, pilasters and
+   dado are gradients, which cannot interpolate, so they jumped at once
+   while the arches, clock and masthead were still fading; and the ~1,100
+   transitions it started (310 on the clock's chapter ring alone) restyled
+   the whole tree every frame, at 6-25 fps, after a ~280ms stall.
+   Now the old hall is captured as an image and the new one fades in over it
+   (a view transition, 400ms, css ::view-transition-*). Beneath the image the
+   flip itself lands with every transition cut (.theme-cut), so the new hall
+   is drawn once, finished, and nothing restyles per frame. Where a view
+   transition is unavailable, or motion is reduced, the flip is simply
+   instant: still one picture, never half and half. */
 function resolveTheme() {
   var pref = root.dataset.themePref || 'system';
   var dark = pref === 'onyx' || (pref === 'system' && mq.matches);
   var next = dark ? 'onyx' : 'ivory';
-  if (root.dataset.theme !== next) {
-    themeBusy = true;
+  if (root.dataset.theme === next) return;
+  themeBusy = true;
+  setTimeout(function () { themeBusy = false; }, 420);
+  var flip = function () {
+    root.classList.add('theme-cut');
     root.dataset.theme = next;
-    setTimeout(function () { themeBusy = false; }, 420);
+  };
+  var uncut = function () { root.classList.remove('theme-cut'); };
+  if (document.startViewTransition && root.dataset.motion !== 'reduced') {
+    var vt = document.startViewTransition(flip);
+    // By `ready` the new hall has been drawn under the cut, so lifting it
+    // starts nothing; the old picture is still fading over it.
+    vt.ready.then(uncut, uncut);
+  } else {
+    flip();
+    void root.offsetWidth;   // the flip's style change happens under the cut
+    uncut();
   }
 }
 function setThemePref(pref) {
