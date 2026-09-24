@@ -453,6 +453,44 @@ html[lang="zh"] #masthead .p-caption { letter-spacing: 0.3em; }
 }
 
 /* ==========================================================================
+   THE THROW: the room's leaf eases across with the wordmark
+   ==========================================================================
+   The lever re-leafs every fixture through --lead-*, and a custom property
+   swaps in one frame: the marquee's channel and returns, the frieze panels
+   and the aisle pilasters went from gold to nickel on the first frame of
+   the throw while the wordmark took 450ms and the arches 1.3s (MO-5). On
+   these containers the leaf is a registered colour that transitions, and
+   everything inside reads it as --lead-*, so the new leaf eases in with
+   the wordmark's crossfade. Only these small subtrees restyle while it
+   runs; the rest of the hall keeps the plain swap. */
+@property --eased-lead-0 { syntax: "<color>"; inherits: true; initial-value: #000; }
+@property --eased-lead-1 { syntax: "<color>"; inherits: true; initial-value: #000; }
+@property --eased-lead-2 { syntax: "<color>"; inherits: true; initial-value: #000; }
+@property --eased-lead-3 { syntax: "<color>"; inherits: true; initial-value: #000; }
+@property --eased-lead-4 { syntax: "<color>"; inherits: true; initial-value: #000; }
+@property --eased-lead-5 { syntax: "<color>"; inherits: true; initial-value: #000; }
+#ticker, .m-frieze, .aisle-wall {
+  --eased-lead-0: var(--au-0); --eased-lead-1: var(--au-1); --eased-lead-2: var(--au-2);
+  --eased-lead-3: var(--au-3); --eased-lead-4: var(--au-4); --eased-lead-5: var(--au-5);
+  --lead-0: var(--eased-lead-0); --lead-1: var(--eased-lead-1); --lead-2: var(--eased-lead-2);
+  --lead-3: var(--eased-lead-3); --lead-4: var(--eased-lead-4); --lead-5: var(--eased-lead-5);
+  transition: --eased-lead-0 0.45s ease, --eased-lead-1 0.45s ease, --eased-lead-2 0.45s ease,
+              --eased-lead-3 0.45s ease, --eased-lead-4 0.45s ease, --eased-lead-5 0.45s ease;
+}
+:root[data-wing="bureau"] :is(#ticker, .m-frieze, .aisle-wall) {
+  --eased-lead-0: var(--ag-0); --eased-lead-1: var(--ag-1); --eased-lead-2: var(--ag-2);
+  --eased-lead-3: var(--ag-3); --eased-lead-4: var(--ag-4); --eased-lead-5: var(--ag-5);
+}
+/* The frieze panels and the cornice are also taken down to nickel by a
+   filter over their baked gilt relief; the filter eases with the leaf. */
+.m-frieze {
+  transition: --eased-lead-0 0.45s ease, --eased-lead-1 0.45s ease, --eased-lead-2 0.45s ease,
+              --eased-lead-3 0.45s ease, --eased-lead-4 0.45s ease, --eased-lead-5 0.45s ease,
+              filter 0.45s ease;
+}
+.wall-cornice { transition: filter 0.45s ease; }
+
+/* ==========================================================================
    THE BACK WALL
    ========================================================================== */
 :root[data-theme="onyx"] {

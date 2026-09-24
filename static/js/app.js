@@ -1623,8 +1623,16 @@ function fillSpan(node, x0, x1, firstBay, edge) {
    lands a pilaster hard against each edge of the board, so the board reads
    as set into the wall rather than stuck onto it. */
 function fillWall(node, width, hole, firstBay, inner) {
+  // A throw of the lever re-solves the stage and lands here with the same
+  // wall. Rebuilt, every pilaster was new and took the Bureau's leaf in one
+  // frame, so its own fill transition never ran (MO-5); the same wall is
+  // left standing. The bay numbers are lettered, so the language counts.
+  var key = [width, hole ? hole.join(',') : '', firstBay, inner, uiScale(), lang].join('|');
+  if (node.dataset.fill === key) return +node.dataset.used;
   node.textContent = '';
   node.style.setProperty('--aw', Math.max(0, width) + 'px');
+  node.dataset.fill = key;
+  node.dataset.used = '0';
   if (width <= 0) return 0;
   var spans = [];
   if (hole && hole[1] > 0 && hole[0] < width) {
@@ -1639,6 +1647,7 @@ function fillWall(node, width, hole, firstBay, inner) {
   spans.forEach(function (sp) {
     used += fillSpan(node, sp[0], sp[1], firstBay + used, sp[2]);
   });
+  node.dataset.used = String(used);
   return used;
 }
 
