@@ -435,8 +435,8 @@ var quietFocus = false;
 /* Arm a card so resting on it marks its dispatch read. Touch is excluded on
    purpose: a tap fires pointerenter, which would mark dispatches read for
    the crime of being scrolled past under a thumb. Keyboard gets the same
-   deal as the pointer — focus IS the caret coming to rest, so it marks at
-   once rather than after a dwell nobody could see.
+   deal as the pointer: focus IS the caret coming to rest, so it needs no
+   dwell, and the mark lands when the caret moves on.
    The dwell starts on a pointermove that actually moved, never on
    pointerenter: a card that slides under a pointer resting on the hall was
    not reached by the reader, and the drawer opening over a parked mouse
@@ -470,9 +470,21 @@ function armDwell(node, id) {
     }, DWELL_MS);
   });
   node.addEventListener('pointerleave', cancel);
+  // The caret resting on a card reads it, but the mark lands as the caret
+  // leaves. Struck on arrival, the card had already lost its "unread" by the
+  // time a screen reader built the focus announcement, so a keyboard reader
+  // never heard which dispatches were new. Focus the hall moved here (the
+  // focused card left the feed) does not count; a card the reader reached
+  // keeps its claim when a poll moves it and the hall puts focus back.
+  var reached = false;
   node.addEventListener('focusin', function () {
     cancel();
-    if (!quietFocus) markRead(id);
+    if (!quietFocus) reached = true;
+  });
+  node.addEventListener('focusout', function (e) {
+    if (!reached || node.contains(e.relatedTarget)) return;
+    reached = false;
+    markRead(id);
   });
 }
 

@@ -802,8 +802,10 @@ opening the dispatch url.
 - **Read is what the pointer rested on**: an unread card carries a jewel
   lamp in its holder's corner (champagne at night, gold glass by day); the Ledger itself always shows the full window. A
   dispatch is marked read when the pointer has rested on its card for
-  **420 ms**, when it is focused by keyboard, or when it is followed through
-  to its service, or when the reader presses the stamp. Nothing else marks
+  **420 ms**, when the keyboard caret has rested on it (the mark lands as
+  the caret moves on, so a screen reader still hears "unread" on arrival),
+  when it is followed through to its service, or when the reader presses
+  the stamp. Nothing else marks
   anything: opening or closing the drawer clears no plaque, because a card
   three screens down was not read by the act of shutting a drawer over it.
   Two localStorage keys back this: `atrium.read`
