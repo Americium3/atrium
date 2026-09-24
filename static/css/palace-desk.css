@@ -320,8 +320,16 @@
 .lever-svg .lv-ferrule-top { fill: #fff; opacity: 0.35; }
 .lever-svg .lv-steel { fill: url(#dk-steel); }
 .lever-svg .lv-wear { fill: url(#dk-grip-wear); }
-.lever-svg .lv-hot { fill: #fff; opacity: 0.55; }
-.lever-svg .lv-rim { fill: var(--st-3); opacity: 0.35; }
+/* The hot line fades out toward both ends and dips a little in the worn
+   middle, where the hand has dulled the polish. */
+.dk-hot-0, .dk-hot-5 { stop-color: var(--st-hot); stop-opacity: 0; }
+.dk-hot-1, .dk-hot-4 { stop-color: var(--st-hot); stop-opacity: 0.95; }
+.dk-hot-2, .dk-hot-3 { stop-color: var(--st-hot); stop-opacity: 0.7; }
+.dk-hot2-0, .dk-hot2-3 { stop-color: var(--st-3); stop-opacity: 0; }
+.dk-hot2-1, .dk-hot2-2 { stop-color: var(--st-3); stop-opacity: 1; }
+.lever-svg .lv-hot { fill: url(#dk-hot); opacity: 0.7; }
+.lever-svg .lv-hot2 { fill: url(#dk-hot2); opacity: 0.2; }
+.lever-svg .lv-rim { fill: url(#dk-hot2); opacity: 0.45; }
 .lever-svg .lv-cap { fill: url(#dk-dome); }
 .lever-svg .lv-badge-sh { fill: #000; opacity: 0.6; }
 .lever-svg .lv-badge { fill: url(#dk-brass); }

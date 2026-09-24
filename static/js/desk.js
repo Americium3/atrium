@@ -499,6 +499,8 @@ function buildLever(lv) {
   grad(defs, 'dk-wing-hi', false, { x1: 0, y1: 0, x2: 1, y2: 0 }, [0, 0.22, 0.34, 0.62, 1]);
   grad(defs, 'dk-brass', false, { gradientUnits: 'userSpaceOnUse', x1: 0, y1: 94, x2: 0, y2: 134 }, [0, 0.12, 0.5, 1]);
   grad(defs, 'dk-grip-wear', false, { gradientUnits: 'userSpaceOnUse', x1: 0, y1: 14, x2: 0, y2: 58 }, [0, 0.35, 0.65, 1]);
+  grad(defs, 'dk-hot', false, { gradientUnits: 'userSpaceOnUse', x1: 0, y1: 16.4, x2: 0, y2: 55.6 }, [0, 0.16, 0.42, 0.58, 0.84, 1]);
+  grad(defs, 'dk-hot2', false, { gradientUnits: 'userSpaceOnUse', x1: 0, y1: 19.5, x2: 0, y2: 52.5 }, [0, 0.3, 0.7, 1]);
 
   // the catch handle, behind the grip, and its rod down to the catch block
   add(lv, 'path', { d: 'M76 21C84.5 22 86.5 25 86.5 31V49C86.5 53.5 84 56 78 56.5' }, 'lv-catch');
@@ -529,8 +531,18 @@ function buildLever(lv) {
   // the grip: polished steel, a turned cylinder, bright where the hand goes
   add(lv, 'rect', { x: 62.5, y: 14, width: 15, height: 44, rx: 7.5 }, 'lv-steel');
   add(lv, 'rect', { x: 62.5, y: 14, width: 15, height: 44, rx: 7.5 }, 'lv-wear');
-  add(lv, 'rect', { x: 66.1, y: 18, width: 1.3, height: 36, rx: 0.65 }, 'lv-hot');
-  add(lv, 'rect', { x: 73.6, y: 20, width: 0.8, height: 32, rx: 0.4 }, 'lv-rim');
+  // The lamp's reflection runs down the cylinder as a lens: full in the
+  // middle, drawn to a point and faded where the barrel turns into its
+  // rounded ends. A second, broader and fainter one is the room behind the
+  // reader; the rim light hugs the far edge.
+  var lens = function (x, y0, y1, hw) {
+    var k = (y1 - y0) * 0.2;
+    return 'M' + x + ' ' + y0 + 'C' + n2(x + hw * 1.33) + ' ' + n2(y0 + k) + ' ' + n2(x + hw * 1.33) + ' ' + n2(y1 - k) + ' ' + x + ' ' + y1 +
+           'C' + n2(x - hw * 1.33) + ' ' + n2(y1 - k) + ' ' + n2(x - hw * 1.33) + ' ' + n2(y0 + k) + ' ' + x + ' ' + y0 + 'Z';
+  };
+  add(lv, 'path', { d: lens(71.9, 19.5, 52.5, 1.25) }, 'lv-hot2');
+  add(lv, 'path', { d: lens(66.8, 16.4, 55.6, 0.62) }, 'lv-hot');
+  add(lv, 'path', { d: lens(73.95, 20, 52, 0.42) }, 'lv-rim');
   add(lv, 'ellipse', { cx: 70, cy: 16.2, rx: 6.2, ry: 2.4 }, 'lv-cap');
 
   // the badge: brass, engraved and filled black
