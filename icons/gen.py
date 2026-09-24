@@ -83,6 +83,14 @@ APPS = {
 # not the badge, or the standalone window shows a seam at the title bar.
 CHROME_BG = {'autopilot': '#1a0e06'}
 
+# The colour an installed app window shows before the page paints. It
+# defaults to the chrome colour, but the hall's chrome is its gilt and its
+# page is never gilt: a launch showed a field of flat gold for the 350-450 ms
+# before either theme's ground came up. The theme cannot be known before the
+# page runs, so the window waits on Onyx's ground, the house the night
+# entrance opens on.
+SPLASH_BG = {'atrium': '#0c0a07'}
+
 
 def reel(R=46, r=9, n=6):
     """Film-reel disc: one closed path whose rim is scalloped by n concave
@@ -317,7 +325,7 @@ def build(app, outdir):
             'short_name': APPS[app]['short'],
             'start_url': '/',
             'display': 'standalone',
-            'background_color': chrome_bg,
+            'background_color': SPLASH_BG.get(app, chrome_bg),
             'theme_color': chrome_bg,
             'icons': [
                 {'src': 'icon-192.png', 'sizes': '192x192', 'type': 'image/png'},

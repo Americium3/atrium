@@ -37,6 +37,7 @@ var STR = {
     minAgoSr: '{n} {n|minute|minutes} ago', hAgoSr: '{n} {n|hour|hours} ago',
     dAgoSr: '{n} {n|day|days} ago',
     linesOpen: 'LINES OPEN {n}/{m}',
+    tickerMore: '{n} MORE IN THE LEDGER',
     hubLost: 'NO WORD FROM THE HUB',
     ledgerUnreadable: 'The Ledger could not be read',
     ledgerStale: 'NO WORD SINCE {t}',
@@ -76,6 +77,7 @@ var STR = {
     'k.autopilot.qb_down.head': 'qBittorrent is unreachable',
     'k.autopilot.qb_down': 'Downloads stay paused until it answers again',
     'k.unknown': 'Fresh word from this hall. Refresh the page to read it in full',
+    'k.unknown.head': 'A newly registered hall',
     'k.mods.updated': 'Workshop update · {game}',
     'k.mods.updated.nogame': 'Workshop update',
     'k.mods.removed': 'Delisted from the Workshop',
@@ -177,22 +179,23 @@ var STR = {
     chipAll: '全部',
     allDark: '大厅熄灯，没有可达的服务。',
     today: '今日', earlier: '更早',
-    empty: '暂无快讯',
+    empty: '暂无消息',
     darkNotice: '未点亮。用此脚本启动：{hint}',
     darkLaunch: '用此脚本启动',
     lampOpen: '已点亮', lampDark: '离线', lampChecking: '检查中',
     justNow: '刚刚', minAgo: '{n} 分钟前', hAgo: '{n} 小时前', dAgo: '{n} 天前',
     minAgoSr: '{n} 分钟前', hAgoSr: '{n} 小时前', dAgoSr: '{n} 天前',
     linesOpen: '线路畅通 {n}/{m}',
+    tickerMore: '消息总台另有 {n} 条',
     hubLost: '中枢没有回音',
     ledgerUnreadable: '消息总台暂时读不出来',
     ledgerStale: '{t} 之后没有回音',
     'desc.autopilot': '当季新番，睡着也替你追完入库。',
-    'desc.groundstation': '创意工坊 Mod 尽在轨道监测之中。',
+    'desc.groundstation': '工坊 Mod 追踪，更新在轨截获。',
     'desc.outreach': '今日的引荐名单，已备好草稿待发。',
     'desc.pressroom': '昨夜的世界，天亮前已排版付印。',
     'desc.arsenal': '一张游戏实用小工具的工作台。',
-    'desc.bourse': '每日行情晨报，排好名次候审。',
+    'desc.bourse': '每日行情简报，排好名次候审。',
     'desc.fallback': '新登记的厅室。',
     'desc.vacant': '留给下一间厅。',
     'stat.airing': '今日 {n} 部放送', 'stat.watching': '在看 {n} 部',
@@ -200,7 +203,7 @@ var STR = {
     'stat.queue': '队列 {done}/{total}', 'stat.invited': '已发 {n}/{target}',
     'stat.stories': '{n} 条 · {m} 栏',
     'stat.tools': '架上 {n} 件工具',
-    'stat.orders_await': '{n} 条指令候审', 'stat.brief_of': '证券所晨报 {date}',
+    'stat.orders_await': '{n} 条指令候审', 'stat.brief_of': '{date}简报',
     'note.qb_down': 'qBittorrent 不可达，下载已暂停',
     'note.daemon_stale': '同步守护进程疑似停摆',
     'note.fallback': '服务器离线，正在直读状态文件',
@@ -223,6 +226,7 @@ var STR = {
     'k.autopilot.qb_down.head': 'qBittorrent 不可达',
     'k.autopilot.qb_down': '下载将保持暂停，直到它恢复响应',
     'k.unknown': '该厅室有新消息。刷新页面即可完整阅读',
+    'k.unknown.head': '新登记的厅室',
     'k.mods.updated': '创意工坊更新 · {game}',
     'k.mods.updated.nogame': '创意工坊更新',
     'k.mods.removed': '已从创意工坊下架',
@@ -237,7 +241,7 @@ var STR = {
     'k.outreach.error': '请到 Outreach Desk 查看',
     'k.press.digest_ready.head': '晨报已出版',
     'k.press.digest_ready': '{stories} 条新闻，分 {sections} 栏',
-    'k.bourse.briefing.head': '证券所晨报已付印',
+    'k.bourse.briefing.head': '行情简报已付印',
     'k.bourse.briefing': '{date}版：{orders} 条指令待你审阅',
     'k.bourse.briefing.hold': '{date}版：无操作，按兵不动',
     'k.bourse.briefing.nodate': '{orders} 条指令待你审阅',
@@ -299,9 +303,9 @@ var STR = {
     almSrLonger: '比昨日长 {m} 分 {s} 秒',
     almSrShorter: '比昨日短 {m} 分 {s} 秒',
     leverDesc: '关：点亮沙龙翼（娱乐）。开：点亮事务翼（工作）。',
-    ariaFilter: '筛选快讯', ariaClose: '关闭',
+    ariaFilter: '筛选消息', ariaClose: '关闭',
     ariaLedgerClose: '合上消息总台',
-    ariaGates: '门廊', ariaLedger: '消息总台：快讯时间轴',
+    ariaGates: '门廊', ariaLedger: '消息总台：时间轴',
     ariaWorks: '运转统计：本机实时读数',
     ariaAlmanac: '天象：本厅上空的日月与天气',
     salonWing: '沙龙翼（娱乐）', bureauWing: '事务翼（工作）',
@@ -3584,10 +3588,11 @@ lever.addEventListener('keydown', function (e) {
 /* ========================================================================
    Status / stats
    ======================================================================== */
-/* What the live region last said about the lines. A DARK gate's launch
-   notice is said through the same region, so its text is no guide to what
-   was last announced: compared against it, an unchanged count was said a
-   second time on the next poll after any notice. */
+/* What the live region last said about the lines. It is compared against
+   this, never against the region's text: a DARK gate's launch notice used
+   to be said through the same region, and an unchanged count was said a
+   second time on the next poll after any notice. The notice has its own
+   region now, #gate-say. */
 var hallSaid = '';
 
 function applyStatuses() {
@@ -3788,11 +3793,14 @@ function headline(d) {
   }
   // A kind this page has never heard of — a hall deployed a new dispatch
   // while this tab sat open. Name the hall instead of leaking the raw kind.
+  // A hall the registry does not list yet is called what a new gate's
+  // fallback description calls it. Its origin is an internal id, and a
+  // card used to be headed "spaceidle".
   var svc = null;
   for (var i = 0; i < services.length; i++) {
     if (services[i].id === d.origin) { svc = services[i]; break; }
   }
-  return { head: (svc ? svc.name : d.origin), detail: t('k.unknown') };
+  return { head: (svc ? svc.name : t('k.unknown.head')), detail: t('k.unknown') };
 }
 
 /* Ages are floored, as a person reads a clock: rounding put "60 min ago" on
@@ -4357,6 +4365,10 @@ function selectChip(chip) {
 var TICKER_PX_S = 50;
 /* Reduced motion: the band stands still and turns a page this often. */
 var TICKER_PAGE_MS = 6000;
+/* The band carries this many unread dispatches and counts the rest into the
+   Ledger. A week's window can hold sixty, and at the crawl's pace a band
+   carrying them all would take minutes to come round. */
+var TICKER_NEW_MAX = 6;
 var tickerKey = null;      // what the band on screen says
 var tickerLang = null;     // ...and in which language
 var tickerBox = '';        // the band width and engraving it was laid out for
@@ -4386,16 +4398,22 @@ function tickerModel() {
   });
   // A dispatch keeps its title and its detail apart: they are often in two
   // scripts, and each is tagged for its own voice (AT-11).
-  var fresh = feed.filter(isNew).slice(0, 6).map(function (d) {
+  var unread = feed.filter(isNew);
+  var fresh = unread.slice(0, TICKER_NEW_MAX).map(function (d) {
     var h = headline(d);
     return [h.head, h.detail];
   });
+  // The rest are counted, not dropped: the band used to stop at the sixth
+  // while the hatch's tooltip counted seven, and nothing said where the
+  // seventh had gone.
+  var more = unread.length - fresh.length;
   var paged = root.dataset.motion === 'reduced';
   var said = segs.map(function (g) { return g.hall ? g.hall + '\u0003' + g.text : g; });
   return {
-    segs: segs, fresh: fresh, paged: paged,
+    segs: segs, fresh: fresh, more: more, paged: paged,
     key: [lang, paged ? 'r' : 'f', said.join('\u0001'),
-          fresh.map(function (f) { return f.join(' · '); }).join('\u0001')].join('\u0002')
+          fresh.map(function (f) { return f.join(' · '); }).join('\u0001'),
+          more].join('\u0002')
   };
 }
 
@@ -4478,6 +4496,7 @@ function applyTicker(m) {
   }
   var items = m.segs.map(function (s) { return seg(s); })
     .concat(m.fresh.map(dispatchSeg));
+  if (m.more > 0) items.push(seg(t('tickerMore', { n: m.more })));
   if (!items.length) items = [seg('—')];
   items.forEach(function (n) {
     if (track.childNodes.length) track.appendChild(sep());
@@ -4628,7 +4647,29 @@ function fetchJson(url) {
 var hubLost = false;
 var RETRY_MS = 15000;      // after a miss, ask again well inside the 45 s beat
 var retryT = null;
-var refreshSeq = 0, appliedSeq = 0;
+var refreshSeq = 0, appliedSeq = 0, registrySeq = 0;
+
+/* The registry as last built into gates, verbatim. The hub serves it from
+   memory, and it changes only when the hub comes back with a different
+   SERVICES. The hall is the start page and stays open across that, and it
+   used to read the registry once: a retired service kept a gate on "…" and
+   held LINES OPEN at 5/6 over five open lines, and a new one had no gate
+   and headed its dispatch with its raw id until a reload. */
+var registryBuilt = null;
+function applyRegistry(payload) {
+  var list = payload && Array.isArray(payload.services) ? payload.services : null;
+  if (!list) return;                 // not a registry: the gates standing stay
+  var sig = JSON.stringify(list);
+  if (sig === registryBuilt) return;
+  registryBuilt = sig;
+  // A rebuild replaces every gate, and the one the reader was on with it.
+  var ae = document.activeElement;
+  var on = ae && ae.closest ? ae.closest('#gates .gate') : null;
+  services = list;
+  renderGates();
+  var back = on && document.getElementById(on.id);
+  if (back && back !== on && !back.closest('[inert]')) back.focus({ preventScroll: true });
+}
 
 function refresh() {
   // The dateline was written once at load, so a hall left open overnight
@@ -4637,13 +4678,16 @@ function refresh() {
   clearTimeout(retryT);
   var seq = ++refreshSeq;
   var none = function () { return null; };
-  // Self-heal a failed boot: if the registry never arrived (hub restarting
-  // when the tab loaded), retry it on the regular poll cadence.
-  var reg = services.length ? Promise.resolve(null)
-    : fetchJson('/api/services').then(function (payload) {
-        services = payload.services || [];
-        if (services.length) renderGates();
-      }).catch(none);
+  // The registry is asked for on every poll, beside the rest rather than
+  // ahead of it. Asked first, a hub that took the connection and hung cost
+  // the boot the whole fetch timeout twice (once here, once for the
+  // status behind it) before anything said the hub was gone. It is applied
+  // the moment it lands, so the gates stand before a slow status arrives.
+  var reg = fetchJson('/api/services').then(function (payload) {
+    if (seq < registrySeq) return;   // an older answer never undoes a newer one
+    registrySeq = seq;
+    applyRegistry(payload);
+  }).catch(none);
   return Promise.all([
     reg,
     fetchJson('/api/status').catch(none),
@@ -5157,7 +5201,11 @@ window.addEventListener('storage', function (e) {
   } else if (e.key === 'atrium.lang') {
     if ((e.newValue === 'zh' ? 'zh' : 'en') !== lang) setLang(e.newValue);
   } else if (e.key === 'atrium.motion') {
-    root.dataset.motionPref = e.newValue || 'system';
+    // Validated as the pre-paint script validates it. Taken as it came, a
+    // stray value ("fast") ran the hall on a motion no rule knows, and with
+    // no radio checked the Motion group dropped out of the Tab ring.
+    root.dataset.motionPref = (e.newValue === 'full' || e.newValue === 'reduced')
+      ? e.newValue : 'system';
     resolveMotion();
   } else if (e.key === 'atrium.ui') {
     root.dataset.ui = (e.newValue === 's' || e.newValue === 'l') ? e.newValue : 'm';
@@ -5459,17 +5507,13 @@ if (new URLSearchParams(location.search).get('steam') === '1' && deskNozzle) {
   });
 }
 
-var hallBuilt = fetchJson('/api/services').then(function (payload) {
-  services = payload.services || [];
-  renderGates();
-  return refresh();
-}).catch(function () {
-  // Hub API unreachable. Ask the rest at once rather than in 15 s: the boot
-  // used to sit silent that long, no gates, a blank band and an empty live
-  // region, before anything said the hub was not answering. refresh()
-  // retries the registry, says NO WORD FROM THE HUB and arms the retry.
-  return refresh();
-});
+// The first poll builds the hall: the registry and the readings are asked
+// for together, the gates go up as soon as the registry lands, and a hub
+// that does not answer is said to be gone when the first round gives up.
+// The boot used to ask for the registry alone and then again with the rest,
+// so a hub that took the connection and hung left the hall silent for two
+// fetch timeouts, no gates, a blank band and an empty live region.
+var hallBuilt = refresh();
 
 if (root.dataset.entered === 'no') {
   playEntrance(Promise.all([hallBuilt].concat(boardsRead)).catch(function () {}));
