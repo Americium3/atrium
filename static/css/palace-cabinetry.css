@@ -509,7 +509,10 @@
 .board .wk-strip, .board .al-strips .al-strip {
   position: relative;
   margin: 0.8cqw 0.4cqw 0;
-  padding: 0.18em 1.6em 0.12em;
+  /* the screws sit 5px in and are 6px across; the lettering keeps clear of
+     them by half an em, and no more, so STORE's value keeps to one line in a
+     300px aisle at the standard size */
+  padding: 0.18em calc(11px + 0.5em) 0.12em;
   background:
     linear-gradient(180deg, rgba(0, 0, 0, 0.14), transparent 30%),
     url('/static/assets/tex/grain-card.webp') 0 0 / 120px,
@@ -529,7 +532,18 @@
 }
 .board .wk-strip::before, .board .al-strips .al-strip::before { left: 5px; }
 .board .wk-strip::after, .board .al-strips .al-strip::after { right: 5px; }
-.board .wk-slabel, .board .al-slabel { color: #5a4c34; }
+/* A strip too narrow for its label and its value side by side (STORE at
+   SIGNBOARD in a 300px aisle) sets the value under the label, still to the
+   right. On one line it ran past the strip and under the screw. */
+.board .wk-strip, .board .al-strips .al-strip { flex-wrap: wrap; row-gap: 0; }
+.board .wk-sval, .board .al-strips .al-sval { margin-left: auto; }
+/* The label ink is dark enough to hold 4.5:1 on the ivorine once the grain
+   and the holder's shade are laid over it; #5a4c34 painted at 3.8. */
+.board .wk-slabel, .board .al-slabel { color: #43381f; }
+/* The Chinese face has one weight and hairline strokes, which the tracking
+   thins further (2.6:1 painted in that ink); a trace of its own ink round
+   every stroke brings it up to strength, as on the gates' day cards. */
+html[lang="zh"] .board .wk-slabel, html[lang="zh"] .board .al-strips .al-slabel { -webkit-text-stroke: 0.6px currentColor; }
 .board .wk-sval, .board .al-sval { color: var(--ivorine-ink); font-weight: 600; }
 
 /* ----- The apron and the maker's plate ------------------------------------ */
