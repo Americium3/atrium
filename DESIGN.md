@@ -659,9 +659,17 @@ Plaques are links opening the dispatch url.
   load; **no code path ties the lever to the chips** (R11). Chips are a
   radiogroup with arrow keys.
 - Empty state: small ornament + "No dispatches". Loading: hairline-pulse
-  plaques (no gray skeleton blocks).
+  plaques (no gray skeleton blocks), kept until the first feed lands, the
+  drawer opening included. A feed that could not be read says "The Ledger
+  could not be read" under the same ornament; only a feed that answered
+  empty may say "No dispatches". After one good read a failed poll keeps the
+  plaques, since a dispatch that happened is still true when the hub goes
+  quiet. The first feed landing in an open drawer falls in as the opening
+  cascade.
 - Client keys DOM nodes by dispatch id, so re-polls never re-animate existing
-  plaques; same-id dispatches update in place.
+  plaques; same-id dispatches update in place. A dispatch this page has
+  already shown does not play its arrival again after dropping out of one
+  poll (a hub restarting).
 
 ## Ticker (status band, not an echo)
 
@@ -728,10 +736,10 @@ Endpoints:
   mandatory per service; adapter and custom sigil optional (no adapter =
   lamp-only gate, no dispatches).
 - `GET /api/status`: served **from adapter caches** (no on-demand probing):
-  `{services: {id: {state: 'open'|'dark', latency_ms, note}}, generated}`
+  `{services: {id: {state: 'open'|'dark', latency_ms, note}}, generated, warm}`
 - `GET /api/feed`: `{dispatches: [{id, origin, wing, kind, params, ts,
-  url}], generated}`
-- `GET /api/stats`: `{stats: {id: {kind, params}}}` (piggybacked by client)
+  url}], generated, warm}`
+- `GET /api/stats`: `{stats: {id: {kind, params}}, warm}` (piggybacked by client)
 - `GET /api/works`: host instrumentation for the west board:
   `{cpu:{pct,cores}, mem:{pct,used_gb,total_gb}, gpu:{pct,used_gb,total_gb,
   util_pct,name}, net:{pct,down_mbs,up_mbs}, disk:{pct,free_gb,total_gb,
@@ -842,10 +850,33 @@ DARK, feed keeps others). File fallbacks catch `OSError` as well as
 `JSONDecodeError` (Windows sharing violations) and reuse the last good
 payload. Feed capped ~60 items, deduped by id, sorted ts desc.
 
+Warm-up: until the first round of adapter ticks has come back, every source
+is as its constructor left it (lamp checking, no dispatches, no stat).
+`/api/status`, `/api/feed` and `/api/stats` hold a request for up to
+`WARM_WAIT_S` (8 s) while that round is out, and every one of them carries
+`warm`, false when it had to answer before the round finished. A page that
+polled in that window used to take the empties as truth: the Ledger emptied,
+then replayed every plaque as an arrival on the next poll.
+
 ## Client polling
 
 `/api/feed` + `/api/status` (+stats) every 45 s, gated on
 `document.visibilityState`, immediate refetch on tab refocus.
+
+- Every request gives up after 12 s, so a hub that hangs is a failed poll
+  rather than one that never ends.
+- The hall says when it has lost touch. A `/api/status` that is refused,
+  errors, or returns a body that is not a status puts every lamp back to
+  "…", and the live region and the band say NO WORD FROM THE HUB instead of
+  a line count nobody can vouch for. A failed `/api/stats` takes the stat
+  lines off the gates. Holding the last good reading made a dead hub look
+  exactly like a healthy hall.
+- After a miss (or a cold payload, or a boot that could not reach the
+  registry) the hall asks again 15 s later instead of waiting out the beat.
+- A payload marked `warm: false` comes from a hub still on its first round
+  of adapter polls. Its empties mean "not asked yet", so it is not applied.
+- Polls overlap (the beat, a refocus, a retry); their answers apply in
+  order, and an older one never overwrites a newer one.
 
 ## Implementation notes (60 fps)
 

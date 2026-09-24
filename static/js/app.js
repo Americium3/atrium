@@ -33,6 +33,8 @@ var STR = {
     lampOpen: 'Reachable', lampDark: 'Offline', lampChecking: 'Checking',
     justNow: 'just now', minAgo: '{n} min ago', hAgo: '{n} h ago', dAgo: '{n} d ago',
     linesOpen: 'LINES OPEN {n}/{m}',
+    hubLost: 'NO WORD FROM THE HUB',
+    ledgerUnreadable: 'The Ledger could not be read',
     'desc.autopilot': 'Season anime, fetched and shelved while you sleep.',
     'desc.groundstation': 'Workshop mods tracked, updates caught in orbit.',
     'desc.outreach': "The day's introductions, briefed and dealt.",
@@ -162,6 +164,8 @@ var STR = {
     lampOpen: '已点亮', lampDark: '离线', lampChecking: '检查中',
     justNow: '刚刚', minAgo: '{n} 分钟前', hAgo: '{n} 小时前', dAgo: '{n} 天前',
     linesOpen: '线路畅通 {n}/{m}',
+    hubLost: '中枢没有回音',
+    ledgerUnreadable: '消息总台暂时读不出来',
     'desc.autopilot': '当季新番，睡着也替你追完入库。',
     'desc.groundstation': '创意工坊 Mod 尽在轨道监测之中。',
     'desc.outreach': '今日的引荐名单，已备好草稿待发。',
@@ -302,7 +306,15 @@ var statuses = {};
 var stats = {};
 var feed = [];
 var firstFeed = true;
+/* What the Ledger may claim. Until a feed has landed it is 'loading' and the
+   ghosts stay; a feed that could not be read is 'failed', which is not the
+   same fact as an empty window and must not say "No dispatches". */
+var feedState = 'loading';
 var plaqueEls = {};   // dispatch id -> element (re-polls never re-animate)
+/* Every dispatch id this page has shown. The plaque cache forgets an id the
+   moment it leaves the feed, so a dispatch that dropped out for one poll (a
+   hub restarting) came back playing 'arrive' as if it were news. */
+var seenIds = {};
 var chipFilter = 'all';   // session-only, resets to ALL on every load (R11)
 /* Ledger drawer state */
 var ledgerOpening = false;    // true only during openLedger() render pass
@@ -2870,11 +2882,14 @@ function applyStatuses() {
   // The hall is a picture; say out loud how many lines are open, so a screen
   // reader learns the same thing the lamps show. Only on change — a live
   // region rewritten every poll would announce itself every poll.
-  // Nothing is said until a status is known: before the first answer (or
-  // when /api/status fails) "LINES OPEN 0/6" was announced as fact.
+  // Nothing is said until a status is known: before the first answer
+  // "LINES OPEN 0/6" was announced as fact. A hub that stops answering is
+  // said out loud, and a hub still asking clears the old count rather than
+  // repeating a number it no longer knows.
   var st = $('#hall-status');
-  if (st && services.length && known) {
-    var msg = allDark ? t('allDark') : t('linesOpen', { n: openCount, m: services.length });
+  if (st && services.length) {
+    var msg = hubLost ? t('hubLost') : !known ? ''
+      : allDark ? t('allDark') : t('linesOpen', { n: openCount, m: services.length });
     if (st.textContent !== msg) st.textContent = msg;
   }
 }
@@ -3059,6 +3074,13 @@ function updatePlaque(li, d) {
 
 function renderLedger() {
   var ol = $('#plaques');
+  // Nothing is known yet, so nothing is claimed: the ghosts stay until the
+  // first feed lands. Opening the drawer used to wipe them and engrave "No
+  // dispatches" over a feed that was still on its way.
+  if (feedState === 'loading') {
+    if (!ol.querySelector('.ghost')) renderGhosts();
+    return;
+  }
   var shown = feed.filter(function (d) {
     return chipFilter === 'all' || d.wing === chipFilter;
   });
@@ -3085,11 +3107,15 @@ function renderLedger() {
   if (!shown.length) {
     Array.prototype.slice.call(ol.querySelectorAll('.daybreak'))
       .forEach(function (n) { n.parentNode.removeChild(n); });
-    var empty = el('li', 'l-empty');
+    // An unread feed is not an empty one. Only a feed that answered with
+    // nothing may say "No dispatches".
+    var failed = feedState === 'failed';
+    var empty = el('li', 'l-empty' + (failed ? ' l-failed' : ''));
     var fl = svgUse('', '0 0 60 40', '#fleuron');
     empty.appendChild(fl);
-    empty.appendChild(el('div', 'zh-sentence', t('empty')));
+    empty.appendChild(el('div', 'zh-sentence', t(failed ? 'ledgerUnreadable' : 'empty')));
     ol.appendChild(empty);
+    feed.forEach(function (d) { seenIds[d.id] = 1; });
     return;
   }
   var midnight = new Date(); midnight.setHours(0, 0, 0, 0);
@@ -3158,8 +3184,10 @@ function renderLedger() {
       (function (el) {
         setTimeout(function () { el.classList.remove('cascading'); }, 1400);
       })(li);
-    } else if (fresh && !firstFeed) {
-      // Normal arrive animation on poll-driven new dispatch
+    } else if (fresh && !firstFeed && !seenIds[d.id]) {
+      // Normal arrive animation on poll-driven new dispatch. A plaque that
+      // is only coming back (the hub restarted and answered empty once) is
+      // not news, and nine of them replaying 'arrive' said it was.
       li.classList.add('arrive');
       li.addEventListener('animationend', function () {
         li.classList.remove('arrive');
@@ -3180,6 +3208,7 @@ function renderLedger() {
     if (node._dwellCancel && node.isConnected) node._dwellCancel();
     ol.insertBefore(node, at || null);
   });
+  feed.forEach(function (d) { seenIds[d.id] = 1; });
 }
 
 var badgeCount = 0;
@@ -3390,7 +3419,10 @@ function renderTicker() {
     var st = statuses[s.id];
     if (st && st.state !== 'checking') { known++; if (st.state === 'open') open++; }
   });
-  if (known) segs.push(t('linesOpen', { n: open, m: services.length }));
+  // A hub that stopped answering is the first thing the band says; a count
+  // of open lines it cannot vouch for is not said at all.
+  if (hubLost) segs.push(t('hubLost'));
+  else if (known) segs.push(t('linesOpen', { n: open, m: services.length }));
   services.forEach(function (s) {
     var txt = statText(s);
     if (txt) segs.push(txt);
@@ -3458,48 +3490,93 @@ function renderTicker() {
 /* ========================================================================
    Polling — 45 s, visibility-gated, immediate refetch on refocus
    ======================================================================== */
+/* Every request gives up after FETCH_MS. A hub that takes the connection and
+   then hangs left a poll pending for minutes, and a poll that never ends can
+   never report that it failed. Longer than the hub's own warm-up wait. */
+var FETCH_MS = 12000;
 function fetchJson(url) {
-  return fetch(url).then(function (r) {
+  var ctl = window.AbortController ? new AbortController() : null;
+  var timer = ctl ? setTimeout(function () { ctl.abort(); }, FETCH_MS) : null;
+  return fetch(url, ctl ? { signal: ctl.signal } : undefined).then(function (r) {
     if (!r.ok) throw new Error(url + ' -> ' + r.status);
     return r.json();
-  });
+  }).finally(function () { clearTimeout(timer); });
 }
+
+/* Whether the hall still hears its hub. The lamps, the stat lines and the
+   band used to hold the last good reading forever when /api/status stopped
+   answering, so a dead hub looked exactly like a healthy hall. */
+var hubLost = false;
+var RETRY_MS = 15000;      // after a miss, ask again well inside the 45 s beat
+var retryT = null;
+var refreshSeq = 0, appliedSeq = 0;
 
 function refresh() {
   // The dateline was written once at load, so a hall left open overnight
   // printed yesterday under a clock whose date aperture had already turned.
   renderDateline();
+  clearTimeout(retryT);
+  var seq = ++refreshSeq;
+  var none = function () { return null; };
   // Self-heal a failed boot: if the registry never arrived (hub restarting
   // when the tab loaded), retry it on the regular poll cadence.
   var reg = services.length ? Promise.resolve(null)
     : fetchJson('/api/services').then(function (payload) {
         services = payload.services || [];
         if (services.length) renderGates();
-      }).catch(function () { return null; });
+      }).catch(none);
   return Promise.all([
     reg,
-    fetchJson('/api/status').catch(function () { return null; }),
-    fetchJson('/api/feed').catch(function () { return null; }),
-    fetchJson('/api/stats').catch(function () { return null; })
+    fetchJson('/api/status').catch(none),
+    fetchJson('/api/feed').catch(none),
+    fetchJson('/api/stats').catch(none)
   ]).then(function (all) {
-    var res = all.slice(1);
-    if (res[0]) statuses = res[0].services || {};
-    if (res[2]) stats = res[2].stats || {};
+    // Polls overlap (the beat, a refocus, a retry); an answer to an older
+    // question never overwrites a newer one.
+    if (seq < appliedSeq) return;
+    appliedSeq = seq;
+    var st = all[1], fd = all[2], sx = all[3];
+    // A hub still on its first round of adapter polls answers with every
+    // group empty and every stat blank. That is the hub clearing its throat,
+    // not a reading: it emptied the Ledger and then replayed every plaque as
+    // an arrival. The last reading stands and the hall asks again shortly.
+    function cold(p) { return !!p && p.warm === false; }
+    // No answer, an error, or a body that is not a status: every lamp goes
+    // back to asking, and the band and the live region say why.
+    hubLost = !(st && st.services && typeof st.services === 'object');
+    statuses = hubLost ? {} : st.services;
+    if (!(sx && sx.stats && typeof sx.stats === 'object')) stats = {};
+    else if (!cold(sx)) stats = sx.stats;
     applyStatuses();
     applyStats();
-    if (res[1]) {
-      feed = res[1].dispatches || [];
+    if (fd && Array.isArray(fd.dispatches)) {
+      if (!cold(fd)) {
+        // The first feed landing in an open drawer falls in as the opening
+        // cascade would have; the drawer held its ghosts until now.
+        var falling = firstFeed && $('#ledger').classList.contains('open');
+        feed = fd.dispatches;
+        feedState = 'ok';
+        if (falling) { ledgerOpening = true; cascadeIndex = 0; }
+        renderLedger();
+        ledgerOpening = false;
+        firstFeed = false;
+      }
+    } else if (feedState !== 'ok') {
+      // Only a Ledger that never read says so. After a good read the plaques
+      // stay: a dispatch that happened is still true when the hub goes quiet.
+      feedState = 'failed';
       renderLedger();
-      firstFeed = false;
     }
     updateLedgerBadge();
     renderTicker();
+    if (hubLost || !fd || cold(st) || cold(fd) || cold(sx)) retryT = setTimeout(poll, RETRY_MS);
   });
 }
 
-setInterval(function () {
+function poll() {
   if (document.visibilityState === 'visible') refresh();
-}, 45000);
+}
+setInterval(poll, 45000);
 document.addEventListener('visibilitychange', function () {
   if (document.visibilityState !== 'visible') return;
   refresh();
@@ -3937,7 +4014,11 @@ fetchJson('/api/services').then(function (payload) {
   renderGates();
   return refresh();
 }).catch(function () {
-  // Hub API unreachable — leave ghosts; refresh() retries the registry.
+  // Hub API unreachable — leave ghosts; refresh() retries the registry, and
+  // sooner than the 45 s beat, which left the ghosts up that long before the
+  // Ledger could say it had not been read.
+  clearTimeout(retryT);
+  retryT = setTimeout(poll, RETRY_MS);
 }).then(function () {
   // Deep links run regardless of how the boot fetch fared. ?ledger=1 is the
   // debug-only twin of ?prefs=1 — the drawer is the one surface a headless
