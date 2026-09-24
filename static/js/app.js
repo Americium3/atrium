@@ -637,9 +637,9 @@ function deskNudge() {
 
 /* ========================================================================
    Signal desk — lever, gear train, steam (DESIGN.md v4.1). One scalar
-   --drive (0=salon, 1=bureau) written by a rAF driver onto :root; the
-   lever, both gears and the works board's movement all derive from it via
-   calc, so sync is structural.
+   --drive (0=salon, 1=bureau) written by a rAF driver onto #signal-desk;
+   the lever and both gears derive from it via calc, so sync is
+   structural.
    ======================================================================== */
 var desk = $('#signal-desk');
 var deskNozzle = $('#signal-desk .nozzle');
@@ -1280,9 +1280,14 @@ function easeWeighty(t) {
 }
 
 var deskRaf = null;
-function setDrive(v) { root.style.setProperty('--drive', v.toFixed(4)); }
+/* --drive is written on the desk, not on :root. Only the lever arm and the
+   two gears read it, and an inherited custom property changed on :root
+   restyles every element in the document: ~3,600 of them per frame, which
+   held the throw to 20-25 fps. On the desk it restyles the desk. */
+function setDrive(v) { if (desk) desk.style.setProperty('--drive', v.toFixed(4)); }
 function getDrive() {
-  var v = parseFloat(getComputedStyle(root).getPropertyValue('--drive'));
+  if (!desk) return 0;
+  var v = parseFloat(getComputedStyle(desk).getPropertyValue('--drive'));
   return isNaN(v) ? 0 : v;
 }
 

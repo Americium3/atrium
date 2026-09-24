@@ -1006,7 +1006,9 @@ away with them.
   pair, and the steam vent pipe with its collar. The assembly scales with
   the lettering (`0.72 + 0.28·--ui`).
 - **Drive**: one scalar `--drive` (0 = salon, 1 = bureau) written by a JS
-  rAF driver onto `:root`, so anything in the hall can read it; lever (±16°), gear A (90°) and pinion B (−180°, ratio
+  rAF driver onto `#signal-desk`. Only the desk reads it, and a custom
+  property changed on `:root` restyles the whole page on every frame of the
+  throw. Lever (±16°), gear A (90°) and pinion B (−180°, ratio
   −N_A/N_B) all derive via calc. Sync is structural. Meshing law: shared
   module, center distance = r_pA + r_pB, interleave phase
   `((1+N_A/N_B)·φ + 180 − 180/N_B) mod (360/N_B)` baked as a static
