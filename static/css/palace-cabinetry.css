@@ -1276,22 +1276,33 @@ html[lang="zh"] #ledger :is(.pl-head, .pl-detail, .pl-time, .chip, .l-close-cap,
     0 0 0 1px var(--pn-fillet), 0 0 0 3px transparent;
 }
 /* By day the panel read as a greige form: wells a few levels off the field,
-   each outlined by a 1px line. The wells are now let into the shagreen
-   behind ebonised fillets, a polished black moulding with the skylight on
-   its outer lip and a line of bone inside it, and the skin's scales stand up
-   in the raking light. */
+   each outlined by a 1px line, and then as a form with fieldsets: an even
+   black line round every well, round-cornered, the same weight on all four
+   sides. The wells are let into the shagreen behind ebonised mouldings
+   with a profile. Square and mitred at the corners, the bead's upper and
+   left faces turned to the skylight and the other two in shade, its outer
+   arris lit up and to the left; inside it the cove drops to black and a
+   line of bone catches the light before the well. The skin is laid once;
+   laid twice over itself it read as grey gravel. The border takes its
+   width out of the padding, so the well keeps its size. */
 :root[data-theme="ivory"] .p-group:not([data-control="replay"]) {
+  border-radius: 0;
+  border: calc(3px * var(--ui)) solid;
+  border-color: #4d4236 #120e0a #090706 #3a3027;
+  padding: calc(6px * var(--ui)) calc(9px * var(--ui)) calc(9px * var(--ui));
   background:
     radial-gradient(ellipse 90% 60% at 40% 0%, rgba(255, 255, 255, 0.22), transparent 70%),
-    /* the skin twice over itself, so its scales stand twice as proud */
-    url('/static/assets/tex/grain-shagreen.webp') 0 0 / 150px, url('/static/assets/tex/grain-shagreen.webp') 0 0 / 150px,
+    url('/static/assets/tex/grain-shagreen.webp') 0 0 / 150px,
     var(--well);
-  background-blend-mode: normal, soft-light, soft-light, normal;
+  background-blend-mode: normal, soft-light, normal;
   box-shadow:
-    inset 0 2px 6px rgba(40, 30, 16, 0.5), inset 1px 1px 0 rgba(40, 30, 16, 0.35),
-    inset 0 0 0 1px rgba(250, 244, 226, 0.55),
-    0 0 0 1px #0c0907, 0 0 0 3px #231a12,
-    -1px -1px 0 3.5px rgba(255, 252, 242, 0.95), 1px 1px 0 3.5px rgba(60, 46, 28, 0.55);
+    inset 0 0 0 1px #0c0907,
+    inset 0 0 0 2px rgba(240, 231, 206, 0.92),
+    inset 1px 2px 0 2px rgba(255, 253, 244, 0.55),
+    inset 0 4px 7px 1px rgba(40, 30, 16, 0.42),
+    0 0 0 1px #0c0907,
+    -1px -1px 0 1px rgba(255, 252, 242, 0.95),
+    1px 1px 0 1px rgba(60, 46, 28, 0.5);
 }
 :root[data-theme="ivory"] .p-sheet::before { border-width: 2.5px; opacity: 1; }
 /* The brackets were pale leaf on pale shagreen, the size of a thumbnail.
