@@ -84,6 +84,65 @@
           transform="rotate(45 150 96)" fill="none" stroke-width="1"/>
   </g>
 
+  <!-- Picture palace: shared paint for every proscenium. All gates share the
+       fanlight geometry (hub at 150,196, glass radius 113 on the 300x570
+       box), so one userSpace gradient per glass colour serves all six.
+       Stop colours come from CSS classes: var() does not resolve in
+       presentation attributes. -->
+  <radialGradient id="fl-amber" gradientUnits="userSpaceOnUse" cx="150" cy="196" r="113">
+    <stop offset="0" class="fl-amber s0"/><stop offset=".48" class="fl-amber s1"/>
+    <stop offset=".84" class="fl-amber s2"/><stop offset="1" class="fl-amber s3"/></radialGradient>
+  <radialGradient id="fl-rose" gradientUnits="userSpaceOnUse" cx="150" cy="196" r="113">
+    <stop offset="0" class="fl-rose s0"/><stop offset=".48" class="fl-rose s1"/>
+    <stop offset=".84" class="fl-rose s2"/><stop offset="1" class="fl-rose s3"/></radialGradient>
+  <radialGradient id="fl-celadon" gradientUnits="userSpaceOnUse" cx="150" cy="196" r="113">
+    <stop offset="0" class="fl-celadon s0"/><stop offset=".48" class="fl-celadon s1"/>
+    <stop offset=".84" class="fl-celadon s2"/><stop offset="1" class="fl-celadon s3"/></radialGradient>
+  <radialGradient id="fl-opal" gradientUnits="userSpaceOnUse" cx="150" cy="196" r="113">
+    <stop offset="0" class="fl-opal s0"/><stop offset=".48" class="fl-opal s1"/>
+    <stop offset=".84" class="fl-opal s2"/><stop offset="1" class="fl-opal s3"/></radialGradient>
+  <radialGradient id="fl-honey" gradientUnits="userSpaceOnUse" cx="150" cy="196" r="113">
+    <stop offset="0" class="fl-honey s0"/><stop offset=".48" class="fl-honey s1"/>
+    <stop offset=".84" class="fl-honey s2"/><stop offset="1" class="fl-honey s3"/></radialGradient>
+  <radialGradient id="fl-aqua" gradientUnits="userSpaceOnUse" cx="150" cy="196" r="113">
+    <stop offset="0" class="fl-aqua s0"/><stop offset=".48" class="fl-aqua s1"/>
+    <stop offset=".84" class="fl-aqua s2"/><stop offset="1" class="fl-aqua s3"/></radialGradient>
+  <!-- Unlit glass by day: it shows the sky it faces, pale at the head. -->
+  <linearGradient id="fl-day" gradientUnits="userSpaceOnUse" x1="0" y1="83" x2="0" y2="196">
+    <stop offset="0" class="fl-day s0"/><stop offset=".55" class="fl-day s1"/>
+    <stop offset="1" class="fl-day s2"/></linearGradient>
+  <!-- Etching: concentric frosted bands cut into the glass, every 9 units. -->
+  <radialGradient id="fl-etch" gradientUnits="userSpaceOnUse" cx="150" cy="196" r="9"
+                  spreadMethod="repeat">
+    <stop offset="0" class="fl-etch-s0"/><stop offset=".5" class="fl-etch-s1"/>
+    <stop offset="1" class="fl-etch-s0"/></radialGradient>
+  <!-- Leaf and glass grain, tiled in the portal's own units: an 88-unit
+       tile holds 8 x 8 leaves of 85 mm; the glass tooth is finer. -->
+  <pattern id="pt-gilt" patternUnits="userSpaceOnUse" width="88" height="88">
+    <image href="/static/assets/tex/grain-gilt.webp" width="88" height="88"/></pattern>
+  <pattern id="pt-frost" patternUnits="userSpaceOnUse" width="72" height="72">
+    <image href="/static/assets/tex/grain-frost.webp" width="72" height="72"/></pattern>
+  <!-- The fanlight's reflection of the room: one soft diagonal band. -->
+  <linearGradient id="fl-spec" gradientUnits="userSpaceOnUse" x1="70" y1="84" x2="190" y2="200">
+    <stop offset="0" class="fl-spec-s0"/><stop offset=".34" class="fl-spec-s0"/>
+    <stop offset=".44" class="fl-spec-s1"/><stop offset=".56" class="fl-spec-s0"/>
+    <stop offset="1" class="fl-spec-s0"/></linearGradient>
+  <!-- The hover sheen: one soft band of light travelling over the gilding. -->
+  <linearGradient id="p-sheen" x1="0" y1="0" x2="1" y2="0">
+    <stop offset="0" class="p-sheen-s0"/><stop offset=".5" class="p-sheen-s1"/>
+    <stop offset="1" class="p-sheen-s0"/></linearGradient>
+
+  <!-- Turned brass, seen as a cylinder: dark at both edges, the room's light
+       on the near-left face, a hot line where it faces the lamp. -->
+  <linearGradient id="cyl-lead" x1="0" y1="0" x2="1" y2="0">
+    <stop offset="0" class="cyl s0"/><stop offset=".22" class="cyl s1"/>
+    <stop offset=".36" class="cyl s2"/><stop offset=".62" class="cyl s3"/>
+    <stop offset="1" class="cyl s4"/></linearGradient>
+  <!-- Alabaster: lit from inside at night, stone by day. -->
+  <radialGradient id="alab" cx=".5" cy=".05" r=".95">
+    <stop offset="0" class="alab s0"/><stop offset=".45" class="alab s1"/>
+    <stop offset="1" class="alab s2"/></radialGradient>
+
   <!-- Registered services wear their own mark (see the generated block at the
        foot of this defs list). The fallback keystone is line art referenced
        through <use>, so its stroke must be currentColor for the host's CSS
@@ -504,7 +563,11 @@
   </header>
 
   <div id="ticker" aria-live="off" tabindex="0" data-i18n-aria="ariaTicker">
+    <!-- The marquee: milk glass between two rows of chaser bulbs. The bulbs
+         and the chase are scenery; the track is the only thing read. -->
+    <div class="t-bulbs t-top" aria-hidden="true"><div class="t-chase"></div></div>
     <div class="t-track" id="ticker-track"></div>
+    <div class="t-bulbs t-bot" aria-hidden="true"><div class="t-chase"></div></div>
   </div>
 
   <!-- ====================================================================
@@ -522,6 +585,7 @@
     <div id="backwall" aria-hidden="true">
       <div class="wall-field"></div>
       <div class="wall-cornice"></div>
+      <div class="wall-cove"></div>
       <div class="wall-dado"></div>
       <div class="aisle-wall wall-l"></div>
       <div class="aisle-wall wall-r"></div>
@@ -780,6 +844,7 @@
   </div>
 </div>
 
+<script src="/static/js/palace.js"></script>
 <script src="/static/js/clock.js"></script>
 <script src="/static/js/app.js"></script>
 <script>

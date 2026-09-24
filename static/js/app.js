@@ -1329,10 +1329,14 @@ function gateDomOrder() {
 function renderGates() {
   var wrap = $('#gates');
   wrap.textContent = '';
+  // One identity per gate, off a fixed hash of its id (palace.js): the
+  // archivolts, the relief programme, the fanlight and the velvet.
+  var idents = window.Palace ? window.Palace.identities(slots()) : {};
   gateDomOrder().forEach(function (svc, i) {
     // A reserved gate opens onto nothing, so it is not a link and not a tab
     // stop, and a screen reader has nothing to be told about it.
     var a = el(svc.vacant ? 'div' : 'a', 'gate' + (svc.vacant ? ' vacant' : ''));
+    var id = idents[svc.id] || {};
     a.id = 'gate-' + svc.id;
     if (svc.vacant) {
       a.setAttribute('aria-hidden', 'true');
@@ -1342,41 +1346,84 @@ function renderGates() {
     }
     a.dataset.service = svc.id;
     a.dataset.state = svc.vacant ? 'vacant' : 'checking';
+    a.dataset.wing = svc.wing;
+    a.dataset.velvet = id.velvet || 'claret';
+    a.dataset.glass = id.glass || 'amber';
+    // The day screen's title card: an intertitle border, the gate's own.
+    a.dataset.card = id.card || 'fans';
     a.style.setProperty('--gi', String(i));
+    a.style.setProperty('--folds', String(id.folds || 9));
+    a.style.setProperty('--fold-x', (id.foldX || 0) + '%');
 
     // 3D chain: pose (static wing tilt) > shell (pointer parallax) > flat
     // children — the intra-gate z-index stack survives inside the shell.
     var pose = el('div', 'g-pose');
     var shell = el('div', 'g-shell');
     shell.appendChild(el('div', 'g-back'));
-    shell.appendChild(svgClone('frame', '0 0 300 570', 'gate-frame'));
+    var ns = 'http://www.w3.org/2000/svg';
+    var portal = document.createElementNS(ns, 'svg');
+    portal.setAttribute('class', 'portal');
+    portal.setAttribute('viewBox', '0 0 300 570');
+    portal.setAttribute('aria-hidden', 'true');
+    if (window.Palace) portal.innerHTML = window.Palace.portal('p-' + svc.id, id);
+    shell.appendChild(portal);
 
     var face = el('div', 'face');
     // The gate wears the service's own mark — the same one its favicon, its
-    // taskbar tile and its own masthead show. One identity per service.
+    // taskbar tile and its own masthead show. One identity per service. It
+    // is mounted on the cartouche at the fanlight's hub.
     var sig = KNOWN_SIGILS[svc.sigil] ? svc.sigil : null;
     face.appendChild(sig
       ? svgUse('sigil mark', '0 0 96 96', '#mark-' + sig)
       : svgUse('sigil', '0 0 96 96', '#sig-fallback'));
-    face.appendChild(el('h3', 'g-name display', svc.name));
-    face.appendChild(el('p', 'g-desc', t(descKey(svc))));
+    // The name is signage on the transom: gilt behind black glass.
+    var sign = el('div', 'g-sign');
+    sign.appendChild(el('h3', 'g-name display', svc.name));
+    face.appendChild(sign);
+    // The house: the velvet tabs, the valance, the footlights and, before the
+    // show, the description thrown onto the closed curtain by the projector.
+    var house = el('div', 'g-house');
+    house.appendChild(el('div', 'g-screen'));
+    if (svc.vacant) house.appendChild(el('div', 'g-iron'));
+    house.appendChild(el('div', 'g-tab g-tab-l'));
+    house.appendChild(el('div', 'g-tab g-tab-r'));
+    house.appendChild(el('div', 'g-valance'));
+    house.appendChild(el('div', 'g-foot lit'));
+    house.appendChild(el('div', 'g-pool lit'));
+    house.appendChild(el('p', 'g-desc', t(descKey(svc))));
+    face.appendChild(house);
+    // The apron: the stage front, with the house's live line, its address
+    // and the lamp.
+    var apron = el('div', 'g-apron');
     var stat = el('div', 'g-stat');
     stat.appendChild(el('span', 'num-roll num', ''));
-    face.appendChild(stat);
-    face.appendChild(el('div', 'g-addr addr', svc.vacant ? '' : svc.addr));
+    apron.appendChild(stat);
+    apron.appendChild(el('div', 'g-addr addr', svc.vacant ? '' : svc.addr));
     var lamp = el('div', 'g-lamp');
     lamp.appendChild(el('span', 'lamp-d'));
     lamp.appendChild(el('span', 'lamp-t display', svc.vacant ? 'SHUT' : '…'));
-    face.appendChild(lamp);
+    apron.appendChild(lamp);
+    face.appendChild(apron);
     shell.appendChild(face);
 
     shell.appendChild(el('div', 'g-veil'));
-    shell.appendChild(el('div', 'sheen'));
-    // Polished-floor reflection: a second frame clone, flipped and masked.
+    // Waxed stone: the portal stands in the floor. The reflection is built
+    // from the portal's own values (gilt jambs, the velvet, the lit fanlight
+    // at the far end), each a soft gradient, so it needs no live blur.
     var mirror = el('div', 'g-mirror');
     mirror.setAttribute('aria-hidden', 'true');
-    mirror.appendChild(svgClone('', '0 0 300 570', 'gate-frame'));
+    if (window.Palace) {
+      var msvg = document.createElementNS(ns, 'svg');
+      msvg.setAttribute('class', 'mirror-art');
+      msvg.setAttribute('viewBox', '0 0 300 570');
+      msvg.setAttribute('preserveAspectRatio', 'none');
+      msvg.innerHTML = window.Palace.mirror('p-' + svc.id, id);
+      mirror.appendChild(msvg);
+    }
     shell.appendChild(mirror);
+    // At night a lit house spills its light out over the threshold onto the
+    // stone: a warm pool, lit with the fanlight, gone by day.
+    shell.appendChild(el('div', 'g-spill lit'));
     pose.appendChild(shell);
     a.appendChild(pose);
     // The launch-hint notice stays screen-flat, outside the tilt chain.
@@ -1409,7 +1456,11 @@ function gateClick(e, a, svc) {
     return;
   }
   a.classList.add('flash');
+  a.classList.add('opening');
   setTimeout(function () { a.classList.remove('flash'); }, 180);
+  // The tabs fly within the flash; they fall back once the new tab has the
+  // reader, so the house is closed again when they come back to the hall.
+  setTimeout(function () { a.classList.remove('opening'); }, 1600);
   setTimeout(function () {
     // Named window: each service reuses one tab instead of littering.
     window.open(svc.url, 'atrium-' + svc.id);
@@ -1545,35 +1596,116 @@ function uiScale() {
   return isFinite(v) && v > 0 ? v : 1;
 }
 
-/* One pilaster: stepped capital, fluted shaft, plinth block. */
-function pilaster(x) {
+/* One pilaster, picture-palace fashion: a panel of antique mirror between two
+   reeded gilt fillets, under a stepped gilt capital with a fan in relief and
+   over a black marble base. The mirror holds the room: the lamps come back in
+   it as soft vertical streaks, so each pilaster shows the light of its own
+   bay. Which streak, and how far along, is the pilaster's own (hash of its
+   position in the run). */
+function pilaster(x, k) {
   var d = el('div', 'pilaster');
   d.style.left = x + 'px';
-  var cap = svgEl('svg', { viewBox: '0 0 40 26', 'aria-hidden': 'true' }, 'pil-cap');
-  cap.appendChild(svgEl('path',
-    { d: 'M0 0 H40 V7 H36 V14 H34 V26 H6 V14 H4 V7 H0 Z' }));
+  var h = hash01((k || 0) * 131 + 17);
+  d.style.setProperty('--mx', (18 + h * 64).toFixed(1) + '%');
+  d.style.setProperty('--my', (hash01((k || 0) * 71 + 5) * 40).toFixed(1) + '%');
+  var cap = svgEl('svg', { viewBox: '0 0 40 30', 'aria-hidden': 'true' }, 'pil-cap');
+  [['M0 0 H40 V4 H0 Z', 'pc-abacus'], ['M0 0 H40 V1 H0 Z', 'pc-lit'],
+   ['M3 4 H37 V8 H3 Z', 'pc-shade'], ['M5 8 H35 V22 H5 Z', 'pc-bell'],
+   ['M7 22 H33 V26 H7 Z', 'pc-neck'], ['M6 26 H34 V30 H6 Z', 'pc-shade']
+  ].forEach(function (p) { cap.appendChild(svgEl('path', { d: p[0] }, p[1])); });
+  // the fan in the bell: seven rays out of a boss, cast and glazed
+  var rays = '';
+  for (var r = 0; r < 7; r++) {
+    var a0 = Math.PI + (r + 0.18) * Math.PI / 7, a1 = Math.PI + (r + 0.82) * Math.PI / 7;
+    rays += 'M20 21 L' + (20 + 12 * Math.cos(a0)).toFixed(2) + ' ' + (21 + 12 * Math.sin(a0)).toFixed(2) +
+            ' L' + (20 + 12 * Math.cos(a1)).toFixed(2) + ' ' + (21 + 12 * Math.sin(a1)).toFixed(2) + ' Z';
+  }
+  cap.appendChild(svgEl('path', { d: rays, transform: 'translate(.4 .6)' }, 'pc-rsh'));
+  cap.appendChild(svgEl('path', { d: rays }, 'pc-ray'));
+  cap.appendChild(svgEl('path', { d: 'M16 21 A4 4 0 0 1 24 21 Z' }, 'pc-boss'));
   var shaft = el('div', 'pil-shaft');
+  shaft.appendChild(el('div', 'pil-mirror'));
   var base = svgEl('svg', { viewBox: '0 0 40 22', 'aria-hidden': 'true' }, 'pil-base');
-  base.appendChild(svgEl('path',
-    { d: 'M6 0 H34 V8 H36 V15 H40 V22 H0 V15 H4 V8 H6 Z' }));
+  [['M4 0 H36 V3 H4 Z', 'pb-nose'], ['M4 0 H36 V1 H4 Z', 'pc-lit'],
+   ['M4 3 H36 V14 H4 Z', 'pb-block'], ['M0 14 H40 V17 H0 Z', 'pb-nose'],
+   ['M0 17 H40 V22 H0 Z', 'pb-block']
+  ].forEach(function (p) { base.appendChild(svgEl('path', { d: p[0] }, p[1])); });
   d.appendChild(cap); d.appendChild(shaft); d.appendChild(base);
   return d;
 }
 
-/* One sconce: bracket, stepped shell, a flame, and the pool it throws. */
+/* One torchiere: an alabaster bowl on a stepped gilt bracket. At night the
+   bowl glows through its own stone and throws a scalloped uplight on the
+   damask (the cut edge of a cone on a wall is a hyperbola, which is what
+   the wash's mask approximates), with a smaller pool below; by day the lamp
+   is out and the bowl is just carved stone catching the street light. */
 function sconce(x) {
   var d = el('div', 'sconce');
   d.style.left = x + 'px';
   d.appendChild(el('div', 'sc-pool'));
-  var svg = svgEl('svg', { viewBox: '0 0 46 56', 'aria-hidden': 'true' }, 'sc-body');
-  svg.appendChild(svgEl('path', { d: 'M23 3 V16' }, 'sc-bracket'));
-  svg.appendChild(svgEl('path', { d: 'M23 8 L28 25 H18 Z' }, 'sc-flame'));
-  svg.appendChild(svgEl('path', { d: 'M8 50 L13 25 H33 L38 50 Z' }, 'sc-shell'));
-  svg.appendChild(svgEl('path', { d: 'M11 39 H35 M12.6 32 H33.4' }, 'sc-step'));
-  svg.appendChild(svgEl('rect',
-    { x: '17', y: '50', width: '12', height: '4' }, 'sc-shell'));
+  d.appendChild(el('div', 'sc-down'));
+  var svg = svgEl('svg', { viewBox: '0 0 46 72', 'aria-hidden': 'true' }, 'sc-body');
+  [['M18 26 H28 V60 H18 Z', 'sc-plate'], ['M16 34 H30 V38 H16 Z', 'sc-plate'],
+   ['M16 52 H30 V56 H16 Z', 'sc-plate'], ['M19.5 60 H26.5 L23 70 Z', 'sc-plate'],
+   ['M18 26 H19 V60 H18 Z', 'sc-lit'],
+   ['M23 38 C23 32 23 30 23 27', 'sc-stem'],
+   ['M4 18 C6 30 14 36 23 36 C32 36 40 30 42 18 Z', 'sc-bowl'],
+   ['M9 20 C11 29 16 33 23 33.5 M37 20 C35 29 30 33 23 33.5 M16 19 C17 28 20 32 23 33.5 M30 19 C29 28 26 32 23 33.5', 'sc-flute'],
+   ['M3 16.5 H43 V19.5 H3 Z', 'sc-rim'], ['M3 16.5 H43 V17.3 H3 Z', 'sc-lit'],
+   ['M5 15.2 C12 13.4 34 13.4 41 15.2 L41 16.5 H5 Z', 'sc-mouth']
+  ].forEach(function (p) { svg.appendChild(svgEl('path', { d: p[0] }, p[1])); });
   d.appendChild(svg);
   return d;
+}
+
+/* The picture-palace foyer keeps its crowd in line with velvet rope on brass
+   posts. They stand along the near edge of the floor, the flanks only, so the
+   runner and the lever keep the middle. */
+function buildStanchions() {
+  var rail = $('.fl-rail');
+  if (!rail) return;
+  var W = rail.clientWidth, H = rail.clientHeight;
+  rail.textContent = '';
+  if (!W || !H) return;
+  var u = uiScale();
+  var svg = svgEl('svg', { viewBox: '0 0 ' + W + ' ' + H, width: W, height: H,
+                           'aria-hidden': 'true' });
+  var ropes = svgEl('g', {}, 'st-ropes'), posts = svgEl('g', {}, 'st-posts');
+  var pitch = 170 * u, top = H * 0.08, ropeY = H * 0.24, foot = H * 0.94;
+  var pw = Math.max(4, 6.5 * u);
+  [[W * 0.012, W * 0.255], [W * 0.745, W * 0.988]].forEach(function (sp, side) {
+    var n = Math.max(1, Math.round((sp[1] - sp[0]) / pitch));
+    var xs = [];
+    for (var i = 0; i <= n; i++) xs.push(sp[0] + (sp[1] - sp[0]) * i / n);
+    for (i = 0; i < n; i++) {
+      var x0 = xs[i] + pw * 0.9, x1 = xs[i + 1] - pw * 0.9, sag = H * (0.20 + 0.05 * hash01(i * 13 + side * 7));
+      var dRope = 'M' + x0.toFixed(1) + ' ' + ropeY.toFixed(1) + ' C' +
+        (x0 + (x1 - x0) * 0.3).toFixed(1) + ' ' + (ropeY + sag).toFixed(1) + ' ' +
+        (x0 + (x1 - x0) * 0.7).toFixed(1) + ' ' + (ropeY + sag).toFixed(1) + ' ' +
+        x1.toFixed(1) + ' ' + ropeY.toFixed(1);
+      ropes.appendChild(svgEl('path', { d: dRope, transform: 'translate(1.5 3)' }, 'st-rope-sh'));
+      ropes.appendChild(svgEl('path', { d: dRope }, 'st-rope'));
+      ropes.appendChild(svgEl('path', { d: dRope, transform: 'translate(0 -1.2)' }, 'st-rope-lt'));
+      // the brass snap hooks at either end of the rope
+      [x0, x1].forEach(function (hx) {
+        posts.appendChild(svgEl('circle', { cx: hx.toFixed(1), cy: ropeY.toFixed(1), r: (2.6 * u).toFixed(1) }, 'st-hook'));
+      });
+    }
+    xs.forEach(function (x) {
+      var bw = pw * 3.2, g = svgEl('g', {}, 'st-post');
+      g.appendChild(svgEl('ellipse', { cx: (x + 3).toFixed(1), cy: (foot + 2).toFixed(1), rx: (bw * 1.4).toFixed(1), ry: (bw * 0.34).toFixed(1) }, 'st-cast'));
+      g.appendChild(svgEl('ellipse', { cx: x.toFixed(1), cy: foot.toFixed(1), rx: bw.toFixed(1), ry: (bw * 0.28).toFixed(1) }, 'st-base'));
+      g.appendChild(svgEl('ellipse', { cx: x.toFixed(1), cy: (foot - bw * 0.14).toFixed(1), rx: (bw * 0.82).toFixed(1), ry: (bw * 0.2).toFixed(1) }, 'st-base-top'));
+      g.appendChild(svgEl('rect', { x: (x - pw / 2).toFixed(1), y: (top + pw).toFixed(1), width: pw.toFixed(1), height: (foot - top - pw).toFixed(1) }, 'st-shaft'));
+      g.appendChild(svgEl('rect', { x: (x - pw * 0.85).toFixed(1), y: (ropeY - pw * 0.6).toFixed(1), width: (pw * 1.7).toFixed(1), height: (pw * 1.2).toFixed(1), rx: (pw * 0.3).toFixed(1) }, 'st-shaft'));
+      g.appendChild(svgEl('circle', { cx: x.toFixed(1), cy: (top + pw * 0.3).toFixed(1), r: (pw * 1.05).toFixed(1) }, 'st-ball'));
+      g.appendChild(svgEl('circle', { cx: (x - pw * 0.35).toFixed(1), cy: (top - pw * 0.05).toFixed(1), r: (pw * 0.3).toFixed(1) }, 'st-spec'));
+      posts.appendChild(g);
+    });
+  });
+  svg.appendChild(ropes);
+  svg.appendChild(posts);
+  rail.appendChild(svg);
 }
 
 /* Lay a rhythm of bays across one clear stretch of wall, a pilaster at each
@@ -1584,8 +1716,10 @@ function fillSpan(node, x0, x1, firstBay) {
   if (w < 40 * u) return 0;
   var n = Math.max(1, Math.round(w / (300 * u)));
   var bay = w / n;
-  for (var i = 0; i <= n; i++) node.appendChild(pilaster(x0 + i * bay));
-  if (w < 90 * u) return 0;   // too tight to light or to letter
+  for (var i = 0; i <= n; i++) node.appendChild(pilaster(x0 + i * bay, firstBay * 7 + i));
+  // A bay narrower than a torchiere and its wash cannot be lit; anything
+  // wider is. (The old 90u floor left the owner's 3440 wall with no lamps.)
+  if (w < 70 * u) return 0;
   for (var j = 0; j < n; j++) {
     var mid = x0 + (j + 0.5) * bay;
     node.appendChild(sconce(mid));
@@ -1646,6 +1780,7 @@ function buildAisles() {
   var used = fillWall(wl, lw, boardHole($('#works'), bw.left), 1);
   fillWall(wr, rw, boardHole($('#almanac'), axis + reach), used + 1);
   sizeFloor();
+  buildStanchions();
   // The reflections are cast from the live arch boxes, so they are repainted
   // by whatever last moved them — a resize, a wing throw, a font swap.
   scheduleMirror(0);
@@ -1725,77 +1860,88 @@ function buildFloorInlay() {
   if (!host || host.firstChild) return;
   var C = 500, TAU = Math.PI * 2;
   var svg = svgEl('svg', { viewBox: '0 0 1000 1000', 'aria-hidden': 'true' });
-  var add = function (d, cls) { svg.appendChild(svgEl('path', { d: d }, cls)); };
+  var add = function (d, cls, op) {
+    var p = svgEl('path', { d: d }, cls);
+    if (op) p.setAttribute('opacity', op.toFixed(3));
+    svg.appendChild(p);
+  };
+  var ring = function (r) { svg.appendChild(svgEl('circle', { cx: C, cy: C, r: r, fill: 'none' }, 'st-strip')); };
+  var at = function (r, a) { return [C + Math.cos(a) * r, C + Math.sin(a) * r]; };
+  var P = function (p) { return p[0].toFixed(1) + ' ' + p[1].toFixed(1); };
 
-  // Outer border course: 64 setts, tone alternating.
-  for (var i = 0; i < 64; i++) {
-    add(ringSeg(C, C, 428, 470, (i / 64) * TAU, ((i + 1) / 64) * TAU),
-        i % 2 ? 'st-b' : 'st-a');
+  // The picture-palace medallion: a foyer floor, not a compass and not a
+  // wheel. Three calm fields of named stone (Nero, Rosso Levanto, Siena)
+  // carry concentrated ornament: a bead course, a ring of twelve fans
+  // opening outward, stepped petals, a rosette. Every slab is its own block
+  // (tone jittered off the fixed hash), every joint a brass strip.
+  add(ringSeg(C, C, 432, 474, 0, TAU - 0.0001), 'st-b');
+  for (var i = 0; i < 60; i++) {
+    var a0 = (i / 60) * TAU;
+    add(ringSeg(C, C, 443, 463, a0 + 0.018, a0 + TAU / 60 - 0.018), 'st-d',
+        0.78 + hash01(i * 13 + 5) * 0.22);
   }
-  svg.appendChild(svgEl('circle', { cx: C, cy: C, r: 470, fill: 'none' }, 'st-strip'));
-  svg.appendChild(svgEl('circle', { cx: C, cy: C, r: 428, fill: 'none' }, 'st-strip'));
+  ring(474); ring(432);
 
-  // Two fields, not one. A single radial fan is a paper doily; a real
-  // medallion is banded, and it is the CONCENTRIC break that stops the eye
-  // spinning. Outer band on 32 divisions, inner field on 16, so the two
-  // courses are visibly different work rather than the same wedge twice.
-  [[336, 420, 32], [196, 330, 16]].forEach(function (band, bi) {
-    for (var w = 0; w < band[2]; w++) {
-      var seg = svgEl('path', {
-        d: ringSeg(C, C, band[0], band[1], (w / band[2]) * TAU - Math.PI / 2,
-                   ((w + 1) / band[2]) * TAU - Math.PI / 2)
-      }, (w % 2 ? 'st-a' : 'st-b'));
-      // No two slabs of the same stone come out of the same block.
-      seg.setAttribute('opacity',
-        (0.84 + hash01(w * 7 + bi * 91 + 3) * 0.16).toFixed(3));
-      svg.appendChild(seg);
+  // The fan course: Rosso ground, twelve Siena fans standing on its inner
+  // strip, ribs alternating Siena and white, a brass boss at each foot.
+  add(ringSeg(C, C, 322, 432, 0, TAU - 0.0001), 'st-a');
+  for (var f = 0; f < 12; f++) {
+    var ang = (f / 12) * TAU - Math.PI / 2;
+    var foot = at(328, ang), R = 94;
+    var u = [Math.cos(ang), Math.sin(ang)], t = [-Math.sin(ang), Math.cos(ang)];
+    var ribs = 7;
+    for (var k = 0; k < ribs; k++) {
+      var p0 = Math.PI * k / ribs, p1 = Math.PI * (k + 1) / ribs;
+      var q0 = [foot[0] + R * (Math.cos(p0) * t[0] + Math.sin(p0) * u[0]),
+                foot[1] + R * (Math.cos(p0) * t[1] + Math.sin(p0) * u[1])];
+      var q1 = [foot[0] + R * (Math.cos(p1) * t[0] + Math.sin(p1) * u[0]),
+                foot[1] + R * (Math.cos(p1) * t[1] + Math.sin(p1) * u[1])];
+      add('M' + P(foot) + ' L' + P(q0) + ' A' + R + ' ' + R + ' 0 0 0 ' + P(q1) + ' Z',
+          k % 2 ? 'st-d' : 'st-c', 0.84 + hash01(f * 31 + k * 7 + 1) * 0.16);
     }
-  });
-  svg.appendChild(svgEl('circle', { cx: C, cy: C, r: 333, fill: 'none' }, 'st-strip'));
-  // Eight bronze points laid OVER both fields: the star is cast metal set
-  // into the stone, which is what gives the medallion an axis and what the
-  // hall's own compass bearing hangs on.
-  for (var k = 0; k < 8; k++) {
-    var ang = (k / 8) * TAU - Math.PI / 2;
-    var R = k % 2 === 0 ? 412 : 322, spread = k % 2 === 0 ? 0.068 : 0.05;
-    svg.appendChild(svgEl('polygon', {
-      points: [C + Math.cos(ang) * R, C + Math.sin(ang) * R,
-               C + Math.cos(ang + spread) * 170, C + Math.sin(ang + spread) * 170,
-               C + Math.cos(ang - spread) * 170, C + Math.sin(ang - spread) * 170].join(' ')
-    }, k % 2 ? 'st-c' : 'st-bronze'));
+    // the fan's own brass rim and its boss
+    var e0 = [foot[0] + R * t[0], foot[1] + R * t[1]], e1 = [foot[0] - R * t[0], foot[1] - R * t[1]];
+    svg.appendChild(svgEl('path', { d: 'M' + P(e0) + ' A' + R + ' ' + R + ' 0 0 0 ' + P(e1), fill: 'none' }, 'st-strip'));
+    svg.appendChild(svgEl('circle', { cx: foot[0].toFixed(1), cy: foot[1].toFixed(1), r: 13 }, 'st-gold'));
   }
-  svg.appendChild(svgEl('circle', { cx: C, cy: C, r: 420, fill: 'none' }, 'st-hair'));
-  svg.appendChild(svgEl('circle', { cx: C, cy: C, r: 196, fill: 'none' }, 'st-strip'));
+  ring(322);
 
-  // Tessera ring, then the bronze boss with its own low relief.
-  for (var t = 0; t < 32; t++) {
-    add(ringSeg(C, C, 150, 186, (t / 32) * TAU, ((t + 0.62) / 32) * TAU),
-        t % 4 === 0 ? 'st-gold' : 'st-c');
+  // The inner field: Nero, eight stepped petals of Siena pointing out, a
+  // white lozenge between each pair.
+  add(ringSeg(C, C, 186, 322, 0, TAU - 0.0001), 'st-b');
+  for (var p = 0; p < 8; p++) {
+    var pa = (p / 8) * TAU - Math.PI / 2;
+    [[196, 0.25], [236, 0.18], [272, 0.11], [300, 0.05]].forEach(function (st, si) {
+      add(ringSeg(C, C, st[0], si < 3 ? [236, 272, 300][si] : 312, pa - st[1], pa + st[1]),
+          'st-c', 0.86 + hash01(p * 17 + si * 3) * 0.14);
+    });
+    var la = pa + TAU / 16, lc = at(262, la);
+    var L = function (r, da) { return at(r, la + da); };
+    add('M' + P(L(226, 0)) + ' L' + P(L(262, 0.07)) + ' L' + P(L(298, 0)) + ' L' + P(L(262, -0.07)) + ' Z', 'st-d');
   }
-  svg.appendChild(svgEl('circle', { cx: C, cy: C, r: 142 }, 'st-boss'));
-  svg.appendChild(svgEl('circle', { cx: C, cy: C, r: 142, fill: 'none' }, 'st-strip'));
-  var star = [];
-  for (var s = 0; s < 16; s++) {
-    var sa = (s / 16) * TAU - Math.PI / 2, sr = s % 2 ? 46 : 116;
-    star.push((C + Math.cos(sa) * sr).toFixed(1) + ',' + (C + Math.sin(sa) * sr).toFixed(1));
+  ring(186);
+
+  // The rosette: Rosso field, twelve petals of white, a bronze boss.
+  add(ringSeg(C, C, 0.01, 186, 0, TAU - 0.0001), 'st-a');
+  for (var r = 0; r < 12; r++) {
+    var ra = (r / 12) * TAU - Math.PI / 2, w = 0.2;
+    add('M' + P(at(62, ra)) + ' Q' + P(at(128, ra - w)) + ' ' + P(at(168, ra)) +
+        ' Q' + P(at(128, ra + w)) + ' ' + P(at(62, ra)) + ' Z', r % 2 ? 'st-c' : 'st-d');
   }
-  svg.appendChild(svgEl('polygon', { points: star.join(' ') }, 'st-bronze'));
-  svg.appendChild(svgEl('circle', { cx: C, cy: C, r: 30 }, 'st-gold'));
+  svg.appendChild(svgEl('circle', { cx: C, cy: C, r: 60 }, 'st-bronze'));
+  svg.appendChild(svgEl('circle', { cx: C, cy: C, r: 60, fill: 'none' }, 'st-strip'));
+  svg.appendChild(svgEl('circle', { cx: C, cy: C, r: 26 }, 'st-gold'));
   host.appendChild(svg);
 
   buildFloorRoundels();
   buildTerrazzo();
 }
 
-/* A hall floor is not one medallion and 2500px of blank stone: the aisles
-   get their own smaller roundels so the terrazzo carries a rhythm the whole
-   way across. Square-in-circle, a different construction from the medallion
-   so the floor reads as a SET of inlays rather than one motif stamped three
-   times - and cut from the same two stones, for the same reason.
-   Placed in PLANE space, which is 204% of the screen wide and shrinks
-   outward from the axis by the perspective divide. At the roundels' own
-   depth that works out to x_screen = 0.5 + (p - 0.5) * 1.58, so 30/70 of
-   the plane lands on the aisle axes at roughly 22/78 of the screen. */
+/* The aisle roundels: a smaller, calmer inlay of the same stones, built a
+   different way (a bead course round a lozenge) so the floor reads as a set
+   rather than one motif stamped three times. Placed in PLANE space, which is
+   204% of the screen wide and shrinks outward from the axis by the
+   perspective divide; 30/70 of the plane lands on the aisle axes. */
 function buildFloorRoundels() {
   var plane = $('.fl-plane');
   if (!plane) return;
@@ -1804,28 +1950,29 @@ function buildFloorRoundels() {
     var d = el('div', 'fl-round');
     d.style.left = pct + '%';
     var r = svgEl('svg', { viewBox: '0 0 400 400', 'aria-hidden': 'true' });
-    for (var j = 0; j < 24; j++) {
-      r.appendChild(svgEl('path',
-        { d: ringSeg(200, 200, 152, 190, (j / 24) * TAU, ((j + 1) / 24) * TAU) },
-        j % 2 ? 'st-b' : 'st-a'));
+    r.appendChild(svgEl('circle', { cx: 200, cy: 200, r: 190 }, 'st-b'));
+    r.appendChild(svgEl('path', { d: ringSeg(200, 200, 150, 172, 0, TAU - 0.0001) }, 'st-a'));
+    for (var j = 0; j < 28; j++) {
+      var a = (j / 28) * TAU;
+      r.appendChild(svgEl('circle', { cx: (200 + Math.cos(a) * 181).toFixed(1),
+        cy: (200 + Math.sin(a) * 181).toFixed(1), r: 4.2 }, 'st-d'));
     }
-    r.appendChild(svgEl('circle', { cx: 200, cy: 200, r: 190, fill: 'none' }, 'st-strip'));
-    r.appendChild(svgEl('circle', { cx: 200, cy: 200, r: 152, fill: 'none' }, 'st-strip'));
-    r.appendChild(svgEl('rect',
-      { x: 62, y: 62, width: 276, height: 276,
-        transform: 'rotate(' + (i ? -45 : 45) + ' 200 200)' }, 'st-c'));
-    r.appendChild(svgEl('rect', { x: 92, y: 92, width: 216, height: 216 }, 'st-b'));
-    r.appendChild(svgEl('rect',
-      { x: 92, y: 92, width: 216, height: 216, fill: 'none' }, 'st-hair'));
-    for (var k = 0; k < 8; k++) {
-      var a = (k / 8) * TAU;
-      r.appendChild(svgEl('polygon', {
-        points: [200 + Math.cos(a) * 138, 200 + Math.sin(a) * 138,
-                 200 + Math.cos(a + 0.15) * 42, 200 + Math.sin(a + 0.15) * 42,
-                 200 + Math.cos(a - 0.15) * 42, 200 + Math.sin(a - 0.15) * 42].join(' ')
-      }, k % 2 ? 'st-a' : 'st-c'));
+    [190, 172, 150].forEach(function (rr) {
+      r.appendChild(svgEl('circle', { cx: 200, cy: 200, r: rr, fill: 'none' }, 'st-strip'));
+    });
+    // a stepped lozenge of Siena, a Rosso heart, a white cross of petals
+    r.appendChild(svgEl('path', { d: 'M200 58 L342 200 L200 342 L58 200 Z' }, 'st-c'));
+    r.appendChild(svgEl('path', { d: 'M200 88 L312 200 L200 312 L88 200 Z' }, 'st-b'));
+    r.appendChild(svgEl('path', { d: 'M200 58 L342 200 L200 342 L58 200 Z', fill: 'none' }, 'st-strip'));
+    r.appendChild(svgEl('path', { d: 'M200 110 L290 200 L200 290 L110 200 Z' }, 'st-a'));
+    for (var k = 0; k < 4; k++) {
+      var ka = (k / 4) * TAU + (i ? Math.PI / 4 : 0);
+      var tip = [200 + Math.cos(ka) * 78, 200 + Math.sin(ka) * 78];
+      var sL = [200 + Math.cos(ka + 0.5) * 30, 200 + Math.sin(ka + 0.5) * 30];
+      var sR = [200 + Math.cos(ka - 0.5) * 30, 200 + Math.sin(ka - 0.5) * 30];
+      r.appendChild(svgEl('path', { d: 'M200 200 L' + sL.join(' ') + ' L' + tip.join(' ') + ' L' + sR.join(' ') + ' Z' }, 'st-d'));
     }
-    r.appendChild(svgEl('circle', { cx: 200, cy: 200, r: 34 }, 'st-gold'));
+    r.appendChild(svgEl('circle', { cx: 200, cy: 200, r: 22 }, 'st-gold'));
     d.appendChild(r);
     plane.appendChild(d);
   });
@@ -1879,17 +2026,10 @@ function paintFloorMirror() {
   if (!svg) return;
   var W = window.innerWidth || 1;
   var seen = [];
-  Array.prototype.forEach.call(document.querySelectorAll('#gates .gate'),
-  function (g) {
-    var r = g.getBoundingClientRect();
-    if (r.width > 4) {
-      seen.push({ dx: (r.left + r.width / 2) / W - 0.5, hw: r.width / W / 2,
-                  lit: g.classList.contains('active') });
-    }
-  });
-  // The clock, and the two aisle cases: everything hanging on the wall is in
-  // the floor, or the flanks read as dry stone next to a wet middle.
-  [['#clock', true, true], ['#works', false, false], ['#almanac', false, false]]
+  // The arches and the clock carry their own reflections now (the portal
+  // flipped in the wax, and the niche's own), so only the two aisle cases
+  // still need a smear here.
+  [['#works', false, false], ['#almanac', false, false]]
   .forEach(function (spec) {
     var e = $(spec[0]);
     if (!e) return;
@@ -3488,6 +3628,22 @@ lever.setAttribute('aria-checked', String(root.dataset.wing === 'bureau'));
 
 /* ?steam=1 (debug, not persisted): freeze a burst at four life stages so
    headless screenshots can QA the vapor without a pointer. */
+/* The marquee's chaser: every third bulb steps one pitch every 300 ms, at
+   night, in full motion, while the page is visible. */
+(function chaser() {
+  var tk = $('#ticker');
+  if (!tk) return;
+  var k = 0;
+  setInterval(function () {
+    if (document.hidden || root.dataset.motion !== 'full' || root.dataset.theme !== 'onyx') {
+      if (tk.dataset.chase !== '0') tk.dataset.chase = '0';
+      return;
+    }
+    k = (k + 1) % 3;
+    tk.dataset.chase = String(k);
+  }, 300);
+})();
+
 if (new URLSearchParams(location.search).get('steam') === '1' && deskNozzle) {
   [-100, -350, -650, -900].forEach(function (offset, i) {
     var p = document.createElement('div');
