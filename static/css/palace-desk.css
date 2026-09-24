@@ -776,12 +776,17 @@ html[data-entered="no"] #entrance.done-fade { pointer-events: none; cursor: auto
 .e-medal-ring { fill: url(#e-gilt); }
 .e-medal-field { fill: #2a060b; stroke: #0c0204; stroke-width: 2; }
 .e-medal-mark { color: #e2bd6a; }
-.e-circle {
-  stroke: #f0d48c; stroke-width: 3;
-  stroke-dasharray: 578; stroke-dashoffset: 578;
-}
-#entrance.play .e-circle { animation: e-draw 0.42s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
-@keyframes e-draw { to { stroke-dashoffset: 0; } }
+.e-circle { fill: none; stroke: #f0d48c; stroke-width: 3; }
+/* The gilt rings draw themselves by opacity alone (segmentRing() in
+   app.js): each arc fades in on its own beat, and the whole ring, the same
+   geometry, takes over from the arcs in one frame when they are all in. */
+.e-seg, #entrance .e-crest > .e-circle, .e-ring-whole { opacity: 0; }
+#entrance.play .e-seg { animation: e-in 70ms ease-out var(--d, 0ms) both; }
+#entrance.play .e-segs { animation: e-out 1ms linear 470ms both; }
+#entrance.play .e-crest > .e-circle,
+#entrance.play .e-ring-whole { animation: e-in 1ms linear 470ms both; }
+@keyframes e-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes e-out { from { opacity: 1; } to { opacity: 0; } }
 /* The house's name, in gilt letters appliqued under the crest. */
 .e-wordmark {
   position: absolute; left: 0; right: 0;
@@ -897,14 +902,11 @@ html[data-entered="no"] #entrance.done-fade { pointer-events: none; cursor: auto
 #entrance.spot .e-spot { opacity: 1; transform: none; }
 /* By day: a gilt ring drawn in the glare. */
 .e-ring { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
-.e-ring-c {
-  r: 34px;
-  stroke: #b08a2c; stroke-width: 1;
-  stroke-dasharray: 214; stroke-dashoffset: 214;
-  filter: drop-shadow(0 0.6px 0 rgba(255, 250, 230, 0.9)) drop-shadow(0 1px 1px rgba(60, 40, 10, 0.4));
-}
-#entrance.play .e-ring-c { animation: e-ring-draw 0.42s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
-@keyframes e-ring-draw { to { stroke-dashoffset: 0; } }
+/* A fine gilt line with its lit lower lip and a soft shadow under it, drawn
+   as three strokes rather than a filter, since the burst it rides in moves. */
+.e-ring-c { fill: none; stroke: #b08a2c; stroke-width: 1; }
+.e-ring-hi { fill: none; stroke: rgba(255, 250, 230, 0.9); stroke-width: 1; }
+.e-ring-sh { fill: none; stroke: rgba(60, 40, 10, 0.2); stroke-width: 2.2; }
 
 /* ----- Day: the street's light --------------------------------------------- */
 .e-flood {

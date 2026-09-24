@@ -558,6 +558,32 @@ function buildRays() {
                              transform: 'scale(2.7)' }, 'e-medal-mark'));
 }
 
+/* A gilt ring that draws itself round from twelve o'clock, by opacity
+   alone: short arcs, each fading in on its own beat (the beats bunch up at
+   the start, as an ease-out would), laid under the finished ring, which
+   is the same geometry and takes over in one frame once every arc is in,
+   so no seam between two arcs is left on the ring. Built once. */
+function segmentRing(whole, r, n, layers) {
+  if (!whole || (whole.previousSibling && whole.previousSibling.nodeType === 1 &&
+      whole.previousSibling.classList.contains('e-segs'))) return;
+  var g = eEl('g', {}, 'e-segs'), D = Math.PI / 180, T = 400;
+  var P = function (a) { return (r * Math.cos(a * D)).toFixed(2) + ' ' + (r * Math.sin(a * D)).toFixed(2); };
+  for (var i = 0; i < n; i++) {
+    // each arc runs a hair into the next, so none of the joins shows a gap
+    var a0 = -90 + i * 360 / n, a1 = a0 + 360 / n + 0.4;
+    var d = 'M' + P(a0) + 'A' + r + ' ' + r + ' 0 0 1 ' + P(a1);
+    var seg = eEl('g', {}, 'e-seg');
+    seg.style.setProperty('--d', Math.round(T * Math.pow(i / n, 1.9)) + 'ms');
+    layers.forEach(function (l) {
+      var at = { d: d };
+      if (l[1]) at.transform = 'translate(0 ' + l[1] + ')';
+      seg.appendChild(eEl('path', at, l[0]));
+    });
+    g.appendChild(seg);
+  }
+  whole.parentNode.insertBefore(g, whole);
+}
+
 /* The festoon: as the curtain flies out, the hem gathers between its lift
    lines into swags. One swag per ~300px of screen, each a velvet drape
    with its folds running up to the lift points and a bullion fringe. */
@@ -654,6 +680,7 @@ function playEntrance() {
     // The doors are open to the street and the curtain is already up: the
     // hall arrives as an exposure settling, with the sun's shafts in it,
     // while the gilt ring that drew itself in the glare docks.
+    segmentRing($('.e-ring-whole'), 34, 40, [['e-ring-sh', 1], ['e-ring-hi', 0.6], ['e-ring-c', 0]]);
     at(280, beat('expose'));
     at(900, dockEntrance);
     at(1400, beat('done-fade'));
@@ -661,6 +688,7 @@ function playEntrance() {
   } else {
     buildRays();
     buildSwag();
+    segmentRing($('.e-crest > .e-circle'), 92, 60, [['e-circle', 0]]);
     // The house is dark. The footlights come up along the curtain's hem.
     at(60, beat('foot'));
     // A follow spot opens on the crest; the rays catch it one by one.
