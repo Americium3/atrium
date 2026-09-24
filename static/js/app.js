@@ -126,6 +126,7 @@ var STR = {
     onyxDesc: 'Black & gold', ivoryDesc: 'Platinum & gold', systemDesc: 'Match the OS',
     motionFull: 'FULL', motionReduced: 'REDUCED',
     replay: 'REPLAY ENTRANCE',
+    replayDesc: 'Reloads the hall to play it once more',
     ariaTicker: 'Status band',
     ariaLever: 'Bureau wing',
     ariaDesk: 'Signal desk: mode lever',
@@ -143,6 +144,7 @@ var STR = {
     almSrMinutes: '{m} {m|minute|minutes} {s} {s|second|seconds}',
     leverDesc: 'Off lights the Salon, the play wing. On lights the Bureau, the work wing.',
     ariaFilter: 'Filter dispatches', ariaClose: 'Close',
+    ariaLedgerClose: 'Close the Ledger',
     ariaGates: 'Gates', ariaLedger: 'Ledger: dispatch timeline',
     ariaWorks: 'Statistics: live readings from this machine',
     ariaAlmanac: 'Almanac: sun, moon and weather over this hall',
@@ -259,6 +261,7 @@ var STR = {
     onyxDesc: '玄色与鎏金', ivoryDesc: '铂色与鎏金', systemDesc: '与操作系统一致',
     motionFull: '完整', motionReduced: '减弱',
     replay: '重播入场动画',
+    replayDesc: '重新载入大厅，再演一遍',
     ariaTicker: '状态带',
     ariaLever: '事务翼',
     ariaDesk: '信号台：模式拨杆',
@@ -276,6 +279,7 @@ var STR = {
     almSrMinutes: '{m} 分 {s} 秒',
     leverDesc: '关：点亮沙龙翼（娱乐）。开：点亮事务翼（工作）。',
     ariaFilter: '筛选快讯', ariaClose: '关闭',
+    ariaLedgerClose: '合上消息总台',
     ariaGates: '门廊', ariaLedger: '消息总台：快讯时间轴',
     ariaWorks: '运转统计：本机实时读数',
     ariaAlmanac: '天象：本厅上空的日月与天气',
@@ -2455,51 +2459,11 @@ var WK_DIALS = [
 var works = null;
 var worksTimer = null;
 
-/* One enamel dial: knurled bezel, engraved 0..100 face, a red sector over
-   the last fifth, and the needle on the spring settle the CSS gives it. */
+/* One instrument per reading. The drawing lives in cabinetry.js (bezel,
+   enamel, scale, red arc, needle and crystal); the needle still turns on the
+   spring settle the CSS gives .g-needle, from the --gauge set below. */
 function buildDial(key) {
-  var svg = svgEl('svg', { viewBox: '0 0 100 100', 'aria-hidden': 'true' }, 'wk-dial');
-  svg.appendChild(svgEl('circle', { cx: 50, cy: 50, r: 46, 'stroke-width': 1.5 }, 'g-bezel'));
-  svg.appendChild(svgEl('circle', { cx: 50, cy: 50, r: 41, 'stroke-width': 1 }, 'g-bezel'));
-  var knurl = svgEl('g', { 'stroke-width': 1 }, 'g-knurl');
-  for (var i = 0; i < 36; i++) {
-    var a = i * 10 * Math.PI / 180;
-    knurl.appendChild(svgEl('line', {
-      x1: (50 + 42 * Math.sin(a)).toFixed(2), y1: (50 - 42 * Math.cos(a)).toFixed(2),
-      x2: (50 + 45 * Math.sin(a)).toFixed(2), y2: (50 - 45 * Math.cos(a)).toFixed(2)
-    }));
-  }
-  svg.appendChild(knurl);
-  svg.appendChild(svgEl('circle', { cx: 50, cy: 50, r: 40 }, 'g-dial'));
-  var pt = function (v, r) {
-    var a = (-120 + 2.4 * v) * Math.PI / 180;
-    return (50 + r * Math.sin(a)).toFixed(2) + ' ' + (50 - r * Math.cos(a)).toFixed(2);
-  };
-  // Red sector over the last fifth of the scale.
-  svg.appendChild(svgEl('path', {
-    d: 'M ' + pt(85, 35) + ' A 35 35 0 0 1 ' + pt(100, 35), fill: 'none'
-  }, 'g-red'));
-  for (var j = 0; j <= 20; j++) {
-    var major = j % 5 === 0;
-    var a2 = (-120 + 12 * j) * Math.PI / 180;
-    var inner = major ? 28 : 32;
-    svg.appendChild(svgEl('line', {
-      x1: (50 + inner * Math.sin(a2)).toFixed(2), y1: (50 - inner * Math.cos(a2)).toFixed(2),
-      x2: (50 + 37 * Math.sin(a2)).toFixed(2), y2: (50 - 37 * Math.cos(a2)).toFixed(2),
-      'stroke-width': major ? 1.8 : 0.9
-    }, 'g-tick'));
-    if (!major) continue;
-    var tx = svgEl('text', {
-      x: (50 + 20 * Math.sin(a2)).toFixed(2),
-      y: (50 - 20 * Math.cos(a2) + 4).toFixed(2),
-      'text-anchor': 'middle'
-    });
-    tx.textContent = String(j * 5);
-    svg.appendChild(tx);
-  }
-  svg.appendChild(svgEl('line', { x1: 50, y1: 62, x2: 50, y2: 19, 'stroke-width': 2 }, 'g-needle'));
-  svg.appendChild(svgEl('circle', { cx: 50, cy: 50, r: 4 }, 'g-hub'));
-  return svg;
+  return window.Cabinet.dial(key);
 }
 
 function renderWorks() {
@@ -2555,7 +2519,9 @@ function dialRead(key, w) {
              title: key === 'gpu' ? d.name : t('wkOf', { a: d.used_gb, b: d.total_gb }) };
   }
   return { pct: d.pct,
-           text: d.down_mbs.toFixed(1) + ' ↓  ' + d.up_mbs.toFixed(1) + ' ↑  ' + t('wkRate'),
+           // No-break spaces keep each figure with its arrow when a narrow
+           // window takes the reading onto a second line.
+           text: d.down_mbs.toFixed(1) + ' ↓  ' + d.up_mbs.toFixed(1) + ' ↑  ' + t('wkRate'),
            title: t('wkDown', { d: d.down_mbs, u: d.up_mbs }) };
 }
 
@@ -2772,23 +2738,13 @@ function moonPhase(at) {
    phases visibly wrong — which is the first thing an almanac reader looks
    at. The waning half is the waxing path mirrored. */
 function moonDisc(phase, r) {
-  var box = r + 2;
-  var svg = svgEl('svg', {
-    viewBox: (-box) + ' ' + (-box) + ' ' + (box * 2) + ' ' + (box * 2),
-    'aria-hidden': 'true'
-  }, 'al-disc');
-  svg.appendChild(svgEl('circle', { cx: 0, cy: 0, r: r }, 'm-dark'));
   var xt = r * (1 - 2 * phase.lit);     // where the terminator crosses the equator
-  var lit = svgEl('path', {
-    d: 'M 0 ' + (-r) + ' A ' + r + ' ' + r + ' 0 0 1 0 ' + r + ' '
-     + 'A ' + Math.abs(xt).toFixed(3) + ' ' + r + ' 0 0 ' + (xt > 0 ? 0 : 1)
-     + ' 0 ' + (-r) + ' Z'
-  }, 'm-lit');
-  if (!phase.waxing) lit.setAttribute('transform', 'scale(-1,1)');
-  svg.appendChild(lit);
-  // The bezel last, so the mount reads over the disc the way a case does.
-  svg.appendChild(svgEl('circle', { cx: 0, cy: 0, r: r, 'stroke-width': 1 }, 'm-bezel'));
-  return svg;
+  var d = 'M 0 ' + (-r) + ' A ' + r + ' ' + r + ' 0 0 1 0 ' + r + ' '
+        + 'A ' + Math.abs(xt).toFixed(3) + ' ' + r + ' 0 0 ' + (xt > 0 ? 0 : 1)
+        + ' 0 ' + (-r) + ' Z';
+  // The sphere, its crystal and its bezel are cabinetry's; the shape of the
+  // lit face is the almanac's arithmetic.
+  return window.Cabinet.moon(d, phase.waxing, r);
 }
 
 /* ----- The heliograph ----------------------------------------------------
@@ -2828,8 +2784,9 @@ function skyBox(host) {
     // crossings are where the only lettering on the instrument lives, and an
     // ellipse drawn to the full width leaves it nowhere to stand but on the
     // curve itself.
-    W: 300, H: H, cx: 150, cy: H / 2, rx: 112,
-    ry: Math.max(40, Math.min(124, H / 2 - 20))
+    W: 300, H: H, cx: 150, cy: H / 2, rx: 104,
+    // Flatter than it is wide, always: a diurnal circle seen edge-on.
+    ry: Math.max(38, Math.min(66, H / 2 - 26))
   };
 }
 
@@ -2906,7 +2863,9 @@ function buildSky(where, host, weather) {
   }, 'al-arc');
   // Nothing has arrived yet: a bare horizon still reads as an instrument,
   // where a blank panel reads as a case with its glass knocked out.
+  var plateSeed = window.Cabinet.fnv1a('sky');
   if (!where) {
+    window.Cabinet.skyPlate(svg, g, g.cy, plateSeed);
     svg.appendChild(svgEl('line', {
       x1: 6, y1: g.cy, x2: g.W - 6, y2: g.cy, 'stroke-width': 1
     }, 'a-horizon'));
@@ -2919,6 +2878,7 @@ function buildSky(where, host, weather) {
   var sun = sunTimes(where.lat, where.lon, here, tzh);
 
   if (sun.polar) {
+    window.Cabinet.skyPlate(svg, g, g.cy, plateSeed);
     svg.appendChild(svgEl('line', {
       x1: 6, y1: g.cy, x2: g.W - 6, y2: g.cy, 'stroke-width': 1
     }, 'a-horizon'));
@@ -2933,6 +2893,9 @@ function buildSky(where, host, weather) {
   // asymmetry of the plate falls out of this one number.
   var half = 180 * shown.hours / 24;
   var horizonY = g.cy - g.ry * Math.cos(half * RAD);
+  // The enamel, the bezel and the slot go down first; the engraving and the
+  // bead are laid over them.
+  window.Cabinet.skyPlate(svg, g, horizonY, plateSeed);
 
   svg.appendChild(svgEl('path', {
     d: ringArc(g, half, 360 - half), fill: 'none', 'stroke-width': 1,
@@ -2987,14 +2950,8 @@ function buildSky(where, host, weather) {
   });
 
   var s = spot(g, phi);
-  if (up) {
-    svg.appendChild(svgEl('circle', {
-      cx: s.x.toFixed(2), cy: s.y.toFixed(2), r: 8, 'stroke-width': 1
-    }, 'a-sun-ring'));
-  }
-  svg.appendChild(svgEl('circle', {
-    cx: s.x.toFixed(2), cy: s.y.toFixed(2), r: up ? 4.5 : 3.2
-  }, up ? 'a-sun' : 'a-sun down'));
+  // A domed gilt bead riding the slot, above the horizon or below it.
+  window.Cabinet.sunBead(svg, s.x, s.y, up);
   // The bead carries no time label. A regulator the size of a doorway is
   // standing between the two arches saying exactly that, and the plate's job
   // is the one thing the clock cannot say — WHERE in the day this is.
@@ -3540,10 +3497,9 @@ function buildPlaque(d) {
   var svg = document.createElementNS(ns, 'svg');
   svg.setAttribute('viewBox', '0 0 40 40');
   svg.setAttribute('aria-hidden', 'true');
-  var rim = document.createElementNS(ns, 'use');
-  rim.setAttribute('href', '#medallion');
-  rim.setAttribute('class', 'rim');
-  svg.appendChild(rim);
+  // The card's fittings (lean, stamp, jewel) and the cartouche the mark
+  // sits in are cabinetry's, off the dispatch's own hash.
+  window.Cabinet.cartouche(svg, window.Cabinet.card(li, d.id, shadowWrap));
   var sig = document.createElementNS(ns, 'use');
   var known = KNOWN_SIGILS[d.origin];
   sig.setAttribute('href', known ? '#mark-' + d.origin : '#sig-fallback');
@@ -4290,6 +4246,8 @@ document.addEventListener('visibilitychange', function () {
    ======================================================================== */
 var prefs = $('#prefs');
 var prefsBtn = $('#prefs-btn');
+// The panel's switchgear is drawn once, before it is ever opened.
+window.Cabinet.dressPrefs(prefs);
 var lastFocus = null;
 
 var FOCUSABLE = 'button, [href], input, select, [tabindex]:not([tabindex="-1"])';
@@ -4370,6 +4328,9 @@ if (ledgerScrimEl) {
     closeLedger();
   });
 }
+/* The drawer's own knob. closeLedger() hands focus back to the hatch. */
+var ledgerCloseEl = $('#ledger-close');
+if (ledgerCloseEl) ledgerCloseEl.addEventListener('click', closeLedger);
 
 /* The medallion hangs outside the plaque's link, over the spine where the
    clipped frame cannot reach, so a click on it used to do nothing. It reads
@@ -4772,6 +4733,10 @@ renderGhosts();
 buildRosetteKnurl();
 buildDesk();
 buildFloorInlay();
+// The two cases are furniture before they are instruments: carcass, crest,
+// lamp and door glass go up first, then the dials go in behind the glass.
+window.Cabinet.dressCase($('#works'));
+window.Cabinet.dressCase($('#almanac'));
 renderWorks();      // the dials stand engraved before the first reading
 buildAisles();
 renderAlmanac();    // the plate is engraved before the first forecast lands
