@@ -588,3 +588,57 @@ html[lang="zh"] .g-lamp { letter-spacing: 0.2em; }
   -webkit-mask-image: linear-gradient(180deg, transparent 0, rgba(0, 0, 0, 0.7) 7%, rgba(0, 0, 0, 0.3) 26%, transparent 52%);
   mask-image: linear-gradient(180deg, transparent 0, rgba(0, 0, 0, 0.7) 7%, rgba(0, 0, 0, 0.3) 26%, transparent 52%);
 }
+
+/* ==========================================================================
+   THE GATE'S BOX: HIT AREA, FEET, THE DARK LINE'S NOTICE
+   ========================================================================== */
+
+/* The link takes the pointer only inside the arch. The gate is a 300 x 570
+   box, and its top corners are bare wall either side of the crown; they
+   used to open the gate. The arch's own hit area is a box rounded to the
+   outer arris (semicircle of radius 140 on the 280-unit span), and the face
+   takes the pointer where it has lettering, so titles still show. */
+.gate { pointer-events: none; }
+.g-pose, .g-shell, .face, svg.portal { pointer-events: none; }
+.g-hit {
+  position: absolute; left: 3.33%; right: 3.33%; top: 3.86%; bottom: 0;
+  border-radius: 50% 50% 0 0 / 25.5% 25.5% 0 0;
+  pointer-events: auto;
+}
+.face > .g-sign, .face > .g-house, .face > .g-apron { pointer-events: auto; }
+/* An incoming arch still takes no pointer for its first 120 ms. */
+.gate.active.arriving .g-hit,
+.gate.active.arriving .face > .g-sign,
+.gate.active.arriving .face > .g-house,
+.gate.active.arriving .face > .g-apron { animation: gate-arrive 0.12s linear var(--slot-delay, 0ms) backwards; }
+
+/* The feet stay on the floor line whatever the bay's tilt: the vanishing
+   point sits on the plinth's foot, not half way up the arch. */
+.gate { perspective-origin: 50% 100%; }
+.g-pose { transform-origin: 50% 100%; }
+
+/* A DARK line's launch notice: a printed card pinned on the closed curtain
+   with two brass pins, standing in the description's place while it
+   shows. It used to hang over the apron and cover the lamp and address.
+   It rides the arch now, so it no longer needs its own lift. */
+.g-notice {
+  position: absolute; left: 7cqw; right: 7cqw; top: 50%; bottom: auto;
+  z-index: 5;
+  transform: translateY(-50%);
+  transition: none;
+  font-size: clamp(10px, 4.6cqw, calc(11.5px * var(--ui)));
+  line-height: 1.42;
+  letter-spacing: 0.02em;
+  text-align: center;
+  color: #2a2014;
+  word-break: normal; overflow-wrap: anywhere;
+  padding: 3cqw 2.8cqw 2.6cqw;
+  border: 1px solid rgba(84, 64, 34, 0.55);
+  outline: 1px solid rgba(84, 64, 34, 0.35); outline-offset: -0.9cqw;
+  background:
+    radial-gradient(circle at 1.9cqw 1.7cqw, #f7e3a6 0 0.3cqw, #9a7a38 0.62cqw, rgba(0, 0, 0, 0.5) 0.8cqw, transparent 0.95cqw),
+    radial-gradient(circle at calc(100% - 1.9cqw) 1.7cqw, #f7e3a6 0 0.3cqw, #9a7a38 0.62cqw, rgba(0, 0, 0, 0.5) 0.8cqw, transparent 0.95cqw),
+    linear-gradient(180deg, #f3ead3, #e8dcbd);
+  box-shadow: 1px 2px 5px rgba(0, 0, 0, 0.55);
+}
+.g-house:has(> .g-notice:not([hidden])) > .g-desc { visibility: hidden; }

@@ -1538,6 +1538,9 @@ function renderGates() {
     // children — the intra-gate z-index stack survives inside the shell.
     var pose = el('div', 'g-pose');
     var shell = el('div', 'g-shell');
+    // The arch's own hit area: the link takes the pointer only inside the
+    // arch, never on the bare wall above its shoulders (see palace-gates.css).
+    shell.appendChild(el('div', 'g-hit'));
     shell.appendChild(el('div', 'g-back'));
     var ns = 'http://www.w3.org/2000/svg';
     var portal = document.createElementNS(ns, 'svg');
@@ -1585,6 +1588,13 @@ function renderGates() {
     var gdesc = el('p', 'g-desc', t(descKey(svc)));
     gdesc.id = 'gd-' + svc.id;
     house.appendChild(gdesc);
+    // The launch-hint notice of a DARK gate is a card pinned on the closed
+    // curtain, in the description's place while it shows. It used to hang
+    // over the apron and cover the gate's own lamp and address.
+    var notice = el('div', 'g-notice');
+    notice.id = 'gx-' + svc.id;
+    notice.hidden = true;
+    house.appendChild(notice);
     face.appendChild(house);
     // The apron: the stage front, with the house's live line, its address
     // and the lamp.
@@ -1636,11 +1646,6 @@ function renderGates() {
     shell.appendChild(el('div', 'g-spill lit'));
     pose.appendChild(shell);
     a.appendChild(pose);
-    // The launch-hint notice stays screen-flat, outside the tilt chain.
-    var notice = el('div', 'g-notice');
-    notice.id = 'gx-' + svc.id;
-    notice.hidden = true;
-    a.appendChild(notice);
 
     if (!svc.vacant) {
       // Where the press began, for gateClick: a drag that selects the
@@ -1672,10 +1677,22 @@ function descKey(svc) {
   return STR.en[key] !== undefined ? key : 'desc.fallback';
 }
 
+/* The notice is lettered with a break opportunity after every path
+   separator, so a launcher path wraps at a folder, not mid-name. A <wbr>
+   is not text: a copied path comes out exactly as the registry has it. */
+function letterNotice(n, svc) {
+  var text = t('darkNotice', { hint: svc.launch_hint || svc.url });
+  n.textContent = '';
+  text.split(/(?<=[\\/])/).forEach(function (part, i) {
+    if (i) n.appendChild(document.createElement('wbr'));
+    n.appendChild(document.createTextNode(part));
+  });
+}
+
 function showNotice(a, svc) {
   var n = $('.g-notice', a);
   if (!n.hidden) return;
-  n.textContent = t('darkNotice', { hint: svc.launch_hint || svc.url });
+  letterNotice(n, svc);
   n.hidden = false;
   // Shown on screen, so said out loud once as well.
   var hs = $('#hall-status'); if (hs) hs.textContent = n.textContent;
@@ -4480,7 +4497,7 @@ function setLang(next) {
     // so it kept its English under a Chinese description.
     var notice = $('.g-notice', a);
     if (notice && !notice.hidden) {
-      notice.textContent = t('darkNotice', { hint: svc.launch_hint || svc.url });
+      letterNotice(notice, svc);
     }
     if (svc.vacant) {
       $('.g-name', a).title = t('vacantName');
