@@ -735,3 +735,31 @@ html[lang="zh"] #masthead .p-caption { letter-spacing: 0.3em; }
 }
 #ticker::before { clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%); }
 #ticker .t-track { padding-left: calc(26px * var(--ui)); }
+
+/* ==========================================================================
+   FINDINGS ON NEIGHBOURING SURFACES (smallest fixes; see notes-room.md)
+   ========================================================================== */
+/* VD-17: the wall's skirting and every arch's plinth nosing meet at 536 of
+   the gate's 570 units; the niche's sill carried its only nosing 19px
+   higher. A gilt fillet on the sill at the same line carries the rule
+   across the clock. */
+.n-sill::after {
+  content: ""; position: absolute; left: 0; right: 0;
+  bottom: calc(var(--gh) * 34 / 570 - var(--gh) * 2.6 / 570);
+  height: calc(var(--gh) * 2.6 / 570);
+  background: linear-gradient(180deg, var(--lead-5), var(--lead-2) 50%, var(--lead-0));
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.55);
+  pointer-events: none;
+}
+/* VD-19: the maker's plate lettering was sized in --ui inside a viewBox
+   that already scales with --ui, so it grew as --ui squared and ran into
+   the corner rivets at 3440. Plain user units inside the plate. */
+.wk-plate .bp-name, html[lang="zh"] .wk-plate .bp-name { font-size: 12px; letter-spacing: 0.16em; }
+.wk-plate .bp-no { font-size: 10.5px; letter-spacing: 0.06em; }
+/* LY-13: at 2800 with the SIGNBOARD size the narrowest cases cut their
+   readings. The reading and the station line close up their tracking
+   there instead of taking an ellipsis. */
+@media (max-width: 3100px) {
+  :root[data-ui="l"] .wk-read { font-size: calc(11.5px * var(--ui)); letter-spacing: 0; }
+  :root[data-ui="l"] .al-station { letter-spacing: 0.03em; }
+}
