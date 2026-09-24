@@ -2837,6 +2837,23 @@ function toggleWing() {
   setWing(cur === 'salon' ? 'bureau' : 'salon');
 }
 lever.addEventListener('click', toggleWing);
+/* The pointer reaches the switch through the machine itself: the arm strip
+   is inside #lever and arrives above, the console's drawn shapes and the
+   gear well throw it from here, and each throw plate lights its own wing
+   (a click on SALON never leaves the Salon). */
+var deskCore = $('#signal-desk .desk-core');
+deskCore.addEventListener('click', function (e) {
+  var tgt = e.target;
+  if (!tgt.closest) return;
+  var plate = tgt.closest('.l-label');
+  if (plate) {
+    var want = plate.classList.contains('l-bureau') ? 'bureau' : 'salon';
+    if ((wingPending || root.dataset.wing) !== want) setWing(want);
+  } else if (tgt.closest('.desk-art, .gear-well')) {
+    toggleWing();
+  }
+});
+
 lever.addEventListener('keydown', function (e) {
   if (e.key === ' ' || e.key === 'Enter') {
     e.preventDefault();

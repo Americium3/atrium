@@ -727,8 +727,10 @@
     <div id="lever" role="switch" aria-checked="false" tabindex="0" aria-keyshortcuts="W"
          aria-describedby="lever-desc" data-i18n-aria="ariaLever"
          aria-label="Mode lever: off = Salon, on = Bureau">
-      <!-- The arm hit zone rides above the box so clicks land only where
-           hardware is actually drawn — never a floating rectangle. -->
+      <!-- The arm's hit strip: it pivots with the drawn lever and scales
+           with the machine, so the arm takes the pointer and the floor and
+           the clock above it do not. The console hit-tests on its own
+           shapes (atrium.css). -->
       <span class="hit-arm" aria-hidden="true"></span>
     </div>
   </div>

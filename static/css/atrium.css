@@ -510,7 +510,14 @@ html[data-boot="suppressed"] #hall { animation: hall-fade 0.3s var(--ease-out) b
   height: var(--desk-h);
   z-index: 50;
   isolation: isolate;
-  pointer-events: none;   /* only the lever hit surface takes the pointer */
+  pointer-events: none;   /* only the machine's own parts take the pointer */
+  /* One scale for the machine and everything that hit-tests on it. The hit
+     surfaces used to be fixed 300x108 and 220x112 boxes that ignored the
+     assembly's scale, so on a short screen the arm zone stood 75px over
+     bare floor and the clock's sill, and a click on the clock threw the
+     lever. */
+  --desk-k: calc(0.80 + 0.14 * var(--ui));
+  --desk-s: var(--desk-k);
 }
 /* Boot parity with the hall: suppressed loads fade, played entrances rise
    in the old lever-row slot. Transform/opacity only — the entrance dock
@@ -540,11 +547,18 @@ html[data-entered="no"] #signal-desk {
   /* Tracks the lettering, but at a third of its slope. On a 3440 screen the
      old coefficient stood the machine 275px tall — taller than the stone it
      stands on once the wall took its headroom back, so the lever tip came up
-     level with the skirting and the hall lost its floor to its furniture. */
-  transform: translateX(-50%) scale(calc(0.80 + 0.14 * var(--ui)));
+     level with the skirting and the hall lost its floor to its furniture.
+     The factor itself is --desk-s on #signal-desk. */
+  transform: translateX(-50%) scale(var(--desk-s));
   transform-origin: center bottom;
   pointer-events: none;
 }
+/* The console answers the pointer where it is drawn and nowhere else: the
+   shapes hit-test on their own paint. The contact shadow and the waxed-floor
+   return are floor, not machine. */
+.quadrant { pointer-events: none; }
+.quadrant > * { pointer-events: visiblePainted; cursor: pointer; }
+.quadrant .cw-contact, .quadrant .cw-return { pointer-events: none; }
 .desk-art { position: absolute; inset: 0; contain: layout paint; }
 .quadrant { position: absolute; inset: 0; width: 100%; height: 100%; }
 
@@ -604,6 +618,7 @@ html[data-entered="no"] #signal-desk {
   background-color: var(--machine-edge);
   border: 1px solid var(--bronze);
   transition: background-color 0.4s, border-color 0.4s;
+  pointer-events: auto; cursor: pointer;   /* part of the console's face */
 }
 .gearA-svg, .gearB-svg {
   position: absolute;
@@ -797,22 +812,38 @@ html[data-entered="no"] #signal-desk {
 }
 :root[data-theme="ivory"][data-wing="salon"] .l-salon,
 :root[data-theme="ivory"][data-wing="bureau"] .l-bureau { color: var(--gold-text); }
+/* Each plate names a throw, so a click on it lights that wing and never the
+   other one. They straddled the lever's old hit boxes, and the inner half of
+   the lit SALON plate threw the hall into the Bureau while the outer half
+   did nothing. As targets they also show their zh titles on hover. */
+.assembly .l-label { pointer-events: auto; cursor: pointer; }
+:root[data-wing="salon"] .l-salon,
+:root[data-wing="bureau"] .l-bureau { cursor: default; }
+@media (hover: hover) {
+  :root[data-wing="salon"] .l-bureau:hover,
+  :root[data-wing="bureau"] .l-salon:hover { border-color: var(--gold); }
+}
 
-/* Hit surface = the machine base box; the arm zone is a child riding above
-   it, so clicks land only where hardware is drawn (never a floating
-   rectangle over hall content) and the focus ring hugs the base. */
+/* #lever is the switch a keyboard and a screen reader use. Its box hugs the
+   base at the machine's own scale, which is where the focus ring draws, and
+   it takes no pointer itself: the console's shapes and the arm strip below
+   do, so nothing but drawn hardware throws the lever. */
 #lever {
   position: absolute; left: 50%; bottom: 0;
-  width: 300px; height: 108px;
+  width: calc(300px * var(--desk-s)); height: calc(108px * var(--desk-s));
   transform: translateX(-50%);
-  pointer-events: auto;
-  cursor: pointer; user-select: none;
+  pointer-events: none;
   z-index: 2;
 }
+/* The arm's hit strip pivots with the drawn lever (same --drive, same pivot
+   34 units up the machine) and scales with it, a few pixels wider than the
+   grip so the thin arm is not a hard target. Clicks on it reach #lever. */
 #lever .hit-arm {
-  position: absolute; left: 50%; bottom: 100%;
-  width: 220px; height: 112px;
-  transform: translateX(-50%);
+  position: absolute; left: 50%; bottom: calc(34px * var(--desk-s));
+  width: 24px; height: 142px; margin-left: -12px;
+  border-radius: 12px 12px 0 0;
+  transform-origin: 50% 100%;
+  transform: scale(var(--desk-s)) rotate(calc(-16deg + var(--drive, 0) * 32deg));
   display: block;
   pointer-events: auto;
   cursor: pointer;
@@ -3034,10 +3065,10 @@ html[data-entered="no"] #stage { animation: stage-dolly 0.9s var(--ease-out) bot
      floor is a band rather than a field the console has to fit inside that
      band — at full height its lever tip cleared the skirting and the thing
      read as standing in the wall. */
-  .assembly { transform: translateX(-50%) scale(0.78); }
+  #signal-desk { --desk-k: 0.78; }
 }
 @media (max-height: 760px) {
-  .assembly { transform: translateX(-50%) scale(0.62); }
+  #signal-desk { --desk-k: 0.62; }
 }
 
 @media (max-width: 899px) {
@@ -3047,9 +3078,7 @@ html[data-entered="no"] #stage { animation: stage-dolly 0.9s var(--ease-out) bot
   .m-title h1 { font-size: calc(22px * var(--ui)); }
   .m-sub { display: none; }
   #dateline { display: none; }
-  .assembly { transform: translateX(-50%) scale(0.85); }
-  #lever { width: 260px; }
-  #lever .hit-arm { width: 190px; height: 96px; }
+  #signal-desk { --desk-k: 0.85; }
 }
 
 /* ==========================================================================
