@@ -902,7 +902,10 @@ Motion setting collapse all of the above to fades/instant.
 - **The Ledger drawer** lives at body level beside its scrim (inside `#hall`
   it painted under the scrim on every quiet boot). Opening it moves focus to
   its heading; while open, Tab cycles the drawer and its hatch. The poll
-  moves a plaque only when it is out of place, so focus survives it.
+  moves a plaque only when it is out of place, so focus survives it. When
+  the focused dispatch leaves the feed, focus goes to the next plaque down
+  (else the one above, else the heading), and that move marks nothing read:
+  the hall put the caret there, not the reader.
 - **Names**: a gate is named by its engraved name and lamp word and described
   by its description, status line, service note and "opens in its own tab".
   Service warnings are engraved under the lamp, not hidden in a title. The

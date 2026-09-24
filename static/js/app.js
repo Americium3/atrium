@@ -416,6 +416,10 @@ window.addEventListener('pointermove', function (e) {
   ptrY = e.clientY;
 }, { capture: true, passive: true });
 
+/* Set while the hall itself moves focus onto a plaque (the focused one left
+   the feed): the caret landed there, but the reader did not put it there. */
+var quietFocus = false;
+
 /* Arm a card so resting on it marks its dispatch read. Touch is excluded on
    purpose: a tap fires pointerenter, which would mark dispatches read for
    the crime of being scrolled past under a thumb. Keyboard gets the same
@@ -449,7 +453,10 @@ function armDwell(node, id) {
     }, DWELL_MS);
   });
   node.addEventListener('pointerleave', cancel);
-  node.addEventListener('focusin', function () { cancel(); markRead(id); });
+  node.addEventListener('focusin', function () {
+    cancel();
+    if (!quietFocus) markRead(id);
+  });
 }
 
 /* Every running dwell stops: the drawer opening or shutting moves the whole
@@ -3085,11 +3092,36 @@ function renderLedger() {
     return chipFilter === 'all' || d.wing === chipFilter;
   });
   if (firstFeed) { ol.textContent = ''; }
+  var shownIds = {};
+  shown.forEach(function (d) { shownIds[d.id] = 1; });
+  // A focused plaque about to leave hands focus to its neighbour, the next
+  // one down that stays (else the one above), found in the column as it
+  // stands now. Removing the focused node dropped focus to <body>, and the
+  // next arrow key started the walk over from the top.
+  var hadLi = document.activeElement && document.activeElement.closest
+    ? document.activeElement.closest('#plaques .plaque') : null;
+  var heir = null;
+  if (hadLi && !shownIds[hadLi.dataset.id]) {
+    heir = stays(hadLi, 'nextElementSibling') || stays(hadLi, 'previousElementSibling');
+  }
+  function stays(li, dir) {
+    for (var n = li[dir]; n; n = n[dir]) {
+      if (n.classList.contains('plaque') && shownIds[n.dataset.id]) return n;
+    }
+    return null;
+  }
+  function refocus() {
+    if (!hadLi || hadLi.contains(document.activeElement)) return;
+    // The hall put the caret here, not the reader, so it strikes nothing.
+    // (A plaque that stayed but was moved lost focus the same way.)
+    var to = hadLi.isConnected ? $('.pl-in', hadLi)
+      : heir && heir.isConnected ? $('.pl-in', heir) : $('#ledger-title');
+    quietFocus = true;
+    try { if (to) to.focus(); } finally { quietFocus = false; }
+  }
   // Cache-prune ONLY dispatches that left the feed window for real; a
   // chip-hidden plaque is detached but keeps its cache entry, so toggling
   // the filter back never rebuilds it as "fresh" (would re-animate).
-  var shownIds = {};
-  shown.forEach(function (d) { shownIds[d.id] = 1; });
   Object.keys(plaqueEls).forEach(function (id) {
     var li = plaqueEls[id];
     var inFeed = feed.some(function (d) { return d.id === id; });
@@ -3116,6 +3148,7 @@ function renderLedger() {
     empty.appendChild(el('div', 'zh-sentence', t(failed ? 'ledgerUnreadable' : 'empty')));
     ol.appendChild(empty);
     feed.forEach(function (d) { seenIds[d.id] = 1; });
+    refocus();
     return;
   }
   var midnight = new Date(); midnight.setHours(0, 0, 0, 0);
@@ -3209,6 +3242,7 @@ function renderLedger() {
     ol.insertBefore(node, at || null);
   });
   feed.forEach(function (d) { seenIds[d.id] = 1; });
+  refocus();
 }
 
 var badgeCount = 0;
