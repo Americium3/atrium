@@ -1135,6 +1135,8 @@ picture, fades out over the new one, and the flip underneath lands with
 every transition cut (`.theme-cut`). Per-element transitions could not do
 it: the wall, floor and dado are gradients, which do not interpolate, and
 the ~1,100 colour transitions a flip started restyled the page every frame.
+The cut is lifted when the fade has finished: lifting it restyles every
+element, and at `ready` that landed inside the fade and stalled it.
 Wing re-lighting uses a **scoped** transition list (`color,
 background-color, border-color, fill, stroke, opacity`) on themed elements.
 No universal `* { transition }`.

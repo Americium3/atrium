@@ -2837,7 +2837,8 @@ function startAlmanac() {
    Mode lever — re-lights the hall; never touches the Ledger (R11)
    ======================================================================== */
 var lever = $('#lever');
-var themeBusy = false;
+var themeBusy = false;   // a theme crossfade is running, under its cut
+var afterTheme = null;   // the lever re-light waiting for it
 
 function setWing(w) {
   wingPending = w;
@@ -2854,8 +2855,10 @@ function setWing(w) {
     // focus off the gate the reader had just landed on.
     layoutStage(false);
   };
-  // Serialize: the lever re-light queues until a theme crossfade finishes.
-  if (themeBusy) setTimeout(apply, 420); else apply();
+  // Serialize: the lever re-light queues until a theme crossfade finishes
+  // and its cut is lifted; under the cut the throw would land in one frame.
+  // The latest throw asked for is the one that runs.
+  if (themeBusy) afterTheme = apply; else apply();
 }
 /* Toggle target derives from the PENDING wing when a crossfade has queued
    the apply — two quick toggles must round-trip, not both land on the same
@@ -4083,17 +4086,24 @@ function resolveTheme() {
   var next = dark ? 'onyx' : 'ivory';
   if (root.dataset.theme === next) return;
   themeBusy = true;
-  setTimeout(function () { themeBusy = false; }, 420);
   var flip = function () {
     root.classList.add('theme-cut');
     root.dataset.theme = next;
   };
-  var uncut = function () { root.classList.remove('theme-cut'); };
+  var uncut = function () {
+    root.classList.remove('theme-cut');
+    themeBusy = false;
+    if (afterTheme) { var f = afterTheme; afterTheme = null; f(); }
+  };
   if (document.startViewTransition && root.dataset.motion !== 'reduced') {
     var vt = document.startViewTransition(flip);
-    // By `ready` the new hall has been drawn under the cut, so lifting it
-    // starts nothing; the old picture is still fading over it.
-    vt.ready.then(uncut, uncut);
+    // The cut is lifted when the fade has finished, not when it starts.
+    // Lifting it restyles every element in the hall (the cut is a universal
+    // rule), and at `ready` that restyle, 100-130ms at 3440, landed in the
+    // middle of the 400ms fade and stalled it (MO-7). After `finished` it
+    // changes nothing on screen. Nothing transitions until then, which is
+    // why a throw asked for meanwhile waits for it (setWing).
+    vt.finished.then(uncut, uncut);
   } else {
     flip();
     void root.offsetWidth;   // the flip's style change happens under the cut
