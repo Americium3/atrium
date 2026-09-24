@@ -1,0 +1,642 @@
+/* ==========================================================================
+   THE CABINETRY (the picture palace, direction C)
+   ==========================================================================
+   The furniture of the foyer: the two wall cases in the aisles (Statistics
+   in macassar ebony, the Almanac in figured walnut), the Ledger's black
+   lacquer drawer, and the Preferences panel. Loaded after atrium.css; the
+   rules there that drew these as flat panels are overridden here rather
+   than edited.
+
+   Light: at night the only emitters here are the picture lamps' slots and
+   the jewels; wood, gilt, brass and enamel take their light from them. By
+   day nothing is lit and the skylight is the key, from above and a little
+   left. Everything that is lit is its own layer faded by --lamp-on.
+   ========================================================================== */
+
+/* ----- Tokens --------------------------------------------------------------
+   Brass is the fittings' metal and never changes with the wing (bezels,
+   lamps, screws, holders). The case frames and crests are leaf and read
+   --lead-*, so the lever re-leafs them with every other fixture. */
+:root[data-theme="onyx"] {
+  --br-0: #1c1307; --br-1: #4a3413; --br-2: #8a6a2c; --br-3: #f2d48c; --br-4: #b38b3e; --br-5: #e2c47c;
+  --cab-glass: #0a0807;
+  --cab-ink: #eadfc4;          /* lettering on the black glass */
+  --cab-faint: #a6977a;
+  --cab-gold: #dcbd72;
+  --ivorine: #cdbf9c;          /* celluloid labels under the lamp */
+  --ivorine-lo: #a89877;
+  --ivorine-ink: #21180d;
+  --wood-light: rgba(255, 196, 128, 0.26);   /* the picture lamp on the carcass */
+  --wood-shade: rgba(4, 2, 1, 0.52);
+  --lamp-slot: #fff4dc;
+  --lamp-glow: rgba(255, 200, 120, 0.85);
+  --lamp-cone: rgba(255, 210, 150, 0.34);
+  --lamp-cone-2: rgba(255, 184, 110, 0.13);
+  --enamel-0: #1f1e20; --enamel-1: #131214; --enamel-2: #070707;
+  --scale-ink: #dcc07c;
+  --needle: #efe5cc; --needle-edge: #6d6250; --needle-sh: rgba(0, 0, 0, 0.62);
+  --lacquer-red: #8e1f14; --lacquer-red-hi: #c0402c; --lacquer-red-lo: #5a0f09;
+  --turning: rgba(255, 255, 255, 0.022);
+  --case-shadow: rgba(0, 0, 0, 0.72);
+}
+:root[data-theme="ivory"] {
+  --br-0: #5a4520; --br-1: #8a6c3a; --br-2: #bc9b58; --br-3: #fcefcb; --br-4: #d3b271; --br-5: #efd9a0;
+  --cab-glass: #0c0a08;
+  --cab-ink: #efe6d0;
+  --cab-faint: #b3a58a;
+  --cab-gold: #e2c47e;
+  --ivorine: #f1e8d2;
+  --ivorine-lo: #d6cab0;
+  --ivorine-ink: #1d160c;
+  --wood-light: rgba(255, 250, 238, 0.10);
+  --wood-shade: rgba(40, 24, 10, 0.30);
+  --lamp-slot: #3a2a14;
+  --lamp-glow: rgba(255, 200, 120, 0);
+  --lamp-cone: rgba(255, 206, 140, 0);
+  --lamp-cone-2: rgba(255, 184, 110, 0);
+  --enamel-0: #fbf5e3; --enamel-1: #efe5ca; --enamel-2: #d7c69e;
+  --scale-ink: #1d150b;
+  --needle: #161210; --needle-edge: #000; --needle-sh: rgba(40, 26, 10, 0.34);
+  --lacquer-red: #9a2416; --lacquer-red-hi: #c8503a; --lacquer-red-lo: #62140b;
+  --turning: rgba(90, 64, 24, 0.05);
+  --case-shadow: rgba(52, 36, 16, 0.42);
+}
+
+/* SVG stops, coloured through classes (var() does not resolve in a
+   stop-color attribute). */
+.cs-b0 { stop-color: var(--br-0); } .cs-b1 { stop-color: var(--br-1); }
+.cs-b2 { stop-color: var(--br-2); } .cs-b3 { stop-color: var(--br-3); }
+.cs-b4 { stop-color: var(--br-4); } .cs-b5 { stop-color: var(--br-5); }
+.cs-l0 { stop-color: var(--lead-0); } .cs-l1 { stop-color: var(--lead-1); }
+.cs-l2 { stop-color: var(--lead-2); } .cs-l3 { stop-color: var(--lead-3); }
+.cs-l4 { stop-color: var(--lead-4); } .cs-l5 { stop-color: var(--lead-5); }
+:root[data-theme="onyx"] .cs-lit0 { stop-color: #ffcf8a; }
+:root[data-theme="onyx"] .cs-lit1 { stop-color: #ffe6b8; }
+:root[data-theme="onyx"] .cs-lit2 { stop-color: #fffaf0; }
+:root[data-theme="ivory"] .cs-lit0,
+:root[data-theme="ivory"] .cs-lit1,
+:root[data-theme="ivory"] .cs-lit2 { stop-color: #2a1f10; }
+.d-clear { stop-color: #000; }
+.d-seat { stop-color: #000; }
+.d-crest { stop-color: #fffaf0; }
+.d-glint { stop-color: #ffffff; }
+.d-face0 { stop-color: var(--enamel-0); }
+.d-face1 { stop-color: var(--enamel-1); }
+.d-face2 { stop-color: var(--enamel-2); }
+.d-red0 { stop-color: var(--lacquer-red); }
+.d-red1 { stop-color: var(--lacquer-red-hi); }
+.d-red2 { stop-color: var(--lacquer-red-lo); }
+
+/* ----- Screws ----------------------------------------------------------- */
+.cs-screw {
+  position: absolute;
+  width: var(--sc, 7px); height: var(--sc, 7px);
+  border-radius: 50%;
+  background: radial-gradient(circle at 36% 32%, var(--br-5), var(--br-2) 48%, var(--br-0) 100%);
+  box-shadow: 0.5px 0.8px 1px rgba(0, 0, 0, 0.7), inset 0 0 0 0.5px rgba(0, 0, 0, 0.45);
+  pointer-events: none;
+}
+.cs-screw::after {
+  content: "";
+  position: absolute; left: 12%; right: 12%; top: 50%;
+  height: 1.2px; margin-top: -0.6px;
+  background: rgba(20, 12, 4, 0.85);
+  box-shadow: 0 0.6px 0 rgba(255, 238, 190, 0.35);
+  transform: rotate(var(--slot, 0deg));
+}
+
+/* ==========================================================================
+   THE CASES
+   ========================================================================== */
+.board {
+  container-type: inline-size;
+  padding: 0;
+  z-index: 2;
+  /* proportions from the case's own width, so a 300px aisle and a 520px
+     aisle get the same piece of furniture at two sizes */
+  --ch: 3.4cqw;                         /* the carcass chamfer */
+  --st: clamp(12px, 4.4cqw, 25px);      /* stile: veneer showing beside the door */
+  --fw: clamp(5px, 1.9cqw, 10px);       /* the gilt frame round the door */
+  --top: 13.6cqw;                        /* lamp and crest above the door */
+  --wood: url('/static/assets/tex/veneer-macassar-q.webp');
+  --band: url('/static/assets/tex/veneer-ash.webp');
+  --wood-tint: rgba(0, 0, 0, 0);
+  --band-tint: #c98f4a;
+}
+#almanac {
+  --wood: url('/static/assets/tex/veneer-walnut-fig.webp');
+  --band: url('/static/assets/tex/veneer-macassar.webp');
+  --band-tint: #b08a6a;
+}
+:root[data-theme="ivory"] .board { --wood-tint: rgba(255, 244, 222, 0.06); }
+.board:hover .bd-glass::after { animation: none; }
+
+/* The case's own shadow on the wall. The carcass is chamfered with a
+   clip-path, which would eat a shadow, so the shadow is a filter on this
+   unclipped parent and the clip lives on the carcass inside it. */
+.board .bd-frame {
+  clip-path: none;
+  background: none;
+  border: 0;
+  inset: 0;
+  filter: drop-shadow(0 2px 2px var(--case-shadow)) drop-shadow(0 18px 26px var(--case-shadow));
+}
+.board .bd-frame::before, .board .bd-frame::after { content: none; }
+
+.cs-carcass, .cs-string, .cs-bead {
+  position: absolute;
+  left: 0; right: 0; top: 2.4cqw; bottom: 0;
+}
+/* The carcass: book-matched veneer, grain standing up the stiles. */
+.cs-carcass {
+  clip-path: polygon(var(--ch) 0, calc(100% - var(--ch)) 0, 100% var(--ch),
+    100% calc(100% - var(--ch)), calc(100% - var(--ch)) 100%, var(--ch) 100%,
+    0 calc(100% - var(--ch)), 0 var(--ch));
+  background: var(--wood) var(--fig-x, 0) var(--fig-y, 0) / 64cqw auto;
+}
+/* The left half is the right half mirrored about the centre seam, as a
+   veneerer lays two consecutive leaves of one flitch: the same stretch of
+   figure, turned over. */
+.cs-inlay {
+  position: absolute; inset: 0 50% 0 0;
+  background: var(--wood) calc(var(--fig-x, 0px) - 50cqw) var(--fig-y, 0) / 64cqw auto;
+  transform: scaleX(-1);
+}
+/* The finish: waxed, holding a soft sheen where the lamp or the sky finds
+   it, the returns darker, the foot in shade. */
+.cs-carcass::after {
+  content: ""; position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse 70% 42% at 50% 0%, var(--wood-light), transparent 70%),
+    linear-gradient(90deg, rgba(0, 0, 0, 0.38), transparent 12%, transparent 88%, rgba(0, 0, 0, 0.46)),
+    linear-gradient(180deg, transparent 30%, var(--wood-shade)),
+    linear-gradient(var(--wood-tint), var(--wood-tint));
+}
+/* Crossbanding: a narrow band of a contrasting wood round the carcass
+   inside the chamfer, with a pale boxwood line at either edge (.cs-bead). */
+.cs-string {
+  --b: calc(0.9cqw + 1.2px); --c: calc(0.9cqw + 1.2px + clamp(4px, 1.5cqw, 8px));
+  background:
+    linear-gradient(180deg, transparent 20%, var(--wood-shade)),
+    linear-gradient(var(--band-tint), var(--band-tint)),
+    var(--band) 0 0 / 38cqw auto;
+  background-blend-mode: normal, multiply, normal;
+  clip-path: polygon(evenodd,
+    calc(var(--ch) + var(--b) * 0.414) var(--b), calc(100% - var(--ch) - var(--b) * 0.414) var(--b),
+    calc(100% - var(--b)) calc(var(--ch) + var(--b) * 0.414), calc(100% - var(--b)) calc(100% - var(--ch) - var(--b) * 0.414),
+    calc(100% - var(--ch) - var(--b) * 0.414) calc(100% - var(--b)), calc(var(--ch) + var(--b) * 0.414) calc(100% - var(--b)),
+    var(--b) calc(100% - var(--ch) - var(--b) * 0.414), var(--b) calc(var(--ch) + var(--b) * 0.414),
+    var(--b) calc(var(--ch) + var(--b) * 0.414),
+    calc(var(--ch) + var(--c) * 0.414) var(--c), calc(100% - var(--ch) - var(--c) * 0.414) var(--c),
+    calc(100% - var(--c)) calc(var(--ch) + var(--c) * 0.414), calc(100% - var(--c)) calc(100% - var(--ch) - var(--c) * 0.414),
+    calc(100% - var(--ch) - var(--c) * 0.414) calc(100% - var(--c)), calc(var(--ch) + var(--c) * 0.414) calc(100% - var(--c)),
+    var(--c) calc(100% - var(--ch) - var(--c) * 0.414), var(--c) calc(var(--ch) + var(--c) * 0.414));
+  opacity: 0.9;
+}
+.cs-bead {
+  --i: 0.9cqw; --o: calc(0.9cqw + 1.1px);
+  --j: calc(0.9cqw + 1.2px + clamp(4px, 1.5cqw, 8px)); --k: calc(var(--j) + 1.1px);
+  background: #d8c08c;
+  clip-path: polygon(evenodd,
+    calc(var(--ch) + var(--i) * 0.414) var(--i), calc(100% - var(--ch) - var(--i) * 0.414) var(--i),
+    calc(100% - var(--i)) calc(var(--ch) + var(--i) * 0.414), calc(100% - var(--i)) calc(100% - var(--ch) - var(--i) * 0.414),
+    calc(100% - var(--ch) - var(--i) * 0.414) calc(100% - var(--i)), calc(var(--ch) + var(--i) * 0.414) calc(100% - var(--i)),
+    var(--i) calc(100% - var(--ch) - var(--i) * 0.414), var(--i) calc(var(--ch) + var(--i) * 0.414),
+    var(--i) calc(var(--ch) + var(--i) * 0.414),
+    calc(var(--ch) + var(--o) * 0.414) var(--o), calc(100% - var(--ch) - var(--o) * 0.414) var(--o),
+    calc(100% - var(--o)) calc(var(--ch) + var(--o) * 0.414), calc(100% - var(--o)) calc(100% - var(--ch) - var(--o) * 0.414),
+    calc(100% - var(--ch) - var(--o) * 0.414) calc(100% - var(--o)), calc(var(--ch) + var(--o) * 0.414) calc(100% - var(--o)),
+    var(--o) calc(100% - var(--ch) - var(--o) * 0.414), var(--o) calc(var(--ch) + var(--o) * 0.414),
+    var(--o) calc(var(--ch) + var(--o) * 0.414),
+    calc(var(--ch) + var(--j) * 0.414) var(--j), calc(100% - var(--ch) - var(--j) * 0.414) var(--j),
+    calc(100% - var(--j)) calc(var(--ch) + var(--j) * 0.414), calc(100% - var(--j)) calc(100% - var(--ch) - var(--j) * 0.414),
+    calc(100% - var(--ch) - var(--j) * 0.414) calc(100% - var(--j)), calc(var(--ch) + var(--j) * 0.414) calc(100% - var(--j)),
+    var(--j) calc(100% - var(--ch) - var(--j) * 0.414), var(--j) calc(var(--ch) + var(--j) * 0.414),
+    var(--j) calc(var(--ch) + var(--j) * 0.414),
+    calc(var(--ch) + var(--k) * 0.414) var(--k), calc(100% - var(--ch) - var(--k) * 0.414) var(--k),
+    calc(100% - var(--k)) calc(var(--ch) + var(--k) * 0.414), calc(100% - var(--k)) calc(100% - var(--ch) - var(--k) * 0.414),
+    calc(100% - var(--ch) - var(--k) * 0.414) calc(100% - var(--k)), calc(var(--ch) + var(--k) * 0.414) calc(100% - var(--k)),
+    var(--k) calc(100% - var(--ch) - var(--k) * 0.414), var(--k) calc(var(--ch) + var(--k) * 0.414));
+  opacity: 0.55;
+}
+:root[data-theme="onyx"] .cs-bead { background: #b39866; opacity: 0.5; }
+
+/* ----- The top: crest and picture lamp -------------------------------- */
+.cs-top {
+  position: absolute; left: 0; right: 0; top: 0;
+  height: var(--top);
+  z-index: 5;
+  pointer-events: none;
+}
+.cs-lamp {
+  position: absolute; left: 27cqw; width: 46cqw; top: 0; height: auto;
+  overflow: visible;
+}
+.cs-crest {
+  position: absolute; left: 37cqw; width: 26cqw; top: 5cqw; height: auto;
+  overflow: visible;
+}
+.cs-crest .cr-sh { fill: rgba(0, 0, 0, 0.6); }
+.cs-crest .cr-lt { fill: var(--lead-5); opacity: 0.75; }
+.cs-crest .cr-body { stroke: rgba(0, 0, 0, 0.35); stroke-width: 0.35; }
+.cs-lamp .la-stem-sh, .cs-lamp .la-shade-sh { fill: rgba(0, 0, 0, 0.5); }
+.cs-lamp .la-flutes line { stroke: rgba(0, 0, 0, 0.26); stroke-width: 0.8; }
+.cs-lamp .la-lip { fill: var(--br-2); stroke: var(--br-0); stroke-width: 0.4; }
+.cs-lamp .la-cap { stroke: rgba(0, 0, 0, 0.4); stroke-width: 0.35; }
+.cs-lamp .la-finial { fill: var(--br-1); }
+.cs-lamp .la-slotline { stroke: var(--br-0); stroke-width: 0.55; }
+.cs-lamp .la-glint { fill: var(--br-5); opacity: 0.55; }
+.cs-lamp .la-slot { filter: drop-shadow(0 0 2px var(--lamp-glow)) drop-shadow(0 2px 6px var(--lamp-glow)); }
+.cs-lamp .la-spill { opacity: var(--lamp-on, 0); }
+.la-sp0 { stop-color: #fff3d8; } .la-sp1 { stop-color: #ffc877; }
+
+/* The cone: the lamp's throw down the case. Its own layer in the board's
+   stacking context, so its screen blend reaches the wood and the glass. */
+.cs-cone {
+  position: absolute;
+  left: 4cqw; right: 4cqw; top: 3.6cqw; height: 70%;
+  background:
+    radial-gradient(ellipse 30% 24% at 50% 0%, var(--lamp-cone), transparent 100%),
+    radial-gradient(ellipse 50% 70% at 50% 0%, var(--lamp-cone-2), transparent 100%);
+  mix-blend-mode: screen;
+  opacity: var(--lamp-on, 0);
+  pointer-events: none;
+  z-index: 4;
+}
+
+/* ----- The door ---------------------------------------------------------- */
+.board .cs-door {
+  position: relative;
+  z-index: 1;
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex; flex-direction: column;
+  margin: var(--top) var(--st) 0;
+  padding: calc(var(--fw) + 1.3cqw) calc(var(--fw) + 2.6cqw) calc(var(--fw) + 1.2cqw);
+  color: var(--cab-ink);
+  --ink: var(--cab-ink);
+  --ink-faint: var(--cab-faint);
+  --gold-text: var(--cab-gold);
+  --line: rgba(220, 190, 120, 0.22);
+}
+.board .cs-door > :not(.cf, .cs-glass, .cs-reflect, .cs-pool) { position: relative; z-index: 1; }
+/* The black glass: verre eglomise, like the gates' signs. One reflection
+   band, a lit top rim, the frame's shadow falling on it. */
+.board .cs-door > .cs-glass {
+  position: absolute; inset: 0; z-index: 0;
+  background:
+    linear-gradient(104deg, transparent 22%, rgba(255, 248, 230, 0.05) 34%, transparent 47%),
+    linear-gradient(180deg, rgba(255, 244, 220, 0.07), transparent 22%),
+    radial-gradient(ellipse 80% 60% at 50% 110%, rgba(255, 255, 255, 0.025), transparent 70%),
+    var(--cab-glass);
+  box-shadow:
+    inset 0 calc(var(--fw) + 1px) 10px -2px rgba(0, 0, 0, 0.85),
+    inset calc(var(--fw) + 1px) 0 8px -3px rgba(0, 0, 0, 0.6),
+    inset calc(-1 * var(--fw) - 1px) 0 8px -3px rgba(0, 0, 0, 0.6);
+}
+/* The gilt pinstripe painted on the back of the glass, broken at each
+   corner by a fan. */
+.cs-pin {
+  position: absolute;
+  inset: calc(var(--fw) + 1cqw);
+  border: 1px solid rgba(214, 180, 104, 0.42);
+  clip-path: polygon(4.6cqw 0, calc(100% - 4.6cqw) 0, calc(100% - 4.6cqw) 1.5px, 100% 1.5px, 100% 4.6cqw,
+    calc(100% - 1.5px) 4.6cqw, calc(100% - 1.5px) calc(100% - 4.6cqw), 100% calc(100% - 4.6cqw),
+    100% 100%, calc(100% - 4.6cqw) 100%, 4.6cqw 100%, 0 100%, 0 calc(100% - 4.6cqw), 1.5px calc(100% - 4.6cqw),
+    1.5px 4.6cqw, 0 4.6cqw, 0 1.5px, 4.6cqw 1.5px);
+}
+.cs-fan {
+  position: absolute; width: 5.6cqw; height: 5.6cqw; overflow: visible;
+}
+.cs-fan .fan-leaf { fill: rgba(222, 188, 112, 0.5); }
+.cs-fan .fan-rule { stroke: rgba(214, 180, 104, 0.42); stroke-width: 0.9; }
+.cs-fan-tl { left: calc(var(--fw) + 1cqw); top: calc(var(--fw) + 1cqw); }
+.cs-fan-tr { right: calc(var(--fw) + 1cqw); top: calc(var(--fw) + 1cqw); transform: scaleX(-1); }
+.cs-fan-bl { left: calc(var(--fw) + 1cqw); bottom: calc(var(--fw) + 1cqw); transform: scaleY(-1); }
+.cs-fan-br { right: calc(var(--fw) + 1cqw); bottom: calc(var(--fw) + 1cqw); transform: scale(-1, -1); }
+
+/* The frame: a bolection moulding in the leaf, four mitred facets, each
+   carrying the profile across its width (arris, crest, body, the step down
+   onto the glass), with the leaf lattice laid over the metal. */
+.cf {
+  position: absolute; z-index: 3;
+  pointer-events: none;
+  --gilt: url('/static/assets/tex/grain-gilt.webp');
+  background-blend-mode: soft-light, normal;
+}
+.board .cf { --w: var(--fw); }
+.cf-t, .cf-b { left: 0; right: 0; height: var(--w); }
+.cf-l, .cf-r { top: 0; bottom: 0; width: var(--w); }
+.cf-t { top: 0; clip-path: polygon(0 0, 100% 0, calc(100% - var(--w)) 100%, var(--w) 100%);
+  background: var(--gilt) 0 0 / 46px,
+    linear-gradient(180deg, var(--lead-1), var(--lead-5) 20%, var(--lead-3) 36%, var(--lead-4) 58%, var(--lead-2) 78%, var(--lead-0)); }
+.cf-l { left: 0; clip-path: polygon(0 0, 100% var(--w), 100% calc(100% - var(--w)), 0 100%);
+  background: var(--gilt) 0 0 / 46px,
+    linear-gradient(90deg, var(--lead-1), var(--lead-3) 22%, var(--lead-4) 40%, var(--lead-2) 62%, var(--lead-1) 82%, var(--lead-0)); }
+.cf-r { right: 0; clip-path: polygon(0 var(--w), 100% 0, 100% 100%, 0 calc(100% - var(--w)));
+  background: var(--gilt) 0 0 / 46px,
+    linear-gradient(270deg, var(--lead-0), var(--lead-2) 22%, var(--lead-4) 38%, var(--lead-1) 64%, var(--lead-1) 82%, var(--lead-0)); }
+.cf-b { bottom: 0; clip-path: polygon(var(--w) 0, calc(100% - var(--w)) 0, 100% 100%, 0 100%);
+  background: var(--gilt) 0 0 / 46px,
+    linear-gradient(0deg, var(--lead-0), var(--lead-1) 24%, var(--lead-2) 40%, var(--lead-1) 66%, var(--lead-0) 86%, var(--lead-0)); }
+
+/* One reflection across the whole door and a hairline where the top rim
+   catches the lamp or the sky. Nothing moves on the glass. */
+.cs-reflect {
+  position: absolute; z-index: 4;
+  inset: var(--fw);
+  pointer-events: none;
+  background:
+    linear-gradient(115deg, transparent 8%, rgba(255, 250, 238, 0.045) 16%, rgba(255, 250, 238, 0.01) 28%, transparent 36%),
+    linear-gradient(180deg, rgba(255, 244, 222, 0.26), transparent 1.5px);
+}
+.cs-pool {
+  position: absolute; z-index: 0;
+  left: 8%; right: 8%; top: 0; height: 30%;
+  background: radial-gradient(ellipse 60% 70% at 50% 0%, rgba(255, 214, 160, 0.10), transparent 72%);
+  opacity: var(--lamp-on, 0);
+  pointer-events: none;
+}
+.board .bd-glass { display: none; }
+
+/* ----- On the glass: the title in leaf ----------------------------------- */
+.board .bd-head { padding-bottom: 1.2cqw; }
+.board .bd-sub { margin-top: 0.2cqw; }
+
+.board .bd-head::after {
+  left: 12%; right: 12%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(222, 188, 112, 0.55) 18%, rgba(222, 188, 112, 0.55) 82%, transparent);
+  opacity: 1;
+}
+.board .bd-title {
+  font-weight: 600;
+  background:
+    url('/static/assets/tex/grain-gilt.webp') 0 0 / 60px,
+    linear-gradient(180deg, var(--leaf-0) 0%, var(--leaf-1) 34%, var(--leaf-2) 55%, var(--leaf-3) 72%, var(--leaf-4) 100%) 0 0 / 100% 1em;
+  background-blend-mode: soft-light, normal;
+  -webkit-background-clip: text; background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 0.6px 0 rgba(0, 0, 0, 0.9));
+}
+.board .bd-title::before, .board .bd-title::after { color: var(--leaf-2); -webkit-text-fill-color: var(--leaf-2); opacity: 0.9; }
+.board .bd-sub { color: var(--cab-faint); font-style: italic; letter-spacing: 0.04em; }
+
+/* ----- The dials ------------------------------------------------------------
+   The turned brass of the bezel is the svg's own background: a conic
+   brushing (two bright wedges facing each other across the ring, the way a
+   lathe-turned surface takes a light) over the fine turning lines. */
+.board .wk-dials { gap: 0.8cqw 2.6cqw; padding: 0.8cqw 0 0.4cqw; }
+.board .wk-dial {
+  border-radius: 50%;
+  background:
+    repeating-radial-gradient(circle at 50% 50%, rgba(255, 246, 220, 0.06) 0 0.7px, rgba(30, 18, 4, 0.06) 0.7px 1.5px),
+    conic-gradient(from var(--turn, -30deg),
+      var(--br-5), var(--br-2) 9%, var(--br-1) 22%, var(--br-2) 34%, var(--br-4) 44%, var(--br-3) 50%,
+      var(--br-2) 59%, var(--br-1) 72%, var(--br-2) 84%, var(--br-4) 93%, var(--br-5));
+  box-shadow: 0 1px 1.5px rgba(0, 0, 0, 0.8), 0 5px 12px rgba(0, 0, 0, 0.55);
+}
+.board .wk-dial .d-profile { stroke: none; }
+.board .wk-dial .kn-lit { stroke: #fff6dc; stroke-width: 0.55; }
+.board .wk-dial .kn-shade { stroke: #140c02; stroke-width: 0.55; }
+.board .wk-dial .d-screw { stroke: rgba(0, 0, 0, 0.55); stroke-width: 0.25; }
+.board .wk-dial .d-slot { stroke: rgba(20, 12, 4, 0.9); stroke-width: 0.42; stroke-linecap: round; }
+.board .wk-dial .d-face { stroke: rgba(0, 0, 0, 0.6); stroke-width: 0.4; }
+.board .wk-dial .d-turning circle { fill: none; stroke: var(--turning); stroke-width: 0.9; }
+.board .wk-dial .g-red { stroke: none; opacity: 1; }
+.board .wk-dial .d-red-lit { fill: none; stroke: rgba(255, 190, 170, 0.35); stroke-width: 0.35; }
+.board .wk-dial .d-arc { stroke: var(--scale-ink); stroke-width: 0.45; opacity: 0.8; }
+.board .wk-dial .g-tick path { stroke: var(--scale-ink); stroke-linecap: butt; }
+.board .wk-dial .tk-min { stroke-width: 0.35; opacity: 0.75; }
+.board .wk-dial .tk-med { stroke-width: 0.7; }
+.board .wk-dial .tk-maj { stroke-width: 1.35; }
+.board .wk-dial text {
+  fill: var(--scale-ink);
+  font-family: var(--serif);
+  font-weight: 600;
+  font-variant-numeric: lining-nums tabular-nums;
+}
+.board .wk-dial .d-num text { font-size: 7.4px; }
+.board .wk-dial .d-legend { font-size: 4.6px; letter-spacing: 0.4px; opacity: 0.8; font-weight: 500; }
+.board .wk-dial .d-serial { font-size: 3.4px; letter-spacing: 0.5px; opacity: 0.55; font-weight: 500; }
+.board .wk-dial .d-zero { stroke: rgba(0, 0, 0, 0.5); stroke-width: 0.3; }
+.board .wk-dial .d-lip { pointer-events: none; }
+/* The needle. Both groups carry .g-needle, which the base sheet turns on
+   the spring settle; the shadow's group sits in a translated parent. */
+.board .wk-dial .g-needle { stroke: none; }
+.board .wk-dial .nd-shadow .g-needle { fill: var(--needle-sh); }
+.board .wk-dial .nd-lacq { fill: var(--needle); stroke: var(--needle-edge); stroke-width: 0.3; }
+.board .wk-dial .nd-tip { fill: var(--needle); }
+.board .wk-dial .nd-weight { fill: var(--br-2); stroke: var(--br-0); stroke-width: 0.35; }
+.board .wk-dial .nd-rivet { fill: var(--br-4); }
+.board .wk-dial .nd-hi { stroke: rgba(255, 255, 255, 0.5); stroke-width: 0.35; fill: none; }
+.board .wk-dial .d-hub { stroke: rgba(0, 0, 0, 0.6); stroke-width: 0.35; }
+.board .wk-dial .d-hubglint { fill: #fffbe8; opacity: 0.7; }
+.board .wk-dial .d-xtal { pointer-events: none; }
+.board .wk-dial .d-xtal-edge { stroke: rgba(255, 252, 240, 0.28); stroke-width: 0.6; }
+.board .wk-dial .d-glint { fill: #ffffff; opacity: 0.55; }
+/* In the red: the needle's tip takes the lacquer of the arc it has
+   reached. One signal, no flashing. */
+.board .wk-cell[data-hot="yes"] .nd-tip { fill: var(--lacquer-red-hi); }
+.board .wk-cell[data-hot="yes"] .g-needle { stroke: none; }
+/* No reading: the needle rests on its stop and the instrument stays an
+   instrument, only its face a shade smoked. */
+.board .wk-cell[data-blank="yes"] .wk-dial { opacity: 1; }
+.board .wk-cell[data-blank="yes"] .d-face { opacity: 0.8; }
+
+/* Caption: the name in leaf on the glass, the reading in a small ivorine
+   window set in a brass bezel. */
+.board .wk-name {
+  margin-top: 0.6cqw;
+  color: var(--cab-gold);
+  font-weight: 600;
+}
+.board .wk-read {
+  margin-top: 0.5cqw;
+  padding: 0.1em 0.45em 0.05em;
+  /* a long reading takes a second line in its window rather than losing
+     its tail to an ellipsis */
+  white-space: normal; overflow: visible; text-overflow: clip;
+  text-wrap: balance; text-align: center;
+  letter-spacing: 0.02em;
+  background:
+    linear-gradient(180deg, rgba(0, 0, 0, 0.16), transparent 30%),
+    url('/static/assets/tex/grain-card.webp') 0 0 / 120px,
+    var(--ivorine);
+  background-blend-mode: normal, soft-light, normal;
+  color: var(--ivorine-ink);
+  box-shadow:
+    0 0 0 1px var(--br-1), 0 0 0 2px var(--br-3), 0 0 0 3px var(--br-1),
+    0 2px 3px 2px rgba(0, 0, 0, 0.5);
+  border-radius: 1px;
+  font-weight: 600;
+}
+.board .wk-cell[data-hot="yes"] .wk-read { color: var(--lacquer-red); }
+.board .wk-cell[data-blank="yes"] .wk-read { color: #6b5f4a; letter-spacing: 0.14em; font-size: calc(10.5px * var(--ui)); }
+
+/* The tape: two ivorine labels in brass holders, screwed to the glass. */
+.board .wk-tape, .board .al-tape { border-top: 0; margin-top: 0.3cqw; padding-top: 0.4cqw; }
+.board .wk-strip, .board .al-strips .al-strip {
+  position: relative;
+  margin: 0.8cqw 0.4cqw 0;
+  padding: 0.18em 1.6em 0.12em;
+  background:
+    linear-gradient(180deg, rgba(0, 0, 0, 0.14), transparent 30%),
+    url('/static/assets/tex/grain-card.webp') 0 0 / 120px,
+    var(--ivorine);
+  background-blend-mode: normal, soft-light, normal;
+  box-shadow:
+    0 0 0 1px var(--br-0), 0 0 0 2.5px var(--br-2), 0 0 0 3.5px var(--br-0),
+    0 3px 5px 3px rgba(0, 0, 0, 0.45);
+}
+.board .wk-strip::before, .board .wk-strip::after,
+.board .al-strips .al-strip::before, .board .al-strips .al-strip::after {
+  content: ""; position: absolute; top: 50%;
+  width: 6px; height: 6px; margin-top: -3px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 36% 32%, var(--br-5), var(--br-2) 50%, var(--br-0));
+  box-shadow: 0.5px 0.8px 1px rgba(0, 0, 0, 0.6);
+}
+.board .wk-strip::before, .board .al-strips .al-strip::before { left: 5px; }
+.board .wk-strip::after, .board .al-strips .al-strip::after { right: 5px; }
+.board .wk-slabel, .board .al-slabel { color: #5a4c34; }
+.board .wk-sval, .board .al-sval { color: var(--ivorine-ink); font-weight: 600; }
+
+/* ----- The apron and the maker's plate ------------------------------------ */
+.board .bd-foot {
+  position: relative; z-index: 2;
+  border-top: 0;
+  margin: 0 var(--st);
+  padding: 1.5cqw 0 2.2cqw;
+  display: flex; justify-content: center;
+}
+.cs-plate {
+  position: relative;
+  display: inline-flex; flex-direction: column; align-items: center;
+  padding: 0.5em 2.4em 0.45em;
+  width: auto; height: auto;
+  margin: 0;
+  background:
+    url('/static/assets/tex/grain-plaster.webp') 0 0 / 90px,
+    #16110b;
+  background-blend-mode: soft-light, normal;
+  border-radius: 2px;
+  box-shadow:
+    inset 0 0 0 1.5px var(--br-1),
+    inset 0 0 0 3px var(--br-3),
+    inset 0 0 0 4px var(--br-0),
+    inset 1px 1px 0 4.5px rgba(255, 240, 200, 0.18),
+    0 0 0 1px var(--br-0),
+    0 2px 3px rgba(0, 0, 0, 0.7);
+  --sc: clamp(5px, 1.7cqw, 8px);
+}
+.cs-plate .bp-name, .cs-plate .bp-no, .cs-plate .al-station {
+  display: block;
+  background: linear-gradient(180deg, var(--br-5) 0%, var(--br-3) 30%, var(--br-2) 62%, var(--br-4) 100%);
+  -webkit-background-clip: text; background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0.6px 0.9px 0 rgba(0, 0, 0, 0.85));
+  line-height: 1.25;
+  white-space: nowrap;
+}
+.cs-plate .bp-name { font-size: calc(12px * var(--ui)); letter-spacing: 0.22em; font-weight: 700; }
+.cs-plate .bp-no { font-size: calc(10.5px * var(--ui)); letter-spacing: 0.1em; font-weight: 600; }
+.cs-plate .cs-screw { top: 50%; margin-top: calc(var(--sc) / -2); }
+.cs-plate .sc-0 { left: 0.8em; top: 28%; }
+.cs-plate .sc-1 { right: 0.8em; top: 28%; }
+.cs-plate .sc-2 { left: 0.8em; top: 72%; }
+.cs-plate .sc-3 { right: 0.8em; top: 72%; }
+.al-plate { padding: 0.5em 2.6em; }
+.board .al-station { font-size: min(calc(10px * var(--ui)), 3.3cqw); letter-spacing: 0.12em; font-weight: 600; overflow: visible; }
+.board .cs-plate { max-width: 100%; }
+.board .al-plate { padding-left: 2.2em; padding-right: 2.2em; }
+
+/* ----- The almanac's registers ------------------------------------------- */
+.board .al-read { border-bottom: 0; padding: 0.4cqw 0.8cqw 1cqw; }
+.board .al-read::after {
+  content: ""; position: absolute; left: 6%; right: 6%; bottom: 0; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(222, 188, 112, 0.38) 20%, rgba(222, 188, 112, 0.38) 80%, transparent);
+}
+/* The temperature in leaf, like the title: the one big figure on the glass. */
+.board .al-temp {
+  font-weight: 500;
+  background:
+    url('/static/assets/tex/grain-gilt.webp') 0 0 / 60px,
+    linear-gradient(180deg, var(--leaf-0) 0%, var(--leaf-1) 34%, var(--leaf-2) 58%, var(--leaf-3) 76%, var(--leaf-4) 100%) 0 0 / 100% 1em;
+  background-blend-mode: soft-light, normal;
+  -webkit-background-clip: text; background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 0.8px 0 rgba(0, 0, 0, 0.9));
+}
+.board .al-read[data-blank="yes"] .al-temp { background: none; color: var(--cab-faint); }
+.board .al-vlabel { color: var(--cab-gold); opacity: 0.85; }
+.board .al-sky { padding: 0.8cqw 0 0.4cqw; }
+.board .al-tape { margin-top: 0.4cqw; }
+.board .al-tape::before {
+  content: ""; position: absolute; left: 6%; right: 6%; top: 0; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(222, 188, 112, 0.38) 20%, rgba(222, 188, 112, 0.38) 80%, transparent);
+}
+.board .al-mtext .al-strip { margin: 0; padding: 0; background: none; box-shadow: none; }
+.board .al-mtext .al-slabel { color: var(--cab-gold); opacity: 0.85; }
+.board .al-mtext .al-sval { color: var(--cab-ink); font-weight: 400; }
+.board .al-strips { border-top: 0; padding-top: 0; }
+.board .al-disc { width: calc(46px * var(--ui)); height: calc(46px * var(--ui)); overflow: visible; }
+
+/* The sky plate. */
+.board .al-arc .sk-cast { fill: rgba(0, 0, 0, 0.55); }
+.board .al-arc .sk-bezel { stroke: rgba(0, 0, 0, 0.6); stroke-width: 0.6; }
+.board .al-arc .sk-bezel-lip { fill: none; stroke: rgba(255, 244, 214, 0.35); stroke-width: 0.5; }
+.board .al-arc .sk-stars { fill: var(--leaf-1); opacity: 0.85; }
+:root[data-theme="ivory"] .board .al-arc .sk-stars { opacity: 0; }
+.board .al-arc .sk-gloss { fill: rgba(255, 255, 255, 0.05); }
+:root[data-theme="ivory"] .board .al-arc .sk-gloss { fill: rgba(255, 255, 255, 0.28); }
+.board .al-arc .sk-groove { fill: none; stroke: #0b0703; stroke-width: 2.8; }
+.board .al-arc .sk-lip { fill: none; stroke: rgba(255, 236, 190, 0.32); stroke-width: 0.55; }
+.board .al-arc .a-track { stroke: none; }
+.board .al-arc .a-night { stroke: var(--cab-faint); opacity: 0.35; }
+.board .al-arc .a-done { stroke: var(--leaf-1); opacity: 0.9; stroke-width: 1.6; }
+.board .al-arc .a-horizon { stroke: var(--leaf-2); opacity: 0.9; }
+.board .al-arc .a-h-day { stroke: #1a1006; opacity: 0.9; stroke-width: 1.4; }
+.board .al-arc .a-h-night { stroke: #1a1006; opacity: 0.5; stroke-width: 1; }
+.board .al-arc .a-foot { stroke: var(--leaf-2); }
+.board .al-arc text { fill: var(--cab-faint); }
+.board .al-arc .a-lab { fill: var(--cab-gold); opacity: 0.85; }
+.board .al-arc .a-time { fill: var(--cab-ink); }
+.board .al-arc .a-polar { fill: var(--cab-gold); }
+.board .al-arc .sk-bead-sh { fill: rgba(0, 0, 0, 0.55); }
+.board .al-arc .sk-bead { stroke: rgba(0, 0, 0, 0.5); stroke-width: 0.4; }
+.board .al-arc .sk-bead-glint { fill: #fffbea; opacity: 0.85; }
+.board .al-arc .sk-sun.down .sk-bead { opacity: 0.8; }
+:root[data-theme="onyx"] .sk-up0 { stop-color: #10204f; }
+:root[data-theme="onyx"] .sk-up1 { stop-color: #1b3278; }
+:root[data-theme="onyx"] .sk-up2 { stop-color: #2a4592; }
+:root[data-theme="onyx"] .sk-dn0 { stop-color: #0d0c0c; }
+:root[data-theme="onyx"] .sk-dn1 { stop-color: #050505; }
+:root[data-theme="ivory"] .sk-up0 { stop-color: #86a6cf; }
+:root[data-theme="ivory"] .sk-up1 { stop-color: #a9c1de; }
+:root[data-theme="ivory"] .sk-up2 { stop-color: #d3e0ec; }
+:root[data-theme="ivory"] .sk-dn0 { stop-color: #efe7d4; }
+:root[data-theme="ivory"] .sk-dn1 { stop-color: #d9ccae; }
+.sk-bd0 { stop-color: #fff6d8; }
+
+/* The moon: a ball under its own crystal, in a turned brass bezel. */
+.board .al-disc .mn-bezel { fill: url(#cs-lamp-almanac-cap); stroke: rgba(0, 0, 0, 0.6); stroke-width: 0.5; }
+.board .al-disc .mn-bezel-lip { stroke: rgba(255, 240, 200, 0.4); stroke-width: 0.5; }
+.board .al-disc .mn-seat { fill: #050403; }
+.board .al-disc .m-bezel { stroke: rgba(0, 0, 0, 0.55); stroke-width: 0.6; }
+.mn-m0 { stop-color: #5d5646; }
+.board .al-disc .mn-xtal { pointer-events: none; }
+.board .al-disc .d-glint { fill: #fff; opacity: 0.6; }
+:root[data-theme="onyx"] .mn-l0 { stop-color: #fbf3dc; }
+:root[data-theme="onyx"] .mn-l1 { stop-color: #e2d3ae; }
+:root[data-theme="onyx"] .mn-l2 { stop-color: #8f8166; }
+:root[data-theme="onyx"] .mn-d0 { stop-color: #2b2a2c; }  /* earthshine */
+:root[data-theme="onyx"] .mn-d1 { stop-color: #0c0c0e; }
+:root[data-theme="ivory"] .mn-l0 { stop-color: #fffdf4; }
+:root[data-theme="ivory"] .mn-l1 { stop-color: #efe8d6; }
+:root[data-theme="ivory"] .mn-l2 { stop-color: #b8ae97; }
+:root[data-theme="ivory"] .mn-d0 { stop-color: #3b3934; }
+:root[data-theme="ivory"] .mn-d1 { stop-color: #1b1a18; }
+#almanac .al-disc .m-dark { fill: url(#mn-dark); }
+#almanac .al-disc .m-lit { fill: url(#mn-lit); }
+

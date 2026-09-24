@@ -74,6 +74,7 @@
 <link rel="preload" href="/static/fonts/EBGaramond-wght.ttf" as="font" type="font/ttf" crossorigin>
 <link rel="preload" href="/static/fonts/LXGWHeartSerif.ttf" as="font" type="font/ttf" crossorigin>
 <link rel="stylesheet" href="/static/css/atrium.css">
+<link rel="stylesheet" href="/static/css/palace-cabinetry.css">
 </head>
 <body>
 
@@ -642,23 +643,26 @@
          and because /api/stats is already the services' status route. -->
     <aside id="works" class="board" data-i18n-aria="ariaWorks"
            aria-label="Statistics" data-i18n-title="worksTitle">
+      <!-- The case: carcass, crest and picture lamp are drawn by
+           cabinetry.js; the door holds the glass and everything read
+           through it; the maker's plate is screwed to the apron below. -->
       <div class="bd-frame" aria-hidden="true"></div>
-      <header class="bd-head">
-        <h2 class="bd-title display" lang="en">STATISTICS</h2>
-        <p class="bd-sub zh-sentence" data-i18n="worksSub">Readings from the engine room</p>
-      </header>
-      <div class="wk-dials" id="wk-dials"></div>
-      <div class="wk-tape" id="wk-tape"></div>
+      <div class="cs-top" aria-hidden="true"></div>
+      <div class="cs-door">
+        <header class="bd-head">
+          <h2 class="bd-title display" lang="en">STATISTICS</h2>
+          <p class="bd-sub zh-sentence" data-i18n="worksSub">Readings from the engine room</p>
+        </header>
+        <div class="wk-dials" id="wk-dials"></div>
+        <div class="wk-tape" id="wk-tape"></div>
+      </div>
       <footer class="bd-foot">
-        <!-- The maker's plate, off the retired rail. Single frame: double
-             rules stay reserved for the ticker and the Ledger day-breaks. -->
-        <svg class="wk-plate" viewBox="0 0 208 52" aria-hidden="true">
-          <rect x="1.5" y="1.5" width="205" height="49" fill="none" stroke-width="1.5"/>
-          <circle cx="10" cy="10" r="1.6"/><circle cx="198" cy="10" r="1.6"/>
-          <circle cx="10" cy="42" r="1.6"/><circle cx="198" cy="42" r="1.6"/>
-          <text class="bp-name display" x="104" y="23" text-anchor="middle">ATRIUM WORKS</text>
-          <text class="bp-no addr" x="104" y="40" text-anchor="middle">No. 8769 · MMXXVI</text>
-        </svg>
+        <!-- The maker's plate: cast, the letters and the rim raised and
+             polished, the field between them filled black. -->
+        <div class="wk-plate cs-plate" aria-hidden="true">
+          <span class="bp-name display">ATRIUM WORKS</span>
+          <span class="bp-no addr">No. 8769 · MMXXVI</span>
+        </div>
       </footer>
     </aside>
 
@@ -686,19 +690,24 @@
     <aside id="almanac" class="board" data-i18n-aria="ariaAlmanac"
            aria-label="Almanac" data-i18n-title="almTitle">
       <div class="bd-frame" aria-hidden="true"></div>
-      <header class="bd-head">
-        <h2 class="bd-title display" lang="en">ALMANAC</h2>
-        <p class="bd-sub zh-sentence" id="al-sub"></p>
-      </header>
-      <!-- Built by app.js: the reading, the heliograph, the moon and the
-           daylight tape. Empty at rest so the case is never half-engraved. -->
-      <div class="al-read" id="al-read"></div>
-      <div class="al-sky" id="al-sky"></div>
-      <div class="al-tape" id="al-tape"></div>
+      <div class="cs-top" aria-hidden="true"></div>
+      <div class="cs-door">
+        <header class="bd-head">
+          <h2 class="bd-title display" lang="en">ALMANAC</h2>
+          <p class="bd-sub zh-sentence" id="al-sub"></p>
+        </header>
+        <!-- Built by app.js: the reading, the heliograph, the moon and the
+             daylight tape. Empty at rest so the case is never half-engraved. -->
+        <div class="al-read" id="al-read"></div>
+        <div class="al-sky" id="al-sky"></div>
+        <div class="al-tape" id="al-tape"></div>
+        <div class="bd-glass" aria-hidden="true"></div>
+      </div>
       <footer class="bd-foot">
-        <p class="al-station addr" id="al-station">&mdash;</p>
+        <div class="cs-plate al-plate">
+          <p class="al-station addr" id="al-station">&mdash;</p>
+        </div>
       </footer>
-      <div class="bd-glass" aria-hidden="true"></div>
     </aside>
 
   </div>
@@ -885,6 +894,7 @@
 </div>
 
 <script src="/static/js/palace.js"></script>
+<script src="/static/js/cabinetry.js"></script>
 <script src="/static/js/clock.js"></script>
 <script src="/static/js/app.js"></script>
 <script>
