@@ -719,25 +719,27 @@ def _pile(h, w, seed, pitch=8):
     return tuft * (1 + lay * 0.16 + fuzz * 0.20)
 
 
-def _wool(rgb, ground, seed):
+def _wool(rgb, ground, seed, pitch=8, soft=1.3, wander=3.0):
     """Turn a drawn pattern into wool. A knotted pile cannot hold a vector
     edge: the motif's edges are wandered a tuft's width by noise and
     softened, its contrast against the ground is taken down by a third (a
     dyed yarn is never as far from its neighbour as a printed ink), and the
-    pile is laid over all of it."""
+    pile is laid over all of it. pitch, soft and wander are in the tile's
+    own pixels: a tile laid denser on the floor takes them larger, so its
+    weave and its softness match the field's on screen."""
     from scipy.ndimage import gaussian_filter, map_coordinates
     h, w = rgb.shape[:2]
     n = max(h, w)
     yy, xx = np.mgrid[0:h, 0:w].astype(np.float64)
-    wx = (fbm(n, seed + 3, 1.2)[:h, :w] - 0.5) * 3.0
-    wy = (fbm(n, seed + 4, 1.2)[:h, :w] - 0.5) * 3.0
+    wx = (fbm(n, seed + 3, 1.2)[:h, :w] - 0.5) * wander
+    wy = (fbm(n, seed + 4, 1.2)[:h, :w] - 0.5) * wander
     out = np.empty_like(rgb)
     for c in range(3):
         out[..., c] = map_coordinates(rgb[..., c], [yy + wy, xx + wx], order=1, mode="grid-wrap")
-    out = gaussian_filter(out, (1.3, 1.3, 0), mode="wrap")
+    out = gaussian_filter(out, (soft, soft, 0), mode="wrap")
     g = np.array(ground, dtype=np.float64)[None, None, :]
     out = g + (out - g) * 0.68
-    return out * _pile(h, w, seed + 5)[..., None]
+    return out * _pile(h, w, seed + 5, pitch)[..., None]
 
 
 def carpet_fringe(w=96, h=48, seed=181):
@@ -824,28 +826,31 @@ def carpet(n=512, seed=161):
     return _wool(rgb, CLARET, seed)
 
 
-def carpet_border(w=96, h=384, seed=171):
-    """The runner's border: black, a gold stepped zigzag and a claret guard,
-    running along y (the carpet's length)."""
-    from PIL import ImageDraw
-    S = 4
-    img = Image.new("RGB", (w * S, h * S), (22, 12, 12))
-    d = ImageDraw.Draw(img)
-    GOLD, OLD, CLARET = (196, 150, 70), (140, 98, 42), (112, 22, 30)
-    d.rectangle([0, 0, 10 * S, h * S], fill=CLARET)
-    d.rectangle([(w - 10) * S, 0, w * S, h * S], fill=CLARET)
-    d.rectangle([13 * S, 0, 16 * S, h * S], fill=OLD)
-    d.rectangle([(w - 16) * S, 0, (w - 13) * S, h * S], fill=OLD)
-    step = h / 8
-    for k in range(-1, 9):
-        y0 = k * step
-        pts = []
-        for j in range(5):
-            pts += [(28 + j * 10, y0 + j * step / 5), (28 + j * 10, y0 + (j + 1) * step / 5)]
-        pts += [(w - 28 - j * 10, y0 + step / 2 + (j + 1) * step / 5) for j in range(4, -1, -1)]
-        d.line([(px * S, py * S) for px, py in pts], fill=GOLD, width=int(3.2 * S))
-    rgb = np.asarray(img.resize((w, h), Image.LANCZOS), dtype=np.float64)
-    return _wool(rgb, (22, 12, 12), seed)
+def carpet_border(w=384, h=768, seed=171):
+    """The runner's border, running along y (the carpet's length): a claret
+    guard at each selvedge, an old-gold stripe inside it, and on the black
+    field a stepped chevron in gold, woven square to the weave, with a thin
+    claret chevron between each pair. Three yarns and the black.
+    It was 96px wide and drawn 2.1x up at 3440, soft next to the field, and
+    its gold zigzag wandered like a scribble (AR-35). At 384 the border is
+    laid about four texels to a plane pixel where the field is laid at about
+    two and a quarter, so it is woven at twice the field's pile pitch and
+    softened in proportion, to match the field's weave on screen."""
+    BLACK, GOLD, OLD, CLARET = (22, 12, 12), (196, 150, 70), (150, 106, 46), (112, 22, 30)
+    y, x = np.mgrid[0:h, 0:w].astype(np.float64) + 0.5
+    rgb = np.empty((h, w, 3))
+    rgb[:] = BLACK
+    ax = np.abs(x - w / 2)                        # across the band from its middle
+    rgb[ax > w * 0.406] = CLARET                  # the guards at the selvedges
+    rgb[(ax > w * 0.344) & (ax <= w * 0.375)] = OLD
+    field = ax <= w * 0.344
+    P = h / 4                                     # four chevrons to the tile
+    step = w * 0.0573                             # a stepped arm, square to the weave
+    q = np.floor(ax / step) * step
+    ph = (y - q * 0.9) % P
+    rgb[field & (ph < P * 0.135)] = GOLD
+    rgb[field & (np.abs(ph - P * 0.5) < P * 0.056)] = CLARET
+    return _wool(rgb, BLACK, seed, pitch=16, soft=2.3, wander=5.2)
 
 
 PALACE = [
