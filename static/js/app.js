@@ -3740,15 +3740,22 @@ function refresh() {
     // an arrival. The last reading stands and the hall asks again shortly.
     function cold(p) { return !!p && p.warm === false; }
     // No answer, an error, or a body that is not a status: every lamp goes
-    // back to asking, and the band and the live region say why.
+    // back to asking, and the band and the live region say why. A cold
+    // status is neither: it is the hub not having asked yet, and it used to
+    // put every lamp back to the ellipsis over a reading the page still had.
     var wasLost = hubLost;
-    hubLost = !(st && st.services && typeof st.services === 'object');
-    statuses = hubLost ? {} : st.services;
-    if (!(sx && sx.stats && typeof sx.stats === 'object')) stats = {};
+    var stOk = !!(st && st.services && typeof st.services === 'object');
+    var sxOk = !!(sx && sx.stats && typeof sx.stats === 'object');
+    var fdOk = !!(fd && Array.isArray(fd.dispatches));
+    if (!(stOk && cold(st))) {
+      hubLost = !stOk;
+      statuses = hubLost ? {} : st.services;
+    }
+    if (!sxOk) stats = {};
     else if (!cold(sx)) stats = sx.stats;
     applyStatuses();
     applyStats();
-    if (fd && Array.isArray(fd.dispatches)) {
+    if (fdOk) {
       if (!cold(fd)) {
         // The first feed landing in an open drawer falls in as the opening
         // cascade would have; the drawer held its ghosts until now.
