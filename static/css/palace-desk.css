@@ -38,10 +38,18 @@
 }
 /* The board's own materials, scoped to it. */
 :root[data-theme="onyx"] #signal-desk {
+  /* The board's bronze: the statuary ramp taken darker and cooler, an
+     olive-black body under a pale brass crest. At the hall's warmth the
+     frame's rails and stiles read as a varnished walnut picture frame;
+     cast bronze is darker than wood in its body and brighter and paler
+     where it takes the light. */
+  --sb-oil: #030302;
+  --sb-0: #0b0a07; --sb-1: #17140f; --sb-2: #2a2419; --sb-3: #4a3f2b; --sb-4: #8f7a53; --sb-5: #ead8a8;
+  --sb-rl-lit: rgba(232, 214, 168, 0.55);
   /* copper, 0 in the oil .. 5 the hot arris; its drawn grain; and the
      board's cast patina, laid lighter than the niche's dressed one */
   --kc-0: #1c0b04; --kc-1: #43200f; --kc-2: #71381b; --kc-3: #a65b33; --kc-4: #d4875a; --kc-5: #ffc795;
-  --cu-tex: 0.24; --sb-tex: 0.32;
+  --cu-tex: 0.24; --sb-tex: 0.3;
   /* ebonite: hard rubber, black with a brown bloom where the light lies */
   --eb-0: #020101; --eb-1: #0d0a08; --eb-2: #251c16; --eb-3: #44342a; --eb-hi: rgba(255, 220, 178, 0.72);
   /* cast brass: bezels, ferrule, screws, plates (never the wing's leaf) */
@@ -70,6 +78,9 @@
   --rest-shadow: rgba(0, 0, 0, 0.7);
 }
 :root[data-theme="ivory"] #signal-desk {
+  --sb-oil: #0d0b08;
+  --sb-0: #1a1712; --sb-1: #29251c; --sb-2: #3a3427; --sb-3: #564b37; --sb-4: #93805d; --sb-5: #efe2c2;
+  --sb-rl-lit: rgba(246, 238, 216, 0.62);
   --kc-0: #3a1a0a; --kc-1: #6a321a; --kc-2: #975230; --kc-3: #c47a4c; --kc-4: #e6a476; --kc-5: #ffe2c4;
   --cu-tex: 0.2; --sb-tex: 0.28;
   --eb-0: #050404; --eb-1: #171311; --eb-2: #352d27; --eb-3: #564a40; --eb-hi: rgba(255, 255, 255, 0.8);

@@ -149,6 +149,12 @@ function planeXf(p0, ex, ey) {
    wall and its arches as a band a little above the horizon, the ceiling. */
 var LIGHT = vnorm([-0.45, 0.72, 0.62]);
 var ENV = [[-1, 0.05], [-0.4, 0.12], [-0.05, 0.16], [0.08, 0.3], [0.2, 0.6], [0.34, 0.7], [0.5, 0.78], [0.62, 0.66], [0.8, 0.7], [1, 0.8]];
+/* The patinated bronze takes the room more darkly: its polish is the lit
+   wall and the arches, one bright band a little above the horizon, and the
+   ceiling over it is the dark of the house. With the ceiling as bright as
+   the copper sees it, every top of the frame and the standard caught it and
+   the eye read the board from above, as a plan. */
+var ENV_SB = [[-1, 0.04], [-0.4, 0.08], [-0.1, 0.12], [0.04, 0.34], [0.14, 0.86], [0.24, 1], [0.34, 0.72], [0.46, 0.36], [0.7, 0.24], [1, 0.28]];
 function interp(tab, x) {
   if (x <= tab[0][0]) return tab[0][1];
   for (var i = 1; i < tab.length; i++) {
@@ -164,7 +170,7 @@ function interp(tab, x) {
    comes last. */
 var MAT = {
   cu:   { ramp: ['--kc-0', '--kc-1', '--kc-2', '--kc-3', '--kc-4', '--kc-5'], env: 0.66, diff: 0.3, spec: 0.6, pow: 40, tex: 'hb-brush', texOp: '--cu-tex' },
-  sb:   { ramp: ['--sb-oil', '--sb-0', '--sb-1', '--sb-2', '--sb-3', '--sb-4', '--sb-5'], env: 0.55, diff: 0.36, spec: 0.55, pow: 18, tex: 'hb-patina', texOp: '--sb-tex' },
+  sb:   { ramp: ['--sb-oil', '--sb-0', '--sb-1', '--sb-2', '--sb-3', '--sb-4', '--sb-5'], env: 0.92, diff: 0.16, spec: 0.9, pow: 30, tex: 'hb-patina', texOp: '--sb-tex', envTab: ENV_SB, side: 0.7 },
   bz:   { ramp: ['--bz-0', '--bz-1', '--bz-2', '--bz-3', '--bz-4'], env: 0.62, diff: 0.34, spec: 0.5, pow: 30 },
   lead: { ramp: ['--lead-0', '--lead-1', '--lead-2', '--lead-4', '--lead-5', '--lead-3'], env: 0.6, diff: 0.36, spec: 0.45, pow: 24 },
   eb:   { ramp: ['--eb-0', '--eb-1', '--eb-2', '--eb-3'], env: 0.4, diff: 0.3, spec: 0, pow: 1 },
@@ -172,14 +178,14 @@ var MAT = {
 };
 /* The room by the ray's height, plus the hall's lit side walls for a ray
    sent off sideways and the lit arches for one sent back toward the stage. */
-function envT(r) {
-  return interp(ENV, r[1]) + 0.24 * Math.max(0, Math.abs(r[0]) - 0.25) + 0.1 * Math.max(0, -r[2]);
+function envT(r, tab, side) {
+  return interp(tab || ENV, r[1]) + (side || 0.24) * Math.max(0, Math.abs(r[0]) - 0.25) + 0.1 * Math.max(0, -r[2]);
 }
 function shadeT(n, p, m) {
   var v = viewAt(p), nv = vdot(n, v);
   var r = vsub(vmul(n, 2 * nv), v);
   var d = Math.max(0, vdot(n, LIGHT)), s = Math.max(0, vdot(r, LIGHT));
-  return clamp01(m.env * envT(r) + m.diff * (0.08 + 0.72 * d) + m.spec * Math.pow(s, m.pow));
+  return clamp01(m.env * envT(r, m.envTab, m.side) + m.diff * (0.08 + 0.72 * d) + m.spec * Math.pow(s, m.pow));
 }
 function tone(m, t) {
   var n = m.ramp.length - 1, x = clamp01(t) * n, i = Math.min(n - 1, Math.floor(x)), f = x - i;
@@ -387,9 +393,10 @@ var SLAB = [[-PX, PY0], [PX, PY0], [PX, PY1], [SX1, PY1], [SX1, SY1], [SX2, SY1]
             [-SX2, SY2], [-SX2, SY1], [-SX1, SY1], [-SX1, PY1], [-PX, PY1]];
 /* The bolection moulding, as (outward from the marble's edge, out of the
    panel): it laps the stone, rises to a rounded crest and falls to a
-   square outer edge that runs back past the slab. */
+   square outer edge that runs back a little past the slab (not far: seen
+   from above, that return is the top of every rail). */
 var FPROF = [[-2.6, 0.3], [-1.8, 1.4], [-0.6, 2.6], [0.8, 3.6], [2.4, 4.4], [4, 4.8], [5.4, 4.7], [6.6, 4.2], [7.6, 3.4],
-             [8.4, 2.4], [8.9, 1.3], [9, 0.4], [9, -4]];
+             [8.4, 2.4], [8.9, 1.3], [9, 0.4], [9, -1.6]];
 var FANR = 15, FANY = SY2 + FW;                      // the finial
 var MY = 227, MR = 16;                               // the ammeter
 var JWX = 95, JWY = 192, JR = 7;                     // the pilots
@@ -591,27 +598,74 @@ function buildPanel(q) {
    square, so each end of a run is mitred along the sum of the two sides'
    outward normals, for a setback's inside corners as for its outside ones.
    A facet (dout, dz) of the profile faces (-dz along the side's normal,
-   dout out of the panel). The patina's brushing runs along each member. */
-function framePoly(fc, poly, prof, m, closed) {
-  var n = poly.length, norms = [];
+   dout out of the panel).
+   Each run is one path, shaded by a gradient across it that is sampled
+   from the moulding's normals, smoothed between the facets and broken only
+   at the square outer arris. Flat facets had laid a dozen parallel stripes
+   of brown along every stile, and a moulding shaded in stripes is wood; a
+   cast one is dark and continuous, with one hard line of light along its
+   round. The gradient's lines are laid along the run as the eye sees it
+   (gradientTransform), so they follow a stile's slight convergence. The
+   same mitred cross-section closes both runs at a corner, so they meet on
+   one line and never overlap. */
+function frameRuns(g, defs, poly, prof, m, idp) {
+  var n = poly.length, norms = [], runs = [];
   for (var i = 0; i < n; i++) {
     var p0 = poly[i], p1 = poly[(i + 1) % n], l = Math.hypot(p1[0] - p0[0], p1[1] - p0[1]);
     norms.push([(p1[1] - p0[1]) / l, -(p1[0] - p0[0]) / l]);
   }
-  var last = closed ? n : n - 1;
-  for (i = 0; i < last; i++) {
+  function P(c, s, p) { return [c[0] + s[0] * p[0], c[1] + s[1] * p[0], p[1]]; }
+  for (i = 0; i < n; i++) {
     var c0 = poly[i], c1 = poly[(i + 1) % n], nr = norms[i];
-    var s0 = closed || i > 0 ? [nr[0] + norms[(i + n - 1) % n][0], nr[1] + norms[(i + n - 1) % n][1]] : nr;
-    var s1 = closed || i < n - 2 ? [nr[0] + norms[(i + 1) % n][0], nr[1] + norms[(i + 1) % n][1]] : nr;
-    var tex = Math.abs(nr[1]) > 0.5 ? 'hb-patina-h' : 'hb-patina';
+    var pn = norms[(i + n - 1) % n], nn = norms[(i + 1) % n];
+    var s0 = [nr[0] + pn[0], nr[1] + pn[1]], s1 = [nr[0] + nn[0], nr[1] + nn[1]];
+    var cm = [(c0[0] + c1[0]) / 2, (c0[1] + c1[1]) / 2];
+    // The facets the eye sees, from the lap outward: they run on until the
+    // first that turns away, and whatever lies past it is behind them.
+    var fn = [], a = -1, b = -1;
     for (var j = 0; j < prof.length - 1; j++) {
-      var p = prof[j], r = prof[j + 1];
-      var A = [c0[0] + s0[0] * p[0], c0[1] + s0[1] * p[0], p[1]], B = [c1[0] + s1[0] * p[0], c1[1] + s1[1] * p[0], p[1]];
-      var C = [c1[0] + s1[0] * r[0], c1[1] + s1[1] * r[0], r[1]], D = [c0[0] + s0[0] * r[0], c0[1] + s0[1] * r[0], r[1]];
-      var dout = r[0] - p[0], dz = r[1] - p[1];
-      fc.push([A, B, C, D], vnorm([-nr[0] * dz, -nr[1] * dz, dout]), m, { tex: tex });
+      var p = prof[j], r = prof[j + 1], dout = r[0] - p[0], dz = r[1] - p[1];
+      var N = vnorm([-nr[0] * dz, -nr[1] * dz, dout]);
+      fn.push(N);
+      var vis = vdot(N, viewAt(P(cm, nr, [(p[0] + r[0]) / 2, (p[1] + r[1]) / 2]))) > 1e-3;
+      if (vis) { if (a < 0) a = j; b = j; } else if (a >= 0) break;
     }
+    if (a < 0) continue;
+    // samples across the moulding: position and a normal smoothed between
+    // neighbouring facets, hard where they meet at more than 50 degrees
+    var smp = [];
+    for (j = a; j <= b; j++) {
+      var nA = fn[j], nB = fn[j];
+      if (j > a && vdot(fn[j - 1], fn[j]) > 0.64) nA = vnorm(vadd(fn[j - 1], fn[j]));
+      if (j < b && vdot(fn[j + 1], fn[j]) > 0.64) nB = vnorm(vadd(fn[j + 1], fn[j]));
+      for (var k = 0; k <= 3; k++) {
+        var f = k / 3, pp = [prof[j][0] + (prof[j + 1][0] - prof[j][0]) * f, prof[j][1] + (prof[j + 1][1] - prof[j][1]) * f];
+        smp.push({ p: pp, n: vnorm(vadd(vmul(nA, 1 - f), vmul(nB, f))) });
+      }
+    }
+    var O = proj(P(cm, nr, prof[a])), E2 = proj(P(cm, nr, prof[b + 1]));
+    var Ax = E2[0] - O[0], Ay = E2[1] - O[1];
+    var pc = [4, 4.8], D0 = proj(P(c0, nr, pc)), D1 = proj(P(c1, nr, pc));
+    var Dx = D1[0] - D0[0], Dy = D1[1] - D0[1], det = Ax * Dy - Ay * Dx;
+    if (Math.abs(det) < 1e-6) continue;
+    var id = idp + i, stops = [], tPrev = 0;
+    smp.forEach(function (sm) {
+      var q = proj(P(cm, nr, sm.p)), qx = q[0] - O[0], qy = q[1] - O[1];
+      var t = Math.max(tPrev, clamp01((qx * Dy - qy * Dx) / det));
+      tPrev = t;
+      stops.push([n2(t), tone(m, shadeT(sm.n, P(cm, nr, sm.p), m))]);
+    });
+    grad(defs, id, false, { gradientUnits: 'userSpaceOnUse', x1: 0, y1: 0, x2: 1, y2: 0,
+         gradientTransform: 'matrix(' + [Ax, Ay, Dx, Dy, O[0], O[1]].map(n2).join(' ') + ')' }, stops);
+    var ring = [];
+    for (j = a; j <= b + 1; j++) ring.push(proj(P(c0, s0, prof[j])));
+    for (j = b + 1; j >= a; j--) ring.push(proj(P(c1, s1, prof[j])));
+    runs.push({ d: pathOf(ring), id: id, w: proj(P(cm, nr, pc))[2], tex: Math.abs(nr[1]) > 0.5 ? 'hb-patina-h' : 'hb-patina' });
   }
+  runs.sort(function (x, y) { return x.w - y.w; }).forEach(function (r) {
+    add(g, 'path', { d: r.d, fill: U(r.id) });
+    add(g, 'path', { d: r.d, fill: U(r.tex), style: 'opacity:var(--sb-tex)' });
+  });
 }
 function boss(g, fc, cx, cy, h, lead) {
   boxZ(fc, cx - h, cx + h, cy - h, cy + h, -2, 7.2, 1.5, MAT.sb);
@@ -625,8 +679,7 @@ function boss(g, fc, cx, cy, h, lead) {
 function buildFrame(q) {
   var g = add(q, 'g', null, 'hb-frame');
   var fc = new Faces(), defs = q.querySelector('defs');
-  framePoly(fc, SLAB, FPROF, MAT.sb, true);
-  fc.flush(g);
+  frameRuns(g, defs, SLAB, FPROF, MAT.sb, 'hb-fr');
   // The wing's leaf where knuckles pass: the crest of each stile beside
   // the handle's rest, rubbed bright.
   [-1, 1].forEach(function (sg) {
