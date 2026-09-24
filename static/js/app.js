@@ -272,10 +272,13 @@ var STR = {
     almDays: '{n} 日', almSrDays: '{n} 日', almWindUnit: '{n} 公里/时',
     almFahrenheit: '现在 {now} °F · 最高 {high} · 最低 {low}',
     almFahrenheitDay: '最高 {high} · 最低 {low} °F',
-    almPhase0: '朔', almPhase1: '蛾眉月',
-    almPhase2: '上弦', almPhase3: '盈凸',
-    almPhase4: '望', almPhase5: '亏凸',
-    almPhase6: '下弦', almPhase7: '残月',
+    /* The standard eight, each a whole name: 盈凸 and 亏凸 are not said on
+       their own, and 朔 and 望 stood beside 蛾眉月 and 残月 in another
+       register. */
+    almPhase0: '新月', almPhase1: '蛾眉月',
+    almPhase2: '上弦月', almPhase3: '盈凸月',
+    almPhase4: '满月', almPhase5: '亏凸月',
+    almPhase6: '下弦月', almPhase7: '残月',
     bayLabel: '第 {n} 间',
     floorMotto: '万厅一门',
     appearance: '外观', language: '语言', motion: '动效',
