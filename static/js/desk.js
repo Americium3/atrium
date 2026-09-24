@@ -213,9 +213,12 @@ Faces.prototype.push = function (pts, n, m, o) {
   this.list.push(f);
   return f;
 };
+/* Each face is sealed with a hair of its own colour round its edge: two
+   anti-aliased edges that meet leave a seam of whatever lies under them,
+   and on a turned bezel of 48 sectors those seams drew a mosaic. */
 Faces.prototype.flush = function (g) {
   this.list.sort(function (a, b) { return a.w - b.w; }).forEach(function (f) {
-    add(g, 'path', { d: f.d, style: F(f.fill) });
+    add(g, 'path', { d: f.d, style: F(f.fill) + ';stroke:' + f.fill + ';stroke-width:.3;stroke-linejoin:round' });
     if (f.tex) add(g, 'path', { d: f.d, fill: U(f.tex), style: 'opacity:var(' + (f.texOp || '--sb-tex') + ')' });
     if (f.sheen) add(g, 'path', { d: f.d, fill: U('hb-sheen') });
   });
@@ -280,6 +283,38 @@ function turned(fc, o, ax, u, v, prof, K, m, opt) {
             : [P(a0, r0, t0), P(a1, r0, t0), P(a1, r1, t1), P(a0, r1, t1)];
       fc.push(q, nrm, m, opt);
     }
+  }
+}
+/* A turned part that faces the eye along its axis (a bezel, a boss): each
+   band of the profile is one shape, the hull of its two rims, laid back to
+   front and shaded by a gradient in the part's own plane, run toward the
+   side of the band the room lights most. Round a band the shade is a
+   function of the angle from that side, which a linear gradient across it
+   holds exactly for one light and closely for the room's several. Drawn
+   in flat sectors, the meter's bezel had come out as a mosaic. */
+function turnedFace(g, defs, id, o, ax, u, v, prof, m) {
+  var K = 48;
+  for (var j = 0; j < prof.length - 1; j++) {
+    var t0 = prof[j][0], r0 = prof[j][1], t1 = prof[j + 1][0], r1 = prof[j + 1][1];
+    if (r0 < 1e-6 && r1 < 1e-6) continue;
+    var pts = [], sh = [], best = 0, tm = (t0 + t1) / 2, rm = (r0 + r1) / 2, k;
+    for (k = 0; k < K; k++) {
+      var a = k / K * 2 * Math.PI, rad = vadd(vmul(u, Math.cos(a)), vmul(v, Math.sin(a)));
+      pts.push(proj(vadd(vadd(o, vmul(ax, t0)), vmul(rad, r0))));
+      pts.push(proj(vadd(vadd(o, vmul(ax, t1)), vmul(rad, r1))));
+      sh.push(shadeT(vnorm(vsub(vmul(rad, t1 - t0), vmul(ax, r1 - r0))), vadd(vadd(o, vmul(ax, tm)), vmul(rad, rm)), m));
+      if (sh[k] > sh[best]) best = k;
+    }
+    var a0 = best / K * 2 * Math.PI, R = Math.max(r0, r1, 0.5), stops = [];
+    for (k = 0; k <= K / 2; k++) {
+      var phi = Math.PI * (1 - 2 * k / K);
+      var tt = (sh[(best + K / 2 - k) % K] + sh[(best - K / 2 + k + K) % K]) / 2;
+      stops.push([n2((1 + Math.cos(phi)) / 2), tone(m, tt)]);
+    }
+    var gid = id + '-' + j;
+    grad(defs, gid, false, { gradientUnits: 'userSpaceOnUse', gradientTransform: planeXf(vadd(o, vmul(ax, tm)), u, v),
+         x1: n2(-R * Math.cos(a0)), y1: n2(-R * Math.sin(a0)), x2: n2(R * Math.cos(a0)), y2: n2(R * Math.sin(a0)) }, stops);
+    add(g, 'path', { d: pathOf(hull(pts)), fill: U(gid) });
   }
 }
 /* A hexagon nut on a stud along ax. */
@@ -504,8 +539,7 @@ function buildStand(q) {
   // The stretcher first: the legs' inner faces stand in front of its ends.
   boxZ(fc, -inner, inner, 21, 27, -9, -3, 1.1, MAT.sb);
   fc.flush(g);
-  turned(fc, [0, 30, -3], Z3, X3, Y3, [[-1, 10], [0.6, 10], [1.6, 9], [2, 0]], 36, MAT.sb);
-  fc.flush(g);
+  turnedFace(g, q.querySelector('defs'), 'hb-strb', [0, 30, -3], Z3, X3, Y3, [[-1, 10], [0.6, 10], [1.6, 9], [2, 0]], MAT.sb);
   var ray = add(g, 'g', { transform: planeXf([0, 30, -0.8], X3, DN), filter: U('hb-cast') });
   add(ray, 'path', { d: fanPath(0, 3, 8, 11, Math.PI, 2 * Math.PI) + 'M-2.6 3A2.6 2.6 0 0 1 2.6 3Z', style: F('var(--sb-3)') });
   // the apron under the frame's foot, set back from it
@@ -534,10 +568,10 @@ function buildStand(q) {
     var y0 = PLY + 9, y1 = capTop - 7;
     boxZ(fc, x - 13, x + 13, y0, y1, -11, 3, 0, MAT.sb);
     fc.flush(g);
+    // each reed a half round, shaded across its round
     for (var r = 0; r < 5; r++) {
       var rx = x - 13 + 2.6 * (2 * r + 1);
-      turned(fc, [rx, y0, 3], Y3, X3, Z3, [[0, 0], [0.01, 2.3], [y1 - y0 - 0.01, 2.3], [y1 - y0, 0]], 12, MAT.sb, { tex: null });
-      fc.flush(g);
+      turnedShape(g, q.querySelector('defs'), 'hb-reed' + (sg < 0 ? 'l' : 'r') + r, [rx, y0, 3], Y3, Z3, [[0, 2.3], [y1 - y0, 2.3]], 0, 1, MAT.sb, false);
     }
     // the corbel under the frame, stepping out in two courses
     boxY(fc, x - 16, x + 16, y1, y1 + 3.2, -13, 5.5, 1, MAT.sb);
@@ -702,7 +736,7 @@ function buildCrest(q) {
   var fc = new Faces();
   // the finial: a fan, cast, standing on the head's rail
   var ol = [];
-  for (var i = 0; i <= 16; i++) { var a2 = i / 16 * Math.PI; ol.push([Math.cos(a2) * FANR, Math.sin(a2) * FANR]); }
+  for (var i = 0; i <= 36; i++) { var a2 = i / 36 * Math.PI; ol.push([Math.cos(a2) * FANR, Math.sin(a2) * FANR]); }
   prism(fc, { o: [0, FANY, -4], a: X3, b: Y3, c: Z3 }, ol, 0, 7.5, 1.4, MAT.sb);
   fc.flush(g);
   var rg = add(g, 'g', { transform: planeXf([0, FANY, 3.5], X3, DN), filter: U('hb-cast') });
@@ -721,8 +755,7 @@ function buildMeter(q) {
   var g = add(q, 'g', null, 'hb-meter');
   var fc = new Faces(), defs = q.querySelector('defs');
   // the drawn brass case and its bezel, turned
-  turned(fc, [0, MY, 0], Z3, X3, Y3, [[0, MR + 5], [1.2, MR + 5], [2.7, MR + 4.5], [4, MR + 3.5], [5, MR + 2.2], [5.8, MR + 1], [5.9, MR]], 48, MAT.bz);
-  fc.flush(g);
+  turnedFace(g, defs, 'hb-case', [0, MY, 0], Z3, X3, Y3, [[0, MR + 5], [1.2, MR + 5], [2.7, MR + 4.5], [4, MR + 3.5], [5, MR + 2.2], [5.8, MR + 1], [5.9, MR]], MAT.bz);
   // the dial: ivory enamel, drawn in its own plane (at a 17.5 radius)
   var d = add(add(g, 'g', { transform: planeXf([0, MY, 5.2], X3, DN) }), 'g', { transform: 'scale(' + n2(MR / 17.5) + ')' });
   grad(defs, 'hb-dial', true, { cx: 0.42, cy: 0.38, r: 0.7 }, [[0, 'var(--dial-1)'], [0.7, 'var(--dial-0)'], [1, 'var(--dial-2)']]);
@@ -838,8 +871,8 @@ function facets(g, cx, cy, r, gradId) {
 /* A pilot: a jewel lamp in a knurled brass bezel. */
 function buildPilot(g, x, side) {
   var fc = new Faces();
-  turned(fc, [x, JWY, 0], Z3, X3, Y3, [[0, 11.2], [1.4, 11.2], [1.4, 10], [4.2, 10], [5.3, 9], [6, 7.8], [6.1, JR]], 36, MAT.bz);
-  fc.flush(g);
+  turnedFace(g, g.ownerSVGElement.querySelector('defs'), 'hb-bzl-' + side, [x, JWY, 0], Z3, X3, Y3,
+             [[0, 11.2], [1.4, 11.2], [1.4, 10], [4.2, 10], [5.3, 9], [6, 7.8], [6.1, JR]], MAT.bz);
   // the knurl round the bezel's drum
   var kn = '';
   for (var k = 0; k < 36; k++) {
