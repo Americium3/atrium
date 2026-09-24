@@ -492,13 +492,24 @@ html[lang="zh"] #masthead .p-caption { letter-spacing: 0.3em; }
    dentils take their light from over their heads, as they do from the
    skylight by day. */
 .wall-cornice {
+  /* the light's bearing for the cast shadows: straight down from the
+     marquee's bulbs by night, down and to the right from the skylight */
+  --cs-dx: 0px;
+  --cs-tooth: rgba(16, 5, 0, 0.72);
+  --cs-core: rgba(16, 5, 0, 0.86);
+  --cs-mid: rgba(34, 12, 2, 0.42);
   background:
     linear-gradient(180deg, var(--au-0) 0, var(--au-5) calc(1.2px * var(--ui)), var(--au-3) calc(2.2px * var(--ui)),
       var(--au-2) calc(3.6px * var(--ui)), var(--au-1) calc(5px * var(--ui)), var(--au-0) calc(6px * var(--ui)), transparent calc(6px * var(--ui)))
       0 0 / 100% 100% no-repeat,
-    linear-gradient(180deg, transparent calc(17px * var(--ui)), rgba(0, 0, 0, 0.62) calc(17px * var(--ui)), rgba(0, 0, 0, 0.30) calc(21px * var(--ui)), transparent calc(27px * var(--ui)))
-      0 0 / 100% 100% no-repeat,
+    /* each dentil throws its own tooth of shadow onto the bed mould */
+    linear-gradient(90deg, transparent 0 18%, var(--cs-tooth) 18% 82%, transparent 82%)
+      var(--cs-dx) calc(17px * var(--ui)) / calc(13.2px * var(--ui)) calc(2.2px * var(--ui)) repeat-x,
     linear-gradient(180deg, transparent calc(17px * var(--ui)), var(--au-1) calc(17px * var(--ui)), var(--au-4) calc(18.2px * var(--ui)), var(--au-2) calc(19.2px * var(--ui)), var(--au-0) calc(20px * var(--ui)), transparent calc(20px * var(--ui)))
+      0 0 / 100% 100% no-repeat,
+    /* and the bed mould throws a hard shadow onto the head of the frieze,
+       so the two courses stand apart in depth */
+    linear-gradient(180deg, transparent calc(20px * var(--ui)), var(--cs-core) calc(20px * var(--ui)), var(--cs-mid) calc(23px * var(--ui)), transparent calc(29px * var(--ui)))
       0 0 / 100% 100% no-repeat,
     linear-gradient(180deg, transparent calc(100% - 4px * var(--ui)), var(--au-0) calc(100% - 4px * var(--ui)), var(--au-5) calc(100% - 3.2px * var(--ui)), var(--au-2) calc(100% - 2px * var(--ui)), var(--au-0) 100%)
       0 0 / 100% 100% no-repeat,
@@ -507,7 +518,13 @@ html[lang="zh"] #masthead .p-caption { letter-spacing: 0.3em; }
   background-color: var(--au-0);
   box-shadow: 0 calc(5px * var(--ui)) calc(9px * var(--ui)) rgba(0, 0, 0, 0.6);
 }
-:root[data-theme="ivory"] .wall-cornice { box-shadow: 0 calc(4px * var(--ui)) calc(8px * var(--ui)) rgba(80, 58, 24, 0.28); }
+:root[data-theme="ivory"] .wall-cornice {
+  --cs-dx: calc(1.4px * var(--ui));
+  --cs-tooth: rgba(70, 48, 16, 0.42);
+  --cs-core: rgba(70, 48, 16, 0.55);
+  --cs-mid: rgba(90, 64, 26, 0.22);
+  box-shadow: 0 calc(4px * var(--ui)) calc(8px * var(--ui)) rgba(80, 58, 24, 0.28);
+}
 
 /* ----- The damask, hung bay by bay ------------------------------------------
    No two bays were cut from the same length: each takes its own phase of
@@ -592,9 +609,9 @@ html[lang="zh"] #masthead .p-caption { letter-spacing: 0.3em; }
     linear-gradient(to top, transparent calc(var(--skirt-h) * 0.30), var(--channel) 0, color-mix(in srgb, var(--channel) 40%, #000) calc(var(--skirt-h) * 0.30 + 2px), transparent 0),
     linear-gradient(to top, transparent calc(var(--skirt-h) * 0.62), var(--channel) 0, color-mix(in srgb, var(--channel) 40%, #000) calc(var(--skirt-h) * 0.62 + 2px), transparent 0),
     linear-gradient(180deg, rgba(0, 0, 0, 0.6), transparent 30%),
-    url('/static/assets/tex/room-portoro.webp') 0 0 / calc(420px * var(--ui)) auto,
+    url('/static/assets/tex/room-portoro.webp') 0 0 / calc(640px * var(--ui)) auto,
     var(--skirt);
-  background-blend-mode: normal, normal, normal, luminosity, normal;
+  background-blend-mode: normal, normal, normal, soft-light, normal;
 }
 
 /* ----- Pier lights ---------------------------------------------------------- */
