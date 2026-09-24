@@ -236,15 +236,48 @@ def mast_frieze(day=False):
     return rgb
 
 
+def _chips(n, seed, count, rmin, rmax):
+    """Terrazzo aggregate as grey shards on mid-grey (mean near 0.5): each
+    chip an irregular polygon, light marble or dark, drawn wrapped so the
+    tile repeats without a seam."""
+    from PIL import ImageDraw
+    rng = np.random.default_rng(seed)
+    img = Image.new("L", (n, n), 128)
+    dr = ImageDraw.Draw(img)
+    for _ in range(count):
+        cx, cy = rng.uniform(0, n, 2)
+        r = rng.uniform(rmin, rmax) * (0.6 + 0.8 * rng.random() ** 2)
+        k = int(rng.integers(5, 8))
+        a0 = rng.uniform(0, 6.28)
+        sq = rng.uniform(0.55, 1.0)
+        pts = []
+        for j in range(k):
+            a = a0 + j / k * 6.2832 + rng.uniform(-0.3, 0.3)
+            rr = r * rng.uniform(0.65, 1.0)
+            pts.append((np.cos(a) * rr, np.sin(a) * rr * sq))
+        v = int(rng.choice([40, 62, 84, 176, 204, 226], p=[0.18, 0.16, 0.14, 0.2, 0.18, 0.14]))
+        for ox in (-n, 0, n):
+            for oy in (-n, 0, n):
+                dr.polygon([(cx + x + ox, cy + y + oy) for x, y in pts], fill=v)
+    return np.asarray(img, dtype=np.float64) / 255.0
+
+
 def vein_gray(n=512, seed=301):
-    """Grey marble figure (mean 0.5) for soft-light over the floor's cut
-    stones: a cloud and a few flowing veins, so every slab of the medallion
-    reads as quarried stone, whatever colour it is cut from."""
+    """Grey figure (mean 0.5) for soft-light over the floor's inlaid stones.
+    The medallion and roundels are poured terrazzo like the floor round
+    them: each field carries its own aggregate (light marble and dark
+    shards of several sizes) under a cloud and a few flowing veins, so a
+    field reads as poured and ground stone whatever colour it is, rather
+    than as a flat fill."""
     cloud = fbm(n, seed, 1.8)
     v = (flow_veins(n, seed + 1, 2.4, (1.6, 1.0), 0.10, 30, 0.8) * 0.8
          + ridges(n, seed + 2, 2.2, 140) * 0.4)
-    lum = 0.5 + (cloud - 0.5) * 0.40 + np.clip(v, 0, 1) * 0.46
-    g = np.clip(lum, 0, 1) * 255
+    lum = 0.5 + (cloud - 0.5) * 0.40 + np.clip(v, 0, 1) * 0.34
+    big = _chips(n, seed + 3, 300, 3.0, 8.0)
+    fine = _chips(n, seed + 4, 2600, 1.0, 2.6)
+    chips = np.where(np.abs(big - 0.5) > 0.01, big, fine)
+    lum = np.where(np.abs(chips - 0.5) > 0.01, lum * 0.35 + chips * 0.65, lum)
+    g = np.clip(gaussian_filter(lum, 0.45, mode="wrap"), 0, 1) * 255
     return np.dstack([g, g, g])
 
 
@@ -256,7 +289,7 @@ BAKES = [
     ("room-dentil-day", lambda: dentils(True), None),
     ("room-mfrieze-night", lambda: mast_frieze(False), None),
     ("room-mfrieze-day", lambda: mast_frieze(True), None),
-    ("room-veins", lambda: vein_gray(), None),
+    ("room-inlay-figure", lambda: vein_gray(), None),
 ]
 
 

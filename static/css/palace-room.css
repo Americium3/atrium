@@ -728,13 +728,28 @@ html[lang="zh"] #masthead .p-caption { letter-spacing: 0.3em; }
 :root[data-wing="salon"] .st-fan[data-wing="bureau"],
 :root[data-wing="bureau"] .st-fan[data-wing="salon"],
 .st-fan:not([data-state="open"]) { opacity: 0; }
-/* The inlays: cut stone with its own figure, under the floor's wax. */
-.fl-inlay .st-vein, .fl-round .st-vein { mix-blend-mode: soft-light; opacity: 0.95; }
-.fl-inlay .st-sheen, .fl-round .st-sheen { mix-blend-mode: screen; }
-.fls.s0 { stop-color: #ffe6bf; stop-opacity: 0.16; } .fls.s1 { stop-color: #ffe6bf; stop-opacity: 0.04; }
-.fls.s2 { stop-color: #ffe6bf; stop-opacity: 0; }
-:root[data-theme="ivory"] .fls.s0 { stop-color: #ffffff; stop-opacity: 0.32; }
-:root[data-theme="ivory"] .fls.s1 { stop-color: #ffffff; stop-opacity: 0.08; }
+/* The inlays: cut stone with its own figure, under the floor's wax. HTML
+   layers over the inlay's SVG (the circle is r 474 of 1000 on the
+   medallion, 190 of 400 on a roundel), so they raster once and stay. */
+:root[data-theme="onyx"] { --fls-0: rgba(255, 230, 191, 0.16); --fls-1: rgba(255, 230, 191, 0.04); }
+:root[data-theme="ivory"] { --fls-0: rgba(255, 255, 255, 0.32); --fls-1: rgba(255, 255, 255, 0.08); }
+.fl-vein, .fl-sheen {
+  position: absolute; inset: 2.6%;
+  border-radius: 50%;
+  pointer-events: none;
+}
+.fl-round .fl-vein, .fl-round .fl-sheen { inset: 2.5%; }
+.fl-vein { overflow: hidden; mix-blend-mode: soft-light; opacity: 0.95; }
+.fl-vein::before {
+  content: ""; position: absolute; inset: -22%;
+  background: url('/static/assets/tex/room-inlay-figure.webp') 0 0 / 26.4% auto;
+  transform: rotate(var(--vr, 0deg));
+}
+.fl-round .fl-vein::before { background-size: 65.8% auto; }
+.fl-sheen {
+  background: radial-gradient(62% 62% at 50% 30%, var(--fls-0), var(--fls-1) 60%, transparent 100%);
+  mix-blend-mode: screen;
+}
 
 /* ==========================================================================
    THE MARQUEE

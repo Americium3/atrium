@@ -2270,18 +2270,15 @@ function buildFloorInlay() {
   svg.appendChild(svgEl('circle', { cx: C, cy: C, r: 60 }, 'st-bronze'));
   svg.appendChild(svgEl('circle', { cx: C, cy: C, r: 60, fill: 'none' }, 'st-strip'));
   svg.appendChild(svgEl('circle', { cx: C, cy: C, r: 26 }, 'st-gold'));
+  host.appendChild(svg);
   // Quarried, not printed: a marble figure over every cut stone, and the
   // wax's sheen over the whole inlay. The roundels borrow the same figure.
-  var defs = svgEl('defs');
-  defs.innerHTML =
-    '<pattern id="fl-vein" patternUnits="userSpaceOnUse" width="360" height="360">' +
-      '<image href="/static/assets/tex/room-veins.webp" width="360" height="360"/></pattern>' +
-    '<radialGradient id="fl-sheen" cx=".5" cy=".3" r=".62">' +
-      '<stop offset="0" class="fls s0"/><stop offset=".6" class="fls s1"/><stop offset="1" class="fls s2"/></radialGradient>';
-  svg.insertBefore(defs, svg.firstChild);
-  svg.appendChild(svgEl('circle', { cx: C, cy: C, r: 474, fill: 'url(#fl-vein)' }, 'st-vein'));
-  svg.appendChild(svgEl('circle', { cx: C, cy: C, r: 474, fill: 'url(#fl-sheen)' }, 'st-sheen'));
-  host.appendChild(svg);
+  // These are HTML layers with CSS backgrounds, not SVG paint servers: the
+  // floor's SVG is re-laid every frame while the clock's hands turn, and a
+  // pattern or gradient fill is rebuilt on every lay, which re-rasterised
+  // the whole medallion every frame (a third of the frame rate at 3440).
+  host.appendChild(el('div', 'fl-vein'));
+  host.appendChild(el('div', 'fl-sheen'));
 
   buildFloorRoundels();
   buildTerrazzo();
@@ -2323,10 +2320,11 @@ function buildFloorRoundels() {
       r.appendChild(svgEl('path', { d: 'M200 200 L' + sL.join(' ') + ' L' + tip.join(' ') + ' L' + sR.join(' ') + ' Z' }, 'st-d'));
     }
     r.appendChild(svgEl('circle', { cx: 200, cy: 200, r: 22 }, 'st-gold'));
-    r.appendChild(svgEl('circle', { cx: 200, cy: 200, r: 190, fill: 'url(#fl-vein)',
-      transform: 'rotate(' + (i ? 97 : 23) + ' 200 200)' }, 'st-vein'));
-    r.appendChild(svgEl('circle', { cx: 200, cy: 200, r: 190, fill: 'url(#fl-sheen)' }, 'st-sheen'));
     d.appendChild(r);
+    var vein = el('div', 'fl-vein');
+    vein.style.setProperty('--vr', (i ? 97 : 23) + 'deg');
+    d.appendChild(vein);
+    d.appendChild(el('div', 'fl-sheen'));
     plane.appendChild(d);
   });
 }
