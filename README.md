@@ -101,8 +101,8 @@ Atrium serves `http://127.0.0.1:8769` and currently fronts:
 - **The Ledger.** The message center, kept off the main page behind a domed
   brass hatch in the masthead. Opening it slides a black lacquer drawer over
   the right edge, with a brass pneumatic main down its spine and each
-  dispatch a programme card in a small gilt holder. It collects today's news
-  from all services: which anime got a new episode, premieres
+  dispatch a programme card in a small gilt holder. It collects the last
+  week's news from all services: which anime got a new episode, premieres
   auto-subscribed, shows auto-completed, one-shots imported by hand, which
   watched workshop mod updated or got pulled, outreach daily-queue readiness
   and invites sent, the morning edition going to press, and the bourse
@@ -178,12 +178,12 @@ Tab walks everything. On top of that:
 | Key | Does |
 |---|---|
 | ← → | Walk the lit wing's gates, left to right |
-| 1 to 4 | Go to a gate |
+| 1 to 3 | Go to a gate (one digit per lit gate) |
 | Enter | Open it |
 | W | Throw the lever (focus lands on the gate in the same bay of the other wing) |
 | L | Open or close the Ledger |
 | ↑ ↓ | Walk the dispatches while the Ledger is open |
-| P | Preferences |
+| P | Open Preferences |
 | ? | Show or hide the key plate |
 | Esc | Close the top layer |
 
@@ -325,10 +325,11 @@ nothing. Graphics comes from `nvidia-smi` if there is one on `PATH`; a
 machine with no NVIDIA card is a normal machine and that dial rests at zero.
 
 Keepalive: `scripts/concierge.vbs` runs `concierge.ps1` at logon **and every
-five minutes after**, which is the difference between a fleet that comes back
-after a reboot and one that comes back at all. On 2026-09-04 six of these
-services died together mid-session; nothing noticed until a human did, the
-next morning. A logon task cannot help with that, because nobody logs on.
+five minutes after**. The logon run brings the fleet back after a reboot; the
+five-minute run brings back a service that dies mid-session. On 2026-09-04
+six of these services died together mid-session and nothing noticed until a
+human did, the next morning. A logon task cannot help with that, because
+nobody logs on.
 
 Each gate is asked for a real endpoint, not a TCP handshake: a wedged uvicorn
 keeps its listening socket open long after it stops answering. Headers are
@@ -359,8 +360,7 @@ by accident, through the Jellyfin webhook listener it starts alongside its sync 
 and that accident is the only way to ask whether it is alive. It died on
 2026-09-04 and did not come back at the next logon. The panel kept answering
 perfectly, so nothing looked wrong from here; for two days the Ledger gained an
-`anime.landed` line only when a human pressed Sync by hand. A guard that
-watches only the door people knock on will keep missing exactly this.
+`anime.landed` line only when a human pressed Sync by hand.
 
 Startup shortcuts still start both halves at logon, and the Press Room still
 has its own `YoRHaNews-Server` logon task; all of them are listed here as a
@@ -394,11 +394,21 @@ Tests: `python tests/test_feed.py`
 
 ## Adding a future web UI
 
-Add one entry to `SERVICES` in `server.py` (id, name, wing, url, addr,
-sigil, desc_key, launch_hint, order). The gate renders
-immediately with the fallback sigil and a status lamp. Optionally add a sigil `<g id="sig-<id>">`
-in `index.html`, `desc.<key>` strings in both i18n dictionaries, and an
-adapter tick if the service should feed the Ledger.
+Add one entry to `SERVICES` in `server.py` (id, name, short, wing, url,
+addr, sigil, desc_key, launch_hint, order). `short` is the name the marquee
+sets before the gate's live figure. The gate renders immediately with the
+fallback sigil and a status lamp. Then:
+
+- Add `desc.<key>` strings to both `STR` tables in `static/js/app.js`.
+  Without them the gate shows the generic description.
+- Give it its mark: add the service to `APPS`, `HUE` and `SIL` in
+  `icons/gen.py`, draw its subject in `glyph()`, run the script so
+  `#mark-<id>` lands in the generated block, and add the id to
+  `KNOWN_SIGILS` in `app.js`. The gate and its Ledger
+  medallions use `#mark-<id>` only for ids listed there, and fall back to
+  `#sig-fallback` otherwise.
+- Write an adapter tick in `server.py` if the service should feed the Ledger
+  or the gate's stat line.
 
 ## The marks
 
