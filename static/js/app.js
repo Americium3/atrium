@@ -1499,14 +1499,25 @@ function layoutStage(initial) {
   var PITCH = 1.16;        // arch centre to arch centre, in gate widths
   var CLEAR = 0.10;        // clock to its nearest arch
   function rowUnits(n) { var k = Math.ceil(n / 2); return 2 * CLEAR + 2 * (k ? 1 + (k - 1) * PITCH : 0); }
-  var rowG = rowUnits(active.length);
+  /* Both wings stand in one bay grid, the longer wing's, whichever is lit.
+     The fit used to be solved from the lit wing alone, so a wing of five
+     (six bays with its RESERVED) stood at 0.80 and a wing of three at 1.0:
+     every throw rewrote --fit, the outgoing arches grew in their old bays
+     over each other and over the clock while they were still fully opaque,
+     and no incoming arch found a mate at its own x to wait for (CRB-1).
+     With one fit for both, a throw never resizes anything, and the shorter
+     wing's bays are the longer wing's inner ones. */
+  var span = Math.max(active.length, receded.length);
+  var rowG = rowUnits(span);
   // The aisles open only beside a row at full size, the longer wing's, so a
   // throw never opens or shuts them. Neither width here depends on them.
-  if (!m && setAisles((c0 + g0 * rowUnits(Math.max(active.length, receded.length))) / 0.985)) {
+  if (!m && setAisles((c0 + g0 * rowG) / 0.985)) {
     W = wrap.clientWidth;
   }
   if (!m && first) solved = { W: W, g0: g0, c0: c0 };
-  var nSide = Math.ceil(active.length / 2);
+  // The wall is laid from the same grid: its piers and damask bays stand
+  // for both wings, so a throw re-lays none of it.
+  var nSide = Math.ceil(span / 2);
   var fit = Math.min(1, (W * 0.985) / (c0 + g0 * rowG));
   // Inside the dead band of full size the row stands at full size, so the
   // band cannot leave a live re-solve a hair off the load's (PS-1).

@@ -447,7 +447,10 @@ else.
   clearance to the niche. If that line is wider than the stage, it writes
   `--fit` (0..1) on `#stage`, and the arches, the niche and the plinth rule
   all size from `--gate-fit = --gate-w × --fit`. Widths are measured at fit 1
-  so the solve never chases its own output. Checked at twelve sizes from
+  so the solve never chases its own output. The line is always the longer
+  wing's, lit or not, so both wings share one fit and one set of bays: a
+  throw never resizes an arch or the clock, and a wing of three stands in
+  the inner bays of a wing of five. Checked at twelve sizes from
   1280x800 to 3440x1440 in both wings with a Playwright overlap audit.
 - **A throw goes bay by bay**, out from the clock on both sides, 60 ms a
   step. By night the lit arch's lamps go out first, in 120 ms. Then it
