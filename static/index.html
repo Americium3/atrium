@@ -75,6 +75,7 @@
 <link rel="preload" href="/static/fonts/LXGWHeartSerif.ttf" as="font" type="font/ttf" crossorigin>
 <link rel="stylesheet" href="/static/css/atrium.css">
 <link rel="stylesheet" href="/static/css/palace-gates.css">
+<link rel="stylesheet" href="/static/css/palace-room.css">
 <link rel="stylesheet" href="/static/css/palace-cabinetry.css">
 </head>
 <body>
@@ -514,61 +515,43 @@
       <div class="m-sub display" data-i18n="subtitle">GRAND CONCOURSE</div>
     </div>
     <div class="m-underline" aria-hidden="true"></div>
+    <!-- The canopy's own ornament, all scenery: a crown over the clock's
+         axis and a cast frieze panel in each stretch of fascia either side
+         of it. room.js draws them and sizes each panel to its gap. -->
+    <div class="m-crown" aria-hidden="true"></div>
+    <div class="m-frieze m-frieze-l" aria-hidden="true"></div>
+    <div class="m-frieze m-frieze-r" aria-hidden="true"></div>
     <div class="m-right">
       <div id="dateline"></div>
       <button id="ledger-btn" aria-keyshortcuts="L" aria-label="Open Ledger" aria-describedby="ledger-badge-count" aria-expanded="false"
               aria-controls="ledger" data-i18n-aria="ariaLedger">
-        <!-- Pneumatic-tube dispatch hatch: anatomically flat-shaded brass cap -->
-        <svg viewBox="0 0 48 48" aria-hidden="true" width="40" height="40">
-          <!-- Housing ring (outer 3px band) -->
-          <circle class="hatch-housing" cx="24" cy="24" r="22"
-                  fill="none" stroke="var(--bronze-deep)" stroke-width="3"/>
-          <!-- Inner hairline (gold) -->
-          <circle cx="24" cy="24" r="20.5"
-                  fill="none" stroke="var(--gold)" stroke-width="0.8" opacity="0.6"/>
-          <!-- Outer hairline -->
-          <circle cx="24" cy="24" r="23.5"
-                  fill="none" stroke="var(--bronze)" stroke-width="0.8" opacity="0.5"/>
-          <!-- Knurl: 12 radial grip ticks on the outer housing ring -->
-          <g class="hatch-knurl" stroke="var(--bronze)" stroke-width="1" opacity="0.7">
-            <line x1="24" y1="1.5" x2="24" y2="4.5"/>
-            <line x1="30.2" y1="2.8" x2="28.7" y2="5.5"/>
-            <line x1="35.5" y1="6.5" x2="33.0" y2="8.2"/>
-            <line x1="39.2" y1="12.3" x2="36.6" y2="13.6"/>
-            <line x1="41.5" y1="19.2" x2="38.5" y2="19.8"/>
-            <line x1="41.5" y1="26.2" x2="38.5" y2="25.6"/>
-            <line x1="39.2" y1="33.1" x2="36.6" y2="31.8"/>
-            <line x1="35.5" y1="39.0" x2="33.0" y2="37.3"/>
-            <line x1="30.2" y1="43.2" x2="28.7" y2="40.5"/>
-            <line x1="24.0" y1="45.5" x2="24.0" y2="42.5"/>
-            <line x1="17.8" y1="43.2" x2="19.3" y2="40.5"/>
-            <line x1="12.5" y1="39.0" x2="15.0" y2="37.3"/>
-          </g>
-          <!-- 4 rivet dots at N/E/S/W on housing -->
-          <g class="hatch-rim" fill="var(--rivet)">
-            <circle cx="24" cy="2.5" r="1.4"/>
-            <circle cx="45.5" cy="24" r="1.4"/>
-            <circle cx="24" cy="45.5" r="1.4"/>
-            <circle cx="2.5" cy="24" r="1.4"/>
-          </g>
-          <!-- Main disc (3 flat-shaded zones) -->
+        <!-- The pneumatic dispatch hatch: a domed brass cap with a turned knob,
+             seated in a turned bronze housing. room.js lays the housing's
+             turning; the unread jewel is the span below. -->
+        <svg class="hatch" viewBox="0 0 48 48" aria-hidden="true" width="40" height="40">
+          <defs>
+            <radialGradient id="lh-dome" cx=".36" cy=".3" r=".8">
+              <stop offset="0" class="lhd s0"/><stop offset=".16" class="lhd s1"/>
+              <stop offset=".5" class="lhd s2"/><stop offset=".84" class="lhd s3"/>
+              <stop offset="1" class="lhd s4"/></radialGradient>
+            <linearGradient id="lh-knob" x1=".15" y1=".1" x2=".85" y2=".95">
+              <stop offset="0" class="lhb s0"/><stop offset=".3" class="lhb s1"/>
+              <stop offset=".7" class="lhb s2"/><stop offset="1" class="lhb s3"/></linearGradient>
+          </defs>
+          <circle class="hatch-seat" cx="24.6" cy="25.4" r="23.2"/>
+          <g class="hatch-housing hatch-turn"></g>
+          <g class="hatch-knurl"></g>
+          <g class="hatch-rim"></g>
+          <circle class="hatch-well" cx="24" cy="24" r="18.3"/>
           <g class="hatch-disc">
-            <!-- Main disc face -->
-            <circle class="hatch-face" cx="24" cy="24" r="18"
-                    fill="color-mix(in srgb, var(--bronze) 80%, var(--base) 20%)"/>
-            <!-- Top specular crescent (single flat highlight plane) -->
-            <path class="hatch-bevel"
-                  d="M10 18 A18 18 0 0 1 38 18 Q31 12 24 12 Q17 12 10 18 Z"
-                  fill="var(--champagne)" opacity="0.22"/>
-            <!-- Bayonet cut slots (two slot-shaped polygons at 135°/315°) -->
-            <!-- Slot 1: NW-SE direction -->
-            <rect class="hatch-recess" x="15" y="22.5" width="18" height="3"
-                  rx="1.5" fill="var(--machine-edge)"
-                  transform="rotate(45 24 24)"/>
-            <!-- Slot 2: NE-SW direction (45° rotated opposite) -->
-            <rect class="hatch-recess" x="15" y="22.5" width="18" height="3"
-                  rx="1.5" fill="var(--machine-edge)"
-                  transform="rotate(-45 24 24)"/>
+            <circle class="hatch-face" cx="24" cy="24" r="17.1" fill="url(#lh-dome)"/>
+            <g class="hatch-lathe"></g>
+            <path class="hatch-bevel" d="M9.6 19.5 A15.2 15.2 0 0 1 33 10.6 A17.4 17.4 0 0 0 9.6 19.5 Z"/>
+            <path class="hatch-lug" d="M7.4 21.2 l-1.6 -0.4 v5.6 l1.6 -0.4 Z M40.6 21.2 l1.6 -0.4 v5.6 l-1.6 -0.4 Z"/>
+            <circle class="hatch-recess" cx="24" cy="24" r="8.2"/>
+            <circle class="hatch-knob-sh" cx="25.1" cy="25.6" r="6.4"/>
+            <circle class="hatch-knob" cx="24" cy="24" r="6.2" fill="url(#lh-knob)"/>
+            <circle class="hatch-knob-cap" cx="24" cy="24" r="3.1" fill="url(#lh-dome)"/>
           </g>
         </svg>
         <!-- Unread signal. The disc is the whole visual; the count it stands
@@ -578,7 +561,7 @@
         <span class="p-caption display" data-i18n="ledgerBtnLabel">LEDGER</span>
       </button>
       <button id="prefs-btn" aria-haspopup="dialog" aria-keyshortcuts="P">
-        <svg viewBox="0 0 48 48" aria-hidden="true"><use href="#rosette-key"/></svg>
+        <svg class="pkey" viewBox="0 0 48 48" aria-hidden="true"><use href="#rosette-key"/></svg>
         <span class="p-caption" data-i18n="preferences">PREFERENCES</span>
       </button>
     </div>
@@ -927,6 +910,7 @@
 
 <script src="/static/js/palace.js"></script>
 <script src="/static/js/cabinetry.js"></script>
+<script src="/static/js/room.js"></script>
 <script src="/static/js/clock.js"></script>
 <script src="/static/js/app.js"></script>
 <script>
