@@ -3438,6 +3438,12 @@ html[lang="zh"] .g-name { letter-spacing: 0.17em; }
 #ticker {
   margin-top: 12px;
   padding: calc(13px * var(--ui)) 0 calc(12px * var(--ui));
+  /* One line height for the band however its line moves. The crawl's line
+     box took the body's strut (24px at --ui 1) while the paged view took
+     the track's own 13px x 1.5, so switching motion moved the whole hall
+     5px (VD-11). As a length it is inherited as is, by the track and every
+     page alike. */
+  line-height: calc(24px * var(--ui));
   border: none;
   background:
     url('/static/assets/tex/grain-frost.webp') 0 0 / 160px,
@@ -3446,6 +3452,9 @@ html[lang="zh"] .g-name { letter-spacing: 0.17em; }
   box-shadow: 0 0 0 1px var(--lead-0), 0 0 0 3px var(--lead-2), 0 0 0 4px var(--lead-0),
               0 6px 14px rgba(0, 0, 0, 0.6), 0 0 38px var(--bulb-glow);
 }
+/* ...and the crawl's inline-block stands on the top of that line, not on
+   its baseline, which added a pixel of the strut's descent under it. */
+#ticker .t-track { vertical-align: top; }
 /* The marquee's own focus ring. At the default 3px the ring lay on the
    frame's dark outer bead and read as one more moulding line (1.2:1 in
    Ivory), and under the band there is no wall to set it on, only the
