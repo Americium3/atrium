@@ -2175,6 +2175,14 @@ var WORKS_STALE_MS = 10000;
 
 function pollWorks() {
   if (!worksVisible() || worksBusy) return Promise.resolve();
+  // A reading that sat on the dials past the stale mark while the board could
+  // not poll (a background tab, a narrow window, a folded case) is not live.
+  // It comes down before the next one is asked for; it used to stand as the
+  // current figure until the next beat landed.
+  if (works && Date.now() - worksOkAt > WORKS_STALE_MS) {
+    works = null;
+    syncWorks();
+  }
   worksBusy = true;
   return fetchJson('/api/works').then(function (w) {
     // An older reading never replaces a newer one.
@@ -2714,29 +2722,44 @@ function almanacVisible() {
 var ALM_RETRY_MS = 121000;   // just past the hub's 120 s, so the retry is real
 var almRetryT = null;
 var almReadAt = 0;
+// One request at a time: the boot poll and the cases' first hanging both ask,
+// and a retry chain armed by each would run twice.
+var almBusy = false;
 
 function pollAlmanac() {
   if (!almanacVisible()) return Promise.resolve();
+  if (almBusy) return Promise.resolve();
+  almBusy = true;
   return fetchJson('/api/almanac').then(function (a) {
     almanac = a;
     almReadAt = Date.now();
-    clearTimeout(almRetryT);
-    if (!a.weather) almRetryT = setTimeout(pollAlmanac, ALM_RETRY_MS);
     renderAlmanac();
-  }).catch(function () { /* a restarting hub is not a forecast */ });
+  }).catch(function () { /* a restarting hub is not a forecast */ })
+    .then(function () {
+      // Re-armed after a failed request as well as after a miss: armed only
+      // on a reply, one retry that met a hub restart left NO READING up for
+      // the rest of the ten minutes.
+      almBusy = false;
+      clearTimeout(almRetryT);
+      if (!almWeather()) almRetryT = setTimeout(pollAlmanac, ALM_RETRY_MS);
+    });
+}
+
+/* Read the cases the moment they can be seen again: the boot poll declined
+   while they were hidden, and a reading kept from before is as old as the
+   time they spent away. pollWorks() takes a stale reading down itself. */
+function readCases() {
+  if (!works || Date.now() - worksOkAt > WORKS_STALE_MS) pollWorks();
+  if (!almWeather() || Date.now() - almReadAt > ALM_POLL_MS) pollAlmanac();
 }
 
 /* The boards open at 2800px, so a window that grows past that shows a case
-   that has never read anything: the boot poll declined while it was hidden,
-   and the Almanac waited out a minute of blank plate for its sky tick. Read
-   the moment the case opens. */
+   that has never read anything, and the Almanac waited out a minute of blank
+   plate for its sky tick. */
 var boardsT = null;
 window.addEventListener('resize', function () {
   clearTimeout(boardsT);
-  boardsT = setTimeout(function () {
-    if (!works) pollWorks();
-    if (!almanac || !almanac.weather || Date.now() - almReadAt > ALM_POLL_MS) pollAlmanac();
-  }, 150);
+  boardsT = setTimeout(readCases, 150);
 });
 
 function startAlmanac() {
@@ -3844,6 +3867,9 @@ document.addEventListener('visibilitychange', function () {
   // The bead goes at most a minute stale while the tab is hidden, but the
   // reading behind it can be an hour old — both are re-read on the way back.
   pollAlmanac();
+  // So are the dials, which otherwise showed the reading from before the tab
+  // was hidden as live until the next beat.
+  pollWorks();
 });
 
 /* ========================================================================
