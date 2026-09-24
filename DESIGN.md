@@ -203,7 +203,7 @@ both themes; only the hour changes.
   cast shadows), a bed mould, the relief frieze and a fillet over the lamp
   trough, broken over every pier and pilaster by a cast console block. Onyx
   pier lights stand in every gap between two portals, and between each case
-  and its nearest portal at 2800 and wider, placed from the solved row and
+  and its nearest portal wherever the aisles stand, placed from the solved row and
   never beside the clock; at night the onyx is a lamp, by day dead stone.
   The damask is hung bay by bay, each bay its own dye lot. The dado is
   book-matched stone under a gilt chair rail, over a black skirting with two
@@ -211,8 +211,8 @@ both themes; only the hour changes.
 - **The floor**: polished terrazzo; the medallion and roundels poured into
   it; a red wool runner; brass stanchions with velvet rope along the near
   flanks, each rope's sag its own.
-- **The cases** (Statistics, Almanac, 2800px and up, on an aisle tall
-  enough to hang them): wall cases in
+- **The cases** (Statistics, Almanac, wherever the aisles open, on an aisle
+  tall enough to hang them): wall cases in
   book-matched veneer with crossbanding and stringing (macassar ebony for
   Statistics, figured walnut for the Almanac), a gilt bolection frame round
   a black glass door, a cast crest on the top rail and a brass picture lamp
@@ -313,7 +313,7 @@ monogram at 900 ms. Done-fade at 1400 ms, finish at 1700 ms.
 ## Layout & viewport
 
 Desktop-first: optimized 1440–1920px, supported down to 1280px, and opening
-into a full three-bay concourse at 2800px and up (see "The concourse (v4)").
+into a full three-bay concourse on a wide screen (see "The concourse (v4)").
 Below 1280px the Ledger moves beneath the stage; below ~900px everything
 stacks single-column (masthead → ticker → lever → active gates → receded
 gates → Ledger). Mobile is out of scope for v1 but must not break.
@@ -472,7 +472,8 @@ in the middle of a beige desert. A room is made by a *continuous* wall and a
 *continuous* floor, so both now run the full width of the screen and the
 triptych stands on them.
 
-**Grid.** `#concourse` is `aisle-l · stage · aisle-r`, opening at 2800px (v5; it was 2200);
+**Grid.** `#concourse` is `aisle-l · stage · aisle-r`, opening from 2800px (v5; it was 2200)
+where the full-size row leaves room for it (see below);
 below that it collapses to the single centre column the hall shipped with
 and both boards are hidden (they are ultrawide furniture, not a fallback).
 `--aisle-w` spends the *surplus*, `clamp(300px, (100vw − 2150px) / 2.4,
@@ -571,7 +572,7 @@ the foot is where the ivorine strips are screwed, so it carries none.
 
 **The works poll.** `/api/works` on a 4s cadence of its own, because instruments
 read live or they are decoration, but only while the board is genuinely on
-screen. Below 2800px it is `display:none`, and a hidden panel must never
+screen. Where the aisles are shut it is `display:none`, and a hidden panel must never
 keep the host sampling: `worksVisible()` gates every tick, and the hub's own
 TTL means an unopened panel spawns no `nvidia-smi` at all. One request is out
 at a time (a tick is skipped while one is), and a reading whose `generated`
@@ -794,7 +795,7 @@ ignored. A lobby board has nowhere to report a parse error to.
 
 **The almanac poll.** `/api/almanac` every 10 minutes and the plate re-drawn
 every 60 seconds, both gated on `almanacVisible()` for the same reason the
-works board is: below 2800px the case is `display:none`, and a hidden panel
+works board is: where the aisles are shut the case is `display:none`, and a hidden panel
 must not have the hub calling a weather service on the reader's behalf. A
 resize that opens the case reads it at once, since the boot fetch declined
 while the case was hidden and the 60 s tick used to leave a blank plate for
@@ -1426,7 +1427,7 @@ housing band, the LINES dial (the ticker already counts the lines) and the
 maker's plate are struck, and what remains is the machine itself, planted
 centre stage on the terrazzo. The maker's plate is re-hung at the foot of
 the works board it names. The desk deliberately stays OUTSIDE the aisle
-grid: the boards fold away below 2800px, and the wing switch may never fold
+grid: the boards fold away wherever the aisles shut, and the wing switch may never fold
 away with them.
 
 - **Placement**: `position:fixed; bottom: 10px·--ui` centred, a body-level

@@ -31,14 +31,12 @@ Atrium serves `http://127.0.0.1:8769` and currently fronts:
   textures baked on the CPU, and siblings of one kind vary by a hash of
   their name, so no two gates, bays or cards are the same. `DESIGN.md` has
   the full material law.
-- **The concourse.** From 2800px up the hall opens into three bays: an aisle
-  either side of the stage under one continuous wall and standing on one
-  continuous floor. Below 2800px the aisles fold away, because two of them
-  cost the stage about 680px and the arches would have to shrink by a
-  quarter to make room. The two cases hang only where the aisle is tall
-  enough for them (at 3440 wide, from about 1200px of height): on a shorter
-  wall a dial would have no face left, so the pair folds away together and
-  the aisles keep their bays.
+- **The concourse.** On a wide screen the hall opens into three bays: an
+  aisle either side of the stage under one continuous wall and standing on
+  one continuous floor. The aisles open only where the full-size row of
+  arches still has room beside two cases (from 2800px; near 3100px at the
+  default engraving size, and at every size on a 3440 screen). Narrower
+  than that they fold away, rather than shrink the arches to make room.
 - **Statistics** (left aisle). A wall case in macassar ebony with a gilt
   frame round a black glass door, reading the machine all of this runs on:
   four brass-bezelled needle dials for processor, memory, the card's VRAM
