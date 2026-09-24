@@ -334,12 +334,16 @@
 .lever-svg .lv-badge-sh { fill: #000; opacity: 0.6; }
 .lever-svg .lv-badge { fill: url(#dk-brass); }
 .lever-svg .lv-badge-line { fill: none; stroke: var(--bz-ink); stroke-width: 0.45; opacity: 0.55; }
-.lever-svg .lv-badge-n, .lever-svg .lv-badge-w {
-  fill: var(--bz-ink); font-family: var(--serif); font-weight: 600;
+/* The figure is cut and filled, its lower wall catching the light; the
+   stamped legend is strokes (desk.js stamp()), not type. */
+.lever-svg .lv-badge-n {
+  fill: var(--bz-ink);
   paint-order: stroke; stroke: var(--bz-4); stroke-width: 0.3px; stroke-opacity: 0.45;
 }
-.lever-svg .lv-badge-n { font-size: 15px; }
-.lever-svg .lv-badge-w { font-size: 4.3px; letter-spacing: 0.35px; }
+.lever-svg .lv-badge-w {
+  fill: none; stroke: var(--bz-ink); stroke-width: 0.42;
+  stroke-linecap: round; stroke-linejoin: round; opacity: 0.85;
+}
 .lever-svg .lv-badge-dot { fill: var(--bz-ink); }
 .lever-svg .lv-rivet { fill: url(#dk-dome); }
 .lever-svg .lv-pin { fill: url(#dk-steel-flat); stroke: #000; stroke-width: 0.5; }
@@ -385,7 +389,10 @@
 .gearA-svg .ga-key { fill: var(--ga-3); }
 .gearA-svg .ga-index { fill: none; stroke: var(--ga-4); stroke-width: 1; }
 .gearA-svg .ga-pno-bg { fill: var(--ga-0); }
-.gearA-svg .ga-pno-t { fill: var(--ga-3); font-family: var(--serif); font-size: 4.5px; }
+.gearA-svg .ga-pno-t {
+  fill: none; stroke: var(--ga-3); stroke-width: 0.36;
+  stroke-linecap: round; stroke-linejoin: round;
+}
 .gearB-svg .gb-rim { fill: url(#dk-gB); }
 .gearB-svg .gb-cut { fill: none; stroke: #000; stroke-width: 0.5; opacity: 0.6; }
 .gearB-svg .gb-web { fill: var(--gb-1); }
