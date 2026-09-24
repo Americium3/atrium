@@ -13,7 +13,7 @@ finding is folded in below. This document is the implementation contract.
 - **Bureau** (work): Outreach Desk, The Press Room, Bourse
 
 A brass **mode lever** re-lights the hall toward one wing. A gilded dispatch
-column, **the Ledger**, collects today's news from *all* services
+column, **the Ledger**, collects the last week's news from *all* services
 regardless of wing. First run: theme = follow system (resolved pre-paint),
 wing = SALON, Ledger filter = ALL.
 
@@ -239,8 +239,12 @@ services without custom art.
   `font-variant-ligatures: none` on tracked caps.
 - Addresses / stat numerals: true caps + `font-variant-numeric: tabular-nums`,
   11–12px, tracking 0.08em. (Not "small caps"; digits have none.)
-- CJK: `:lang(zh)` scope, **LXGW Heart Serif** (霞鹜铭心宋, a Kokoro Mincho
-  derivative); tracking 0.25–0.35em on display lines only, body tracking 0,
+- CJK: **LXGW Heart Serif** (霞鹜铭心宋, a Kokoro Mincho derivative), second
+  in `--serif`, so it sets every Chinese character in either language's
+  hall (a CJK anime title in the English hall included). It fills only what
+  EB Garamond lacks, and EB Garamond has every other glyph the hall uses.
+  Runs in the other language carry `lang` for speech; the face does not
+  depend on it. Tracking 0.25–0.35em on display lines only, body tracking 0,
   `text-transform: none`. Slightly larger CJK body size to reconcile x-height
   with Garamond. It replaced Noto Serif SC: a modern Songti reads as a web
   page beside Garamond's old-style, where a warm Mincho reads as the same
@@ -308,14 +312,14 @@ stacks single-column (masthead → ticker → lever → active gates → receded
 gates → Ledger). Mobile is out of scope for v1 but must not break.
 
 **The hall stands on one screen.** No vertical scrollbar at any supported
-size. A grand entrance you have to scroll is not an entrance. The vertical
-budget is spent in this order: masthead, ticker, arch module, floor. The
-module is capped by `min(13.6vw, 26.5vh)` and by `296px x (0.62 + 0.38 x
---ui)`, so a short viewport shortens the arches instead of pushing the plinth
-off the bottom, and the floor takes what is left. `--floor-min` is only the
-*reservation* it insists on when the hall is taller than the screen. The
-concourse's grid row is exactly `--stage-h`: a board is never allowed to
-dictate the hall's height.
+size, and no horizontal one either. The vertical budget is spent in this
+order: masthead, ticker, arch module, floor. The module is capped by
+`min(13.6vw, 26.5vh)` and by `296px x (0.62 + 0.38 x --ui)`, so a short
+viewport shortens the arches instead of pushing the plinth off the bottom,
+and the floor takes what is left. `--floor-min` is only the *reservation* it
+insists on when the hall is taller than the screen. The concourse's grid row
+is exactly `--stage-h`: a board is never allowed to dictate the hall's
+height.
 
 **The wall claims its headroom back above 1080px.** The arch is aspect-locked,
 so on a tall screen every pixel the wall does not take goes to the floor, and
@@ -372,10 +376,11 @@ colour. All strokes carry `vector-effect: non-scaling-stroke`, so the 1 /
   guilloche field (concentric rules crossed by a 90-spoke fan, both under 10%
   ink), 60-mark chapter ring, **twelve** Roman numerals with the quarters in
   wing metal.
-- **Complications** on the cardinal axes: 12 moon phase (synodic, reference
-  new moon 2000-01-06 18:14 UTC), 3 date on a 31-step ring read through an
-  aperture, 6 small seconds, 9 the works, two wheels geared 14:9 turning
-  against each other off the seconds arbor.
+- **Complications** on the cardinal axes: 12 the true moon (Meeus: true new
+  moons, illumination from the phase angle), its phase and age computed to
+  the minute and shared with the Almanac through `window.AtriumMoon`, 3 date
+  on a 31-step ring read through an aperture, 6 small seconds, 9 the works,
+  two wheels geared 14:9 turning against each other off the seconds arbor.
 - **Hands**: pierced Breguet with stepped counterweights; the hour hand
   carries a second, smaller piercing so the two never read alike.
 - **Drive**: the loop reads `new Date()` every frame and never accumulates,
@@ -446,12 +451,12 @@ else.
 
 ## The concourse (v4): the hall gets its aisles, its wall and its floor
 
-**The problem this solves.** The hall was drawn as an object, not a room. At
-1440px the object filled the frame and read as architecture; on a 3440px
-display the 1720px cap left 860px of bare ground either side and the whole
-composition read as a diorama in the middle of a beige desert. A room is
-made by a *continuous* wall and a *continuous* floor, so both now run the
-full width of the screen and the triptych stands on them.
+Before v4 the hall was drawn as an object. At 1440px the object filled the
+frame and read as architecture; on a 3440px display the 1720px cap left
+860px of bare ground either side and the whole composition read as a diorama
+in the middle of a beige desert. A room is made by a *continuous* wall and a
+*continuous* floor, so both now run the full width of the screen and the
+triptych stands on them.
 
 **Grid.** `#concourse` is `aisle-l · stage · aisle-r`, opening at 2800px (v5; it was 2200);
 below that it collapses to the single centre column the hall shipped with
@@ -500,8 +505,8 @@ and lamp, i.e. said the gates' own three facts back at them a second time
 and larger; a board in a hall has to say something the architecture cannot.
 
 The signage reads STATISTICS; the DOM id, the CSS prefix and the route stay
-`works`/`wk-`/`/api/works`. That is not drift. The board's *name* is what
-it shows the reader, and `the works` is what the data IS (the works of the
+`works`/`wk-`/`/api/works`. The board's *name* is what it shows the
+reader, and `the works` is what the data is (the works of the
 machine, read out of the host). `/api/stats` was already taken by the
 services' own status route and a JS `stats` binding already holds it, so
 renaming the internals would have collided with a live name to make two
@@ -541,8 +546,8 @@ butted against each other with brass divider strips in the joints. So the
 whole inlay is now cut from stone (`--stone-a/-b/-c`, per theme), the pattern
 is carried by VALUE because value is the only thing that survives being laid
 flat and foreshortened to a third of its height, and the brass never outlines
-a shape. It only fills a joint. The wordmark went with the line work: the
-masthead already says it, and a floor is not a letterhead.
+a shape. It only fills a joint. The wordmark went with the line work, since
+the masthead already carries it.
 
 What is on the plane, near to far: a **runner** (a rectangle in floor space,
 which the projection turns into the trapezoid a runner actually is), running
@@ -632,7 +637,8 @@ nothing else in the building carries: where the sun is standing over the
 machine, right now.
 
 **Two halves that fail independently.** Sun and moon are ARITHMETIC: NOAA's
-sunrise equation and a synodic phase, run in the page on the coordinates the
+sunrise equation and the true moon (Meeus, the clock's own computation
+through `window.AtriumMoon`), run in the page on the coordinates the
 hub hands over. That is what keeps the bead moving through the day on a
 board whose forecast is a quarter of an hour old, and what leaves an
 instrument in the case when the weather service is unreachable. The forecast
@@ -718,10 +724,10 @@ disc that failed to render. The bezel is what says an object is there.
 **Signage stays English, sentences localize**, as everywhere else. The
 station line at the foot (`PITTSBURGH · 40.44°N 80.00°W`) is an ADDRESS
 engraved on the case and keeps the gates' contract; the localized place name
-lives in the subtitle. One trap: an SVG `<text>` does not inherit the body's
-zh stack, and `--serif` carries no CJK face, so the plate's own labels need
-`html[lang="zh"] .al-arc text` or they come out in a different serif from
-every other Chinese word in the hall.
+lives in the subtitle, and the plate carries `lang="en"`. The plate's SVG
+labels name `var(--serif)` themselves, and since `--serif` carries the CJK
+face their Chinese is set in the same serif as every other Chinese word in
+the hall.
 
 **Where the hall stands.** `almanac.PLACE`, overridable by dropping
 `state/almanac.json`. There is no place picker: this board is furniture, and
@@ -894,8 +900,11 @@ opening the dispatch url.
 
 ## Ticker (status band, not an echo)
 
-The band under the masthead carries **status segments** (LINES OPEN n/3 ·
-per-gate live stats) plus only dispatches **still unread**. When nothing is
+The band under the masthead carries **status segments** (LINES OPEN n/m,
+counted over every registered service in both wings, then each gate's live
+figure after its hall's short name: `AUTOPILOT · 4 AIRING TODAY`) plus only
+dispatches **still unread**. The short name is signage and stays English,
+tagged `lang="en"` in the Chinese hall. When nothing is
 new: a static line, no scroll. Pauses on hover AND focus. The crawl runs at
 50 px/s times `--ui`, measured on one copy of the loop (the old per-character
 rate counted the `aria-hidden` twin as well and ran at half speed). Reduced
@@ -978,14 +987,23 @@ Endpoints:
 
 - `GET /`: static frontend
 - `GET /api/services`: the registry, drives gate rendering: `[{id, name,
-  wing, url, addr, sigil, desc_key, launch_hint, order}]`. Registry entry
+  short, wing, url, addr, sigil, desc_key, launch_hint, order}]`. `short` is
+  the name the band sets before the gate's figure. Registry entry
   mandatory per service; adapter and custom sigil optional (no adapter =
   lamp-only gate, no dispatches).
 - `GET /api/status`: served **from adapter caches** (no on-demand probing):
-  `{services: {id: {state: 'open'|'dark', latency_ms, note}}, generated, warm}`
+  `{services: {id: {state: 'checking'|'open'|'dark', latency_ms, note}},
+  generated, warm}`. `note` is a key the page letters (`qb_down`,
+  `daemon_stale`, `digest_stale`, `fallback`, `slow`); `slow` comes with
+  `latency_ms: null` on a gate that stays OPEN (see Robustness).
 - `GET /api/feed`: `{dispatches: [{id, origin, wing, kind, params, ts,
   url}], generated, warm}`
-- `GET /api/stats`: `{stats: {id: {kind, params}}, warm}` (piggybacked by client)
+- `GET /api/stats`: `{stats: {id: {...}}, warm}`, flat fields per service:
+  autopilot `{watching, airing}`, groundstation `{mods, pending}`, outreach
+  `{invited, target}` plus `{ready, total}` while the queue is known,
+  pressroom `{stories, sections, date}`, arsenal `{tools}`, bourse `{date,
+  orders}`. A source not read yet is `{}`, and so are Arsenal and Bourse
+  while dark. The page prints no figure on a dark gate either way.
 - `GET /api/works`: host instrumentation for the west board:
   `{cpu:{pct,cores}, mem:{pct,used_gb,total_gb}, gpu:{pct,used_gb,total_gb,
   util_pct,name}, net:{pct,down_mbs,up_mbs}, disk:{pct,free_gb,total_gb,
@@ -1008,7 +1026,7 @@ Ground Station `ts*1000`; Autopilot ledger `ts*1000` (epoch seconds on the
 wire); outreach `invitedAt` as-is,
 `finishedAt*1000`; anime naive ISO via
 `datetime.fromisoformat(s).timestamp()*1000` (machine-local, never
-`utcnow()`; machine is UTC+8, the classic bug shifts 8 h). Same rule for
+`utcnow()`; a UTC slip shifts every stamp by the zone offset). Same rule for
 `last_sync` staleness. Day breaks computed in the browser's local timezone.
 
 **Deterministic dispatch ids** (feed idempotent across hub restarts):
@@ -1029,7 +1047,11 @@ item, replaced in place) · `outreach:invites:<local-date>` (mutable).
   `GET /api/unresolved` → warning dispatches.
 - 5 min: `GET /api/overview` → grace alerts (`status=='grace'`,
   `grace.expires` epoch s), daemon health (`last_sync` stale >15 min,
-  `qb_ok`), watching count stat.
+  `qb_ok`), and the stat: the watching count, and AIRING TODAY. `airing_at`
+  is episode 1's slot, so for each show Autopilot still calls `airing` it is
+  walked forward a week at a time to the first broadcast on or after local
+  midnight, as Autopilot's own panel does, and the show counts when that
+  lands on today. A premiere still ahead counts on its own day.
 - Daemon health is a **Ledger line**, not just the lamp's hover title:
   `autopilot.stalled` (`since`, `hours`) or `autopilot.qb_down`, with the
   stall winning when both are true, because a daemon that is not running is not
@@ -1091,8 +1113,16 @@ including the ping probe):
 
 ### Robustness
 
-Per-source TTL caches; 2 s timeouts; per-source degradation (source down →
-DARK, feed keeps others). File fallbacks catch `OSError` as well as
+Per-source TTL caches; 2 s timeouts, 5 s to connect; per-source
+degradation. A refused connection or a broken answer puts that gate DARK
+and the feed keeps the others. A timeout does not: the service took the
+connection and is running, only slow, so the gate stays OPEN with the note
+`slow` ("Running, but slow to answer"), keeps its last figure and still
+opens the service. Ground Station answers late for minutes at a time, and
+a DARK lamp over it told the reader to launch a second copy onto a port
+already in use. The connect phase gets 5 s because Windows refuses a closed
+local port only after about 2 s of retries, which inside a 2 s budget
+arrived as a timeout too. File fallbacks catch `OSError` as well as
 `JSONDecodeError` (Windows sharing violations) and reuse the last good
 payload. Feed capped ~60 items, deduped by id, sorted ts desc.
 
@@ -1119,10 +1149,22 @@ at the next local midnight turns them with the clock's date aperture.
   a line count nobody can vouch for. A failed `/api/stats` takes the stat
   lines off the gates. Holding the last good reading made a dead hub look
   exactly like a healthy hall.
-- After a miss (or a cold payload, or a boot that could not reach the
-  registry) the hall asks again 15 s later instead of waiting out the beat.
+- After a miss the hall asks again 15 s later instead of waiting out the
+  beat. A miss is any answer not applied: a failed or unreadable status,
+  stats or feed, a cold payload, or a registry that never came.
+- A boot that cannot reach the hub says so at once. The band and the live
+  region say NO WORD FROM THE HUB and the Ledger says it could not be read,
+  where the hall used to stand silent for the first 15 s.
 - A payload marked `warm: false` comes from a hub still on its first round
-  of adapter polls. Its empties mean "not asked yet", so it is not applied.
+  of adapter polls. Its empties mean "not asked yet", so it is not applied,
+  the status included: the last lamp reading stands.
+- The live region speaks the line count only when it changes. A DARK gate's
+  notice is said through the same region, so the hall compares against what
+  it last said about the lines, never against the region's current text.
+- A DARK gate's notice is emptied when it is put away, whether the reader
+  closes it or the lamp comes back. The gate's `aria-describedby` names the
+  card, and Chrome voices a named node even while it is hidden, so a gate
+  back OPEN kept describing itself as "Dark. Launch with ...".
 - Polls overlap (the beat, a refocus, a retry); their answers apply in
   order, and an older one never overwrites a newer one.
 
@@ -1337,11 +1379,10 @@ panels with hashed motifs, an archivolt round the window, a Portoro plinth).
 The desk stands on the wool runner and has a contact shadow in the pile, no
 floor return. The history below explains the stance that still holds.
 
-**What was wrong.** v4.1 put the machine on the floor but never gave it a
-body. What stood there was three loose parts sharing a patch of terrazzo: a
-lever pivoting at y=212 on nothing, a quadrant arc hanging in mid-air above
-it, and an aperture cut into no surface at all. Two measurements say it
-better than any amount of looking:
+v4.1 put the machine on the floor but never gave it a body. What stood there
+was three loose parts sharing a patch of terrazzo: a lever pivoting at y=212
+on nothing, a quadrant arc hanging in mid-air above it, and an aperture cut
+into no surface at all. Two measurements showed it:
 
 - the housing tone `--bronze-deep` against `--terrazzo` is **1.05:1**. Every
   solid face on the machine was invisible; only the `--bronze` hairlines
@@ -1352,9 +1393,9 @@ better than any amount of looking:
   56-tall slot shows as a shallow band with no centre. The drive train was
   drawn in full (63 nodes) and read as a stray arc.
 
-**The fix is the stance already in this document**: mechanism is sublimated
-by casework, and revealed at exactly one deliberate opening. So the parts
-are housed in a bronze console that *stands* on the stone:
+The fix follows the stance this document already takes: mechanism is
+sublimated by casework and revealed at exactly one deliberate opening. So
+the parts are housed in a bronze console that *stands* on the stone:
 
 - **Body**: stepped plinth (two courses on the gates' own 6px shoulder),
   fluted pilasters (the aisle bays' articulation at furniture scale), a

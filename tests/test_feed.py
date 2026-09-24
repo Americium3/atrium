@@ -739,6 +739,77 @@ def test_a_dead_qbittorrent_yields_to_a_dead_daemon():
     assert out["autopilot:qb-down"]["kind"] == "autopilot.qb_down"
 
 
+def _show(when: datetime, airing: bool = True) -> dict:
+    return {"airing_at": int(when.timestamp()), "airing": airing}
+
+
+def test_airing_today_walks_each_weekly_slot_forward():
+    """airing_at is episode 1's slot. Comparing it with today only caught
+    premieres: on Thursday 2026-09-24 four Thursday shows read as none."""
+    thu = datetime(2026, 9, 24, 12, 0)
+    shows = [
+        _show(datetime(2026, 7, 2, 11, 30)),          # a Thursday, weeks ago
+        _show(datetime(2025, 10, 2, 9, 0)),           # a Thursday, a year ago
+        _show(datetime(2026, 7, 9, 23, 41)),          # late Thursday slot
+        _show(datetime(2026, 7, 5, 10, 0)),           # a Sunday show
+        _show(datetime(2026, 7, 2, 11, 30), airing=False),   # finished
+        {"airing_at": None, "airing": True},          # dated, not timed
+    ]
+    assert server.anime_airing_today(shows, thu) == 3
+    assert server.anime_airing_today(shows, datetime(2026, 9, 27, 8)) == 1
+    assert server.anime_airing_today(shows, datetime(2026, 9, 25, 8)) == 0
+
+
+def test_a_premiere_counts_only_on_its_own_day():
+    first = datetime(2026, 10, 1, 21, 0)
+    shows = [_show(first, airing=False)]   # not on the air yet
+    assert server.anime_airing_today(shows, datetime(2026, 10, 1, 9)) == 1
+    assert server.anime_airing_today(shows, datetime(2026, 9, 24, 9)) == 0
+
+
+class _FailingClient:
+    def __init__(self, exc):
+        self.exc = exc
+
+    async def get(self, url, **kw):
+        raise self.exc
+
+
+def test_a_slow_service_stays_lit_and_a_refused_one_goes_dark():
+    """A timeout means the service took the connection: it is running. DARK
+    told the reader to launch a second Ground Station onto a taken port."""
+    src = server.SOURCES["arsenal"]
+    saved = (src.state, src.latency_ms, src.note, dict(src.stat), src.last_error)
+    try:
+        src.state, src.stat = "open", {"tools": 3}
+        asyncio.run(server.tick_arsenal(
+            _FailingClient(server.httpx.ReadTimeout("slow"))))
+        assert (src.state, src.note, src.latency_ms) == ("open", "slow", None)
+        assert src.stat == {"tools": 3}      # a slow gate keeps its figure
+        asyncio.run(server.tick_arsenal(
+            _FailingClient(server.httpx.ConnectError("refused"))))
+        assert (src.state, src.note) == ("dark", None)
+        assert src.stat == {}
+    finally:
+        (src.state, src.latency_ms, src.note, src.stat, src.last_error) = saved
+
+
+def test_a_closed_port_has_time_to_be_refused():
+    """Windows refuses a closed local port only after ~2 s of retries. Inside
+    a 2 s connect budget that arrived as a timeout, which now means "slow"."""
+    assert server.CONNECT_TIMEOUT_S >= 2 * server.HTTP_TIMEOUT_S
+
+
+def test_only_links_and_scripts_are_stamped():
+    """The SVG <image> tiles share their files with the stylesheets, which ask
+    by the plain URL. A stamped copy downloaded every texture twice."""
+    html = (Path(server.__file__).resolve().parent / "static" / "index.html"
+            ).read_text(encoding="utf-8")
+    refs = [m.group(2) for m in server._ASSET_REF.finditer(html)]
+    assert "/static/css/atrium.css" in refs and "/static/js/app.js" in refs
+    assert not [r for r in refs if "/assets/tex/" in r], refs
+
+
 if __name__ == "__main__":
     failures = 0
     for name, fn in sorted(globals().items()):

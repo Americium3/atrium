@@ -32,6 +32,9 @@ var STR = {
     darkNotice: 'Dark. Launch with: {hint}',
     lampOpen: 'Reachable', lampDark: 'Offline', lampChecking: 'Checking',
     justNow: 'just now', minAgo: '{n} min ago', hAgo: '{n} h ago', dAgo: '{n} d ago',
+    /* Said, not engraved: a screen reader read "15 H AGO" letter for letter. */
+    minAgoSr: '{n} {n|minute|minutes} ago', hAgoSr: '{n} {n|hour|hours} ago',
+    dAgoSr: '{n} {n|day|days} ago',
     linesOpen: 'LINES OPEN {n}/{m}',
     hubLost: 'NO WORD FROM THE HUB',
     ledgerUnreadable: 'The Ledger could not be read',
@@ -46,16 +49,17 @@ var STR = {
     'stat.airing': '{n} AIRING TODAY', 'stat.watching': '{n} WATCHING',
     'stat.pending': '{n} {n|UPDATE|UPDATES} PENDING', 'stat.mods': '{n} {n|MOD|MODS} TRACKED',
     'stat.queue': 'QUEUE {done}/{total}', 'stat.invited': 'SENT {n}/{target}',
-    'stat.stories': '{n} {n|STORY|STORIES} · {m} {m|SECTION|SECTIONS}', 'stat.stale': 'EDITION STALE',
+    'stat.stories': '{n} {n|STORY|STORIES} · {m} {m|SECTION|SECTIONS}',
     'stat.tools': '{n} {n|TOOL|TOOLS} ON THE RACK',
     'stat.orders_await': '{n} {n|ORDER AWAITS|ORDERS AWAIT} REVIEW', 'stat.brief_of': 'BRIEF OF {date}',
     'note.qb_down': 'qBittorrent unreachable, downloads paused',
     'note.daemon_stale': 'Sync daemon looks stalled',
     'note.fallback': 'Reading state files directly (server down)',
     'note.digest_stale': 'This edition is more than a day old',
+    'note.slow': 'Running, but slow to answer',
     'k.anime.premiere': 'Premiered',
     'k.anime.premiere.promoted': 'Premiered and auto-subscribed',
-    'k.anime.completed': 'Finished, all {eps} {eps|episode|episodes} watched',
+    'k.anime.completed': 'Finished, all {eps} episodes watched',
     'k.anime.completed.noeps': 'Finished and marked as watched',
     'k.anime.landed': 'Episode {ep} shelved · {cour}',
     'k.anime.landed.noep': 'New episode shelved · {cour}',
@@ -64,8 +68,8 @@ var STR = {
     'k.anime.imported': 'Imported by hand',
     'k.anime.unresolved': 'No release group matched yet',
     'k.anime.grace': 'Waiting for the preferred group',
-    'k.autopilot.stalled.head': 'The sync daemon has stopped',
-    'k.autopilot.stalled': 'Last pass {since}, stalled {hours}h and counting',
+    'k.autopilot.stalled.head': 'The sync daemon looks stalled',
+    'k.autopilot.stalled': 'Last pass {since}, silent {hours} {hours|hour|hours} and counting',
     'k.autopilot.stalled.fresh': 'Last pass {since}, and nothing has landed since',
     'k.autopilot.qb_down.head': 'qBittorrent is unreachable',
     'k.autopilot.qb_down': 'Downloads stay paused until it answers again',
@@ -93,11 +97,15 @@ var STR = {
     'k.bourse.canary': '{sym} momentum turned negative, sheltering part of the book',
     'k.bourse.allclear.head': 'Watchtower all clear',
     'k.bourse.allclear': 'Every canary healthy, back on offense',
+    dayTime: '{day}, {time}',
     worksSub: 'Readings from the engine room',
     wkCpu: 'PROCESSOR', wkMem: 'MEMORY', wkGpu: 'GRAPHICS', wkNet: 'TRAFFIC',
     wkHours: 'HOURS RUN', wkDisk: 'STORE', wkFree: '{n} FREE',
     runD: 'd', runH: 'h', runM: 'm', wkRate: 'MB/s', join: ': ', list: ', ',
-    vacantName: 'Reserved', vacantLamp: 'Not in service',
+    runSrDays: '{d} {d|day|days} {h} {h|hour|hours}', runSrMinutes: '{m} {m|minute|minutes}',
+    /* No English tooltip where it would only repeat the engraving above it
+       (RESERVED, STATISTICS, ALMANAC). The Chinese one is the translation. */
+    vacantName: '', vacantLamp: 'Not in service',
     wkNoReading: 'NO READING',
     wkCores: '{n} cores', wkOf: '{a} of {b} GB',
     wkDown: '{d} down · {u} up MB/s',
@@ -107,7 +115,7 @@ var STR = {
     almPolarDay: 'MIDNIGHT SUN', almPolarNight: 'POLAR NIGHT',
     almAge: 'AGE',
     almDaylight: 'DAYLIGHT', almLonger: 'LONGER', almShorter: 'SHORTER',
-    almDays: '{n} d', almWindUnit: '{n} km/h',
+    almDays: '{n} d', almSrDays: '{n} days', almWindUnit: '{n} km/h',
     almFahrenheit: '{high} / {low} °F',
     /* The eight phases, in order from new moon. Sentences, not signage: the
        hall's engraved caps stay English, a moon's name does not. */
@@ -135,7 +143,7 @@ var STR = {
     markAllDone: 'Nothing left to strike',
     markAllStruck: '{n} {n|dispatch|dispatches} struck',
     markAllScope: 'BOTH WINGS',
-    srOpen: 'open', srDark: 'dark', srChecking: 'checking',
+    srOpen: 'open', srDark: 'dark', srChecking: 'checking', srStop: '.',
     opensTab: 'Opens in its own tab.',
     unread: 'unread',
     wkHot: 'in the red',
@@ -148,12 +156,12 @@ var STR = {
     ariaGates: 'Gates', ariaLedger: 'Ledger: dispatch timeline',
     ariaWorks: 'Statistics: live readings from this machine',
     ariaAlmanac: 'Almanac: sun, moon and weather over this hall',
-    worksTitle: 'Statistics', almTitle: 'Almanac',
+    worksTitle: '', almTitle: '',
     salonWing: 'Play wing', bureauWing: 'Work wing',
     ledgerBtnLabel: 'LEDGER',
     keysTitle: 'KEYS',
     keyGates: 'Walk the gates', keyJump: 'Go to a gate', keyOpen: 'Open it',
-    keyLever: 'Throw the lever', keyLedger: 'The Ledger', keyPrefs: 'Preferences',
+    keyLever: 'Throw the lever', keyLedger: 'Open or close the Ledger', keyPrefs: 'Open Preferences',
     keyWalk: 'Walk the dispatches, in the Ledger', keyPlate: 'Show or hide this plate',
     keyClose: 'Close', keyEnter: 'ENTER',
     unreadCount: '{n} new dispatches', unreadCountOne: '1 new dispatch'
@@ -169,6 +177,7 @@ var STR = {
     darkNotice: '未点亮。用此脚本启动：{hint}',
     lampOpen: '已点亮', lampDark: '离线', lampChecking: '检查中',
     justNow: '刚刚', minAgo: '{n} 分钟前', hAgo: '{n} 小时前', dAgo: '{n} 天前',
+    minAgoSr: '{n} 分钟前', hAgoSr: '{n} 小时前', dAgoSr: '{n} 天前',
     linesOpen: '线路畅通 {n}/{m}',
     hubLost: '中枢没有回音',
     ledgerUnreadable: '消息总台暂时读不出来',
@@ -183,13 +192,14 @@ var STR = {
     'stat.airing': '今日 {n} 部放送', 'stat.watching': '在看 {n} 部',
     'stat.pending': '{n} 个更新待装', 'stat.mods': '追踪 {n} 个 MOD',
     'stat.queue': '队列 {done}/{total}', 'stat.invited': '已发 {n}/{target}',
-    'stat.stories': '{n} 条 · {m} 栏', 'stat.stale': '早报未更新',
+    'stat.stories': '{n} 条 · {m} 栏',
     'stat.tools': '架上 {n} 件工具',
     'stat.orders_await': '{n} 条指令候审', 'stat.brief_of': '证券所晨报 {date}',
     'note.qb_down': 'qBittorrent 不可达，下载已暂停',
-    'note.daemon_stale': '同步守护进程疑似卡住',
+    'note.daemon_stale': '同步守护进程疑似停摆',
     'note.fallback': '服务器离线，正在直读状态文件',
     'note.digest_stale': '这一期晨报已超过一天未更新',
+    'note.slow': '仍在运行，只是应答迟缓',
     'k.anime.premiere': '开播',
     'k.anime.premiere.promoted': '开播，已自动订阅',
     'k.anime.completed': '完结，全 {eps} 话看完',
@@ -201,8 +211,8 @@ var STR = {
     'k.anime.imported': '已手动入库',
     'k.anime.unresolved': '尚未匹配到字幕组源',
     'k.anime.grace': '等待首选字幕组中',
-    'k.autopilot.stalled.head': '同步守护进程已停摆',
-    'k.autopilot.stalled': '最后一轮 {since}，已停摆 {hours} 小时',
+    'k.autopilot.stalled.head': '同步守护进程疑似停摆',
+    'k.autopilot.stalled': '最后一轮 {since}，已沉寂 {hours} 小时',
     'k.autopilot.stalled.fresh': '最后一轮 {since}，此后再无剧集入库',
     'k.autopilot.qb_down.head': 'qBittorrent 不可达',
     'k.autopilot.qb_down': '下载将保持暂停，直到它恢复响应',
@@ -222,18 +232,20 @@ var STR = {
     'k.press.digest_ready.head': '晨报已出版',
     'k.press.digest_ready': '{stories} 条新闻，分 {sections} 栏',
     'k.bourse.briefing.head': '证券所晨报已付印',
-    'k.bourse.briefing': '{date}版：{orders} 条指令候您审阅',
+    'k.bourse.briefing': '{date}版：{orders} 条指令待你审阅',
     'k.bourse.briefing.hold': '{date}版：无操作，按兵不动',
-    'k.bourse.briefing.nodate': '{orders} 条指令候您审阅',
+    'k.bourse.briefing.nodate': '{orders} 条指令待你审阅',
     'k.bourse.briefing.hold.nodate': '无操作，按兵不动',
     'k.bourse.canary.head': '瞭望塔报警',
     'k.bourse.canary': '{sym} 动量转负，部分仓位转入避险',
     'k.bourse.allclear.head': '瞭望塔解除警报',
     'k.bourse.allclear': '金丝雀全数安好，恢复进攻',
+    dayTime: '{day} {time}',
     worksSub: '本机运转实况',
     wkCpu: '处理器', wkMem: '内存', wkGpu: '显卡', wkNet: '网络',
     wkHours: '已运转', wkDisk: '存储', wkFree: '余 {n}',
     runD: ' 天 ', runH: ' 时 ', runM: ' 分', wkRate: 'MB/s', join: '：', list: '，',
+    runSrDays: '{d} 天 {h} 小时', runSrMinutes: '{m} 分钟',
     vacantName: '预留', vacantLamp: '未启用',
     wkNoReading: '无读数',
     wkCores: '{n} 核', wkOf: '{a} / {b} GB',
@@ -244,7 +256,7 @@ var STR = {
     almPolarDay: '极昼', almPolarNight: '极夜',
     almAge: '月龄',
     almDaylight: '昼长', almLonger: '比昨日长', almShorter: '比昨日短',
-    almDays: '{n} 日', almWindUnit: '{n} 公里/时',
+    almDays: '{n} 日', almSrDays: '{n} 日', almWindUnit: '{n} 公里/时',
     almFahrenheit: '{high} / {low} °F',
     almPhase0: '朔', almPhase1: '蛾眉月',
     almPhase2: '上弦', almPhase3: '盈凸',
@@ -264,13 +276,13 @@ var STR = {
     replayDesc: '重新载入大厅，再演一遍',
     ariaTicker: '状态带',
     ariaLever: '事务翼',
-    ariaDesk: '信号台：模式拨杆',
+    ariaDesk: '信号台：模式拉杆',
     markAll: '全部标为已读',
     markAllHint: '把窗口内两翼的消息一次全部盖章',
     markAllDone: '没有未读了',
     markAllStruck: '已划去 {n} 条',
     markAllScope: '两翼一并',
-    srOpen: '已点亮', srDark: '未点亮', srChecking: '检查中',
+    srOpen: '已点亮', srDark: '未点亮', srChecking: '检查中', srStop: '。',
     opensTab: '在单独的标签页中打开。',
     unread: '未读',
     wkHot: '已入红区',
@@ -288,7 +300,7 @@ var STR = {
     ledgerBtnLabel: '消息总台',
     keysTitle: '按键',
     keyGates: '在门廊间移动', keyJump: '直达某扇门', keyOpen: '打开',
-    keyLever: '扳动拉杆', keyLedger: '消息总台', keyPrefs: '偏好设置',
+    keyLever: '扳动拉杆', keyLedger: '开合消息总台', keyPrefs: '打开偏好设置',
     keyWalk: '在消息总台里逐条移动', keyPlate: '显示或收起这块铭牌',
     keyClose: '关闭', keyEnter: '回车',
     unreadCount: '{n} 条新消息', unreadCountOne: '1 条新消息'
@@ -1017,11 +1029,13 @@ function renderGates() {
       a.setAttribute('aria-hidden', 'true');
     } else {
       a.href = svc.url;
-      // Named by its engraved name and its lamp, described by everything
-      // else it says. An aria-label of the bare name used to hide the lamp,
-      // the description and the status line from a screen reader.
-      a.setAttribute('aria-labelledby', 'gn-' + svc.id + ' gl-' + svc.id);
-      a.setAttribute('aria-describedby', ['gd-', 'gs-', 'gnote-', 'gx-']
+      // Named by its engraved name, described by everything else it says,
+      // the lamp first. An aria-label of the bare name used to hide the lamp,
+      // the description and the status line from a screen reader. The lamp
+      // word is not in the name: "OUTREACH DESK 已点亮" was one name in two
+      // languages, and a name is voiced in one.
+      a.setAttribute('aria-labelledby', 'gn-' + svc.id);
+      a.setAttribute('aria-describedby', ['gl-', 'gd-', 'gs-', 'gnote-', 'gx-']
         .map(function (p) { return p + svc.id; }).join(' ') + ' opens-tab');
     }
     a.dataset.service = svc.id;
@@ -1218,6 +1232,15 @@ function showNotice(a, svc) {
   var hs = $('#hall-status'); if (hs) hs.textContent = n.textContent;
 }
 
+/* Put away, the card is also emptied. The gate's aria-describedby names it
+   directly, and a directly named node is voiced even while hidden: a gate
+   that came back OPEN still described itself as "Dark. Launch with ...".
+   showNotice letters it afresh each time, in the hall's current language. */
+function hideNotice(n) {
+  n.hidden = true;
+  n.textContent = '';
+}
+
 /* The browser's new-tab modifier: Cmd on a Mac, Ctrl everywhere else.
    Elsewhere, Meta is the Windows or Super key, and the browser treats a
    click holding it as a plain same-tab navigation. Letting that through
@@ -1243,7 +1266,7 @@ function gateClick(e, a, svc) {
     // A double-click is two clicks, and a plain toggle ended it hidden.
     // Only the first click of a run toggles; the rest leave it showing.
     if (e.detail > 1 || n.hidden) showNotice(a, svc);
-    else n.hidden = true;
+    else hideNotice(n);
     return;
   }
   // One gesture, one tab: each click of a double-click used to schedule
@@ -2044,6 +2067,13 @@ function runFor(s) {
   return (d ? d + D.trimEnd() + ' ' + pad2(h) + H :
           h ? h + H.trimEnd() + ' ' + pad2(m) + M : m + M).trim();
 }
+function runSaid(s) {
+  if (s === null || s === undefined) return '';
+  var d = Math.floor(s / 86400), h = Math.floor((s % 86400) / 3600);
+  var m = Math.floor((s % 3600) / 60);
+  return d ? t('runSrDays', { d: d, h: h }) :
+         h ? t('almSrHours', { h: h, m: m }) : t('runSrMinutes', { m: m });
+}
 function tera(gb) {
   return gb >= 1024 ? (gb / 1024).toFixed(1) + ' TB' : Math.round(gb) + ' GB';
 }
@@ -2098,9 +2128,18 @@ function syncWorks() {
   var hours = tape.querySelector('[data-strip="hours"] .wk-sval');
   // The machine's uptime, as the board promises; the hub's own uptime reset
   // to minutes on every restart. It stands in only when the host's is null.
-  if (hours) hours.textContent = runFor(works &&
-    (works.host_uptime_s !== null && works.host_uptime_s !== undefined
-      ? works.host_uptime_s : works.hub_uptime_s));
+  var up = works && (works.host_uptime_s !== null && works.host_uptime_s !== undefined
+    ? works.host_uptime_s : works.hub_uptime_s);
+  if (hours) {
+    hours.textContent = runFor(up);
+    // "1d 08h" is engraving; the reading is said in words beside it.
+    var saidRun = runSaid(up);
+    if (saidRun) hours.setAttribute('aria-hidden', 'true');
+    else hours.removeAttribute('aria-hidden');
+    var sr = hours.parentNode.querySelector('.wk-said');
+    if (!sr) { sr = el('span', 'sr-only wk-said'); hours.parentNode.appendChild(sr); }
+    sr.textContent = saidRun;
+  }
   var disk = tape.querySelector('[data-strip="disk"] .wk-sval');
   if (disk) {
     disk.textContent = works && works.disk
@@ -2585,7 +2624,8 @@ function buildTape(sky, where) {
   var text = el('div', 'al-mtext');
   text.appendChild(el('span', 'al-mname zh-sentence',
     t('almPhase' + phase.idx) + '  ·  ' + Math.round(phase.lit * 100) + '%'));
-  text.appendChild(almStrip(t('almAge'), t('almDays', { n: phase.age.toFixed(1) })));
+  text.appendChild(almStrip(t('almAge'), t('almDays', { n: phase.age.toFixed(1) }),
+    t('almSrDays', { n: phase.age.toFixed(1) })));
   moon.appendChild(text);
   box.appendChild(moon);
 
@@ -2824,6 +2864,12 @@ lever.addEventListener('keydown', function (e) {
 /* ========================================================================
    Status / stats
    ======================================================================== */
+/* What the live region last said about the lines. A DARK gate's launch
+   notice is said through the same region, so its text is no guide to what
+   was last announced: compared against it, an unchanged count was said a
+   second time on the next poll after any notice. */
+var hallSaid = '';
+
 function applyStatuses() {
   var openCount = 0, known = 0;
   services.forEach(function (svc) {
@@ -2839,12 +2885,18 @@ function applyStatuses() {
     lampT.title = t(state === 'open' ? 'lampOpen' :
                     state === 'dark' ? 'lampDark' : 'lampChecking');
     var sr = $('.lamp-sr', a);
-    if (sr) sr.textContent = t(state === 'open' ? 'srOpen' : state === 'dark' ? 'srDark' : 'srChecking');
-    if (state !== 'dark') $('.g-notice', a).hidden = true;
+    // Stopped, like every part of the gate's description, or speech runs
+    // the lamp word straight into the curtain's sentence.
+    if (sr) sr.textContent = t(state === 'open' ? 'srOpen' : state === 'dark' ? 'srDark' : 'srChecking') + t('srStop');
+    if (state !== 'dark') hideNotice($('.g-notice', a));
     var note = st && st.note && STR.en['note.' + st.note] !== undefined ? t('note.' + st.note) : '';
     $('.g-lamp', a).title = note || lampT.title;
     var noteEl = $('.g-note', a);
-    if (noteEl) { noteEl.textContent = note; noteEl.hidden = !note; }
+    if (noteEl) {
+      noteEl.textContent = note;
+      if (note) noteEl.appendChild(el('span', 'sr-only', t('srStop')));
+      noteEl.hidden = !note;
+    }
   });
   var allDark = known === services.length && known > 0 && openCount === 0;
   $('#all-dark').hidden = !allDark;
@@ -2861,7 +2913,7 @@ function applyStatuses() {
   if (st && (services.length || hubLost)) {
     var msg = hubLost ? t('hubLost') : !known ? ''
       : allDark ? t('allDark') : t('linesOpen', { n: openCount, m: services.length });
-    if (st.textContent !== msg) st.textContent = msg;
+    if (msg !== hallSaid) { hallSaid = msg; st.textContent = msg; }
   }
 }
 
@@ -2872,7 +2924,8 @@ function statText(svc) {
   // on a dark gate and in the ticker, two dropped it, and nothing said which
   // was which.
   if (st && st.state === 'dark') return '';
-  if (svc.id === 'pressroom' && st && st.note === 'digest_stale') return t('stat.stale');
+  // A stale edition keeps its counts here. The apron's note already says the
+  // edition is old, and "EDITION STALE" above it said the same thing twice.
   if (svc.id === 'autopilot') {
     if (s.airing > 0) return t('stat.airing', { n: s.airing });
     if (s.watching !== undefined) return t('stat.watching', { n: s.watching });
@@ -2885,7 +2938,8 @@ function statText(svc) {
     if (s.tools > 0) return t('stat.tools', { n: s.tools });
   } else if (svc.id === 'bourse') {
     if (s.orders > 0) return t('stat.orders_await', { n: s.orders });
-    if (s.date) return t('stat.brief_of', { date: s.date });
+    // The same day the Ledger prints ("Sep 21"), not the wire's ISO date.
+    if (s.date) return t('stat.brief_of', { date: briefDay(s.date) || s.date });
   } else if (svc.id === 'outreach') {
     var parts = [];
     if (s.total > 0) parts.push(t('stat.queue', { done: s.ready || 0, total: s.total }));
@@ -2902,6 +2956,9 @@ function applyStats() {
     if (!a) return;
     var span = $('.num-roll', a);
     var txt = statText(svc);
+    var stop = $('.g-stat > .sr-only', a);
+    if (!stop) { stop = el('span', 'sr-only'); span.parentNode.appendChild(stop); }
+    stop.textContent = txt ? t('srStop') : '';
     // The odometer is for a reading that changed. A line re-lettered into
     // the other language holds the same numbers, and every gate used to
     // roll on a language switch; the text swaps in place instead.
@@ -2935,6 +2992,14 @@ function briefDay(iso) {
     { month: 'short', day: 'numeric' }).format(new Date(+m[1], m[2] - 1, +m[3]));
 }
 
+/* "2026-09-21 22:10" on the wire (the daemon's last_sync), "Sep 21, 22:10"
+   / "9月21日 22:10" on the card, dated as every other card is. */
+function passDay(stamp) {
+  var m = /^(\d{4}-\d{2}-\d{2})[ T](\d{2}:\d{2})/.exec(stamp || '');
+  var day = m ? briefDay(m[1]) : '';
+  return day ? t('dayTime', { day: day, time: m[2] }) : (stamp || '');
+}
+
 /* Every line here must stay true after its day ends: a plaque filed under
    EARLIER is read tomorrow, so no string says "today". */
 function headline(d) {
@@ -2943,7 +3008,8 @@ function headline(d) {
     case 'anime.premiere':
       return { head: p.title, detail: t(p.promoted ? 'k.anime.premiere.promoted' : 'k.anime.premiere') };
     case 'anime.completed':
-      return { head: p.title, detail: t(p.eps ? 'k.anime.completed' : 'k.anime.completed.noeps', p) };
+      // A one-episode show was "Finished, all 1 episode watched".
+      return { head: p.title, detail: t(Number(p.eps) > 1 ? 'k.anime.completed' : 'k.anime.completed.noeps', p) };
     case 'anime.landed':
       return { head: p.show, detail: t(p.ep ? 'k.anime.landed' : 'k.anime.landed.noep', p) };
     case 'anime.subscribed':
@@ -2956,7 +3022,8 @@ function headline(d) {
       return { head: p.title, detail: t('k.anime.grace') };
     case 'autopilot.stalled':
       return { head: t('k.autopilot.stalled.head'),
-               detail: t(p.hours >= 1 ? 'k.autopilot.stalled' : 'k.autopilot.stalled.fresh', p),
+               detail: t(p.hours >= 1 ? 'k.autopilot.stalled' : 'k.autopilot.stalled.fresh',
+                         { since: passDay(p.since), hours: p.hours }),
                warn: true };
     case 'autopilot.qb_down':
       return { head: t('k.autopilot.qb_down.head'), detail: t('k.autopilot.qb_down'), warn: true };
@@ -3005,16 +3072,17 @@ function headline(d) {
    a dispatch not yet an hour old and "48 h ago" on one of 47.8 h. Past two
    days the count is calendar days, so a Monday dispatch can no longer read
    "3 d ago" on Wednesday evening. */
-function relTime(ts) {
+function relTime(ts, spoken) {
   var d = Date.now() - ts;
   if (d < 90 * 1000) return t('justNow');
-  if (d < 3600 * 1000) return t('minAgo', { n: Math.floor(d / 60000) });
-  if (d < 48 * 3600 * 1000) return t('hAgo', { n: Math.floor(d / 3600000) });
+  // spoken: the same age in words. "15 h ago" was read as "15 H AGO".
+  if (d < 3600 * 1000) return t(spoken ? 'minAgoSr' : 'minAgo', { n: Math.floor(d / 60000) });
+  if (d < 48 * 3600 * 1000) return t(spoken ? 'hAgoSr' : 'hAgo', { n: Math.floor(d / 3600000) });
   var then = new Date(ts), today = new Date();
   then.setHours(0, 0, 0, 0);
   today.setHours(0, 0, 0, 0);
   // Rounded only to absorb a 23 or 25 hour day at a clock change.
-  return t('dAgo', { n: Math.round((today - then) / 86400000) });
+  return t(spoken ? 'dAgoSr' : 'dAgo', { n: Math.round((today - then) / 86400000) });
 }
 
 function buildPlaque(d) {
@@ -3051,10 +3119,17 @@ function buildPlaque(d) {
   svg.appendChild(sig);
   medal.appendChild(svg);
   li.appendChild(medal);   // outside the clipped layers — overhangs the spine
+  // The card's name is read as one line, so its parts are parted for
+  // speech: title, unread, detail and age used to run together unbroken.
   a.appendChild(el('div', 'pl-head'));
-  a.appendChild(el('span', 'sr-only pl-unread', t('unread')));
+  a.appendChild(el('span', 'sr-only pl-unread'));
+  a.appendChild(el('span', 'sr-only pl-sep'));
   a.appendChild(el('div', 'pl-detail'));
-  a.appendChild(el('div', 'pl-time num'));
+  a.appendChild(el('span', 'sr-only pl-sep'));
+  var when = el('div', 'pl-time num');
+  when.setAttribute('aria-hidden', 'true');
+  a.appendChild(when);
+  a.appendChild(el('span', 'sr-only pl-said'));
   frame.appendChild(a);
   shadowWrap.appendChild(frame);
   li.appendChild(shadowWrap);
@@ -3070,9 +3145,13 @@ function updatePlaque(li, d) {
   var cjk = /[\u3040-\u30ff\u3400-\u9fff]/.test(h.head || '');
   if (cjk !== (lang === 'zh')) head.lang = cjk ? 'zh' : 'en';
   else head.removeAttribute('lang');
-  $('.pl-unread', li).textContent = t('unread');
+  $('.pl-unread', li).textContent = t('list') + t('unread');
+  Array.prototype.forEach.call(li.querySelectorAll('.pl-sep'), function (n) {
+    n.textContent = t('list');
+  });
   $('.pl-detail', li).textContent = h.detail || '';
   $('.pl-time', li).textContent = relTime(d.ts);
+  $('.pl-said', li).textContent = relTime(d.ts, true);
 }
 
 function renderLedger() {
@@ -3497,16 +3576,19 @@ function tickerModel() {
   else if (known) segs.push(t('linesOpen', { n: open, m: services.length }));
   services.forEach(function (s) {
     var txt = statText(s);
-    if (txt) segs.push(txt);
+    // Each figure names its hall. "9 WATCHING" ran under the Bureau's arches
+    // with nothing on screen to say watching what.
+    if (txt) segs.push({ hall: s.short || s.name, text: txt });
   });
   var fresh = feed.filter(isNew).slice(0, 6).map(function (d) {
     var h = headline(d);
     return (h.head + ' · ' + h.detail);
   });
   var paged = root.dataset.motion === 'reduced';
+  var said = segs.map(function (g) { return g.hall ? g.hall + '\u0003' + g.text : g; });
   return {
     segs: segs, fresh: fresh, paged: paged,
-    key: [lang, paged ? 'r' : 'f', segs.join('\u0001'), fresh.join('\u0001')].join('\u0002')
+    key: [lang, paged ? 'r' : 'f', said.join('\u0001'), fresh.join('\u0001')].join('\u0002')
   };
 }
 
@@ -3555,6 +3637,17 @@ function applyTicker(m) {
     return s;
   }
   function seg(s, cls) {
+    if (s && s.hall) {
+      // The hall's name is signage and stays English, so in the Chinese hall
+      // it is tagged apart from the figure that follows it.
+      var g = el('span', cls || '');
+      var name = el('span', 't-hall', s.hall);
+      if (lang !== 'en') name.lang = 'en';
+      g.appendChild(name);
+      g.appendChild(document.createTextNode(' \u00b7 '));
+      g.appendChild(seg(s.text));
+      return g;
+    }
     var n = el('span', cls || '', s);
     // A CJK title in the English hall (or a Latin one in the Chinese) is
     // tagged, so a screen reader switches voice instead of spelling it.
@@ -3738,15 +3831,22 @@ function refresh() {
     // an arrival. The last reading stands and the hall asks again shortly.
     function cold(p) { return !!p && p.warm === false; }
     // No answer, an error, or a body that is not a status: every lamp goes
-    // back to asking, and the band and the live region say why.
+    // back to asking, and the band and the live region say why. A cold
+    // status is neither: it is the hub not having asked yet, and it used to
+    // put every lamp back to the ellipsis over a reading the page still had.
     var wasLost = hubLost;
-    hubLost = !(st && st.services && typeof st.services === 'object');
-    statuses = hubLost ? {} : st.services;
-    if (!(sx && sx.stats && typeof sx.stats === 'object')) stats = {};
+    var stOk = !!(st && st.services && typeof st.services === 'object');
+    var sxOk = !!(sx && sx.stats && typeof sx.stats === 'object');
+    var fdOk = !!(fd && Array.isArray(fd.dispatches));
+    if (!(stOk && cold(st))) {
+      hubLost = !stOk;
+      statuses = hubLost ? {} : st.services;
+    }
+    if (!sxOk) stats = {};
     else if (!cold(sx)) stats = sx.stats;
     applyStatuses();
     applyStats();
-    if (fd && Array.isArray(fd.dispatches)) {
+    if (fdOk) {
       if (!cold(fd)) {
         // The first feed landing in an open drawer falls in as the opening
         // cascade would have; the drawer held its ghosts until now.
@@ -3769,7 +3869,15 @@ function refresh() {
     // figure: the band says so at once rather than a loop later, still
     // counting open lines it can no longer see.
     renderTicker(hubLost !== wasLost);
-    if (hubLost || !fd || cold(st) || cold(fd) || cold(sx)) retryT = setTimeout(poll, RETRY_MS);
+    // Anything not applied is asked for again soon: a lost status, a stats
+    // or feed answer that failed or could not be read, a cold payload, or a
+    // registry that never came. A stats miss alone used to leave every stat
+    // line blank for the rest of the 45 s beat.
+    if (hubLost || !stOk || !sxOk || !fdOk || cold(st) || cold(fd) || cold(sx) ||
+        !services.length) {
+      clearTimeout(retryT);   // overlapping polls must not leave two timers
+      retryT = setTimeout(poll, RETRY_MS);
+    }
   });
 }
 
@@ -4049,7 +4157,9 @@ function applyI18nStatic() {
     n.setAttribute('aria-label', t(n.dataset.i18nAria));
   });
   Array.prototype.forEach.call(document.querySelectorAll('[data-i18n-title]'), function (n) {
-    n.title = t(n.dataset.i18nTitle);
+    // An empty string means no tooltip in this language (see vacantName).
+    var tip = t(n.dataset.i18nTitle);
+    if (tip) n.title = tip; else n.removeAttribute('title');
   });
 }
 
@@ -4106,7 +4216,9 @@ window.addEventListener('storage', function (e) {
     loadReadIds().forEach(function (id) { readIds[id] = 1; });
     syncReadMarks();
   } else if (e.key === 'atrium.theme') {
-    root.dataset.themePref = e.newValue || 'system';
+    // Validated as the pre-paint script validates it.
+    root.dataset.themePref = (e.newValue === 'onyx' || e.newValue === 'ivory')
+      ? e.newValue : 'system';
     resolveTheme();
   } else if (e.key === 'atrium.lang') {
     if ((e.newValue === 'zh' ? 'zh' : 'en') !== lang) setLang(e.newValue);
@@ -4314,11 +4426,11 @@ fetchJson('/api/services').then(function (payload) {
   renderGates();
   return refresh();
 }).catch(function () {
-  // Hub API unreachable — leave ghosts; refresh() retries the registry, and
-  // sooner than the 45 s beat, which left the ghosts up that long before the
-  // Ledger could say it had not been read.
-  clearTimeout(retryT);
-  retryT = setTimeout(poll, RETRY_MS);
+  // Hub API unreachable. Ask the rest at once rather than in 15 s: the boot
+  // used to sit silent that long, no gates, a blank band and an empty live
+  // region, before anything said the hub was not answering. refresh()
+  // retries the registry, says NO WORD FROM THE HUB and arms the retry.
+  return refresh();
 }).then(function () {
   // Deep links run regardless of how the boot fetch fared. ?ledger=1 is the
   // debug-only twin of ?prefs=1 — the drawer is the one surface a headless
