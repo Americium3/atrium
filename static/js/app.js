@@ -2826,6 +2826,12 @@ lever.addEventListener('keydown', function (e) {
 /* ========================================================================
    Status / stats
    ======================================================================== */
+/* What the live region last said about the lines. A DARK gate's launch
+   notice is said through the same region, so its text is no guide to what
+   was last announced: compared against it, an unchanged count was said a
+   second time on the next poll after any notice. */
+var hallSaid = '';
+
 function applyStatuses() {
   var openCount = 0, known = 0;
   services.forEach(function (svc) {
@@ -2863,7 +2869,7 @@ function applyStatuses() {
   if (st && (services.length || hubLost)) {
     var msg = hubLost ? t('hubLost') : !known ? ''
       : allDark ? t('allDark') : t('linesOpen', { n: openCount, m: services.length });
-    if (st.textContent !== msg) st.textContent = msg;
+    if (msg !== hallSaid) { hallSaid = msg; st.textContent = msg; }
   }
 }
 
