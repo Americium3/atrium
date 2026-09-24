@@ -298,9 +298,21 @@ function fanBars(kind, rays) {
 function crest(kind) {
   var d = '', k, th;
   if (kind === 'fan') {
-    var pts = [[CX, 24]];
-    for (k = 0; k <= 12; k++) { th = Math.PI * k / 12; pts.push([CX + 17 * Math.cos(th), 24 - 17 * Math.sin(th)]); }
-    d = poly(pts);
+    // a cast sunburst fan: seven blades with the gaps between them cut
+    // through, on a small hub (a plain half-disc read as a blob)
+    for (k = 0; k < 7; k++) {
+      var a0 = Math.PI * k / 7 + 0.05, a1 = Math.PI * (k + 1) / 7 - 0.05, pts = [];
+      pts.push([CX + 4.5 * Math.cos(a0), 24 - 4.5 * Math.sin(a0)]);
+      for (var q = 0; q <= 4; q++) {
+        th = a0 + (a1 - a0) * q / 4;
+        pts.push([CX + 18 * Math.cos(th), 24 - 18 * Math.sin(th)]);
+      }
+      pts.push([CX + 4.5 * Math.cos(a1), 24 - 4.5 * Math.sin(a1)]);
+      d += poly(pts);
+    }
+    var hub = [[CX + 3.6, 24]];
+    for (k = 0; k <= 8; k++) { th = Math.PI * k / 8; hub.push([CX + 3.6 * Math.cos(th), 24 - 3.6 * Math.sin(th)]); }
+    d += poly(hub);
   } else if (kind === 'ziggurat') {
     d = 'M131 24 V18 H136 V12 H142 V6 H158 V12 H164 V18 H169 V24 Z';
   } else if (kind === 'star') {
@@ -363,11 +375,16 @@ function portal(gid, id) {
         '" width="' + f2(i.x - o.x + 0.2) + '" height="' + f2(BOT - i.ys) + '"/>';
     var rel = relief(id.motifs[b], o, i, b, n);
     if (rel) {
-      body += '<g clip-path="url(#' + cp + ')">' +
-        '<path class="r-sh" transform="translate(0.5 0.8)" d="' + rel + '"/>' +
+      // Burnished relief on a matte ground, as gilders lay it: the field
+      // between the ornament is toned down, so the raised work (body, lit
+      // edge, cast shadow) stands brighter than the ground it rises from,
+      // and reads at arm's length instead of only in a close-up.
+      body += '<path class="b-ground" d="' + ringD(o, i) + '"/>' +
+        '<g clip-path="url(#' + cp + ')">' +
+        '<path class="r-sh" transform="translate(0.75 1.1)" d="' + rel + '"/>' +
         '<path class="r-body" d="' + rel + '"/>' +
-        '<path class="r-lt" transform="translate(-0.35 -0.5)" d="' + rel + '"/>' +
-        '<path class="r-body" transform="translate(0.1 0.15)" d="' + rel + '"/></g>';
+        '<path class="r-lt" transform="translate(-0.5 -0.7)" d="' + rel + '"/>' +
+        '<path class="r-body" transform="translate(0.12 0.18)" d="' + rel + '"/></g>';
     }
     // Arris: the outer lip catches the light, the step down into the next
     // band sits in its own glaze.
@@ -384,6 +401,14 @@ function portal(gid, id) {
         '<path class="cv1" d="' + archD(bnd(b + 0.04, n)) + '"/></g>';
     }
   }
+  // The key light across the whole portal: the stack is one solid object
+  // lit from up and to the left, so the left jamb and the upper left of the
+  // arch take the light and the right jamb falls off into shade. Without it
+  // every band was lit the same all the way round, a gradient in a ring.
+  defs += '<linearGradient id="' + gid + '-key" gradientUnits="userSpaceOnUse" x1="20" y1="40" x2="290" y2="540">' +
+    '<stop offset="0" class="pk-s0"/><stop offset=".32" class="pk-s1"/>' +
+    '<stop offset=".55" class="pk-s2"/><stop offset="1" class="pk-s3"/></linearGradient>';
+  body += '<path class="p-key" fill="url(#' + gid + '-key)" d="' + ringD(bd[0], inner) + '"/>';
   // The leaf itself: 85 mm squares laid edge to edge, each a shade off its
   // neighbours, soft-lit over every band so the gradients read as gilding
   // rather than as paint.

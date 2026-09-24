@@ -211,6 +211,26 @@
 .nc-bl { left: 0; bottom: calc(var(--sill) - var(--st) * 1.4); }
 
 /* ==========================================================================
+   THE ARCHIVOLTS: BURNISHED RELIEF, MATTE GROUND, ONE KEY LIGHT
+   ==========================================================================
+   The bands read as smooth graded rings at 1920: the ground of a carved band
+   was as bright as its ornament, and every band was lit the same all round.
+   Now a carved band's ground is matte and a step darker than its burnished
+   relief, and the whole stack takes one key light from up and to the left
+   (the skylight by day, from above and softer). */
+:root[data-theme="onyx"] { --gild-ground: rgba(26, 14, 3, 0.46); }
+:root[data-theme="ivory"] { --gild-ground: rgba(74, 50, 18, 0.30); }
+.portal .b-ground { fill: var(--gild-ground); pointer-events: none; }
+.gate.vacant .portal .b-ground { opacity: 0.45; }
+.portal .p-key { pointer-events: none; }
+.pk-s0 { stop-color: #fff4d6; stop-opacity: 0.20; }
+.pk-s1 { stop-color: #fff4d6; stop-opacity: 0; }
+.pk-s2 { stop-color: #0a0602; stop-opacity: 0; }
+.pk-s3 { stop-color: #0a0602; stop-opacity: 0.38; }
+:root[data-theme="ivory"] .pk-s0 { stop-color: #ffffff; stop-opacity: 0.24; }
+:root[data-theme="ivory"] .pk-s3 { stop-color: #3a2a12; stop-opacity: 0.24; }
+
+/* ==========================================================================
    THE CARTOUCHE: A MACHINED BEZEL FOR THE MARK
    ==========================================================================
    Grafted from prototype B. The lozenge plate is screwed to the fanlight's
