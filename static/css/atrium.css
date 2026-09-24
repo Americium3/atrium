@@ -485,6 +485,20 @@ html[data-boot="suppressed"] #hall { animation: hall-fade 0.3s var(--ease-out) b
 #ticker.rolling:focus-within .t-track { animation-play-state: paused; }
 #ticker.static { text-align: center; }
 @keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+/* Reduced motion: the band is set in pages stacked in one cell, and turns
+   them with a slow crossfade. Opacity only, so every page stays in the
+   accessibility tree and the band is heard whole. */
+#ticker.paged { text-align: center; }
+#ticker.paged .t-track { display: grid; width: 100%; }
+.t-page {
+  grid-area: 1 / 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  opacity: 0;
+  transition: opacity 0.9s ease;
+}
+.t-page.on { opacity: 1; }
 .t-sep { color: var(--gold); padding: 0 14px; }
 /* The loop's second copy; aria-hidden, and layout-neutral. */
 .t-twin { display: inline; }
@@ -3027,6 +3041,12 @@ html[data-entered="no"] #stage { animation: stage-dolly 0.9s var(--ease-out) bot
 }
 :root[data-motion="reduced"] #ticker.rolling .t-track {
   animation: none; transform: none;
+}
+/* The one motion the band keeps (DESIGN: "at most a slow crossfade
+   rotation"). Without this the kill switch above turns each page into a
+   hard cut. */
+:root[data-motion="reduced"] #ticker.paged .t-page {
+  transition-duration: 0.9s !important;
 }
 
 /* Ledger drawer: a fade instead of the slide. data-motion is the one switch:

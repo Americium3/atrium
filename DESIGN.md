@@ -683,12 +683,25 @@ Plaques are links opening the dispatch url.
 
 The band under the masthead carries **status segments** (LINES OPEN n/3 ·
 per-gate live stats) plus only dispatches **still unread**. When nothing is
-new: a static line, no scroll. Pauses on hover AND focus; reduced motion =
-static line with at most a slow crossfade rotation. The ticker draws from the
-same unfiltered feed as the Ledger and ignores both the lever and the chips
-(R11). It is the one surface a read does **not** update on the spot: it is a
-marquee, and rebuilding the track mid-scroll snaps it back to the start, so it
-catches up on its own poll instead.
+new: a static line, no scroll. Pauses on hover AND focus. The crawl runs at
+50 px/s times `--ui`, measured on one copy of the loop (the old per-character
+rate counted the `aria-hidden` twin as well and ran at half speed). Reduced
+motion = static line with at most a slow crossfade rotation: an overflowing
+band is set in pages that each fit, broken only between segments, and turns
+one every 6 s with a 0.9 s crossfade, held on hover and focus. A single
+segment wider than the band gets a page of its own and an ellipsis. Every
+page stays in the accessibility tree, so a screen reader hears the band once
+and whole. The ticker draws from the same unfiltered feed as the Ledger and
+ignores both the lever and the chips (R11).
+
+It is the one surface a read does **not** update on the spot, and no poll
+rebuilds it under a reader either. A band that says something new waits for
+its moment: the loop coming round (the one instant the track stands at its
+own start), the pointer or focus leaving a still band, or the next page turn.
+A poll that says the same thing changes nothing on screen. Losing the hub or
+finding it again lands at once, with NO WORD FROM THE HUB in place of the
+line count. A language switch, a motion change and a new band width re-set
+it at once as well.
 
 ## Mode lever (R11)
 

@@ -3487,10 +3487,29 @@ function selectChip(chip) {
 
 /* ========================================================================
    Ticker — status band + only-what's-new; never wing-filtered (R11)
+   ------------------------------------------------------------------------
+   The band is rebuilt only where nobody is reading it. A poll that changed
+   one figure used to tear the track down mid-scroll: a paused band swapped
+   the segment under the pointer, and a rolling one jumped to another
+   dispatch. Now a changed band waits for the loop to come round (the one
+   moment the track stands at its own start), for the pointer or the focus
+   to leave, or, under reduced motion, for the next page turn. A band that
+   says the same thing as before changes nothing at all.
    ======================================================================== */
-function renderTicker() {
-  var ticker = $('#ticker');
-  var track = $('#ticker-track');
+/* Crawl speed in px/s at --ui 1, so the band keeps its pace whatever the
+   engraving size. It was 0.32 s per character counted over BOTH copies of
+   the loop, which ran it at half the rate it meant: 1.6 characters a second,
+   three minutes before the last unread dispatch came on screen. */
+var TICKER_PX_S = 50;
+/* Reduced motion: the band stands still and turns a page this often. */
+var TICKER_PAGE_MS = 6000;
+var tickerKey = null;      // what the band on screen says
+var tickerLang = null;     // ...and in which language
+var tickerBox = '';        // the band width and engraving it was laid out for
+var tickerPending = null;  // a newer band waiting for its moment
+var tickerPageT = null;
+
+function tickerModel() {
   var segs = [];
   var open = 0, known = 0;
   services.forEach(function (s) {
@@ -3505,12 +3524,50 @@ function renderTicker() {
     var txt = statText(s);
     if (txt) segs.push(txt);
   });
-  var fresh = feed.filter(isNew).slice(0, 6);
-  var freshTexts = fresh.map(function (d) {
+  var fresh = feed.filter(isNew).slice(0, 6).map(function (d) {
     var h = headline(d);
     return (h.head + ' · ' + h.detail);
   });
+  var paged = root.dataset.motion === 'reduced';
+  return {
+    segs: segs, fresh: fresh, paged: paged,
+    key: [lang, paged ? 'r' : 'f', segs.join('\u0001'), fresh.join('\u0001')].join('\u0002')
+  };
+}
 
+/* now: the reader asked for this (language, motion, a new band width), so it
+   lands at once instead of waiting for the loop. */
+function renderTicker(now) {
+  var ticker = $('#ticker');
+  var m = tickerModel();
+  // A language switch re-letters the whole hall at once; the band with it.
+  if (tickerLang !== lang) now = true;
+  if (!now && m.key === tickerKey) { tickerPending = null; return; }
+  if (!now && tickerKey !== null && tickerHeld(ticker)) { tickerPending = m; return; }
+  applyTicker(m);
+}
+
+/* Is somebody reading the band right now? A rolling band always is, until
+   its loop comes round; a still one is while the pointer or the focus is on
+   it; a paged one is between page turns. */
+function tickerHeld(ticker) {
+  var track = $('#ticker-track');
+  if (ticker.classList.contains('rolling') && track.getAnimations &&
+      track.getAnimations().some(function (a) { return a.playState !== 'finished'; })) return true;
+  if (ticker.matches(':hover, :focus-within')) return true;
+  return !!tickerPageT;
+}
+
+function applyTicker(m) {
+  var ticker = $('#ticker');
+  var track = $('#ticker-track');
+  tickerPending = null;
+  tickerKey = m.key;
+  tickerLang = lang;
+  tickerBox = ticker.clientWidth + '|' + uiScale();
+  clearTimeout(tickerPageT);
+  tickerPageT = null;
+  ticker.classList.remove('rolling', 'static', 'paged');
   track.textContent = '';
   function sep() {
     // The diamond is ornament; a screen reader hears a pause instead of
@@ -3522,48 +3579,134 @@ function renderTicker() {
     s.appendChild(el('span', 'sr-only', '; '));
     return s;
   }
-  function pushSegs(list, cls) {
-    list.forEach(function (s, i) {
-      if (track.childNodes.length) track.appendChild(sep());
-      var seg = el('span', cls || '', s);
-      // A CJK title in the English hall (or a Latin one in the Chinese) is
-      // tagged, so a screen reader switches voice instead of spelling it.
-      var cjk = /[\u3040-\u30ff\u3400-\u9fff]/.test(s);
-      if (cjk !== (lang === 'zh')) seg.lang = cjk ? 'zh' : 'en';
-      track.appendChild(seg);
-    });
+  function seg(s, cls) {
+    var n = el('span', cls || '', s);
+    // A CJK title in the English hall (or a Latin one in the Chinese) is
+    // tagged, so a screen reader switches voice instead of spelling it.
+    var cjk = /[\u3040-\u30ff\u3400-\u9fff]/.test(s);
+    if (cjk !== (lang === 'zh')) n.lang = cjk ? 'zh' : 'en';
+    return n;
   }
-  function makeRolling() {
-    // Append the trailing separator FIRST, then clone — the track becomes
-    // (A◆)(A◆) so the -50% loop lands exactly on the period (a clone taken
-    // before the separator would jump by half a separator every cycle).
-    track.appendChild(sep());
-    // The loop needs a second copy of the band; a screen reader does not.
-    var twin = el('span', 't-twin');
-    twin.setAttribute('aria-hidden', 'true');
-    Array.prototype.slice.call(track.childNodes).forEach(function (n) {
-      twin.appendChild(n.cloneNode(true));
-    });
-    track.appendChild(twin);
-    var chars = track.textContent.length;
-    ticker.style.setProperty('--t-dur', Math.max(26, chars * 0.32) + 's');
-    ticker.classList.add('rolling');
-    ticker.classList.remove('static');
+  var items = m.segs.map(function (s) { return seg(s); })
+    .concat(m.fresh.map(function (s) { return seg(s, 't-new'); }));
+  if (!items.length) items = [seg('—')];
+  items.forEach(function (n) {
+    if (track.childNodes.length) track.appendChild(sep());
+    track.appendChild(n);
+  });
+  // Decided before any class goes on: the line is measured as it would
+  // stand still, so a band that has to roll is never set static first and
+  // then restarted a frame later (which snapped it back every poll).
+  var room = ticker.clientWidth - 8;
+  var overflows = track.getBoundingClientRect().width > room;
+  if (m.paged) {
+    if (overflows) pageTicker(ticker, track, items, room, sep);
+    else ticker.classList.add('static');
+    return;
   }
-  if (freshTexts.length) {
-    pushSegs(segs);
-    pushSegs(freshTexts, 't-new');
-    makeRolling();
-  } else {
-    pushSegs(segs.length ? segs : ['—']);
-    ticker.classList.add('static');
-    ticker.classList.remove('rolling');
-    // A status line wider than the band still needs to roll.
-    requestAnimationFrame(function () {
-      if (track.scrollWidth > ticker.clientWidth - 8) makeRolling();
-    });
-  }
+  if (!m.fresh.length && !overflows) { ticker.classList.add('static'); return; }
+  // Append the trailing separator FIRST, then clone — the track becomes
+  // (A◆)(A◆) so the -50% loop lands exactly on the period (a clone taken
+  // before the separator would jump by half a separator every cycle).
+  track.appendChild(sep());
+  var copy = track.getBoundingClientRect().width;
+  // The loop needs a second copy of the band; a screen reader does not.
+  var twin = el('span', 't-twin');
+  twin.setAttribute('aria-hidden', 'true');
+  Array.prototype.slice.call(track.childNodes).forEach(function (n) {
+    twin.appendChild(n.cloneNode(true));
+  });
+  track.appendChild(twin);
+  ticker.style.setProperty('--t-dur',
+    Math.max(8, copy / (TICKER_PX_S * uiScale())).toFixed(2) + 's');
+  ticker.classList.add('rolling');
 }
+
+/* Reduced motion: the band cannot crawl, and frozen at its start it showed
+   one screenful and cut the next title mid-word, so the rest of the unread
+   dispatches never appeared at all. It is set in pages that each fit the
+   band, broken only between segments, and turns one every TICKER_PAGE_MS
+   with a slow crossfade (the one motion DESIGN allows it). Every page stays
+   in the accessibility tree, so a screen reader still hears the whole band
+   once. A single segment wider than the band gets a page of its own and an
+   ellipsis rather than a cut. */
+function pageTicker(ticker, track, items, room, sep) {
+  var probe = sep();
+  track.appendChild(probe);
+  var sepW = probe.getBoundingClientRect().width;
+  var widths = items.map(function (n) { return n.getBoundingClientRect().width; });
+  // A page is set with a separator's width of margin at either end: packed
+  // to the very edge it read as a line that had been cut, not set.
+  room -= 2 * sepW;
+  var pages = [], cur = [], used = 0;
+  items.forEach(function (n, i) {
+    var w = widths[i] + (cur.length ? sepW : 0);
+    if (cur.length && used + w > room) { pages.push(cur); cur = []; used = 0; w = widths[i]; }
+    cur.push(n);
+    used += w;
+  });
+  if (cur.length) pages.push(cur);
+  track.textContent = '';
+  pages.forEach(function (list, i) {
+    var page = el('span', 't-page' + (i === 0 ? ' on' : ''));
+    list.forEach(function (n, j) {
+      if (j) page.appendChild(sep());
+      page.appendChild(n);
+    });
+    // Between pages a screen reader hears the same pause as between
+    // segments; nothing is drawn.
+    if (i < pages.length - 1) page.appendChild(el('span', 'sr-only', '; '));
+    track.appendChild(page);
+  });
+  ticker.classList.add('paged');
+  if (pages.length > 1) turnTickerPage();
+}
+
+function turnTickerPage() {
+  tickerPageT = setTimeout(function () {
+    var ticker = $('#ticker');
+    tickerPageT = null;
+    // Pauses on hover and focus, like the crawl, and never turns unseen.
+    if (document.hidden || ticker.matches(':hover, :focus-within')) { turnTickerPage(); return; }
+    // A newer band comes in on a page turn, the paged band's loop boundary.
+    if (tickerPending) { applyTicker(tickerPending); return; }
+    var pages = Array.prototype.slice.call(document.querySelectorAll('#ticker-track .t-page'));
+    var at = pages.findIndex(function (p) { return p.classList.contains('on'); });
+    pages.forEach(function (p, i) { p.classList.toggle('on', i === (at + 1) % pages.length); });
+    turnTickerPage();
+  }, TICKER_PAGE_MS);
+}
+
+(function () {
+  var ticker = $('#ticker'), track = $('#ticker-track');
+  if (!ticker || !track) return;
+  // The loop has come round: the track stands at its own start, which is
+  // the one moment a new band can go up without anything on screen jumping.
+  track.addEventListener('animationiteration', function (e) {
+    if (e.target === track && tickerPending) applyTicker(tickerPending);
+  });
+  // A still band that was held for a reader goes up when they leave it.
+  function released() {
+    if (!tickerPending || ticker.classList.contains('rolling')) return;
+    setTimeout(function () {
+      if (tickerPending && !tickerHeld(ticker)) applyTicker(tickerPending);
+    }, 0);
+  }
+  ticker.addEventListener('pointerleave', released);
+  ticker.addEventListener('focusout', released);
+  // Crawl or pages is a motion decision, and the pages are cut to the
+  // band's width and the engraving: either changing re-sets the band now.
+  window.addEventListener('atrium:motionchange', function () { renderTicker(true); });
+  var resizeT = null;
+  window.addEventListener('resize', function () {
+    clearTimeout(resizeT);
+    resizeT = setTimeout(function () {
+      if (tickerKey !== null && ticker.clientWidth + '|' + uiScale() !== tickerBox) {
+        renderTicker(true);
+      }
+    }, 200);
+  });
+})();
 
 /* ========================================================================
    Polling — 45 s, visibility-gated, immediate refetch on refocus
@@ -3621,6 +3764,7 @@ function refresh() {
     function cold(p) { return !!p && p.warm === false; }
     // No answer, an error, or a body that is not a status: every lamp goes
     // back to asking, and the band and the live region say why.
+    var wasLost = hubLost;
     hubLost = !(st && st.services && typeof st.services === 'object');
     statuses = hubLost ? {} : st.services;
     if (!(sx && sx.stats && typeof sx.stats === 'object')) stats = {};
@@ -3646,7 +3790,10 @@ function refresh() {
       renderLedger();
     }
     updateLedgerBadge();
-    renderTicker();
+    // Losing the hub (or finding it again) is not a routine change of
+    // figure: the band says so at once rather than a loop later, still
+    // counting open lines it can no longer see.
+    renderTicker(hubLost !== wasLost);
     if (hubLost || !fd || cold(st) || cold(fd) || cold(sx)) retryT = setTimeout(poll, RETRY_MS);
   });
 }
