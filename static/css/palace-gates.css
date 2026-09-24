@@ -628,6 +628,10 @@ html[lang="zh"] .g-lamp { letter-spacing: 0.2em; }
 :root[data-theme="ivory"] .mirror-art .mr-sign,
 :root[data-theme="ivory"] .mirror-art .p-reveal { display: none; }
 :root[data-theme="ivory"] .g-mirror .mirror-art { filter: blur(2.4px); }
+/* With the smear gone the gilt and the screen may come back a little
+   stronger: half again the day's own strength, still well under the
+   night's. */
+:root[data-theme="ivory"] .g-mirror { opacity: calc(var(--mirror-a) * 1.5); }
 :root[data-theme="ivory"] .g-mirror {
   -webkit-mask-image: linear-gradient(180deg, transparent 0, rgba(0, 0, 0, 0.7) 7%, rgba(0, 0, 0, 0.3) 26%, transparent 52%);
   mask-image: linear-gradient(180deg, transparent 0, rgba(0, 0, 0, 0.7) 7%, rgba(0, 0, 0, 0.3) 26%, transparent 52%);

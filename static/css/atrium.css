@@ -146,7 +146,7 @@
    is what lies in every reveal. */
 :root[data-theme="onyx"] {
   --au-0: #251806; --au-1: #57401a; --au-2: #94722e; --au-3: #f3d993; --au-4: #b68d3c; --au-5: #e6c67a;
-  --ag-0: #17140f; --ag-1: #433c31; --ag-2: #8d8475; --ag-3: #f4e8c8; --ag-4: #b2a68d; --ag-5: #dccaa2;
+  --ag-0: #17140f; --ag-1: #463d2f; --ag-2: #938670; --ag-3: #f4e8c8; --ag-4: #b9a987; --ag-5: #dccaa2;
   --cu-0: #180f08; --cu-1: #382513; --cu-2: #684a2a; --cu-3: #d5a769; --cu-4: #8b6a3f; --cu-5: #b38a58;
   --pl-0: #121110; --pl-1: #24211c; --pl-2: #3a362f; --pl-3: #6c665a; --pl-4: #4b463d; --pl-5: #5c574c;
   --relief-shadow: rgba(8, 5, 2, 0.74);
@@ -176,7 +176,7 @@
 }
 :root[data-theme="ivory"] {
   --au-0: #6a5220; --au-1: #94763a; --au-2: #c4a45e; --au-3: #fdf0c8; --au-4: #d6b772; --au-5: #f1dea4;
-  --ag-0: #6b6558; --ag-1: #9a9385; --ag-2: #c7c1b3; --ag-3: #fdfbf4; --ag-4: #dbd5c7; --ag-5: #f6f3ec;
+  --ag-0: #6b6456; --ag-1: #9c9382; --ag-2: #cac1ad; --ag-3: #fdfbf4; --ag-4: #ddd4bf; --ag-5: #f6f2e8;
   --cu-0: #4a3620; --cu-1: #6c5133; --cu-2: #92714a; --cu-3: #e6c79c; --cu-4: #aa895e; --cu-5: #caa77b;
   --pl-0: #aea593; --pl-1: #c7bfae; --pl-2: #dad3c4; --pl-3: #f8f5ee; --pl-4: #e5dfd3; --pl-5: #efeae1;
   --relief-shadow: rgba(62, 45, 20, 0.46);
