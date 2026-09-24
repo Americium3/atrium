@@ -51,7 +51,7 @@ var STR = {
     'stat.airing': '{n} AIRING TODAY', 'stat.watching': '{n} WATCHING',
     'stat.pending': '{n} {n|UPDATE|UPDATES} PENDING', 'stat.mods': '{n} {n|MOD|MODS} TRACKED',
     'stat.queue': 'QUEUE {done}/{total}', 'stat.invited': 'SENT {n}/{target}',
-    'stat.stories': '{n} {n|STORY|STORIES} · {m} {m|SECTION|SECTIONS}',
+    'stat.stories': '{n} {n|STORY|STORIES}\u00a0· {m} {m|SECTION|SECTIONS}',
     'stat.tools': '{n} {n|TOOL|TOOLS} ON THE RACK',
     'stat.orders_await': '{n} {n|ORDER AWAITS|ORDERS AWAIT} REVIEW', 'stat.brief_of': 'BRIEF OF {date}',
     'note.qb_down': 'qBittorrent unreachable, downloads paused',
@@ -201,7 +201,7 @@ var STR = {
     'stat.airing': '今日 {n} 部放送', 'stat.watching': '在看 {n} 部',
     'stat.pending': '{n} 个更新待装', 'stat.mods': '追踪 {n} 个 MOD',
     'stat.queue': '队列 {done}/{total}', 'stat.invited': '已发 {n}/{target}',
-    'stat.stories': '{n} 条 · {m} 栏',
+    'stat.stories': '{n} 条\u00a0· {m} 栏',
     'stat.tools': '架上 {n} 件工具',
     'stat.orders_await': '{n} 条指令候审', 'stat.brief_of': '证券所晨报 {date}',
     'note.qb_down': 'qBittorrent 不可达，下载已暂停',
@@ -3742,7 +3742,9 @@ function statText(svc) {
     if (s.total > 0) parts.push(t('stat.queue', { done: s.ready || 0, total: s.total }));
     if (s.invited !== undefined && s.invited > 0)
       parts.push(t('stat.invited', { n: s.invited, target: s.target || 20 }));
-    return parts.join(' · ');
+    // A no-break space before the dot: a line that wraps breaks after the
+    // separator, and never opens its second line with a lone '·'.
+    return parts.join('\u00a0· ');
   }
   return '';
 }
