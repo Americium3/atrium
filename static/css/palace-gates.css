@@ -26,3 +26,164 @@
 :root[data-theme="ivory"] {
   --sb-0: #2a1f15; --sb-1: #453525; --sb-2: #5d4a35; --sb-3: #b89a70; --sb-4: #735c42; --sb-5: #9c8160;
 }
+
+/* ==========================================================================
+   THE CLOCK NICHE
+   ==========================================================================
+   It was a solid gold slab, the loudest thing in the room. Now the frame is
+   statuary bronze glazed almost to black, the smalti go dark toward the foot
+   of the recess, the case is cast bronze with leaf on its eight bevels only,
+   and the sill is book-matched stone: Portoro by night, Calacatta by day.
+   Leaf is kept to the bevels, the inner fillet and the crest, near a tenth
+   of the niche. */
+
+/* The outer frame: bronze under a dark glaze, four mitred facets taking the
+   one light, a hairline of worn leaf on the arris that faces the lamp. */
+.n-s1 {
+  border-color: var(--nf-t) var(--nf-r) var(--nf-b) var(--nf-l);
+  box-shadow:
+    inset 1px 1px 0 var(--nf-lip), inset -1px -1px 0 rgba(0, 0, 0, 0.7),
+    0 0 0 1px rgba(0, 0, 0, 0.7),
+    4px 8px 18px rgba(0, 0, 0, 0.55);
+}
+/* The cavetto: the step turns inward, so its facets take the light the
+   other way round. Statuary bronze, unglazed, with the patina showing. */
+.n-s2 {
+  border-color: var(--sb-0) var(--sb-2) var(--sb-4) var(--sb-1);
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.55);
+}
+/* The inner fillet: the one moulding of the frame left in leaf, narrow,
+   a bead that rings the smalti. */
+.n-s3 {
+  inset: calc(var(--st) * 2.2); bottom: calc(var(--sill) - var(--st) * 0.8);
+  border-width: calc(var(--st) * 0.45);
+  border-color: var(--lead-4) var(--lead-1) var(--lead-0) var(--lead-2);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.6),
+              inset 0 0 0 1px rgba(0, 0, 0, 0.55),
+              inset 0 calc(var(--st) * 1.4) calc(var(--st) * 1.6) rgba(0, 0, 0, 0.6);
+}
+:root[data-theme="onyx"] #clock {
+  --nf-t: #2b2016; --nf-r: #120d09; --nf-b: #070504; --nf-l: #1b140e;
+  --nf-lip: rgba(214, 170, 96, 0.34);
+  --niche-bloom: rgba(255, 214, 150, 0.16);
+  --niche-glaze-top: rgba(16, 9, 3, 0.52);
+  --niche-glaze-mid: rgba(10, 6, 2, 0.80);
+  --niche-glaze-bot: rgba(4, 3, 1, 0.95);
+  --niche-cove: rgba(255, 196, 116, 0.46);
+  --sill-veil: rgba(4, 3, 2, 0.30);
+  --sill-gloss: rgba(255, 226, 170, 0.07);
+}
+:root[data-theme="ivory"] #clock {
+  --nf-t: #6e5a42; --nf-r: #3a2d20; --nf-b: #2a2017; --nf-l: #4d3d2c;
+  --nf-lip: rgba(255, 238, 196, 0.55);
+  --niche-bloom: rgba(255, 255, 255, 0);
+  --niche-glaze-top: rgba(58, 40, 16, 0.30);
+  --niche-glaze-mid: rgba(44, 30, 12, 0.62);
+  --niche-glaze-bot: rgba(30, 20, 8, 0.86);
+  --niche-cove: rgba(255, 255, 255, 0);
+  --sill-veil: rgba(255, 252, 244, 0.06);
+  --sill-gloss: rgba(255, 255, 255, 0.35);
+}
+/* The smalti: glazed down hard, and darker still toward the foot, where the
+   head's lamp does not reach and the recess keeps its shadow. */
+.n-mosaic {
+  background:
+    radial-gradient(60% 34% at 50% 0%, var(--niche-bloom), transparent 80%),
+    linear-gradient(180deg, var(--niche-glaze-top) 0%, var(--niche-glaze-mid) 55%, var(--niche-glaze-bot) 100%),
+    url('/static/assets/tex/mosaic-gold.webp') 0 0 / calc(var(--gh) * 0.22) auto;
+  box-shadow: inset 0 0 calc(var(--reveal) * 1.4) rgba(0, 0, 0, 0.8);
+}
+.n-cove { height: 34%; }
+/* The frame's leaf lattice only over the one gilt fillet now: the bronze
+   steps carry their own patina, not leaf. */
+.niche::after { opacity: 0.22; }
+
+/* The sill: a slab of stone book-matched about the axis, the right half the
+   left one opened like a book, so the veins meet at the joint and run out
+   either way. A bronze nosing with one hairline of leaf on its lip. */
+.n-sill { background: none; overflow: hidden; box-shadow: 0 -1px 0 rgba(0, 0, 0, 0.6); }
+.n-sill::before, .n-sill::after {
+  content: ""; position: absolute; top: 0; bottom: 0; width: 50%;
+  background:
+    linear-gradient(var(--sill-veil), var(--sill-veil)),
+    var(--sill-stone) 100% var(--sill-y) / calc(var(--gh) * 0.72) auto no-repeat,
+    var(--sill-stone2, none) 100% var(--sill-y) / calc(var(--gh) * 0.72) auto no-repeat,
+    var(--sill-base, transparent);
+  background-blend-mode: normal, multiply, multiply, normal;
+}
+.n-sill::before { left: 0; }
+.n-sill::after { right: 0; transform: scaleX(-1); }
+/* The nosing: bronze with one hairline of leaf on its lip, its shade on the
+   slab below; then the slab's polished face gives back one band of room. */
+.n-nose {
+  position: absolute; inset: 0; z-index: 1; pointer-events: none;
+  background:
+    linear-gradient(180deg,
+      var(--lead-5) 0 1px, var(--sb-3) 1px 2px, var(--sb-2) 2px calc(var(--st) * 0.7),
+      var(--sb-0) calc(var(--st) * 0.7 + 1px), rgba(0, 0, 0, 0.5) calc(var(--st) * 0.7 + 1px),
+      transparent calc(var(--st) * 2.2)),
+    linear-gradient(180deg, transparent 40%, var(--sill-gloss) 55%, transparent 72%),
+    linear-gradient(90deg, transparent calc(50% - 1px), rgba(0, 0, 0, 0.28) calc(50% - 1px) calc(50% + 0.5px), transparent calc(50% + 0.5px));
+  box-shadow: inset 0 -2px 3px rgba(0, 0, 0, 0.35);
+}
+:root[data-theme="onyx"] .n-sill { --sill-stone: url('/static/assets/tex/stone-portoro.webp'); --sill-y: 5%; }
+:root[data-theme="ivory"] .n-sill {
+  --sill-stone: url('/static/assets/tex/stone-calacatta.webp'); --sill-y: 76%;
+  --sill-stone2: url('/static/assets/tex/stone-calacatta.webp');
+  --sill-base: #fbf7ee;
+}
+
+
+/* ----- The case -----------------------------------------------------------
+   Statuary bronze, lit from up and to the left: the flat face in its patina,
+   the eight bevels in the wing's leaf, the shoulders and rivets cast with the
+   case. The bezel is turned bronze with a knurl whose teeth take the light
+   on the lamp side. */
+.ckc.s0 { stop-color: var(--sb-4); } .ckc.s1 { stop-color: var(--sb-2); } .ckc.s2 { stop-color: var(--sb-1); }
+.ck-case { stroke: var(--sb-0); }
+.ck-patina { fill: url(#ck-patina); mix-blend-mode: soft-light; opacity: 0.55; pointer-events: none; }
+.ck-bevel-leaf { fill: url(#ck-leaf); mix-blend-mode: soft-light; opacity: 0.6; pointer-events: none; }
+.ck-caseline2, .ck-caseline { stroke: rgba(0, 0, 0, 0.7); }
+.ck-step { stroke: var(--sb-3); }
+.ck-span { stroke: var(--sb-3); }
+.ck-rivet { fill: var(--sb-2); stroke: var(--sb-0); }
+.ck-rivet-sh { fill: rgba(0, 0, 0, 0.45); }
+.ck-rivet-lt { fill: var(--sb-3); }
+.ck-case2 { fill: url(#ck-turn); stroke: var(--sb-0); }
+.ckt.s0 { stop-color: var(--sb-3); } .ckt.s1 { stop-color: var(--sb-2); }
+.ckt.s2 { stop-color: var(--sb-1); } .ckt.s3 { stop-color: var(--sb-4); }
+.ckt.s4 { stop-color: var(--sb-0); }
+.ck-knurl.kn-lt { fill: var(--sb-3); }
+.ck-knurl.kn-md { fill: var(--sb-4); }
+.ck-knurl.kn-dk { fill: var(--sb-0); }
+.ck-well { stroke: var(--sb-0); }
+.ck-bezel-sh { stroke: rgba(20, 12, 4, 0.34); }
+#clock .ck-rivet-sh, #clock .ck-rivet-lt { transition: none; }
+
+/* The niche in the waxed floor: the bronze sides, the dark back, the sill. */
+.ck-mirror {
+  background:
+    linear-gradient(180deg, var(--cm-sill-c) 0, var(--cm-sill-c) calc(var(--cm-sill) - 3px), var(--sb-3) calc(var(--cm-sill) - 3px), var(--sb-1) var(--cm-sill), transparent var(--cm-sill)),
+    radial-gradient(circle calc(var(--dial) * 0.43) at 50% calc(var(--sill) + var(--reveal) + var(--dial) * 0.5), var(--cm-dial) 0 94%, var(--sb-2) 96%, transparent 100%),
+    linear-gradient(90deg, var(--nf-l) 0 calc(var(--st) * 3), var(--cm-back) calc(var(--st) * 3) calc(100% - var(--st) * 3), var(--nf-r) calc(100% - var(--st) * 3));
+}
+:root[data-theme="onyx"] #clock { --cm-back: #120b05; --cm-sill-c: #0a0807; }
+:root[data-theme="ivory"] #clock { --cm-back: #4a3a26; --cm-sill-c: #e8e2d6; }
+
+/* Corner blocks: the four mitres of the outer frame meet on cast bronze
+   squares, each with a turned boss lit on the lamp side and a pin of leaf
+   at its crown. */
+.n-corner {
+  position: absolute; z-index: 1; pointer-events: none;
+  width: calc(var(--st) * 2); height: calc(var(--st) * 2);
+  background:
+    radial-gradient(circle at 42% 40%, var(--lead-3) 0 6%, var(--lead-1) 12%, transparent 15%),
+    radial-gradient(circle at 50% 50%, transparent 0 20%, var(--sb-0) 21% 24%, transparent 25%),
+    radial-gradient(circle at 38% 36%, var(--sb-3) 0, var(--sb-4) 22%, var(--sb-1) 40%, transparent 42%),
+    linear-gradient(135deg, var(--sb-4) 0 14%, var(--sb-2) 14% 86%, var(--sb-0) 86%);
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.7), 1px 2px 3px rgba(0, 0, 0, 0.5);
+}
+.nc-tl { left: 0; top: 0; }
+.nc-tr { right: 0; top: 0; }
+.nc-br { right: 0; bottom: calc(var(--sill) - var(--st) * 1.4); }
+.nc-bl { left: 0; bottom: calc(var(--sill) - var(--st) * 1.4); }
