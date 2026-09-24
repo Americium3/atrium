@@ -611,33 +611,81 @@ def mirror_antique(n=512, seed=141):
 
 
 def mosaic_gold(n=512, cell=16, seed=151):
-    """Gold smalti: every tessera is set at its own tilt, so each takes the
-    light differently. Colour, glazed dark in the joints."""
+    """Gold smalti, set by hand: courses of uneven height, each tessera its
+    own width (about a quarter either way), a hair out of square and turned
+    a few degrees, its glass anywhere from pale gold to amber, and set at
+    its own tilt so each takes the light differently; one in fifteen tilted
+    toward the lamp throws a glint. Dark grout in the joints, a lit arris on
+    the upper left of each. It was a machine grid at exactly 16px with every
+    row offset 7.5px, and in the niche's corners it read as a tile sheet or
+    a grate (AR-34). Drawn at 2x as an id map, coloured per tessera, and
+    wrapped in both directions."""
+    from PIL import ImageDraw
+    from scipy.ndimage import gaussian_filter
     rng = np.random.default_rng(seed)
-    cols = n // cell
-    y, x = np.mgrid[0:n, 0:n]
-    # rows are laid in courses offset by half a cell, the way mosaicists lay
-    row = y // cell
-    xo = (x + (row % 2) * cell // 2) % n
-    col = xo // cell
-    tid = (row * cols + col) % (cols * cols)
-    tone = rng.uniform(0.55, 1.25, cols * cols)
-    hue = rng.uniform(-1, 1, cols * cols)
-    tilt = rng.uniform(-1, 1, (cols * cols, 2))
-    t = tone[tid]
-    h = hue[tid]
-    lx = (xo % cell) / cell - 0.5
-    ly = (y % cell) / cell - 0.5
-    face = 1 + (lx * tilt[tid, 0] + ly * tilt[tid, 1]) * 0.35
-    gold = np.stack([196 + h * 10, 150 + h * 6, 70 - h * 8], -1)
-    rgb = gold * (t * face)[..., None]
-    # joints
-    gap = (np.minimum(np.abs(lx), np.abs(ly)) < 0) | (np.abs(lx) > 0.42) | (np.abs(ly) > 0.42)
-    rgb = np.where(gap[..., None], np.array([38, 28, 16]), rgb)
-    # a lit arris on the upper-left of every tessera
-    arr = ((lx < -0.30) & (lx > -0.42)) | ((ly < -0.30) & (ly > -0.42))
-    rgb = np.where((arr & ~gap)[..., None], rgb * 1.18, rgb)
-    return rgb
+    S = 2
+    N = n * S
+    rows = np.maximum(rng.normal(cell, cell * 0.14, n // cell), cell * 0.7)
+    rows = rows / rows.sum() * n
+    ids = Image.new("I", (N, N), 0)
+    d = ImageDraw.Draw(ids)
+    cx_l, cy_l, sz_l = [], [], []
+    y0 = 0.0
+    for rh in rows:
+        widths = np.maximum(rng.normal(cell, cell * 0.25, int(n / cell * 1.2)), cell * 0.55)
+        k = int(np.searchsorted(np.cumsum(widths), n)) + 1
+        widths = widths[:k] / widths[:k].sum() * n
+        x0 = rng.uniform(0, n)
+        for tw in widths:
+            g = rng.uniform(1.4, 2.4)
+            w2, h2 = (tw - g) / 2, (rh - g) / 2
+            cx, cy = x0 + tw / 2, y0 + rh / 2 + rng.uniform(-0.6, 0.6)
+            ang = np.radians(rng.normal(0, 3.2))
+            ca, sa = np.cos(ang), np.sin(ang)
+            corners = [(-w2, -h2), (w2, -h2), (w2, h2), (-w2, h2)]
+            pts = []
+            for px, py in corners:
+                px += rng.uniform(-0.7, 0.7)
+                py += rng.uniform(-0.7, 0.7)
+                pts.append((px * ca - py * sa, px * sa + py * ca))
+            tid = len(cx_l) + 1
+            cx_l.append(cx % n)
+            cy_l.append(cy % n)
+            sz_l.append(max(tw, rh))
+            for ox in (-n, 0, n):
+                for oy in (-n, 0, n):
+                    X, Y = cx + ox, cy + oy
+                    if X + tw < 0 or X - tw > n or Y + rh < 0 or Y - rh > n:
+                        continue
+                    d.polygon([((X + px) * S, (Y + py) * S) for px, py in pts], fill=tid)
+            x0 += tw
+        y0 += rh
+    idm = np.asarray(ids, dtype=np.int64)
+    T = len(cx_l)
+    cxa = np.array([0.0] + cx_l) * S
+    cya = np.array([0.0] + cy_l) * S
+    sza = np.array([1.0] + sz_l) * S
+    hue = rng.uniform(0, 1, T + 1)                       # 0 pale gold .. 1 amber
+    tone = rng.uniform(0.72, 1.12, T + 1)
+    tilt = rng.normal(0, 1, (T + 1, 2))
+    glint = rng.random(T + 1) < 1 / 15
+    tone[glint] = rng.uniform(1.18, 1.32, glint.sum())
+    tilt[glint] = [-0.9, -1.1]                            # toward the lamp, up and left
+    yy, xx = np.mgrid[0:N, 0:N].astype(np.float64)
+    dx = (xx - cxa[idm] + N / 2) % N - N / 2
+    dy = (yy - cya[idm] + N / 2) % N - N / 2
+    face = 1 + (dx * tilt[idm, 0] + dy * tilt[idm, 1]) / sza[idm] * 0.32
+    pale, gold, amber = np.array([222, 186, 112.0]), np.array([200, 152, 70.0]), np.array([176, 112, 42.0])
+    h = hue[idm][..., None]
+    glass = np.where(h < 0.5, pale + (gold - pale) * (h / 0.5), gold + (amber - gold) * ((h - 0.5) / 0.5))
+    rgb = glass * (tone[idm] * face)[..., None]
+    # a lit arris on the upper left of every tessera, where it meets grout
+    edge = (idm > 0) & ((np.roll(idm, 3, 0) != idm) | (np.roll(idm, 3, 1) != idm))
+    rgb = np.where(edge[..., None], rgb * 1.16, rgb)
+    grout = np.array([38, 28, 16.0]) * (0.85 + 0.3 * gaussian_filter(rng.random((N, N)), 3, mode="wrap")[..., None] * 2)
+    rgb = np.where((idm > 0)[..., None], rgb, grout)
+    img = Image.fromarray(np.clip(rgb, 0, 255).astype(np.uint8), "RGB").resize((n, n), Image.LANCZOS)
+    return np.asarray(img, dtype=np.float64)
 
 
 def _pile(h, w, seed, pitch=8):
