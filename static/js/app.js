@@ -46,7 +46,7 @@ var STR = {
     'stat.airing': '{n} AIRING TODAY', 'stat.watching': '{n} WATCHING',
     'stat.pending': '{n} {n|UPDATE|UPDATES} PENDING', 'stat.mods': '{n} {n|MOD|MODS} TRACKED',
     'stat.queue': 'QUEUE {done}/{total}', 'stat.invited': 'SENT {n}/{target}',
-    'stat.stories': '{n} {n|STORY|STORIES} · {m} {m|SECTION|SECTIONS}', 'stat.stale': 'EDITION STALE',
+    'stat.stories': '{n} {n|STORY|STORIES} · {m} {m|SECTION|SECTIONS}',
     'stat.tools': '{n} {n|TOOL|TOOLS} ON THE RACK',
     'stat.orders_await': '{n} {n|ORDER AWAITS|ORDERS AWAIT} REVIEW', 'stat.brief_of': 'BRIEF OF {date}',
     'note.qb_down': 'qBittorrent unreachable, downloads paused',
@@ -184,7 +184,7 @@ var STR = {
     'stat.airing': '今日 {n} 部放送', 'stat.watching': '在看 {n} 部',
     'stat.pending': '{n} 个更新待装', 'stat.mods': '追踪 {n} 个 MOD',
     'stat.queue': '队列 {done}/{total}', 'stat.invited': '已发 {n}/{target}',
-    'stat.stories': '{n} 条 · {m} 栏', 'stat.stale': '早报未更新',
+    'stat.stories': '{n} 条 · {m} 栏',
     'stat.tools': '架上 {n} 件工具',
     'stat.orders_await': '{n} 条指令候审', 'stat.brief_of': '证券所晨报 {date}',
     'note.qb_down': 'qBittorrent 不可达，下载已暂停',
@@ -2880,7 +2880,8 @@ function statText(svc) {
   // on a dark gate and in the ticker, two dropped it, and nothing said which
   // was which.
   if (st && st.state === 'dark') return '';
-  if (svc.id === 'pressroom' && st && st.note === 'digest_stale') return t('stat.stale');
+  // A stale edition keeps its counts here. The apron's note already says the
+  // edition is old, and "EDITION STALE" above it said the same thing twice.
   if (svc.id === 'autopilot') {
     if (s.airing > 0) return t('stat.airing', { n: s.airing });
     if (s.watching !== undefined) return t('stat.watching', { n: s.watching });
