@@ -278,7 +278,8 @@ what shows, so a click there lands the entrance and then does what it says.
 `?entrance=0` skips it. The curtain is dressed at once, but its clock starts
 only when the hall behind it has its first readings and has been drawn
 (at most 900 ms), so the hall's first raster happens under a still curtain
-and not during the footlights. Under reduced motion a load gets the 300 ms fade
+and not during the footlights. A hall loaded in a tab nobody is looking at
+holds the curtain until the tab is first shown. Under reduced motion a load gets the 300 ms fade
 instead. PREFERENCES > REPLAY ENTRANCE sets a one-shot `sessionStorage` flag and
 reloads; the pre-paint script reads and clears it, so nothing sticks to the
 address bar, and under reduced motion a replay is the same quiet fade. The
@@ -305,10 +306,14 @@ or assembles.
   the pointer.
 - 2700 ms: finish.
 
-Day: the curtain is already up. The street's light floods in from behind
-the reader and settles like an exposure (1.05 s from 280 ms), with the sun's
-shafts in it; a gilt ring draws itself in the glare and docks on the
-monogram at 900 ms. Done-fade at 1400 ms, finish at 1700 ms.
+Day: the curtain is already up. A low sun comes in through four open
+doors behind the reader: their light lies across the floor, running away to
+a point at eye height, and stands up the wall to the lintel's shadow, warm,
+each band crossed by its glazing bar and the transom, with cool shade
+between and dust turning in it. The glare over it all eases off like an eye
+adjusting (1.05 s from 280 ms), and the hall shows through it from the first
+frame. A gilt ring draws itself in the glare and docks on the monogram at
+900 ms. Done-fade at 1400 ms, finish at 1700 ms.
 
 ## Layout & viewport
 
@@ -450,7 +455,10 @@ else.
   clearance to the niche. If that line is wider than the stage, it writes
   `--fit` (0..1) on `#stage`, and the arches, the niche and the plinth rule
   all size from `--gate-fit = --gate-w × --fit`. Widths are measured at fit 1
-  so the solve never chases its own output. Checked at twelve sizes from
+  so the solve never chases its own output. The line is always the longer
+  wing's, lit or not, so both wings share one fit and one set of bays: a
+  throw never resizes an arch or the clock, and a wing of three stands in
+  the inner bays of a wing of five. Checked at twelve sizes from
   1280x800 to 3440x1440 in both wings with a Playwright overlap audit.
 - A throw goes bay by bay, out from the clock on both sides, 60 ms a
   step. By night the lit arch's lamps go out first, in 120 ms. Then it
