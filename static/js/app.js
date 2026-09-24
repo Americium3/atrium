@@ -3584,6 +3584,18 @@ if (ledgerScrimEl) {
   });
 }
 
+/* The medallion hangs outside the plaque's link, over the spine where the
+   clipped frame cannot reach, so a click on it used to do nothing. It reads
+   as part of the plaque, so it opens the dispatch like the rest of it. */
+var plaquesEl = $('#plaques');
+if (plaquesEl) {
+  plaquesEl.addEventListener('click', function (e) {
+    var medal = e.target.closest && e.target.closest('.medal');
+    var link = medal && medal.parentNode.querySelector('a.pl-in');
+    if (link) link.click();
+  });
+}
+
 /* Escape closes ledger (non-modal; does not fight prefs Escape which is
    bound while prefs is open and removed when it closes). */
 document.addEventListener('keydown', function (e) {

@@ -2385,18 +2385,28 @@ html[lang="zh"] .al-arc text {
 }
 /* box-shadow dies under clip-path, and drop-shadow on the clipped element
    itself gets clipped too — so the shadow lives on pl-shadow-wrap, which is
-   an unclipped wrapper around pl-frame. The li itself only carries transition
-   and animations (arrive/cascading) so the browser can promote those to
+   an unclipped wrapper around pl-frame. The li itself only carries the
+   arrive/cascading animations so the browser can promote those to
    compositor layers without re-rasterizing the filter every frame.
    Ghosts excluded (they re-raster on their own pulse). */
 .plaque:not(.ghost) .pl-shadow-wrap {
   filter: drop-shadow(0 3px 4px var(--shadow-drop))
           drop-shadow(0 12px 18px var(--shadow-soft));
 }
-.plaque:not(.ghost) {
+/* The hover lift moves the card, never the li. The li owns :hover and the
+   420ms dwell, and lifting it slid its box out from under a pointer resting
+   on its bottom edge: the rim drained and refilled over and over and the
+   plaque was never read. The medallion stays put on the spine it hangs
+   from; lifted, its overhang past the li would bob the same way. */
+.plaque:not(.ghost) .pl-shadow-wrap {
   transition: transform 0.25s var(--ease-out);
 }
-.plaque:not(.ghost):hover { transform: translateY(-2px); }
+@media (hover: hover) {
+  .plaque:not(.ghost):hover .pl-shadow-wrap { transform: translateY(-2px); }
+}
+/* The medallion is part of the plaque, and opens it like the rest of the
+   card (the click is forwarded from #plaques). */
+.plaque:not(.ghost) .medal { cursor: pointer; }
 .plaque.new .pl-frame { background-color: var(--champagne); }
 .pl-frame > a, .pl-frame > .pl-in {
   display: block;
