@@ -951,9 +951,12 @@ html[data-boot="suppressed"] #signal-desk {
   --floor-min: clamp(84px, 12vh, 210px);
   /* Capped at 520 (it was 560 at 3440): the stage carries four arches and
      the full-size clock in one row, and at 560 the arches had to shrink to
-     fit between the boards. */
-  --aisle-w: clamp(300px, calc((100vw - 2150px) / 2.4), 520px);
+     fit between the boards. And never wider than the room the row leaves
+     at full size (--aisle-room, written by layoutStage in app.js): the
+     cases give way before the arches do. */
+  --aisle-w: min(clamp(300px, calc((100vw - 2150px) / 2.4), 520px), var(--aisle-room, 520px));
   --bay-gap: clamp(20px, 2vw, 56px);
+  column-gap: var(--bay-gap);   /* read back by layoutStage; one column has no gaps */
   --skirt-h: calc(var(--gh2) * 0.079);   /* = the gates' own plinth rule */
   --dado-h: calc(var(--gh2) * 0.19);
   --cornice-h: calc(30px * var(--ui));
@@ -971,13 +974,18 @@ html[data-boot="suppressed"] #signal-desk {
    the stage has to hold four arches and the clock side by side (about 6.3
    arch widths) without shrinking them. Below 2800 the boards would cost the
    arches a quarter of their size, so the aisles, which are ultrawide
-   furniture, wait until there is genuinely room. */
+   furniture, wait until there is genuinely room.
+   How much room the row needs grows with the engraving size, which no
+   width query can see: at 2800 the aisles took 305px arches for every
+   size, so crossing 2800 shrank the arches by up to a tenth and the
+   engraving size stopped moving them. So past 2800 the aisles open only
+   where the row stands at full size between two 300px cases (layoutStage
+   in app.js keeps them shut otherwise, data-aisles="shut"). */
 @media (min-width: 2800px) {
-  #concourse {
+  #concourse:not([data-aisles="shut"]) {
     grid-template-columns:
       minmax(0, var(--aisle-w)) minmax(0, 1fr) minmax(0, var(--aisle-w));
     grid-template-areas: "aisle-l stage aisle-r";
-    column-gap: var(--bay-gap);
   }
 }
 
@@ -1477,7 +1485,7 @@ html[data-boot="suppressed"] #signal-desk {
 #works { grid-area: aisle-l; }
 #almanac { grid-area: aisle-r; }
 @media (min-width: 2800px) {
-  .board { display: flex; }
+  #concourse:not([data-aisles="shut"]) .board { display: flex; }
 }
 /* The plate itself. clip-path kills box-shadow, so the lift is a pair of
    drop-shadow filters (same contract as the Ledger plaques). */

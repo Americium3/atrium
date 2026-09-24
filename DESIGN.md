@@ -471,6 +471,14 @@ widths, nothing touching) does not fit between two 300px aisles below about
 guard that used to live here (flanks sized to the clear column with an air
 gap) went with the flanks; `--fit` is its successor, see "Composition (v5)".
 
+How much room that row needs grows with the engraving size, which a width
+query cannot see, so past 2800 the aisles open only where the row stands at
+full size between two 300px cases, and each case is no wider than the room
+the row leaves it (`layoutStage()` writes `data-aisles` and `--aisle-room` on
+`#concourse`). At 2800 they used to open whatever the size, and the row
+shrank to 305px arches at every engraving size. At the default size they now
+open near 3100px; at 3440 they stand at every size, 392 to 518px wide.
+
 **Full bleed from inside a centred grid.** Both scenery layers use
 `left: calc(50% - 50vw); width: 100vw`. 50% is half the concourse, 50vw half
 the viewport, and the concourse is centred, so the difference is exactly its

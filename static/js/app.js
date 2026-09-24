@@ -1397,9 +1397,15 @@ function layoutStage(initial) {
   var c0 = m ? m.c0 : clock ? (parseFloat(getComputedStyle(clock).width) || clock.offsetWidth) / fitNow : 0;
   var PITCH = 1.16;        // arch centre to arch centre, in gate widths
   var CLEAR = 0.10;        // clock to its nearest arch
+  function rowUnits(n) { var k = Math.ceil(n / 2); return 2 * CLEAR + 2 * (k ? 1 + (k - 1) * PITCH : 0); }
+  var rowG = rowUnits(active.length);
+  // The aisles open only beside a row at full size, the longer wing's, so a
+  // throw never opens or shuts them. Neither width here depends on them.
+  if (!m && setAisles((c0 + g0 * rowUnits(Math.max(active.length, receded.length))) / 0.985)) {
+    W = wrap.clientWidth;
+  }
   if (!m && first) solved = { W: W, g0: g0, c0: c0 };
   var nSide = Math.ceil(active.length / 2);
-  var rowG = 2 * CLEAR + 2 * (nSide ? 1 + (nSide - 1) * PITCH : 0);
   var fit = Math.min(1, (W * 0.985) / (c0 + g0 * rowG));
   // Inside the dead band of full size the row stands at full size, so the
   // band cannot leave a live re-solve a hair off the load's (PS-1).
@@ -1616,6 +1622,34 @@ function layoutStage(initial) {
   if (initial || !same) buildAisles();
 }
 var handoffT = 0, handoffFn = null;
+
+/* The aisles, past 2800px, open only where the row can stand at full size
+   between two cases of at least AISLE_MIN, and the cases take no more than
+   the row leaves them (--aisle-room). At 2800 they used to open whatever
+   the engraving size, and the row shrank to fit between them: 305px arches
+   at every size, a tenth smaller than at 2799, and at 3440 the engraving
+   size no longer moved the arches at all (LY-22). rowW is the row at fit 1.
+   Returns whether anything changed, so the stage is measured again. */
+var AISLE_MIN = 300;   // the narrowest case (atrium.css, --aisle-w)
+var aisleMQ = matchMedia('(min-width: 2800px)');
+function setAisles(rowW) {
+  var con = $('#concourse');
+  if (!con) return false;
+  var state = 'shut', room = '';
+  if (aisleMQ.matches) {
+    var cs = getComputedStyle(con);
+    var inner = con.clientWidth - (parseFloat(cs.paddingLeft) || 0) - (parseFloat(cs.paddingRight) || 0);
+    var each = (inner - rowW) / 2 - (parseFloat(cs.columnGap) || 0);
+    if (each >= AISLE_MIN) { state = 'open'; room = Math.floor(each) + 'px'; }
+  }
+  var was = con.dataset.aisles;
+  if (was === state && con.style.getPropertyValue('--aisle-room') === room) return false;
+  con.dataset.aisles = state;
+  if (room) con.style.setProperty('--aisle-room', room);
+  else con.style.removeProperty('--aisle-room');
+  if (state === 'open' && was !== 'open') wakeBoards();
+  return true;
+}
 
 /* The lit, working arch nearest a bay: where focus goes when the arch
    rising into its bay is the RESERVED one. */
@@ -2911,13 +2945,16 @@ function pollAlmanac() {
    and the Almanac waited out a minute of blank plate for its sky tick. Read
    the moment the case opens. */
 var boardsT = null;
-window.addEventListener('resize', function () {
+/* The aisles also open without a resize, when the engraving size leaves
+   the row room for them (setAisles). */
+function wakeBoards() {
   clearTimeout(boardsT);
   boardsT = setTimeout(function () {
     if (!works) pollWorks();
     if (!almanac || !almanac.weather || Date.now() - almReadAt > ALM_POLL_MS) pollAlmanac();
   }, 150);
-});
+}
+window.addEventListener('resize', wakeBoards);
 
 function startAlmanac() {
   clearInterval(almTimer);
