@@ -806,6 +806,10 @@
     0 3px 6px 2px rgba(0, 0, 0, 0.55);
 }
 .kp-do { margin: 0; color: var(--kp-ink); opacity: 0.9; }
+/* The Chinese face has one weight and hairline strokes: 回车 printed at
+   2.5:1 on the ivory key top where ENTER reads at full strength. Its own
+   ink round every stroke, as in the Ledger; the English keys keep theirs. */
+html[lang="zh"] .kp-key:not([lang="en"]) { -webkit-text-stroke: 0.4px currentColor; }
 @media (forced-colors: active) {
   #keyplate { border: 2px solid CanvasText; }
   .kp-title { color: CanvasText; background: none; }

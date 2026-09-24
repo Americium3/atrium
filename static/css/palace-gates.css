@@ -956,7 +956,7 @@ html[lang="zh"] .g-desc { font-size: clamp(11px, 5.4cqw, calc(14.5px * var(--ui)
    dark on a light ground (the day card, the builder's plate) a quarter
    pixel of its own ink round every stroke brings it up to strength. */
 :root[lang="zh"][data-theme="ivory"] .gate[data-state="open"] .g-desc { -webkit-text-stroke: 0.45px currentColor; }
-html[lang="zh"] .gate.vacant .g-desc { -webkit-text-stroke: 0.3px currentColor; }
+html[lang="zh"] .gate.vacant .g-desc { -webkit-text-stroke: 0.45px currentColor; }
 
 /* ----- The day's title card as an object ------------------------------------
    By day the card read as a bordered white box on a white screen, a web

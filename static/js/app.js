@@ -5443,10 +5443,13 @@ function renderKeyplate() {
         dash.setAttribute('aria-hidden', 'true');
         dt.appendChild(dash);
         dt.appendChild(el('span', 'sr-only', ' ' + t('keyTo') + ' '));
-      } else if (k.charAt(0) === '+') {
-        dt.appendChild(el('kbd', 'kp-key kp-wide display', k.slice(1)));
       } else {
-        dt.appendChild(el('kbd', 'kp-key display', k));
+        var wide = k.charAt(0) === '+';
+        var key = el('kbd', 'kp-key display' + (wide ? ' kp-wide' : ''), wide ? k.slice(1) : k);
+        // In the Chinese hall ESC and W are English signage, and 回车 is
+        // not: the Chinese face's stroke weight goes on the one key it is.
+        if (lang === 'zh' && /[A-Za-z]/.test(key.textContent)) key.lang = 'en';
+        dt.appendChild(key);
       }
     });
     row.appendChild(dt);
