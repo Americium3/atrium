@@ -820,6 +820,11 @@ html[lang="zh"] .g-lamp { letter-spacing: 0.2em; }
 :root[data-theme="ivory"] .mirror-art .mr-apron,
 :root[data-theme="ivory"] .mirror-art .mr-sign,
 :root[data-theme="ivory"] .mirror-art .p-reveal { display: none; }
+/* The house comes back only as an open screen. A closed or reserved house
+   is not lit by the skylight, and its shadowed velvet or its iron laid a
+   dark, square-sided block in the wax under a DARK gate and the reserved
+   one (12 and 8 levels under the floor round it at 1920). */
+:root[data-theme="ivory"] .gate:not([data-state="open"]) .mirror-art .mr-house { display: none; }
 :root[data-theme="ivory"] .g-mirror .mirror-art { filter: blur(2.4px); }
 /* With the smear gone the gilt and the screen may come back a little
    stronger: half again the day's own strength, still well under the
