@@ -534,66 +534,112 @@ function eEl(tag, attrs, cls) {
 
 /* The crest on the house curtain: a gilt sunburst appliqued on the velvet
    (the rays, which exist nowhere else in the hall but in the day's light
-   shafts) behind a medallion carrying the rosette. Built once. */
+   shafts) round the hall's own enamelled badge. Built once.
+   Each ray is carved and gilded, a half-round moulding that tapers to its
+   point. It is shaded in eight bands across its width, each band lit by
+   how it faces the follow spot (from the booth: in front and above) and
+   the footlights (below, warm), so the bands follow the taper and every
+   ray is rounded whichever way it points. The leaf carries its burnish
+   grain, each ray takes the light a little differently, and the crest
+   stands off the pile and throws a soft shadow down onto it. The rays used
+   to be flat wedges, one half of each a shade darker over a hard shadow,
+   with a line drawing of the rosette at the centre: a logo from an icon
+   set against a photographed hall (AR-32). */
 function buildRays() {
-  var g = $('.e-rays'), m = $('.e-medal');
+  var g = $('.e-rays');
   if (!g || g.childNodes.length) return;
-  // Gilt thread catches the light in rings as it runs out along each ray.
   var defs = eEl('defs', {});
-  var gr = eEl('radialGradient', { id: 'e-gilt', gradientUnits: 'userSpaceOnUse', cx: 0, cy: 0, r: 330 });
-  [0, 0.28, 0.55, 0.8, 1].forEach(function (o, k) { gr.appendChild(eEl('stop', { offset: o }, 'e-gilt-' + k)); });
+  // the leaf along each ray, brightest toward the badge where the spot is
+  var gr = eEl('radialGradient', { id: 'e-gilt', gradientUnits: 'userSpaceOnUse', cx: 0, cy: 0, r: 336 });
+  [0, 0.3, 0.62, 1].forEach(function (o, k) { gr.appendChild(eEl('stop', { offset: o }, 'e-gilt-' + k)); });
   defs.appendChild(gr);
-  var pt = eEl('pattern', { id: 'e-gilt-tex', patternUnits: 'userSpaceOnUse', width: 90, height: 90 });
-  pt.appendChild(eEl('image', { href: '/static/assets/tex/grain-gilt.webp', width: 90, height: 90 }));
+  var pt = eEl('pattern', { id: 'e-gilt-tex', patternUnits: 'userSpaceOnUse', width: 150, height: 150 });
+  pt.appendChild(eEl('image', { href: '/static/assets/tex/grain-gilt.webp', width: 150, height: 150 }));
   defs.appendChild(pt);
+  var soft = eEl('filter', { id: 'e-soft', x: '-20%', y: '-20%', width: '140%', height: '140%' });
+  soft.appendChild(eEl('feGaussianBlur', { stdDeviation: 5 }));
+  defs.appendChild(soft);
   g.parentNode.insertBefore(defs, g);
-  // Forty-eight faceted rays in three lengths, each a ridge: the facet
-  // toward the footlights lit, the other in shade.
-  var N = 48, D = Math.PI / 180, shade = '', hi = [], sh = '', lit = [];
+
+  var N = 48, B = 8, D = Math.PI / 180;
+  var unit = function (v) { var l = Math.hypot(v[0], v[1], v[2]); return [v[0] / l, v[1] / l, v[2] / l]; };
+  var dot = function (u, v) { return u[0] * v[0] + u[1] * v[1] + u[2] * v[2]; };
+  var spot = unit([0.1, -0.45, 0.89]), foot = unit([0, 0.8, 0.6]);
+  var glint = unit([spot[0], spot[1], spot[2] + 1]);
+  var xy = function (v) { return v[0].toFixed(1) + ',' + v[1].toFixed(1); };
+  var outline = '', rays = [];
   for (var i = 0; i < N; i++) {
     var a = i * 360 / N - 90, tier = i % 4 === 0 ? 0 : i % 2 === 0 ? 1 : 2;
-    var r0 = 98, r1 = [330, 268, 212][tier] + 12 * (hash01(i + 11) - 0.5);
+    var r0 = 96, r1 = [330, 268, 212][tier] + 12 * (hash01(i + 11) - 0.5);
     var w0 = [4.6, 3.8, 3.1][tier], w1 = w0 * 0.3 * 98 / r1 * 2.4;
-    var p = function (r, da) {
-      return (r * Math.cos((a + da) * D)).toFixed(1) + ',' + (r * Math.sin((a + da) * D)).toFixed(1);
+    var at = function (r, da) { return [r * Math.cos((a + da) * D), r * Math.sin((a + da) * D)]; };
+    var tl = at(r1, -w1), tp = at(r1 + 7, 0), tr = at(r1, w1);
+    // across the ray (s from -1 to 1): the foot on the badge's rim, and the
+    // point, cut to a mitre at the tip
+    var foot0 = function (s) { return at(r0, s * w0); };
+    var tipAt = function (s) {
+      var u = s < 0 ? s + 1 : s, p = s < 0 ? tl : tp, q = s < 0 ? tp : tr;
+      return [p[0] + (q[0] - p[0]) * u, p[1] + (q[1] - p[1]) * u];
     };
-    // a wedge cut square at its tip, with a ridge down its middle
-    var left = p(r0, -w0), right = p(r0, w0), tl = p(r1, -w1), tr = p(r1, w1);
-    var c0 = p(r0, 0), c1 = p(r1 + 6, 0);
-    sh += 'M' + [left, tl, c1, tr, right].join('L') + 'Z';
-    // which facet faces down toward the footlights
-    var down = Math.sin(a * D) > 0 === Math.cos(a * D) > 0;
-    hi.push((down ? [left, tl, c1, c0] : [right, tr, c1, c0]).join(' '));
-    shade += 'M' + (down ? [right, tr, c1, c0] : [left, tl, c1, c0]).join('L') + 'Z';
-    lit.push([left, tl, c1, tr, right].join(' '));
+    outline += 'M' + [foot0(-1), tl, tp, tr, foot0(1)].map(xy).join('L') + 'Z';
+    var across = [-Math.sin(a * D), Math.cos(a * D)];
+    var take = 0.86 + 0.28 * hash01(i + 71);   // each ray takes the light its own way
+    var best = -1, bestK = 0, bands = [];
+    for (var k = 0; k < B; k++) {
+      var s0 = -1 + 2 * k / B, s1 = s0 + 2 / B, th = (s0 + s1) / 2 * 74 * D;
+      var n = [across[0] * Math.sin(th), across[1] * Math.sin(th), Math.cos(th)];
+      var v = (0.78 * Math.max(0, dot(n, spot)) + 0.26 * Math.max(0, dot(n, foot))) * take;
+      var gl = Math.pow(Math.max(0, dot(n, glint)), 28);
+      if (gl > best) { best = gl; bestK = k; }
+      // a band darker than the leaf's own tone is glazed toward umber, a
+      // lighter one toward the warm white of burnished gold
+      var fill = v < 0.66
+        ? 'rgba(34,16,2,' + Math.min(0.8, (0.66 - v) * 1.25).toFixed(3) + ')'
+        : 'rgba(255,238,196,' + Math.min(0.75, (v - 0.66) * 1.1 + gl * 0.55).toFixed(3) + ')';
+      bands.push({ d: 'M' + [foot0(s0), foot0(s1), tipAt(s1), tipAt(s0)].map(xy).join('L') + 'Z', fill: fill });
+    }
+    var g0 = -1 + 2 * Math.max(0, bestK - 1) / B, g1 = -1 + 2 * Math.min(B, bestK + 2) / B;
+    rays.push({ bands: bands, glint: [foot0(g0), foot0(g1), tipAt(g1), tipAt(g0)].map(xy).join(' ') });
   }
-  g.appendChild(eEl('path', { d: sh, transform: 'translate(3 5)' }, 'e-ray-sh'));
-  g.appendChild(eEl('path', { d: sh }, 'e-ray'));
-  g.appendChild(eEl('path', { d: sh }, 'e-ray-tex'));
-  g.appendChild(eEl('path', { d: shade }, 'e-ray-shade'));
-  // each ray's lit facet takes the light a little differently
-  hi.forEach(function (pts, i) {
-    var f = eEl('polygon', { points: pts }, 'e-ray-hi');
-    f.style.opacity = (0.18 + 0.26 * hash01(i + 71)).toFixed(2);
-    g.appendChild(f);
+  g.appendChild(eEl('path', { d: outline, transform: 'translate(3 8)', filter: 'url(#e-soft)' }, 'e-ray-sh'));
+  g.appendChild(eEl('path', { d: outline }, 'e-ray'));
+  rays.forEach(function (r) {
+    r.bands.forEach(function (b) {
+      var p = eEl('path', { d: b.d }, 'e-ray-band');
+      p.style.fill = b.fill;
+      g.appendChild(p);
+    });
   });
-  // Each ray catches the spot on its own beat: the glint runs round the sun.
-  lit.forEach(function (pts, i) {
-    var r = eEl('polygon', { points: pts }, 'e-ray-lit');
-    r.style.setProperty('--i', String(i));
-    g.appendChild(r);
+  g.appendChild(eEl('path', { d: outline }, 'e-ray-tex'));
+  g.appendChild(eEl('path', { d: outline }, 'e-ray-edge'));
+  // Each ray catches the spot on its own beat, along its crown: the glint
+  // runs round the sun.
+  rays.forEach(function (r, i) {
+    var p = eEl('polygon', { points: r.glint }, 'e-ray-lit');
+    p.style.setProperty('--i', String(i));
+    g.appendChild(p);
   });
-  m.appendChild(eEl('circle', { cx: 4, cy: 6, r: 88 }, 'e-medal-sh'));
-  m.appendChild(eEl('circle', { cx: 0, cy: 0, r: 86 }, 'e-medal-ring'));
-  m.appendChild(eEl('circle', { cx: 0, cy: 0, r: 86 }, 'e-medal-tex'));
-  m.appendChild(eEl('circle', { cx: 0, cy: 0, r: 85 }, 'e-medal-lip'));
-  for (var b = 0; b < 40; b++) {
-    var ba = b * 9 * D;
-    m.appendChild(eEl('circle', { cx: (80 * Math.cos(ba)).toFixed(1), cy: (80 * Math.sin(ba)).toFixed(1), r: 2.6 }, 'e-bead'));
+}
+
+/* The badge at the crest's heart is the masthead's own: the enamelled
+   radiator badge room.js casts for the monogram, at crest scale, so the
+   spot docks on the badge it opened on. Cloned rather than <use>d, so its
+   parts keep their styling; it is built at DOMContentLoaded, after the
+   masthead. */
+function dressMedal() {
+  var m = $('.e-medal'), src = $('#monogram');
+  if (!m || m.childNodes.length) return;
+  m.appendChild(eEl('circle', { cx: 3, cy: 9, r: 86, filter: 'url(#e-soft)' }, 'e-medal-sh'));
+  var badge = eEl('g', { transform: 'scale(3.62) translate(-24 -24)' }, 'e-badge');
+  var parts = src ? Array.prototype.filter.call(src.childNodes, function (n) {
+    return n.nodeType === 1 && n.tagName.toLowerCase() !== 'defs';
+  }) : [];
+  if (parts.length) {
+    parts.forEach(function (n) { badge.appendChild(n.cloneNode(true)); });
+  } else {
+    badge.appendChild(eEl('use', { href: '#rosette' }, 'e-medal-mark'));
   }
-  m.appendChild(eEl('circle', { cx: 0, cy: 0, r: 74 }, 'e-medal-field'));
-  m.appendChild(eEl('use', { href: '#rosette', x: -24, y: -24, width: 48, height: 48,
-                             transform: 'scale(2.7)' }, 'e-medal-mark'));
+  m.appendChild(badge);
 }
 
 /* A gilt ring that draws itself round from twelve o'clock, by opacity
@@ -781,6 +827,8 @@ function playEntrance(built) {
     segmentRing($('.e-ring-whole'), 34, 40, [['e-ring-sh', 1], ['e-ring-hi', 0.6], ['e-ring-c', 0]]);
   } else {
     buildRays();
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', dressMedal);
+    else dressMedal();
     buildSwag();
     segmentRing($('.e-crest > .e-circle'), 92, 60, [['e-circle', 0]]);
   }

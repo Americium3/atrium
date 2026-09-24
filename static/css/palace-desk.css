@@ -896,27 +896,27 @@ html[data-entered="no"] #entrance.done-fade { pointer-events: none; cursor: auto
    then they come up out of the dark house. */
 .e-crest, .e-wordmark { transition: opacity 0.3s ease-out; }
 #entrance:not(.placed) :is(.e-crest, .e-wordmark) { opacity: 0; }
-.e-gilt-0 { stop-color: #f6d586; }
-.e-gilt-1 { stop-color: #c68b2c; }
-.e-gilt-2 { stop-color: #7e5210; }
-.e-gilt-3 { stop-color: #ab7620; }
-.e-gilt-4 { stop-color: #4a2e06; }
-.e-ray-sh { fill: #0c0204; opacity: 0.62; }
+/* The leaf along each ray (buildRays() in app.js shades it across). */
+.e-gilt-0 { stop-color: #f4d68e; }
+.e-gilt-1 { stop-color: #d6a448; }
+.e-gilt-2 { stop-color: #b07b26; }
+.e-gilt-3 { stop-color: #7c5214; }
+/* the crest stands off the pile: a soft shadow down onto the velvet */
+.e-ray-sh, .e-medal-sh { fill: #0a0103; opacity: 0.78; }
 .e-ray { fill: url(#e-gilt); }
-.e-ray-tex, .e-medal-tex { display: none; }
-.e-ray-shade { fill: #2e1a04; opacity: 0.58; }
-.e-ray-hi { fill: #ffd98c; }
-.e-medal-lip { fill: none; stroke: #fff0c4; stroke-width: 1.4; opacity: 0.55; }
-.e-bead { fill: #f0cf82; stroke: #4a2f08; stroke-width: 0.8; }
-.e-ray-lit { fill: #ffe7a8; opacity: 0; }
+/* the burnish grain in the leaf, laid in soft light on the rays only */
+.e-ray-tex { fill: url(#e-gilt-tex); mix-blend-mode: soft-light; opacity: 0.9; }
+/* the carved arris, in shadow where the ray meets the pile */
+.e-ray-edge { fill: none; stroke: rgba(40, 18, 2, 0.6); stroke-width: 0.8; stroke-linejoin: round; }
+.e-ray-lit { fill: #fff0c8; opacity: 0; }
 #entrance.spot .e-ray-lit {
   animation: e-glint 0.5s ease-out both;
   animation-delay: calc(var(--i, 0) * 9ms);
 }
 @keyframes e-glint { 0% { opacity: 0; } 35% { opacity: 0.6; } 100% { opacity: 0.2; } }
-.e-medal-sh { fill: #0c0204; opacity: 0.6; }
-.e-medal-ring { fill: url(#e-gilt); }
-.e-medal-field { fill: #2a060b; stroke: #0c0204; stroke-width: 2; }
+/* The badge is the masthead's (dressMedal() clones it): the same brass,
+   turned and knurled. */
+.e-badge { --tm-hi: var(--brass-hi); --tm-lo: var(--brass-lo); }
 .e-medal-mark { color: #e2bd6a; }
 .e-circle { fill: none; stroke: #f0d48c; stroke-width: 3; }
 /* The gilt rings draw themselves by opacity alone (segmentRing() in
