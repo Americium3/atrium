@@ -1012,7 +1012,9 @@ away with them.
   `((1+N_A/N_B)·φ + 180 − 180/N_B) mod (360/N_B)` baked as a static
   transform (never in the CSS-animated one).
 - **Feel**: weighty piecewise ease (fast start → ~4.5% overshoot → damped
-  clank settle, ~520 ms); steam burst latched at 55% of the throw;
+  clank settle, ~520 ms), starting from the rest pose: the throw's time
+  is clamped at 0, so an early first frame cannot kick the arm backwards
+  past its stop. Steam burst latched at 55% of the throw;
   interrupt-safe (re-toggle reads current `--drive`). Reduced motion: snap
   `--drive`, no steam, no overshoot. Gears stay correct for free.
 - **Layers**: `.desk-art` (static housing, `contain: layout paint`,

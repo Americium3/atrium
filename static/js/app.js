@@ -619,7 +619,7 @@ function deskNudge() {
   var PUSH = 200, PULL = 280, AMP = 0.07;
   var base = getDrive();
   function frame(now) {
-    var dt = now - t0;
+    var dt = Math.max(0, now - t0);   // same early-frame timestamp as deskDrive
     var v;
     if (dt < PUSH) {
       v = base + AMP * (dt / PUSH);
@@ -1264,8 +1264,11 @@ function steamBurst(nozzleEl, n) {
 }
 
 /* Weighty throw: fast start → ~4.5% overshoot → damped clank settle.
-   C0-continuous at the seam; identical feel both directions. */
+   C0-continuous at the seam; identical feel both directions. The overshoot
+   lives at the far end only: below 0 the cubic extrapolates backwards, so
+   t is pinned to the rest pose there rather than trusted to be >= 0. */
 function easeWeighty(t) {
+  if (t <= 0) return 0;
   if (t >= 1) return 1;
   var MAIN = 0.78, OVER = 0.045;
   if (t < MAIN) {
@@ -1298,7 +1301,10 @@ function deskDrive(target) {
     // The Motion preference can flip (or the tab hide) mid-throw — land it.
     if (root.dataset.motion === 'reduced' ||
         document.visibilityState === 'hidden') { setDrive(target); return; }
-    var t = Math.min(1, (now - t0) / DUR);
+    // The first frame's timestamp is taken when the frame began, which can
+    // be before the click handler read t0; unclamped, that negative t
+    // kicked the lever back past its end stop for one frame.
+    var t = Math.max(0, Math.min(1, (now - t0) / DUR));
     var p = from + (target - from) * easeWeighty(t);
     setDrive(t === 1 ? target : p);
     var prog = target === 1 ? p : 1 - p;
