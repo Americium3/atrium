@@ -43,9 +43,14 @@
   --wm-return-ag: #5f5c55;
   --wm-lip: rgba(255, 249, 226, 0.95);
   --wm-cast: 0.05em 0.16em 0.13em rgba(70, 48, 16, 0.42);
-  --wm-face-a: #ecca7a; --wm-face-b: #cda04a; --wm-face-c: #8f6522; --wm-face-d: #ad8233; --wm-face-e: #5a400f;
-  --wm-ni-a: #cac7be; --wm-ni-b: #97948b; --wm-ni-c: #5a5852; --wm-ni-d: #76736c; --wm-ni-e: #3a3936;
-  --cut-ink: #6a5226; --cut-top: rgba(60, 42, 14, 0.55); --cut-lip: rgba(255, 255, 255, 0.95);
+  /* The day faces are ramped deep: gilt and nickel under a skylight give back
+     the pale room over most of their height, and with the head's light run
+     down to the middle the letters sat within a few levels of the Calacatta,
+     1.8-3.0:1 (LY-5). The lit head stays; the body is the leaf in shade. */
+  --wm-face-a: #dcb566; --wm-face-b: #a57828; --wm-face-c: #74501a; --wm-face-d: #8a6224; --wm-face-e: #4a320a;
+  --wm-ni-a: #b9b6ac; --wm-ni-b: #7b786f; --wm-ni-c: #45433e; --wm-ni-d: #5a5852; --wm-ni-e: #2c2b28;
+  /* The cut lettering's gilt, deep enough for the 10px captions (LY-2). */
+  --cut-ink: #4e3a15; --cut-top: rgba(60, 42, 14, 0.55); --cut-lip: rgba(255, 255, 255, 0.95);
   --tm-seat: rgba(70, 50, 20, 0.34);
   --brass-hi: #fff3cc; --brass-lo: #6f5322;
   --bronze-hi: #f1d2a6; --bronze-lo: #5a3d20;
@@ -378,6 +383,15 @@ html[lang="zh"] .m-sub { letter-spacing: 0.4em; }
   font-weight: 560; white-space: nowrap;
 }
 html[lang="zh"] #masthead .p-caption { letter-spacing: 0.3em; }
+/* The captions are the two controls' only labels (LY-2). Under 12px the cut's
+   lit lip is a pale line as heavy as the stroke it sits under, and by day it
+   washed the letters out toward the stone, so it is half as bright there.
+   Han strokes at this size are hairlines: they take the same thickening the
+   board labels and the Ledger's heads get, and so does the rest of the cut
+   lettering, which fell to 3:1 in Chinese by day. */
+:root[data-theme="ivory"] #masthead .p-caption { text-shadow: 0 -1px 0 var(--cut-top), 0 1px 0 rgba(255, 255, 255, 0.5); }
+html[lang="zh"] #masthead .p-caption { -webkit-text-stroke: 0.45px currentColor; }
+html[lang="zh"] .m-sub, html[lang="zh"] #dateline { -webkit-text-stroke: 0.35px currentColor; }
 #ledger-btn:hover .p-caption, #prefs-btn:hover .p-caption,
 #ledger-btn:focus-visible .p-caption, #prefs-btn:focus-visible .p-caption { color: var(--gold-text); }
 :root[data-theme="onyx"] #ledger-btn:hover .p-caption, :root[data-theme="onyx"] #prefs-btn:hover .p-caption,
