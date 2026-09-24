@@ -421,9 +421,14 @@ html[lang="zh"] .g-lamp { letter-spacing: 0.2em; }
 
 /* ----- The screen by night ---------------------------------------------------
    Before the show the screen is not lit. What shows under the lifted
-   curtain is its foot, warmed by the footlights, not a bright white bar. */
+   curtain is its foot, warmed by the footlights, not a bright white bar.
+   Only an open line's footlights burn: any other house shows a cold, unlit
+   screen (a DARK one never lifts its curtain at all). */
 :root[data-theme="onyx"] .gate { --screen: #2e2822; --screen-hi: #6a5a44; }
 :root[data-theme="onyx"] .gate:not(.opening) .g-screen {
+  background: linear-gradient(180deg, #151312, #232020 70%, #2c2826);
+}
+:root[data-theme="onyx"] .gate[data-state="open"]:not(.opening) .g-screen {
   background:
     radial-gradient(70% 38% at 50% 100%, rgba(255, 196, 120, 0.85), rgba(190, 120, 60, 0.5) 45%, transparent 100%),
     linear-gradient(180deg, #1c1814, #2e2822 70%, #4a3a2a);
@@ -482,6 +487,17 @@ html[lang="zh"] .g-lamp { letter-spacing: 0.2em; }
    spot no longer floods the tabs: the slide carries the light now. */
 :root[data-theme="onyx"] { --footlight: rgba(255, 158, 70, 0.34); --tab-foot: rgba(255, 170, 90, 0.10);
   --spot: rgba(255, 220, 170, 0.10); --spot-edge: rgba(255, 206, 146, 0.04); }
+/* A DARK house is in shadow. The velvet takes its light from the
+   footlights, and with them out the cloth is mixed most of the way to one
+   shadow tone, so every dye lands near the same dark value; a relative
+   dimming (brightness 0.7) left a light dye as bright as an open house.
+   The hem keeps only a faint cold bounce off the stage. By day the
+   skylight still reaches the cloth, so the shade is lighter. */
+:root[data-theme="onyx"] .gate[data-state="dark"] { --velvet-shade: color-mix(in srgb, var(--velvet) 34%, #0f0d0f); --tab-foot: rgba(150, 168, 190, 0.05); }
+:root[data-theme="ivory"] .gate[data-state="dark"] { --velvet-shade: color-mix(in srgb, var(--velvet) 72%, #1a1511); }
+.gate[data-state="dark"] .g-tab,
+.gate[data-state="dark"] .g-valance { background-color: var(--velvet-shade); }
+.gate[data-state="dark"] .mirror-art .mr-house { fill: color-mix(in srgb, var(--velvet-shade) 42%, #000); }
 
 /* Fanlight glass, lit (hub to rim) and by day (greyed, unlit). */
 .fl-rose.s0 { stop-color: #fff2e2; } .fl-rose.s1 { stop-color: #f4c7a2; }
