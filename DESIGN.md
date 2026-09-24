@@ -306,10 +306,14 @@ or assembles.
   the pointer.
 - 2700 ms: finish.
 
-**Day.** The curtain is already up. The street's light floods in from behind
-the reader and settles like an exposure (1.05 s from 280 ms), with the sun's
-shafts in it; a gilt ring draws itself in the glare and docks on the
-monogram at 900 ms. Done-fade at 1400 ms, finish at 1700 ms.
+**Day.** The curtain is already up. A low sun comes in through four open
+doors behind the reader: their light lies across the floor, running away to
+a point at eye height, and stands up the wall to the lintel's shadow, warm,
+each band crossed by its glazing bar and the transom, with cool shade
+between and dust turning in it. The glare over it all eases off like an eye
+adjusting (1.05 s from 280 ms), and the hall shows through it from the first
+frame. A gilt ring draws itself in the glare and docks on the monogram at
+900 ms. Done-fade at 1400 ms, finish at 1700 ms.
 
 ## Layout & viewport
 

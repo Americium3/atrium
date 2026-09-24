@@ -642,6 +642,67 @@ function dressMedal() {
   m.appendChild(badge);
 }
 
+/* The day's light: a low sun through four open doors behind the reader.
+   Its rays are parallel, so each door's light on the floor is a band whose
+   edges run away to one point dead ahead at eye height, cut off where the
+   floor meets the wall; on the wall the same band stands upright and ends
+   at the shadow of the door's lintel. Each band carries the shadow of its
+   glazing bar and, on the wall, of the transom. The shade between them is
+   the street's sky, cooler than the sun, and dust turns in the beams. The
+   geometry follows the room (the floor line is measured), so it is drawn
+   in an SVG sized to the screen, and again whenever the stage is solved
+   while the entrance stands. Only the motes move. */
+var DOORS = [[0.115, 0.215], [0.335, 0.425], [0.572, 0.668], [0.79, 0.885]];
+function lightDoors() {
+  var host = $('.e-shafts');
+  if (!host || !entrance.classList.contains('day') || root.dataset.entered !== 'no') return;
+  var W = window.innerWidth, H = window.innerHeight;
+  var fp = $('#floorplane'), fr = fp && fp.getBoundingClientRect();
+  var yw = fr && fr.height ? fr.top : H * 0.7;
+  var key = W + 'x' + H + ':' + Math.round(yw);
+  if (host.dataset.key === key) return;
+  host.dataset.key = key;
+  var vx = W / 2, vy = yw - H * 0.3;       // eye height, dead ahead
+  var yl = H * 0.2, foot = H + 40;         // the lintel's shadow; past the screen's foot
+  var yt = yl + (yw - yl) * 0.28, th = (yw - yl) * 0.035;
+  var out = function (x) { return vx + (x - vx) * (foot - vy) / (yw - vy); };
+  var f1 = function (v) { return v.toFixed(1); };
+  var band = function (x0, x1) {
+    return 'M' + [[x0, yl], [x1, yl], [x1, yw], [out(x1), foot], [out(x0), foot], [x0, yw]]
+      .map(function (p) { return f1(p[0]) + ' ' + f1(p[1]); }).join('L') + 'Z';
+  };
+  var beams = '', bars = '', motes = [];
+  DOORS.forEach(function (d, k) {
+    var x0 = d[0] * W, x1 = d[1] * W, xm = (x0 + x1) / 2, m = (x1 - x0) * 0.035;
+    beams += band(x0, x1);
+    bars += band(xm - m, xm + m) +
+      'M' + f1(x0) + ' ' + f1(yt) + 'H' + f1(x1) + 'V' + f1(yt + th) + 'H' + f1(x0) + 'Z';
+    // the dust in this door's light, placed inside it
+    for (var i = 0; i < 22; i++) {
+      var u = hash01(k * 97 + i * 7 + 501), v = hash01(k * 89 + i * 13 + 601);
+      var y = yl + (H - yl) * (0.08 + 0.9 * v);
+      var t = y <= yw ? 0 : (y - yw) / (foot - yw);
+      var a = x0 + (out(x0) - x0) * t, b = x1 + (out(x1) - x1) * t;
+      var r = (0.7 + 1.5 * Math.pow(hash01(k * 31 + i + 701), 2)).toFixed(2);
+      var al = (0.35 + 0.5 * hash01(k * 29 + i + 801)).toFixed(2);
+      motes.push('radial-gradient(circle at ' + f1(a + (b - a) * u) + 'px ' + f1(y) + 'px, ' +
+        'rgba(255, 252, 238, ' + al + ') 0 ' + r + 'px, rgba(255, 248, 226, 0) ' + (r * 2.4).toFixed(2) + 'px)');
+    }
+  });
+  host.innerHTML =
+    '<svg class="e-light" viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none" aria-hidden="true">' +
+      '<defs><filter id="e-pen" x="-5%" y="-5%" width="110%" height="110%"><feGaussianBlur stdDeviation="2.4"/></filter>' +
+      '<linearGradient id="e-sun" x1="0" y1="0" x2="0" y2="1">' +
+        '<stop offset="0" class="e-sun-0"/><stop offset="0.6" class="e-sun-1"/><stop offset="1" class="e-sun-2"/>' +
+      '</linearGradient></defs>' +
+      '<rect class="e-shade" width="' + W + '" height="' + H + '"/>' +
+      '<g filter="url(#e-pen)"><path class="e-beam" d="' + beams + '"/><path class="e-bar" d="' + bars + '"/></g>' +
+    '</svg>';
+  var dust = el('div', 'e-motes');
+  dust.style.backgroundImage = motes.join(',');
+  host.appendChild(dust);
+}
+
 /* A gilt ring that draws itself round from twelve o'clock, by opacity
    alone: short arcs, each fading in on its own beat (the beats bunch up at
    the start, as an ease-out would), laid under the finished ring, which
@@ -815,6 +876,7 @@ function placeCrest(anyway) {
     return;
   }
   entrance.classList.add('placed');
+  lightDoors();
 }
 function playEntrance(built) {
   // Disable ledger button during entrance; re-enabled in finishEntrance()

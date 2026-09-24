@@ -1053,19 +1053,33 @@ html[data-entered="no"] #entrance.done-fade { pointer-events: none; cursor: auto
 .e-ring-sh { fill: none; stroke: rgba(60, 40, 10, 0.2); stroke-width: 2.2; }
 
 /* ----- Day: the street's light --------------------------------------------- */
+/* A low sun through the open doors behind the reader. It used to be a near
+   solid cream haze with faint wedges in it, and the moment read as a page
+   fading in from white (AR-42). Now the glare is a veil the hall shows
+   through from the first frame, and it eases off as the eye adjusts; the
+   doors' light lies across the floor and up the wall in four warm bands
+   with their bars' shadows, the shade between them cool (lightDoors() in
+   app.js draws them to the room), and dust turns in the beams. All of it
+   fades with the glare. */
 .e-flood {
   position: absolute; inset: 0;
-  background: radial-gradient(130% 95% at 50% 108%, #fffef9, #fcf6e8 42%, #f5ead3);
-  opacity: 0.96;
+  background: radial-gradient(130% 95% at 50% 108%, rgba(255, 254, 249, 0.74), rgba(252, 246, 232, 0.64) 42%, rgba(245, 234, 211, 0.56));
 }
 #entrance.expose .e-flood { opacity: 0; transition: opacity 1.05s cubic-bezier(0.25, 0.7, 0.25, 1); }
-/* The sun's shafts through the open doors behind the reader: the rays of
-   the day, and like the night's they exist only here. */
-.e-shafts {
-  position: absolute; inset: -10% -10% 0;
-  background: repeating-conic-gradient(from 150deg at 50% 118%,
-    transparent 0deg 3deg, rgba(255, 244, 214, 0.5) 4deg 6deg, transparent 7.5deg 11deg);
-}
+.e-shafts { position: absolute; inset: 0; }
+.e-light { position: absolute; inset: 0; width: 100%; height: 100%; }
+/* the street's sky between the doors, cooler than the sun */
+.e-shade { fill: rgba(146, 164, 194, 0.22); }
+/* the sun on the wall, stronger where it lies on the floor near the doors */
+.e-beam { fill: url(#e-sun); }
+.e-sun-0 { stop-color: #fff3d8; stop-opacity: 0.4; }
+.e-sun-1 { stop-color: #ffeccb; stop-opacity: 0.5; }
+.e-sun-2 { stop-color: #ffe6bc; stop-opacity: 0.62; }
+/* the glazing bars and the transom, in shade inside the light */
+.e-bar { fill: rgba(112, 96, 74, 0.2); }
+.e-motes { position: absolute; inset: 0; will-change: transform; }
+#entrance.play .e-motes { animation: e-drift 2.4s linear both; }
+@keyframes e-drift { to { transform: translate(10px, -24px); } }
 
 /* ----- The hall while the curtain is down -------------------------------
    The arches' fanlights are out until the house lights come up, then light
