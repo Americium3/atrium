@@ -52,7 +52,7 @@
   /* the slab: Bardiglio under a night veil that lifts toward the far rail,
      and the marquee as one reflection in the polish */
   --slab-far: rgba(30, 26, 24, 0.26); --slab-mid: rgba(12, 12, 16, 0.4); --slab-near: rgba(6, 6, 8, 0.54);
-  --slab-edge: rgba(0, 0, 0, 0.42); --slab-spec: rgba(255, 224, 176, 0.22);
+  --slab-edge: rgba(0, 0, 0, 0.42); --slab-spec: rgba(255, 224, 176, 0.3);
   /* the meter: an ivory dial with a small lamp behind it at night */
   --dial-0: #b9ab8e; --dial-1: #d8caa9; --dial-2: #6f634d; --dial-ink: #1b140b;
   --dial-lamp: rgba(255, 222, 160, 0.42);
@@ -105,6 +105,11 @@
 :root[data-theme="ivory"] .sw-lit .sw-bloom { display: none; }
 /* The spark's halo is a lamp; by day only the arc itself shows. */
 :root[data-theme="ivory"] .sw-spark .sw-arc-halo { opacity: 0.35; }
+
+/* A hand over the handle: the ebonite takes more of the lamp. */
+@media (hover: hover) {
+  .desk-core:has(.hit-arm:hover) .sw-handle { filter: brightness(1.35) contrast(1.05); }
+}
 
 /* The switch's focus ring: the gates' marquee at the board's scale. */
 :root[data-theme="onyx"] #signal-desk {

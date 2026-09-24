@@ -756,7 +756,7 @@ html[data-boot="suppressed"] #signal-desk {
   /* the blade tip's travel off the hinge, and the handle's closeness */
   --tip-x: calc(sin(var(--a)) * var(--sw-bl));
   --tip-y: calc(cos(var(--a)) * var(--sw-bl) * var(--sw-k) * -1);
-  --near: calc(1 + 0.12 * cos(var(--a)));
+  --near: calc(1 + 0.1 * cos(var(--a)));
   --turn: atan2(sin(var(--a)), calc(cos(var(--a)) * var(--sw-k)));
   --reach: hypot(sin(var(--a)), calc(cos(var(--a)) * var(--sw-k)));
   will-change: transform;

@@ -96,20 +96,20 @@ function S(v, w, extra) { return 'fill:none;stroke:' + v + ';stroke-width:' + w 
 
 /* ------------------------------------------------------------ geometry */
 /* The assembly box is 440 x 300 units. Everything the board draws sits
-   between ART_TOP (the focus ring over the finial) and the floor; the
-   handle's arc peaks under the finial. */
-var BOX_W = 440, BOX_H = 300, ART_TOP = 6;
+   between ART_TOP and the floor: the top of the handle's arc, which rises
+   just over the focus ring on the finial. */
+var BOX_W = 440, BOX_H = 300, ART_TOP = 2;
 var CX = 220, FLOOR = 292;
 var VP_Y = FLOOR - 720;                       // the floor's vanishing point
 /* the switch: two poles, one hinge line, jaws JAW_R either side */
 var HINGE_Y = 118, POLE_FAR = 103, POLE_NEAR = 133;
-var JAW_R = 100, BLADE_L = 122, GRIP_L = 70, K = 0.52;
+var JAW_R = 88, BLADE_L = 122, GRIP_L = 84, K = 0.5;
 /* the slab and its frame: the far rail is thin and high, the lip thick and
    low, and the far edge narrower, because the top slopes away */
 var FAR_Y = 70, FAR_IN = 76, NEAR_IN = 167, NEAR_Y = 181, APRON_B = 197;
 var OUT_FAR = 52, OUT_NEAR = 18, IN_FAR = 62, IN_NEAR = 32;
 var MET_Y = 76, MET_R = 38;
-var JEWEL_Y = 90, JEWEL_DX = 148;
+var JEWEL_Y = 90, JEWEL_DX = 148, JR = 10.4;   // the pilot's glass
 var PLATE_B = 165;
 
 function outerX(y) { return OUT_NEAR + (OUT_FAR - OUT_NEAR) * (NEAR_Y - y) / (NEAR_Y - FAR_Y); }
@@ -466,6 +466,16 @@ function buildCrest(q) {
     add(g, 'path', { d: d, fill: U('hb-course') });
     add(g, 'path', { d: d, fill: U('hb-patina-b'), style: 'opacity:var(--sb-tex)' });
     add(g, 'path', { d: 'M' + (CX - s[2]) + ' ' + (s[1] + 0.45) + 'H' + (CX + s[2]), style: S('var(--lead-3)', 0.9, 'opacity:' + (0.5 + i * 0.15)) });
+    // Each step is reeded where the dial's bezel leaves it showing, in the
+    // pier's own language.
+    var y0 = s[1] + 2.4, y1 = s[0] - 1.4;
+    [-1, 1].forEach(function (sg) {
+      for (var x = MET_R + 9; x < s[2] - 4; x += 5.2) {
+        var rd = rect(sg > 0 ? CX + x : CX - x - 3, y0, 3, y1 - y0);
+        add(g, 'path', { d: rd, transform: 'translate(.9 0)', style: F('var(--sb-oil)') + ';opacity:.5' });
+        add(g, 'path', { d: rd, fill: U('hb-reed') });
+      }
+    });
   });
   // the finial: a small stepped cap
   add(g, 'path', { d: rect(CX - 14, FAR_Y - 46, 28, 8), fill: U('hb-course') });
@@ -577,17 +587,17 @@ function buildSwitchBack(q) {
     jawBack(sg, jx, POLE_NEAR, 'board-jaw-' + side + '-n');
     // the pilot lamp: a faceted jewel in a knurled brass bezel
     var lx = s ? CX + JEWEL_DX : CX - JEWEL_DX;
-    add(sg, 'circle', { cx: lx + 1.2, cy: JEWEL_Y + 1.6, r: 13.5, style: F('var(--sb-oil)') + ';opacity:.7' });
-    add(sg, 'circle', { cx: lx, cy: JEWEL_Y, r: 13.5, fill: U('hb-knurl') });
+    add(sg, 'circle', { cx: lx + 1.2, cy: JEWEL_Y + 1.6, r: JR * 1.52, style: F('var(--sb-oil)') + ';opacity:.7' });
+    add(sg, 'circle', { cx: lx, cy: JEWEL_Y, r: JR * 1.52, fill: U('hb-knurl') });
     var kn = '';
     for (var k = 0; k < 40; k++) {
       var a = k * 9 * DEG;
-      kn += 'M' + n2(lx + 11.8 * Math.cos(a)) + ' ' + n2(JEWEL_Y + 11.8 * Math.sin(a)) + 'L' + n2(lx + 13.5 * Math.cos(a)) + ' ' + n2(JEWEL_Y + 13.5 * Math.sin(a));
+      kn += 'M' + n2(lx + JR * 1.34 * Math.cos(a)) + ' ' + n2(JEWEL_Y + JR * 1.34 * Math.sin(a)) + 'L' + n2(lx + JR * 1.52 * Math.cos(a)) + ' ' + n2(JEWEL_Y + JR * 1.52 * Math.sin(a));
     }
     add(sg, 'path', { d: kn, style: S('var(--bz-0)', 0.7, 'opacity:.55') });
-    add(sg, 'circle', { cx: lx, cy: JEWEL_Y, r: 11, fill: U('hb-bezel-lip') });
-    add(sg, 'circle', { cx: lx, cy: JEWEL_Y, r: 8.8, fill: U('hb-jewel-dark') });
-    facets(sg, lx, JEWEL_Y, 8.8, 'hb-facet-dark');
+    add(sg, 'circle', { cx: lx, cy: JEWEL_Y, r: JR * 1.25, fill: U('hb-bezel-lip') });
+    add(sg, 'circle', { cx: lx, cy: JEWEL_Y, r: JR, fill: U('hb-jewel-dark') });
+    facets(sg, lx, JEWEL_Y, JR, 'hb-facet-dark');
   });
   // The hinges, both poles, and the maker's plate under them.
   hingeBack(g, CX, POLE_FAR, 'board-hinge-f');
@@ -673,7 +683,7 @@ function buildFx(fx) {
     });
     add(g, 'path', { d: rect(CX + sg * BLADE_L - 5, POLE_FAR - 6, 10, POLE_NEAR - POLE_FAR + 12) });
     var hx0 = CX + sg * BLADE_L, hx1 = CX + sg * (BLADE_L + GRIP_L);
-    add(g, 'ellipse', { cx: n2((hx0 + hx1) / 2 + sg * 6), cy: HINGE_Y + 1, rx: n2(GRIP_L / 2 - 2), ry: 10 });
+    add(g, 'ellipse', { cx: n2((hx0 + hx1) / 2 + sg * 8), cy: HINGE_Y + 1, rx: n2(GRIP_L / 2 - 4), ry: 11.5 });
   });
   // The meter's lamp (night) and its needle, under the glass.
   var dialD = 'M' + (CX - MET_R) + ' ' + MET_Y + 'A' + MET_R + ' ' + MET_R + ' 0 0 1 ' + (CX + MET_R) + ' ' + MET_Y + 'Z';
@@ -708,9 +718,9 @@ function buildFx(fx) {
     // its reflection in the polished marble, drawn down the slope
     grad(d, 'sw-refl-' + side, true, { cx: 0.5, cy: 0.5, r: 0.5 }, [[0, 'var(--jw-refl-' + side + ')'], [0.5, 'var(--jw-refl-' + side + ')', 0.35], [1, 'var(--jw-refl-' + side + ')', 0]]);
     add(p, 'ellipse', { cx: lx, cy: JEWEL_Y + 24, rx: 9, ry: 14, fill: U('sw-refl-' + side) });
-    add(p, 'circle', { cx: lx, cy: JEWEL_Y, r: 36, fill: U('sw-bloom-' + side) }, 'sw-bloom');
-    add(p, 'circle', { cx: lx, cy: JEWEL_Y, r: 8.8, fill: U('sw-jw-' + side) });
-    facets(p, lx, JEWEL_Y, 8.8, 'sw-facet-' + side);
+    add(p, 'circle', { cx: lx, cy: JEWEL_Y, r: JR * 4.6, fill: U('sw-bloom-' + side) }, 'sw-bloom');
+    add(p, 'circle', { cx: lx, cy: JEWEL_Y, r: JR, fill: U('sw-jw-' + side) });
+    facets(p, lx, JEWEL_Y, JR, 'sw-facet-' + side);
   });
 
   // The blades and, over each, its pole's near leaves and hinge cheek.
@@ -749,10 +759,10 @@ function buildFx(fx) {
   var b = HINGE_Y, L = GRIP_L;
   function hw(t) {
     // the turned profile: ferrule, neck, a long swelling grip, a domed end
-    if (t < 0.2) return 4;
-    if (t < 0.27) return 4 + (t - 0.2) / 0.07 * 2.4;
-    var u = (t - 0.27) / 0.73;
-    return 6.4 + 5.2 * Math.sin(Math.min(1, u * 1.1) * Math.PI * 0.6);
+    if (t < 0.17) return 4.4;
+    if (t < 0.23) return 4.4 + (t - 0.17) / 0.06 * 2.6;
+    var u = (t - 0.23) / 0.77;
+    return 7 + 6.2 * Math.sin(Math.min(1, u * 1.1) * Math.PI * 0.6);
   }
   var pts = [], N = 28;
   for (var i = 0; i <= N; i++) { var t = 0.12 + (0.93 - 0.12) * i / N; pts.push([hw(t), b - t * L]); }
@@ -774,8 +784,8 @@ function buildFx(fx) {
   add(hd, 'path', { d: hi(0.6), style: S('var(--eb-hi)', 1.8, 'stroke-linecap:round') }, 'sw-lit-r');
   add(hd, 'path', { d: hi(0), style: S('var(--eb-hi)', 3.4, 'stroke-linecap:round;opacity:.22') });
   // the ferrule and its collar
-  add(hd, 'path', { d: rect(CX - 4.6, b - 0.2 * L, 9.2, 0.2 * L - 6), fill: U('sw-fer') });
-  add(hd, 'path', { d: rect(CX - 5.4, b - 0.2 * L - 1, 10.8, 2.4), fill: U('sw-fer') });
+  add(hd, 'path', { d: rect(CX - 5, b - 0.17 * L, 10, 0.17 * L - 6), fill: U('sw-fer') });
+  add(hd, 'path', { d: rect(CX - 5.8, b - 0.17 * L - 1, 11.6, 2.6), fill: U('sw-fer') });
 
   // The flash of the break: a spark at each pair of jaws.
   ['salon', 'bureau'].forEach(function (side, s) {

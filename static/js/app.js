@@ -4077,8 +4077,8 @@ if (hitArm) {
    with a transform, and a reading taken mid-dolly would stick. */
 var DESK_GAP = 8;         // clear stone between the sill and the board's crest
 var DESK_MIN = 0.5;       // below this the switch is too small to take
-/* The highest point the board ever draws, in its own units: the focus
-   ring over the crest's finial (the handle's arc peaks under it). */
+/* The highest point the board ever draws, in its own units: the top of
+   the handle's arc, just over the focus ring on the crest's finial. */
 function deskArt() { return window.Desk ? window.Desk.ART_TOP : null; }
 function deskBox() { return window.Desk ? window.Desk.BOX_H : 300; }
 function fitDesk() {
