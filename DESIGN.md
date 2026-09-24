@@ -802,7 +802,17 @@ while the case was hidden and the 60 s tick used to leave a blank plate for
 up to a minute; the tick stays as the fallback. A payload with no weather
 is the hub reporting a miss, and the board asks again 121 s later, just past
 the hub's own 120 s retry, rather than keeping NO READING up for the whole
-ten-minute poll. A request that fails outright re-arms the same retry.
+ten-minute poll. A request that fails outright re-arms the same retry,
+with a forecast still on the board as well.
+
+The reading holds two kinds of figure. HIGH, LOW and PRECIP are the day's
+and stand for the day. The temperature, the condition and the wind are one
+moment's, and they lapse to a dash and NO READING once that moment is half
+an hour old (the hub's `age_s` when it was read, plus the time since). A
+healthy board never shows one older than 25 minutes, the hub's 15 minute
+cache plus the 10 minute poll. Without the lapse a silent hub left "10°
+Clear" standing as the current weather for hours, beside dials that had
+long since dropped to NO READING.
 
 A forecast is for one local day at the place. Past the place's midnight the
 one on the board is yesterday's, so the board takes it as no forecast (the
