@@ -350,6 +350,12 @@ their product, registered with `@property` as a `<number>` so scripts read
 the computed value instead of the raw `calc()` token. The arch module takes
 only part of the rise (`0.62 + 0.38 × --ui`): the lettering was the
 complaint, and a module scaled 1:1 with it costs the floor its depth.
+The gates' lettering is set in `cqw` so it rides the arch, and below about
+2400px the arch's width, not `--ui`, sets it; so the gate multiplies its
+own `cqw` sizes by `--ui-user`, and its 10px floors too on the way up
+(SIGNBOARD lifts them, FINE never goes under them). The house gives up
+the height, and on a laptop arch at SIGNBOARD the day card stands a little
+wider and tighter so it keeps to three lines.
 SVG-internal font sizes (gear plates, lever plate, gauge, clock numerals)
 are user units inside a viewBox and are deliberately **not** scaled.
 

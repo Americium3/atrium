@@ -1923,6 +1923,16 @@ html[data-boot="suppressed"] #signal-desk {
      plinth nosing, glazing hub) reads these, so the lever re-leafs the hall. */
   --lead-0: var(--au-0); --lead-1: var(--au-1); --lead-2: var(--au-2);
   --lead-3: var(--au-3); --lead-4: var(--au-4); --lead-5: var(--au-5);
+  /* The reader's engraving size (PREFERENCES), for the gate's lettering.
+     The face is set in cqw so it rides the arch, and --ui reached it only
+     as each size's cap, which the arch's own width never met below about
+     2400px: FINE and SIGNBOARD set every gate identically from 1280 to
+     1920 while the masthead grew 28%. The cqw size now takes the reader's
+     factor, and so does the floor on the way up, never on the way down:
+     SIGNBOARD lifts the 10px floor, FINE never goes under it. The house
+     gives up the height. */
+  --gu: var(--ui-user, 1);
+  --gf: max(1, var(--ui-user, 1));
 }
 .gate[data-wing="bureau"] {
   --lead-0: var(--ag-0); --lead-1: var(--ag-1); --lead-2: var(--ag-2);
@@ -2142,7 +2152,7 @@ svg.portal {
 .g-sign::before { left: -1.1cqw; }
 .g-sign::after { right: -1.1cqw; }
 .g-name {
-  font-size: clamp(11px, 6.4cqw, 26px);
+  font-size: clamp(calc(11px * var(--gf)), calc(6.4cqw * var(--gu)), 26px);
   font-weight: 600;
   letter-spacing: 0.17em;
   margin-right: -0.17em;           /* tracking hangs off the last letter */
@@ -2259,7 +2269,7 @@ html[lang="zh"] .g-name { letter-spacing: 0.17em; }
      the reveal's shade): by day the text stands on the screen between the
      tie-backs and no fold of velvet may cross a letter. */
   margin: 17cqw 11cqw 0;
-  font-size: clamp(10.5px, 5.2cqw, calc(14px * var(--ui)));
+  font-size: clamp(calc(10.5px * var(--gf)), calc(5.2cqw * var(--gu)), calc(14px * var(--ui)));
   line-height: 1.45;
   letter-spacing: 0.035em;
   color: var(--desc-night);
