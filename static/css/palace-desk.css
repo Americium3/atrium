@@ -32,6 +32,9 @@
   /* cast brass: the badge and the throw plates */
   --bz-0: #3a2708; --bz-1: #6d4f1f; --bz-2: #a7813b; --bz-3: #d7b465; --bz-4: #f3dc9c;
   --bz-ink: #120b04;
+  /* the dark house reflected across the throw plates, lifted a step so the
+     engraving still reads 4.5:1 through it at 10px (LY-7) */
+  --pl-band: color-mix(in srgb, var(--bz-1) 45%, var(--bz-2));
   /* the pilot jewel */
   --jw-core: #fffbe8; --jw-mid: #ffc35e; --jw-rim: #b54f0a;
   --jw-bloom: rgba(255, 164, 60, 0.62);
@@ -58,6 +61,7 @@
   --st-0: #2a2d31; --st-1: #5d6368; --st-2: #9ea4a9; --st-3: #eceff1; --st-hot: #ffffff;
   --bz-0: #4d3812; --bz-1: #86672c; --bz-2: #bd9848; --bz-3: #e4c777; --bz-4: #fbeab4;
   --bz-ink: #120b04;
+  --pl-band: var(--bz-1);
   --jw-core: #ffe6a8; --jw-mid: #f09a2e; --jw-rim: #9c4208;
   --jw-bloom: transparent;
   --jw-off: #3b2618;
@@ -503,7 +507,7 @@
     radial-gradient(80% 115% at 44% 40%, rgba(255, 240, 200, 0.2), transparent 52%, rgba(46, 26, 3, 0.42) 100%),
     url('/static/assets/tex/grain-brushed.webp') 0 0 / 260px 130px,
     linear-gradient(180deg, color-mix(in srgb, var(--bz-3) 60%, var(--bz-4)) 0%, var(--bz-3) 12%,
-      var(--bz-2) 38%, var(--bz-1) 56%, color-mix(in srgb, var(--bz-1) 70%, var(--bz-2)) 64%,
+      var(--bz-2) 38%, var(--pl-band) 56%, color-mix(in srgb, var(--pl-band) 70%, var(--bz-2)) 64%,
       var(--bz-2) 80%, var(--bz-1) 100%);
   font-size: min(12.9px, max(calc(11px * var(--pl-u)), calc(10.1px / var(--desk-s))));
   /* The word sits centred between its screw and its jewel, 0.2em clear of
