@@ -825,9 +825,22 @@ function finishEntrance() {
     entranceSkip = null;
   }
   entrance.style.display = 'none';
+  // A skip before the house beat lands the lamps with the hall. They were
+  // held out by the curtain's rule, and once that let go they came up on
+  // the throw's timing, 420ms late and over 0.7s, so a skip showed the
+  // assembled hall with its fanlights dark for most of a second. The short
+  // fade is set for the flip's frame only; a transition keeps the timing
+  // it started with, so lifting the class later leaves it running.
+  var early = entrance.classList.contains('night') && !entrance.classList.contains('house');
+  if (early) root.classList.add('e-landing');
   // data-boot stays 'played', so the suppressed-load hall-fade does NOT
   // retrigger on this flip. The fanlights' entrance order goes with it.
   root.dataset.entered = 'yes';
+  if (early) {
+    requestAnimationFrame(function () {
+      requestAnimationFrame(function () { root.classList.remove('e-landing'); });
+    });
+  }
   document.querySelectorAll('#gates .gate').forEach(function (g) { g.style.removeProperty('--fan-i'); });
   // Re-enable ledger button now that entrance is done
   var lb = $('#ledger-btn');

@@ -1063,3 +1063,6 @@ html[data-entered="no"] #entrance.night:not(.house) ~ #hall .gate .lit { opacity
 html[data-entered="no"] #entrance.night.house ~ #hall .gate.active[data-state="open"] .lit {
   transition: opacity 0.5s ease calc(140ms + var(--fan-i, 0) * 170ms);
 }
+/* Cut short before the house lights, the lamps land with the hall: the
+   flip's frame only (finishEntrance() lifts the class two frames on). */
+html.e-landing #hall .gate .lit { transition: opacity 0.2s ease; }
