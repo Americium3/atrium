@@ -917,6 +917,10 @@ html[lang="zh"] .g-lamp { letter-spacing: 0.2em; }
 /* the tracking hangs off the last letter, so the word sits on the axis */
 .g-notice .gx-head::after { margin-left: -0.3em; }
 .g-notice .gx-path { font-variant-numeric: tabular-nums; letter-spacing: 0.03em; }
+/* Each folder of the path is one box, so the line breaks only between
+   folders (app.js letterNotice). A box too long for the card still wraps
+   inside itself rather than run out of the card. */
+.g-notice .gx-run { display: inline-block; }
 html[lang="zh"] .g-notice .gx-say { -webkit-text-stroke: 0.45px currentColor; letter-spacing: 0.04em; }
 .g-house:has(> .g-notice:not([hidden])) > .g-desc { visibility: hidden; }
 /* A long launcher path on a small arch: app.js sets the card tighter a step

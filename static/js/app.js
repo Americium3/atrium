@@ -1344,9 +1344,14 @@ function descKey(svc) {
 
 /* The notice is printed like a house notice: DARK in the display caps
    between two rules, what to do, then the launcher path in the address
-   face. The path is lettered with a break opportunity after every
-   separator, so it wraps at a folder, not mid-name. A <wbr> is not text:
-   a copied path comes out exactly as the registry has it. */
+   face. The path is lettered one folder at a time: each run from one
+   separator to the next is a box of its own, so the line can only break
+   between them. A <wbr> after each separator was not enough, since the
+   browser still broke after a hyphen inside a name ('pdx-mod-' / 'hub'),
+   which reads as hyphenation. A run too long for the card still wraps
+   inside its box rather than run out of it, and fitNotice tightens the
+   card first. The boxes are not text: a copied path comes out exactly as
+   the registry has it. */
 function letterNotice(n, svc) {
   var hint = svc.launch_hint || svc.url;
   n.textContent = '';
@@ -1357,7 +1362,7 @@ function letterNotice(n, svc) {
   var path = el('span', 'gx-path');
   hint.split(/(?<=[\\/_])/).forEach(function (part, i) {
     if (i) path.appendChild(document.createElement('wbr'));
-    path.appendChild(document.createTextNode(part));
+    path.appendChild(el('span', 'gx-run', part));
   });
   n.appendChild(path);
   // The twin says only what to do. The lamp word opens the gate's
@@ -1376,11 +1381,21 @@ function letterNotice(n, svc) {
   fitNotice(n);
 }
 var noticeRO = null;
+/* A run of the path that takes two lines has broken inside a name. */
+function runBroken(n) {
+  return Array.prototype.some.call(n.querySelectorAll('.gx-run'), function (r) {
+    var rg = document.createRange();
+    rg.selectNodeContents(r);
+    return rg.getClientRects().length > 1;
+  });
+}
 function fitNotice(n) {
   var house = n.parentNode;
   if (n.hidden || !house) return;
   n.removeAttribute('data-fit');
-  for (var k = 1; k <= 3 && n.offsetHeight > house.clientHeight; k++) n.dataset.fit = String(k);
+  for (var k = 1; k <= 3 && (n.offsetHeight > house.clientHeight || runBroken(n)); k++) {
+    n.dataset.fit = String(k);
+  }
 }
 
 /* Pins the card. It is said out loud when it goes up, and again whenever
