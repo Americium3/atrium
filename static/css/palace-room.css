@@ -39,10 +39,14 @@
   --fascia-veil: rgba(250, 246, 238, 0.10);
   --fascia-up: rgba(255, 176, 92, 0);
   --fascia-head: rgba(255, 255, 255, 0.35);
-  --wm-return: #5c4216;                         /* the underside, in shade */
-  --wm-return-ag: #5f5c55;
+  /* The underside, in shade, and the letters seated on the stone: a close
+     occlusion where each casting meets the Calacatta under the skylight's
+     soft cast. The relief is what outlines the word against the pale marble,
+     so it is kept deep enough to read at 3:1 on its own (LY-5). */
+  --wm-return: #3d2a0b;
+  --wm-return-ag: #3b3934;
   --wm-lip: rgba(255, 249, 226, 0.95);
-  --wm-cast: 0.05em 0.16em 0.13em rgba(70, 48, 16, 0.42);
+  --wm-cast: 0.02em 0.055em 0.04em rgba(40, 27, 7, 0.58), 0.05em 0.16em 0.13em rgba(70, 48, 16, 0.38);
   /* The day faces are ramped deep: gilt and nickel under a skylight give back
      the pale room over most of their height, and with the head's light run
      down to the middle the letters sat within a few levels of the Calacatta,
