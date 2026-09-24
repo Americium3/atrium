@@ -2987,12 +2987,20 @@ function headline(d) {
   return { head: (svc ? svc.name : d.origin), detail: t('k.unknown') };
 }
 
+/* Ages are floored, as a person reads a clock: rounding put "60 min ago" on
+   a dispatch not yet an hour old and "48 h ago" on one of 47.8 h. Past two
+   days the count is calendar days, so a Monday dispatch can no longer read
+   "3 d ago" on Wednesday evening. */
 function relTime(ts) {
   var d = Date.now() - ts;
   if (d < 90 * 1000) return t('justNow');
-  if (d < 3600 * 1000) return t('minAgo', { n: Math.round(d / 60000) });
-  if (d < 48 * 3600 * 1000) return t('hAgo', { n: Math.round(d / 3600000) });
-  return t('dAgo', { n: Math.round(d / 86400000) });
+  if (d < 3600 * 1000) return t('minAgo', { n: Math.floor(d / 60000) });
+  if (d < 48 * 3600 * 1000) return t('hAgo', { n: Math.floor(d / 3600000) });
+  var then = new Date(ts), today = new Date();
+  then.setHours(0, 0, 0, 0);
+  today.setHours(0, 0, 0, 0);
+  // Rounded only to absorb a 23 or 25 hour day at a clock change.
+  return t('dAgo', { n: Math.round((today - then) / 86400000) });
 }
 
 function buildPlaque(d) {
