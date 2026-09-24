@@ -2962,15 +2962,22 @@ function applyStats() {
     // roll on a language switch; the text swaps in place instead.
     var relettered = span._lang !== undefined && span._lang !== lang;
     span._lang = lang;
-    if (span.textContent !== txt) {
-      if (span.textContent && !relettered && root.dataset.motion !== 'reduced') {
-        clearTimeout(span._rollT);      // a stale timer would swap in old text
+    // Compared with the line the gate is rolling to, not the one painted:
+    // for the 240 ms of a roll the span still holds the old words, and a
+    // newer answer equal to them was taken as no change, so the roll went
+    // on and left the older figure standing until the next poll.
+    var target = span._target !== undefined ? span._target : span.textContent;
+    if (target !== txt) {
+      clearTimeout(span._rollT);        // a stale timer would swap in old text
+      span._target = txt;
+      if (span.textContent === txt) {
+        // Back to the words still painted: the roll under way lands on them.
+      } else if (span.textContent && !relettered && root.dataset.motion !== 'reduced') {
         span.classList.remove('roll');
         void span.offsetWidth;          // restart the odometer animation
         span.classList.add('roll');
         span._rollT = setTimeout(function () { span.textContent = txt; }, 240);
       } else {
-        clearTimeout(span._rollT);
         span.textContent = txt;
       }
     }
