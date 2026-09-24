@@ -838,6 +838,24 @@ html[data-entered="no"] #entrance.night.house ~ #hall .st-fan.on[data-state="ope
   --course-blend: multiply;
   --course-strip: color-mix(in srgb, var(--lead-2) 75%, transparent);
 }
+/* The runner's wool (the tiles are baked with a cut pile and softened
+   motifs, AR-11): down its centre lane the traffic has flattened the pile,
+   which then gives back more of the room's light and less of its dye, and
+   the far end carries a knotted fringe, the warp ends tied in bunches under
+   the heading, hanging away from the rug. */
+.fl-runner::before {
+  background-image:
+    linear-gradient(90deg, transparent 24%, rgba(255, 236, 214, 0.075) 40%, rgba(255, 236, 214, 0.075) 60%, transparent 76%),
+    linear-gradient(to top, rgba(0, 0, 0, 0.35) 0%, transparent 30%, rgba(255, 220, 170, 0.10) 100%),
+    linear-gradient(var(--rug-veil), var(--rug-veil));
+}
+.fl-runner::after {
+  top: calc(var(--fh, 320px) * -0.085); height: calc(var(--fh, 320px) * 0.085);
+  background: url('/static/assets/tex/carpet-fringe.webp') 0 0 / auto 100% repeat-x;
+  transform: scaleY(-1);
+  opacity: 1;
+}
+:root[data-theme="onyx"] .fl-runner::after { filter: brightness(0.62); }
 /* The inlays: cut stone with its own figure, under the floor's wax. HTML
    layers over the inlay's SVG (the circle is r 474 of 1000 on the
    medallion, 190 of 400 on a roundel), so they raster once and stay. */
