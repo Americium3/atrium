@@ -2474,7 +2474,9 @@ function dialRead(key, w) {
              title: key === 'gpu' ? d.name : t('wkOf', { a: d.used_gb, b: d.total_gb }) };
   }
   return { pct: d.pct,
-           text: d.down_mbs.toFixed(1) + ' ↓  ' + d.up_mbs.toFixed(1) + ' ↑  ' + t('wkRate'),
+           // No-break spaces keep each figure with its arrow when a narrow
+           // window takes the reading onto a second line.
+           text: d.down_mbs.toFixed(1) + ' ↓  ' + d.up_mbs.toFixed(1) + ' ↑  ' + t('wkRate'),
            title: t('wkDown', { d: d.down_mbs, u: d.up_mbs }) };
 }
 

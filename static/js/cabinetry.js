@@ -315,9 +315,20 @@ function dial(key) {
     [[0, 'd-glint', 0.34], [0.5, 'd-glint', 0.06], [1, 'd-glint', 0]]));
   s.appendChild(defs);
 
-  // Bezel. The turned brass itself is the element's CSS background (a conic
-  // brushing cannot be an SVG gradient); this ring lays the moulding's
-  // profile over it: the arris, the crest, the step down to the glass seat.
+  defs.appendChild(grad('radialGradient', id + '-cast', { gradientUnits: 'userSpaceOnUse', cx: 51.2, cy: 53, r: 53 },
+    [[0, 'd-seat', 0.7], [0.88, 'd-seat', 0.55], [0.95, 'd-seat', 0.18], [1, 'd-seat', 0]]));
+  // The instrument's shadow on the glass, soft, down and to the right.
+  s.appendChild(sv('circle', { cx: 51.2, cy: 53, r: 53, fill: 'url(#' + id + '-cast)' }, 'd-cast'));
+  // Bezel. A conic brushing cannot be an SVG gradient, so the turned brass
+  // is an HTML disc inside a foreignObject: it scales with the viewBox and
+  // stays round whatever box the grid hands the dial.
+  var fo = sv('foreignObject', { x: 0, y: 0, width: 100, height: 100 }, 'd-brass-fo');
+  var disc = document.createElementNS('http://www.w3.org/1999/xhtml', 'div');
+  disc.className = 'd-brass';
+  fo.appendChild(disc);
+  s.appendChild(fo);
+  // The moulding's profile over the brass: the arris, the crest, the step
+  // down to the glass seat.
   s.appendChild(sv('circle', { cx: 50, cy: 50, r: 50, fill: 'url(#' + id + '-bz)' }, 'd-profile'));
   // Knurling on the outer lip, each tooth lit by its angle to the light.
   var knurl = sv('g', null, 'd-knurl');
