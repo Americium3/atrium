@@ -1325,8 +1325,12 @@ Motion setting collapse all of the above to fades/instant.
   speak their readings. English signage carries `lang="en"` in the Chinese
   hall.
 - **Forced colours**: every selected or lit state gets a Highlight border or
-  fill; the wall and floor keep their own colours. Readers who ask for more
-  contrast or less transparency get an opaque scrim.
+  fill; the wall and floor keep their own colours. The masthead's fascia and
+  the marquee's glass carry lettering, so they give way to the system's
+  Canvas and the words stand in CanvasText, with no backplate slabs on the
+  stone; the crown, the frieze panels, the medallions and the bulbs keep
+  their colours. Readers who ask for more contrast or less transparency get
+  an opaque scrim.
 - Chips radiogroup; lamps always carry text; AA contrast per the token
   matrix.
 
