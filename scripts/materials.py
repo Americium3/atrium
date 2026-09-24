@@ -471,18 +471,20 @@ def damask(w=256, h=384, seed=131):
     return np.clip(lum, 0, 1)
 
 
-def _height_to_rgb(hgt, light, albedo_lo, albedo_hi, glaze, ambient, gain, spec=0.0):
+def _height_to_rgb(hgt, light, albedo_lo, albedo_hi, glaze, ambient, gain, spec=0.0, px=1.0):
     """Relight a heightmap: lambert along `light` (x right, y DOWN, z out),
-    occlusion from a blurred copy, gilt glazed dark in the recesses."""
+    occlusion from a blurred copy, gilt glazed dark in the recesses. `px` is
+    the bake's pixels per design unit, so a tile baked at 2x lights the same
+    as its 1x original."""
     from scipy.ndimage import gaussian_filter
-    gy, gx = np.gradient(hgt)
+    gy, gx = np.gradient(hgt, 1.0 / px)
     nx, ny, nz = -gx * 6, -gy * 6, np.ones_like(hgt)
     nn = np.sqrt(nx * nx + ny * ny + nz * nz)
     nx, ny, nz = nx / nn, ny / nn, nz / nn
     L = np.array(light, dtype=np.float64)
     L /= np.linalg.norm(L)
     lam = np.clip(nx * L[0] + ny * L[1] + nz * L[2], 0, 1)
-    occ = np.clip(1 - (gaussian_filter(hgt, 6, mode="wrap") - hgt) * 3.0, 0.35, 1)
+    occ = np.clip(1 - (gaussian_filter(hgt, 6 * px, mode="wrap") - hgt) * 3.0, 0.35, 1)
     # half vector with the viewer straight on: a tight highlight on the crests
     Hh = L + np.array([0, 0, 1.0])
     Hh /= np.linalg.norm(Hh)

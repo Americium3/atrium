@@ -270,43 +270,68 @@ html[lang="zh"] .m-sub { letter-spacing: 0.4em; }
   top: 50%;
   height: calc(34px * var(--ui));
   margin-top: calc(-17px * var(--ui) - 7px * var(--ui));
-  background: var(--mfrieze-img) 0 50% / auto 100% repeat-x;
-  /* a cast frame: a lit bead, a bevel cut as four mitred facets (the head
-     and the near side take the key, the foot and far side fall away), and
-     a dark sinking where it meets the field */
-  border: calc(4px * var(--ui)) solid;
-  border-color: var(--mfr-t) var(--mfr-r) var(--mfr-b) var(--mfr-l);
+  /* A cast panel is modelled to its length (AR-37). The run is laid out
+     from the panel's middle, a reed trio under the cartouche, so the two
+     halves mirror each other; a plain stile closes each end; and the frame
+     is a moulding in section, the same all round: a dark arris, the lit
+     bead, its crest, the shaded cove and the sinking at the field. It was
+     anchored at the left, each panel ending on an arbitrary cut of its
+     repeat, and framed in four flat mitred colours. The field is 26 of the
+     panel's 34 units, so one repeat is 26 x 192/72 wide, and the reeds sit
+     at three quarters of it. */
+  --mfr-w: calc(4px * var(--ui));
+  --mfr-stile: calc(11px * var(--ui));
+  padding: var(--mfr-w);
+  background:
+    linear-gradient(90deg, var(--lead-0) 0 1px, var(--lead-3) 1px 2px, var(--lead-2) 2px calc(var(--mfr-stile) - 2.5px),
+      var(--lead-1) calc(var(--mfr-stile) - 2.5px) calc(var(--mfr-stile) - 1px), var(--lead-0) calc(var(--mfr-stile) - 1px) var(--mfr-stile), transparent var(--mfr-stile))
+      0 0 / 100% 100% no-repeat content-box,
+    linear-gradient(270deg, var(--lead-0) 0 1px, var(--lead-1) 1px 2px, var(--lead-2) 2px calc(var(--mfr-stile) - 2.5px),
+      var(--lead-3) calc(var(--mfr-stile) - 2.5px) calc(var(--mfr-stile) - 1px), var(--lead-0) calc(var(--mfr-stile) - 1px) var(--mfr-stile), transparent var(--mfr-stile))
+      0 0 / 100% 100% no-repeat content-box,
+    var(--mfrieze-img) calc(50% - 26px * var(--ui) * 2 / 3) 50% / auto 100% repeat-x content-box;
+  background-clip: content-box;
+  border: none;
   box-shadow:
     0 0 0 calc(1px * var(--ui)) var(--lead-0),
     0 0 0 calc(2.6px * var(--ui)) var(--mfr-bead),
     0 0 0 calc(3.6px * var(--ui)) var(--lead-0),
     var(--mfr-cast),
-    inset 0 0 0 1px rgba(0, 0, 0, 0.6), inset 0 calc(2px * var(--ui)) calc(5px * var(--ui)) rgba(0, 0, 0, 0.45);
+    inset 0 0 0 calc(0.6px * var(--ui)) var(--lead-0),
+    inset 0 0 0 calc(1.5px * var(--ui)) var(--mfr-lip),
+    inset 0 0 0 calc(2.3px * var(--ui)) var(--mfr-crest),
+    inset 0 0 0 calc(3.3px * var(--ui)) var(--mfr-cove),
+    inset 0 0 0 var(--mfr-w) var(--lead-0),
+    inset 0 calc(1px * var(--ui)) 0 calc(-0.5px * var(--ui)) var(--mfr-key);
 }
 :root[data-theme="onyx"] .m-frieze {
   --mfrieze-img: url('/static/assets/tex/room-mfrieze-night.webp');
-  --mfr-t: var(--lead-1); --mfr-l: var(--lead-2); --mfr-b: var(--lead-4); --mfr-r: var(--lead-1);
+  --mfr-lip: var(--lead-4); --mfr-crest: var(--lead-2); --mfr-cove: var(--lead-1);
+  --mfr-key: rgba(255, 214, 150, 0.35);
   --mfr-bead: var(--lead-2);
   --mfr-cast: 0 calc(-4px * var(--ui)) calc(9px * var(--ui)) rgba(0, 0, 0, 0.75);
 }
 :root[data-theme="ivory"] .m-frieze {
   --mfrieze-img: url('/static/assets/tex/room-mfrieze-day.webp');
-  --mfr-t: var(--lead-3); --mfr-l: var(--lead-4); --mfr-b: var(--lead-1); --mfr-r: var(--lead-2);
+  --mfr-lip: var(--lead-5); --mfr-crest: var(--lead-3); --mfr-cove: var(--lead-1);
+  --mfr-key: rgba(255, 255, 255, 0.45);
   --mfr-bead: var(--lead-4);
   --mfr-cast: calc(2px * var(--ui)) calc(4px * var(--ui)) calc(6px * var(--ui)) rgba(70, 48, 16, 0.38);
 }
 :root[data-wing="bureau"] .m-frieze { filter: saturate(0.18) brightness(1.06); }
-/* The bolsters: a stepped cast block at each end, set on the frame. */
+/* The bolsters: a stepped cast block at each end, set on the frame. (The
+   frame is padding now, not border, so they are placed from the outer
+   edge.) */
 .m-frieze::before, .m-frieze::after {
-  content: ""; position: absolute; top: calc(-11px * var(--ui)); bottom: calc(-11px * var(--ui));
+  content: ""; position: absolute; top: calc(-7px * var(--ui)); bottom: calc(-7px * var(--ui));
   width: calc(16px * var(--ui));
   background:
     linear-gradient(180deg, rgba(255, 245, 215, 0.35) 0 1px, transparent 1px calc(100% - 2px), rgba(0, 0, 0, 0.6) calc(100% - 2px)),
     linear-gradient(90deg, var(--lead-1), var(--lead-5) 22%, var(--lead-3) 38%, var(--lead-2) 62%, var(--lead-1) 84%, var(--lead-0));
   clip-path: polygon(0 26%, 22% 26%, 22% 10%, 40% 10%, 40% 0, 60% 0, 60% 10%, 78% 10%, 78% 26%, 100% 26%, 100% 74%, 78% 74%, 78% 90%, 60% 90%, 60% 100%, 40% 100%, 40% 90%, 22% 90%, 22% 74%, 0 74%);
 }
-.m-frieze::before { left: calc(-18px * var(--ui)); }
-.m-frieze::after { right: calc(-18px * var(--ui)); }
+.m-frieze::before { left: calc(-14px * var(--ui)); }
+.m-frieze::after { right: calc(-14px * var(--ui)); }
 
 /* The cartouche that breaks each panel at its middle: a gilt lozenge,
    stepped once, round a lozenge of the badge's oxblood enamel with a gilt
