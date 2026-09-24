@@ -2215,7 +2215,12 @@ function buildStanchions() {
     '<stop offset="0" class="stref s0"/><stop offset="1" class="stref s1"/></linearGradient>' +
     '<linearGradient id="st-ferrule" x1="0" y1="0" x2="0" y2="1">' +
     '<stop offset="0" class="cyl s1"/><stop offset=".35" class="cyl s2"/>' +
-    '<stop offset=".7" class="cyl s3"/><stop offset="1" class="cyl s4"/></linearGradient>';
+    '<stop offset=".7" class="cyl s3"/><stop offset="1" class="cyl s4"/></linearGradient>' +
+    // The velvet's crushed pile, laid along the rope as its paint, and the
+    // softness of the light on a round plush section.
+    '<pattern id="st-pile" patternUnits="userSpaceOnUse" width="' + (56 * u).toFixed(1) + '" height="' + (56 * u).toFixed(1) + '">' +
+    '<image href="/static/assets/tex/grain-pile.webp" width="' + (56 * u).toFixed(1) + '" height="' + (56 * u).toFixed(1) + '"/></pattern>' +
+    '<filter id="st-soft" x="-5%" y="-100%" width="110%" height="300%"><feGaussianBlur stdDeviation="' + (0.8 * u).toFixed(2) + '"/></filter>';
   svg.appendChild(defs);
   var ropes = svgEl('g', {}, 'st-ropes'), posts = svgEl('g', {}, 'st-posts');
   var pitch = 170 * u, top = H * 0.08, ropeY = H * 0.24, foot = H * 0.9;
@@ -2231,14 +2236,16 @@ function buildStanchions() {
         f1(x0 + (x1 - x0) * 0.3) + ' ' + f1(ropeY + sag) + ' ' +
         f1(x0 + (x1 - x0) * 0.7) + ' ' + f1(ropeY + sag) + ' ' +
         f1(x1) + ' ' + f1(ropeY);
-      // Velvet rope: its shadow on the stone, the body, the underside the
-      // light does not reach, the broad soft sheen of the pile along its
-      // top, and the pile itself, a fine broken nap in the sheen.
+      // Velvet rope, a round plush section: its shadow on the stone, the
+      // body, the crushed pile over it, the underside the light does not
+      // reach, and one broad soft sheen above the centre. A row of dashes
+      // stood for the nap, and the rope read as a belt with top-stitching
+      // (AR-36).
       ropes.appendChild(svgEl('path', { d: dRope, transform: 'translate(1.5 3)' }, 'st-rope-sh'));
       ropes.appendChild(svgEl('path', { d: dRope }, 'st-rope'));
-      ropes.appendChild(svgEl('path', { d: dRope, transform: 'translate(0 ' + f1(1.1 * u) + ')' }, 'st-rope-dk'));
-      ropes.appendChild(svgEl('path', { d: dRope, transform: 'translate(0 ' + f1(-1.0 * u) + ')' }, 'st-rope-lt'));
-      ropes.appendChild(svgEl('path', { d: dRope, transform: 'translate(0 ' + f1(-0.9 * u) + ')' }, 'st-rope-nap'));
+      ropes.appendChild(svgEl('path', { d: dRope, stroke: 'url(#st-pile)' }, 'st-rope-pile'));
+      ropes.appendChild(svgEl('path', { d: dRope, transform: 'translate(0 ' + f1(1.3 * u) + ')', filter: 'url(#st-soft)' }, 'st-rope-dk'));
+      ropes.appendChild(svgEl('path', { d: dRope, transform: 'translate(0 ' + f1(-0.8 * u) + ')', filter: 'url(#st-soft)' }, 'st-rope-lt'));
       // Brass snap ends: a ferrule crimped on each end of the rope, laid
       // along the rope's own line where it leaves the post, and its hook.
       var fl = 3.4 * u, ft = 6 * u, ang = Math.atan2(sag * 0.75, (x1 - x0) * 0.3) * 180 / Math.PI;
@@ -2439,7 +2446,7 @@ function buildAisles() {
    Every term is a layout value that the cap and the floor do not move
    (the stage's top is the masthead's and the marquee's, the headroom is
    the viewport's), so writing them cannot feed back into the solve. */
-var FLOOR_HARD = 62, DESK_K_MIN = 0.78;
+var FLOOR_HARD = 62, DESK_K_MIN = 0.78, FLOOR_SHARE = 0.31;
 function budgetHall() {
   var hall = $('#hall'), con = $('#concourse'), stage = $('#stage'), desk = $('#signal-desk');
   if (!hall || !con || !stage || !stage.offsetHeight) return;
@@ -2453,10 +2460,24 @@ function budgetHall() {
     var deskFoot = parseFloat(getComputedStyle(desk).bottom) || 0;
     need = Math.max(need, Math.ceil(deskFoot + DESK_GAP + (220 - art) * k - foot));
   }
-  // The stage is the arch module plus the wall's headroom over it
-  // (--stage-h in atrium.css), so this is the largest arch that leaves
-  // the floor its need.
-  var headroom = Math.max(80, Math.min(100, H - 1080));
+  // The wall's headroom over the arches (--stage-h in atrium.css): 80px,
+  // rising to 100 above 1080px of viewport. On a tall screen the arch is
+  // held by the width, and all the height the wall left went to the floor,
+  // 42-43% of a 4:3 or 16:10 screen against the 27-32% a wide one gets
+  // (LY-9), so there the wall takes the surplus down to FLOOR_SHARE, but
+  // never stands taller over the arches than an arch: on a near-square
+  // screen it would have been a bare field of damask half the hall high. It
+  // is solved from the arch with no vertical cap (--gate-free), and it never
+  // leaves the floor less than its need, so it can never bring the cap
+  // below that arch: nothing here feeds back into the solve.
+  var hrWas = parseFloat(con.style.getPropertyValue('--headroom'));
+  if (!isFinite(hrWas)) hrWas = Math.max(80, Math.min(100, H - 1080));   // the sheet's own term
+  var free = parseFloat(getComputedStyle(root).getPropertyValue('--gate-free')) || 0;
+  var headroom = Math.max(80, Math.min(100, H - 1080), Math.min(Math.floor(free * 1.9),
+    Math.floor(H - top - free * 1.9 - Math.max(FLOOR_SHARE * H, foot + need))));
+  if (headroom !== hrWas) con.style.setProperty('--headroom', headroom + 'px');
+  // The stage is the arch module plus that headroom, so this is the largest
+  // arch that leaves the floor its need.
   var cap = ((H - top - foot - need - headroom) / 1.9).toFixed(1) + 'px';
   var was = root.style.getPropertyValue('--gate-vcap');
   if (was !== cap) {
@@ -2467,7 +2488,7 @@ function budgetHall() {
     var g = solved ? solved.g0 : Infinity;
     if (parseFloat(cap) < g + 0.5 || parseFloat(was) < g + 0.5) layoutStage(true);
   }
-  var room = Math.floor(H - top - stage.offsetHeight - foot);
+  var room = Math.floor(H - top - (stage.offsetHeight - hrWas + headroom) - foot);
   var fit = Math.max(need, room) + 'px';
   if (con.style.getPropertyValue('--floor-fit') !== fit) con.style.setProperty('--floor-fit', fit);
 }
@@ -5003,15 +5024,23 @@ function renderTicker(now) {
 }
 
 /* Is somebody reading the band right now? A rolling band always is, until
-   its loop comes round; a still one is while the pointer or the keyboard's
-   focus is on it (a click's focus is not a reader, PT-6); a paged one is
-   between page turns. */
+   its loop comes round; a still one is while a reader is on it; a paged one
+   is between page turns. */
 function tickerHeld(ticker) {
   var track = $('#ticker-track');
   if (ticker.classList.contains('rolling') && track.getAnimations &&
       track.getAnimations().some(function (a) { return a.playState !== 'finished'; })) return true;
-  if (ticker.matches(':hover, :focus-visible')) return true;
+  if (tickerReader(ticker)) return true;
   return !!tickerPageT;
+}
+/* A reader is a mouse or a pen resting on the band (data-reader, set below)
+   or the keyboard's focus. A tap is neither: it leaves :hover stuck on the
+   band until the next tap somewhere else, and that froze the crawl and held
+   every new band (PT-12). A click's focus is not one either (PT-6), and a
+   press no longer takes focus at all: any key after it made that focus
+   :focus-visible and froze the band until the next click (PT-13). */
+function tickerReader(ticker) {
+  return ticker.hasAttribute('data-reader') || ticker.matches(':focus-visible');
 }
 
 function applyTicker(m) {
@@ -5147,8 +5176,8 @@ function turnTickerPage() {
   tickerPageT = setTimeout(function () {
     var ticker = $('#ticker');
     tickerPageT = null;
-    // Pauses on hover and focus, like the crawl, and never turns unseen.
-    if (document.hidden || ticker.matches(':hover, :focus-visible')) { turnTickerPage(); return; }
+    // Pauses for a reader, like the crawl, and never turns unseen.
+    if (document.hidden || tickerReader(ticker)) { turnTickerPage(); return; }
     // A newer band comes in on a page turn, the paged band's loop boundary.
     if (tickerPending) { applyTicker(tickerPending); return; }
     var pages = Array.prototype.slice.call(document.querySelectorAll('#ticker-track .t-page'));
@@ -5173,8 +5202,15 @@ function turnTickerPage() {
       if (tickerPending && !tickerHeld(ticker)) applyTicker(tickerPending);
     }, 0);
   }
-  ticker.addEventListener('pointerleave', released);
+  ticker.addEventListener('pointerenter', function (e) {
+    if (e.pointerType !== 'touch') ticker.setAttribute('data-reader', '');
+  });
+  ticker.addEventListener('pointerleave', function () {
+    ticker.removeAttribute('data-reader');
+    released();
+  });
   ticker.addEventListener('focusout', released);
+  ticker.addEventListener('mousedown', function (e) { e.preventDefault(); });
   // Crawl or pages is a motion decision, and the pages are cut to the
   // band's width and the engraving: either changing re-sets the band now.
   window.addEventListener('atrium:motionchange', function () { renderTicker(true); });

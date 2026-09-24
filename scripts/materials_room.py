@@ -184,13 +184,15 @@ def dentils(day=False):
     return rgb
 
 
-def mast_frieze_height(w=192, h=72):
+def mast_frieze_height(w=192, h=72, px=1):
     """The masthead's panel: the Paramount canopy's vocabulary in cast
     gilt. A zig-zag ribbon above and below, and between them a stepped
     lozenge on a boss alternating with a trio of reeds. Periodic in x, one
-    lozenge and one reed trio per tile."""
-    y, x = np.mgrid[0:h, 0:w].astype(np.float64) + 0.5
-    H = np.zeros((h, w))
+    lozenge and one reed trio per tile. Drawn in 1x design units and baked
+    at `px` pixels to the unit: at 1x the panel drew it 1.1x up at dpr 2
+    and it went soft (AR-37)."""
+    y, x = (np.mgrid[0:h * px, 0:w * px].astype(np.float64) + 0.5) / px
+    H = np.zeros((h * px, w * px))
     # fillets top and bottom
     H = np.maximum(H, _box(x, y, -4, w + 4, 1.5, 5.5, 0.8) * 0.8)
     H = np.maximum(H, _box(x, y, -4, w + 4, h - 5.5, h - 1.5, 0.8) * 0.8)
@@ -236,19 +238,19 @@ def mast_frieze_height(w=192, h=72):
         for yy_ in (cy - 7, cy, cy + 7):
             b = np.sqrt(np.clip(1 - ((x - bx) ** 2 + (y - yy_) ** 2) / 2.3 ** 2, 0, 1))
             H = np.maximum(H, b * 0.6)
-    return gaussian_filter(H, 0.7, mode="wrap")
+    return gaussian_filter(H, 0.7 * px, mode="wrap")
 
 
-def mast_frieze(day=False):
-    H = mast_frieze_height()
+def mast_frieze(day=False, px=2):
+    H = mast_frieze_height(px=px)
     if day:
         # skylight from above: cream plaster ground, the ornament in gilt
         rgb = _height_to_rgb(H, (-0.3, -0.8, 0.6), (226, 212, 182), (226, 186, 104),
-                             0.22, 0.64, 0.50, spec=0.45)
+                             0.22, 0.64, 0.50, spec=0.45, px=px)
     else:
         # lit from below by the marquee's bulbs, a hand's breadth under it
         rgb = _height_to_rgb(H, (-0.2, 0.85, 0.45), (38, 26, 12), (206, 158, 76),
-                             0.72, 0.14, 1.08, spec=0.65)
+                             0.72, 0.14, 1.08, spec=0.65, px=px)
         yy = np.mgrid[0:H.shape[0], 0:H.shape[1]][0] / H.shape[0]
         rgb *= (0.62 + 0.62 * np.power(yy, 1.2))[..., None]
     return rgb
@@ -286,14 +288,20 @@ def vein_gray(n=512, seed=301):
     them: each field carries its own aggregate (light marble and dark
     shards of several sizes) under a cloud and a few flowing veins, so a
     field reads as poured and ground stone whatever colour it is, rather
-    than as a flat fill."""
+    than as a flat fill.
+    As densely as the floor's own terrazzo, about half the face in chips of
+    three sizes: with a few hundred shards a field read as a flat colour with
+    sparse dots next to the floor's aggregate (AR-30). Soft-light over each
+    field's stone, the one figure gives each field its own mix, its chips a
+    lighter and a darker cut of that field's colour."""
     cloud = fbm(n, seed, 1.8)
     v = (flow_veins(n, seed + 1, 2.4, (1.6, 1.0), 0.10, 30, 0.8) * 0.8
          + ridges(n, seed + 2, 2.2, 140) * 0.4)
     lum = 0.5 + (cloud - 0.5) * 0.40 + np.clip(v, 0, 1) * 0.34
-    big = _chips(n, seed + 3, 300, 3.0, 8.0)
-    fine = _chips(n, seed + 4, 2600, 1.0, 2.6)
-    chips = np.where(np.abs(big - 0.5) > 0.01, big, fine)
+    big = _chips(n, seed + 3, 1400, 3.0, 8.0)
+    mid = _chips(n, seed + 5, 3600, 1.8, 3.6)
+    fine = _chips(n, seed + 4, 8000, 1.0, 2.2)
+    chips = np.where(np.abs(big - 0.5) > 0.01, big, np.where(np.abs(mid - 0.5) > 0.01, mid, fine))
     lum = np.where(np.abs(chips - 0.5) > 0.01, lum * 0.35 + chips * 0.65, lum)
     g = np.clip(gaussian_filter(lum, 0.45, mode="wrap"), 0, 1) * 255
     return np.dstack([g, g, g])

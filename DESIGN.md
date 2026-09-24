@@ -345,6 +345,16 @@ surplus goes to the wall and to the two cases hanging on it. On a 3440x1330
 display that moves the floor from 31.6% of the viewport to 27.1%, the arches
 up 6% and the boards up 9%.
 
+That 100px was not enough on a tall screen. On 4:3 and 16:10 the arch is
+held by the width, so the floor still took 42-43% of the height. The wall
+now also takes the surplus down to 31% of the viewport: `budgetHall()`
+writes `--headroom`, solved from `--gate-free` (the arch module with no
+vertical cap), never leaving the floor less than it needs and never
+standing taller over the arches than an arch. The arches keep their size.
+1600x1200, 1280x1024, 1920x1200, 2560x1440, 2560x1600 and 3440x1440 now
+land at 31%. Where the floor was already under that (1920x1080, 3440x1330,
+the short laptops) the 80 to 100px term stands as it was.
+
 Optical scale (`--ui`): what a 34" desk display changes is physical
 size, not pixel count. The 12.5px engraving that reads at arm's length on a
 laptop is illegible from across a room. One multiplier drives every piece of
@@ -1032,8 +1042,10 @@ closes on one more segment that counts the rest into the Ledger
 (`2 MORE IN THE LEDGER`), so the band never drops a dispatch the hatch's
 count includes. The short name is signage and stays English,
 tagged `lang="en"` in the Chinese hall. When nothing is
-new: a static line, no scroll. Pauses on hover and on keyboard focus (a
-click's focus is not a reader, so it does not hold the band). The crawl runs at
+new: a static line, no scroll. Pauses while a mouse or a pen rests on it and
+on keyboard focus. A tap is not a reader and neither is a click: a press on
+the band takes no focus, and the hover a tap leaves behind holds nothing.
+The crawl runs at
 50 px/s times `--ui`, measured on one copy of the loop (the old per-character
 rate counted the `aria-hidden` twin as well and ran at half speed). Reduced
 motion = static line with at most a slow crossfade rotation: an overflowing
@@ -1344,9 +1356,11 @@ the ~1,100 colour transitions a flip started restyled the page every frame.
 The cut is lifted when the fade has finished: lifting it restyles every
 element, and at `ready` that landed inside the fade and stalled it.
 The lever's re-leaf lands in one frame. The fixtures it changes (the clock's
-gilt, the pilasters, the stage rule, the console's leaf) carry no colour
-transition: a fill fading on them re-rastered them on every frame of the
-throw, 70 ms a frame at 3440. The flip goes out first, and the lever and the
+gilt, the pilasters and the aisle walls, the marquee's channel, the frieze
+panels and the cornice, the stage rule, the console's leaf) carry no colour
+or filter transition: a fill fading on them re-rastered them on every frame
+of the throw, 70 ms a frame at 3440, and a room that eased half its gilt
+changed metal in two halves. The flip goes out first, and the lever and the
 arches start once it is on screen (`afterDrawn()`), so the sink is seen.
 Only the crossfade layers (the wordmark's nickel face, the crown) fade, by
 opacity. No universal `* { transition }`.
@@ -1396,8 +1410,12 @@ Motion setting collapse all of the above to fades/instant.
   speak their readings. English signage carries `lang="en"` in the Chinese
   hall.
 - Forced colours: every selected or lit state gets a Highlight border or
-  fill; the wall and floor keep their own colours. Readers who ask for more
-  contrast or less transparency get an opaque scrim.
+  fill; the wall and floor keep their own colours. The masthead's fascia and
+  the marquee's glass carry lettering, so they give way to the system's
+  Canvas and the words stand in CanvasText, with no backplate slabs on the
+  stone; the crown, the frieze panels, the medallions and the bulbs keep
+  their colours. Readers who ask for more contrast or less transparency get
+  an opaque scrim.
 - Chips radiogroup; lamps always carry text; AA contrast per the token
   matrix.
 

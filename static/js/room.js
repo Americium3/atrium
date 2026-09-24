@@ -784,9 +784,23 @@ function syncStreaks() {
     s.classList.toggle('on', g.classList.contains('active'));
   }
 }
+/* The niche's reflection in the wax stops where the runner begins: wool
+   gives back nothing (law 10). The runner's far end, its fringe included,
+   is read off a marker laid at the fringe's head in the runner's own plane,
+   so the floor's projection places it; the mirror's mask cuts there
+   (AR-23). */
+function cutMirror(fp) {
+  var clock = $('#clock'), mir = clock && $('.ck-mirror', clock), rug = $('.fl-runner', fp);
+  if (!mir || !rug) return;
+  var mark = $('.rn-far', rug);
+  if (!mark) { mark = el('i', 'rn-far'); mark.setAttribute('aria-hidden', 'true'); rug.appendChild(mark); }
+  var v = f2(Math.max(0, mark.getBoundingClientRect().top - mir.getBoundingClientRect().top)) + 'px';
+  if (clock.style.getPropertyValue('--cm-runner') !== v) clock.style.setProperty('--cm-runner', v);
+}
 function layoutFloor() {
   var fp = $('#floorplane');
   if (!fp) return;
+  cutMirror(fp);
   var host = $('.fl-streaks', fp);
   if (!host) {
     host = el('div', 'fl-streaks');

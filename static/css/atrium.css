@@ -249,6 +249,10 @@
      largest arch that still leaves the lever its floor under the stage. */
   --gate-w: clamp(182px, min(13.6vw, 26.5vh, var(--gate-vcap, 100vh)),
                   calc(296px * (0.62 + 0.38 * var(--ui))));
+  /* The same module with no vertical cap: the arch as it would stand if the
+     floor asked nothing of the height. budgetHall() gives a tall screen's
+     surplus to the wall from it (LY-9); registered, so it reads back as px. */
+  --gate-free: clamp(182px, min(13.6vw, 26.5vh), calc(296px * (0.62 + 0.38 * var(--ui))));
   --desk-h: 210px;         /* the signal desk's own standing height */
   --hall-foot: 30px;       /* #hall's bottom padding, shared with the floor */
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
@@ -272,6 +276,7 @@
    "calc(var(--ui-auto) * var(--ui-user))" — which parseFloat reads as NaN,
    and every JS-side `* u` silently falls back to 1. */
 @property --ui { syntax: "<number>"; inherits: true; initial-value: 1; }
+@property --gate-free { syntax: "<length>"; inherits: true; initial-value: 0px; }
 :root { --ui-auto: 1; --ui-user: 1; --ui: calc(var(--ui-auto) * var(--ui-user)); }
 @media (min-width: 1900px) { :root { --ui-auto: 1.12; } }
 @media (min-width: 2400px) { :root { --ui-auto: 1.24; } }
@@ -452,7 +457,10 @@ html[lang="zh"] .display { letter-spacing: 0.26em; }
      as one building rather than a panel floated in a void. */
   max-width: min(3360px, 100%);
   margin: 0 auto;
-  padding: 20px clamp(24px, 2.4vw, 68px) var(--hall-foot);
+  /* The masthead's fascia reaches up through this padding to the top of the
+     screen, so it reads the same figure (VD-13). */
+  --hall-pad-top: 20px;
+  padding: var(--hall-pad-top) clamp(24px, 2.4vw, 68px) var(--hall-foot);
   /* The hall stands the full screen, and the concourse row eats whatever the
      masthead and ticker leave. Content-height alone left ~270px of page
      ground below the floor on a 1235px viewport — a bright dead band under
@@ -640,8 +648,10 @@ html[data-boot="suppressed"] #hall { animation: hall-fade 0.3s var(--ease-out) b
 }
 /* The hold for focus is for a keyboard reader. A mouse click also parks
    focus on the band, and :focus-within kept it frozen, with no ring to say
-   why, until the reader clicked somewhere else (PT-6). */
-#ticker.rolling:hover .t-track,
+   why, until the reader clicked somewhere else (PT-6). The hold for the
+   pointer is a mouse or a pen resting on the band (data-reader, app.js),
+   not :hover, which a tap leaves stuck on the band (PT-12). */
+#ticker.rolling[data-reader] .t-track,
 #ticker.rolling:focus-visible .t-track { animation-play-state: paused; }
 #ticker.static { text-align: center; }
 @keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
@@ -965,8 +975,11 @@ html[data-boot="suppressed"] #signal-desk {
      take goes to the floor — and the floor was reading as the largest thing
      in the room. The room claims it back above 1080px of viewport and gives
      it to the wall and the two cases; below that the term is inert, so no
-     short screen inherits a taller hall than it can stand. */
-  --stage-h: calc(var(--gh2) + clamp(80px, calc(100vh - 1080px), 100px));
+     short screen inherits a taller hall than it can stand. On a 4:3 or
+     16:10 screen that 100px left the floor 42-43% of the height, so
+     budgetHall() in app.js writes --headroom, which also takes the surplus
+     down to about 31% (LY-9). The clamp is the term until it has run. */
+  --stage-h: calc(var(--gh2) + var(--headroom, clamp(80px, calc(100vh - 1080px), 100px)));
   --pad-top: 16px;
   /* Only the RESERVATION. The concourse is the hall's 1fr row, so on any
      screen with room to spare the floor simply takes everything under the
@@ -2391,7 +2404,8 @@ html[lang="zh"] .g-name { letter-spacing: 0.17em; }
    They used to fade with no delay over 0.35s, so an outer arch was still
    at 0.7 when it began to sink and an inner one still glowed when it had
    gone. */
-:root[data-theme="onyx"] .gate { --gate-dim: 120ms; }
+/* the fanlight's streak on the floor goes down on the same beat (room.js) */
+:root[data-theme="onyx"] :is(.gate, .st-fan) { --gate-dim: 120ms; }
 .gate .lit { opacity: 0; transition: opacity 0.35s ease; }
 .gate.receded .lit { transition: opacity var(--gate-dim, 0ms) ease-in var(--slot-delay, 0ms); }
 :root[data-theme="onyx"] .gate.active[data-state="open"] .lit {
@@ -3101,8 +3115,9 @@ html[lang="zh"] .g-name { letter-spacing: 0.17em; }
   :root {
     --gate-w: clamp(164px, min(13.6vw, 25vh, var(--gate-vcap, 100vh)),
                     calc(268px * (0.62 + 0.38 * var(--ui))));
+    --gate-free: clamp(164px, min(13.6vw, 25vh), calc(268px * (0.62 + 0.38 * var(--ui))));
   }
-  #hall { padding-top: 12px; }
+  #hall { --hall-pad-top: 12px; }
   #concourse { --floor-min: clamp(62px, 8vh, 210px); }
   /* And the machine comes down with it. It stands ON the stone, so once the
      floor is a band rather than a field the console has to fit inside that
@@ -3115,7 +3130,7 @@ html[lang="zh"] .g-name { letter-spacing: 0.17em; }
 }
 
 @media (max-width: 899px) {
-  #hall { padding: 16px 18px 40px; }
+  #hall { --hall-pad-top: 16px; padding: var(--hall-pad-top) 18px 40px; }
   :root { --gate-w: clamp(170px, 44vw, 230px); }
   #masthead { grid-template-columns: 36px 1fr auto; }
   .m-title h1 { font-size: calc(22px * var(--ui)); }
@@ -3393,14 +3408,16 @@ html[lang="zh"] .g-name { letter-spacing: 0.17em; }
 .sc-body .sc-rim { fill: var(--lead-2); }
 .sc-body .sc-mouth { fill: #ffe9c0; opacity: var(--lamp-on); }
 :root[data-theme="ivory"] .sc-body .sc-mouth { opacity: 1; fill: #d8cdb6; }
-/* The uplight: a scalloped wash on the damask, ribbed by the bowl's
-   fluting, brightest just above the rim and dying up the wall. */
+/* The uplight: one soft cone on the damask, brightest just above the rim
+   and dying up the wall. The bowl's fluting scallops it only where the
+   light leaves the rim (::before). Ribs cut hard at 4 on and 5 off ran the
+   full height of the wash, and it read as a sunburst printed on the wall
+   (AR-28). */
 .sc-pool {
   position: absolute; left: 50%; top: calc(-250px * var(--scu));
   width: calc(210px * var(--scu)); height: calc(280px * var(--scu));
   transform: translateX(-50%);
   background:
-    repeating-conic-gradient(from -70deg at 50% 100%, var(--wash-ray) 0 4deg, transparent 4deg 9deg),
     radial-gradient(46% 100% at 50% 100%, var(--wash) 0%, color-mix(in srgb, var(--wash) 35%, transparent) 38%, transparent 72%);
   /* The cut edge of an uplight's cone on a wall is a hyperbola: as narrow
      as the bowl at the rim, opening upward, soft at its penumbra and fading
@@ -3415,6 +3432,15 @@ html[lang="zh"] .g-name { letter-spacing: 0.17em; }
   mask-composite: intersect;
   mix-blend-mode: screen;
   pointer-events: none;
+}
+/* The scallops: a few soft lobes fanning from the rim, gone within a hand's
+   width of it (the lowest quarter of the wash), inside the cone's mask. */
+.sc-pool::before {
+  content: ""; position: absolute; inset: 0;
+  background: repeating-conic-gradient(from -70deg at 50% 100%, transparent 0deg, color-mix(in srgb, var(--wash-ray) 40%, var(--wash)) 6deg, transparent 12deg);
+  -webkit-mask-image: linear-gradient(to top, rgba(0, 0, 0, 0.8) 0%, rgba(0, 0, 0, 0.4) 12%, transparent 25%);
+  mask-image: linear-gradient(to top, rgba(0, 0, 0, 0.8) 0%, rgba(0, 0, 0, 0.4) 12%, transparent 25%);
+  filter: blur(calc(2px * var(--scu)));
 }
 .sc-down {
   position: absolute; left: 50%; top: calc(26px * var(--scu));
@@ -3460,7 +3486,7 @@ html[lang="zh"] .bay-plate { font-weight: 700; letter-spacing: 0.16em; }
     repeating-linear-gradient(0deg, var(--strip) 0 1.5px, var(--strip-lt) 1.5px 2.5px, transparent 2.5px 11.6%),
     var(--floor-img);
   background-size: 100% 100%, 100% 100%, 100% 100%, 100% 100%,
-    calc(var(--fh, 320px) * 0.36) calc(var(--fh, 320px) * 0.36);
+    calc(var(--fh, 320px) * 0.9) calc(var(--fh, 320px) * 0.9);
 }
 .fl-key { opacity: 0.55; }
 .fl-border { border-color: var(--stone-b); outline-color: color-mix(in srgb, var(--lead-2) 60%, transparent); }
@@ -3744,6 +3770,15 @@ html[lang="zh"] .bay-plate { font-weight: 700; letter-spacing: 0.16em; }
    quarter of the way to the ink: the body tone read at 2:1 in Ivory and all
    but vanished in the Bureau's nickel (LY-6). */
 :root[data-theme="ivory"] .ck-numq { fill: color-mix(in srgb, var(--lead-0) 75%, #22180c); }
+/* The quarters are gilt laid in a cut, and the cut's dark wall rings each
+   figure. At 1280 a numeral is 11.6px and its hairlines never fill a pixel,
+   so leaf alone read at 3.6-4.1:1 while the inked figures beside it held 7:1
+   (LY-6, still reproducing). The ring is a hairline in the ink at every
+   size, so the leaf still shows inside it on a large dial. */
+.ck-numq {
+  stroke: color-mix(in srgb, #22180c 85%, transparent); stroke-width: 1.4;
+  vector-effect: non-scaling-stroke; paint-order: stroke; stroke-linejoin: round;
+}
 .ck-subring { stroke: var(--lead-1); }
 .ck-subring2 { stroke: rgba(60, 40, 14, 0.35); }
 .cks.s0 { stop-color: rgba(60, 40, 10, 0); } .cks.s1 { stop-color: rgba(60, 40, 10, 0.34); }

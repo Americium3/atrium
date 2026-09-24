@@ -151,13 +151,30 @@
    the eight bevels in the wing's leaf, the shoulders and rivets cast with the
    case. The bezel is turned bronze with a knurl whose teeth take the light
    on the lamp side. */
-.ckc.s0 { stop-color: var(--sb-4); } .ckc.s1 { stop-color: var(--sb-2); } .ckc.s2 { stop-color: var(--sb-1); }
+/* The case's own ground: statuary bronze under wax is an even warm
+   brown-black, warmer than the niche's glazed frame (AR-29: the face read
+   as grey-brown, value 0.14 with black clouds, dusty cast iron). */
+:root[data-theme="onyx"] #clock { --ckc-0: #56361c; --ckc-1: #412815; --ckc-2: #2c1a0c; --cks-body: #6a4a2b; }
+:root[data-theme="ivory"] #clock { --ckc-0: #71492a; --ckc-1: #5a3b21; --ckc-2: #452c17; --cks-body: #8a643c; }
+.ckc.s0 { stop-color: var(--ckc-0); } .ckc.s1 { stop-color: var(--ckc-1); } .ckc.s2 { stop-color: var(--ckc-2); }
 .ck-case { stroke: var(--sb-0); }
 /* The face: cast statuary bronze (metal-bronze, multiplied over the ramp:
-   patina clouds, rubbed high spots, casting pits, a file grain), a warm
+   a shallow mottle, rubbed high spots, casting pits, a file grain), a warm
    lift toward the key light, and the band of reflected light that says it
-   is waxed metal and not a painted panel. */
-.ck-patina { fill: url(#ck-patina); mix-blend-mode: multiply; opacity: 0.92; pointer-events: none; }
+   is waxed metal and not a painted panel. The mottle is a few per cent: at
+   0.92 it laid 100px clouds of soot across the flat face. */
+.ck-patina { fill: url(#ck-patina); mix-blend-mode: multiply; opacity: 0.42; pointer-events: none; }
+/* The recesses keep the dark: a shade inside the bevel's foot, soft over
+   about thirty units, and a ring round the bezel. */
+.ck-recess { pointer-events: none; }
+.ck-rc { fill: none; stroke: #0e0703; }
+.ck-rc-a { stroke-width: 64; stroke-opacity: 0.12; }
+.ck-rc-b { stroke-width: 34; stroke-opacity: 0.16; }
+.ck-rc-c { stroke-width: 12; stroke-opacity: 0.24; }
+.ckz.s0 { stop-color: #0e0703; stop-opacity: 0; } .ckz.s1 { stop-color: #0e0703; stop-opacity: 0.55; }
+.ckz.s2 { stop-color: #0e0703; stop-opacity: 0.1; } .ckz.s3 { stop-color: #0e0703; stop-opacity: 0; }
+:root[data-theme="ivory"] .ck-rc { stroke: #24160a; }
+:root[data-theme="ivory"] .ckz.s1 { stop-color: #24160a; stop-opacity: 0.42; }
 .ck-lift, .ck-sheen { pointer-events: none; }
 .cks2.s0 { stop-color: #ffe6b8; stop-opacity: 0; }
 .cks2.s1 { stop-color: #ffe6b8; stop-opacity: 0.2; }
@@ -181,16 +198,18 @@
 /* The casting and its wear over the patina: a signed tile in plain alpha,
    darkening the islands and the pits and lifting the rubbed patches, so the
    face reads as cast metal, not a painted plate (AR-7). */
-.ck-cast { fill: url(#ck-cast); opacity: 0.72; pointer-events: none; }
+.ck-cast { fill: url(#ck-cast); opacity: 0.3; pointer-events: none; }
 /* The stepped shoulders under each diagonal bevel, cast with the case: a
-   shadow down and right, the relief body in the same patina, and each edge
-   lit, mid or dark by the way it faces the key. The edges toward the lamp
-   are rubbed bright, as the high spots of a handled bronze are. */
-.ck-sho-sh { fill: rgba(0, 0, 0, 0.55); }
-.ck-sho { fill: var(--sb-2); }
-.ck-sho-tex { fill: url(#ck-cast); opacity: 0.72; }
-.ck-sho-e-lt { fill: color-mix(in srgb, var(--sb-3) 65%, #ffe6b8); }
-.ck-sho-e-md { fill: var(--sb-4); }
+   soft shadow down and right on the face, the relief body a step lighter
+   and warmer than the face with its own light, and each riser lit, mid or
+   dark by the way it faces the key. The risers toward the lamp are rubbed
+   bright and warm, as the high spots of a handled bronze are. */
+.ck-sho-sh { fill: rgba(0, 0, 0, 0.5); }
+.ck-sho { fill: var(--cks-body); }
+.ck-sho-tex { fill: url(#ck-cast); opacity: 0.3; }
+.ckh.s0 { stop-color: #ffd9a0; stop-opacity: 0.2; } .ckh.s1 { stop-color: #000; stop-opacity: 0.14; }
+.ck-sho-e-lt { fill: color-mix(in srgb, var(--sb-3) 60%, #ffdca0); }
+.ck-sho-e-md { fill: var(--sb-5); }
 .ck-sho-e-dk { fill: var(--sb-0); }
 /* The bevel's arrises: the crest where each plane leaves the face and the
    lip where it drops to the case side, lit or in shade by the plane's angle,
@@ -220,20 +239,42 @@
    and the dial's light, whose centre stands the sill and half the dial
    above the floor line. Its sides fade into the wax the way a reflection's
    do; cut square, they ran two hard vertical edges across the medallion,
-   like a strip of paper laid on the floor (AR-8). */
+   like a strip of paper laid on the floor (AR-8).
+   It lies in the floor, so it is foreshortened as the portals' smears are
+   (--cm-k), its dial an ellipse with a soft rim broken by the wax's
+   ripple, and it stops where the runner begins (--cm-runner, the runner's
+   far end below the mirror's head, from room.js): wool gives back nothing.
+   Drawn upright it was a hard-rimmed cream disc 430px across on the red
+   runner behind the desk, a spotlight on the carpet (AR-23). The mask is
+   in the layer's own units, so the cut is divided by the squash. */
 .ck-mirror {
+  --cm-k: 0.36;
+  transform: scaleY(var(--cm-k)); transform-origin: 50% 0;
+  filter: blur(3px);
   background:
     linear-gradient(180deg, var(--cm-sill-c) 0, var(--cm-sill-c) calc(var(--cm-sill) - 3px), var(--sb-3) calc(var(--cm-sill) - 3px), var(--sb-1) var(--cm-sill), transparent var(--cm-sill)),
-    radial-gradient(circle calc(var(--dial) * 0.43) at 50% calc(var(--sill) + var(--dial) * 0.5), var(--cm-dial) 0 94%, var(--sb-2) 96%, transparent 100%),
+    radial-gradient(circle calc(var(--dial) * 0.43) at 50% calc(var(--sill) + var(--dial) * 0.5), var(--cm-dial) 0 84%, color-mix(in srgb, var(--cm-dial) 45%, var(--sb-2)) 92%, transparent 99%),
     linear-gradient(90deg, var(--nf-l) 0 calc(var(--st) * 3), var(--cm-back) calc(var(--st) * 3) calc(100% - var(--st) * 3), var(--nf-r) calc(100% - var(--st) * 3));
   -webkit-mask-image:
     linear-gradient(180deg, rgba(0, 0, 0, 0.95), rgba(0, 0, 0, 0.6) 20%, rgba(0, 0, 0, 0.3) 50%, transparent 76%),
-    linear-gradient(90deg, transparent, #000 16%, #000 84%, transparent);
+    linear-gradient(90deg, transparent, #000 16%, #000 84%, transparent),
+    repeating-linear-gradient(180deg, #000 0 calc(15px * var(--ui)), rgba(0, 0, 0, 0.5) calc(21px * var(--ui)), #000 calc(27px * var(--ui))),
+    linear-gradient(180deg, #000 calc(var(--cm-runner, 100vh) / var(--cm-k) - 30px), transparent calc(var(--cm-runner, 100vh) / var(--cm-k)));
   -webkit-mask-composite: source-in;
   mask-image:
     linear-gradient(180deg, rgba(0, 0, 0, 0.95), rgba(0, 0, 0, 0.6) 20%, rgba(0, 0, 0, 0.3) 50%, transparent 76%),
-    linear-gradient(90deg, transparent, #000 16%, #000 84%, transparent);
+    linear-gradient(90deg, transparent, #000 16%, #000 84%, transparent),
+    repeating-linear-gradient(180deg, #000 0 calc(15px * var(--ui)), rgba(0, 0, 0, 0.5) calc(21px * var(--ui)), #000 calc(27px * var(--ui))),
+    linear-gradient(180deg, #000 calc(var(--cm-runner, 100vh) / var(--cm-k) - 30px), transparent calc(var(--cm-runner, 100vh) / var(--cm-k)));
   mask-composite: intersect;
+}
+/* The marker room.js reads the runner's far end from: the head of its
+   fringe, laid in the runner's own plane so the floor's projection places
+   it. */
+.rn-far {
+  position: absolute; left: 50%; top: calc(var(--fh, 320px) * -0.085);
+  width: 1px; height: 1px;
+  visibility: hidden; pointer-events: none;
 }
 :root[data-theme="onyx"] #clock { --cm-back: #120b05; --cm-sill-c: #0a0807; }
 /* By day the floor gives back only the gilt and the screen (law 10), as
@@ -244,7 +285,7 @@
   opacity: calc(var(--mirror-a) * 1.5);
   background:
     linear-gradient(180deg, transparent calc(var(--cm-sill) - 3px), var(--lead-3) calc(var(--cm-sill) - 3px), var(--lead-1) var(--cm-sill), transparent var(--cm-sill)),
-    radial-gradient(circle calc(var(--dial) * 0.43) at 50% calc(var(--sill) + var(--dial) * 0.5), var(--cm-dial) 0 94%, var(--lead-2) 96%, transparent 100%),
+    radial-gradient(circle calc(var(--dial) * 0.43) at 50% calc(var(--sill) + var(--dial) * 0.5), var(--cm-dial) 0 84%, color-mix(in srgb, var(--cm-dial) 45%, var(--lead-2)) 92%, transparent 99%),
     linear-gradient(90deg, transparent calc(var(--st) * 2.2), var(--lead-2) calc(var(--st) * 2.2) calc(var(--st) * 2.65), transparent calc(var(--st) * 2.65) calc(100% - var(--st) * 2.65), var(--lead-2) calc(100% - var(--st) * 2.65) calc(100% - var(--st) * 2.2), transparent calc(100% - var(--st) * 2.2));
 }
 

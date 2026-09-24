@@ -207,48 +207,74 @@ def travertine(n=1024):
 
 
 def terrazzo(n=1024, dark=True):
-    """Terrazzo: a cement matrix with crushed marble at three sizes. Chips
-    are angular (crushed stone has faces, not petals), drawn at 2x and
-    downsampled for clean edges, and every chip near an edge is drawn again
-    one tile over so the tile wraps."""
+    """Terrazzo as it is poured, ground and waxed: mostly aggregate. Chips of
+    marble in several stones and four sizes cover about half the face, cut
+    flat by the grinding so each shows its own colour and figure, with a few
+    glassy chips (mother-of-pearl, amber glass) that catch a pin of light.
+    The cement shows only between them. Sizes run from fines to chips a
+    fiftieth of the tile, drawn smallest first so the big chips lie over
+    the small ones as a cut section does. It was about 7% scattered flecks
+    on a flat ground and read as a speckled laminate (AR-30). Drawn at 2x
+    and downsampled for clean edges, and wrapped so the tile repeats. Sizes
+    are given for a 1024 tile and scale with n; the floor lays it at 0.9 of
+    its own height, so 512 is already finer than the screen shows."""
     from PIL import ImageDraw
     rng = np.random.default_rng(51 if dark else 52)
     matrix = fbm(n, 53, 2.0) * 0.7 + fbm(n, 54, 0.7) * 0.3
     if dark:
-        base = ramp(matrix, [(0, (18, 16, 13)), (1, (36, 32, 27))])
-        palette = [(70, 62, 50), (112, 98, 74), (44, 40, 35), (150, 128, 86),
-                   (88, 80, 68), (128, 118, 104), (60, 50, 40)]
+        base = ramp(matrix, [(0, (22, 20, 17)), (1, (38, 34, 29))])
+        # nero, bardiglio grey, travertine, giallo siena, statuary white, levanto red
+        stones = [((10, 9, 8), 0.24), ((50, 46, 41), 0.22), ((88, 78, 62), 0.18),
+                  ((132, 110, 70), 0.12), ((150, 144, 132), 0.12), ((70, 32, 28), 0.12)]
+        glass = [(196, 186, 160), (170, 120, 60)]
     else:
-        base = ramp(matrix, [(0, (210, 203, 188)), (1, (232, 226, 214))])
-        palette = [(172, 162, 142), (146, 134, 112), (194, 186, 168), (124, 110, 88),
-                   (206, 194, 168), (160, 156, 148), (184, 170, 140)]
+        base = ramp(matrix, [(0, (204, 197, 182)), (1, (222, 216, 203))])
+        # carrara white, bardiglio grey, siena, verona rose, dark grey, cream
+        stones = [((238, 235, 226), 0.26), ((170, 164, 152), 0.2), ((200, 172, 128), 0.16),
+                  ((196, 150, 132), 0.14), ((126, 120, 110), 0.12), ((226, 210, 174), 0.12)]
+        glass = [(236, 232, 222), (200, 150, 84)]
+    cols = np.array([c for c, _ in stones], dtype=np.float64)
+    wts = np.array([w for _, w in stones])
+    wts = wts / wts.sum()
     S = 2
     img = Image.fromarray(np.clip(base, 0, 255).astype(np.uint8), "RGB").resize((n * S, n * S))
     d = ImageDraw.Draw(img)
-    for cell, rmin, rmax, skip in ((72, 7, 15, 0.30), (30, 2.8, 6.0, 0.15), (12, 0.9, 2.2, 0.10)):
-        for gy in range(0, n, cell):
-            for gx in range(0, n, cell):
-                if rng.random() < skip:
-                    continue
-                cx = gx + rng.uniform(0, cell)
-                cy = gy + rng.uniform(0, cell)
-                r = rng.uniform(rmin, rmax)
-                k = int(rng.integers(5, 9))
-                angs = np.sort(rng.uniform(0, 2 * np.pi, k))
-                rad = r * rng.uniform(0.55, 1.15, k)
-                col = np.array(palette[rng.integers(len(palette))], dtype=np.float64)
-                col = tuple(int(c) for c in np.clip(col * rng.uniform(0.82, 1.15), 0, 255))
-                for ox in (-n, 0, n):
-                    for oy in (-n, 0, n):
-                        px = cx + ox
-                        py = cy + oy
-                        if px + r < -2 or px - r > n + 2 or py + r < -2 or py - r > n + 2:
-                            continue
-                        pts = [((px + rr * np.cos(t)) * S, (py + rr * np.sin(t)) * S)
-                               for rr, t in zip(rad, angs)]
-                        d.polygon(pts, fill=col)
+    glints = []
+    # (count, rmin, rmax): fines, small, medium, large; about half the face
+    for count, rmin, rmax in ((26000, 0.9, 1.9), (11000, 2.2, 4.5), (3800, 5.0, 10.0), (950, 11.0, 21.0)):
+        for _ in range(count):
+            cx, cy = rng.uniform(0, n, 2)
+            r = rng.uniform(rmin, rmax) * n / 1024
+            k = int(rng.integers(5, 9))
+            angs = np.sort(rng.uniform(0, 2 * np.pi, k))
+            rad = r * rng.uniform(0.55, 1.1, k)
+            sq = rng.uniform(0.6, 1.0)
+            if rng.random() < 0.025:
+                col = np.array(glass[rng.integers(len(glass))], dtype=np.float64)
+                if r > 3:
+                    glints.append((cx - r * 0.3, cy - r * 0.3, max(0.7, r * 0.18)))
+            else:
+                col = cols[rng.choice(len(cols), p=wts)]
+            col = tuple(int(c) for c in np.clip(col * rng.uniform(0.88, 1.12), 0, 255))
+            for ox in (-n, 0, n):
+                for oy in (-n, 0, n):
+                    px, py = cx + ox, cy + oy
+                    if px + r < -2 or px - r > n + 2 or py + r < -2 or py - r > n + 2:
+                        continue
+                    d.polygon([((px + rr * np.cos(t)) * S, (py + rr * np.sin(t) * sq) * S)
+                               for rr, t in zip(rad, angs)], fill=col)
+    for gx, gy, gr in glints:
+        for ox in (-n, 0, n):
+            for oy in (-n, 0, n):
+                px, py = gx + ox, gy + oy
+                if -2 < px < n + 2 and -2 < py < n + 2:
+                    d.ellipse([(px - gr) * S, (py - gr) * S, (px + gr) * S, (py + gr) * S], fill=(255, 252, 240))
     img = img.resize((n, n), Image.LANCZOS)
-    return np.asarray(img, dtype=np.float64)
+    rgb = np.asarray(img, dtype=np.float64)
+    # each stone has its own figure under the grinding: a fine mottle over
+    # all of it, so no chip is a flat vector fill
+    fig = fbm(n, 55, 0.9) - 0.5
+    return rgb * (1 + fig * 0.10)[..., None]
 
 
 # ---------------------------------------------------------------- veneers
@@ -471,18 +497,20 @@ def damask(w=256, h=384, seed=131):
     return np.clip(lum, 0, 1)
 
 
-def _height_to_rgb(hgt, light, albedo_lo, albedo_hi, glaze, ambient, gain, spec=0.0):
+def _height_to_rgb(hgt, light, albedo_lo, albedo_hi, glaze, ambient, gain, spec=0.0, px=1.0):
     """Relight a heightmap: lambert along `light` (x right, y DOWN, z out),
-    occlusion from a blurred copy, gilt glazed dark in the recesses."""
+    occlusion from a blurred copy, gilt glazed dark in the recesses. `px` is
+    the bake's pixels per design unit, so a tile baked at 2x lights the same
+    as its 1x original."""
     from scipy.ndimage import gaussian_filter
-    gy, gx = np.gradient(hgt)
+    gy, gx = np.gradient(hgt, 1.0 / px)
     nx, ny, nz = -gx * 6, -gy * 6, np.ones_like(hgt)
     nn = np.sqrt(nx * nx + ny * ny + nz * nz)
     nx, ny, nz = nx / nn, ny / nn, nz / nn
     L = np.array(light, dtype=np.float64)
     L /= np.linalg.norm(L)
     lam = np.clip(nx * L[0] + ny * L[1] + nz * L[2], 0, 1)
-    occ = np.clip(1 - (gaussian_filter(hgt, 6, mode="wrap") - hgt) * 3.0, 0.35, 1)
+    occ = np.clip(1 - (gaussian_filter(hgt, 6 * px, mode="wrap") - hgt) * 3.0, 0.35, 1)
     # half vector with the viewer straight on: a tight highlight on the crests
     Hh = L + np.array([0, 0, 1.0])
     Hh /= np.linalg.norm(Hh)
@@ -583,33 +611,81 @@ def mirror_antique(n=512, seed=141):
 
 
 def mosaic_gold(n=512, cell=16, seed=151):
-    """Gold smalti: every tessera is set at its own tilt, so each takes the
-    light differently. Colour, glazed dark in the joints."""
+    """Gold smalti, set by hand: courses of uneven height, each tessera its
+    own width (about a quarter either way), a hair out of square and turned
+    a few degrees, its glass anywhere from pale gold to amber, and set at
+    its own tilt so each takes the light differently; one in fifteen tilted
+    toward the lamp throws a glint. Dark grout in the joints, a lit arris on
+    the upper left of each. It was a machine grid at exactly 16px with every
+    row offset 7.5px, and in the niche's corners it read as a tile sheet or
+    a grate (AR-34). Drawn at 2x as an id map, coloured per tessera, and
+    wrapped in both directions."""
+    from PIL import ImageDraw
+    from scipy.ndimage import gaussian_filter
     rng = np.random.default_rng(seed)
-    cols = n // cell
-    y, x = np.mgrid[0:n, 0:n]
-    # rows are laid in courses offset by half a cell, the way mosaicists lay
-    row = y // cell
-    xo = (x + (row % 2) * cell // 2) % n
-    col = xo // cell
-    tid = (row * cols + col) % (cols * cols)
-    tone = rng.uniform(0.55, 1.25, cols * cols)
-    hue = rng.uniform(-1, 1, cols * cols)
-    tilt = rng.uniform(-1, 1, (cols * cols, 2))
-    t = tone[tid]
-    h = hue[tid]
-    lx = (xo % cell) / cell - 0.5
-    ly = (y % cell) / cell - 0.5
-    face = 1 + (lx * tilt[tid, 0] + ly * tilt[tid, 1]) * 0.35
-    gold = np.stack([196 + h * 10, 150 + h * 6, 70 - h * 8], -1)
-    rgb = gold * (t * face)[..., None]
-    # joints
-    gap = (np.minimum(np.abs(lx), np.abs(ly)) < 0) | (np.abs(lx) > 0.42) | (np.abs(ly) > 0.42)
-    rgb = np.where(gap[..., None], np.array([38, 28, 16]), rgb)
-    # a lit arris on the upper-left of every tessera
-    arr = ((lx < -0.30) & (lx > -0.42)) | ((ly < -0.30) & (ly > -0.42))
-    rgb = np.where((arr & ~gap)[..., None], rgb * 1.18, rgb)
-    return rgb
+    S = 2
+    N = n * S
+    rows = np.maximum(rng.normal(cell, cell * 0.14, n // cell), cell * 0.7)
+    rows = rows / rows.sum() * n
+    ids = Image.new("I", (N, N), 0)
+    d = ImageDraw.Draw(ids)
+    cx_l, cy_l, sz_l = [], [], []
+    y0 = 0.0
+    for rh in rows:
+        widths = np.maximum(rng.normal(cell, cell * 0.25, int(n / cell * 1.2)), cell * 0.55)
+        k = int(np.searchsorted(np.cumsum(widths), n)) + 1
+        widths = widths[:k] / widths[:k].sum() * n
+        x0 = rng.uniform(0, n)
+        for tw in widths:
+            g = rng.uniform(1.4, 2.4)
+            w2, h2 = (tw - g) / 2, (rh - g) / 2
+            cx, cy = x0 + tw / 2, y0 + rh / 2 + rng.uniform(-0.6, 0.6)
+            ang = np.radians(rng.normal(0, 3.2))
+            ca, sa = np.cos(ang), np.sin(ang)
+            corners = [(-w2, -h2), (w2, -h2), (w2, h2), (-w2, h2)]
+            pts = []
+            for px, py in corners:
+                px += rng.uniform(-0.7, 0.7)
+                py += rng.uniform(-0.7, 0.7)
+                pts.append((px * ca - py * sa, px * sa + py * ca))
+            tid = len(cx_l) + 1
+            cx_l.append(cx % n)
+            cy_l.append(cy % n)
+            sz_l.append(max(tw, rh))
+            for ox in (-n, 0, n):
+                for oy in (-n, 0, n):
+                    X, Y = cx + ox, cy + oy
+                    if X + tw < 0 or X - tw > n or Y + rh < 0 or Y - rh > n:
+                        continue
+                    d.polygon([((X + px) * S, (Y + py) * S) for px, py in pts], fill=tid)
+            x0 += tw
+        y0 += rh
+    idm = np.asarray(ids, dtype=np.int64)
+    T = len(cx_l)
+    cxa = np.array([0.0] + cx_l) * S
+    cya = np.array([0.0] + cy_l) * S
+    sza = np.array([1.0] + sz_l) * S
+    hue = rng.uniform(0, 1, T + 1)                       # 0 pale gold .. 1 amber
+    tone = rng.uniform(0.72, 1.12, T + 1)
+    tilt = rng.normal(0, 1, (T + 1, 2))
+    glint = rng.random(T + 1) < 1 / 15
+    tone[glint] = rng.uniform(1.18, 1.32, glint.sum())
+    tilt[glint] = [-0.9, -1.1]                            # toward the lamp, up and left
+    yy, xx = np.mgrid[0:N, 0:N].astype(np.float64)
+    dx = (xx - cxa[idm] + N / 2) % N - N / 2
+    dy = (yy - cya[idm] + N / 2) % N - N / 2
+    face = 1 + (dx * tilt[idm, 0] + dy * tilt[idm, 1]) / sza[idm] * 0.32
+    pale, gold, amber = np.array([222, 186, 112.0]), np.array([200, 152, 70.0]), np.array([176, 112, 42.0])
+    h = hue[idm][..., None]
+    glass = np.where(h < 0.5, pale + (gold - pale) * (h / 0.5), gold + (amber - gold) * ((h - 0.5) / 0.5))
+    rgb = glass * (tone[idm] * face)[..., None]
+    # a lit arris on the upper left of every tessera, where it meets grout
+    edge = (idm > 0) & ((np.roll(idm, 3, 0) != idm) | (np.roll(idm, 3, 1) != idm))
+    rgb = np.where(edge[..., None], rgb * 1.16, rgb)
+    grout = np.array([38, 28, 16.0]) * (0.85 + 0.3 * gaussian_filter(rng.random((N, N)), 3, mode="wrap")[..., None] * 2)
+    rgb = np.where((idm > 0)[..., None], rgb, grout)
+    img = Image.fromarray(np.clip(rgb, 0, 255).astype(np.uint8), "RGB").resize((n, n), Image.LANCZOS)
+    return np.asarray(img, dtype=np.float64)
 
 
 def _pile(h, w, seed, pitch=8):
@@ -643,25 +719,27 @@ def _pile(h, w, seed, pitch=8):
     return tuft * (1 + lay * 0.16 + fuzz * 0.20)
 
 
-def _wool(rgb, ground, seed):
+def _wool(rgb, ground, seed, pitch=8, soft=1.3, wander=3.0):
     """Turn a drawn pattern into wool. A knotted pile cannot hold a vector
     edge: the motif's edges are wandered a tuft's width by noise and
     softened, its contrast against the ground is taken down by a third (a
     dyed yarn is never as far from its neighbour as a printed ink), and the
-    pile is laid over all of it."""
+    pile is laid over all of it. pitch, soft and wander are in the tile's
+    own pixels: a tile laid denser on the floor takes them larger, so its
+    weave and its softness match the field's on screen."""
     from scipy.ndimage import gaussian_filter, map_coordinates
     h, w = rgb.shape[:2]
     n = max(h, w)
     yy, xx = np.mgrid[0:h, 0:w].astype(np.float64)
-    wx = (fbm(n, seed + 3, 1.2)[:h, :w] - 0.5) * 3.0
-    wy = (fbm(n, seed + 4, 1.2)[:h, :w] - 0.5) * 3.0
+    wx = (fbm(n, seed + 3, 1.2)[:h, :w] - 0.5) * wander
+    wy = (fbm(n, seed + 4, 1.2)[:h, :w] - 0.5) * wander
     out = np.empty_like(rgb)
     for c in range(3):
         out[..., c] = map_coordinates(rgb[..., c], [yy + wy, xx + wx], order=1, mode="grid-wrap")
-    out = gaussian_filter(out, (1.3, 1.3, 0), mode="wrap")
+    out = gaussian_filter(out, (soft, soft, 0), mode="wrap")
     g = np.array(ground, dtype=np.float64)[None, None, :]
     out = g + (out - g) * 0.68
-    return out * _pile(h, w, seed + 5)[..., None]
+    return out * _pile(h, w, seed + 5, pitch)[..., None]
 
 
 def carpet_fringe(w=96, h=48, seed=181):
@@ -748,28 +826,31 @@ def carpet(n=512, seed=161):
     return _wool(rgb, CLARET, seed)
 
 
-def carpet_border(w=96, h=384, seed=171):
-    """The runner's border: black, a gold stepped zigzag and a claret guard,
-    running along y (the carpet's length)."""
-    from PIL import ImageDraw
-    S = 4
-    img = Image.new("RGB", (w * S, h * S), (22, 12, 12))
-    d = ImageDraw.Draw(img)
-    GOLD, OLD, CLARET = (196, 150, 70), (140, 98, 42), (112, 22, 30)
-    d.rectangle([0, 0, 10 * S, h * S], fill=CLARET)
-    d.rectangle([(w - 10) * S, 0, w * S, h * S], fill=CLARET)
-    d.rectangle([13 * S, 0, 16 * S, h * S], fill=OLD)
-    d.rectangle([(w - 16) * S, 0, (w - 13) * S, h * S], fill=OLD)
-    step = h / 8
-    for k in range(-1, 9):
-        y0 = k * step
-        pts = []
-        for j in range(5):
-            pts += [(28 + j * 10, y0 + j * step / 5), (28 + j * 10, y0 + (j + 1) * step / 5)]
-        pts += [(w - 28 - j * 10, y0 + step / 2 + (j + 1) * step / 5) for j in range(4, -1, -1)]
-        d.line([(px * S, py * S) for px, py in pts], fill=GOLD, width=int(3.2 * S))
-    rgb = np.asarray(img.resize((w, h), Image.LANCZOS), dtype=np.float64)
-    return _wool(rgb, (22, 12, 12), seed)
+def carpet_border(w=384, h=768, seed=171):
+    """The runner's border, running along y (the carpet's length): a claret
+    guard at each selvedge, an old-gold stripe inside it, and on the black
+    field a stepped chevron in gold, woven square to the weave, with a thin
+    claret chevron between each pair. Three yarns and the black.
+    It was 96px wide and drawn 2.1x up at 3440, soft next to the field, and
+    its gold zigzag wandered like a scribble (AR-35). At 384 the border is
+    laid about four texels to a plane pixel where the field is laid at about
+    two and a quarter, so it is woven at twice the field's pile pitch and
+    softened in proportion, to match the field's weave on screen."""
+    BLACK, GOLD, OLD, CLARET = (22, 12, 12), (196, 150, 70), (150, 106, 46), (112, 22, 30)
+    y, x = np.mgrid[0:h, 0:w].astype(np.float64) + 0.5
+    rgb = np.empty((h, w, 3))
+    rgb[:] = BLACK
+    ax = np.abs(x - w / 2)                        # across the band from its middle
+    rgb[ax > w * 0.406] = CLARET                  # the guards at the selvedges
+    rgb[(ax > w * 0.344) & (ax <= w * 0.375)] = OLD
+    field = ax <= w * 0.344
+    P = h / 4                                     # four chevrons to the tile
+    step = w * 0.0573                             # a stepped arm, square to the weave
+    q = np.floor(ax / step) * step
+    ph = (y - q * 0.9) % P
+    rgb[field & (ph < P * 0.135)] = GOLD
+    rgb[field & (np.abs(ph - P * 0.5) < P * 0.056)] = CLARET
+    return _wool(rgb, BLACK, seed, pitch=16, soft=2.3, wander=5.2)
 
 
 PALACE = [
@@ -790,8 +871,8 @@ BAKES = [
     ("stone-calacatta", calacatta, "rgb"),
     ("stone-rouge", rouge, "rgb"),
     ("stone-travertine", travertine, "rgb"),
-    ("terrazzo-onyx", lambda: terrazzo(1024, True), "rgb"),
-    ("terrazzo-ivory", lambda: terrazzo(1024, False), "rgb"),
+    ("terrazzo-onyx", lambda: terrazzo(512, True), "rgb"),
+    ("terrazzo-ivory", lambda: terrazzo(512, False), "rgb"),
     ("veneer-macassar", macassar, "rgb"),
     ("veneer-walnut", walnut, "rgb"),
     ("veneer-ash", ash, "rgb"),
