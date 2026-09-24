@@ -444,3 +444,37 @@ html[lang="zh"] .g-lamp { letter-spacing: 0.2em; }
 :root[data-theme="ivory"] .gate[data-glass="aqua"]    { --glass-day: #bdcbbd; }
 /* The floor gives the house back as its shadowed body, not its lit crest. */
 .mirror-art .mr-house { fill: color-mix(in srgb, var(--velvet) 42%, #000); }
+
+/* ==========================================================================
+   FOCUS: THE ARCH'S MARQUEE
+   ==========================================================================
+   Keyboard focus traces the outer arch, five units out from the arris: a
+   dark bed, a lit core over it and, at night, a string of bulbs riding the
+   core like the marquee's. By day a cream bed and an oxblood core, the
+   rope's colour, which stands off both the gilt and the cream wall. Thick
+   enough to see from across the room in both themes. */
+:root[data-theme="onyx"] .gate { --focus-bed: rgba(6, 4, 2, 0.82); --focus-core: #ffdf9a; --focus-bulb: #fffbf0; }
+:root[data-theme="ivory"] .gate { --focus-bed: rgba(255, 252, 244, 0.95); --focus-core: #7a1a16; --focus-bulb: transparent; }
+.portal .p-focus-g { opacity: 0; transition: opacity 0.16s ease; pointer-events: none; }
+.gate:focus-visible .p-focus-g { opacity: 1; }
+.portal .p-focus-bed {
+  fill: none; stroke: var(--focus-bed); stroke-width: 12; stroke-linejoin: round;
+  /* the bulbs' own light on the wall round the arch, at night only */
+  filter: drop-shadow(0 0 3px var(--focus-glow));
+}
+.portal .p-focus { fill: none; stroke: var(--focus-core); stroke-width: 5; stroke-linejoin: round; opacity: 1; }
+.portal .p-focus-bulbs {
+  fill: none; stroke: var(--focus-bulb); stroke-width: 5.4;
+  stroke-linecap: round; stroke-dasharray: 0 11;
+}
+:root[data-theme="onyx"] .gate { --focus-glow: rgba(255, 196, 110, 0.55); }
+:root[data-theme="ivory"] .gate { --focus-glow: rgba(90, 20, 14, 0.25); }
+@media (forced-colors: active) {
+  .portal .p-focus-bed { stroke: Canvas; }
+  .portal .p-focus { stroke: Highlight; stroke-width: 4; }
+  .portal .p-focus-bulbs { display: none; }
+}
+/* The niche is scenery (the clock is aria-hidden and says the time in
+   text): under forced colours it keeps its own paint rather than being
+   redrawn as system lines. */
+@media (forced-colors: active) { .niche { forced-color-adjust: none; } }

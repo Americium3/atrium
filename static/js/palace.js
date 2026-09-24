@@ -456,10 +456,18 @@ function portal(gid, id) {
   // travels across the archivolts only, never the glass or the sign.
   defs += '<clipPath id="' + gid + '-gilt"><path d="' + ringD(bd[0], inner) + '"/></clipPath>';
   var sheen = '<g clip-path="url(#' + gid + '-gilt)"><rect class="p-sheen" x="-120" y="0" width="70" height="570"/></g>';
-  var focus = '<path class="p-focus" d="' + archD(bnd(-0.18, n)) + '"/>';
+  // Keyboard focus: the arch's own marquee comes up. A dark bed and a lit
+  // core trace the outer arris five units out, and at night a string of
+  // bulbs rides the core. It lies under the crest, so the crest still
+  // stands on the crown.
+  var ring = { x: X0 - 5, r: R0 + 5, ys: Y0 };
+  var focusD = archD(ring);
+  var focus = '<g class="p-focus-g"><path class="p-focus-bed" d="' + focusD + '"/>' +
+    '<path class="p-focus" d="' + focusD + '"/>' +
+    '<path class="p-focus-bulbs" d="' + focusD + '"/></g>';
 
   return '<defs>' + defs + '</defs>' + body + '<g class="lights">' + lights + '</g>' +
-    fan + transom + blocks + cart + crestG + plinth + sheen + focus;
+    fan + transom + blocks + cart + focus + crestG + plinth + sheen;
 }
 
 /* ---- the cartouche ------------------------------------------------------
