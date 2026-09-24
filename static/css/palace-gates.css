@@ -400,13 +400,13 @@ html[lang="zh"] .g-lamp { letter-spacing: 0.2em; }
 :root[data-theme="onyx"] .gate[data-velvet="emerald"]  { --velvet: #2c8a5a; }
 :root[data-theme="onyx"] .gate[data-velvet="sapphire"] { --velvet: #3f5d6e; }
 :root[data-theme="onyx"] .gate[data-velvet="plum"]     { --velvet: #92304c; }
-:root[data-theme="onyx"] .gate[data-velvet="peacock"]  { --velvet: #6d823e; }
+:root[data-theme="onyx"] .gate[data-velvet="peacock"]  { --velvet: #7f7d36; }
 :root[data-theme="onyx"] .gate[data-velvet="umber"]    { --velvet: #cf8b2b; }
 :root[data-theme="ivory"] .gate[data-velvet="claret"]   { --velvet: #c83a4a; }
 :root[data-theme="ivory"] .gate[data-velvet="emerald"]  { --velvet: #36906a; }
 :root[data-theme="ivory"] .gate[data-velvet="sapphire"] { --velvet: #56727f; }
 :root[data-theme="ivory"] .gate[data-velvet="plum"]     { --velvet: #9c4660; }
-:root[data-theme="ivory"] .gate[data-velvet="peacock"]  { --velvet: #7c8e52; }
+:root[data-theme="ivory"] .gate[data-velvet="peacock"]  { --velvet: #8e8c4a; }
 :root[data-theme="ivory"] .gate[data-velvet="umber"]    { --velvet: #cf9a44; }
 .g-tab {
   background:
