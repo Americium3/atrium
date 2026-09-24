@@ -1190,7 +1190,7 @@ window.Desk = {
     st.setProperty('--hb-h', BOX_H + 'px');
     st.setProperty('--sw-hx', n2(hp[0]) + 'px');
     st.setProperty('--sw-hy', n2(hp[1]) + 'px');
-    st.setProperty('--sw-arm', n2((XB1 + H_END + 4) * 1.06) + 'px');
+    st.setProperty('--sw-arm', n2((XB1 + H_END + 1) * 1.06) + 'px');
     st.setProperty('--sw-k', n2(SP));
     st.setProperty('--sw-mx', n2(mc[0]) + 'px');
     st.setProperty('--sw-my', n2(mc[1]) + 'px');
