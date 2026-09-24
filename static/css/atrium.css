@@ -2729,10 +2729,12 @@ html[lang="zh"] .g-name { letter-spacing: 0.17em; }
 /* Nothing to strike: inert, not gone. A control that vanishes when it has
    no work moves every other control on the drawer out from under the
    pointer, and comes back in a place the reader is no longer looking. */
-.l-stamp.inert {
-  opacity: 0.38;
-  cursor: default;
-}
+/* The stamp's works dim, not the button: at 38% on the whole button the
+   focus ring dimmed with it (2:1), and the stamp keeps focus when it goes
+   idle under the keyboard reader's own press. */
+.l-stamp > * { transition: opacity 0.25s; }
+.l-stamp.inert { cursor: default; }
+.l-stamp.inert > * { opacity: 0.38; }
 .l-stamp.inert:hover { color: var(--ink-faint); border-color: transparent; }
 
 .l-col { position: relative; padding-left: 44px; }

@@ -567,7 +567,7 @@ function card(li, id, host) {
   li.style.setProperty('--lean', f2((draw(seed, 1) - 0.5) * 0.7) + 'deg');
   li.style.setProperty('--stamp-rot', f2((draw(seed, 2) - 0.5) * 7) + 'deg');
   li.style.setProperty('--stamp-x', f2(draw(seed, 3) * 1.4) + 'em');
-  li.style.setProperty('--ink-a', f2(0.74 + draw(seed, 4) * 0.22));
+  li.style.setProperty('--ink-a', f2(0.92 + draw(seed, 4) * 0.08));
   li.style.setProperty('--stock', f2(draw(seed, 5)));
   li.style.setProperty('--clip-y', f2(18 + draw(seed, 6) * 24) + '%');
   var jewel = hx('span', 'pl-jewel');

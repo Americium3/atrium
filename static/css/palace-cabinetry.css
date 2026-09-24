@@ -648,21 +648,25 @@
    place a room really is behind a pane). Black lacquer by night, ivory
    lacquer by day, one wide reflection band, a lit leading edge. Down it
    runs the pneumatic main, a brass tube with lit collars, and on the main
-   hang the dispatches: programme cards in small gilt holders. */
+   hang the dispatches: programme cards in small gilt holders.
+   The inks are set by what the pixels measure, not by what the swatches
+   promise: Garamond's hairlines at 10 to 14px never reach full ink, and the
+   detail lines, the stamped ages and the chips printed at 2.4 to 3.5:1 in
+   inks that were 4.3:1 as colours. */
 :root[data-theme="onyx"] {
   --lq: #0b0908; --lq-2: #14100c; --lq-refl: rgba(255, 244, 222, 0.085); --lq-edge: rgba(255, 226, 170, 0.55);
-  --lq-ink: #e7dcc2; --lq-faint: #9a8b6c; --lq-gold: #d8b96c;
-  --card: #cdbd96; --card-2: #c2b087; --card-ink: #20170c; --card-faint: #5b4b33; --card-rule: rgba(80, 58, 28, 0.42);
-  --stamp-ink: #4d2f78;
+  --lq-ink: #e7dcc2; --lq-faint: #b9aa89; --lq-gold: #d8b96c;
+  --card: #d3c49d; --card-2: #c9b88e; --card-ink: #20170c; --card-faint: #2b2115; --card-rule: rgba(80, 58, 28, 0.42);
+  --stamp-ink: #2f1656;
   --jewel-0: #fffbe8; --jewel-1: #ffd98a; --jewel-2: #e0922e; --jewel-3: #6e3208;
   --jewel-glow: rgba(255, 200, 110, 0.75);
   --scrim-blur: 3px;
 }
 :root[data-theme="ivory"] {
   --lq: #e8e0cc; --lq-2: #ddd3bb; --lq-refl: rgba(255, 255, 255, 0.45); --lq-edge: rgba(255, 255, 255, 0.9);
-  --lq-ink: #221a10; --lq-faint: #6a5c44; --lq-gold: #7a5f1e;
-  --card: #f3e7c4; --card-2: #eadbb2; --card-ink: #1f170c; --card-faint: #5e4e36; --card-rule: rgba(90, 66, 30, 0.40);
-  --stamp-ink: #4a2c74;
+  --lq-ink: #221a10; --lq-faint: #3a2f1e; --lq-gold: #49360a;
+  --card: #f3e7c4; --card-2: #eadbb2; --card-ink: #1f170c; --card-faint: #3a2f1f; --card-rule: rgba(90, 66, 30, 0.40);
+  --stamp-ink: #321858;
   --jewel-0: #f6e3a8; --jewel-1: #d8b25a; --jewel-2: #a07a2a; --jewel-3: #5a420e;
   --jewel-glow: rgba(0, 0, 0, 0);
   --scrim-blur: 3px;
@@ -758,7 +762,7 @@
 .l-close-knob .k-cap { fill: var(--br-3); stroke: var(--br-0); stroke-width: 0.6; }
 .l-close-knob .k-ring { fill: none; stroke: var(--br-1); stroke-width: 0.8; }
 .l-close-knob .k-glint { fill: #fffbea; opacity: 0.7; }
-.l-close-cap { font-size: calc(9.5px * var(--ui)); letter-spacing: 0.22em; margin-right: -0.22em; text-transform: uppercase; white-space: nowrap; }
+.l-close-cap { font-size: max(10px, calc(10px * var(--ui))); letter-spacing: 0.22em; margin-right: -0.22em; text-transform: uppercase; white-space: nowrap; }
 .l-close:hover { color: var(--lq-gold); }
 .l-close:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
 .l-close svg { transition: transform 0.14s var(--ease-out); }
@@ -774,7 +778,7 @@
 }
 #ledger .chip {
   position: relative;
-  font-size: calc(10px * var(--ui));
+  font-size: max(10px, calc(10px * var(--ui)));
   letter-spacing: 0.2em;
   white-space: nowrap;
   padding: calc(5px * var(--ui)) calc(12px * var(--ui)) calc(4px * var(--ui));
@@ -838,7 +842,8 @@
 .l-stamp:active .l-stamp-ico .s-head,
 .l-stamp:active .l-stamp-ico .s-grip,
 .l-stamp:active .l-stamp-ico .s-base { transform: translateY(3.2px); }
-.l-stamp-cap { font-size: calc(10px * var(--ui)); letter-spacing: 0.2em; white-space: nowrap; }
+.l-stamp-cap { font-size: max(10px, calc(10px * var(--ui))); letter-spacing: 0.2em; white-space: nowrap; }
+#ledger .l-stamp-scope { font-size: max(10px, calc(9.5px * var(--ui))); }
 .l-stamp:hover, .l-stamp:focus-visible { color: var(--lq-ink); border-color: transparent; }
 .l-stamp:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
 .l-stamp.inert:hover { color: var(--lq-gold); }
@@ -870,7 +875,7 @@
 
 /* Day breaks: a collar girdling the main, lit on its top, and the day
    engraved on the lacquer beside it. */
-#ledger .daybreak { margin: calc(18px * var(--ui)) 0 calc(14px * var(--ui)) calc(-56px * var(--ui)); color: var(--lq-gold); }
+#ledger .daybreak { margin: calc(18px * var(--ui)) 0 calc(14px * var(--ui)) calc(-56px * var(--ui)); color: var(--lq-gold); font-size: max(10px, calc(10.5px * var(--ui))); }
 #ledger .daybreak::before {
   flex: 0 0 calc(17px * var(--ui)); max-width: calc(17px * var(--ui));
   height: calc(12px * var(--ui));
@@ -940,8 +945,16 @@
 #ledger .pl-head, #ledger .pl-detail { overflow-wrap: anywhere; }
 #ledger .pl-head { color: var(--card-ink); font-weight: 600; }
 #ledger .plaque.warn .pl-head { color: #7a1a10; }
-#ledger .pl-detail { color: var(--card-faint); }
+#ledger .pl-detail { color: var(--card-faint); font-weight: 500; }
 #ledger .plaque.new .pl-head::after { content: none; }
+/* The Chinese face has one weight and hairline strokes, and set at 10 to
+   15px it printed at half the contrast of the English beside it (a card's
+   details at 2.1:1, the ages at 1.9:1). Four tenths of a pixel of each line's
+   own ink round every stroke brings it up to strength, as on the gates'
+   day cards. English lines in the Chinese hall keep their own weight. */
+html[lang="zh"] #ledger :is(.pl-head, .pl-detail, .pl-time, .chip, .l-close-cap, .l-stamp-cap,
+  .l-stamp-scope, .db-h, h2, .l-empty, .l-stale):not([lang="en"]),
+#ledger .pl-head[lang="zh"] { -webkit-text-stroke: 0.4px currentColor; }
 /* The time, struck with a violet rubber stamp: ink in a rounded border,
    a little crooked, heavier on one side. */
 #ledger .pl-time {
@@ -949,7 +962,7 @@
   margin-top: calc(6px * var(--ui));
   margin-left: var(--stamp-x, 0);
   padding: 0.05em 0.55em 0;
-  font-size: calc(10.5px * var(--ui));
+  font-size: max(10px, calc(10.5px * var(--ui)));
   letter-spacing: 0.12em;
   text-transform: uppercase;
   font-weight: 700;
@@ -957,11 +970,13 @@
   border: 1.5px solid var(--stamp-ink);
   border-radius: 3px;
   transform: rotate(var(--stamp-rot, 0deg));
-  opacity: var(--ink-a, 0.85);
+  opacity: var(--ink-a, 0.94);
   border-color: color-mix(in srgb, var(--stamp-ink) 85%, transparent);
+  /* The pad runs a little dry toward the far side of the stamp. It ran to
+     70% ink over a 0.74 opacity, which left the ages at 2.6:1. */
   background:
     url('/static/assets/tex/grain-frost.webp') calc(var(--stock, 0) * 200px) 0 / 70px,
-    linear-gradient(100deg, var(--stamp-ink) 30%, color-mix(in srgb, var(--stamp-ink) 70%, var(--card)) 100%);
+    linear-gradient(100deg, var(--stamp-ink) 40%, color-mix(in srgb, var(--stamp-ink) 86%, var(--card)) 100%);
   background-blend-mode: soft-light, normal;
   -webkit-background-clip: text; background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -1046,7 +1061,7 @@
   --pn: #0b0908; --pn-refl: rgba(255, 244, 222, 0.06);
   --pn-fillet: var(--lead-3); --pn-string: rgba(236, 226, 200, 0.28);
   --well: #2e2b24; --well-tex: 0.9; --well-rim: rgba(0, 0, 0, 0.7);
-  --pn-ink: #eadfc4; --pn-faint: #a2957a; --pn-label: #d6b867;
+  --pn-ink: #eadfc4; --pn-faint: #cbbe9e; --pn-label: #dcbf72;
   --pk-0: #4a4640; --pk-1: #1a1816; --pk-2: #060505;
   --bat-0: #0c0b0a; --bat-1: #6f6a62; --bat-2: #d9d6cf;
   --pilot-0: #fff8e2; --pilot-1: #ffcf7a; --pilot-2: #d97e20; --pilot-3: #5c2606;
@@ -1056,7 +1071,7 @@
   --pn: #d8d5c6; --pn-refl: rgba(255, 255, 255, 0.3);
   --pn-fillet: #15110d; --pn-string: rgba(255, 253, 246, 0.9);
   --well: #c6c1ae; --well-tex: 1; --well-rim: rgba(40, 30, 16, 0.45);
-  --pn-ink: #1f180e; --pn-faint: #5b4f3a; --pn-label: #5c4613;
+  --pn-ink: #1f180e; --pn-faint: #2b2216; --pn-label: #30230a;
   --pk-0: #4a4640; --pk-1: #1a1816; --pk-2: #060505;
   --bat-0: #3a3834; --bat-1: #a7a39a; --bat-2: #f4f2ec;
   --pilot-0: #ffe7b0; --pilot-1: #e0a040; --pilot-2: #a4600e; --pilot-3: #4a2a06;
@@ -1071,6 +1086,12 @@
 #prefs {
   background-color: color-mix(in srgb, var(--base) 58%, transparent);
   -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px);
+}
+/* On a short screen the sheet's own scale gives way before it outgrows the
+   screen: at 3440x900 on SIGNBOARD it ran 51px taller than its 94vh and the
+   REPLAY line sat on the bottom fillet. */
+@media (max-height: 960px) {
+  #prefs { --ui: min(calc(var(--ui-auto) * var(--ui-user)), 1.45); }
 }
 /* Asked for more contrast or less transparency: the dialog's backdrop is a
    scrim like the Ledger's, and it stops showing the hall through. (Here and
@@ -1153,7 +1174,18 @@
   color: transparent;
   filter: drop-shadow(0 0.6px 0 rgba(0, 0, 0, 0.8));
 }
-:root[data-theme="ivory"] .p-head h2 { filter: drop-shadow(0 0.8px 0 rgba(0, 0, 0, 0.55)); }
+/* By day small lettering is ink, never bright gold: the leaf title printed
+   at 2.4:1 on the pale shagreen. It is cast in dark bronze-gilt instead,
+   still leaf-grained, lit along its top edge rather than shaded under. */
+:root[data-theme="ivory"] .p-head h2 {
+  background:
+    url('/static/assets/tex/grain-gilt.webp') 0 0 / 60px,
+    linear-gradient(180deg, #5a4414 0%, #3a2a08 42%, #4e3b10 62%, #2c1f06 100%) 0 0 / 100% 1.2em;
+  background-blend-mode: soft-light, normal;
+  -webkit-background-clip: text; background-clip: text;
+  color: #3a2a08; -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 -0.6px 0 rgba(255, 250, 235, 0.7));
+}
 /* Close: a small brass knob with its word engraved beside it. */
 #prefs-close {
   display: flex; align-items: center; gap: calc(7px * var(--ui));
@@ -1173,7 +1205,7 @@
 }
 #prefs-close::after {
   content: attr(aria-label);
-  font-size: calc(9.5px * var(--ui));
+  font-size: max(10px, calc(10px * var(--ui)));
   letter-spacing: 0.22em;
   text-transform: uppercase;
   font-family: var(--serif);
@@ -1201,8 +1233,10 @@
 .p-group[data-control="ui"] { grid-area: ui; }
 .p-group[data-control="motion"] { grid-area: motion; }
 .p-group[data-control="replay"] { grid-area: replay; background: none; box-shadow: none; padding: 0; }
+/* Engraving size FINE sets the whole hall at 0.9: the panel that undoes it
+   keeps the hall's 10px floor. */
 .p-label {
-  font-size: calc(10.5px * var(--ui));
+  font-size: max(10px, calc(10.5px * var(--ui)));
   letter-spacing: 0.28em;
   color: var(--pn-label);
   margin-bottom: calc(6px * var(--ui));
@@ -1227,10 +1261,25 @@
     0 0 0 6px var(--focus), 1px 2px 3px 6px rgba(0, 0, 0, 0.4);
 }
 .p-group .p-plaque:focus-visible > .p-name { text-decoration: underline 2px var(--focus); text-underline-offset: 4px; }
-[data-pref="ui"] .p-plaque:focus-visible { outline: 2px solid var(--focus); outline-offset: 4px; }
-.p-name { font-size: calc(11px * var(--ui)); letter-spacing: 0.18em; white-space: nowrap; }
-.p-desc { font-size: calc(10.5px * var(--ui)); line-height: 1.3; text-align: center; text-wrap: balance; }
+/* The push keys have no jewel to collar. Their ring is gold laid in an ink
+   bed on both sides: a bare gold outline fell on the gold of the brass tray
+   and all but vanished (1.5:1), and the gold rule sat on cream card stock.
+   The focused key stands over its neighbours so the ring is not cut. */
+[data-pref="ui"] .p-plaque:focus-visible { z-index: 3; }
+[data-pref="ui"] .p-plaque:focus-visible::after {
+  content: ""; position: absolute; inset: -5px; pointer-events: none;
+  border: 2px solid var(--focus); border-radius: 4px;
+  box-shadow: 0 0 0 3px #0b0806, inset 0 0 0 2px #0b0806;
+}
+.p-group[data-control="ui"] .p-plaque:focus-visible > .p-name { text-decoration-color: #120c04; }
+.p-name { font-size: max(10px, calc(11px * var(--ui))); letter-spacing: 0.18em; white-space: nowrap; }
+.p-desc { font-size: max(10px, calc(10.5px * var(--ui))); font-weight: 500; line-height: 1.3; text-align: center; text-wrap: balance; }
 html[lang="zh"] .p-name { letter-spacing: 0.1em; }
+/* The Chinese face's hairlines, as in the Ledger: its own ink round every
+   stroke, or the group labels printed at 1.9:1 by day. */
+html[lang="zh"] #prefs :is(.p-label, .p-name, .p-desc):not([lang="en"]),
+html[lang="zh"] #prefs-close::after { -webkit-text-stroke: 0.4px currentColor; }
+html[lang="zh"]:root[data-theme="ivory"] .p-head h2 { -webkit-text-stroke: 0.45px currentColor; }
 
 /* Pilot jewels. The live one is lit; the others are smoked glass. */
 .p-jewel {
@@ -1277,7 +1326,7 @@ html[lang="zh"] .p-name { letter-spacing: 0.1em; }
 [data-pref="theme"] .p-plaque { padding-left: calc(2px * var(--ui)); padding-right: calc(2px * var(--ui)); }
 /* A seven-character description (与操作系统一致) has to stand on one line
    under its jewel: balanced, CJK splits it mid-word. */
-html[lang="zh"] [data-pref="theme"] .p-desc { font-size: calc(10.5px * 1.06 * var(--ui)); }
+html[lang="zh"] [data-pref="theme"] .p-desc { font-size: max(10px, calc(10.5px * 1.06 * var(--ui))); }
 .p-rotary {
   position: absolute; z-index: 1;
   left: 50%; bottom: calc(8px * var(--ui));
@@ -1392,7 +1441,7 @@ html[lang="zh"] [data-pref="theme"] .p-desc { font-size: calc(10.5px * 1.06 * va
   box-shadow: 0 0 0 1px var(--br-0), 0 2px 4px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 244, 214, 0.5);
 }
 [data-pref="ui"] .p-plaque {
-  color: #3a2e1c;
+  color: #2a2012;
   padding: calc(8px * var(--ui)) calc(6px * var(--ui)) calc(7px * var(--ui));
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.55), transparent 30%, rgba(0, 0, 0, 0.08)),
@@ -1417,7 +1466,7 @@ html[lang="zh"] [data-pref="theme"] .p-desc { font-size: calc(10.5px * 1.06 * va
   box-shadow: 0 0 0 1px #1c140a, 0 calc(1px * var(--ui)) 0 0 #3a2a18, 0 calc(1px * var(--ui)) 0 1px #1c140a,
     0 calc(2px * var(--ui)) 2px rgba(0, 0, 0, 0.45), inset 0 2px 3px rgba(0, 0, 0, 0.18);
 }
-[data-pref="ui"] .p-desc { color: #5a4a30; }
+[data-pref="ui"] .p-desc { color: #231a0d; font-weight: 600; }
 
 /* ----- Motion: the bat toggle -------------------------------------------- */
 [data-pref="motion"].p-options {
