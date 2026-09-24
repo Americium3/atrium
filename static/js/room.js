@@ -576,6 +576,12 @@ function layoutWall(g) {
   var corn = $('.wall-cornice', wall), dado = $('.wall-dado', wall);
   var cornH = corn ? corn.offsetHeight : 60 * u, dadoH = dado ? dado.offsetHeight : 90 * u;
   var r = g.row, axis = g.axis;
+  // A throw of the lever re-lays the wall with the same bays: nothing here
+  // moves, so nothing is rebuilt (and the floor's lamps can fade across).
+  var wkey = [W, H, f2(axis), u, f2(r.half), f2(r.gateW), f2(r.spacing), r.nSide, cornH, dadoH,
+              JSON.stringify(g.boards || [])].join('|');
+  if (wall.dataset.roomKey === wkey) return;
+  wall.dataset.roomKey = wkey;
   var gh = r.gateW * 1.9, gateTop = H - gh;
   var ys = gateTop + gh * 162 / 570;               // the arches' springing line
   var crownY = gateTop + gh * 22 / 570;
@@ -734,10 +740,16 @@ function layoutFloor() {
       new MutationObserver(syncStreaks).observe(gates, { subtree: true, attributes: true, attributeFilter: ['data-state'] });
     }
   }
-  host.textContent = '';
   var fr = fp.getBoundingClientRect();
   var H = fr.height, u = ui();
   if (!H) return;
+  var tk0 = $('#ticker'), tr0 = tk0 ? tk0.getBoundingClientRect() : { left: 0, right: 0 };
+  var fkey = [f2(fr.left), f2(fr.top), f2(fr.width), f2(H), u, f2(tr0.left), f2(tr0.right),
+              JSON.stringify(lastPiers), document.querySelectorAll('#backwall .sconce').length,
+              document.querySelectorAll('#gates .gate').length].join('|');
+  if (host.dataset.key === fkey) { syncStreaks(); return; }
+  host.dataset.key = fkey;
+  host.textContent = '';
   var floorTop = fr.top;
   // the torchieres
   var sc = document.querySelectorAll('#backwall .sconce .sc-body');
