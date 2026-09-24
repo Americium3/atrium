@@ -772,23 +772,24 @@ html[lang="zh"] .m-sub, html[lang="zh"] #dateline { -webkit-text-stroke: 0.35px 
    ========================================================================== */
 /* The stanchions: turned brass posts on weighted domed bases, a finial with
    its collar and knop, a lit arris down the shaft, each post's stub
-   reflection in the wax; the rope is velvet, dark on its underside with a
-   soft broken nap in its sheen, crimped into brass ferrules at the ends. */
+   reflection in the wax; the rope is a round section of velvet, crushed
+   pile over its dye, dark and soft on its underside, one broad soft sheen
+   above its centre, crimped into brass ferrules at the ends. */
 .fl-rail .st-dome, .fl-rail .st-collar { fill: url(#cyl-lead); }
 .fl-rail .st-dome-lt { fill: none; stroke: var(--lead-5); stroke-width: calc(1px * var(--ui)); stroke-linecap: round; opacity: 0.7; }
 .fl-rail .st-arris { fill: var(--lead-5); opacity: 0.7; }
 .stref.s0 { stop-color: var(--lead-3); stop-opacity: 0.32; }
 .stref.s1 { stop-color: var(--lead-3); stop-opacity: 0; }
 :root[data-theme="onyx"] .stref.s0 { stop-opacity: 0.22; }
+.fl-rail .st-rope-pile {
+  fill: none; stroke-width: calc(4.6px * var(--ui)); stroke-linecap: round;
+  mix-blend-mode: soft-light; opacity: 0.7;
+}
 .fl-rail .st-rope-dk {
-  fill: none; stroke: color-mix(in srgb, var(--rope) 50%, #000);
-  stroke-width: calc(2.2px * var(--ui)); stroke-linecap: round; opacity: 0.85;
+  fill: none; stroke: color-mix(in srgb, var(--rope) 45%, #000);
+  stroke-width: calc(2.4px * var(--ui)); stroke-linecap: round; opacity: 0.8;
 }
-.fl-rail .st-rope-lt { stroke-width: calc(2px * var(--ui)); opacity: 0.75; }
-.fl-rail .st-rope-nap {
-  fill: none; stroke: var(--rope-lt); stroke-width: calc(1px * var(--ui));
-  stroke-dasharray: 0.6 1.8; opacity: 0.6;
-}
+.fl-rail .st-rope-lt { stroke-width: calc(2.6px * var(--ui)); opacity: 0.6; }
 .fl-rail .st-ferrule { stroke: rgba(0, 0, 0, 0.35); stroke-width: 0.5; }
 .fl-rail .st-crimp { fill: var(--lead-0); opacity: 0.6; }
 .fl-rail .st-hook { fill: none; stroke: var(--lead-2); stroke-width: calc(1px * var(--ui)); }

@@ -1906,7 +1906,12 @@ function buildStanchions() {
     '<stop offset="0" class="stref s0"/><stop offset="1" class="stref s1"/></linearGradient>' +
     '<linearGradient id="st-ferrule" x1="0" y1="0" x2="0" y2="1">' +
     '<stop offset="0" class="cyl s1"/><stop offset=".35" class="cyl s2"/>' +
-    '<stop offset=".7" class="cyl s3"/><stop offset="1" class="cyl s4"/></linearGradient>';
+    '<stop offset=".7" class="cyl s3"/><stop offset="1" class="cyl s4"/></linearGradient>' +
+    // The velvet's crushed pile, laid along the rope as its paint, and the
+    // softness of the light on a round plush section.
+    '<pattern id="st-pile" patternUnits="userSpaceOnUse" width="' + (56 * u).toFixed(1) + '" height="' + (56 * u).toFixed(1) + '">' +
+    '<image href="/static/assets/tex/grain-pile.webp" width="' + (56 * u).toFixed(1) + '" height="' + (56 * u).toFixed(1) + '"/></pattern>' +
+    '<filter id="st-soft" x="-5%" y="-100%" width="110%" height="300%"><feGaussianBlur stdDeviation="' + (0.8 * u).toFixed(2) + '"/></filter>';
   svg.appendChild(defs);
   var ropes = svgEl('g', {}, 'st-ropes'), posts = svgEl('g', {}, 'st-posts');
   var pitch = 170 * u, top = H * 0.08, ropeY = H * 0.24, foot = H * 0.9;
@@ -1922,14 +1927,16 @@ function buildStanchions() {
         f1(x0 + (x1 - x0) * 0.3) + ' ' + f1(ropeY + sag) + ' ' +
         f1(x0 + (x1 - x0) * 0.7) + ' ' + f1(ropeY + sag) + ' ' +
         f1(x1) + ' ' + f1(ropeY);
-      // Velvet rope: its shadow on the stone, the body, the underside the
-      // light does not reach, the broad soft sheen of the pile along its
-      // top, and the pile itself, a fine broken nap in the sheen.
+      // Velvet rope, a round plush section: its shadow on the stone, the
+      // body, the crushed pile over it, the underside the light does not
+      // reach, and one broad soft sheen above the centre. A row of dashes
+      // stood for the nap, and the rope read as a belt with top-stitching
+      // (AR-36).
       ropes.appendChild(svgEl('path', { d: dRope, transform: 'translate(1.5 3)' }, 'st-rope-sh'));
       ropes.appendChild(svgEl('path', { d: dRope }, 'st-rope'));
-      ropes.appendChild(svgEl('path', { d: dRope, transform: 'translate(0 ' + f1(1.1 * u) + ')' }, 'st-rope-dk'));
-      ropes.appendChild(svgEl('path', { d: dRope, transform: 'translate(0 ' + f1(-1.0 * u) + ')' }, 'st-rope-lt'));
-      ropes.appendChild(svgEl('path', { d: dRope, transform: 'translate(0 ' + f1(-0.9 * u) + ')' }, 'st-rope-nap'));
+      ropes.appendChild(svgEl('path', { d: dRope, stroke: 'url(#st-pile)' }, 'st-rope-pile'));
+      ropes.appendChild(svgEl('path', { d: dRope, transform: 'translate(0 ' + f1(1.3 * u) + ')', filter: 'url(#st-soft)' }, 'st-rope-dk'));
+      ropes.appendChild(svgEl('path', { d: dRope, transform: 'translate(0 ' + f1(-0.8 * u) + ')', filter: 'url(#st-soft)' }, 'st-rope-lt'));
       // Brass snap ends: a ferrule crimped on each end of the rope, laid
       // along the rope's own line where it leaves the post, and its hook.
       var fl = 3.4 * u, ft = 6 * u, ang = Math.atan2(sag * 0.75, (x1 - x0) * 0.3) * 180 / Math.PI;
