@@ -883,9 +883,10 @@ html[data-entered="no"] #entrance.done-fade { pointer-events: none; cursor: auto
 #entrance.foot .e-foot { opacity: 1; }
 
 /* The crest: a gilt sunburst appliqued on the velvet, a medallion and the
-   rosette in gilt cord, centred where the clock stands behind it. */
+   rosette in gilt cord, centred where the clock stands behind it
+   (--clock-cy, the dial's centre, written by placeCrest() in app.js). */
 .e-crest {
-  position: absolute; left: 50%; top: calc(6vh + 44vh);
+  position: absolute; left: 50%; top: calc(6vh + var(--clock-cy, 44vh));
   width: min(66vmin, 760px); height: min(66vmin, 760px);
   margin: calc(min(66vmin, 760px) / -2) 0 0 calc(min(66vmin, 760px) / -2);
   overflow: visible;
@@ -926,7 +927,7 @@ html[data-entered="no"] #entrance.done-fade { pointer-events: none; cursor: auto
 /* The house's name, in gilt letters appliqued under the crest. */
 .e-wordmark {
   position: absolute; left: 0; right: 0;
-  top: calc(6vh + 44vh + min(33vmin, 380px) - 2vmin);
+  top: calc(6vh + var(--clock-cy, 44vh) + min(33vmin, 380px) - 2vmin);
   text-align: center;
   font-family: var(--serif); font-weight: 620;
   font-size: clamp(40px, 5.4vw, 116px);
@@ -1018,7 +1019,7 @@ html[data-entered="no"] #entrance.done-fade { pointer-events: none; cursor: auto
 
 /* ----- The spot and the ring: the dock ------------------------------------ */
 .e-burst {
-  position: absolute; left: 50%; top: 44vh;
+  position: absolute; left: 50%; top: var(--clock-cy, 44vh);
   width: 60vmin; height: 60vmin;
   margin: -30vmin 0 0 -30vmin;
   will-change: transform;

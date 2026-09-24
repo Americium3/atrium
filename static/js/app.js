@@ -749,12 +749,27 @@ function afterDrawn(fn) {
     if (calm >= 2) fn(); else requestAnimationFrame(tick);
   });
 }
+/* The crest is hung, and the spot opened, where the dial stands behind the
+   curtain, so the spot the curtain leaves behind is on the clock. Both were
+   at a fixed 44vh, and the dial's centre is the solved row's: 17-42px lower
+   on most screens and 42-53px higher on tall ones, and the pool sat across
+   the dial's upper half before it flew to the monogram (VD-18). Measured
+   when the curtain is dressed and again whenever the stage is solved while
+   it stands (the gates arriving, a resize). */
+function placeCrest() {
+  if (root.dataset.entered !== 'no') return;
+  var dial = $('#clock .dial');
+  var r = dial && dial.getBoundingClientRect();
+  if (!r || !r.height) return;
+  entrance.style.setProperty('--clock-cy', (r.top + r.height / 2).toFixed(1) + 'px');
+}
 function playEntrance(built) {
   // Disable ledger button during entrance; re-enabled in finishEntrance()
   var lb = $('#ledger-btn');
   if (lb) lb.disabled = true;
   var day = root.dataset.theme === 'ivory';
   entrance.classList.add(day ? 'day' : 'night');
+  placeCrest();
   if (day) {
     segmentRing($('.e-ring-whole'), 34, 40, [['e-ring-sh', 1], ['e-ring-hi', 0.6], ['e-ring-c', 0]]);
   } else {
@@ -1786,6 +1801,7 @@ function layoutStage(initial) {
   });
   rowGeom = geom;
   if (initial || !same) buildAisles();
+  if (initial) placeCrest();
 }
 var handoffT = 0, handoffFn = null;
 var HANDOFF_NET = 1500;   // ms past an arch's beat before focus stops waiting for its rise
