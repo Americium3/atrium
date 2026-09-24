@@ -391,11 +391,28 @@ function syncReadMarks() {
   updateLedgerBadge();
 }
 
+/* Where the pointer last really was. Chrome answers content moving under a
+   still pointer (the drawer sliding in, a poll pushing the column down, a
+   chip reflowing it) with pointerover/pointerenter at the SAME coordinates
+   and no pointermove, so an enter proves nothing about the reader. Recorded
+   in the capture phase, before any card sees the event, with the verdict
+   kept for the cards to read. */
+var ptrX = NaN, ptrY = NaN, ptrMoved = false;
+window.addEventListener('pointermove', function (e) {
+  ptrMoved = e.clientX !== ptrX || e.clientY !== ptrY;
+  ptrX = e.clientX;
+  ptrY = e.clientY;
+}, { capture: true, passive: true });
+
 /* Arm a card so resting on it marks its dispatch read. Touch is excluded on
    purpose: a tap fires pointerenter, which would mark dispatches read for
    the crime of being scrolled past under a thumb. Keyboard gets the same
    deal as the pointer — focus IS the caret coming to rest, so it marks at
-   once rather than after a dwell nobody could see. */
+   once rather than after a dwell nobody could see.
+   The dwell starts on a pointermove that actually moved, never on
+   pointerenter: a card that slides under a pointer resting on the hall was
+   not reached by the reader, and the drawer opening over a parked mouse
+   used to strike whichever plaque landed under it. */
 function armDwell(node, id) {
   var timer = null;
   function cancel() {
@@ -403,9 +420,12 @@ function armDwell(node, id) {
     timer = null;
     node.classList.remove('reading');
   }
-  node.addEventListener('pointerenter', function (e) {
+  // renderLedger calls this when it detaches or moves the card: a removed
+  // node never hears pointerleave, and its timer struck it anyway.
+  node._dwellCancel = cancel;
+  node.addEventListener('pointermove', function (e) {
     if (e.pointerType && e.pointerType !== 'mouse' && e.pointerType !== 'pen') return;
-    cancel();
+    if (timer || !ptrMoved) return;
     // .reading runs the dwell out loud — the champagne rim drains and the
     // diamond closes over exactly DWELL_MS, so a mechanic with no button to
     // press still shows its work, and leaving early visibly aborts it.
@@ -413,11 +433,20 @@ function armDwell(node, id) {
     timer = setTimeout(function () {
       timer = null;
       node.classList.remove('reading');
-      markRead(id);
+      if (node.isConnected) markRead(id);
     }, DWELL_MS);
   });
   node.addEventListener('pointerleave', cancel);
   node.addEventListener('focusin', function () { cancel(); markRead(id); });
+}
+
+/* Every running dwell stops: the drawer opening or shutting moves the whole
+   column out from under the pointer. */
+function cancelDwells() {
+  Object.keys(plaqueEls).forEach(function (id) {
+    var li = plaqueEls[id];
+    if (li._dwellCancel) li._dwellCancel();
+  });
 }
 
 /* ========================================================================
@@ -3042,12 +3071,12 @@ function renderLedger() {
   Object.keys(plaqueEls).forEach(function (id) {
     var li = plaqueEls[id];
     var inFeed = feed.some(function (d) { return d.id === id; });
-    if (!inFeed) {
+    if (!inFeed || (!shownIds[id] && li.parentNode)) {
+      // A detached card never hears pointerleave; its dwell stops here.
+      if (li._dwellCancel) li._dwellCancel();
       if (li.parentNode) li.parentNode.removeChild(li);
-      delete plaqueEls[id];
-    } else if (!shownIds[id] && li.parentNode) {
-      li.parentNode.removeChild(li);
     }
+    if (!inFeed) delete plaqueEls[id];
   });
   // Clear empty markers and ghosts; day breaks are reused below.
   Array.prototype.slice.call(ol.querySelectorAll('.l-empty, .ghost'))
@@ -3146,7 +3175,10 @@ function renderLedger() {
   });
   order.forEach(function (node, i) {
     var at = ol.children[i];
-    if (at !== node) ol.insertBefore(node, at || null);
+    if (at === node) return;
+    // A card being moved is leaving the spot the pointer rested on.
+    if (node._dwellCancel && node.isConnected) node._dwellCancel();
+    ol.insertBefore(node, at || null);
   });
 }
 
@@ -3249,6 +3281,9 @@ function openLedger() {
   var scrimEl = $('#ledger-scrim');
   var ledgerBtnEl = $('#ledger-btn');
   if (!ledgerEl || !scrimEl || !ledgerBtnEl) return;
+  // The column is about to slide in under wherever the pointer rests; no
+  // dwell from before may carry over into it.
+  cancelDwells();
   // Mark opening for cascade
   ledgerOpening = true;
   cascadeIndex = 0;
@@ -3278,6 +3313,8 @@ function closeLedger() {
   // struck the whole Ledger. Focus inside it goes back to the button first,
   // or making it inert would drop the reader's place onto <body>.
   if (ledgerEl.contains(document.activeElement)) ledgerBtnEl.focus();
+  // A dwell under way when the drawer shuts was not finished by the reader.
+  cancelDwells();
   ledgerEl.inert = true;
   ledgerEl.classList.remove('open');
   scrimEl.classList.remove('visible');

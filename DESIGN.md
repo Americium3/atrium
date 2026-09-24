@@ -637,6 +637,13 @@ Plaques are links opening the dispatch url.
   `pointerenter` would empty the badge as a side effect of aiming at the
   hatch. Touch is excluded outright, because a tap fires `pointerenter`, which would
   mark dispatches read for being scrolled past under a thumb.
+- The dwell starts on a pointer **movement** that lands on the card, never on
+  `pointerenter` by itself. When content moves under a parked pointer (the
+  drawer sliding in, a poll pushing the column down, a chip reflowing it),
+  Chrome raises enter events with no movement at all, and each of those used
+  to strike whichever plaque arrived under the cursor. A card that leaves the
+  column mid-dwell, or is moved by the poll, has its dwell cancelled; so does
+  every card when the drawer opens or shuts.
 - **Unread signal (masthead)**: one 9 px disc seated at 45° on the hatch
   housing ring, an annunciator on the dispatch cap rather than a badge pinned to
   the button's bounding box. Carries no numeral: the count is exposed through
