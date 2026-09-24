@@ -515,9 +515,10 @@ html[data-boot="suppressed"] #hall { animation: hall-fade 0.3s var(--ease-out) b
      surfaces used to be fixed 300x108 and 220x112 boxes that ignored the
      assembly's scale, so on a short screen the arm zone stood 75px over
      bare floor and the clock's sill, and a click on the clock threw the
-     lever. */
+     lever. --desk-k is what the viewport allows; --desk-room is what the
+     floor under the stage allows, written by fitDesk() in app.js. */
   --desk-k: calc(0.80 + 0.14 * var(--ui));
-  --desk-s: var(--desk-k);
+  --desk-s: min(var(--desk-k), var(--desk-room, 9));
 }
 /* Boot parity with the hall: suppressed loads fade, played entrances rise
    in the old lever-row slot. Transform/opacity only — the entrance dock

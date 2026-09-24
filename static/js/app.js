@@ -2854,6 +2854,37 @@ deskCore.addEventListener('click', function (e) {
   }
 });
 
+/* The desk is fixed to the foot of the screen, but the stage's baseline
+   moves with whatever stands above it: a Chinese masthead that wraps pushes
+   the whole row down. Where the floor under the stage is shorter than the
+   machine, the vent stack rose over the clock's sill. --desk-room caps the
+   machine's scale to the floor it actually has. It is the stage's LAYOUT
+   bottom (offsetTop), not its painted one: the entrance dollies the stage
+   with a transform, and a reading taken mid-dolly would stick. */
+var DESK_GAP = 8;         // clear stone between the sill and the vent cap
+var DESK_MIN = 0.5;       // below this the lever is too small to take
+var deskArtTop = null;    // highest drawn point, in assembly units
+function fitDesk() {
+  var stage = $('#stage'), desk = $('#signal-desk');
+  if (!stage || !desk) return;
+  if (deskArtTop === null) {
+    // The quadrant draws 1:1 in the assembly's 360x220 units, and its vent
+    // cap is the machine's highest point (the lever tip peaks 30 below it).
+    try { deskArtTop = $('.quadrant', desk).getBBox().y; } catch (err) { return; }
+  }
+  var base = stage.offsetHeight;
+  for (var n = stage; n; n = n.offsetParent) base += n.offsetTop;
+  var foot = parseFloat(getComputedStyle(desk).bottom) || 0;
+  var room = (window.innerHeight - foot - base - DESK_GAP) / (220 - deskArtTop);
+  desk.style.setProperty('--desk-room', Math.max(DESK_MIN, room).toFixed(3));
+}
+if (window.ResizeObserver) {
+  // The concourse resizes when the masthead above it grows or the window
+  // does; the stage resizes with the arch module (--ui).
+  var deskRO = new ResizeObserver(function () { fitDesk(); });
+  ['#concourse', '#stage'].forEach(function (s) { var n = $(s); if (n) deskRO.observe(n); });
+}
+
 lever.addEventListener('keydown', function (e) {
   if (e.key === ' ' || e.key === 'Enter') {
     e.preventDefault();
