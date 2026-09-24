@@ -1282,10 +1282,13 @@ html[data-entered="no"] #signal-desk {
   position: absolute; inset: 0; width: 100%; height: 100%;
   filter: blur(calc(var(--fh, 320px) * 0.017));
   opacity: 0.85;
-  transition: opacity 0.45s var(--ease-out);
 }
+/* A throw leaves the smears where they are and re-lights them with the
+   arches above: the stops carry the new --metal across in step with the
+   swap. */
 .fl-mirror .mir-lit { stop-color: var(--metal); }
 .fl-mirror .mir-dim { stop-color: var(--ink-faint); }
+.fl-mirror stop { transition: stop-color 0.4s ease 0.1s; }
 
 /* ----- The runner -------------------------------------------------------
    A rectangle in floor space, which the projection turns into the trapezoid

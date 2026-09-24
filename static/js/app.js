@@ -1559,6 +1559,7 @@ function gateClick(e, a, svc) {
 /* Triptych stage: slots computed from the registry so future services
    flank symmetrically. Transform-only (60 fps law). */
 var SWAP_OUT = 200, SWAP_GAP = 20, SWAP_STEP = 60;   // ms, see the throw below
+var stageRow = null;    // the lit row as solved, for the floor's reflections
 function layoutStage(initial) {
   var wrap = $('#gates');
   var W = wrap.clientWidth;
@@ -1723,8 +1724,9 @@ function layoutStage(initial) {
   // How far the row actually reaches from the axis. The bays are cut against
   // THIS, not against the stage column, which is wider than the row.
   triptychHalf = half + (nSide ? gateW + (nSide - 1) * spacing : 0);
+  stageRow = { xs: litBays.map(function (b) { return b.x; }), gateW: gateW,
+               clockW: clock ? c0 * fit : 0 };
   buildAisles();
-  if (!initial) scheduleMirror(680);
 }
 
 /* Re-solved in the resize event itself, which runs before the frame is
@@ -1852,32 +1854,9 @@ function buildAisles() {
   var used = fillWall(wl, lw, boardHole($('#works'), bw.left), 1);
   fillWall(wr, rw, boardHole($('#almanac'), axis + reach), used + 1);
   sizeFloor();
-  // The reflections are cast from the live arch boxes, so they are repainted
-  // by whatever last moved them — a resize, a wing throw, a font swap.
-  scheduleMirror(0);
-}
-
-/* A gate takes 0.6s to cross the stage, and getBoundingClientRect during
-   that is the arch's CURRENT box, not its destination — so a reflection
-   painted on the spot would sit under nothing for half a second and then
-   jump. SVG polygon points do not transition, so the smears fade out while
-   the arches travel and come back up under wherever they landed, which is
-   also how a reflection behaves when the thing casting it moves. */
-var mirrorT = null;
-function scheduleMirror(wait) {
-  var svg = $('.fl-mirror');
-  if (!svg) return;
-  clearTimeout(mirrorT);
-  if (!wait || root.dataset.motion === 'reduced') {
-    svg.style.opacity = '';
-    paintFloorMirror();
-    return;
-  }
-  svg.style.opacity = '0';
-  mirrorT = setTimeout(function () {
-    paintFloorMirror();
-    svg.style.opacity = '';
-  }, wait);
+  // Repainted with everything that re-lays the wall: a resize, a wing
+  // throw, a language or engraving-size change.
+  paintFloorMirror();
 }
 
 /* The floor's perspective distance has to be a function of the floor's own
@@ -2078,33 +2057,73 @@ function buildTerrazzo() {
    so a column that is vertical ON SCREEN is a WEDGE on the plane, widening
    toward the viewer. Hence the trapezoid: 0.98 of the offset at the wall,
    0.49 at the near edge. Reflections carry --metal, so the whole floor
-   changes temperature the moment the lever is thrown. */
+   changes temperature the moment the lever is thrown.
+
+   The arches and the clock are cast from the row as layoutStage solved it,
+   never from their live boxes. A live box is wherever the arch is THIS
+   frame: mid-glide, mid-dolly, or (on a quiet boot) at the centre before
+   its slot had landed, which painted all four arches as one beam under the
+   clock and left the stone under every arch dry until the next throw. The
+   waiting wing casts nothing: it is not in the room. */
 var MIRROR_FAR = 0.98, MIRROR_NEAR = 0.49, MIRROR_RUN = 560;
 function paintFloorMirror() {
   var svg = $('.fl-mirror');
   if (!svg) return;
   var W = window.innerWidth || 1;
   var seen = [];
-  Array.prototype.forEach.call(document.querySelectorAll('#gates .gate'),
-  function (g) {
-    var r = g.getBoundingClientRect();
-    if (r.width > 4) {
-      seen.push({ dx: (r.left + r.width / 2) / W - 0.5, hw: r.width / W / 2,
-                  lit: g.classList.contains('active') });
+  var wrap = $('#gates'), clock = $('#clock');
+  if (stageRow && wrap) {
+    // The row's axis. The entrance dolly scales the stage about its own
+    // centre, which leaves this where it is.
+    var wr = wrap.getBoundingClientRect();
+    var axis = wr.left + wr.width / 2;
+    stageRow.xs.forEach(function (x) {
+      seen.push({ dx: (axis + x) / W - 0.5, hw: stageRow.gateW / W / 2, lit: true });
+    });
+    if (stageRow.clockW) {
+      seen.push({ dx: axis / W - 0.5, hw: stageRow.clockW / W / 2, lit: true, wide: true });
     }
-  });
-  // The clock, and the two aisle cases: everything hanging on the wall is in
-  // the floor, or the flanks read as dry stone next to a wet middle.
-  [['#clock', true, true], ['#works', false, false], ['#almanac', false, false]]
-  .forEach(function (spec) {
-    var e = $(spec[0]);
+  } else if (clock) {
+    var cr = clock.getBoundingClientRect();   // no row yet (the registry has not answered)
+    if (cr.width > 4) {
+      seen.push({ dx: (cr.left + cr.width / 2) / W - 0.5, hw: clock.offsetWidth / W / 2,
+                  lit: true, wide: true });
+    }
+  }
+  // The two aisle cases: everything hanging on the wall is in the floor, or
+  // the flanks read as dry stone next to a wet middle. They never move.
+  ['#works', '#almanac'].forEach(function (sel) {
+    var e = $(sel);
     if (!e) return;
     var r = e.getBoundingClientRect();
     if (r.width > 4) {
-      seen.push({ dx: (r.left + r.width / 2) / W - 0.5, hw: r.width / W / 2,
-                  lit: spec[1], wide: spec[2] });
+      seen.push({ dx: (r.left + r.width / 2) / W - 0.5, hw: r.width / W / 2, lit: false });
     }
   });
+  function points(it) {
+    var far = 500 + 1000 * MIRROR_FAR * it.dx, fw = 1000 * MIRROR_FAR * it.hw;
+    var near = 500 + 1000 * MIRROR_NEAR * it.dx, nw = 1000 * MIRROR_NEAR * it.hw;
+    return [(far - fw).toFixed(1) + ',0', (far + fw).toFixed(1) + ',0',
+            (near + nw).toFixed(1) + ',' + MIRROR_RUN,
+            (near - nw).toFixed(1) + ',' + MIRROR_RUN].join(' ');
+  }
+  function stops(it) {
+    var top = it.lit ? (it.wide ? 0.34 : 0.30) : 0.13;
+    return [[0, top], [0.42, top * 0.42], [1, 0]];
+  }
+  // The same set of smears as last time is repainted in place. A lever throw
+  // leaves every bay where it was, so the polygons stay put and only --metal
+  // changes under them, which the stops' own transition carries across with
+  // the arches (it used to blank the floor for a second and repaint it).
+  var shape = seen.map(function (it) { return (it.lit ? 'L' : 'D') + (it.wide ? 'W' : ''); }).join();
+  var polys = svg.querySelectorAll('polygon');
+  if (svg.dataset.shape === shape && polys.length === seen.length) {
+    seen.forEach(function (it, i) {
+      polys[i].setAttribute('points', points(it));
+    });
+    return;
+  }
+  svg.dataset.shape = shape;
   svg.textContent = '';
   var defs = svgEl('defs');
   svg.appendChild(defs);
@@ -2112,26 +2131,18 @@ function paintFloorMirror() {
     var id = 'mir' + i;
     var grad = svgEl('linearGradient',
       { id: id, x1: '0', y1: '0', x2: '0', y2: '1' });
-    var top = it.lit ? (it.wide ? 0.34 : 0.30) : 0.13;
     // stop-color is set by CLASS, never as a presentation attribute: var()
     // does not resolve in presentation attributes, so `stop-color="var(--metal)"`
     // parses to nothing and the whole reflection paints transparent — which
     // it did, silently, with all six polygons present in the DOM.
-    [[0, top], [0.42, top * 0.42], [1, 0]].forEach(function (st) {
+    stops(it).forEach(function (st) {
       grad.appendChild(svgEl('stop', {
         offset: (st[0] * 100) + '%',
         'stop-opacity': st[1].toFixed(3)
       }, it.lit ? 'mir-lit' : 'mir-dim'));
     });
     defs.appendChild(grad);
-    var far = 500 + 1000 * MIRROR_FAR * it.dx, fw = 1000 * MIRROR_FAR * it.hw;
-    var near = 500 + 1000 * MIRROR_NEAR * it.dx, nw = 1000 * MIRROR_NEAR * it.hw;
-    svg.appendChild(svgEl('polygon', {
-      points: [(far - fw).toFixed(1) + ',0', (far + fw).toFixed(1) + ',0',
-               (near + nw).toFixed(1) + ',' + MIRROR_RUN,
-               (near - nw).toFixed(1) + ',' + MIRROR_RUN].join(' '),
-      fill: 'url(#' + id + ')'
-    }));
+    svg.appendChild(svgEl('polygon', { points: points(it), fill: 'url(#' + id + ')' }));
   });
 }
 
