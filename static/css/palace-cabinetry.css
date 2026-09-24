@@ -1343,6 +1343,17 @@ html[lang="zh"] #ledger :is(.pl-head, .pl-detail, .pl-time, .chip, .l-close-cap,
     0 0 0 6px var(--focus), 1px 2px 3px 6px rgba(0, 0, 0, 0.4);
 }
 .p-group .p-plaque:focus-visible > .p-name { text-decoration: underline 2px var(--focus); text-underline-offset: 4px; }
+/* By day the slate collar and a 2px slate rule sank into the mottled
+   shagreen (2.6:1 against the unfocused column). They are drawn in the
+   rope's oxblood over a cream bed instead, as the gate and lever marquees
+   mark focus by day, and the rule is a pixel heavier. */
+:root[data-theme="ivory"] .p-group .p-plaque:focus-visible > .p-jewel {
+  box-shadow: 0 0 0 1.5px var(--br-1), 0 0 0 3px var(--br-3), 0 0 0 3.8px var(--br-0),
+    0 0 0 5.5px #fbf6e8, 0 0 0 8px #7a1a16, 0 0 0 9px rgba(251, 246, 232, 0.8), 1px 2px 3px 8px rgba(40, 26, 10, 0.3);
+}
+:root[data-theme="ivory"] .p-group .p-plaque:focus-visible > .p-name {
+  text-decoration: underline 3px #7a1a16; text-decoration-skip-ink: none;
+}
 /* The push keys have no jewel to collar. Their ring is gold laid in an ink
    bed on both sides: a bare gold outline fell on the gold of the brass tray
    and all but vanished (1.5:1), and the gold rule sat on cream card stock.
