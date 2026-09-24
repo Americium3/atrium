@@ -755,9 +755,45 @@ html[lang="zh"] #masthead .p-caption { letter-spacing: 0.3em; }
   background: linear-gradient(90deg, rgba(0, 0, 0, 0.35), transparent 30%, transparent 70%, rgba(0, 0, 0, 0.45));
 }
 
+/* ----- Torchieres: the bracket in cast brass --------------------------------
+   Every turned part of the bracket (the wall plate, the stem, its collars and
+   the drop) is six strips in the leaf's order across a round moulding (app.js
+   turned()), with a lit edge over each collar and its shade under it, and
+   two flutes cut in the stem between the collars (AR-20). */
+.sc-body .sc-t0 { fill: var(--lead-5); }
+.sc-body .sc-t1 { fill: var(--lead-3); }
+.sc-body .sc-t2 { fill: var(--lead-2); }
+.sc-body .sc-t3 { fill: var(--lead-4); }
+.sc-body .sc-t4 { fill: var(--lead-1); }
+.sc-body .sc-t5 { fill: var(--lead-0); }
+.sc-body .sc-shade { fill: var(--lead-0); opacity: 0.8; }
+.sc-body path.sc-groove { fill: none; stroke: var(--lead-0); stroke-width: 0.6; opacity: 0.75; }
+
 /* ==========================================================================
    THE FLOOR
    ========================================================================== */
+/* The stanchions: turned brass posts on weighted domed bases, a finial with
+   its collar and knop, a lit arris down the shaft, each post's stub
+   reflection in the wax; the rope is velvet, dark on its underside with a
+   soft broken nap in its sheen, crimped into brass ferrules at the ends. */
+.fl-rail .st-dome, .fl-rail .st-collar { fill: url(#cyl-lead); }
+.fl-rail .st-dome-lt { fill: none; stroke: var(--lead-5); stroke-width: calc(1px * var(--ui)); stroke-linecap: round; opacity: 0.7; }
+.fl-rail .st-arris { fill: var(--lead-5); opacity: 0.7; }
+.stref.s0 { stop-color: var(--lead-3); stop-opacity: 0.32; }
+.stref.s1 { stop-color: var(--lead-3); stop-opacity: 0; }
+:root[data-theme="onyx"] .stref.s0 { stop-opacity: 0.22; }
+.fl-rail .st-rope-dk {
+  fill: none; stroke: color-mix(in srgb, var(--rope) 50%, #000);
+  stroke-width: calc(2.2px * var(--ui)); stroke-linecap: round; opacity: 0.85;
+}
+.fl-rail .st-rope-lt { stroke-width: calc(2px * var(--ui)); opacity: 0.75; }
+.fl-rail .st-rope-nap {
+  fill: none; stroke: var(--rope-lt); stroke-width: calc(1px * var(--ui));
+  stroke-dasharray: 0.6 1.8; opacity: 0.6;
+}
+.fl-rail .st-ferrule { stroke: rgba(0, 0, 0, 0.35); stroke-width: 0.5; }
+.fl-rail .st-crimp { fill: var(--lead-0); opacity: 0.6; }
+.fl-rail .st-hook { fill: none; stroke: var(--lead-2); stroke-width: calc(1px * var(--ui)); }
 /* The streaks: each a warm column under its lamp, ripple-cut by the wax,
    screened onto the stone, faint at the skirting and brightest toward the
    viewer where its image would lie. */
