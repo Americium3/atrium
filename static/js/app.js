@@ -2940,7 +2940,8 @@ function applyStatuses() {
   // said out loud, and a hub still asking clears the old count rather than
   // repeating a number it no longer knows.
   var st = $('#hall-status');
-  if (st && services.length) {
+  // (A hub that never answered at all has no registry either, and is said.)
+  if (st && (services.length || hubLost)) {
     var msg = hubLost ? t('hubLost') : !known ? ''
       : allDark ? t('allDark') : t('linesOpen', { n: openCount, m: services.length });
     if (st.textContent !== msg) st.textContent = msg;
