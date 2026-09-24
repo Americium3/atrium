@@ -4108,7 +4108,9 @@ window.addEventListener('storage', function (e) {
     loadReadIds().forEach(function (id) { readIds[id] = 1; });
     syncReadMarks();
   } else if (e.key === 'atrium.theme') {
-    root.dataset.themePref = e.newValue || 'system';
+    // Validated as the pre-paint script validates it.
+    root.dataset.themePref = (e.newValue === 'onyx' || e.newValue === 'ivory')
+      ? e.newValue : 'system';
     resolveTheme();
   } else if (e.key === 'atrium.lang') {
     if ((e.newValue === 'zh' ? 'zh' : 'en') !== lang) setLang(e.newValue);

@@ -16,6 +16,10 @@
   // script and the page lost its theme, its motion and ?entrance=0 at once.
   function get(k, f) { try { return (ls && ls.getItem(k)) || f; } catch (e) { return f; } }
   var pref = q.get('theme') || get('atrium.theme', 'system');
+  // Anything else falls back to FOLLOW SYSTEM, as motion and ui do. An
+  // unknown value ("dark", a stored "Onyx") painted Ivory with no radio
+  // checked, and Appearance dropped out of the Tab ring.
+  if (pref !== 'onyx' && pref !== 'ivory') pref = 'system';
   var dark = pref === 'onyx' ||
     (pref === 'system' && matchMedia('(prefers-color-scheme: dark)').matches);
   d.dataset.theme = dark ? 'onyx' : 'ivory';
