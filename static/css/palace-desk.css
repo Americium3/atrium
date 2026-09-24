@@ -556,6 +556,12 @@
 
 @media (forced-colors: active) {
   .assembly svg, .gear-well, .l-jewel { forced-color-adjust: none; }
+  /* The lit plate's Highlight (atrium.css) lost the cascade to the brass
+     rules above, which restate its colour and border, so the live wing was
+     told apart by a 1px border and the jewel's hue. Restated here, after
+     them and one class heavier. */
+  :root[data-wing="salon"] .assembly .l-salon,
+  :root[data-wing="bureau"] .assembly .l-bureau { border: 2px solid Highlight; color: Highlight; }
 }
 
 /* =====================================================================
