@@ -899,7 +899,24 @@ html[lang="zh"] .g-lamp { letter-spacing: 0.2em; }
    printer's red between two rules, then what to do, then the path in
    the address face. The ink is a near-black in a bold cut, heavier than
    the day card's: the tilted bay resamples the raster, and the regular cut
-   in a brown ink painted at 2.2 to 3.6:1 (10px at 1280 needs the weight). */
+   in a brown ink painted at 2.2 to 3.6:1 (10px at 1280 needs the weight).
+   By night the card is paper in a house with its lights out. It was the
+   day's cream, relative luminance 0.78, as bright as the marquee's milk
+   glass and brighter than the clock's dial: the one light box in a dark
+   gate. At night the stock is a warm grey that takes only a faint cold
+   bounce at its head, near half that luminance, the tacks' brass is
+   dulled with it and the red is deepened; the ink still stands at 7:1
+   or more on the darkest of the stock. */
+.g-notice {
+  --nc-0: #f8f0dc; --nc-1: #eee2c6; --nc-2: #e3d4b2; --nc-bounce: transparent;
+  --tack-0: #fff6d4; --tack-1: #e6c36e; --tack-2: #a57c34; --tack-3: #5e4216;
+  --nc-red: #6e1712;
+}
+:root[data-theme="onyx"] .g-notice {
+  --nc-0: #b3aa98; --nc-1: #aba18c; --nc-2: #a59c86; --nc-bounce: rgba(206, 216, 232, 0.10);
+  --tack-0: #d9cca2; --tack-1: #a8894a; --tack-2: #6e5222; --tack-3: #36260c;
+  --nc-red: #5a110d;
+}
 .g-notice {
   position: absolute; left: 7cqw; right: 7cqw; top: 50%; bottom: auto;
   z-index: 5;
@@ -917,13 +934,14 @@ html[lang="zh"] .g-lamp { letter-spacing: 0.2em; }
   border: 1px solid rgba(84, 64, 34, 0.55);
   outline: 1px solid rgba(84, 64, 34, 0.35); outline-offset: -0.9cqw;
   background:
-    radial-gradient(circle at 2.3cqw 2cqw, #fff6d4 0 0.3cqw, #e6c36e 0.6cqw, #a57c34 0.92cqw, #5e4216 1.1cqw, transparent 1.18cqw),
-    radial-gradient(circle at calc(100% - 2.3cqw) 2cqw, #fff6d4 0 0.3cqw, #e6c36e 0.6cqw, #a57c34 0.92cqw, #5e4216 1.1cqw, transparent 1.18cqw),
+    radial-gradient(circle at 2.3cqw 2cqw, var(--tack-0) 0 0.3cqw, var(--tack-1) 0.6cqw, var(--tack-2) 0.92cqw, var(--tack-3) 1.1cqw, transparent 1.18cqw),
+    radial-gradient(circle at calc(100% - 2.3cqw) 2cqw, var(--tack-0) 0 0.3cqw, var(--tack-1) 0.6cqw, var(--tack-2) 0.92cqw, var(--tack-3) 1.1cqw, transparent 1.18cqw),
     radial-gradient(circle at 2.8cqw 2.6cqw, rgba(40, 24, 6, 0.45) 0 1cqw, transparent 1.5cqw),
     radial-gradient(circle at calc(100% - 1.8cqw) 2.6cqw, rgba(40, 24, 6, 0.45) 0 1cqw, transparent 1.5cqw),
+    radial-gradient(120% 70% at 0 0, var(--nc-bounce), transparent 70%),
     url('/static/assets/tex/grain-card.webp') 0 0 / 26cqw auto,
-    linear-gradient(172deg, #f8f0dc, #eee2c6 55%, #e3d4b2);
-  background-blend-mode: normal, normal, normal, normal, soft-light, normal;
+    linear-gradient(172deg, var(--nc-0), var(--nc-1) 55%, var(--nc-2));
+  background-blend-mode: normal, normal, normal, normal, normal, soft-light, normal;
   box-shadow: 0.5cqw 1cqw 1.6cqw rgba(8, 4, 2, 0.55), 0.15cqw 0.35cqw 0.25cqw rgba(8, 4, 2, 0.45);
 }
 .g-notice[hidden] { display: none; }
@@ -931,7 +949,7 @@ html[lang="zh"] .g-lamp { letter-spacing: 0.2em; }
   display: flex; align-items: center; gap: 1.6cqw; align-self: stretch;
   margin: 0 0 0.9cqw;
   font-weight: 700; letter-spacing: 0.3em;
-  color: #6e1712;
+  color: var(--nc-red);
 }
 .g-notice .gx-head::before, .g-notice .gx-head::after {
   content: ""; flex: 1 1 0; height: 3px;
@@ -958,7 +976,7 @@ html[lang="zh"] .g-notice .gx-say { -webkit-text-stroke: 0.45px currentColor; le
 .g-notice[data-fit="3"] {
   left: 1.2cqw; right: 1.2cqw; line-height: 1.16; letter-spacing: 0;
   padding: 1cqw 1cqw 0.9cqw; outline: none;
-  background: url('/static/assets/tex/grain-card.webp') 0 0 / 26cqw auto, linear-gradient(172deg, #f8f0dc, #eee2c6 55%, #e3d4b2);
+  background: url('/static/assets/tex/grain-card.webp') 0 0 / 26cqw auto, linear-gradient(172deg, var(--nc-0), var(--nc-1) 55%, var(--nc-2));
   background-blend-mode: soft-light, normal;
 }
 .g-notice[data-fit="3"] .gx-head { display: none; }
