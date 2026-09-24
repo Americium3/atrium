@@ -1032,7 +1032,7 @@
   --well: #2e2b24; --well-tex: 0.9; --well-rim: rgba(0, 0, 0, 0.7);
   --pn-ink: #eadfc4; --pn-faint: #a2957a; --pn-label: #d6b867;
   --pk-0: #4a4640; --pk-1: #1a1816; --pk-2: #060505;
-  --pl-0: #0c0b0a; --pl-1: #6f6a62; --pl-2: #d9d6cf;
+  --bat-0: #0c0b0a; --bat-1: #6f6a62; --bat-2: #d9d6cf;
   --pilot-0: #fff8e2; --pilot-1: #ffcf7a; --pilot-2: #d97e20; --pilot-3: #5c2606;
   --pilot-glow: rgba(255, 190, 100, 0.8);
 }
@@ -1042,12 +1042,15 @@
   --well: #c6c1ae; --well-tex: 1; --well-rim: rgba(40, 30, 16, 0.45);
   --pn-ink: #1f180e; --pn-faint: #5b4f3a; --pn-label: #5c4613;
   --pk-0: #4a4640; --pk-1: #1a1816; --pk-2: #060505;
-  --pl-0: #3a3834; --pl-1: #a7a39a; --pl-2: #f4f2ec;
+  --bat-0: #3a3834; --bat-1: #a7a39a; --bat-2: #f4f2ec;
   --pilot-0: #ffe7b0; --pilot-1: #e0a040; --pilot-2: #a4600e; --pilot-3: #4a2a06;
   --pilot-glow: rgba(0, 0, 0, 0);
 }
 .pk-0 { stop-color: var(--pk-0); } .pk-1 { stop-color: var(--pk-1); } .pk-2 { stop-color: var(--pk-2); }
-.pl-0 { stop-color: var(--pl-0); } .pl-1 { stop-color: var(--pl-1); } .pl-2 { stop-color: var(--pl-2); }
+/* The bat lever's nickel shaft. These were --pl-*, which is the plaster
+   ramp's name in atrium.css: set on :root after it, they re-leafed the
+   reserved gate as bright chrome with its relief turned inside out. */
+.bat-0 { stop-color: var(--bat-0); } .bat-1 { stop-color: var(--bat-1); } .bat-2 { stop-color: var(--bat-2); }
 
 #prefs {
   background-color: color-mix(in srgb, var(--base) 58%, transparent);
