@@ -3778,7 +3778,15 @@ function refresh() {
     // figure: the band says so at once rather than a loop later, still
     // counting open lines it can no longer see.
     renderTicker(hubLost !== wasLost);
-    if (hubLost || !fd || cold(st) || cold(fd) || cold(sx)) retryT = setTimeout(poll, RETRY_MS);
+    // Anything not applied is asked for again soon: a lost status, a stats
+    // or feed answer that failed or could not be read, a cold payload, or a
+    // registry that never came. A stats miss alone used to leave every stat
+    // line blank for the rest of the 45 s beat.
+    if (hubLost || !stOk || !sxOk || !fdOk || cold(st) || cold(fd) || cold(sx) ||
+        !services.length) {
+      clearTimeout(retryT);   // overlapping polls must not leave two timers
+      retryT = setTimeout(poll, RETRY_MS);
+    }
   });
 }
 
