@@ -2130,7 +2130,7 @@ function buildAisles() {
    Every term is a layout value that the cap and the floor do not move
    (the stage's top is the masthead's and the marquee's, the headroom is
    the viewport's), so writing them cannot feed back into the solve. */
-var FLOOR_HARD = 62, DESK_K_MIN = 0.78;
+var FLOOR_HARD = 62, DESK_K_MIN = 0.78, FLOOR_SHARE = 0.31;
 function budgetHall() {
   var hall = $('#hall'), con = $('#concourse'), stage = $('#stage'), desk = $('#signal-desk');
   if (!hall || !con || !stage || !stage.offsetHeight) return;
@@ -2144,10 +2144,24 @@ function budgetHall() {
     var deskFoot = parseFloat(getComputedStyle(desk).bottom) || 0;
     need = Math.max(need, Math.ceil(deskFoot + DESK_GAP + (220 - art) * k - foot));
   }
-  // The stage is the arch module plus the wall's headroom over it
-  // (--stage-h in atrium.css), so this is the largest arch that leaves
-  // the floor its need.
-  var headroom = Math.max(80, Math.min(100, H - 1080));
+  // The wall's headroom over the arches (--stage-h in atrium.css): 80px,
+  // rising to 100 above 1080px of viewport. On a tall screen the arch is
+  // held by the width, and all the height the wall left went to the floor,
+  // 42-43% of a 4:3 or 16:10 screen against the 27-32% a wide one gets
+  // (LY-9), so there the wall takes the surplus down to FLOOR_SHARE, but
+  // never stands taller over the arches than an arch: on a near-square
+  // screen it would have been a bare field of damask half the hall high. It
+  // is solved from the arch with no vertical cap (--gate-free), and it never
+  // leaves the floor less than its need, so it can never bring the cap
+  // below that arch: nothing here feeds back into the solve.
+  var hrWas = parseFloat(con.style.getPropertyValue('--headroom'));
+  if (!isFinite(hrWas)) hrWas = Math.max(80, Math.min(100, H - 1080));   // the sheet's own term
+  var free = parseFloat(getComputedStyle(root).getPropertyValue('--gate-free')) || 0;
+  var headroom = Math.max(80, Math.min(100, H - 1080), Math.min(Math.floor(free * 1.9),
+    Math.floor(H - top - free * 1.9 - Math.max(FLOOR_SHARE * H, foot + need))));
+  if (headroom !== hrWas) con.style.setProperty('--headroom', headroom + 'px');
+  // The stage is the arch module plus that headroom, so this is the largest
+  // arch that leaves the floor its need.
   var cap = ((H - top - foot - need - headroom) / 1.9).toFixed(1) + 'px';
   var was = root.style.getPropertyValue('--gate-vcap');
   if (was !== cap) {
@@ -2158,7 +2172,7 @@ function budgetHall() {
     var g = solved ? solved.g0 : Infinity;
     if (parseFloat(cap) < g + 0.5 || parseFloat(was) < g + 0.5) layoutStage(true);
   }
-  var room = Math.floor(H - top - stage.offsetHeight - foot);
+  var room = Math.floor(H - top - (stage.offsetHeight - hrWas + headroom) - foot);
   var fit = Math.max(need, room) + 'px';
   if (con.style.getPropertyValue('--floor-fit') !== fit) con.style.setProperty('--floor-fit', fit);
 }

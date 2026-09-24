@@ -337,6 +337,16 @@ surplus goes to the wall and to the two cases hanging on it. On a 3440x1330
 display that moves the floor from 31.6% of the viewport to 27.1%, the arches
 up 6% and the boards up 9%.
 
+That 100px was not enough on a tall screen. On 4:3 and 16:10 the arch is
+held by the width, so the floor still took 42-43% of the height. The wall
+now also takes the surplus down to 31% of the viewport: `budgetHall()`
+writes `--headroom`, solved from `--gate-free` (the arch module with no
+vertical cap), never leaving the floor less than it needs and never
+standing taller over the arches than an arch. The arches keep their size.
+1600x1200, 1280x1024, 1920x1200, 2560x1440, 2560x1600 and 3440x1440 now
+land at 31%. Where the floor was already under that (1920x1080, 3440x1330,
+the short laptops) the 80 to 100px term stands as it was.
+
 **Optical scale (`--ui`).** What a 34" desk display changes is physical
 size, not pixel count. The 12.5px engraving that reads at arm's length on a
 laptop is illegible from across a room. One multiplier drives every piece of

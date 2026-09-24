@@ -245,6 +245,10 @@
      largest arch that still leaves the lever its floor under the stage. */
   --gate-w: clamp(182px, min(13.6vw, 26.5vh, var(--gate-vcap, 100vh)),
                   calc(296px * (0.62 + 0.38 * var(--ui))));
+  /* The same module with no vertical cap: the arch as it would stand if the
+     floor asked nothing of the height. budgetHall() gives a tall screen's
+     surplus to the wall from it (LY-9); registered, so it reads back as px. */
+  --gate-free: clamp(182px, min(13.6vw, 26.5vh), calc(296px * (0.62 + 0.38 * var(--ui))));
   --desk-h: 210px;         /* the signal desk's own standing height */
   --hall-foot: 30px;       /* #hall's bottom padding, shared with the floor */
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
@@ -268,6 +272,7 @@
    "calc(var(--ui-auto) * var(--ui-user))" — which parseFloat reads as NaN,
    and every JS-side `* u` silently falls back to 1. */
 @property --ui { syntax: "<number>"; inherits: true; initial-value: 1; }
+@property --gate-free { syntax: "<length>"; inherits: true; initial-value: 0px; }
 :root { --ui-auto: 1; --ui-user: 1; --ui: calc(var(--ui-auto) * var(--ui-user)); }
 @media (min-width: 1900px) { :root { --ui-auto: 1.12; } }
 @media (min-width: 2400px) { :root { --ui-auto: 1.24; } }
@@ -958,8 +963,11 @@ html[data-boot="suppressed"] #signal-desk {
      take goes to the floor — and the floor was reading as the largest thing
      in the room. The room claims it back above 1080px of viewport and gives
      it to the wall and the two cases; below that the term is inert, so no
-     short screen inherits a taller hall than it can stand. */
-  --stage-h: calc(var(--gh2) + clamp(80px, calc(100vh - 1080px), 100px));
+     short screen inherits a taller hall than it can stand. On a 4:3 or
+     16:10 screen that 100px left the floor 42-43% of the height, so
+     budgetHall() in app.js writes --headroom, which also takes the surplus
+     down to about 31% (LY-9). The clamp is the term until it has run. */
+  --stage-h: calc(var(--gh2) + var(--headroom, clamp(80px, calc(100vh - 1080px), 100px)));
   --pad-top: 16px;
   /* Only the RESERVATION. The concourse is the hall's 1fr row, so on any
      screen with room to spare the floor simply takes everything under the
@@ -3069,6 +3077,7 @@ html[lang="zh"] .g-name { letter-spacing: 0.17em; }
   :root {
     --gate-w: clamp(164px, min(13.6vw, 25vh, var(--gate-vcap, 100vh)),
                     calc(268px * (0.62 + 0.38 * var(--ui))));
+    --gate-free: clamp(164px, min(13.6vw, 25vh), calc(268px * (0.62 + 0.38 * var(--ui))));
   }
   #hall { --hall-pad-top: 12px; }
   #concourse { --floor-min: clamp(62px, 8vh, 210px); }
