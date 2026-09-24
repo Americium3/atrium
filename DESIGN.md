@@ -803,13 +803,17 @@ card leans up to 0.35 degrees off its dispatch's hash, its time is a violet
 rubber stamp crooked by the same hash, and every card's right edge shares
 one line. The head is a brass card frame holding THE LEDGER, with a close
 knob beside it; the chips are a bank of three push-keys. Cards are links
-opening the dispatch url.
+opening the dispatch url. A press on the holder's rim or the medallion is a
+press on the card, and a modifier or middle click is left to the browser,
+as on a gate.
 
 - **Read is what the pointer rested on**: an unread card carries a jewel
   lamp in its holder's corner (champagne at night, gold glass by day); the Ledger itself always shows the full window. A
   dispatch is marked read when the pointer has rested on its card for
-  **420 ms**, when it is focused by keyboard, or when it is followed through
-  to its service, or when the reader presses the stamp. Nothing else marks
+  **420 ms**, when the keyboard caret has rested on it (the mark lands as
+  the caret moves on, so a screen reader still hears "unread" on arrival),
+  when it is followed through to its service, or when the reader presses
+  the stamp. Nothing else marks
   anything: opening or closing the drawer clears no plaque, because a card
   three screens down was not read by the act of shutting a drawer over it.
   Two localStorage keys back this: `atrium.read`
@@ -891,8 +895,9 @@ opening the dispatch url.
   could not be read" under the same ornament; only a feed that answered
   empty may say "No dispatches". After one good read a failed poll keeps the
   plaques, since a dispatch that happened is still true when the hub goes
-  quiet. The first feed landing in an open drawer falls in as the opening
-  cascade.
+  quiet. Their ages keep counting, and once a beat has gone by without a
+  fresh feed the drawer engraves NO WORD SINCE HH:MM beside the stamp. The
+  first feed landing in an open drawer falls in as the opening cascade.
 - Client keys DOM nodes by dispatch id, so re-polls never re-animate existing
   plaques; same-id dispatches update in place. A dispatch this page has
   already shown does not play its arrival again after dropping out of one
@@ -946,7 +951,11 @@ jewel over each legend, language a double-throw knife switch on slate,
 engraving size an interlocked push-button bank, motion a three-position bat
 toggle, REPLAY ENTRANCE a spring-return key. Roles, roving tabindex, the
 focus trap and Esc are unchanged; focus is a champagne collar round the
-legend's jewel plus a rule under its name. The radios:
+legend's jewel plus a rule under its name (the push keys, which have no
+jewel, take a gold ring laid in ink). The hardware answers the pointer: a
+press on the rotary or the bat toggle turns it to the detent nearest the
+press, a press on its boss steps it one detent, and either half of the
+knife switch throws it to that side. The radios:
 
 - Appearance: Onyx / Ivory / Follow system (follow-system attaches a
   `matchMedia` change listener and applies the 400 ms crossfade live)
@@ -1193,11 +1202,15 @@ Motion setting collapse all of the above to fades/instant.
 - **Keys**: arrows walk the lit gates, digits jump to one, Enter opens it, W
   throws the lever (focus lands on the gate in the same bay of the other
   wing), L opens and closes the Ledger (arrows then walk its dispatches), P
-  opens Preferences, ? shows the key plate, Esc closes the top layer. Nothing
+  opens Preferences, ? shows the key plate, Esc closes the top layer. With
+  the drawer open W and P still work, and a digit shuts it on the way to its
+  gate. A key held down that opens or shuts a layer acts once. Nothing
   fires with a modifier held, over Preferences or during the entrance.
 - **The Ledger drawer** lives at body level beside its scrim (inside `#hall`
   it painted under the scrim on every quiet boot). Opening it moves focus to
-  its heading; while open, Tab cycles the drawer and its hatch. The poll
+  its heading; while open, Tab cycles the drawer's own controls (the hatch
+  lies under the drawer's head, so it is left out). Shutting the drawer
+  puts focus back where it was when the drawer opened. The poll
   moves a plaque only when it is out of place, so focus survives it. When
   the focused dispatch leaves the feed, focus goes to the next plaque down
   (else the one above, else the heading), and that move marks nothing read:

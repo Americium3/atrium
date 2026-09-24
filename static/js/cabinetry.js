@@ -567,7 +567,7 @@ function card(li, id, host) {
   li.style.setProperty('--lean', f2((draw(seed, 1) - 0.5) * 0.7) + 'deg');
   li.style.setProperty('--stamp-rot', f2((draw(seed, 2) - 0.5) * 7) + 'deg');
   li.style.setProperty('--stamp-x', f2(draw(seed, 3) * 1.4) + 'em');
-  li.style.setProperty('--ink-a', f2(0.74 + draw(seed, 4) * 0.22));
+  li.style.setProperty('--ink-a', f2(0.92 + draw(seed, 4) * 0.08));
   li.style.setProperty('--stock', f2(draw(seed, 5)));
   li.style.setProperty('--clip-y', f2(18 + draw(seed, 6) * 24) + '%');
   var jewel = hx('span', 'pl-jewel');
@@ -695,7 +695,7 @@ function batArt() {
   var l = sv('svg', { viewBox: '0 0 20 60' });
   var ld = sv('defs');
   ld.appendChild(grad('linearGradient', 'pb-lever', { x1: 0, y1: 0, x2: 1, y2: 0 },
-    [[0, 'pl-0'], [0.35, 'pl-2'], [0.55, 'pl-1'], [1, 'pl-0']]));
+    [[0, 'bat-0'], [0.35, 'bat-2'], [0.55, 'bat-1'], [1, 'bat-0']]));
   l.appendChild(ld);
   // the bat: a tapered shaft swelling to a flattened paddle at the tip
   var bat = 'M8 58 L7 24 C3.6 19 2.8 10 4.8 4.6 C6.6 0.6 13.4 0.6 15.2 4.6 C17.2 10 16.4 19 13 24 L12 58 Z';

@@ -339,6 +339,9 @@ svg { display: block; }
   color: var(--ink);
 }
 #keyplate[hidden] { display: none; }
+/* The plate lies exactly on the band. Called up while the band holds the
+   caret, it carries the band's ring, or the focus would show nowhere. */
+body:has(#ticker:focus-visible) #keyplate { outline: 2px solid var(--focus); outline-offset: 3px; }
 .kp-title {
   font-size: calc(12px * var(--ui)); letter-spacing: 0.28em;
   color: var(--gold-text);
@@ -2630,6 +2633,10 @@ html[lang="zh"] .g-name { letter-spacing: 0.17em; }
   pointer-events: none;
 }
 #ledger.open { transform: translateX(0); }
+/* The drawer, the key plate and Preferences are cabinetry like the rest of
+   the hall: a double-click or a drag across them painted the browser's blue
+   selection over the lacquer. */
+#ledger, #keyplate, #prefs { user-select: none; }
 
 /* Scrim — dims the hall behind the drawer; click to close */
 #ledger-scrim {
@@ -2662,6 +2669,8 @@ html[lang="zh"] .g-name { letter-spacing: 0.17em; }
   outline: 2px solid var(--focus);
   outline-offset: 3px;
 }
+/* Room for that ring when a walk brings the card into view. */
+.plaque { scroll-margin: 12px 0; }
 .l-head h2 { font-size: calc(15px * var(--ui)); color: var(--gold-text); letter-spacing: 0.28em; }
 .chips { display: flex; gap: 6px; }
 .chip {
@@ -2721,10 +2730,12 @@ html[lang="zh"] .g-name { letter-spacing: 0.17em; }
 /* Nothing to strike: inert, not gone. A control that vanishes when it has
    no work moves every other control on the drawer out from under the
    pointer, and comes back in a place the reader is no longer looking. */
-.l-stamp.inert {
-  opacity: 0.38;
-  cursor: default;
-}
+/* The stamp's works dim, not the button: at 38% on the whole button the
+   focus ring dimmed with it (2:1), and the stamp keeps focus when it goes
+   idle under the keyboard reader's own press. */
+.l-stamp > * { transition: opacity 0.25s; }
+.l-stamp.inert { cursor: default; }
+.l-stamp.inert > * { opacity: 0.38; }
 .l-stamp.inert:hover { color: var(--ink-faint); border-color: transparent; }
 
 .l-col { position: relative; padding-left: 44px; }
