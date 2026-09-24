@@ -1319,7 +1319,7 @@ function samples(end) {
 }
 /* One animation on the entrance's clock: `frames` are [ms, {props}] pairs,
    laid on a timeline as long as the whole entrance. */
-function run(el, frames, total) {
+function run(el, frames, total, fill) {
   if (!el) return null;
   var kf = frames.map(function (fr) {
     var k = {};
@@ -1330,7 +1330,7 @@ function run(el, frames, total) {
   if (kf[0].offset > 0) { var first = {}; for (var q in kf[0]) first[q] = kf[0][q]; first.offset = 0; kf.unshift(first); }
   var lastK = kf[kf.length - 1];
   if (lastK.offset < 1) { var last = {}; for (var r in lastK) last[r] = lastK[r]; last.offset = 1; delete last.easing; kf.push(last); }
-  var a = el.animate(kf, { duration: total, fill: 'both' });
+  var a = el.animate(kf, { duration: total, fill: fill || 'both' });
   a.pause();
   anims.push(a);
   return a;
@@ -1449,8 +1449,8 @@ var E_CHASE_STEPS = 28;
 function marqueeChase(host, total, at) {
   var tk = $('#ticker'), mq = $('.e-marquee', host);
   if (!tk || !mq) return;
-  // the band where it will rest, not where it stands posed behind the doors
-  var r = restRect(tk.getBoundingClientRect());
+  // read before the clock starts, while the hall still stands at rest
+  var r = tk.getBoundingClientRect();
   mq.style.left = r.left + 'px'; mq.style.top = r.top + 'px';
   mq.style.width = r.width + 'px'; mq.style.height = r.height + 'px';
   var ui = parseFloat(getComputedStyle(tk).getPropertyValue('--ui')) || 1;
@@ -1571,19 +1571,23 @@ function pose0() {
     run(e, hall, total);
   });
   fade(sc.veil.el, [[0, 1], [t.veil[0], 1], [t.veil[1], 0, 'ease-in-out']], total);
+  // The hall itself takes its pose only when the clock starts: while the
+  // street stands, the hall lays itself out and measures its own boxes, and
+  // a box read through a pose half its size put the aisle cases out of the
+  // hall at 3440. Parked with no backward fill, it stands at rest until then.
   ['#hall', '#signal-desk'].forEach(function (sel) {
     var e = $(sel);
     if (!e) return;
     var r = e.getBoundingClientRect();
     e.style.transformOrigin = f2(S.W / 2 - r.left) + 'px ' + f2(cam.yhf - r.top) + 'px';
-    run(e, hall, total);
+    run(e, hall, total, 'forwards');
   });
   lights(sc, S.P, t, total);
   park();
 }
-/* Hold every animation on its first frame, on the compositor, until the
-   clock starts: parked a long way ahead, the hall behind the doors is
-   rastered at the scale it lands on while the street still stands. */
+/* Hold every animation on its first frame until the clock starts, parked a
+   long way ahead. The hall's own is parked without a pose, so it is drawn
+   at the scale it lands on while the street still stands. */
 function park() {
   var now = document.timeline.currentTime || 0;
   anims.forEach(function (a) { a.startTime = now + BIG; });
@@ -1629,20 +1633,6 @@ E.clear = function () {
   if (S && S.sc && S.sc.world && S.sc.world.parentNode) S.sc.world.parentNode.removeChild(S.sc.world);
   S = null;
 };
-
-/* A y read off the hall while it stands posed behind the doors, put back
-   where it is at rest: the hall's first pose is a scale about the eye
-   point, and this is its inverse. */
-E.restY = function (y) {
-  if (!S || S.started) return y;
-  var cam = S.cam, c = cam.at(0), s = (cam.dF + HALL_D) / (c.z + HALL_D);
-  return cam.yhf + (y - c.yh) / s;
-};
-function restRect(r) {
-  var cam = S.cam, c = cam.at(0), s = (cam.dF + HALL_D) / (c.z + HALL_D);
-  var ox = S.W / 2, x0 = ox + (r.left - ox) / s, y0 = cam.yhf + (r.top - c.yh) / s;
-  return { left: x0, top: y0, width: r.width / s, height: r.height / s };
-}
 
 E.beats = function () { return S ? { doneFade: S.t.doneFade, total: S.total } : null; };
 E.running = function () { return !!(S && S.started); };

@@ -558,9 +558,8 @@ var entranceTimers = [];
 function entranceEye() {
   var dial = $('#clock .dial');
   var r = dial && dial.getBoundingClientRect();
-  if (!r || !r.height) return window.innerHeight * 0.45;
-  // read through the hall's pose behind the doors, if it has one yet
-  return window.Entrance ? window.Entrance.restY(r.top + r.height / 2) : r.top + r.height / 2;
+  // the hall stands at rest until the clock starts, so this is its own box
+  return r && r.height ? r.top + r.height / 2 : window.innerHeight * 0.45;
 }
 function entranceMeasure() {
   if (root.dataset.entered !== 'no' || !window.Entrance) return;
@@ -777,6 +776,10 @@ function finishEntrance() {
     entranceSkip = null;
   }
   window.removeEventListener('resize', entranceResize);
+  // A box the hall measured while it was posed behind the doors (a poll's
+  // new line on the band, a face that finished loading) was read at a
+  // fraction of its size; the hall lays itself out once more as it lands.
+  var walked = window.Entrance && window.Entrance.running();
   if (window.Entrance) window.Entrance.clear();
   entrance.style.display = 'none';
   // data-boot stays 'played', so the suppressed-load hall-fade does NOT
@@ -785,6 +788,7 @@ function finishEntrance() {
   // Re-enable ledger button now that entrance is done
   var lb = $('#ledger-btn');
   if (lb) lb.disabled = false;
+  if (walked) window.dispatchEvent(new Event('resize'));
   // Relay: motion transfers from the overlay to the hall. The gear train
   // twitches one tooth: the machine exhales as the overlay clears.
   deskNudge();

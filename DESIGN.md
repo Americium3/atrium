@@ -386,9 +386,14 @@ clock starts only when the street is painted and the hall behind the doors
 has its first readings and has been drawn, so the hall's first raster
 happens while the street stands still. A hub slow to answer holds it
 900 ms; after that the clock starts as soon as the frames run at the
-display's pace again (2.5 s at the most). Held, every animation is parked a
-long way ahead on the compositor, so the hall is rastered at the scale it
-lands on while it still stands behind the doors. In a new tab, or a browser
+display's pace again (2.5 s at the most). Held, every animation of the
+street is parked a long way ahead. The hall's own is parked without a pose,
+so while the street stands the hall lays itself out and measures its own
+boxes at rest (read through a pose half its size, they put the aisle cases
+out of the hall at 3440), and is drawn at the scale it lands on. As it
+lands, the hall lays itself out once more, for any box it measured while
+posed behind the doors: a poll's new line on the band, a face that
+finished loading. In a new tab, or a browser
 restarted on a profile that has drawn the hall before, the clock starts
 0.8 to 1 s after load at 1920 and 0.9 to 1.4 s at 3440 on that renderer. A street that cannot be
 painted within 6 s lands the hall. A hall loaded in a tab nobody is looking
