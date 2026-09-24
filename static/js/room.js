@@ -491,25 +491,31 @@ function pier(p) {
   });
   P += ' H' + f2(x + sw / 2) + ' V' + f2(bottom) + ' Z';
   var id = 'pr-' + name;
-  var T = 520 * u;
+  var T = 300 * u;                                // the slab: a few strata per tier
   var ox = -draw(name, 2) * T, oy = -draw(name, 3) * T;
   var s = '<defs>' +
     '<pattern id="' + id + '-o" patternUnits="userSpaceOnUse" width="' + f2(T) + '" height="' + f2(T) + '" x="' + f2(ox) + '" y="' + f2(oy) + '">' +
-      '<image class="on-lit" href="/static/assets/tex/room-onyx-lit.webp" width="' + f2(T) + '" height="' + f2(T) + '"/>' +
-      '<image class="on-day" href="/static/assets/tex/room-onyx-day.webp" width="' + f2(T) + '" height="' + f2(T) + '"/></pattern>' +
+      '<image class="on-lit" href="/static/assets/tex/room-onyx-glow-lit.webp" width="' + f2(T) + '" height="' + f2(T) + '"/>' +
+      '<image class="on-day" href="/static/assets/tex/room-onyx-glow-day.webp" width="' + f2(T) + '" height="' + f2(T) + '"/></pattern>' +
     '<linearGradient id="' + id + '-c" gradientUnits="userSpaceOnUse" x1="' + f2(x - steps[tiers - 1].w / 2) + '" y1="0" x2="' + f2(x + steps[tiers - 1].w / 2) + '" y2="0">' +
       '<stop offset="0" class="prc s0"/><stop offset=".5" class="prc s1"/><stop offset="1" class="prc s0"/></linearGradient>' +
     '<linearGradient id="' + id + '-v" gradientUnits="userSpaceOnUse" x1="0" y1="' + f2(top) + '" x2="0" y2="' + f2(bottom) + '">' +
       '<stop offset="0" class="prv s0"/><stop offset="' + f2((y1 - top) / (bottom - top)) + '" class="prv s1"/><stop offset=".62" class="prv s2"/><stop offset=".9" class="prv s1"/><stop offset="1" class="prv s3"/></linearGradient>' +
     '<linearGradient id="' + id + '-g" gradientUnits="userSpaceOnUse" x1="' + f2(minX) + '" y1="0" x2="' + f2(2 * x - minX) + '" y2="0">' +
       '<stop offset="0" class="prg s0"/><stop offset=".3" class="prg s1"/><stop offset=".5" class="prg s2"/><stop offset=".7" class="prg s3"/><stop offset="1" class="prg s4"/></linearGradient>' +
+    // the lamp's bloom round the glass: a static blur of the silhouette
+    '<filter id="' + id + '-b" x="-150%" y="-10%" width="400%" height="120%"><feGaussianBlur stdDeviation="' + f2(Math.max(2.5, 4.5 * u)) + '"/></filter>' +
     '</defs>';
   s += '<path class="pr-cast" d="' + P + '" transform="translate(' + f2(2.5 * u) + ' ' + f2(3.5 * u) + ')"/>';
+  // At night the glass is the lamp: it blooms past its frame onto the wall.
+  s += '<path class="pr-halo lamp" d="' + P + '" stroke-width="' + f2(2 * ft + 5 * u) + '" filter="url(#' + id + '-b)"/>';
   s += '<path class="pr-rim" d="' + P + '" stroke-width="' + f2(2 * ft + 2.2) + '"/>';
   s += '<path class="pr-frame" d="' + P + '" stroke="url(#' + id + '-g)" stroke-width="' + f2(2 * ft) + '"/>';
   s += '<path class="pr-onyx" d="' + P + '" fill="url(#' + id + '-o)"/>';
   s += '<path class="pr-lamp" d="' + P + '" fill="url(#' + id + '-c)"/>';
   s += '<path class="pr-fall" d="' + P + '" fill="url(#' + id + '-v)"/>';
+  // the gilt's inner arris, lit by the glass it holds
+  s += '<path class="pr-lip lamp" d="' + P + '" stroke-width="' + f2(ft * 1.3) + '"/>';
   s += '<path class="pr-glaze" d="' + P + '" stroke-width="' + f2(Math.max(1, 1.4 * u)) + '"/>';
   // gilt fillets between the tiers, and the collar where capital meets shaft
   var fil = '';

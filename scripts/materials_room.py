@@ -13,7 +13,7 @@ import sys
 
 import numpy as np
 from PIL import Image
-from scipy.ndimage import gaussian_filter, map_coordinates
+from scipy.ndimage import gaussian_filter, gaussian_filter1d, map_coordinates
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from materials import (OUT, ROOT, fbm, ramp, band_veins, flow_veins, ridges,  # noqa: E402
@@ -61,60 +61,78 @@ def portoro_calm(n=1024):
 
 # ---------------------------------------------------------------- onyx
 
-def _layers(n, seed, mean=9.0):
-    """A 1-D stack of onyx laminae: layer thickness and translucency drawn
-    at random, periodic over n. Returns translucency per depth pixel and a
-    fine lamination term."""
+def _strata(n, seed, mean=12.0):
+    """A 1-D stack of onyx laminae, periodic over n: each layer its own
+    thickness and clarity, and the fine growth lines inside them."""
     rng = np.random.default_rng(seed)
     t = np.zeros(n)
     pos = 0
     while pos < n:
-        th = int(max(2, rng.gamma(1.6, mean / 1.6)))
-        v = rng.beta(1.3, 1.1)
-        if rng.random() < 0.08:          # a milky calcite band: opaque, pale
-            v = -1.0
-        t[pos:pos + th] = v
+        th = int(max(2, rng.gamma(1.3, mean / 1.3)))
+        t[pos:pos + th] = rng.beta(0.9, 0.9)
         pos += th
-    t = t[:n]
-    milky = (t < 0).astype(np.float64)
-    t = np.where(t < 0, 0.25, t)
-    # soften the layer edges a touch, wrapping, so bands are crisp not stepped
-    k = np.concatenate([t[-6:], t, t[:6]])
-    k = np.convolve(k, np.ones(3) / 3, mode="same")[6:-6]
-    m = np.concatenate([milky[-6:], milky, milky[:6]])
-    m = np.convolve(m, np.ones(5) / 5, mode="same")[6:-6]
-    fine = 0.5 + 0.5 * np.sin(np.arange(n) * 2 * np.pi * 61 / n + rng.uniform(0, 6.28))
-    return k, m, fine
+    t = gaussian_filter1d(t[:n], 1.2, mode="wrap")
+    g = 0.5 + 0.5 * np.sin(np.arange(n) * 2 * np.pi * 131 / n + rng.uniform(0, 6.28))
+    return t, g
 
 
-def onyx(n=1024, seed=231, lit=True):
-    """Mexican onyx (banded calcite), the Chrysler practicals: laminae that
-    run across the slab in long gentle waves, never the closed rings of a
-    wood figure. Lit, the thin clear layers pass the lamp and the thick or
-    milky ones hold it back; by day it is honey stone with a waxy face."""
+def _along(arr, depth):
+    return map_coordinates(arr, [depth.ravel()], order=1, mode="grid-wrap").reshape(depth.shape)
+
+
+def _warped(f, n, seed, amt):
     yy, xx = np.mgrid[0:n, 0:n].astype(np.float64)
-    # depth coordinate: the layers run along x, undulating in y
+    a = fbm(n, seed, 3.0) - 0.5
+    b = fbm(n, seed + 1, 3.0) - 0.5
+    return map_coordinates(f, [yy + a * n * amt, xx + b * n * amt], order=1, mode="grid-wrap")
+
+
+def _smooth(a, b, x):
+    t = np.clip((x - a) / (b - a), 0, 1)
+    return t * t * (3 - 2 * t)
+
+
+def onyx(n=1024, seed=451, lit=True):
+    """Honey onyx for the pier lights, as a practical is glazed with it.
+
+    What the eye takes for onyx rather than wood or agate is the light in
+    it: a cloudy body the lamp gets through in pools, strata that bunch in
+    some places and die out in others, milky calcite wisps, and a few dark
+    veins wandering across the run. Lit, the clear runs burn white-gold and
+    the thick ones go amber to rust. Unlit (by day) the same stone reverses:
+    the clear runs look into dark depth and the milk is the palest thing in
+    it, all of it muted and waxy. The two bakes share every field, so a pier
+    is the same slab night and day."""
+    yy, xx = np.mgrid[0:n, 0:n].astype(np.float64)
     w1 = fbm(n, seed + 1, 3.4) - 0.5
-    w2 = fbm(n, seed + 2, 2.6) - 0.5
-    depth = (yy + w1 * n * 0.22 + w2 * n * 0.035) % n
-    trans, milky, fine = _layers(n, seed)
-    tr = map_coordinates(trans, [depth.ravel()], order=1, mode="grid-wrap").reshape(n, n)
-    mk = map_coordinates(milky, [depth.ravel()], order=1, mode="grid-wrap").reshape(n, n)
-    fn = map_coordinates(fine, [depth.ravel()], order=1, mode="grid-wrap").reshape(n, n)
-    cloud = fbm(n, seed + 3, 1.9)
-    t = np.clip(tr * 0.78 + (fn - 0.5) * 0.10 + (cloud - 0.5) * 0.22, 0, 1)
+    w2 = fbm(n, seed + 2, 2.4) - 0.5
+    depth = (yy + w1 * n * 0.13 + w2 * n * 0.03) % n
+    tr, gl = _strata(n, seed)
+    B = _along(tr, depth)
+    G = _along(gl, depth)
+    bunch = _smooth(0.35, 0.75, fbm(n, seed + 3, 2.6))
+    body = _warped(fbm(n, seed + 4, 2.0, (1.7, 1.0)), n, seed + 5, 0.16)
+    body = (body - body.min()) / (body.max() - body.min())
+    mw = _warped(fbm(n, seed + 7, 2.2, (2.6, 1.0)), n, seed + 8, 0.14)
+    milk = _smooth(0.66, 0.9, (mw - mw.min()) / (mw.max() - mw.min())) * 0.9
+    dv = flow_veins(n, seed + 9, 2.3, (1.0, 1.4), 0.12, 30, 0.9) * 0.8
+    trans = body * (1 - 0.55 * bunch * (1 - B)) + 0.10 * bunch * (B - 0.5) + (G - 0.5) * 0.02
+    trans = np.clip(trans, 0, 1)
     if lit:
-        rgb = ramp(t, [(0.0, (70, 28, 8)), (0.25, (142, 64, 18)), (0.5, (206, 118, 40)),
-                       (0.75, (242, 176, 92)), (1.0, (255, 226, 170))])
-        milk = np.array([252, 214, 160], dtype=np.float64)
-        rgb = rgb * (1 - mk[..., None] * 0.55) + milk * (mk[..., None] * 0.55)
+        T = np.clip((trans - 0.06) / 0.86, 0, 1)
+        rgb = ramp(T, [(0.0, (70, 22, 6)), (0.15, (130, 46, 10)), (0.33, (196, 92, 22)),
+                       (0.52, (242, 150, 50)), (0.72, (255, 200, 112)), (0.88, (255, 228, 170)),
+                       (1.0, (255, 246, 222))])
+        # the milk scatters the lamp: pale cream, a shade under the clearest glass
+        milkc = np.array([255, 222, 164.0]) * (0.90 + 0.10 * T[..., None])
+        rgb = rgb * (1 - milk[..., None] * 0.55) + milkc * milk[..., None] * 0.55
+        rgb = rgb * (1 - dv[..., None] * 0.45) + np.array([120, 38, 8.0]) * (dv[..., None] * 0.45)
     else:
-        rgb = ramp(t, [(0.0, (120, 84, 46)), (0.35, (166, 124, 76)), (0.7, (206, 172, 124)),
-                       (1.0, (230, 208, 170))])
-        milk = np.array([240, 230, 210], dtype=np.float64)
-        rgb = rgb * (1 - mk[..., None] * 0.7) + milk * (mk[..., None] * 0.7)
-        # a polished face: the lamination shows as a faint change of gloss
-        rgb *= (0.97 + 0.06 * fn)[..., None]
+        L = np.clip(0.24 + 0.36 * (1 - trans) + 0.46 * milk + (B - 0.5) * 0.22 * bunch
+                    + (G - 0.5) * 0.04, 0, 1)
+        rgb = ramp(L, [(0.0, (92, 66, 40)), (0.28, (138, 104, 66)), (0.52, (184, 150, 104)),
+                       (0.76, (220, 198, 160)), (1.0, (244, 236, 218))])
+        rgb = rgb * (1 - dv[..., None] * 0.35) + np.array([96, 68, 42.0]) * (dv[..., None] * 0.35)
     return rgb
 
 
@@ -283,8 +301,8 @@ def vein_gray(n=512, seed=301):
 
 BAKES = [
     ("room-portoro", lambda: portoro_calm(), None),
-    ("room-onyx-lit", lambda: onyx(lit=True), None),
-    ("room-onyx-day", lambda: onyx(lit=False), None),
+    ("room-onyx-glow-lit", lambda: onyx(lit=True), None),
+    ("room-onyx-glow-day", lambda: onyx(lit=False), None),
     ("room-dentil-night", lambda: dentils(False), None),
     ("room-dentil-day", lambda: dentils(True), None),
     ("room-mfrieze-night", lambda: mast_frieze(False), None),

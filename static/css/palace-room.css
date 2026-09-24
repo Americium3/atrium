@@ -607,19 +607,27 @@ html[lang="zh"] #masthead .p-caption { letter-spacing: 0.3em; }
 .pier[data-tint="honey"] .pr-body { filter: hue-rotate(9deg) saturate(0.92) brightness(1.06); }
 .pier[data-tint="rose"] .pr-body { filter: hue-rotate(-13deg) saturate(1.04); }
 .pier[data-tint="smoke"] .pr-body { filter: saturate(0.72) brightness(0.94); }
-.pr-cast { fill: rgba(0, 0, 0, 0.55); }
+/* A lamp casts little shadow of its own: at night only the frame's edge
+   darkens the wall; by day the skylight throws the whole pier's. */
+.pr-cast { fill: rgba(0, 0, 0, 0.3); }
 :root[data-theme="ivory"] .pr-cast { fill: rgba(70, 48, 16, 0.24); }
+.pr-halo { fill: #ff9a3c; stroke: #ffb45e; stroke-linejoin: miter; mix-blend-mode: screen; opacity: calc(var(--lamp-on) * 0.62); }
+.pr-lip { fill: none; stroke: #ffd592; stroke-linejoin: miter; mix-blend-mode: screen; opacity: calc(var(--lamp-on) * 0.7); }
 .pr-rim { fill: none; stroke: var(--lead-0); stroke-linejoin: miter; }
 .pr-frame { fill: none; stroke-linejoin: miter; }
 .prg.s0 { stop-color: var(--lead-1); } .prg.s1 { stop-color: var(--lead-5); } .prg.s2 { stop-color: var(--lead-3); }
 .prg.s3 { stop-color: var(--lead-2); } .prg.s4 { stop-color: var(--lead-0); }
 .pr-lamp { mix-blend-mode: screen; opacity: var(--lamp-on); }
-.prc.s0 { stop-color: #ffb45c; stop-opacity: 0; } .prc.s1 { stop-color: #ffd89a; stop-opacity: 0.34; }
-.prv.s0 { stop-color: #ffe2b0; stop-opacity: 0.20; } .prv.s1 { stop-color: #000; stop-opacity: 0; }
-.prv.s2 { stop-color: #000; stop-opacity: 0.42; } .prv.s3 { stop-color: #ffcf8a; stop-opacity: 0.30; }
-:root[data-theme="ivory"] .prv.s0 { stop-color: #fff; stop-opacity: 0.22; }
-:root[data-theme="ivory"] .prv.s1, :root[data-theme="ivory"] .prv.s2 { stop-color: #000; stop-opacity: 0.04; }
-:root[data-theme="ivory"] .prv.s3 { stop-color: #000; stop-opacity: 0.16; }
+/* The lamp behind the glass: a hot core down the middle of the shaft, and
+   the glass brightest where the lamps are, in the capital and over the
+   trough, a little lower in the long run between. By day the glass is
+   dead: only the skylight's polish on its head and the shade at its foot. */
+.prc.s0 { stop-color: #ffa84c; stop-opacity: 0; } .prc.s1 { stop-color: #ffd088; stop-opacity: 0.30; }
+.prv.s0 { stop-color: #ffe6b8; stop-opacity: 0.18; } .prv.s1 { stop-color: #000; stop-opacity: 0; }
+.prv.s2 { stop-color: #1a0600; stop-opacity: 0.22; } .prv.s3 { stop-color: #ffc47a; stop-opacity: 0.30; }
+:root[data-theme="ivory"] .prv.s0 { stop-color: #fff; stop-opacity: 0.30; }
+:root[data-theme="ivory"] .prv.s1, :root[data-theme="ivory"] .prv.s2 { stop-color: #1e1408; stop-opacity: 0.10; }
+:root[data-theme="ivory"] .prv.s3 { stop-color: #1e1408; stop-opacity: 0.22; }
 .pr-glaze { fill: none; stroke: rgba(0, 0, 0, 0.65); }
 .pr-fillet { fill: var(--lead-2); }
 .pr-fillet-lt { fill: var(--lead-5); }
