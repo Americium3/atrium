@@ -558,8 +558,11 @@
      may never fold away with them.
      Layers: .desk-art (static housing, contained) / .desk-fx (the three
      movers + steam nozzle, overflow visible) / #lever (hit surface).
+     A named region, not a <footer>: at body level a footer is the page's
+     contentinfo landmark, which filed the hall's one wing control under
+     the page's small print.
 ====================================================================== -->
-<footer id="signal-desk" data-i18n-aria="ariaDesk" aria-label="Signal desk">
+<div id="signal-desk" role="region" data-i18n-aria="ariaDesk" aria-label="Signal desk">
   <div class="desk-core">
     <div class="assembly" aria-hidden="true">
       <div class="desk-art">
@@ -587,7 +590,7 @@
       <span class="hit-arm" aria-hidden="true"></span>
     </div>
   </div>
-</footer>
+</div>
 
 <!-- ====================================================================== -->
 <div id="prefs" role="dialog" aria-modal="true" aria-labelledby="prefs-title" hidden>
