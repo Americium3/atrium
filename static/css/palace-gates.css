@@ -636,20 +636,34 @@ html[lang="zh"] .g-lamp { letter-spacing: 0.2em; }
    bar resting on the stage, paint worn thin at the edges and the foot, and
    the one lit arris on the side that faces the key light. The builder's
    plate is bolted over the middle and carries the words, so no seam ever
-   runs through them. It is never lit and it never lifts. */
+   runs through them. It is never lit and it never lifts.
+   It then read as suede or rust: plaster clouds blotched the paint, the
+   courses met on a hairline, and the border was a card's double rule. The
+   primer is an even satin now, sprayed with a fine orange peel, with
+   one soft sheen across it. Each upper course laps the one below: its
+   rolled arris takes the light, and its edge throws a shadow a few pixels
+   down onto the next course. The border is sprayed through a stencil: a
+   broad band and a thin rule, both broken by the stencil's bridges, with
+   a soft overspray either side. */
 :root[data-theme="onyx"] .gate.vacant {
-  --iron: #3a2420; --iron-hi: #4e3129; --iron-lo: #211410;
-  --iron-seam: rgba(0, 0, 0, 0.62); --iron-seam-lt: rgba(255, 214, 180, 0.13);
-  --iron-rv: #563a31; --iron-rv-lt: #93705c; --iron-rv-sh: rgba(0, 0, 0, 0.6);
-  --iron-stencil: rgba(222, 204, 166, 0.62); --iron-stencil2: rgba(222, 204, 166, 0.34);
+  --iron: #45241a; --iron-hi: #522d21; --iron-lo: #2e1811;
+  --iron-seam: rgba(0, 0, 0, 0.62); --iron-seam-lt: rgba(255, 214, 180, 0.16);
+  --iron-lap-sh: rgba(0, 0, 0, 0.42);
+  --iron-rv: #5e3528; --iron-rv-lt: #a07560; --iron-rv-sh: rgba(0, 0, 0, 0.6);
+  --iron-stencil: rgba(222, 204, 166, 0.6); --iron-stencil2: rgba(222, 204, 166, 0.4);
+  --iron-overspray: rgba(222, 204, 166, 0.15);
+  --iron-veil: rgba(69, 36, 26, 0.7); --iron-satin: rgba(255, 214, 190, 0.05);
   --iron-edge: rgba(255, 216, 170, 0.16);
   --plate-hi: #b99a5e; --plate: #8f743f; --plate-lo: #5f4a24; --plate-ink: #1e150a;
 }
 :root[data-theme="ivory"] .gate.vacant {
-  --iron: #7b4d40; --iron-hi: #8e5e4f; --iron-lo: #5f382d;
-  --iron-seam: rgba(40, 18, 10, 0.55); --iron-seam-lt: rgba(255, 236, 220, 0.30);
-  --iron-rv: #875a4b; --iron-rv-lt: #d2ab94; --iron-rv-sh: rgba(40, 16, 8, 0.45);
-  --iron-stencil: rgba(246, 236, 212, 0.78); --iron-stencil2: rgba(246, 236, 212, 0.45);
+  --iron: #86412f; --iron-hi: #954d39; --iron-lo: #6b3325;
+  --iron-seam: rgba(40, 14, 6, 0.55); --iron-seam-lt: rgba(255, 232, 214, 0.34);
+  --iron-lap-sh: rgba(40, 14, 6, 0.36);
+  --iron-rv: #914e3b; --iron-rv-lt: #dcaa90; --iron-rv-sh: rgba(40, 14, 6, 0.45);
+  --iron-stencil: rgba(246, 236, 212, 0.8); --iron-stencil2: rgba(246, 236, 212, 0.55);
+  --iron-overspray: rgba(246, 236, 212, 0.2);
+  --iron-veil: rgba(134, 65, 47, 0.7); --iron-satin: rgba(255, 236, 222, 0.12);
   --iron-edge: rgba(255, 248, 236, 0.35);
   --plate-hi: #e2c98e; --plate: #c1a262; --plate-lo: #8d7036; --plate-ink: #22180b;
 }
@@ -659,43 +673,59 @@ html[lang="zh"] .g-lamp { letter-spacing: 0.2em; }
     linear-gradient(90deg, var(--iron-edge) 0 0.5cqw, transparent 1.6cqw),
     linear-gradient(0deg, var(--iron-lo) 0 3.4cqw, var(--iron-seam-lt) 3.4cqw calc(3.4cqw + 1px), var(--iron-seam) calc(3.4cqw + 1px) calc(3.4cqw + 3px), transparent calc(3.4cqw + 3px)),
     /* rivets under each lap: a dome lit up and to the left, its shadow */
-    radial-gradient(circle at 1.5cqw 1.5cqw, var(--iron-rv-lt) 0 0.3cqw, var(--iron-rv) 0.62cqw 0.86cqw, var(--iron-rv-sh) 1cqw 1.18cqw, transparent 1.22cqw) 0 calc(33.333% + 0.1cqw) / 4.6cqw 3.4cqw repeat-x,
-    radial-gradient(circle at 1.5cqw 1.5cqw, var(--iron-rv-lt) 0 0.3cqw, var(--iron-rv) 0.62cqw 0.86cqw, var(--iron-rv-sh) 1cqw 1.18cqw, transparent 1.22cqw) 0 calc(66.666% + 0.1cqw) / 4.6cqw 3.4cqw repeat-x,
+    radial-gradient(circle at 1.5cqw 1.5cqw, var(--iron-rv-lt) 0 0.3cqw, var(--iron-rv) 0.62cqw 0.86cqw, var(--iron-rv-sh) 1cqw 1.18cqw, transparent 1.22cqw) 0 calc(33.333% + 0.3cqw) / 4.6cqw 3.4cqw repeat-x,
+    radial-gradient(circle at 1.5cqw 1.5cqw, var(--iron-rv-lt) 0 0.3cqw, var(--iron-rv) 0.62cqw 0.86cqw, var(--iron-rv-sh) 1cqw 1.18cqw, transparent 1.22cqw) 0 calc(66.666% + 0.3cqw) / 4.6cqw 3.4cqw repeat-x,
     /* and a column either side of the butt joint */
     radial-gradient(circle at 1.5cqw 1.5cqw, var(--iron-rv-lt) 0 0.3cqw, var(--iron-rv) 0.62cqw 0.86cqw, var(--iron-rv-sh) 1cqw 1.18cqw, transparent 1.22cqw) calc(50% - 2.6cqw) 1cqw / 3.4cqw 4.6cqw repeat-y,
     radial-gradient(circle at 1.5cqw 1.5cqw, var(--iron-rv-lt) 0 0.3cqw, var(--iron-rv) 0.62cqw 0.86cqw, var(--iron-rv-sh) 1cqw 1.18cqw, transparent 1.22cqw) calc(50% + 3.6cqw) 1cqw / 3.4cqw 4.6cqw repeat-y,
-    /* the two laps and the butt joint: a shaded groove, a lit lip */
-    linear-gradient(180deg, transparent calc(33.333% - 3px), var(--iron-seam) calc(33.333% - 3px) calc(33.333% - 1px), var(--iron-seam-lt) calc(33.333% - 1px) 33.333%, transparent 33.333%),
-    linear-gradient(180deg, transparent calc(66.666% - 3px), var(--iron-seam) calc(66.666% - 3px) calc(66.666% - 1px), var(--iron-seam-lt) calc(66.666% - 1px) 66.666%, transparent 66.666%),
+    /* the two laps: the upper course's rolled arris in the light, its edge,
+       and its shadow cast down onto the course below */
+    linear-gradient(180deg, transparent calc(33.333% - 2px), var(--iron-seam-lt) calc(33.333% - 2px) calc(33.333% - 1px), var(--iron-seam) calc(33.333% - 1px) calc(33.333% + 1px), var(--iron-lap-sh) calc(33.333% + 1px), transparent calc(33.333% + 5px)),
+    linear-gradient(180deg, transparent calc(66.666% - 2px), var(--iron-seam-lt) calc(66.666% - 2px) calc(66.666% - 1px), var(--iron-seam) calc(66.666% - 1px) calc(66.666% + 1px), var(--iron-lap-sh) calc(66.666% + 1px), transparent calc(66.666% + 5px)),
+    /* the butt joint: a shaded groove, a lit lip */
     linear-gradient(90deg, transparent calc(50% - 1.5px), var(--iron-seam) calc(50% - 1.5px) calc(50% + 0.5px), var(--iron-seam-lt) calc(50% + 0.5px) calc(50% + 1.5px), transparent calc(50% + 1.5px)),
-    /* paint worn thin at the edges and the foot */
-    radial-gradient(120% 90% at 50% 45%, transparent 55%, rgba(0, 0, 0, 0.28) 100%),
-    url('/static/assets/tex/grain-plaster.webp') 0 0 / 60cqw auto,
+    /* each course primed on its own, a shade apart */
+    linear-gradient(180deg, rgba(255, 240, 225, 0.035) 0 33.333%, transparent 33.333% 66.666%, rgba(0, 0, 0, 0.05) 66.666%),
+    /* the satin: one broad, soft sheen */
+    linear-gradient(112deg, transparent 16%, var(--iron-satin) 40%, transparent 64%),
+    /* the primer's fine orange peel, sprayed over the plate */
+    linear-gradient(var(--iron-veil), var(--iron-veil)),
+    url('/static/assets/tex/grain-frost.webp') 0 0 / 16cqw auto,
     linear-gradient(180deg, var(--iron-hi), var(--iron) 45%, var(--iron-lo));
-  background-blend-mode: normal, normal, normal, normal, normal, normal, normal, normal, normal, normal, soft-light, normal;
-  /* the stencilled border: two painted rules, the inner one thinner */
-  box-shadow:
-    inset 0 0 0 2.2cqw transparent,
-    inset 0 0 0 2.2cqw rgba(0, 0, 0, 0),
-    inset 2.2cqw 2.2cqw 0 -1.6cqw transparent,
-    inset 0 0 0 1px rgba(0, 0, 0, 0.5);
-  outline: 0.8cqw solid var(--iron-stencil);
-  outline-offset: -2.8cqw;
+  background-blend-mode: normal, normal, normal, normal, normal, normal, normal, normal, normal, normal, normal, normal, soft-light, normal;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.5);
+  outline: none;
 }
+/* The stencilled border. A broad band and a thin rule inside it, each
+   broken by the stencil's bridges, and a soft overspray either side of the
+   band where the paint missed the card. The frame stands above the foot
+   bar. */
 .g-iron::before {
-  content: ""; position: absolute; inset: 3.8cqw 3.8cqw 6cqw;
-  border: 1px solid var(--iron-stencil2);
+  content: ""; position: absolute; inset: 0; border: 0;
   pointer-events: none;
-}
-/* Stencil corner blocks, painted through a card: four squares at the
-   corners of the outer rule. */
-.g-iron::after {
-  content: ""; position: absolute; inset: 1.9cqw 1.9cqw 4.1cqw; pointer-events: none;
   background:
-    linear-gradient(var(--iron-stencil), var(--iron-stencil)) 0 0 / 1.9cqw 1.9cqw no-repeat,
-    linear-gradient(var(--iron-stencil), var(--iron-stencil)) 100% 0 / 1.9cqw 1.9cqw no-repeat,
-    linear-gradient(var(--iron-stencil), var(--iron-stencil)) 0 100% / 1.9cqw 1.9cqw no-repeat,
-    linear-gradient(var(--iron-stencil), var(--iron-stencil)) 100% 100% / 1.9cqw 1.9cqw no-repeat;
+    repeating-linear-gradient(90deg, var(--iron-stencil) 0 9.2cqw, transparent 9.2cqw 9.65cqw) 2cqw 2cqw / calc(100% - 4cqw) 0.8cqw no-repeat,
+    repeating-linear-gradient(90deg, var(--iron-stencil) 0 9.2cqw, transparent 9.2cqw 9.65cqw) 2cqw calc(100% - 4.6cqw) / calc(100% - 4cqw) 0.8cqw no-repeat,
+    repeating-linear-gradient(180deg, var(--iron-stencil) 0 9.2cqw, transparent 9.2cqw 9.65cqw) 2cqw 2cqw / 0.8cqw calc(100% - 6.6cqw) no-repeat,
+    repeating-linear-gradient(180deg, var(--iron-stencil) 0 9.2cqw, transparent 9.2cqw 9.65cqw) calc(100% - 2cqw) 2cqw / 0.8cqw calc(100% - 6.6cqw) no-repeat,
+    repeating-linear-gradient(90deg, var(--iron-stencil2) 0 7.1cqw, transparent 7.1cqw 7.5cqw) 3.5cqw 3.5cqw / calc(100% - 7cqw) max(1px, 0.3cqw) no-repeat,
+    repeating-linear-gradient(90deg, var(--iron-stencil2) 0 7.1cqw, transparent 7.1cqw 7.5cqw) 3.5cqw calc(100% - 6.1cqw) / calc(100% - 7cqw) max(1px, 0.3cqw) no-repeat,
+    repeating-linear-gradient(180deg, var(--iron-stencil2) 0 7.1cqw, transparent 7.1cqw 7.5cqw) 3.5cqw 3.5cqw / max(1px, 0.3cqw) calc(100% - 9.6cqw) no-repeat,
+    repeating-linear-gradient(180deg, var(--iron-stencil2) 0 7.1cqw, transparent 7.1cqw 7.5cqw) calc(100% - 3.5cqw) 3.5cqw / max(1px, 0.3cqw) calc(100% - 9.6cqw) no-repeat,
+    linear-gradient(180deg, transparent, var(--iron-overspray) 50%, transparent) 1.4cqw 1.4cqw / calc(100% - 2.8cqw) 2cqw no-repeat,
+    linear-gradient(180deg, transparent, var(--iron-overspray) 50%, transparent) 1.4cqw calc(100% - 4cqw) / calc(100% - 2.8cqw) 2cqw no-repeat,
+    linear-gradient(90deg, transparent, var(--iron-overspray) 50%, transparent) 1.4cqw 1.4cqw / 2cqw calc(100% - 5.4cqw) no-repeat,
+    linear-gradient(90deg, transparent, var(--iron-overspray) 50%, transparent) calc(100% - 1.4cqw) 1.4cqw / 2cqw calc(100% - 5.4cqw) no-repeat;
+}
+/* Stencil corner blocks, painted through a card: four squares on the
+   corners of the band. */
+.g-iron::after {
+  content: ""; position: absolute; inset: 1.6cqw 1.6cqw 4.2cqw; pointer-events: none;
+  background:
+    linear-gradient(var(--iron-stencil), var(--iron-stencil)) 0 0 / 1.6cqw 1.6cqw no-repeat,
+    linear-gradient(var(--iron-stencil), var(--iron-stencil)) 100% 0 / 1.6cqw 1.6cqw no-repeat,
+    linear-gradient(var(--iron-stencil), var(--iron-stencil)) 0 100% / 1.6cqw 1.6cqw no-repeat,
+    linear-gradient(var(--iron-stencil), var(--iron-stencil)) 100% 100% / 1.6cqw 1.6cqw no-repeat;
 }
 /* The builder's plate: cast brass, bolted at the corners, the words
    engraved and filled black. It stands in the middle of the iron. */
