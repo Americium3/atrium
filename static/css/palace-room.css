@@ -459,10 +459,17 @@ html[lang="zh"] .m-sub, html[lang="zh"] #dateline { -webkit-text-stroke: 0.35px 
 .l-count { left: calc(100% + 6px); top: calc(var(--med) * 0.05); }
 
 /* Forced colours: the medallions are ornament; the jewel keeps its
-   Highlight, and the captions stay system text. */
+   Highlight, and the captions stay system text. The fascia and the
+   marquee's glass carry the lettering, so they give way to the system as
+   well: kept in their own paint, every word stood in a Canvas backplate on
+   the stone, black slabs like label tape on the day's cream (VD-22). The
+   masthead and the board read as Canvas, the words as CanvasText, and the
+   ornament set on them keeps its colours. */
 @media (forced-colors: active) {
-  .m-fascia, .m-crown, .m-frieze, #monogram, #ledger-btn svg, #prefs-btn svg,
+  .m-crown, .m-frieze, #monogram, #ledger-btn svg, #prefs-btn svg,
   .t-bulbs, #ticker::before, #ticker::after { forced-color-adjust: none; }
+  .m-fascia { display: none; }
+  #hall #ticker { background-image: none; }
   .m-title h1::before, .m-title h1::after { display: none; }
   .m-title h1 { color: CanvasText; text-shadow: none; }
   .m-sub, #dateline, #masthead .p-caption { text-shadow: none; }
