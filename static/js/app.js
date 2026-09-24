@@ -1683,10 +1683,27 @@ function descKey(svc) {
 function letterNotice(n, svc) {
   var text = t('darkNotice', { hint: svc.launch_hint || svc.url });
   n.textContent = '';
-  text.split(/(?<=[\\/])/).forEach(function (part, i) {
+  text.split(/(?<=[\\/_])/).forEach(function (part, i) {
     if (i) n.appendChild(document.createElement('wbr'));
     n.appendChild(document.createTextNode(part));
   });
+  // The card has to stand inside the house whatever the path's length and
+  // however small the arch: it is set tighter, a step at a time, until it
+  // fits, and set again whenever the house changes size.
+  if (window.ResizeObserver) {
+    noticeRO = noticeRO || new ResizeObserver(function (es) {
+      es.forEach(function (e) { var k = $('.g-notice', e.target); if (k) fitNotice(k); });
+    });
+    noticeRO.observe(n.parentNode);
+  }
+  fitNotice(n);
+}
+var noticeRO = null;
+function fitNotice(n) {
+  var house = n.parentNode;
+  if (n.hidden || !house) return;
+  n.removeAttribute('data-fit');
+  for (var k = 1; k <= 3 && n.offsetHeight > house.clientHeight; k++) n.dataset.fit = String(k);
 }
 
 function showNotice(a, svc) {
@@ -1694,6 +1711,7 @@ function showNotice(a, svc) {
   if (!n.hidden) return;
   letterNotice(n, svc);
   n.hidden = false;
+  fitNotice(n);
   // Shown on screen, so said out loud once as well.
   var hs = $('#hall-status'); if (hs) hs.textContent = n.textContent;
 }
