@@ -145,7 +145,7 @@ var STR = {
     replayDesc: 'Reloads the hall to play it once more',
     ariaTicker: 'Status band',
     ariaLever: 'Bureau wing',
-    ariaDesk: 'Signal desk: mode lever',
+    ariaDesk: 'House-lights board: wing switch',
     markAll: 'MARK ALL READ',
     markAllHint: 'Strike every dispatch in the Ledger, both wings',
     markAllDone: 'Nothing left to strike',
@@ -305,7 +305,7 @@ var STR = {
     replayDesc: '重新载入大厅，再演一遍',
     ariaTicker: '状态带',
     ariaLever: '事务翼',
-    ariaDesk: '信号台：模式拉杆',
+    ariaDesk: '场灯开关台：翼区闸刀',
     markAll: '全部标为已读',
     markAllHint: '把消息总台里两翼的消息全部划去',
     markAllDone: '没有未读了',
@@ -1110,14 +1110,15 @@ function finishEntrance() {
   deskNudge();
 }
 
-/* Desk nudge: one-tooth gear tick after the entrance clears.
-   Amplitude 0.07 on --drive ≈ 6.3 deg on gearA (18 teeth × 5 deg/tooth).
-   Self-terminates in ~480ms. Reduced motion: returns immediately. */
+/* Desk nudge: the handle lifts a hair and drops back into its jaws after
+   the entrance clears, the board's one breath. Amplitude 0.03 on the drive
+   is about 5 degrees of the blade. Self-terminates in ~480ms. Reduced
+   motion: returns immediately. */
 function deskNudge() {
   if (root.dataset.motion === 'reduced') return;
   if (!desk) return;
   var t0 = performance.now();
-  var PUSH = 200, PULL = 280, AMP = 0.07;
+  var PUSH = 200, PULL = 280, AMP = 0.03;
   var base = getDrive();
   function frame(now) {
     var dt = Math.max(0, now - t0);   // same early-frame timestamp as deskDrive
@@ -1137,13 +1138,13 @@ function deskNudge() {
 }
 
 /* ========================================================================
-   Signal desk — lever, gear train, steam (DESIGN.md v4.1). One scalar
-   --drive (0=salon, 1=bureau) written by a rAF driver onto the movers;
-   the lever and both gears derive from it via calc, so sync is
-   structural.
+   The house-lights board (DESIGN.md "The house-lights board"). One scalar,
+   the drive (0 = the blade in the Salon's jaws, 1 = in the Bureau's), is
+   written by a rAF driver onto the parts that read it as --sw; the blades,
+   the crossbar, the handle, the needle and the lamps all derive from it in
+   CSS, so they cannot fall out of step.
    ======================================================================== */
 var desk = $('#signal-desk');
-var deskNozzle = $('#signal-desk .nozzle');
 var NS = 'http://www.w3.org/2000/svg';
 
 function svgEl(tag, attrs, cls) {
@@ -1153,10 +1154,9 @@ function svgEl(tag, attrs, cls) {
   return e;
 }
 
-/* The console, the lever, the gear train and the throw plates are drawn by
-   static/js/desk.js (the picture palace's signal desk). The hit surfaces
-   are the ones this file has always wired: the console's own drawn shapes,
-   the gear well, the two plates and the arm strip inside #lever. */
+/* The board, its switch and its plates are drawn by static/js/desk.js.
+   The hit surfaces are wired here: the board's own drawn shapes, each
+   side's jaws, pilot and plate, and the blade's strip inside #lever. */
 function buildDesk() {
   if (desk && window.Desk) window.Desk.build(desk);
 }
@@ -1177,30 +1177,19 @@ function buildRosetteKnurl() {
   def.appendChild(g);
 }
 
-/* Steam — event-only. 4–6 soft sprites per burst, randomized via inline
-   custom properties; cleanup on animationend plus a safety timeout. */
-var MAX_PUFFS = 14, STEAM_WIND = 9;
-function steamBurst(nozzleEl, n) {
-  if (!nozzleEl || root.dataset.motion === 'reduced') return;
-  if (nozzleEl.childElementCount > MAX_PUFFS - n) return;
-  for (var i = 0; i < n; i++) {
-    var p = document.createElement('div');
-    p.className = 'puff';
-    var dur = Math.round(900 + Math.random() * 600);
-    var delay = Math.round(Math.random() * 120);
-    p.style.cssText =
-      '--dx:' + Math.round(Math.random() * 28 - 14 + STEAM_WIND) + 'px;' +
-      '--rise:' + Math.round(-(60 + Math.random() * 50)) + 'px;' +
-      '--s:' + (2.2 + Math.random() * 0.8).toFixed(2) + ';' +
-      '--rot:' + Math.round(Math.random() * 80 - 40) + 'deg;' +
-      // where each lobe of the wisp sits across the sprite
-      '--p1:' + Math.round(36 + Math.random() * 16) + '%;--p2:' + Math.round(52 + Math.random() * 18) + '%;' +
-      '--p3:' + Math.round(26 + Math.random() * 18) + '%;--p4:' + Math.round(40 + Math.random() * 26) + '%;' +
-      'animation-duration:' + dur + 'ms;animation-delay:' + delay + 'ms;';
-    p.addEventListener('animationend', function (e) { e.target.remove(); }, { once: true });
-    (function (el, t) { setTimeout(function () { el.remove(); }, t); })(p, dur + delay + 120);
-    nozzleEl.appendChild(p);
-  }
+/* The flash of the break: when the blade leaves a pair of jaws, and a
+   smaller one when it lands in the other. Event-only, opacity only, run on
+   the compositor; never under reduced motion. */
+var SPARK_BREAK = [
+  { opacity: 0 }, { opacity: 1, offset: 0.08 }, { opacity: 0.3, offset: 0.2 },
+  { opacity: 0.95, offset: 0.32 }, { opacity: 0.15, offset: 0.55 }, { opacity: 0.5, offset: 0.7 }, { opacity: 0 }
+];
+var SPARK_MAKE = [{ opacity: 0 }, { opacity: 0.8, offset: 0.12 }, { opacity: 0.2, offset: 0.4 }, { opacity: 0 }];
+function sparkAt(side, make) {
+  if (!desk || root.dataset.motion === 'reduced') return;
+  var sp = desk.querySelector('.sw-spark-' + side);
+  if (!sp || !sp.animate) return;
+  sp.animate(make ? SPARK_MAKE : SPARK_BREAK, { duration: make ? 150 : 230, easing: 'linear' });
 }
 
 /* Weighty throw: fast start → ~4.5% overshoot → damped clank settle.
@@ -1237,18 +1226,28 @@ var deskRaf = null;
    every throw forced the flip's whole-hall restyle (8-10k elements, ~100ms)
    inside the key handler (MO-2). */
 var driveNow = 0;
-var driveEls = desk ? Array.prototype.slice.call(
-  desk.querySelectorAll('.lever-svg, .gearA-svg, .gearB-svg, #lever .hit-arm')) : [];
+var driveEls = null, rawEls = null;
+/* The blade stops on its jaws: past either end the drive comes back off
+   the stop, so the throw's overshoot is a bounce, not a blade driven
+   through the marble. The needle takes the raw value and swings past. */
+function bounced(v) { return v > 1 ? 2 - v : v < 0 ? -v : v; }
 function setDrive(v) {
   driveNow = v;
-  var s = v.toFixed(4);
-  driveEls.forEach(function (e) { e.style.setProperty('--drive', s); });
+  if (!driveEls && desk) {
+    driveEls = Array.prototype.slice.call(desk.querySelectorAll('.sw-drive:not(.sw-raw)'));
+    rawEls = Array.prototype.slice.call(desk.querySelectorAll('.sw-raw'));
+  }
+  if (!driveEls) return;
+  var b = bounced(v).toFixed(4), r = v.toFixed(4);
+  driveEls.forEach(function (e) { e.style.setProperty('--sw', b); });
+  rawEls.forEach(function (e) { e.style.setProperty('--sw', r); });
 }
 function getDrive() { return driveNow; }
 
 /* Interrupt-safe rAF driver: a re-toggle mid-throw reads the current
-   --drive as its new start. Steam fires once past 55% of the throw
-   (latched). Reduced motion: snap — the gears stay correct for free.
+   drive as its new start. The break flashes as the blade leaves its jaws
+   and the make as it lands (each latched once). Reduced motion: snap, and
+   every part lands where the drive says.
    The throw runs on drawn frames, not on the wall clock: no frame moves
    the arm more than a sixteenth of its throw. Placed where the clock said
    it should be, the arm skipped its swing whenever a frame came late: the
@@ -1264,7 +1263,8 @@ function deskDrive(target) {
       document.visibilityState === 'hidden') { setDrive(target); return; }
   var from = getDrive(), last = performance.now(), run = 0, DUR = 520;
   var STEP = DUR / 16;
-  var latched = false;
+  var broke = false, made = false;
+  var fromSide = from < 0.5 ? 'salon' : 'bureau', toSide = target === 1 ? 'bureau' : 'salon';
   var frame = function (now) {
     // The Motion preference can flip (or the tab hide) mid-throw — land it.
     if (root.dataset.motion === 'reduced' ||
@@ -1277,8 +1277,11 @@ function deskDrive(target) {
     var t = Math.min(1, run / DUR);
     var p = from + (target - from) * easeWeighty(t);
     setDrive(t === 1 ? target : p);
-    var prog = target === 1 ? p : 1 - p;
-    if (!latched && prog > 0.55) { latched = true; steamBurst(deskNozzle, 5); }
+    // how far the blade stands off the jaws it left, and off the ones it
+    // is going to
+    var b = bounced(p), off = fromSide === 'salon' ? b : 1 - b, near = toSide === 'bureau' ? 1 - b : b;
+    if (!broke && fromSide !== toSide && off > 0.04) { broke = true; sparkAt(fromSide, false); }
+    if (!made && broke && near < 0.03) { made = true; sparkAt(toSide, true); }
     if (t < 1) deskRaf = requestAnimationFrame(frame);
   };
   deskRaf = requestAnimationFrame(frame);
@@ -2468,9 +2471,12 @@ function buildAisles() {
    every height from 861 to 926 scrolled (LY-1). So the budget is solved
    here, from the stage's real top.
    The floor keeps what the screen leaves under the stage, and never less
-   than the desk needs at its short-screen scale (DESK_K_MIN, the 0.78 of
-   the 860px query). Below that the machine shrank to half size on the
-   same screens and its SALON and BUREAU plates came out at 6.6px (LY-8).
+   than the board needs at its short-screen scale (DESK_K_MIN). Below that
+   the old machine shrank to half size on the same screens and its SALON
+   and BUREAU plates came out at 6.6px (LY-8). The house-lights board is
+   taller than that machine (its crest and pedestal), so it asks for a
+   little less than the 0.78 of the 860px query: at 0.78 it took a fifth
+   of the arch off a 3440x900 screen.
    When the floor cannot have that much, the arch module gives up the
    difference through --gate-vcap, which caps --gate-w: the order DESIGN
    spends the height in is masthead, marquee, arches, floor, and the lever
@@ -2478,7 +2484,7 @@ function buildAisles() {
    Every term is a layout value that the cap and the floor do not move
    (the stage's top is the masthead's and the marquee's, the headroom is
    the viewport's), so writing them cannot feed back into the solve. */
-var FLOOR_HARD = 62, DESK_K_MIN = 0.78, FLOOR_SHARE = 0.31;
+var FLOOR_HARD = 62, DESK_K_MIN = 0.66, FLOOR_SHARE = 0.31;
 function budgetHall() {
   var hall = $('#hall'), con = $('#concourse'), stage = $('#stage'), desk = $('#signal-desk');
   if (!hall || !con || !stage || !stage.offsetHeight) return;
@@ -2490,7 +2496,7 @@ function budgetHall() {
   if (desk && art !== null) {
     var k = H < 760 ? 0.62 : DESK_K_MIN;   // the 760px query's own scale
     var deskFoot = parseFloat(getComputedStyle(desk).bottom) || 0;
-    need = Math.max(need, Math.ceil(deskFoot + DESK_GAP + (220 - art) * k - foot));
+    need = Math.max(need, Math.ceil(deskFoot + DESK_GAP + (deskBox() - art) * k - foot));
   }
   // The wall's headroom over the arches (--stage-h in atrium.css): 80px,
   // rising to 100 above 1080px of viewport. On a tall screen the arch is
@@ -4016,19 +4022,20 @@ function leverClick(e) {
   return true;
 }
 lever.addEventListener('click', function (e) { if (leverClick(e)) toggleWing(); });
-/* The pointer reaches the switch through the machine itself: the arm strip
-   is inside #lever and arrives above, the console's drawn shapes and the
-   gear well throw it from here, and each throw plate lights its own wing
+/* The pointer reaches the switch through the board itself: the blade's
+   strip is inside #lever and arrives above, the board's drawn shapes throw
+   it from here, and each side's plate, pilot and jaws light their own wing
    (a click on SALON never leaves the Salon). */
 var deskCore = $('#signal-desk .desk-core');
 deskCore.addEventListener('click', function (e) {
   var tgt = e.target;
   if (!tgt.closest) return;
-  var plate = tgt.closest('.l-label');
-  if (plate) {
-    var want = plate.classList.contains('l-bureau') ? 'bureau' : 'salon';
+  // a plate, a pilot or a pair of jaws names its side
+  var side = tgt.closest('[data-side]');
+  if (side) {
+    var want = side.getAttribute('data-side');
     if ((wingPending || root.dataset.wing) !== want) setWing(want);
-  } else if (tgt.closest('.desk-art, .gear-well') && leverClick(e)) {
+  } else if (tgt.closest('.desk-art') && leverClick(e)) {
     toggleWing();
   }
 });
@@ -4068,24 +4075,19 @@ if (hitArm) {
    machine's scale to the floor it actually has. It is the stage's LAYOUT
    bottom (offsetTop), not its painted one: the entrance dollies the stage
    with a transform, and a reading taken mid-dolly would stick. */
-var DESK_GAP = 8;         // clear stone between the sill and the vent cap
-var DESK_MIN = 0.5;       // below this the lever is too small to take
-var deskArtTop = null;    // highest drawn point, in assembly units
-function deskArt() {
-  if (deskArtTop === null) {
-    // The quadrant draws 1:1 in the assembly's 360x220 units, and its vent
-    // cap is the machine's highest point (the lever tip peaks 30 below it).
-    try { deskArtTop = $('#signal-desk .quadrant').getBBox().y; } catch (err) { return null; }
-  }
-  return deskArtTop;
-}
+var DESK_GAP = 8;         // clear stone between the sill and the board's crest
+var DESK_MIN = 0.5;       // below this the switch is too small to take
+/* The highest point the board ever draws, in its own units: the focus
+   ring over the crest's finial (the handle's arc peaks under it). */
+function deskArt() { return window.Desk ? window.Desk.ART_TOP : null; }
+function deskBox() { return window.Desk ? window.Desk.BOX_H : 300; }
 function fitDesk() {
   var stage = $('#stage'), desk = $('#signal-desk');
   if (!stage || !desk || deskArt() === null) return;
   var base = stage.offsetHeight;
   for (var n = stage; n; n = n.offsetParent) base += n.offsetTop;
   var foot = parseFloat(getComputedStyle(desk).bottom) || 0;
-  var room = (window.innerHeight - foot - base - DESK_GAP) / (220 - deskArtTop);
+  var room = (window.innerHeight - foot - base - DESK_GAP) / (deskBox() - deskArt());
   desk.style.setProperty('--desk-room', Math.max(DESK_MIN, room).toFixed(3));
 }
 if (window.ResizeObserver) {
@@ -6351,26 +6353,12 @@ buildAisles();
 renderAlmanac();    // the plate is engraved before the first forecast lands
 // Their first readings are part of the hall the entrance waits for.
 var boardsRead = [startWorks(), startAlmanac()];
-// Seed the inline --drive: without it the first throw's getDrive() would
-// read the wing-attribute CSS rule AFTER setWing flips the attribute —
-// from === target, so the ease and the 55% steam latch would both vanish.
+// Seed the drive: without it the first throw would start from 0 whatever
+// the wing, and a Bureau hall's first throw would have nowhere to go.
 setDrive(root.dataset.wing === 'bureau' ? 1 : 0);
 lever.setAttribute('aria-checked', String(root.dataset.wing === 'bureau'));
 
 /* The marquee's chaser lives with the marquee's look, in room.js. */
-
-/* ?steam=1 (debug, not persisted): freeze a burst at four life stages so
-   headless screenshots can QA the vapor without a pointer. */
-if (new URLSearchParams(location.search).get('steam') === '1' && deskNozzle) {
-  [-100, -350, -650, -900].forEach(function (offset, i) {
-    var p = document.createElement('div');
-    p.className = 'puff';
-    p.style.cssText = '--dx:' + (i * 10 - 8) + 'px;--rise:-84px;--s:2.6;' +
-      '--rot:24deg;animation-duration:1200ms;' +
-      'animation-delay:' + offset + 'ms;animation-play-state:paused;';
-    deskNozzle.appendChild(p);
-  });
-}
 
 // The first poll builds the hall: the registry and the readings are asked
 // for together, the gates go up as soon as the registry lands, and a hub
