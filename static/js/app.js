@@ -180,7 +180,7 @@ var STR = {
     empty: '暂无快讯',
     darkNotice: '未点亮。用此脚本启动：{hint}',
     darkLaunch: '用此脚本启动', darkHint: '用此脚本启动：{hint}',
-    lampOpen: '已点亮', lampDark: '离线', lampChecking: '检查中',
+    lampOpen: '已点亮', lampDark: '未点亮', lampChecking: '检查中',
     justNow: '刚刚', minAgo: '{n} 分钟前', hAgo: '{n} 小时前', dAgo: '{n} 天前',
     minAgoSr: '{n} 分钟前', hAgoSr: '{n} 小时前', dAgoSr: '{n} 天前',
     linesOpen: '线路畅通 {n}/{m}',
