@@ -13,7 +13,7 @@ finding is folded in below. This document is the implementation contract.
 - **Bureau** (work): Outreach Desk, The Press Room, Bourse
 
 A brass **mode lever** re-lights the hall toward one wing. A gilded dispatch
-column, **the Ledger**, collects today's news from *all* services
+column, **the Ledger**, collects the last week's news from *all* services
 regardless of wing. First run: theme = follow system (resolved pre-paint),
 wing = SALON, Ledger filter = ALL.
 
@@ -372,9 +372,10 @@ colour. All strokes carry `vector-effect: non-scaling-stroke`, so the 1 /
   guilloche field (concentric rules crossed by a 90-spoke fan, both under 10%
   ink), 60-mark chapter ring, **twelve** Roman numerals with the quarters in
   wing metal.
-- **Complications** on the cardinal axes: 12 moon phase (synodic, reference
-  new moon 2000-01-06 18:14 UTC), 3 date on a 31-step ring read through an
-  aperture, 6 small seconds, 9 the works, two wheels geared 14:9 turning
+- **Complications** on the cardinal axes: 12 the true moon (Meeus: true new
+  moons, illumination from the phase angle), its phase and age computed to
+  the minute and shared with the Almanac through `window.AtriumMoon`, 3 date
+  on a 31-step ring read through an aperture, 6 small seconds, 9 the works, two wheels geared 14:9 turning
   against each other off the seconds arbor.
 - **Hands**: pierced Breguet with stepped counterweights; the hour hand
   carries a second, smaller piercing so the two never read alike.
@@ -632,7 +633,8 @@ nothing else in the building carries: where the sun is standing over the
 machine, right now.
 
 **Two halves that fail independently.** Sun and moon are ARITHMETIC: NOAA's
-sunrise equation and a synodic phase, run in the page on the coordinates the
+sunrise equation and the true moon (Meeus, the clock's own computation
+through `window.AtriumMoon`), run in the page on the coordinates the
 hub hands over. That is what keeps the bead moving through the day on a
 board whose forecast is a quarter of an hour old, and what leaves an
 instrument in the case when the weather service is unreachable. The forecast
@@ -894,8 +896,11 @@ opening the dispatch url.
 
 ## Ticker (status band, not an echo)
 
-The band under the masthead carries **status segments** (LINES OPEN n/3 ·
-per-gate live stats) plus only dispatches **still unread**. When nothing is
+The band under the masthead carries **status segments** (LINES OPEN n/m,
+counted over every registered service in both wings, then each gate's live
+figure after its hall's short name: `AUTOPILOT · 4 AIRING TODAY`) plus only
+dispatches **still unread**. The short name is signage and stays English,
+tagged `lang="en"` in the Chinese hall. When nothing is
 new: a static line, no scroll. Pauses on hover AND focus. The crawl runs at
 50 px/s times `--ui`, measured on one copy of the loop (the old per-character
 rate counted the `aria-hidden` twin as well and ran at half speed). Reduced
@@ -978,14 +983,23 @@ Endpoints:
 
 - `GET /`: static frontend
 - `GET /api/services`: the registry, drives gate rendering: `[{id, name,
-  wing, url, addr, sigil, desc_key, launch_hint, order}]`. Registry entry
+  short, wing, url, addr, sigil, desc_key, launch_hint, order}]`. `short` is
+  the name the band sets before the gate's figure. Registry entry
   mandatory per service; adapter and custom sigil optional (no adapter =
   lamp-only gate, no dispatches).
 - `GET /api/status`: served **from adapter caches** (no on-demand probing):
-  `{services: {id: {state: 'open'|'dark', latency_ms, note}}, generated, warm}`
+  `{services: {id: {state: 'checking'|'open'|'dark', latency_ms, note}},
+  generated, warm}`. `note` is a key the page letters (`qb_down`,
+  `daemon_stale`, `digest_stale`, `fallback`, `slow`); `slow` comes with
+  `latency_ms: null` on a gate that stays OPEN (see Robustness).
 - `GET /api/feed`: `{dispatches: [{id, origin, wing, kind, params, ts,
   url}], generated, warm}`
-- `GET /api/stats`: `{stats: {id: {kind, params}}, warm}` (piggybacked by client)
+- `GET /api/stats`: `{stats: {id: {...}}, warm}`, flat fields per service:
+  autopilot `{watching, airing}`, groundstation `{mods, pending}`, outreach
+  `{invited, target}` plus `{ready, total}` while the queue is known,
+  pressroom `{stories, sections, date}`, arsenal `{tools}`, bourse `{date,
+  orders}`. A source not read yet is `{}`, and so are Arsenal and Bourse
+  while dark. The page prints no figure on a dark gate either way.
 - `GET /api/works`: host instrumentation for the west board:
   `{cpu:{pct,cores}, mem:{pct,used_gb,total_gb}, gpu:{pct,used_gb,total_gb,
   util_pct,name}, net:{pct,down_mbs,up_mbs}, disk:{pct,free_gb,total_gb,
@@ -1008,7 +1022,7 @@ Ground Station `ts*1000`; Autopilot ledger `ts*1000` (epoch seconds on the
 wire); outreach `invitedAt` as-is,
 `finishedAt*1000`; anime naive ISO via
 `datetime.fromisoformat(s).timestamp()*1000` (machine-local, never
-`utcnow()`; machine is UTC+8, the classic bug shifts 8 h). Same rule for
+`utcnow()`; a UTC slip shifts every stamp by the zone offset). Same rule for
 `last_sync` staleness. Day breaks computed in the browser's local timezone.
 
 **Deterministic dispatch ids** (feed idempotent across hub restarts):
