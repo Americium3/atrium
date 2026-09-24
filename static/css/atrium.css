@@ -229,12 +229,20 @@ svg { display: block; }
 #lever:focus-visible { box-shadow: 0 0 0 5px var(--base); }
 
 /* The key plate. Dressed with the rest of the hall's plates in the
-   materials pass; here it only has to be legible and out of the way. */
+   materials pass; here it only has to be legible and out of the way.
+   Out of the way means over the ticker band, not in a corner: standing in
+   the bottom-left corner it covered the first arch's lamp, address and
+   plinth at 1280 and 1366 wide. The band is the one strip of the hall no
+   arch or clock can reach, since the wall's headroom stands between it and
+   the arch heads at every size. So the plate lies along the band, as wide
+   as it, its rows side by side; placeKeyplate() in app.js lays it on the
+   band's box. */
 #keyplate {
-  position: fixed; left: calc(24px * var(--ui)); bottom: calc(24px * var(--ui));
+  position: fixed; left: 24px; right: 24px; top: 0;
   z-index: 57;
-  min-width: calc(250px * var(--ui));
-  padding: calc(14px * var(--ui)) calc(18px * var(--ui));
+  display: grid; grid-template-columns: auto 1fr;
+  align-items: baseline; column-gap: calc(22px * var(--ui));
+  padding: calc(8px * var(--ui)) calc(18px * var(--ui));
   background-color: var(--surface);
   border: 1px solid var(--line);
   box-shadow: 0 10px 30px var(--shadow-drop);
@@ -243,12 +251,17 @@ svg { display: block; }
 #keyplate[hidden] { display: none; }
 .kp-title {
   font-size: calc(12px * var(--ui)); letter-spacing: 0.28em;
-  color: var(--gold-text); margin-bottom: calc(10px * var(--ui));
+  color: var(--gold-text);
+}
+.kp-rows {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(calc(200px * var(--ui)), 1fr));
+  column-gap: calc(18px * var(--ui));
 }
 .kp-row {
-  display: grid; grid-template-columns: calc(64px * var(--ui)) 1fr;
+  display: grid; grid-template-columns: calc(52px * var(--ui)) 1fr;
   align-items: baseline; gap: 10px;
-  font-size: calc(12.5px * var(--ui)); line-height: 1.9;
+  font-size: calc(12.5px * var(--ui)); line-height: 1.8;
 }
 .kp-key {
   font-size: calc(11px * var(--ui)); letter-spacing: 0.14em;

@@ -3883,12 +3883,32 @@ function renderKeyplate() {
   $('.kp-title', keyplate).textContent = t('keysTitle');
 }
 
+/* Laid on the ticker band's box (see #keyplate in atrium.css): the band
+   moves with the masthead above it, which wraps in Chinese. */
+function placeKeyplate() {
+  var band = $('#ticker');
+  if (!band) return;
+  var r = band.getBoundingClientRect();
+  keyplate.style.top = Math.round(r.top) + 'px';
+  keyplate.style.left = Math.round(r.left) + 'px';
+  keyplate.style.right = Math.round(window.innerWidth - r.right) + 'px';
+}
+/* The plate is a notice, not a dialog. It used to answer only "?" and Esc,
+   so a pointer left it standing over the hall. Now any press closes it, on
+   the plate or anywhere else, and the press still does what it was for. */
+function keyplatePress() { toggleKeyplate(false); }
+
 function toggleKeyplate(show) {
   if (!keyplate) return;
   var next = show === undefined ? keyplate.hidden : show;
-  if (next) renderKeyplate();
+  if (next) { renderKeyplate(); placeKeyplate(); }
   keyplate.hidden = !next;
+  if (next) document.addEventListener('pointerdown', keyplatePress, true);
+  else document.removeEventListener('pointerdown', keyplatePress, true);
 }
+window.addEventListener('resize', function () {
+  if (keyplate && !keyplate.hidden) placeKeyplate();
+});
 
 function focusGate(i) {
   var gates = litGates();
