@@ -207,7 +207,7 @@ def test_every_almanac_string_is_in_both_languages():
     keys = ["almSub", "almHigh", "almLow", "almPrecip", "almWind",
             "almRise", "almSet", "almPolarDay", "almPolarNight",
             "almAge", "almDaylight", "almLonger", "almShorter",
-            "almDays", "almWindUnit", "almFahrenheit", "almTitle", "ariaAlmanac"]
+            "almDays", "almWindUnit", "almFahrenheit", "ariaAlmanac"]
     keys += ["almPhase%d" % i for i in range(8)]
     for key in keys:
         assert js.count(key + ":") == 2, key

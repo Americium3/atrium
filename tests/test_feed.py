@@ -632,14 +632,16 @@ def test_works_payload_nulls_through():
 def test_works_payload_shapes_readings():
     gib = 1024 ** 3
     out = server.works_payload(
-        cpu=(23.4, 32),
+        cpu=(23.4, 16, 32),
         mem=(48 * gib, 128 * gib),
         gpu={"name": "RTX 5090", "used_mb": 8192.0, "total_mb": 32768.0,
              "util_pct": 11.0},
         net=(12_500_000.0, 12_500_000.0),   # 25 MB/s of a 125 MB/s dial
         disk=(20000 * gib, 15000 * gib),
         hub_up=3600, host_up=90000)
-    assert out["cpu"] == {"pct": 23.4, "cores": 32}
+    # Physical cores and logical threads travel apart: the dial used to call
+    # a 16-core, 32-thread part "32 cores".
+    assert out["cpu"] == {"pct": 23.4, "cores": 16, "threads": 32}
     assert out["mem"]["pct"] == 37.5 and out["mem"]["total_gb"] == 128.0
     assert out["gpu"]["pct"] == 25.0 and out["gpu"]["used_gb"] == 8.0
     assert out["net"]["pct"] == 20.0 and out["net"]["down_mbs"] == 12.5

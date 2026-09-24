@@ -94,12 +94,14 @@ var STR = {
     'k.bourse.allclear.head': 'Watchtower all clear',
     'k.bourse.allclear': 'Every canary healthy, back on offense',
     worksSub: 'Readings from the engine room',
-    wkCpu: 'PROCESSOR', wkMem: 'MEMORY', wkGpu: 'GRAPHICS', wkNet: 'TRAFFIC',
+    wkCpu: 'PROCESSOR', wkMem: 'MEMORY', wkGpu: 'VRAM', wkNet: 'TRAFFIC',
     wkHours: 'HOURS RUN', wkDisk: 'STORE', wkFree: '{n} FREE',
-    runD: 'd', runH: 'h', runM: 'm', wkRate: 'MB/s', join: ': ', list: ', ',
+    runD: 'd', runH: 'h', runM: 'm', join: ': ', list: ', ',
     vacantName: 'Reserved', vacantLamp: 'Not in service',
     wkNoReading: 'NO READING',
-    wkCores: '{n} cores', wkOf: '{a} of {b} GB',
+    wkCores: '{n} {n|core|cores}', wkThreads: '{n} {n|thread|threads}',
+    wkCpuCount: '{c} {c|core|cores}, {t} {t|thread|threads}',
+    wkOf: '{a} of {b} GB', wkLoad: 'GPU load {n}%',
     wkDown: '{d} down · {u} up MB/s',
     almSub: 'The sky over {place}',
     almHigh: 'HIGH', almLow: 'LOW', almPrecip: 'PRECIP', almWind: 'WIND',
@@ -148,7 +150,6 @@ var STR = {
     ariaGates: 'Gates', ariaLedger: 'Ledger: dispatch timeline',
     ariaWorks: 'Statistics: live readings from this machine',
     ariaAlmanac: 'Almanac: sun, moon and weather over this hall',
-    worksTitle: 'Statistics', almTitle: 'Almanac',
     salonWing: 'Play wing', bureauWing: 'Work wing',
     ledgerBtnLabel: 'LEDGER',
     keysTitle: 'KEYS',
@@ -231,12 +232,14 @@ var STR = {
     'k.bourse.allclear.head': '瞭望塔解除警报',
     'k.bourse.allclear': '金丝雀全数安好，恢复进攻',
     worksSub: '本机运转实况',
-    wkCpu: '处理器', wkMem: '内存', wkGpu: '显卡', wkNet: '网络',
+    wkCpu: '处理器', wkMem: '内存', wkGpu: '显存', wkNet: '网络',
     wkHours: '已运转', wkDisk: '存储', wkFree: '余 {n}',
-    runD: ' 天 ', runH: ' 时 ', runM: ' 分', wkRate: 'MB/s', join: '：', list: '，',
+    runD: ' 天 ', runH: ' 时 ', runM: ' 分', join: '：', list: '，',
     vacantName: '预留', vacantLamp: '未启用',
     wkNoReading: '无读数',
-    wkCores: '{n} 核', wkOf: '{a} / {b} GB',
+    wkCores: '{n} 核', wkThreads: '{n} 线程',
+    wkCpuCount: '{c} 核 {t} 线程',
+    wkOf: '{a} / {b} GB', wkLoad: 'GPU 负载 {n}%',
     wkDown: '下 {d} · 上 {u} MB/s',
     almSub: '{place}上空的天象',
     almHigh: '高', almLow: '低', almPrecip: '降水', almWind: '风',
@@ -283,7 +286,6 @@ var STR = {
     ariaGates: '门廊', ariaLedger: '消息总台：快讯时间轴',
     ariaWorks: '运转统计：本机实时读数',
     ariaAlmanac: '天象：本厅上空的日月与天气',
-    worksTitle: '运转统计', almTitle: '天象',
     salonWing: '沙龙翼（娱乐）', bureauWing: '事务翼（工作）',
     ledgerBtnLabel: '消息总台',
     keysTitle: '按键',
@@ -2017,7 +2019,11 @@ function renderWorks() {
     var cell = el('div', 'wk-cell');
     cell.dataset.dial = d.key;
     cell.appendChild(buildDial(d.key));
-    cell.appendChild(el('span', 'wk-name display', t(d.name)));
+    // The engraved name is for the eye; the cell's spoken line (syncWorks)
+    // starts with the same name, and a reader heard it twice.
+    var name = el('span', 'wk-name display', t(d.name));
+    name.setAttribute('aria-hidden', 'true');
+    cell.appendChild(name);
     cell.appendChild(el('span', 'wk-read num', '—'));
     box.appendChild(cell);
   });
@@ -2048,25 +2054,51 @@ function tera(gb) {
   return gb >= 1024 ? (gb / 1024).toFixed(1) + ' TB' : Math.round(gb) + ' GB';
 }
 
-/* Needle position plus what the caption under it says. Every reading is
-   optional: a machine with no NVIDIA card is a normal machine. */
+/* "16 cores, 32 threads": the hub sends the two counts apart, because the
+   one count psutil gives by default is the logical one, and the dial called
+   a 16-core, 32-thread part "32 cores". */
+function cpuCount(d) {
+  var c = d.cores, n = d.threads;
+  var has = function (v) { return v !== null && v !== undefined; };
+  if (has(c) && has(n) && n !== c) return t('wkCpuCount', { c: c, t: n });
+  if (has(c)) return t('wkCores', { n: c });
+  return has(n) ? t('wkThreads', { n: n }) : '';
+}
+
+/* Needle position, the figure in the dial's window (text), what is said
+   after the dial's name (said) and what its tooltip adds (title). Every
+   reading is optional: a machine with no NVIDIA card is a normal machine.
+   Each figure is said once: the spoken line used to give the window's
+   "58.3 / 126 GB" and then "58.3 of 125.6 GB" after it. */
 function dialRead(key, w) {
   var d = w && w[key];
   if (!d || d.pct === null || d.pct === undefined) return null;
   if (key === 'cpu') {
+    var count = cpuCount(d);
     return { pct: d.pct, text: Math.round(d.pct) + '%',
-             title: t('wkCores', { n: d.cores }) };
+             said: Math.round(d.pct) + '%' + (count ? t('list') + count : ''),
+             title: count };
   }
   if (key === 'mem' || key === 'gpu') {
+    var of = t('wkOf', { a: d.used_gb.toFixed(1), b: d.total_gb.toFixed(1) });
+    // The VRAM needle is the card's memory. How hard the card is working is
+    // a different figure, and it is said beside it rather than dropped.
+    var more = key === 'gpu'
+      ? (d.util_pct !== null && d.util_pct !== undefined
+          ? t('list') + t('wkLoad', { n: Math.round(d.util_pct) }) : '') +
+        (d.name ? t('list') + d.name : '')
+      : '';
     return { pct: d.pct,
              text: d.used_gb.toFixed(1) + ' / ' + Math.round(d.total_gb) + ' GB',
-             title: key === 'gpu' ? d.name : t('wkOf', { a: d.used_gb, b: d.total_gb }) };
+             said: of + more, title: of + more };
   }
+  var rate = t('wkDown', { d: d.down_mbs, u: d.up_mbs });
   return { pct: d.pct,
-           // No-break spaces keep each figure with its arrow when a narrow
-           // window takes the reading onto a second line.
-           text: d.down_mbs.toFixed(1) + ' ↓  ' + d.up_mbs.toFixed(1) + ' ↑  ' + t('wkRate'),
-           title: t('wkDown', { d: d.down_mbs, u: d.up_mbs }) };
+           // The unit is engraved on the face (MB/s), which keeps the window
+           // to one line in a 300px aisle. No-break spaces hold each figure
+           // to its arrow if a narrow window still takes two.
+           text: d.down_mbs.toFixed(1) + ' ↓  ' + d.up_mbs.toFixed(1) + ' ↑',
+           said: rate, title: rate };
 }
 
 function syncWorks() {
@@ -2088,10 +2120,7 @@ function syncWorks() {
     var sr = $('.wk-sr', cell);
     if (!sr) { sr = el('span', 'sr-only wk-sr'); cell.appendChild(sr); }
     sr.textContent = t(d.name) + t('join') +
-      (r ? (d.key === 'net' ? t('wkDown', { d: works.net.down_mbs, u: works.net.up_mbs }) : r.text) +
-           (r.title && d.key !== 'net' ? t('list') + r.title : '') +
-           (r.pct >= 85 ? t('list') + t('wkHot') : '')
-         : t('wkNoReading'));
+      (r ? r.said + (r.pct >= 85 ? t('list') + t('wkHot') : '') : t('wkNoReading'));
   });
   var tape = $('#wk-tape');
   if (!tape) return;

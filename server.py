@@ -1171,8 +1171,11 @@ def pct(part: float | None, whole: float | None) -> float | None:
 def works_payload(cpu, mem, gpu, net, disk, hub_up, host_up) -> dict:
     """Pure shaping — every reading is optional and nulls through cleanly."""
     return {
+        # Cores and threads are separate figures: psutil's default count is
+        # the logical one, and a 16-core part with SMT read "32 cores".
         "cpu": None if cpu is None else {
-            "pct": round(max(0.0, min(100.0, cpu[0])), 1), "cores": cpu[1]},
+            "pct": round(max(0.0, min(100.0, cpu[0])), 1),
+            "cores": cpu[1], "threads": cpu[2]},
         "mem": None if mem is None else {
             "pct": pct(mem[0], mem[1]),
             "used_gb": round(mem[0] / GIB, 1), "total_gb": round(mem[1] / GIB, 1)},
@@ -1301,8 +1304,12 @@ def read_works() -> dict:
         # window rather than a meaningless instant.
         busy = read_cpu()
         if busy is not None:
+            cores = threads = None
             with suppress(Exception):
-                cpu = (busy, psutil.cpu_count())
+                cores = psutil.cpu_count(logical=False)
+            with suppress(Exception):
+                threads = psutil.cpu_count()
+            cpu = (busy, cores, threads)
         with suppress(Exception):
             vm = psutil.virtual_memory()
             mem = (vm.total - vm.available, vm.total)

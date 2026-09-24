@@ -371,25 +371,34 @@ function dial(key) {
     ticks.appendChild(sv('path', { d: 'M' + P(t0) + ' L' + P(t1) }, major ? 'tk-maj' : med ? 'tk-med' : 'tk-min'));
   }
   s.appendChild(ticks);
+  // The numerals. Their size is not fixed here: the case sets it from the
+  // size the dial is actually drawn at (--dpu, in palace-cabinetry.css), so
+  // they stay legible on a short case. dy in em keeps each figure centred
+  // on its radius at whatever size that turns out to be.
+  // The traffic dial is engraved in the unit its window reads, MB/s, over a
+  // saturated gigabit line: 0 to 125 in steps of 25 sit on the same major
+  // ticks as 0 to 100 in steps of 20, and the last figure is the full scale.
+  var span = key === 'net' ? 125 : 100;
   var nums = sv('g', null, 'd-num');
   for (var n = 0; n <= 100; n += 20) {
     var np = polar(50, 50, 25.4, -120 + 2.4 * n);
-    var tx = sv('text', { x: f2(np[0]), y: f2(np[1] + 2.4), 'text-anchor': 'middle' });
-    tx.textContent = String(n);
+    var tx = sv('text', { x: f2(np[0]), y: f2(np[1]), dy: '0.32em', 'text-anchor': 'middle' });
+    tx.textContent = String(n * span / 100);
     nums.appendChild(tx);
   }
   s.appendChild(nums);
-  // What the maker stamped: the unit, and this instrument's serial.
-  var legend = sv('text', { x: 50, y: 66.5, 'text-anchor': 'middle' }, 'd-legend');
-  legend.textContent = key === 'net' ? '% · 1 Gb/s' : '%';
+  // What the maker stamped: the unit, in the opening at the foot of the
+  // scale where no figure stands, and this instrument's serial.
+  var legend = sv('text', { x: 50, y: 84, 'text-anchor': 'middle' }, 'd-legend');
+  legend.textContent = key === 'net' ? 'MB/s' : '%';
   s.appendChild(legend);
   var serial = sv('text', { x: 50, y: 34.2, 'text-anchor': 'middle' }, 'd-serial');
   serial.textContent = 'No ' + (3100 + Math.floor(draw(seed, 7) * 6800));
   s.appendChild(serial);
-  // The zero adjuster under the pivot.
-  s.appendChild(sv('circle', { cx: 50, cy: 76, r: 2.3, fill: 'url(#' + id + '-hub)' }, 'd-zero'));
+  // The zero adjuster under the pivot, clear of the counterweight's sweep.
+  s.appendChild(sv('circle', { cx: 50, cy: 70, r: 2.3, fill: 'url(#' + id + '-hub)' }, 'd-zero'));
   var za = draw(seed, 8) * 180;
-  var z0 = polar(50, 76, 1.9, za), z1 = polar(50, 76, 1.9, za + 180);
+  var z0 = polar(50, 70, 1.9, za), z1 = polar(50, 70, 1.9, za + 180);
   s.appendChild(sv('path', { d: 'M' + P(z0) + ' L' + P(z1) }, 'd-slot'));
   s.appendChild(sv('circle', { cx: 50, cy: 50, r: 44.2, fill: 'url(#' + id + '-lip)' }, 'd-lip'));
 
