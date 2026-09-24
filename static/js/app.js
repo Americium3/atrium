@@ -3521,16 +3521,19 @@ function tickerModel() {
   else if (known) segs.push(t('linesOpen', { n: open, m: services.length }));
   services.forEach(function (s) {
     var txt = statText(s);
-    if (txt) segs.push(txt);
+    // Each figure names its hall. "9 WATCHING" ran under the Bureau's arches
+    // with nothing on screen to say watching what.
+    if (txt) segs.push({ hall: s.short || s.name, text: txt });
   });
   var fresh = feed.filter(isNew).slice(0, 6).map(function (d) {
     var h = headline(d);
     return (h.head + ' · ' + h.detail);
   });
   var paged = root.dataset.motion === 'reduced';
+  var said = segs.map(function (g) { return g.hall ? g.hall + '\u0003' + g.text : g; });
   return {
     segs: segs, fresh: fresh, paged: paged,
-    key: [lang, paged ? 'r' : 'f', segs.join('\u0001'), fresh.join('\u0001')].join('\u0002')
+    key: [lang, paged ? 'r' : 'f', said.join('\u0001'), fresh.join('\u0001')].join('\u0002')
   };
 }
 
@@ -3579,6 +3582,17 @@ function applyTicker(m) {
     return s;
   }
   function seg(s, cls) {
+    if (s && s.hall) {
+      // The hall's name is signage and stays English, so in the Chinese hall
+      // it is tagged apart from the figure that follows it.
+      var g = el('span', cls || '');
+      var name = el('span', 't-hall', s.hall);
+      if (lang !== 'en') name.lang = 'en';
+      g.appendChild(name);
+      g.appendChild(document.createTextNode(' \u00b7 '));
+      g.appendChild(seg(s.text));
+      return g;
+    }
     var n = el('span', cls || '', s);
     // A CJK title in the English hall (or a Latin one in the Chinese) is
     // tagged, so a screen reader switches voice instead of spelling it.

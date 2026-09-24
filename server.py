@@ -149,12 +149,14 @@ log = logging.getLogger("atrium")
 # --------------------------------------------------------------------------
 # Service registry — a new web UI is one entry here (adapter + custom sigil
 # are optional: without an adapter the gate is lamp-only, no dispatches).
+# `short` is the name the marquee sets in front of the gate's live figure.
 # --------------------------------------------------------------------------
 
 SERVICES = [
     {
         "id": "autopilot",
         "name": "ANIME AUTOPILOT",
+        "short": "AUTOPILOT",
         "wing": "salon",
         "url": AUTOPILOT_URL + "/",
         "addr": "127.0.0.1:8767",
@@ -166,6 +168,7 @@ SERVICES = [
     {
         "id": "groundstation",
         "name": "GROUND STATION",
+        "short": "GROUND STATION",
         "wing": "salon",
         "url": GS_URL + "/#/updates",
         "addr": "127.0.0.1:8768",
@@ -177,6 +180,7 @@ SERVICES = [
     {
         "id": "outreach",
         "name": "OUTREACH DESK",
+        "short": "OUTREACH",
         "wing": "bureau",
         "url": OUTREACH_URL + "/index.html",
         "addr": "127.0.0.1:8802",
@@ -188,6 +192,7 @@ SERVICES = [
     {
         "id": "pressroom",
         "name": "THE PRESS ROOM",
+        "short": "PRESS ROOM",
         "wing": "bureau",
         "url": PRESSROOM_URL + "/",
         "addr": "127.0.0.1:8765",
@@ -199,6 +204,7 @@ SERVICES = [
     {
         "id": "arsenal",
         "name": "ARSENAL",
+        "short": "ARSENAL",
         "wing": "salon",
         "url": ARSENAL_URL + "/",
         "addr": "127.0.0.1:8770",
@@ -210,6 +216,7 @@ SERVICES = [
     {
         "id": "bourse",
         "name": "BOURSE",
+        "short": "BOURSE",
         "wing": "bureau",
         "url": BOURSE_URL + "/",
         "addr": "127.0.0.1:8771",
