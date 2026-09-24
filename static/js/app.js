@@ -2483,12 +2483,13 @@ function buildAisles() {
    every height from 861 to 926 scrolled (LY-1). So the budget is solved
    here, from the stage's real top.
    The floor keeps what the screen leaves under the stage, and never less
-   than the board needs at its short-screen scale (DESK_K_MIN). Below that
-   the old machine shrank to half size on the same screens and its SALON
-   and BUREAU plates came out at 6.6px (LY-8). The house-lights board is
-   taller than that machine (its crest and pedestal), so it asks for a
-   little less than the 0.78 of the 860px query: at 0.78 it took a fifth
-   of the arch off a 3440x900 screen.
+   than the signal desk needed at its short-screen scale: its 198 units of
+   height at 0.78 (0.62 under 760px). Below that the machine shrank to half
+   size and its SALON and BUREAU plates came out at 6.6px (LY-8). The
+   house-lights board asks for exactly that and no more: its first draft
+   asked for its own height at 0.66 and took a tenth off the arches on
+   3440x900 and 1366x768. On those screens the board stands in the floor
+   it is given (fitDesk) instead.
    When the floor cannot have that much, the arch module gives up the
    difference through --gate-vcap, which caps --gate-w: the order DESIGN
    spends the height in is masthead, marquee, arches, floor, and the lever
@@ -2496,7 +2497,7 @@ function buildAisles() {
    Every term is a layout value that the cap and the floor do not move
    (the stage's top is the masthead's and the marquee's, the headroom is
    the viewport's), so writing them cannot feed back into the solve. */
-var FLOOR_HARD = 62, DESK_K_MIN = 0.66, FLOOR_SHARE = 0.31;
+var FLOOR_HARD = 62, DESK_REACH = 198, DESK_K_MIN = 0.78, FLOOR_SHARE = 0.31;
 function budgetHall() {
   var hall = $('#hall'), con = $('#concourse'), stage = $('#stage'), desk = $('#signal-desk');
   if (!hall || !con || !stage || !stage.offsetHeight) return;
@@ -2508,7 +2509,7 @@ function budgetHall() {
   if (desk && art !== null) {
     var k = H < 760 ? 0.62 : DESK_K_MIN;   // the 760px query's own scale
     var deskFoot = parseFloat(getComputedStyle(desk).bottom) || 0;
-    need = Math.max(need, Math.ceil(deskFoot + DESK_GAP + (deskBox() - art) * k - foot));
+    need = Math.max(need, Math.ceil(deskFoot + DESK_GAP + DESK_REACH * k - foot));
   }
   // The wall's headroom over the arches (--stage-h in atrium.css): 80px,
   // rising to 100 above 1080px of viewport. On a tall screen the arch is
