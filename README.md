@@ -165,15 +165,16 @@ start, slight overshoot, damped clank settle. It never filters the Ledger.
 
 ### Entrance
 
-At night the hall stands behind a full-screen velvet house curtain with a
-gilt sunburst crest. The footlights come up, a follow spot finds the crest,
-the curtain flies out, the house lights rise, the marquee chases once and
-the fanlights light from the clock outward; the spot then flies to the
-masthead's monogram and goes out on it. By day the curtain is already up and
-the street's light floods in and settles. It plays on every load and takes
-about 2.7 s. Any click, tap, wheel or keypress cuts it short (browser
-shortcuts such as F5 still work), `?entrance=0` suppresses it, and reduced
-motion collapses it to a fade.
+You arrive from the street. At night the palace is dark but for its lit
+doors; ATRIUM comes on in bulbs letter by letter, the canopy's downlights
+follow row by row and the border bulbs chase. The centre doors swing in,
+you walk under the canopy and through them, and the hall comes up to full
+light as you cross the threshold, its fanlights lighting from the clock
+outward and the marquee chasing once. By day the canopy is unlit, the sun
+throws its shadow down the wall, and the doors open onto the sunlit foyer.
+It plays on every load and takes about 3 s. Any click, tap, wheel or
+keypress cuts it short (browser shortcuts such as F5 still work),
+`?entrance=0` suppresses it, and reduced motion collapses it to a fade.
 
 ### Depth
 

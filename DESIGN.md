@@ -45,7 +45,8 @@ Each ornament family is fenced to the surfaces named here. What it is made
 of follows "The picture palace (v6)".
 
 - Sunburst rays: **entrance only**, never in resting chrome. They are the
-  house curtain's gilt sunburst at night and the sun's shafts by day.
+  entrance's etched door glass, the fanlights over its doors and on its
+  canopy's crest, and the terrazzo poured at its threshold.
 - Rosette: gone from resting chrome. The masthead monogram is an enamelled
   badge in a knurled turned-brass bezel, and the Preferences trigger is a
   nickel escutcheon with its keyhole cut through. The `#rosette` defs stay in
@@ -79,8 +80,9 @@ of follows "The picture palace (v6)".
   paired roundels of poured terrazzo, floor only; the compass and roulette
   language is banned there. The floor is still the one surface where
   ornament is **cut rather than stroked**.
-- Palace families (v6), each fenced: velvet (gate houses, the entrance
-  curtain, the stanchion rope), bulbs (the marquee and the focus ring),
+- Palace families (v6), each fenced: velvet (gate houses, the stanchion
+  rope, the entrance's rope), bulbs (the marquee, the focus ring and the
+  entrance's canopy),
   title cards (the day screen), smalti (the clock niche), stanchions (the
   near flanks of the floor), typewriter keys (the key plate).
 - Hairline tokens: 1px and 1.5px; a double rule = 2×1px with 3px gap.
@@ -273,58 +275,126 @@ services without custom art.
 
 ## Entrance animation (timeline)
 
-Total ~2.7 s. It plays on every load. A click, a tap, a keypress or a turn
-of the wheel cuts it short and lands the assembled hall. Only the keys the
-hall would act on are swallowed, so F5, Ctrl+R and other browser shortcuts
-still work. A tap's click is swallowed along with it, so the tap that skips
-cannot also open the gate under the finger. From done-fade on the hall is
-what shows, so a click there lands the entrance and then does what it says.
-`?entrance=0` skips it. The curtain is dressed at once, but its clock starts
-only when the hall behind it has its first readings and has been drawn, so
-the hall's first raster happens under a still curtain and not during the
-footlights. A hub slow to answer holds it 900 ms; after that the clock starts
-as soon as the frames run at the display's pace again (2.5 s at the most).
-In a new tab, or a browser restarted on a profile that has drawn the hall
-before, that is about 0.5 s after load at 1920 and 0.7 s at 3440. A profile
-with no shaders compiled yet, such as a new one, takes 2.3 to 3 s over the
-hall's and the curtain's first draws at either size, and holds the curtain
-the full 2.5 s. A clock started earlier runs through those draws: the
-footlights and the spot froze for 250 to 600 ms at a time. A hall loaded in a tab nobody is looking at holds the curtain until the
-tab is first shown. Under reduced
-motion a load gets the 300 ms fade instead. PREFERENCES > REPLAY ENTRANCE
-sets a one-shot `sessionStorage` flag and reloads; the pre-paint script
-reads and clears it, so nothing sticks to the address bar, and under reduced motion a replay is the same quiet fade. The
-entrance overlay is `aria-hidden`; the app is usable underneath once
-assembled.
+The reader arrives from the street. It plays on every load and takes about
+3.2 s by night and 2.8 s by day, from the start of its clock to the hall at
+rest. A click, a tap, a keypress or a turn of the wheel cuts it short and
+lands the finished hall, lamps and all. Only the keys the hall would act on
+are swallowed, so F5, Ctrl+R and other browser shortcuts still work. A
+tap's click is swallowed along with it, so the tap that skips cannot also
+open the gate under the finger. From done-fade on the hall is what shows,
+so a click there lands the entrance and then does what it says.
+`?entrance=0` skips it. Under reduced motion (the hall's setting or the
+system's, `?entrance=1` included) a load gets the 300 ms fade instead: the
+walk would only be a run of hard cuts. PREFERENCES > REPLAY ENTRANCE sets
+a one-shot `sessionStorage` flag and reloads; the pre-paint script reads
+and clears it, so nothing sticks to the address bar. The overlay is
+`aria-hidden`; the hall is usable underneath the moment it lands, and the
+Ledger's hatch stays shut until then.
 
-Night (v6): the hall stands dark behind a full-screen house curtain:
-claret velvet, a gilt sunburst crest with a medallion, the name ATRIUM in
-gilt letters, a bullion fringe on the hem and a footlight trough across the
-foot of the screen. The hall behind it is already built; nothing in it rises
-or assembles.
+The reader stands on the pavement in front of the picture
+palace, just short of its canopy. The canopy's fascia spells ATRIUM in
+bulbs, each letter a gilt channel with its bulbs seated along it, between
+two chasing rows of border bulbs, with a stepped crest carrying a little
+fanlight over the entrance. Under it hangs a coffered soffit with a
+downlight in every coffer. Ahead is the entrance bay: a bronze storefront
+of three pairs of doors under three fanlights, in a stepped surround.
+The side pairs are acid-etched with a sunburst; the centre pair is clear
+glass with an etched border and half a sunburst on each leaf, and through
+it stands the hall itself, as the far wall of the foyer. Fluted pilasters
+and poster cases flank the bay, the posters billing the hall's own rooms
+(THE SALON, THE BUREAU, THE LEDGER, THE ALMANAC). Brass stanchions and
+velvet rope make a lane to the centre pair, and a half sunburst of two
+stones and brass strips is poured in the terrazzo at the threshold. It is
+the hall's own material: Portoro by night and Calacatta by day, statuary
+bronze, the wing's leaf on the fittings (gold in the Salon, nickel silver
+in the Bureau), terrazzo, etched glass and bulbs. Only emitters glow: the
+bulbs, the lit glass and the poster lamps; the gilt takes their light.
 
-- 60 ms: the footlights come up along the hem.
-- 250 ms: a follow spot opens on the crest, and each ray catches it in
-  turn. The gilt ring round the medallion draws itself from 0 ms.
-- 950 ms: the curtain flies out over 920 ms, slow off the deck and easing
-  into the grid, its hem gathering into swags (one per ~300px of screen).
-- 1450 ms: the house lights come up over 850 ms, the marquee's bulbs chase
-  once along both rows, and the fanlights light from the clock outward, the
-  pair in each bay together, 170 ms a bay.
-- 1750 ms, **signature moment**: the spot, left on the clock when the
-  curtain went, flies to the masthead's monogram and goes out on it.
-- 2140 ms, done-fade: the footlights go out and the overlay stops catching
-  the pointer.
-- 2700 ms: finish.
+The camera walks in at eye height, 1.6 m, from 10.5 m out to the
+point where the centre pair's jambs stand just past the screen's edges,
+and tilts as it goes from the sign down to the doors. Its pace is a
+monotone curve through the log of the distance, which is how fast the
+doors grow on the screen: it barely moves while the sign lights, passes
+under the fascia as the doors open, and slows into the doorway so the hall
+settles rather than stops. Everything near moves against everything far:
+the fascia and the soffit go overhead, the stanchions slide by at the
+knees, the pavement streams underfoot, and the hall behind the doors
+grows slowest of all. The hall (`#hall` and `#signal-desk`) is scaled about
+the eye point as a wall 9 m behind the doors and lands at scale 1 on the
+walk's last frame. Past the hall's edges the foyer carries on in plain
+colours, seen only in the doorway's corners at the end.
 
-Day: the curtain is already up. A low sun comes in through four open
-doors behind the reader: their light lies across the floor, running away to
-a point at eye height, and stands up the wall to the lintel's shadow, warm,
-each band crossed by its glazing bar and the transom, with cool shade
-between and dust turning in it. The glare over it all eases off like an eye
-adjusting (1.05 s from 280 ms), and the hall shows through it from the first
-frame. A gilt ring draws itself in the glare and docks on the monogram at
-900 ms. Done-fade at 1400 ms, finish at 1700 ms.
+Night:
+
+- Before the clock starts the building is dark but for its entrance: the
+  foyer's light in the three pairs of doors and the fanlights, and a haze
+  of it on the centre pair's glass that still hides the hall.
+- 0 ms: ATRIUM lights letter by letter, A to M, 78 ms apart, each with a
+  stammer. The stone round the letters takes their light, and the crest's
+  fanlight comes up with the last letter. The haze on the glass burns off
+  over the next half second and the hall shows through, dimmed.
+- 300 ms: the poster lamps. 360 ms: the soffit's downlights, row by row
+  from the fascia to the wall, and with them their pools on the wet
+  terrazzo, the wash down the wall and the scallops up the facade over the
+  canopy.
+- 600 ms: the border bulbs chase, a bulb pitch every 105 ms.
+- 760 ms: the centre pair swings in, the right leaf 70 ms behind the left,
+  and folds back behind the side pairs; the foyer's light spills out over
+  the wet stone. By 1300 ms the fascia has passed overhead.
+- 2140 ms: crossing the threshold, the hall comes up to full light over
+  half a second. The jambs leave the screen's edges about 2400 ms.
+- 2300 ms, the landing: the fanlights light from the clock outward, the
+  pair in each bay together, their streaks on the floor with them. At
+  2480 ms the marquee's bulbs chase once. The walk ends at 2580 ms.
+- 2640 ms, done-fade: the overlay stops catching the pointer.
+- 3170 ms: finish.
+
+Day: the canopy is unlit, its bulbs clear glass in brass sockets. A low sun
+behind the reader's left shoulder lights the facade, and the canopy throws
+its shadow down the wall and across the heads of the doors. The centre
+pair's glass gives back the street, sky and the soft fronts opposite, and
+the reflection thins a little as the eye finds the foyer behind it. At
+380 ms the doors swing in onto the sunlit foyer, which looks a shade darker
+than the pavement the eye has been on. The walk runs a little earlier than
+at night; crossing the threshold (2060 ms) the eye adjusts and the hall
+comes up to full light. Done-fade at 2600 ms, finish at 2760 ms.
+
+static/js/entrance.js draws the street as a small projective scene: every
+object is a flat piece in the world, in metres. Pieces that
+face the camera move by translate and scale; planes (the pavement rows, the
+soffit, the door leaves) by a `perspective()` transform with the same
+camera. Each piece's keyframes are the camera sampled every 40 ms, and a
+piece is let go, held and faded out, once it has left the screen for good,
+so nothing is ever drawn from behind the camera. Every lamp is its own
+layer faded by opacity. All of it, the hall's scale, its lamps and the
+marquee's chase included, runs on one Web Animations clock, which
+`Entrance.seek(ms)` can stop at any millisecond for frame captures.
+
+Every layer is drawn once as SVG and painted into a `<canvas>` while the
+street stands, at the most pixels per metre the walk will ask of it,
+capped per piece; textures are inlined for it, and the posters' captions
+are set in the hall's own face after the paint. The compositor then only
+moves textures, and nothing is rastered again during the walk. Drawn as
+SVG and scaled live, the facade put frames of 100 to 270 ms into the walk
+at 3440, rastering each piece again as it grew. On the probe machine's
+software renderer the painting takes about 0.4 s at 1920 and 0.6 to 1 s at
+3440, inside the hold.
+
+The street is dressed at once, and until it is painted the
+overlay holds the screen in the street's own dark (by day, its stone). The
+clock starts only when the street is painted and the hall behind the doors
+has its first readings and has been drawn, so the hall's first raster
+happens while the street stands still. A hub slow to answer holds it
+900 ms; after that the clock starts as soon as the frames run at the
+display's pace again (2.5 s at the most). Held, every animation is parked a
+long way ahead on the compositor, so the hall is rastered at the scale it
+lands on while it still stands behind the doors. In a new tab, or a browser
+restarted on a profile that has drawn the hall before, the clock starts
+0.8 to 1 s after load at 1920 and 0.9 to 1.4 s at 3440 on that renderer. A street that cannot be
+painted within 6 s lands the hall. A hall loaded in a tab nobody is looking
+at holds the street until the tab is first shown. A resize while the street
+stands dresses it again for the new screen; once the walk has begun, a
+resize lands the hall.
 
 ## Layout & viewport
 
@@ -1687,8 +1757,8 @@ lectern top on a pedestal that still read as a box lying on the floor.
 
 ### Entrance beat
 
-The v3.1 vault unlock is replaced by the house curtain (see "Entrance
-animation").
+The v3.1 vault unlock, and the house curtain after it, are replaced by the
+walk in through the doors (see "Entrance animation").
 
 ### Ban list (v3.1 additions)
 
