@@ -418,6 +418,11 @@ function buildMasthead() {
   if (h) hatch(h);
   var cr = $('#masthead .m-crown');
   if (cr) crown(cr);
+  // each frieze panel is broken at its middle by a cast lozenge cartouche
+  var fz = document.querySelectorAll('#masthead .m-frieze');
+  for (var i = 0; i < fz.length; i++) {
+    if (!fz[i].firstChild) fz[i].appendChild(el('span', 'mfz-boss'));
+  }
   fitMasthead();
   if (window.ResizeObserver) {
     var ro = new ResizeObserver(function () { fitMasthead(); });

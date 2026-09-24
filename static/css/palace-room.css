@@ -43,8 +43,8 @@
   --wm-return-ag: #5f5c55;
   --wm-lip: rgba(255, 249, 226, 0.95);
   --wm-cast: 0.05em 0.16em 0.13em rgba(70, 48, 16, 0.42);
-  --wm-face-a: #f9e2a2; --wm-face-b: #dcb35a; --wm-face-c: #a07526; --wm-face-d: #c89c46; --wm-face-e: #6a4c12;
-  --wm-ni-a: #ffffff; --wm-ni-b: #d9d6cc; --wm-ni-c: #8e8b82; --wm-ni-d: #c7c3b6; --wm-ni-e: #66635c;
+  --wm-face-a: #ecca7a; --wm-face-b: #cda04a; --wm-face-c: #8f6522; --wm-face-d: #ad8233; --wm-face-e: #5a400f;
+  --wm-ni-a: #cac7be; --wm-ni-b: #97948b; --wm-ni-c: #5a5852; --wm-ni-d: #76736c; --wm-ni-e: #3a3936;
   --cut-ink: #6a5226; --cut-top: rgba(60, 42, 14, 0.55); --cut-lip: rgba(255, 255, 255, 0.95);
   --tm-seat: rgba(70, 50, 20, 0.34);
   --brass-hi: #fff3cc; --brass-lo: #6f5322;
@@ -173,6 +173,9 @@
   position: absolute; left: 0; top: 0;
   transform: translateY(-0.045em);
   color: transparent;
+  /* text-shadow is inherited, and a clipped face paints its shadows over
+     its own background: the faces cast nothing, the return does */
+  text-shadow: none;
   -webkit-background-clip: text; background-clip: text;
   background-blend-mode: soft-light, normal;
   pointer-events: none;
@@ -296,6 +299,33 @@ html[lang="zh"] .m-sub { letter-spacing: 0.4em; }
 }
 .m-frieze::before { left: calc(-18px * var(--ui)); }
 .m-frieze::after { right: calc(-18px * var(--ui)); }
+
+/* The cartouche that breaks each panel at its middle: a gilt lozenge,
+   stepped once, round a lozenge of the badge's oxblood enamel with a gilt
+   boss. It stands off the frame, so it throws the panel's own shadow. */
+.mfz-boss {
+  position: absolute; left: 50%; top: 50%;
+  width: calc(36px * var(--ui)); height: calc(46px * var(--ui));
+  transform: translate(-50%, -50%);
+  filter: drop-shadow(0 calc(2px * var(--ui)) calc(2px * var(--ui)) rgba(0, 0, 0, 0.55));
+}
+.mfz-boss::before, .mfz-boss::after {
+  content: ""; position: absolute;
+  clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
+}
+.mfz-boss::before {
+  inset: 0;
+  background:
+    linear-gradient(135deg, transparent 0 46%, rgba(0, 0, 0, 0.35) 46% 100%),
+    linear-gradient(160deg, var(--lead-5), var(--lead-3) 26%, var(--lead-2) 52%, var(--lead-1) 78%, var(--lead-0));
+}
+.mfz-boss::after {
+  inset: 24%;
+  background:
+    radial-gradient(circle at 50% 50%, var(--lead-3) 0 12%, var(--lead-1) 16%, transparent 19%),
+    radial-gradient(circle at 42% 36%, var(--enamel-a), var(--enamel-b) 58%, var(--enamel-c));
+  box-shadow: none;
+}
 
 /* ----- The controls: turned-metal medallions ----------------------------- */
 .md-seat { fill: var(--tm-seat); }
