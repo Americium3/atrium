@@ -1514,10 +1514,13 @@ straight across pilasters, panels and field. `patina-statuary.webp` carries
 the brushing, an uneven patina and a few casting pits as signed alpha, so it
 relights any bronze with no blend mode. The house-lights board, whose
 narrow rails and stiles made that brushing read as wood grain, takes its
-own cast patina (`patina-board.webp`) and shades each facet itself (see
-"The house-lights board"). Leaf sits only on wear points, in the wing's
-leaf: on the board, the stiles' crests beside the handle's rest, the upper
-bosses' crowns, the fan's rim, the feet's toes and the plinth's toe strip.
+own cast patina (`patina-board.webp`, a mottle with no strokes in it) and
+its own tones: the same seven names redefined on `#signal-desk`, darker
+and cooler, an olive-black body under a pale brass crest, so the clock's
+case keeps the hall's warmer ramp (see "The house-lights board"). Leaf
+sits only on wear points, in the wing's leaf: on the board, the stiles'
+crests beside the handle's rest, the upper bosses' crowns, the fan's rim,
+the feet's toes and the plinth's toe strip.
 The board's bronze is the dark object in the room in both themes, and its
 slab the light one. `--steam` and `--machine-edge`
 keep their v3.1 meaning.
@@ -1559,13 +1562,17 @@ lectern top on a pedestal that still read as a box lying on the floor.
   reeded bronze legs that corbel out under the frame; an apron of cast fans
   and lightning runs between them under the frame's foot, a stretcher with
   a sunburst runs low down, and a shallow Portoro plinth stands on the
-  runner with a contact shadow in the pile and no return.
+  runner with a contact shadow in the pile and no return. Whatever runs
+  back from the face is kept shallow (the frame's outer return, the bosses,
+  the corbels, the feet and the plinth): seen from above, a deep top reads
+  as a plan, and the board as furniture lying on the floor.
 - The switch: one double-pole, double-throw knife switch, the largest thing
   on the panel. The hinge pin stands upright in the middle, the SALON jaws
-  are to the left and the BUREAU jaws to the right. The two copper blades
-  lie along the marble in the live wing's jaws, broad faces up, their tips
-  joined by an ebonite crossbar, and the turned ebonite handle on its brass
-  ferrule stands out along the blades past the jaws to the frame. The other
+  are to the left and the BUREAU jaws to the right. The two copper blades,
+  bars 26 units wide and 10 thick, lie along the marble in the live wing's
+  jaws, broad faces up, their tips joined by an ebonite crossbar, and the
+  turned ebonite handle on its brass ferrule stands out along the blades
+  past the jaws to the frame. The other
   pair of jaws stands empty, its slot dark between the spring leaves.
   Engraved brass plates, SALON and BUREAU, are screwed under the jaws; the
   pilots, jewels in knurled bezels, sit on the step above them (amber for
@@ -1581,11 +1588,23 @@ lectern top on a pedestal that still read as a box lying on the floor.
   projected through the floor's own camera: 32 degrees above the board,
   from a little further off than the floor's eye, so the uprights converge
   by a few percent and the tops of the frame, the jaws and the blades
-  show. Facets are shaded by their normals against the room. Polished metal
-  mirrors the floor and the dark house low down, the lit wall and arches as
-  a band a little above the horizon, the ceiling above that, and the hall's
-  lit side walls for a ray sent sideways; a key up and a little left adds
-  the highlight. Tones are the palace's custom properties mixed with
+  show. Boxes are shaded facet by facet from their normals against the
+  room. The frame's moulding is shaded across its round: each run is one
+  path with a gradient sampled from the profile's normals, smoothed between
+  facets and broken only at the square outer arris, and laid along the run
+  as the eye sees it. Shaded in flat facets it came out as parallel stripes
+  of brown, and a moulding in stripes is wood. Turned parts that face the
+  eye (the meter's case, the pilots' bezels, the stretcher's boss) are
+  shaded the same way, one band of the profile at a time, and the legs'
+  reeds and the handle across their round. Every face is sealed with a hair
+  of its own colour, so no seam of what lies under shows between two faces.
+  Polished copper mirrors the floor and the dark house low down, the lit
+  wall and arches as a band a little above the horizon, the ceiling above
+  that, and the hall's lit side walls for a ray sent sideways; a key up and
+  a little left adds the highlight. The patinated bronze sees the same room
+  darker: the lit wall is the brightest thing in it and the ceiling is the
+  dark of the house, so its tops stay low and one hard line of light runs
+  along each crest. Tones are the palace's custom properties mixed with
   color-mix, so one drawing serves both themes.
 - The throw: the pin is upright, so the blades turn in a level plane. Seen
   from above, the handle comes round toward the room, points straight at
@@ -1639,22 +1658,32 @@ lectern top on a pedestal that still read as a box lying on the floor.
   legs and the plinth), drawn on the board behind everything and clear of
   both plates; Highlight under forced colours, where the live plate also
   keeps a Highlight border.
-- Materials: statuary bronze (`--sb-*`) with the board's own cast patina
+- Materials: the board's own statuary bronze (`--sb-*` redefined on
+  `#signal-desk`, darker and cooler than the hall's) with its cast patina
   (`patina-board.webp`) for the frame, bosses, legs, apron and fan. The
   wing's leaf (`--lead-*`) only where the board is handled or walked into:
   the stiles' crests beside the handle's rest, the upper bosses' crowns,
   the fan's rim, the feet's toes and the plinth's toe strip. Copper
   (`--kc-*`) with a drawn grain (`brush-copper.webp`) for the blades, jaws
   and hinges; each blade's broad face carries the grain laid along it, the
-  room as a streak across it and the run the jaws have burnished, and its
-  chamfered front arris takes the key as a hot lip. Ebonite (`--eb-*`) for
+  room as a streak across it and the run the jaws have burnished, and the
+  chamfer on its long arris nearest the eye takes the key as a hot lip, one
+  hard line brightest over the middle of the run. Ebonite (`--eb-*`) for
   the handle and crossbar, shaded across its round and bright where it
   mirrors the lamp. Fixed brass (`--bz-*`) for the bezels, ferrule, screws
   and plates and for the sunburst inlaid in the marble under the meter.
-  Ivory enamel for the dial, under a glass with one reflection band.
-  `stone-bardiglio.webp`, `patina-board.webp` and `brush-copper.webp` are
-  baked by `scripts/board_materials.py`. Only the pilots, the meter's lamp
-  and the spark glow, and only at night.
+  Ivory enamel for the dial, printed heavy enough to read as a ring of
+  strokes from across the room: a long stroke and a figure every quarter
+  (50 and 25 either side of zero), the Salon's arc in gold leaf and the
+  Bureau's in nickel, under a glass with one reflection band. The Bardiglio
+  is a dove grey clouded with slate, with crisp dark streaks along the bed,
+  a few slate veins across it and white calcite threads, cut strong enough
+  that the night's veil does not flatten it. Its polish is one band on the
+  diagonal, hard at its leading edge and soft behind, with a narrow second
+  band after it: the room's opening and its glazing bar mirrored in the
+  face. `stone-bardiglio.webp`, `patina-board.webp` and `brush-copper.webp`
+  are baked by `scripts/board_materials.py`. Only the pilots, the meter's
+  lamp and the spark glow, and only at night.
 
 ### Entrance beat
 
