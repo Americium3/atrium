@@ -2496,6 +2496,11 @@ function renderWorks() {
   WK_DIALS.forEach(function (d) {
     var cell = el('div', 'wk-cell');
     cell.dataset.dial = d.key;
+    // A tab stop, so what the tooltip adds (the core count, the card's load
+    // and its name) is in reach of a keyboard or a finger as well as a
+    // mouse: a focused dial lays its whole line over the tape (.cs-tip).
+    // It was hover-only on a case with no tab stop in it.
+    cell.tabIndex = 0;
     cell.appendChild(buildDial(d.key));
     // The engraved name is for the eye; the cell's spoken line (syncWorks)
     // starts with the same name, and a reader heard it twice.
@@ -2503,6 +2508,10 @@ function renderWorks() {
     name.setAttribute('aria-hidden', 'true');
     cell.appendChild(name);
     cell.appendChild(el('span', 'wk-read num', '—'));
+    // Said already, by the cell's own spoken line (.wk-sr).
+    var tip = el('span', 'cs-tip zh-sentence');
+    tip.setAttribute('aria-hidden', 'true');
+    cell.appendChild(tip);
     box.appendChild(cell);
   });
   ['hours', 'disk'].forEach(function (k) {
@@ -2611,6 +2620,7 @@ function syncWorks() {
     read.textContent = r ? r.text : t('wkNoReading');
     read.setAttribute('aria-hidden', 'true');
     cell.title = t(d.name) + (r && r.title ? t('join') + r.title : '');
+    $('.cs-tip', cell).textContent = cell.title;
     // The caption's arrows and the red sector say nothing aloud; this does.
     var sr = $('.wk-sr', cell);
     if (!sr) { sr = el('span', 'sr-only wk-sr'); cell.appendChild(sr); }
@@ -3166,7 +3176,20 @@ function buildRead(w) {
     fresh ? (lang === 'zh' ? w.label_zh : w.label) : t('wkNoReading')));
   box.appendChild(now);
   box.appendChild(almVitals(w, fresh));
-  box.title = almFahrenheit(w, fresh);
+  var fahr = almFahrenheit(w, fresh);
+  box.title = fahr;
+  // The same line in reach of a keyboard or a finger (a focused reading
+  // lays it under itself, .cs-tip) and said aloud. It was a mouse tooltip
+  // only, and the °F figures were in no text on the page at all.
+  if (fahr) {
+    box.tabIndex = 0;
+    box.appendChild(el('span', 'sr-only', fahr));
+    var tip = el('span', 'cs-tip zh-sentence', fahr);
+    tip.setAttribute('aria-hidden', 'true');
+    box.appendChild(tip);
+  } else {
+    box.removeAttribute('tabindex');
+  }
 }
 
 /* Fahrenheit lives in the tooltip: this reader is standing in a country

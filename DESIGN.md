@@ -1286,6 +1286,13 @@ Motion setting collapse all of the above to fades/instant.
   wing's gates, left to right > lever. The waiting wing and the shut Ledger
   are `inert`: the drawer used to sit in the tab order off screen, and since
   focus marks a dispatch read, one pass of Tab struck the whole Ledger.
+  Where the aisle cases hang, the four dials come before the gates and the
+  Almanac's reading after them, in the order they stand. Each is a tab stop
+  because its tooltip says more than its face (the core and thread count,
+  the card's load and name, the reading in °F), and a tooltip is out of
+  reach without a mouse. Focus (Tab or a tap) lays that line on an ivorine
+  slip inside the case: a dial's over the head of the tape, the reading's
+  across the top of the sky plate. The °F line is also said.
 - **Keys**: arrows walk the lit gates, digits jump to one, Enter opens it, W
   throws the lever (focus lands on the gate in the same bay of the other
   wing), L opens and closes the Ledger (arrows then walk its dispatches), P

@@ -549,6 +549,40 @@
 html[lang="zh"] .board .wk-slabel, html[lang="zh"] .board .al-strips .al-slabel { -webkit-text-stroke: 0.6px currentColor; }
 .board .wk-sval, .board .al-sval { color: var(--ivorine-ink); font-weight: 600; }
 
+/* The long line: what a dial's or the reading's tooltip says, for a reader
+   with no mouse to hover with. A focused instrument (Tab, or a tap) lays
+   it on a slip of the windows' ivorine, a dial's over the head of the tape
+   and the reading's under the reading, across the top of the sky plate.
+   The mouse keeps its tooltip. The slip stays inside the door, behind its
+   glass, and covers only the case's own furniture while it is up. */
+.board .cs-tip {
+  display: none;
+  position: absolute; z-index: 3;
+  left: 0.4cqw; right: 0.4cqw; top: calc(100% + 0.6cqw);
+  padding: 0.28em 0.8em 0.22em;
+  font-size: calc(12px * var(--ui));
+  line-height: 1.3;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-align: center; text-wrap: balance;
+  white-space: normal;
+  color: var(--ivorine-ink);
+  background:
+    linear-gradient(180deg, rgba(0, 0, 0, 0.16), transparent 30%),
+    url('/static/assets/tex/grain-card.webp') 0 0 / 120px,
+    var(--ivorine);
+  background-blend-mode: normal, soft-light, normal;
+  box-shadow:
+    0 0 0 1px var(--br-1), 0 0 0 2px var(--br-3), 0 0 0 3px var(--br-1),
+    0 4px 7px 3px rgba(0, 0, 0, 0.55);
+  border-radius: 1px;
+  pointer-events: none;
+}
+.board .wk-cell:focus .cs-tip, .board .al-read:focus .cs-tip { display: block; }
+/* Over the next register down, which otherwise paints later at the same
+   level. */
+.board .wk-dials:focus-within, .board .al-read:focus { z-index: 2; }
+
 /* ----- The apron and the maker's plate ------------------------------------ */
 .board .bd-foot {
   position: relative; z-index: 2;
