@@ -800,6 +800,16 @@ def test_a_closed_port_has_time_to_be_refused():
     assert server.CONNECT_TIMEOUT_S >= 2 * server.HTTP_TIMEOUT_S
 
 
+def test_only_links_and_scripts_are_stamped():
+    """The SVG <image> tiles share their files with the stylesheets, which ask
+    by the plain URL. A stamped copy downloaded every texture twice."""
+    html = (Path(server.__file__).resolve().parent / "static" / "index.html"
+            ).read_text(encoding="utf-8")
+    refs = [m.group(2) for m in server._ASSET_REF.finditer(html)]
+    assert "/static/css/atrium.css" in refs and "/static/js/app.js" in refs
+    assert not [r for r in refs if "/assets/tex/" in r], refs
+
+
 if __name__ == "__main__":
     failures = 0
     for name, fn in sorted(globals().items()):

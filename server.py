@@ -1464,7 +1464,11 @@ async def cache_headers(request: Request, call_next):
     return resp
 
 
-_ASSET_REF = re.compile(r'(href|src)="(/static/[^"?#]+)"')
+# Only <link> and <script> are stamped. The SVG <image> tiles in the page's
+# <defs> are the same files the stylesheets ask for by their plain URL, and
+# stamping the page's copy alone made every one of them download twice.
+_ASSET_REF = re.compile(
+    r'(<(?:link|script)\b[^>]*?\b(?:href|src))="(/static/[^"?#]+)"')
 
 
 def _serve_page(page: Path, request: Request) -> HTMLResponse:
