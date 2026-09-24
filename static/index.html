@@ -596,11 +596,16 @@
 <div id="prefs" role="dialog" aria-modal="true" aria-labelledby="prefs-title" hidden>
   <div class="p-wrap">
   <div class="p-sheet">
-    <header class="p-head">
+    <!-- A div, not a header: inside the dialog a header was a second banner
+         landmark, and the masthead is the page's only banner. -->
+    <div class="p-head">
       <h2 id="prefs-title" class="display" data-i18n="preferences">PREFERENCES</h2>
       <button id="prefs-close" data-i18n-aria="ariaClose" aria-label="Close">✕</button>
-    </header>
+    </div>
 
+    <!-- In the order the panel shows them (appearance, language, motion,
+         engraving size, replay), which is the order Tab and a screen reader
+         take. The grid places each well by its data-control area. -->
     <section class="p-group">
       <h3 class="p-label display" id="lbl-appearance" data-i18n="appearance">APPEARANCE</h3>
       <div class="p-options" role="radiogroup" aria-labelledby="lbl-appearance" data-pref="theme">
@@ -635,6 +640,21 @@
     </section>
 
     <section class="p-group">
+      <h3 class="p-label display" id="lbl-motion" data-i18n="motion">MOTION</h3>
+      <div class="p-options" role="radiogroup" aria-labelledby="lbl-motion" data-pref="motion">
+        <button class="p-plaque" role="radio" data-value="full">
+          <span class="p-name display" data-i18n="motionFull">FULL</span>
+        </button>
+        <button class="p-plaque" role="radio" data-value="reduced">
+          <span class="p-name display" data-i18n="motionReduced">REDUCED</span>
+        </button>
+        <button class="p-plaque" role="radio" data-value="system">
+          <span class="p-name display" data-i18n="system">FOLLOW SYSTEM</span>
+        </button>
+      </div>
+    </section>
+
+    <section class="p-group">
       <h3 class="p-label display" id="lbl-uiscale" data-i18n="uiScale">ENGRAVING SIZE</h3>
       <div class="p-options" role="radiogroup" aria-labelledby="lbl-uiscale" data-pref="ui">
         <button class="p-plaque" role="radio" data-value="s">
@@ -648,21 +668,6 @@
         <button class="p-plaque" role="radio" data-value="l">
           <span class="p-name display" data-i18n="uiLarge">SIGNBOARD</span>
           <span class="p-desc" data-i18n="uiLargeDesc">Legible from across the room</span>
-        </button>
-      </div>
-    </section>
-
-    <section class="p-group">
-      <h3 class="p-label display" id="lbl-motion" data-i18n="motion">MOTION</h3>
-      <div class="p-options" role="radiogroup" aria-labelledby="lbl-motion" data-pref="motion">
-        <button class="p-plaque" role="radio" data-value="full">
-          <span class="p-name display" data-i18n="motionFull">FULL</span>
-        </button>
-        <button class="p-plaque" role="radio" data-value="reduced">
-          <span class="p-name display" data-i18n="motionReduced">REDUCED</span>
-        </button>
-        <button class="p-plaque" role="radio" data-value="system">
-          <span class="p-name display" data-i18n="system">FOLLOW SYSTEM</span>
         </button>
       </div>
     </section>

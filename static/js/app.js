@@ -3216,7 +3216,9 @@ function renderLedger() {
       var db = oldBreaks[bucket] || el('li', 'daybreak display');
       delete oldBreaks[bucket];
       db.dataset.bucket = bucket;
-      db.setAttribute('role', 'presentation');
+      // A plain list item holding the day's heading. As role=presentation
+      // it put a bare heading straight into the list, which a list may not
+      // hold.
       var dbh = db.firstElementChild;
       if (!dbh) {
         dbh = el('span', 'db-h');

@@ -1072,6 +1072,12 @@
   background-color: color-mix(in srgb, var(--base) 58%, transparent);
   -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px);
 }
+/* Asked for more contrast or less transparency: the dialog's backdrop is a
+   scrim like the Ledger's, and it stops showing the hall through. (Here and
+   not beside the Ledger's rule in atrium.css, which this sheet overrides.) */
+@media (prefers-contrast: more), (prefers-reduced-transparency: reduce) {
+  #prefs { background-color: var(--base); -webkit-backdrop-filter: none; backdrop-filter: none; }
+}
 .p-sheet {
   --u: calc(1px * var(--ui));
   --n: calc(16px * var(--ui));
