@@ -164,10 +164,11 @@ both themes; only the hour changes.
     The desk stands on wool and returns nothing.
 11. **Performance**: only transform and opacity animate. Blurs are static on
     inner elements, with the moving transform on a parent. The clock is two
-    sheets, a still dial painted once and a thin moving sheet. The floor's
-    SVGs carry no paint servers (patterns or gradients): the clock's hand
-    writes re-lay them every frame, so the inlays' figure and sheen are HTML
-    layers over each inlay.
+    sheets, a still dial painted once and a thin moving sheet, and each part
+    on the moving sheet is its own layer turned by the compositor, so the
+    sweep costs the page no layout. The floor's SVGs carry no paint servers
+    (patterns or gradients): the inlays' figure and sheen are HTML layers
+    over each inlay.
 
 ### Surface by surface
 
@@ -185,9 +186,11 @@ both themes; only the hour changes.
   gilded. A crown stands over the clock's axis, built as the Chrysler's is:
   three arched tiers telescoping up and back, pierced with triangular
   windows, lit at night. Framed relief panels fill the fascia either side of
-  it, sized to the gap and not hung under 110px × `--ui`. The crown is cast
-  up to a fifth smaller on a tight masthead and stowed only when even that
-  would touch the title or the date. The Ledger hatch is a domed brass cap
+  it as a pair, both the length of the narrower gap and neither hung under
+  110px × `--ui`. The crown stands under the fascia's crest moulding, sized
+  to the height between it and the fascia's foot, and is cast up to a fifth
+  smaller again on a tight masthead; it is stowed only when even that would
+  touch the title or the date. The Ledger hatch is a domed brass cap
   whose unread signal is a jewel lamp; Preferences is a nickel escutcheon
   that turns 22.5 degrees on hover and focus.
 - **The marquee**: milk glass between two rows of bulbs on a gilt channel,
@@ -378,13 +381,19 @@ colour. All strokes carry `vector-effect: non-scaling-stroke`, so the 1 /
   against each other off the seconds arbor.
 - **Hands**: pierced Breguet with stepped counterweights; the hour hand
   carries a second, smaller piercing so the two never read alike.
-- **Drive**: the loop reads `new Date()` every frame and never accumulates,
-  so drift is structurally impossible and a DST step, a suspend/resume or a
-  throttled background tab all self-correct on the next frame.
-  `visibilitychange` stops the loop while hidden. Reduced motion swaps the
-  sweep for a boundary-aligned 1 Hz deadbeat tick,
+- **Drive**: each hand, its shadow and each wheel of the works is a layer
+  the size of the dial, turned about its arbor by a compositor animation.
+  The animations are set in phase from `new Date()` and set again every ten
+  seconds on the boundary, so the clock never accumulates, drift is
+  structurally impossible, and a DST step, a suspend/resume or a throttled
+  background tab all come right at the next re-set. `visibilitychange`
+  stops the timer while hidden. Reduced motion swaps the sweep for a
+  boundary-aligned 1 Hz deadbeat tick,
   `setTimeout(tick, 1000 - Date.now() % 1000)`, which is the mechanism a
   real regulator actually has.
+- **Subdial captions** (LUNA, DATE, SEC, WORKS) are engraved only where the
+  dial draws them at 10px or more: light on the dark moon and works wells,
+  ink on the white dials.
 
 ### Composition
 
@@ -480,6 +489,11 @@ one horizontal. Aisle bays carry fluted pilasters (stepped capital, shaft
 proud of the field with a shadow behind it, plinth block), one sconce per
 bay throwing a pool on the plaster, and a Roman bay number engraved on the
 chair rail.
+
+A bay takes its torchiere only when the fixture stands clear between the
+shafts of the pilasters at its two ends, and its plate only when the plate's
+lettering does; a sliver bay at the screen's edge stands unlit and
+unnumbered, and the numbers run on over the bays that carry a plate.
 
 **Bays are measured, not assumed.** `layoutStage()` publishes
 `triptychHalf`, how far the composition actually reaches from the axis,
@@ -896,7 +910,8 @@ opening the dispatch url.
 
 The band under the masthead carries **status segments** (LINES OPEN n/3 ·
 per-gate live stats) plus only dispatches **still unread**. When nothing is
-new: a static line, no scroll. Pauses on hover AND focus. The crawl runs at
+new: a static line, no scroll. Pauses on hover and on keyboard focus (a
+click's focus is not a reader, so it does not hold the band). The crawl runs at
 50 px/s times `--ui`, measured on one copy of the loop (the old per-character
 rate counted the `aria-hidden` twin as well and ran at half speed). Reduced
 motion = static line with at most a slow crossfade rotation: an overflowing
