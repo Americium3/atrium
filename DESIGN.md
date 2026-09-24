@@ -275,7 +275,10 @@ hall would act on are swallowed, so F5, Ctrl+R and other browser shortcuts
 still work. A tap's click is swallowed along with it, so the tap that skips
 cannot also open the gate under the finger. From done-fade on the hall is
 what shows, so a click there lands the entrance and then does what it says.
-`?entrance=0` skips it. Under reduced motion a load gets the 300 ms fade
+`?entrance=0` skips it. The curtain is dressed at once, but its clock starts
+only when the hall behind it has its first readings and has been drawn
+(at most 900 ms), so the hall's first raster happens under a still curtain
+and not during the footlights. Under reduced motion a load gets the 300 ms fade
 instead. PREFERENCES > REPLAY ENTRANCE sets a one-shot `sessionStorage` flag and
 reloads; the pre-paint script reads and clears it, so nothing sticks to the
 address bar, and under reduced motion a replay is the same quiet fade. The
@@ -483,6 +486,14 @@ widths, nothing touching) does not fit between two 300px aisles below about
 2800 and cap at 520 (560 made the arches shrink at 3440). The flank-sizing
 guard that used to live here (flanks sized to the clear column with an air
 gap) went with the flanks; `--fit` is its successor, see "Composition (v5)".
+
+How much room that row needs grows with the engraving size, which a width
+query cannot see, so past 2800 the aisles open only where the row stands at
+full size between two 300px cases, and each case is no wider than the room
+the row leaves it (`layoutStage()` writes `data-aisles` and `--aisle-room` on
+`#concourse`). At 2800 they used to open whatever the size, and the row
+shrank to 305px arches at every engraving size. At the default size they now
+open near 3100px; at 3440 they stand at every size, 392 to 518px wide.
 
 **Full bleed from inside a centred grid.** Both scenery layers use
 `left: calc(50% - 50vw); width: 100vw`. 50% is half the concourse, 50vw half
@@ -847,8 +858,9 @@ the lamp and takes the address line's place while it stands.
   with the service's launcher hint (from the registry) instead of opening a
   dead tab; a keyboard press pins it and says it every time. The path
   breaks only at its separators, so a copy is exact, and the card tightens
-  a step at a time to stay inside the house. All-dark hall: one engraved
-  line "The hall is dark. No services are reachable."
+  a step at a time to stay inside the house. All-dark hall: the marquee leads with one line,
+  "The hall is dark. No services are reachable.", where LINES OPEN would
+  stand. On the stage it lay behind the clock.
 - **Reserved**: the same architecture in bare plaster, its bezel holding a
   blank cover plate, behind an iron safety curtain: red oxide primer steel
   in three lapped courses, domed rivets lit on the lamp side, a stencilled
@@ -1254,9 +1266,15 @@ picture, fades out over the new one, and the flip underneath lands with
 every transition cut (`.theme-cut`). Per-element transitions could not do
 it: the wall, floor and dado are gradients, which do not interpolate, and
 the ~1,100 colour transitions a flip started restyled the page every frame.
-Wing re-lighting uses a **scoped** transition list (`color,
-background-color, border-color, fill, stroke, opacity`) on themed elements.
-No universal `* { transition }`.
+The cut is lifted when the fade has finished: lifting it restyles every
+element, and at `ready` that landed inside the fade and stalled it.
+The lever's re-leaf lands in one frame. The fixtures it changes (the clock's
+gilt, the pilasters, the stage rule, the console's leaf) carry no colour
+transition: a fill fading on them re-rastered them on every frame of the
+throw, 70 ms a frame at 3440. The flip goes out first, and the lever and the
+arches start once it is on screen (`afterDrawn()`), so the sink is seen.
+Only the crossfade layers (the wordmark's nickel face, the crown) fade, by
+opacity. No universal `* { transition }`.
 Custom properties don't interpolate; the consuming elements transition.
 Wordmark letters are spans with transforms. `prefers-reduced-motion` and the
 Motion setting collapse all of the above to fades/instant.
@@ -1429,9 +1447,11 @@ away with them.
   each with a pilot jewel. The assembly scales with the lettering
   (`0.72 + 0.28·--ui`).
 - **Drive**: one scalar `--drive` (0 = salon, 1 = bureau) written by a JS
-  rAF driver onto `#signal-desk`. Only the desk reads it, and a custom
-  property changed on `:root` restyles the whole page on every frame of the
-  throw. Lever (±16°), gear A (90°) and pinion B (−180°, ratio
+  rAF driver onto the movers, `.desk-fx` and `#lever`, and kept in JS rather
+  than read back. A custom property restyles everything under the element it
+  changes on: on `:root` that was the whole page on every frame of the
+  throw, and on `#signal-desk` it repainted the console's cast relief every
+  frame. Lever (±16°), gear A (90°) and pinion B (−180°, ratio
   −N_A/N_B) all derive via calc. Sync is structural. Meshing law: shared
   module, center distance = r_pA + r_pB, interleave phase
   `((1+N_A/N_B)·φ + 180 − 180/N_B) mod (360/N_B)` baked as a static

@@ -395,8 +395,13 @@ function dial(key) {
   var legend = sv('text', { x: 50, y: 84, 'text-anchor': 'middle' }, 'd-legend');
   legend.textContent = key === 'net' ? 'MB/s' : '%';
   s.appendChild(legend);
-  var serial = sv('text', { x: 50, y: 34.2, 'text-anchor': 'middle' }, 'd-serial');
-  serial.textContent = 'No ' + (3100 + Math.floor(draw(seed, 7) * 6800));
+  // The serial is stamped as strokes, not set as type: at 3.4 units it came
+  // out 0.6-4px tall on screen, a number nobody could read (LY-20).
+  var serial = sv('g', null, 'd-serial');
+  for (var si = 0; si < 6; si++) {
+    var sx = 44.4 + si * 2 + (si > 1 ? 1.2 : 0), sh = si < 2 ? 1.6 : 2 + draw(seed, 20 + si) * 0.5;
+    serial.appendChild(sv('path', { d: 'M' + f2(sx) + ' ' + f2(34.2 - sh) + 'V34.2' }));
+  }
   s.appendChild(serial);
   // The zero adjuster under the pivot, clear of the counterweight's sweep.
   s.appendChild(sv('circle', { cx: 50, cy: 70, r: 2.3, fill: 'url(#' + id + '-hub)' }, 'd-zero'));

@@ -76,6 +76,36 @@ function pattern(defs, id, href, size) {
 }
 function U(id) { return 'url(#' + id + ')'; }
 
+/* Stamped legends, drawn as strokes. The badge's WINGS and the wheel's part
+   number were set as type at 4.3 and 4.5 units, which the desk's scale
+   brought down to 1.6-4.6px on screen: text nobody could read, and a
+   screen-reader-visible string standing for nothing (LY-20). Cut as strokes
+   they are what a die leaves in brass: texture at a glance, letters under a
+   loupe. Each glyph sits in a cell 3 units tall, origin top left. */
+var STAMP = {
+  W: ['M0 0L.5 3L1 1.2L1.5 3L2 0', 2],
+  I: ['M.3 0V3', 0.6],
+  N: ['M0 3V0L1.8 3V0', 1.8],
+  G: ['M1.9 .6C1.7 .15 1.35 0 1 0C.35 0 0 .7 0 1.5S.35 3 1 3C1.6 3 1.9 2.6 1.9 2V1.7H1.1', 1.9],
+  S: ['M1.7 .5C1.5 .12 1.2 0 .9 0C.4 0 .1 .3 .1 .8C.1 1.9 1.8 1.2 1.8 2.3C1.8 2.7 1.4 3 .9 3C.5 3 .2 2.8 0 2.4', 1.8],
+  A: ['M0 3L1 0L2 3M.35 2H1.65', 2],
+  '-': ['M.2 1.6H1.2', 1.4],
+  '1': ['M.35 .6L1 0V3M.4 3H1.6', 1.6],
+  '8': ['M1 1.4C.45 1.4 .15 1.1 .15 .72S.45 0 1 0S1.85 .35 1.85 .72S1.55 1.4 1 1.4C.4 1.4 0 1.75 0 2.2S.4 3 1 3S2 2.65 2 2.2S1.6 1.4 1 1.4Z', 2]
+};
+function stamp(parent, text, cx, top, h, cls) {
+  var k = h / 3, gap = 0.6, w = 0;
+  text.split('').forEach(function (c, i) { w += STAMP[c][1] + (i ? gap : 0); });
+  var g = add(parent, 'g', { transform: 'translate(' + n2(cx - w * k / 2) + ' ' + n2(top) + ') scale(' + n2(k) + ')' }, cls);
+  var x = 0;
+  text.split('').forEach(function (c) {
+    var p = add(g, 'path', { d: STAMP[c][0] });
+    if (x) p.setAttribute('transform', 'translate(' + n2(x) + ' 0)');
+    x += STAMP[c][1] + gap;
+  });
+  return g;
+}
+
 /* ------------------------------------------------------------ geometry */
 var CAP_T = 84, CAP_B = 92, RISE_B = 100, FRZ_B = 114, BODY_B = 182, FLOOR = 196;
 var CW_L = 32, CW_R = 328;
@@ -461,6 +491,21 @@ function buildConsole(q) {
   screw(q, +qp(139, -19.5).split(' ')[0], +qp(139, -19.5).split(' ')[1], 1.35, 'desk-quad-screw-0');
   screw(q, +qp(139, 19.5).split(' ')[0], +qp(139, 19.5).split(' ')[1], 1.35, 'desk-quad-screw-1');
 
+  // ---- keyboard focus: the machine's own marquee
+  // #lever is the switch a keyboard reaches, but its box only hugs the
+  // base, so its ring framed the lower console and missed the handle and
+  // both throw plates (KB-14). The ring is drawn here instead, the way the
+  // gates draw theirs: a stepped outline round the switch, the plates and
+  // the lever's sweep, with a dark bed, a lit core and at night a string
+  // of bulbs. It stays clear of every plate, so it crosses no lettering.
+  // It is laid under the stack, which stands in front of it, so it never
+  // rises over the art's top (fitDesk() keeps that clear of the sill).
+  var ring = 'M8 204V60H128V44H232V60H352V204Z';
+  var fg = add(q, 'g', null, 'dk-focus-g dk-noptr');
+  add(fg, 'path', { d: ring }, 'dk-focus-bed');
+  add(fg, 'path', { d: ring }, 'dk-focus');
+  add(fg, 'path', { d: ring }, 'dk-focus-bulbs');
+
   // ---- the vent stack, standing on the top plane
   var vx = 240, vw = 11, vbase = 75;
   add(q, 'ellipse', { cx: vx + vw / 2 + 1, cy: vbase + 0.8, rx: 9.5, ry: 2.4 }, 'dk-oil dk-vent-sh dk-noptr');
@@ -549,11 +594,10 @@ function buildLever(lv) {
   add(lv, 'rect', { x: 60.2, y: 94.6, width: 19.6, height: 40, rx: 2.6 }, 'lv-badge-sh');
   add(lv, 'rect', { x: 60, y: 94, width: 20, height: 40, rx: 2.6 }, 'lv-badge');
   add(lv, 'rect', { x: 61.6, y: 95.6, width: 16.8, height: 36.8, rx: 1.6 }, 'lv-badge-line');
-  var n1 = add(lv, 'text', { x: 70, y: 116.5, 'text-anchor': 'middle' }, 'lv-badge-n');
-  n1.textContent = '1';
+  // the lever's number, cut as a serif figure; the legend under it stamped
+  add(lv, 'path', { d: 'M69 105H71V115.6L73.2 116V116.6H66.8V116L69 115.6V106.7L67.1 108.2L66.6 107.4Z' }, 'lv-badge-n');
   add(lv, 'path', { d: 'M70 119.6L71.3 120.9L70 122.2L68.7 120.9Z' }, 'lv-badge-dot');
-  var w1 = add(lv, 'text', { x: 70, y: 128.2, 'text-anchor': 'middle' }, 'lv-badge-w');
-  w1.textContent = 'WINGS';
+  stamp(lv, 'WINGS', 70, 125.2, 3, 'lv-badge-w');
   [98, 130].forEach(function (cy) {
     add(lv, 'circle', { cx: 70, cy: cy, r: 1.25 }, 'lv-rivet');
   });
@@ -643,8 +687,7 @@ function buildGears(desk) {
   add(wA, 'rect', { x: -1.2, y: -9.4, width: 2.4, height: 5.8 }, 'ga-key');
   add(wA, 'path', { d: 'M ' + P(39, 0) + ' L ' + P(36.5, 0) + ' M ' + P(41, 0) + ' L ' + P(40, 0) }, 'ga-index');
   add(wA, 'rect', { x: -10, y: 14, width: 20, height: 7, rx: 0.5 }, 'ga-pno-bg');
-  var pno = add(wA, 'text', { x: 0, y: 20, 'text-anchor': 'middle' }, 'ga-pno-t');
-  pno.textContent = 'GA-18';
+  stamp(wA, 'GA-18', 0, 15.9, 3.2, 'ga-pno-t');
   gA.appendChild(wA);
 
   var wB = E('g', { transform: 'rotate(' + phaseB.toFixed(2) + ')' });

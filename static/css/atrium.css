@@ -61,8 +61,9 @@
   --bronze: #6e522c;
   --machine-edge: #060504;   /* wells, slots, notches — darkest machine tone */
   --rivet: rgba(232, 220, 192, 0.34);
-  --steam-core: rgba(248, 240, 220, 0.60);
-  --steam-mid: rgba(248, 240, 220, 0.26);
+  --steam-core: rgba(248, 240, 220, 0.3);
+  --steam-mid: rgba(248, 240, 220, 0.2);
+  --steam-wisp: rgba(248, 240, 220, 0.12);
   /* Concourse fabric (v4) — plaster, stone and the light that falls on them.
      The wall must separate from the void behind the hall without becoming a
      second surface tone: these sit between --base and --surface. */
@@ -118,7 +119,8 @@
   --machine-edge: #57492f;
   --rivet: rgba(42, 36, 22, 0.30);
   --steam-core: rgba(42, 36, 22, 0.15);
-  --steam-mid: rgba(42, 36, 22, 0.07);
+  --steam-mid: rgba(42, 36, 22, 0.08);
+  --steam-wisp: rgba(42, 36, 22, 0.05);
   /* Ivory plaster is *darker* than the paper ground: on this theme the void
      behind the hall is the brightest thing on screen, so a wall lighter than
      --base would read as a hole rather than a plane. */
@@ -238,8 +240,10 @@
   /* The stage now seats a clock between the arches — the gates give up some
      width so all three stand on one screen without crowding. On a wide wall
      the module grows with the lettering (--ui): a 1720px diorama stranded in
-     the middle of a 3440px screen is the thing this pass exists to end. */
-  --gate-w: clamp(182px, min(13.6vw, 26.5vh),
+     the middle of a 3440px screen is the thing this pass exists to end.
+     --gate-vcap is the vertical budget's cap (budgetHall() in app.js): the
+     largest arch that still leaves the lever its floor under the stage. */
+  --gate-w: clamp(182px, min(13.6vw, 26.5vh, var(--gate-vcap, 100vh)),
                   calc(296px * (0.62 + 0.38 * var(--ui))));
   --desk-h: 210px;         /* the signal desk's own standing height */
   --hall-foot: 30px;       /* #hall's bottom padding, shared with the floor */
@@ -402,8 +406,6 @@ html[lang="zh"] .display { letter-spacing: 0.26em; }
    the sequential-lighting stagger below and must win the cascade. */
 .sigil, #monogram, #prefs-btn svg,
 .medal, .medal .rim, .medal .m-sig, .chip,
-.quadrant path, .quadrant circle, .quadrant rect, .quadrant polygon,
-.quadrant ellipse,
 .wk-dial path, .wk-dial circle, .wk-dial line, .wk-dial text,
 .wk-plate rect, .wk-plate circle, .wk-plate text,
 .lever-svg path, .lever-svg circle, .lever-svg rect, .lever-svg text,
@@ -659,8 +661,9 @@ html[data-boot="suppressed"] #hall { animation: hall-fade 0.3s var(--ease-out) b
    shell is never clipped (steam must escape; clip-path kills shadows) —
    only the gear well clips, via overflow:hidden. One scalar --drive
    (0=salon, 1=bureau, written by the JS driver) derives the lever and both
-   gears. It lives on the desk, not on :root: nothing outside the desk reads
-   it, and a custom property changed on :root restyles the whole page.
+   gears. It lives on the movers (.desk-fx and #lever), not on :root and not
+   on the desk: a custom property restyles everything under the element it
+   changes on, and a console restyled every frame was repainted every frame.
    ========================================================================== */
 #signal-desk {
   position: fixed; left: 0; right: 0; bottom: calc(10px * var(--ui));
@@ -683,8 +686,8 @@ html[data-boot="suppressed"] #signal-desk {
   animation: hall-fade 0.3s var(--ease-out) both;
 }
 /* Initial pose before the JS driver's first write. */
-:root[data-wing="salon"] #signal-desk { --drive: 0; }
-:root[data-wing="bureau"] #signal-desk { --drive: 1; }
+:root[data-wing="salon"] :is(.desk-fx, #lever) { --drive: 0; }
+:root[data-wing="bureau"] :is(.desk-fx, #lever) { --drive: 1; }
 
 .desk-core {
   position: relative;
@@ -899,12 +902,19 @@ html[data-boot="suppressed"] #signal-desk {
   width: 0; height: 0;
   pointer-events: none; z-index: 3;
 }
+/* A puff is a wisp, not a ball: one round, evenly soft disc hung over the
+   stack like a lamp at night (VD-10). Four soft lobes of unequal size, set
+   off-centre and trailing upward, each sprite its own (steamBurst() writes
+   the offsets), with a thin core so the floor shows through it. The lobes
+   are painted once; only the sprite's transform and opacity move. */
 .puff {
-  position: absolute; left: -20px; top: -20px; width: 40px; height: 40px;
-  border-radius: 50%;
-  background: radial-gradient(circle at 50% 55%,
-      var(--steam-core), var(--steam-mid) 42%, transparent 70%);
-  filter: blur(6px);
+  position: absolute; left: -22px; top: -34px; width: 44px; height: 56px;
+  background:
+    radial-gradient(30% 24% at var(--p1, 44%) 74%, var(--steam-core), var(--steam-mid) 50%, transparent),
+    radial-gradient(22% 22% at var(--p2, 62%) 54%, var(--steam-mid), transparent),
+    radial-gradient(24% 16% at var(--p3, 34%) 38%, var(--steam-mid), transparent),
+    radial-gradient(12% 28% at var(--p4, 56%) 18%, var(--steam-wisp), transparent);
+  filter: blur(4px);
   will-change: transform, opacity;
   opacity: 0;
   animation: puff-rise both cubic-bezier(0.25, 0.6, 0.35, 1);
@@ -954,14 +964,20 @@ html[data-boot="suppressed"] #signal-desk {
   --floor-min: clamp(84px, 12vh, 210px);
   /* Capped at 520 (it was 560 at 3440): the stage carries four arches and
      the full-size clock in one row, and at 560 the arches had to shrink to
-     fit between the boards. */
-  --aisle-w: clamp(300px, calc((100vw - 2150px) / 2.4), 520px);
+     fit between the boards. And never wider than the room the row leaves
+     at full size (--aisle-room, written by layoutStage in app.js): the
+     cases give way before the arches do. */
+  --aisle-w: min(clamp(300px, calc((100vw - 2150px) / 2.4), 520px), var(--aisle-room, 520px));
   --bay-gap: clamp(20px, 2vw, 56px);
+  column-gap: var(--bay-gap);   /* read back by layoutStage; one column has no gaps */
   --skirt-h: calc(var(--gh2) * 0.079);   /* = the gates' own plinth rule */
   --dado-h: calc(var(--gh2) * 0.19);
   --cornice-h: calc(30px * var(--ui));
   padding-top: var(--pad-top);
-  padding-bottom: var(--floor-min);
+  /* --floor-fit is what the screen actually leaves under the stage, written
+     by budgetHall() in app.js: the masthead and the marquee grow with --ui,
+     which no height query can see. */
+  padding-bottom: min(var(--floor-min), var(--floor-fit, 100vh));
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   grid-template-areas: "stage";
@@ -971,13 +987,18 @@ html[data-boot="suppressed"] #signal-desk {
    the stage has to hold four arches and the clock side by side (about 6.3
    arch widths) without shrinking them. Below 2800 the boards would cost the
    arches a quarter of their size, so the aisles, which are ultrawide
-   furniture, wait until there is genuinely room. */
+   furniture, wait until there is genuinely room.
+   How much room the row needs grows with the engraving size, which no
+   width query can see: at 2800 the aisles took 305px arches for every
+   size, so crossing 2800 shrank the arches by up to a tenth and the
+   engraving size stopped moving them. So past 2800 the aisles open only
+   where the row stands at full size between two 300px cases (layoutStage
+   in app.js keeps them shut otherwise, data-aisles="shut"). */
 @media (min-width: 2800px) {
-  #concourse {
+  #concourse:not([data-aisles="shut"]) {
     grid-template-columns:
       minmax(0, var(--aisle-w)) minmax(0, 1fr) minmax(0, var(--aisle-w));
     grid-template-areas: "aisle-l stage aisle-r";
-    column-gap: var(--bay-gap);
   }
 }
 
@@ -999,7 +1020,6 @@ html[data-boot="suppressed"] #signal-desk {
   transform: translateX(-50%);
   background-color: var(--metal);
   opacity: 0.6;
-  transition: background-color 0.4s;
   z-index: 1;
 }
 /* One-point-perspective floor: a real rotated plane whose deco seams
@@ -1101,7 +1121,6 @@ html[data-boot="suppressed"] #signal-desk {
 .pil-cap, .pil-base { width: 100%; height: auto; flex: none; }
 .pil-cap path, .pil-cap rect, .pil-base path, .pil-base rect {
   fill: var(--wall-hi); stroke: var(--line); stroke-width: 1;
-  transition: fill 0.4s, stroke 0.4s;
 }
 .pil-shaft {
   flex: 1 1 auto;
@@ -1120,7 +1139,6 @@ html[data-boot="suppressed"] #signal-desk {
   background-size: 100% 100%, 100% 100%, calc(28px * var(--ui)) 100%;
   background-repeat: no-repeat, no-repeat, repeat-x;
   opacity: 0.92;
-  transition: background-color 0.4s;
 }
 
 /* Sconce: one lamp per bay, bracketed to the wall, throwing a pool on the
@@ -1480,7 +1498,7 @@ html[data-boot="suppressed"] #signal-desk {
 #works { grid-area: aisle-l; }
 #almanac { grid-area: aisle-r; }
 @media (min-width: 2800px) {
-  .board { display: flex; }
+  #concourse:not([data-aisles="shut"]) .board { display: flex; }
 }
 /* The plate itself. clip-path kills box-shadow, so the lift is a pair of
    drop-shadow filters (same contract as the Ledger plaques). */
@@ -1856,12 +1874,6 @@ html[data-boot="suppressed"] #signal-desk {
 }
 
 #gates { position: absolute; inset: 26px 0 0 0; }
-#all-dark {
-  position: absolute; left: 50%; top: 46%;
-  transform: translate(-50%, -50%);
-  font-size: calc(15px * var(--ui)); letter-spacing: 0.12em; color: var(--ink-faint);
-  text-transform: uppercase;
-}
 
 /* ==========================================================================
    GATES: THE PROSCENIUM (direction C, the picture palace)
@@ -2420,6 +2432,11 @@ html[lang="zh"] .g-name { letter-spacing: 0.17em; }
    it runs on the same clock as the fade however late the first frame is. */
 .gate.active.arriving { animation: gate-arrive 0.12s linear var(--slot-delay, 0ms) backwards; }
 @keyframes gate-arrive { from, to { pointer-events: none; } }
+/* The reader's arch keeps focus while it sinks, and hands it to the arch
+   rising into its bay (layoutStage in app.js). Going hidden at the end of
+   the sink would drop focus to the page for the beat in between, so it
+   stays visible, faded out and taking no pointer, until the handoff. */
+.gate.receded:focus { visibility: visible; pointer-events: none; }
 .gate.active { z-index: 2; }
 .gate.receded { z-index: 1; }
 
@@ -2616,10 +2633,8 @@ html[lang="zh"] .g-name { letter-spacing: 0.17em; }
   fill: none; stroke: var(--metal);
   stroke-width: 1; vector-effect: non-scaling-stroke;
 }
-/* Theme flips ride the same 0.4s crossfade as the rest of the chrome. */
-#clock [class^="ck-"] { transition: fill 0.4s, stroke 0.4s; }
-/* ...but never the hands or the works: they are re-transformed every frame
-   and a transition on transform would smear the sweep. */
+/* The hands and the works never transition: they are re-transformed every
+   frame and a transition on transform would smear the sweep. */
 .ck-h, .ck-m, .ck-ss, .ck-gA, .ck-gB { transition: none; }
 
 /* ==========================================================================
@@ -3046,7 +3061,7 @@ html[lang="zh"] .g-name { letter-spacing: 0.17em; }
    height for a composition whose stage alone wants 425 of it. */
 @media (max-height: 860px) {
   :root {
-    --gate-w: clamp(164px, min(13.6vw, 25vh),
+    --gate-w: clamp(164px, min(13.6vw, 25vh, var(--gate-vcap, 100vh)),
                     calc(268px * (0.62 + 0.38 * var(--ui))));
   }
   #hall { padding-top: 12px; }
@@ -3074,13 +3089,21 @@ html[lang="zh"] .g-name { letter-spacing: 0.17em; }
 /* ==========================================================================
    REDUCED MOTION — setting or OS preference collapses everything
    ========================================================================== */
+/* Transitions are cut to 0s, not to a sliver. Every element's
+   transition-property is `all` unless it says otherwise, so a 0.01ms
+   duration on `*` turned every property change in the hall into a
+   transition, layout included: a new width stayed at its old value until
+   the next frame ticked. The engraving size re-solved the stage against the
+   clock's old width and left the arches crowding the niche (PS-1), and W
+   put focus on an arch whose visibility was still `hidden` (KB-8).
+   Animations keep 0.01ms so their animationend still fires. */
 :root[data-motion="reduced"] *,
 :root[data-motion="reduced"] *::before,
 :root[data-motion="reduced"] *::after {
   animation-duration: 0.01ms !important;
   animation-delay: 0ms !important;
   animation-iteration-count: 1 !important;
-  transition-duration: 0.01ms !important;
+  transition-duration: 0s !important;
   transition-delay: 0ms !important;
 }
 :root[data-motion="reduced"] #ticker.rolling .t-track {

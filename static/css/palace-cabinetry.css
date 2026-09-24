@@ -444,7 +444,8 @@
 .board .wk-dials { --num: max(10px, calc(7.4px * var(--ui))); }
 .board .wk-dial .d-num text { font-size: clamp(7.4px, calc(var(--num) / var(--dpu, 1)), 13px); }
 .board .wk-dial .d-legend { font-size: clamp(7.4px, calc(var(--num) / var(--dpu, 1)), 13px); letter-spacing: 0.04em; }
-.board .wk-dial .d-serial { font-size: 3.4px; letter-spacing: 0.5px; opacity: 0.55; font-weight: 500; }
+.board .wk-dial .d-serial { opacity: 0.55; }
+.board .wk-dial .d-serial path { stroke: var(--scale-ink); stroke-width: 0.45; stroke-linecap: round; }
 .board .wk-dial .d-zero { stroke: rgba(0, 0, 0, 0.5); stroke-width: 0.3; }
 .board .wk-dial .d-lip { pointer-events: none; }
 /* The needle. Both groups carry .g-needle, which the base sheet turns on

@@ -437,7 +437,6 @@
       <div id="gates"></div>
       <p id="hall-status" class="sr-only" role="status" aria-live="polite"></p>
       <p id="gate-say" class="sr-only" role="status" aria-live="polite"></p>
-      <div id="all-dark" hidden data-i18n="allDark">The hall is dark. No services are reachable.</div>
     </main>
 
     <!-- The east board. It was a BULLETIN — four dispatch stubs under a
@@ -551,8 +550,8 @@
 <!-- The key plate, shown and hidden with "?". Rows are written by app.js
      so the gate count and the language are always current. -->
 <aside id="keyplate" aria-labelledby="keyplate-title" hidden>
-  <h2 id="keyplate-title" class="kp-title display">KEYS</h2>
-  <div class="kp-rows"></div>
+  <h2 id="keyplate-title" class="kp-title display" tabindex="-1">KEYS</h2>
+  <dl class="kp-rows"></dl>
 </aside>
 
 <!-- Ledger scrim — dims the hall when the drawer is open; click to close -->
@@ -572,8 +571,11 @@
      may never fold away with them.
      Layers: .desk-art (static housing, contained) / .desk-fx (the three
      movers + steam nozzle, overflow visible) / #lever (hit surface).
+     A named region, not a <footer>: at body level a footer is the page's
+     contentinfo landmark, which filed the hall's one wing control under
+     the page's small print.
 ====================================================================== -->
-<footer id="signal-desk" data-i18n-aria="ariaDesk" aria-label="Signal desk">
+<div id="signal-desk" role="region" data-i18n-aria="ariaDesk" aria-label="Signal desk">
   <div class="desk-core">
     <div class="assembly" aria-hidden="true">
       <div class="desk-art">
@@ -601,7 +603,7 @@
       <span class="hit-arm" aria-hidden="true"></span>
     </div>
   </div>
-</footer>
+</div>
 
 <!-- ====================================================================== -->
 <div id="prefs" role="dialog" aria-modal="true" aria-labelledby="prefs-title" hidden>

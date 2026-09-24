@@ -167,7 +167,7 @@ var STR = {
     keyGates: 'Walk the gates', keyJump: 'Go to a gate', keyOpen: 'Open it',
     keyLever: 'Throw the lever', keyLedger: 'Open or close the Ledger', keyPrefs: 'Open Preferences',
     keyWalk: 'Walk the dispatches, in the Ledger', keyPlate: 'Show or hide this plate',
-    keyClose: 'Close', keyEnter: 'ENTER',
+    keyClose: 'Close', keyEnter: 'ENTER', keyTo: 'to',
     unreadCount: '{n} new dispatches', unreadCountOne: '1 new dispatch'
   },
   zh: {
@@ -310,7 +310,7 @@ var STR = {
     keyGates: '在门廊间移动', keyJump: '直达某扇门', keyOpen: '打开',
     keyLever: '扳动拉杆', keyLedger: '开合消息总台', keyPrefs: '打开偏好设置',
     keyWalk: '在消息总台里逐条移动', keyPlate: '显示或收起这块铭牌',
-    keyClose: '关闭', keyEnter: '回车',
+    keyClose: '关闭', keyEnter: '回车', keyTo: '至',
     unreadCount: '{n} 条新消息', unreadCountOne: '1 条新消息'
   }
 };
@@ -679,13 +679,28 @@ function orderFanlights() {
   });
 }
 
-/* The marquee's bulbs chase once, on the band's own box. */
+/* The marquee's bulbs chase once, on the band's own box, in whole bulbs.
+   The run of lit bulbs was a quarter of the band wide and travelled in
+   percent of itself, so its 28 steps came out 5.6 bulb pitches long at
+   1920 and 7.9 at 3440, and each step lit dots 3-9px off the bulbs. Now
+   the run is a whole number of pitches, starts one run-length off the
+   band's left end (the bulbs' own origin) and steps a whole number of
+   pitches, so every lit dot lands on a bulb. */
+var E_CHASE_STEPS = 28;   // the keyframes' steps(), palace-desk.css
 function placeMarquee() {
   var tk = $('#ticker'), mq = $('.e-marquee');
   if (!tk || !mq) return;
   var r = tk.getBoundingClientRect();
   mq.style.left = r.left + 'px'; mq.style.top = r.top + 'px';
   mq.style.width = r.width + 'px'; mq.style.height = r.height + 'px';
+  var ui = parseFloat(getComputedStyle(tk).getPropertyValue('--ui')) || 1;
+  var pitch = 13 * ui;                         // .t-bulbs' tile
+  var run = Math.max(1, Math.round(r.width * 0.24 / pitch));
+  var span = run + Math.ceil(r.width / pitch); // off the left end to off the right
+  var step = Math.ceil(span / E_CHASE_STEPS);
+  mq.style.setProperty('--ec-w', (run * pitch) + 'px');
+  mq.style.setProperty('--ec-from', (-run * pitch) + 'px');
+  mq.style.setProperty('--ec-to', ((step * E_CHASE_STEPS - run) * pitch) + 'px');
 }
 
 /* The dock: the spot (night) or the gilt ring (day) flies onto the
@@ -702,29 +717,77 @@ function dockEntrance() {
   entrance.classList.add('dock');
 }
 
-function playEntrance() {
+/* The curtain is dressed at once, but its clock starts only when the hall
+   behind it is built and drawn. It used to start as the script ran, while
+   the gates, their first readings, the band and the Ledger were still going
+   in behind it: at 3440 their first raster froze the curtain twice in its
+   first 400ms, just as the footlights came up and the spot opened (MO-8).
+   Now that raster happens under a curtain that is standing still: the
+   clock starts once the boot's first readings are in (the gates', and the
+   cases' where they stand) and the frames that draw them have gone out. A
+   hub slow to answer holds the curtain ENTRANCE_HOLD ms at most. */
+var ENTRANCE_HOLD = 900;
+/* Calls fn once what has been handed to the compositor is on screen. No
+   callback says so, and a fixed two frames is not it: the main thread runs
+   a frame or two ahead of the GPU, so its animation frames kept arriving on
+   time while a heavy frame was still being rastered, and then stopped. So
+   this waits for the frames to run at the display's pace again, two short
+   intervals in a row: by then the heavy frame has gone out. "Short" is
+   under 25ms, or near the best this machine has shown, for a renderer that
+   never gets under it. */
+function afterDrawn(fn) {
+  var last = 0, best = Infinity, calm = 0;
+  requestAnimationFrame(function tick(t) {
+    if (last) {
+      var dt = t - last;
+      best = Math.min(best, dt);
+      calm = dt < Math.max(25, best * 1.5) ? calm + 1 : 0;
+    }
+    last = t;
+    if (calm >= 2) fn(); else requestAnimationFrame(tick);
+  });
+}
+function playEntrance(built) {
   // Disable ledger button during entrance; re-enabled in finishEntrance()
   var lb = $('#ledger-btn');
   if (lb) lb.disabled = true;
   var day = root.dataset.theme === 'ivory';
+  entrance.classList.add(day ? 'day' : 'night');
+  if (day) {
+    segmentRing($('.e-ring-whole'), 34, 40, [['e-ring-sh', 1], ['e-ring-hi', 0.6], ['e-ring-c', 0]]);
+  } else {
+    buildRays();
+    buildSwag();
+    segmentRing($('.e-crest > .e-circle'), 92, 60, [['e-circle', 0]]);
+  }
+  var started = false;
+  function start() {
+    if (started || root.dataset.entered !== 'no') return;
+    started = true;
+    runEntrance(day);
+  }
+  entranceTimers.push(setTimeout(start, ENTRANCE_HOLD));
+  Promise.resolve(built).then(function () {
+    afterDrawn(start);
+  });
+  armEntranceSkip();
+}
+
+function runEntrance(day) {
   var at = function (ms, fn) { entranceTimers.push(setTimeout(fn, ms)); };
   var beat = function (cls) { return function () { entrance.classList.add(cls); }; };
   window.__entranceT0 = performance.now();   // read by the frame-capture scripts
-  entrance.classList.add('play', day ? 'day' : 'night');
+  entrance.classList.add('play');
 
   if (day) {
     // The doors are open to the street and the curtain is already up: the
     // hall arrives as an exposure settling, with the sun's shafts in it,
     // while the gilt ring that drew itself in the glare docks.
-    segmentRing($('.e-ring-whole'), 34, 40, [['e-ring-sh', 1], ['e-ring-hi', 0.6], ['e-ring-c', 0]]);
     at(280, beat('expose'));
     at(900, dockEntrance);
     at(1400, beat('done-fade'));
     at(1700, finishEntrance);
   } else {
-    buildRays();
-    buildSwag();
-    segmentRing($('.e-crest > .e-circle'), 92, 60, [['e-circle', 0]]);
     // The house is dark. The footlights come up along the curtain's hem.
     at(60, beat('foot'));
     // A follow spot opens on the crest; the rays catch it one by one.
@@ -745,7 +808,11 @@ function playEntrance() {
     at(2140, beat('done-fade'));
     at(2700, finishEntrance);
   }
+}
 
+/* Armed with the curtain, before its clock starts: a skip during the hold
+   lands the hall just the same. */
+function armEntranceSkip() {
   // Any input cuts the entrance short. Until done-fade the overlay has
   // pointer-events:auto, so a pointerdown lands on the overlay; it is
   // swallowed there, and so is the click it turns into (swallowNextClick),
@@ -805,9 +872,22 @@ function finishEntrance() {
     entranceSkip = null;
   }
   entrance.style.display = 'none';
+  // A skip before the house beat lands the lamps with the hall. They were
+  // held out by the curtain's rule, and once that let go they came up on
+  // the throw's timing, 420ms late and over 0.7s, so a skip showed the
+  // assembled hall with its fanlights dark for most of a second. The short
+  // fade is set for the flip's frame only; a transition keeps the timing
+  // it started with, so lifting the class later leaves it running.
+  var early = entrance.classList.contains('night') && !entrance.classList.contains('house');
+  if (early) root.classList.add('e-landing');
   // data-boot stays 'played', so the suppressed-load hall-fade does NOT
   // retrigger on this flip. The fanlights' entrance order goes with it.
   root.dataset.entered = 'yes';
+  if (early) {
+    requestAnimationFrame(function () {
+      requestAnimationFrame(function () { root.classList.remove('e-landing'); });
+    });
+  }
   document.querySelectorAll('#gates .gate').forEach(function (g) { g.style.removeProperty('--fan-i'); });
   // Re-enable ledger button now that entrance is done
   var lb = $('#ledger-btn');
@@ -845,7 +925,7 @@ function deskNudge() {
 
 /* ========================================================================
    Signal desk — lever, gear train, steam (DESIGN.md v4.1). One scalar
-   --drive (0=salon, 1=bureau) written by a rAF driver onto #signal-desk;
+   --drive (0=salon, 1=bureau) written by a rAF driver onto the movers;
    the lever and both gears derive from it via calc, so sync is
    structural.
    ======================================================================== */
@@ -900,6 +980,9 @@ function steamBurst(nozzleEl, n) {
       '--rise:' + Math.round(-(60 + Math.random() * 50)) + 'px;' +
       '--s:' + (2.2 + Math.random() * 0.8).toFixed(2) + ';' +
       '--rot:' + Math.round(Math.random() * 80 - 40) + 'deg;' +
+      // where each lobe of the wisp sits across the sprite
+      '--p1:' + Math.round(36 + Math.random() * 16) + '%;--p2:' + Math.round(52 + Math.random() * 18) + '%;' +
+      '--p3:' + Math.round(26 + Math.random() * 18) + '%;--p4:' + Math.round(40 + Math.random() * 26) + '%;' +
       'animation-duration:' + dur + 'ms;animation-delay:' + delay + 'ms;';
     p.addEventListener('animationend', function (e) { e.target.remove(); }, { once: true });
     (function (el, t) { setTimeout(function () { el.remove(); }, t); })(p, dur + delay + 120);
@@ -924,16 +1007,27 @@ function easeWeighty(t) {
 }
 
 var deskRaf = null;
-/* --drive is written on the desk, not on :root. Only the lever arm and the
-   two gears read it, and an inherited custom property changed on :root
-   restyles every element in the document: ~3,600 of them per frame, which
-   held the throw to 20-25 fps. On the desk it restyles the desk. */
-function setDrive(v) { if (desk) desk.style.setProperty('--drive', v.toFixed(4)); }
-function getDrive() {
-  if (!desk) return 0;
-  var v = parseFloat(getComputedStyle(desk).getPropertyValue('--drive'));
-  return isNaN(v) ? 0 : v;
+/* --drive is written on the movers only, never on :root and not on the
+   desk either. Only the lever arm, its hit strip and the two gears read it,
+   and an inherited custom property restyles everything under the element
+   it changes on: on :root that was ~3,600 elements per frame, which held
+   the throw to 20-25 fps. On #signal-desk it was the console as well, and
+   a console restyled every frame is a console repainted every frame: its
+   cast relief runs through a turbulence filter, and re-rastering it for
+   each frame of the throw cost the GPU 60-150ms a frame at 3440 (MO-1).
+   On .desk-fx and #lever the console is never touched.
+   The value is also kept here. It used to be read back through
+   getComputedStyle, and the throw read it straight after the wing flip, so
+   every throw forced the flip's whole-hall restyle (8-10k elements, ~100ms)
+   inside the key handler (MO-2). */
+var driveNow = 0;
+var driveEls = desk ? [$('.desk-fx', desk), $('#lever', desk)].filter(Boolean) : [];
+function setDrive(v) {
+  driveNow = v;
+  var s = v.toFixed(4);
+  driveEls.forEach(function (e) { e.style.setProperty('--drive', s); });
 }
+function getDrive() { return driveNow; }
 
 /* Interrupt-safe rAF driver: a re-toggle mid-throw reads the current
    --drive as its new start. Steam fires once past 55% of the throw
@@ -1365,9 +1459,16 @@ function gateClick(e, a, svc) {
    flank symmetrically. Transform-only (60 fps law). */
 var SWAP_OUT = 200, SWAP_GAP = 20, SWAP_STEP = 60;   // ms, see the throw below
 var SWAP_DIM = 120;   // ms, the house lights going down first (by night only)
+var solved = null;   // the last solve's measurements, for a throw to reuse
 function layoutStage(initial) {
   var wrap = $('#gates');
-  var W = wrap.clientWidth;
+  // A throw re-lays the row it already has, so it reuses the last solve's
+  // measurements instead of reading them back: straight after the wing
+  // flip, any read forced the flip's whole-hall restyle inside the key
+  // handler (MO-2). A resize, the engraving size and a new registry all
+  // come in as initial, and measure afresh.
+  var m = !initial && solved;
+  var W = m ? m.W : wrap.clientWidth;
   if (!W) return;
   var wing = root.dataset.wing;
   var first = wrap.querySelector('.gate');
@@ -1386,16 +1487,31 @@ function layoutStage(initial) {
      The row is solved as one line, [arches] [clock] [arches]; if it is wider
      than the stage, the whole arch module (arches and niche together, via
      --fit) comes down until it is not. Widths are measured at fit 1 so the
-     solve does not chase its own output. */
+     solve does not chase its own output. Both boxes are linear in --fit, so
+     the used width over the fit in force IS the fit-1 width, as long as it
+     is read unrounded: offsetWidth is a whole pixel, and at 2800 and wider
+     its rounding moved the row by a fraction of a pixel on the first throw
+     after a load, enough to rebuild the wall and every floor streak
+     mid-throw (MO-10). */
   var fitNow = parseFloat(stage.style.getPropertyValue('--fit')) || 1;
-  var g0 = (first ? first.offsetWidth : 260) / fitNow;
-  var c0 = clock ? clock.offsetWidth / fitNow : 0;
+  var g0 = m ? m.g0 : (first ? parseFloat(getComputedStyle(first).width) || first.offsetWidth : 260) / fitNow;
+  var c0 = m ? m.c0 : clock ? (parseFloat(getComputedStyle(clock).width) || clock.offsetWidth) / fitNow : 0;
   var PITCH = 1.16;        // arch centre to arch centre, in gate widths
   var CLEAR = 0.10;        // clock to its nearest arch
+  function rowUnits(n) { var k = Math.ceil(n / 2); return 2 * CLEAR + 2 * (k ? 1 + (k - 1) * PITCH : 0); }
+  var rowG = rowUnits(active.length);
+  // The aisles open only beside a row at full size, the longer wing's, so a
+  // throw never opens or shuts them. Neither width here depends on them.
+  if (!m && setAisles((c0 + g0 * rowUnits(Math.max(active.length, receded.length))) / 0.985)) {
+    W = wrap.clientWidth;
+  }
+  if (!m && first) solved = { W: W, g0: g0, c0: c0 };
   var nSide = Math.ceil(active.length / 2);
-  var rowG = 2 * CLEAR + 2 * (nSide ? 1 + (nSide - 1) * PITCH : 0);
   var fit = Math.min(1, (W * 0.985) / (c0 + g0 * rowG));
-  if (Math.abs(fit - fitNow) > 0.002) stage.style.setProperty('--fit', fit.toFixed(4));
+  // Inside the dead band of full size the row stands at full size, so the
+  // band cannot leave a live re-solve a hair off the load's (PS-1).
+  if (fit > 0.998) fit = 1;
+  if (Math.abs(fit - fitNow) > 0.002 || (fit === 1 && fitNow !== 1)) stage.style.setProperty('--fit', fit.toFixed(4));
   var gateW = g0 * fit;
   var spacing = gateW * PITCH;
 
@@ -1443,6 +1559,8 @@ function layoutStage(initial) {
   function role(a, lit, delay) {
     a.classList.toggle('active', lit);
     a.classList.toggle('receded', !lit);
+    // when its fade begins, for shown() below
+    a.riseAt = lit ? performance.now() + delay : Infinity;
     // Depth order is set here, not left to DOM order (absolutely positioned
     // siblings).
     a.style.zIndex = lit ? '3' : '1';
@@ -1495,9 +1613,19 @@ function layoutStage(initial) {
     swaps = swaps.filter(function (s) { return s !== outV && s !== inV; });
   }
 
-  if (cut.length) {
+  if (cut.length && initial) {
     void wrap.offsetWidth;   // the cut values become the before-change style
     cut.forEach(function (a) { a.classList.remove('no-slide'); });
+  } else if (cut.length) {
+    // In a throw the only cut is the RESERVED pair changing places, and the
+    // flush above forced the wing flip's whole-hall restyle inside the key
+    // handler (MO-2). The frame styles the cut instead, and it is lifted in
+    // the frame after, when the values it held are the ones in place.
+    requestAnimationFrame(function () {
+      requestAnimationFrame(function () {
+        cut.forEach(function (a) { a.classList.remove('no-slide'); });
+      });
+    });
   }
 
   /* The throw, bay by bay: the outgoing arch sinks and fades in 200ms, the
@@ -1516,14 +1644,14 @@ function layoutStage(initial) {
      only one wing fills) the incoming arch goes on its own beat. Without
      this, a change of mind left the arch that was leaving frozen half faded
      for the length of the wait before it came back. */
-  function shown(a) {
-    var cs = getComputedStyle(a);
-    return cs.visibility === 'visible' ? parseFloat(cs.opacity) : 0;
-  }
+  // Whether an arch now going out had begun to show: kept in JS (role()
+  // stamps when each fade begins), since a computed-style read here was one
+  // more forced whole-hall restyle in the key handler (MO-2).
+  function shown(a) { return performance.now() >= (a.riseAt === undefined ? 0 : a.riseAt) + 5; }
   swaps.forEach(function (s) {
     if (!s.lit) return;
     var mate = swaps.filter(function (o) { return !o.lit && Math.abs(o.x - s.x) < 0.5; })[0];
-    s.wait = !!mate && shown(mate.a) > 0.02;
+    s.wait = !!mate && shown(mate.a);
   });
   // By night an outgoing arch's lamps go out before it sinks (the CSS holds
   // its sink back by the same --gate-dim), so its bay is empty that much
@@ -1532,26 +1660,113 @@ function layoutStage(initial) {
   swaps.forEach(function (s) {
     var delay = s.rank * SWAP_STEP;
     if (s.wait) delay += dim + SWAP_OUT + SWAP_GAP;
+    s.delay = delay;
     s.a.classList.toggle('arriving', s.lit);
     role(s.a, s.lit, delay);
   });
 
+  /* Focus rides the throw. When the reader is on an arch that is going out,
+     focus stays on it while it sinks (it keeps its visibility while
+     focused, atrium.css) and moves to the arch rising into the same bay at
+     the moment that arch starts to rise, in the same task that makes the
+     old one inert. The handoff used to run on a timer after the whole wing
+     had gone inert: focus fell to <body> in between, a screen reader
+     announced the page, and the arch it then landed on stood fully
+     transparent for another half second (AT-21, KB-13). */
+  // A handoff still waiting is finished at once by a re-solve (the arch it
+  // would leave focus on is about to go inert), and dropped by a second
+  // throw, which brings that arch straight back.
+  if (handoffT) {
+    clearTimeout(handoffT);
+    handoffT = 0;
+    if (initial && handoffFn) handoffFn();
+  }
+  handoffFn = null;
+  var ae = document.activeElement, leaving = null;
+  swaps.forEach(function (s) { if (!s.lit && s.a === ae) leaving = s; });
   all.forEach(function (svc) {
     var a = gate(svc);
     if (!a) return;
     var waiting = svc.wing !== wing;
+    if (leaving && a === leaving.a) return;   // inert at the handoff
     a.inert = waiting;
     if (waiting) a.setAttribute('aria-hidden', 'true');
     else if (!svc.vacant) a.removeAttribute('aria-hidden');
   });
+  if (leaving) {
+    var into = swaps.filter(function (s) { return s.lit && Math.abs(s.x - leaving.x) < 0.5; })[0];
+    var still = root.dataset.motion === 'reduced' || document.visibilityState === 'hidden';
+    var hand = handoffFn = function () {
+      handoffT = 0;
+      handoffFn = null;
+      var old = leaving.a;
+      if (document.activeElement === old) {
+        var to = into && !into.vacant ? into.a : nearestLit(leaving.x);
+        if (to) to.focus({ preventScroll: true });
+      }
+      old.inert = true;
+      old.setAttribute('aria-hidden', 'true');
+    };
+    if (still) hand();
+    else handoffT = setTimeout(hand, into ? into.delay : leaving.delay + SWAP_OUT - 40);
+  }
+
   // How far the row actually reaches from the axis. The bays are cut against
   // THIS, not against the stage column, which is wider than the row.
   triptychHalf = half + (nSide ? gateW + (nSide - 1) * spacing : 0);
   // The solved row, for the wall: the pier lights stand in the gaps between
-  // resting slots, never where an arch happens to be mid-throw.
-  rowGeom = { half: half, gateW: gateW, spacing: spacing, nSide: nSide };
-  buildAisles();
+  // resting slots, never where an arch happens to be mid-throw. A throw
+  // leaves every bay where it was, so it re-lays nothing: rebuilding the
+  // wall, the rope and the floor on every throw forced ~50ms of layout in
+  // the key handler for a row that had not moved (MO-2).
+  var geom = { half: half, gateW: gateW, spacing: spacing, nSide: nSide };
+  var same = rowGeom && ['half', 'gateW', 'spacing', 'nSide'].every(function (k) {
+    return Math.abs(rowGeom[k] - geom[k]) < 0.01;
+  });
+  rowGeom = geom;
+  if (initial || !same) buildAisles();
 }
+var handoffT = 0, handoffFn = null;
+
+/* The aisles, past 2800px, open only where the row can stand at full size
+   between two cases of at least AISLE_MIN, and the cases take no more than
+   the row leaves them (--aisle-room). At 2800 they used to open whatever
+   the engraving size, and the row shrank to fit between them: 305px arches
+   at every size, a tenth smaller than at 2799, and at 3440 the engraving
+   size no longer moved the arches at all (LY-22). rowW is the row at fit 1.
+   Returns whether anything changed, so the stage is measured again. */
+var AISLE_MIN = 300;   // the narrowest case (atrium.css, --aisle-w)
+var aisleMQ = matchMedia('(min-width: 2800px)');
+function setAisles(rowW) {
+  var con = $('#concourse');
+  if (!con) return false;
+  var state = 'shut', room = '';
+  if (aisleMQ.matches) {
+    var cs = getComputedStyle(con);
+    var inner = con.clientWidth - (parseFloat(cs.paddingLeft) || 0) - (parseFloat(cs.paddingRight) || 0);
+    var each = (inner - rowW) / 2 - (parseFloat(cs.columnGap) || 0);
+    if (each >= AISLE_MIN) { state = 'open'; room = Math.floor(each) + 'px'; }
+  }
+  var was = con.dataset.aisles;
+  if (was === state && con.style.getPropertyValue('--aisle-room') === room) return false;
+  con.dataset.aisles = state;
+  if (room) con.style.setProperty('--aisle-room', room);
+  else con.style.removeProperty('--aisle-room');
+  if (state === 'open' && was !== 'open') wakeBoards();
+  return true;
+}
+
+/* The lit, working arch nearest a bay: where focus goes when the arch
+   rising into its bay is the RESERVED one. */
+function nearestLit(x) {
+  var best = null, d = Infinity;
+  litGates().forEach(function (g) {
+    var dx = Math.abs(slotX(g) - x);
+    if (dx < d) { d = dx; best = g; }
+  });
+  return best;
+}
+function slotX(g) { return parseFloat(g.style.getPropertyValue('--slot-x')) || 0; }
 
 /* Re-solved in the resize event itself, which runs before the frame is
    styled, so the new size and the new slots paint together. A 120ms
@@ -1896,6 +2111,66 @@ function buildAisles() {
   paintFloorMirror();
   if (window.Room) window.Room.layoutFloor();
 }
+
+/* The hall stands on one screen. The floor's reservation (--floor-min) was a
+   share of the viewport height, with a short-screen step at 860px, but the
+   masthead and the marquee above the stage grow with --ui and no height
+   query can see them: at SIGNBOARD on a 3440x900 screen they stood 190px
+   tall, the stage plus the reservation overran the screen by 11px, and
+   every height from 861 to 926 scrolled (LY-1). So the budget is solved
+   here, from the stage's real top.
+   The floor keeps what the screen leaves under the stage, and never less
+   than the desk needs at its short-screen scale (DESK_K_MIN, the 0.78 of
+   the 860px query). Below that the machine shrank to half size on the
+   same screens and its SALON and BUREAU plates came out at 6.6px (LY-8).
+   When the floor cannot have that much, the arch module gives up the
+   difference through --gate-vcap, which caps --gate-w: the order DESIGN
+   spends the height in is masthead, marquee, arches, floor, and the lever
+   is the one thing on the floor that has to work.
+   Every term is a layout value that the cap and the floor do not move
+   (the stage's top is the masthead's and the marquee's, the headroom is
+   the viewport's), so writing them cannot feed back into the solve. */
+var FLOOR_HARD = 62, DESK_K_MIN = 0.78;
+function budgetHall() {
+  var hall = $('#hall'), con = $('#concourse'), stage = $('#stage'), desk = $('#signal-desk');
+  if (!hall || !con || !stage || !stage.offsetHeight) return;
+  var H = window.innerHeight;
+  var top = 0;
+  for (var n = stage; n; n = n.offsetParent) top += n.offsetTop;
+  var foot = parseFloat(getComputedStyle(hall).paddingBottom) || 0;
+  var need = FLOOR_HARD, art = deskArt();
+  if (desk && art !== null) {
+    var k = H < 760 ? 0.62 : DESK_K_MIN;   // the 760px query's own scale
+    var deskFoot = parseFloat(getComputedStyle(desk).bottom) || 0;
+    need = Math.max(need, Math.ceil(deskFoot + DESK_GAP + (220 - art) * k - foot));
+  }
+  // The stage is the arch module plus the wall's headroom over it
+  // (--stage-h in atrium.css), so this is the largest arch that leaves
+  // the floor its need.
+  var headroom = Math.max(80, Math.min(100, H - 1080));
+  var cap = ((H - top - foot - need - headroom) / 1.9).toFixed(1) + 'px';
+  var was = root.style.getPropertyValue('--gate-vcap');
+  if (was !== cap) {
+    root.style.setProperty('--gate-vcap', cap);
+    // A cap that binds, or bound, moves the arch module under a row solved
+    // for the old one (the engraving size lands a frame before this runs),
+    // so the stage is re-solved against it.
+    var g = solved ? solved.g0 : Infinity;
+    if (parseFloat(cap) < g + 0.5 || parseFloat(was) < g + 0.5) layoutStage(true);
+  }
+  var room = Math.floor(H - top - stage.offsetHeight - foot);
+  var fit = Math.max(need, room) + 'px';
+  if (con.style.getPropertyValue('--floor-fit') !== fit) con.style.setProperty('--floor-fit', fit);
+}
+if (window.ResizeObserver) {
+  // The masthead wraps in Chinese and when its fonts land, and it and the
+  // marquee grow with the engraving size: each moves the stage's top.
+  // Observers run after layout and before paint, so a scrollbar never gets
+  // a frame. (The stage is not watched: the cap written here resizes it.)
+  var budgetRO = new ResizeObserver(function () { budgetHall(); });
+  ['#masthead', '#ticker'].forEach(function (s) { var n = $(s); if (n) budgetRO.observe(n); });
+}
+window.addEventListener('resize', budgetHall);
 
 /* The floor's perspective distance has to be a function of the floor's own
    height, and CSS cannot read a box's used height back into a calc. The
@@ -2422,7 +2697,7 @@ function pollWorks() {
 function startWorks() {
   clearInterval(worksTimer);
   worksTimer = setInterval(pollWorks, 4000);
-  pollWorks();
+  return pollWorks();
 }
 
 /* ----- THE ALMANAC -------------------------------------------------------
@@ -3049,10 +3324,13 @@ function readCases() {
    that has never read anything, and the Almanac waited out a minute of blank
    plate for its sky tick. */
 var boardsT = null;
-window.addEventListener('resize', function () {
+/* The aisles also open without a resize, when the engraving size leaves
+   the row room for them (setAisles). */
+function wakeBoards() {
   clearTimeout(boardsT);
   boardsT = setTimeout(readCases, 150);
-});
+}
+window.addEventListener('resize', wakeBoards);
 
 function startAlmanac() {
   clearInterval(almTimer);
@@ -3066,7 +3344,7 @@ function startAlmanac() {
     if (!almanac) { pollAlmanac(); return; }
     renderAlmanac();
   }, SKY_TICK_MS);
-  pollAlmanac();
+  return pollAlmanac();
 }
 
 /* ----- Hanging the cases -------------------------------------------------
@@ -3178,7 +3456,8 @@ if (window.MutationObserver) {
    Mode lever — re-lights the hall; never touches the Ledger (R11)
    ======================================================================== */
 var lever = $('#lever');
-var themeBusy = false;
+var themeBusy = false;   // a theme crossfade is running, under its cut
+var afterTheme = null;   // the lever re-light waiting for it
 
 function setWing(w) {
   wingPending = w;
@@ -3187,16 +3466,52 @@ function setWing(w) {
     if (wingPending === w) wingPending = null;
     store('atrium.wing', w);
     lever.setAttribute('aria-checked', String(w === 'bureau'));
-    deskDrive(w === 'bureau' ? 1 : 0);
-    // The gates stay in the order they were built. The waiting wing is
-    // inert, so Tab walks only the lit one, left to right, wherever the two
-    // sit in the DOM. A 750ms re-append used to put the lit wing first, and
-    // moving live nodes replayed the sheen on a hovered arch and bounced
-    // focus off the gate the reader had just landed on.
-    layoutStage(false);
+    afterReleaf(throwWing);
   };
-  // Serialize: the lever re-light queues until a theme crossfade finishes.
-  if (themeBusy) setTimeout(apply, 420); else apply();
+  // Serialize: the lever re-light queues until a theme crossfade finishes
+  // and its cut is lifted; under the cut the throw would land in one frame.
+  // The latest throw asked for is the one that runs.
+  if (themeBusy) afterTheme = apply; else apply();
+}
+/* The moving parts of a throw: the lever and its gears, and the arches
+   changing places. They read the wing as it stands when they run, so two
+   quick throws land where the second one points. */
+function throwWing() {
+  deskDrive(root.dataset.wing === 'bureau' ? 1 : 0);
+  // The gates stay in the order they were built. The waiting wing is
+  // inert, so Tab walks only the lit one, left to right, wherever the two
+  // sit in the DOM. A 750ms re-append used to put the lit wing first, and
+  // moving live nodes replayed the sheen on a hovered arch and bounced
+  // focus off the gate the reader had just landed on.
+  // Nothing here reads style or layout back (MO-2): the flip restyled the
+  // whole hall, and every read after it used to force that restyle inside
+  // the key handler (94-220ms) before the throw could start.
+  layoutStage(false);
+}
+/* The flip re-leafs the whole hall: every gilt fixture off the arches
+   changes metal through --lead-* and --metal, which restyles the document
+   and re-rasters most of the screen. On the owner's 3440 display that frame
+   took 150-250ms of GPU raster, and a throw started in the same task ran on
+   the clock meanwhile: the 200ms sink was over before the next frame was
+   drawn, so nobody saw it, and the lever jumped (MO-1). So the flip goes
+   out on its own, and the lever and the arches start once it has been
+   drawn. (The fixtures change metal in that one frame, not over a 0.4s
+   colour fade: a fill fading on the clock and the pilasters re-rastered
+   them on every frame of the throw, 70ms a frame at 3440. Law 11.) */
+var releafN = 0, releafT = 0;
+function afterReleaf(fn) {
+  var n = ++releafN;
+  clearTimeout(releafT);
+  var go = function () {
+    if (n !== releafN) return;
+    clearTimeout(releafT);
+    releafN++;
+    fn();
+  };
+  // A hidden tab draws nothing and fires no frames.
+  if (document.visibilityState === 'hidden') { go(); return; }
+  afterDrawn(go);
+  releafT = setTimeout(go, 500);
 }
 /* Toggle target derives from the PENDING wing when a crossfade has queued
    the apply — two quick toggles must round-trip, not both land on the same
@@ -3234,14 +3549,17 @@ deskCore.addEventListener('click', function (e) {
 var DESK_GAP = 8;         // clear stone between the sill and the vent cap
 var DESK_MIN = 0.5;       // below this the lever is too small to take
 var deskArtTop = null;    // highest drawn point, in assembly units
-function fitDesk() {
-  var stage = $('#stage'), desk = $('#signal-desk');
-  if (!stage || !desk) return;
+function deskArt() {
   if (deskArtTop === null) {
     // The quadrant draws 1:1 in the assembly's 360x220 units, and its vent
     // cap is the machine's highest point (the lever tip peaks 30 below it).
-    try { deskArtTop = $('.quadrant', desk).getBBox().y; } catch (err) { return; }
+    try { deskArtTop = $('#signal-desk .quadrant').getBBox().y; } catch (err) { return null; }
   }
+  return deskArtTop;
+}
+function fitDesk() {
+  var stage = $('#stage'), desk = $('#signal-desk');
+  if (!stage || !desk || deskArt() === null) return;
   var base = stage.offsetHeight;
   for (var n = stage; n; n = n.offsetParent) base += n.offsetTop;
   var foot = parseFloat(getComputedStyle(desk).bottom) || 0;
@@ -3302,7 +3620,6 @@ function applyStatuses() {
     }
   });
   var allDark = known === services.length && known > 0 && openCount === 0;
-  $('#all-dark').hidden = !allDark;
 
   // The hall is a picture; say out loud how many lines are open, so a screen
   // reader learns the same thing the lamps show. Only on change — a live
@@ -4054,8 +4371,12 @@ function tickerModel() {
     if (st && st.state !== 'checking') { known++; if (st.state === 'open') open++; }
   });
   // A hub that stopped answering is the first thing the band says; a count
-  // of open lines it cannot vouch for is not said at all.
+  // of open lines it cannot vouch for is not said at all. A hall with every
+  // line dark says so here, in words, where the count would stand. That
+  // line used to be set on the stage, where the clock stands: it lay behind
+  // the niche, and only a stray letter or two reached the wall (CRB-3).
   if (hubLost) segs.push(t('hubLost'));
+  else if (known && known === services.length && !open) segs.push(t('allDark'));
   else if (known) segs.push(t('linesOpen', { n: open, m: services.length }));
   services.forEach(function (s) {
     var txt = statText(s);
@@ -4696,17 +5017,24 @@ function resolveTheme() {
   var next = dark ? 'onyx' : 'ivory';
   if (root.dataset.theme === next) return;
   themeBusy = true;
-  setTimeout(function () { themeBusy = false; }, 420);
   var flip = function () {
     root.classList.add('theme-cut');
     root.dataset.theme = next;
   };
-  var uncut = function () { root.classList.remove('theme-cut'); };
+  var uncut = function () {
+    root.classList.remove('theme-cut');
+    themeBusy = false;
+    if (afterTheme) { var f = afterTheme; afterTheme = null; f(); }
+  };
   if (document.startViewTransition && root.dataset.motion !== 'reduced') {
     var vt = document.startViewTransition(flip);
-    // By `ready` the new hall has been drawn under the cut, so lifting it
-    // starts nothing; the old picture is still fading over it.
-    vt.ready.then(uncut, uncut);
+    // The cut is lifted when the fade has finished, not when it starts.
+    // Lifting it restyles every element in the hall (the cut is a universal
+    // rule), and at `ready` that restyle, 100-130ms at 3440, landed in the
+    // middle of the 400ms fade and stalled it (MO-7). After `finished` it
+    // changes nothing on screen. Nothing transitions until then, which is
+    // why a throw asked for meanwhile waits for it (setWing).
+    vt.finished.then(uncut, uncut);
   } else {
     flip();
     void root.offsetWidth;   // the flip's style change happens under the cut
@@ -4852,34 +5180,61 @@ window.addEventListener('storage', function (e) {
    ======================================================================== */
 var keyplate = $('#keyplate');
 
+/* Left to right by the slot the stage solved, not by the painted box: a
+   box read forces layout, and in the throw it was also the whole-hall
+   restyle of the wing flip, paid inside the key handler. */
 function litGates() {
   return Array.prototype.slice.call(
     document.querySelectorAll('#gates .gate.active:not(.vacant)'))
-    .sort(function (a, b) {
-      return a.getBoundingClientRect().left - b.getBoundingClientRect().left;
-    });
+    .sort(function (a, b) { return slotX(a) - slotX(b); });
 }
 
+/* Every key is a typewriter key of its own: a pair is two keys, a range is
+   its first and last key with a gilt dash between (read out as "1 to 3"),
+   and the two word keys, ENTER and ESC, are the wide function keys in a
+   chrome bezel. They used to be drawn as one capsule per legend, which read
+   as web buttons. The plate is a description list, a key and what it does
+   per entry, so a screen reader hears each pair together instead of a run
+   of loose words. The ruled gutters between the columns are gilt rules
+   with a lozenge, reverse-painted on the glass like the rest of the plate. */
 function renderKeyplate() {
   if (!keyplate) return;
   var n = litGates().length;
   var rows = [
-    ['\u2190 \u2192', 'keyGates'],
-    [n > 1 ? '1 \u2013 ' + n : '1', 'keyJump'],
-    [t('keyEnter'), 'keyOpen'],
-    ['W', 'keyLever'],
-    ['L', 'keyLedger'],
-    ['\u2191 \u2193', 'keyWalk'],
-    ['P', 'keyPrefs'],
-    ['?', 'keyPlate'],
-    ['ESC', 'keyClose'],
+    [['\u2190', '\u2192'], 'keyGates'],
+    [n > 1 ? ['1', '-', String(n)] : ['1'], 'keyJump'],
+    [['+' + t('keyEnter')], 'keyOpen'],
+    [['W'], 'keyLever'],
+    [['L'], 'keyLedger'],
+    [['\u2191', '\u2193'], 'keyWalk'],
+    [['P'], 'keyPrefs'],
+    [['?'], 'keyPlate'],
+    [['+ESC'], 'keyClose'],
   ];
   var list = $('.kp-rows', keyplate);
   list.textContent = '';
-  rows.forEach(function (r) {
+  rows.forEach(function (r, i) {
+    if (i && i % 2 === 0) {
+      var rule = el('div', 'kp-rule');
+      rule.setAttribute('aria-hidden', 'true');
+      list.appendChild(rule);
+    }
     var row = el('div', 'kp-row');
-    row.appendChild(el('kbd', 'kp-key display', r[0]));
-    row.appendChild(el('span', 'kp-do', t(r[1])));
+    var dt = el('dt', 'kp-keys');
+    r[0].forEach(function (k) {
+      if (k === '-') {
+        var dash = el('span', 'kp-dash', '\u2013');
+        dash.setAttribute('aria-hidden', 'true');
+        dt.appendChild(dash);
+        dt.appendChild(el('span', 'sr-only', ' ' + t('keyTo') + ' '));
+      } else if (k.charAt(0) === '+') {
+        dt.appendChild(el('kbd', 'kp-key kp-wide display', k.slice(1)));
+      } else {
+        dt.appendChild(el('kbd', 'kp-key display', k));
+      }
+    });
+    row.appendChild(dt);
+    row.appendChild(el('dd', 'kp-do', t(r[1])));
     list.appendChild(row);
   });
   $('.kp-title', keyplate).textContent = t('keysTitle');
@@ -4906,16 +5261,42 @@ function placeKeyplate() {
 /* The plate is a notice, not a dialog. It used to answer only "?" and Esc,
    so a pointer left it standing over the hall. Now any press closes it, on
    the plate or anywhere else, and the press still does what it was for. */
-function keyplatePress() { toggleKeyplate(false); }
+function keyplatePress() { toggleKeyplate(false, true); }
 
-function toggleKeyplate(show) {
+/* The plate arrived without a sound: focus stayed on the gate and nothing
+   was announced, so the key reference existed only for the eye. Showing it
+   now moves focus to its heading, where a screen reader names the plate and
+   can read the keys that follow; closing it by key puts focus back where it
+   was. A press elsewhere is the pointer's own business, so it is left to
+   go where it lands. If the arch focus came from has since gone out with a
+   throw, focus goes to the arch standing in its bay. */
+var kpReturn = null, kpReturnX = null;
+function toggleKeyplate(show, byPointer) {
   if (!keyplate) return;
   var next = show === undefined ? keyplate.hidden : show;
-  if (next === keyplate.hidden) layerMoved();
-  if (next) { renderKeyplate(); placeKeyplate(); }
-  keyplate.hidden = !next;
-  if (next) document.addEventListener('pointerdown', keyplatePress, true);
-  else document.removeEventListener('pointerdown', keyplatePress, true);
+  if (next === !keyplate.hidden) return;
+  layerMoved();
+  if (next) {
+    renderKeyplate();
+    placeKeyplate();
+    var ae = document.activeElement;
+    kpReturn = ae && ae !== document.body && !keyplate.contains(ae) ? ae : null;
+    kpReturnX = kpReturn && kpReturn.classList.contains('gate') ? slotX(kpReturn) : null;
+    keyplate.hidden = false;
+    document.addEventListener('pointerdown', keyplatePress, true);
+    $('.kp-title', keyplate).focus({ preventScroll: true });
+    return;
+  }
+  var had = keyplate.contains(document.activeElement);
+  keyplate.hidden = true;
+  document.removeEventListener('pointerdown', keyplatePress, true);
+  var back = kpReturn, x = kpReturnX;
+  kpReturn = kpReturnX = null;
+  if (!had || byPointer) return;
+  var usable = back && back.isConnected && !back.closest('[inert]') &&
+    (!back.checkVisibility || back.checkVisibility());
+  if (!usable) back = x === null ? null : nearestLit(x);
+  if (back) back.focus({ preventScroll: true });
 }
 window.addEventListener('resize', function () {
   if (keyplate && !keyplate.hidden) placeKeyplate();
@@ -4999,7 +5380,17 @@ document.addEventListener('keydown', function (e) {
 
   var gates = litGates();
   var ae = document.activeElement;
+  // On the key plate's heading the keys still work the hall, counted from
+  // wherever the reader called the plate up.
+  if (keyplate && ae && keyplate.contains(ae)) ae = kpReturn && kpReturn.isConnected ? kpReturn : document.body;
   var onGate = gates.indexOf(ae);
+  // Mid-throw, focus can still be on the arch sinking out of its bay (it
+  // hands over when the other one rises). A key pressed then counts from
+  // that bay: it used to be dropped, since the arch was not a lit one.
+  if (onGate < 0 && ae && ae.classList && ae.classList.contains('receded')) {
+    var bayArch = nearestLit(slotX(ae));
+    onGate = bayArch ? gates.indexOf(bayArch) : -1;
+  }
   if (k === 'ArrowLeft' || k === 'ArrowRight' || k === 'Home' || k === 'End') {
     // Arrows belong to the gates only when focus is on one, or nowhere in
     // particular; the lever, the chips and the radios keep theirs.
@@ -5015,11 +5406,9 @@ document.addEventListener('keydown', function (e) {
   } else if (k === 'w' || k === 'W') {
     e.preventDefault();
     if (e.repeat) return;
-    var keep = onGate;
+    // Focus on an arch goes with the throw to the arch rising into the
+    // same bay (layoutStage), so nothing is aimed from here.
     toggleWing();
-    // The wing that was lit goes inert, and focus with it. Land on the gate
-    // in the same bay of the wing coming forward.
-    if (keep >= 0) setTimeout(function () { focusGate(keep); }, themeBusy ? 480 : 60);
     if (keyplate && !keyplate.hidden) setTimeout(renderKeyplate, 700);
   } else if (k === 'l' || k === 'L') {
     e.preventDefault();
@@ -5047,8 +5436,8 @@ window.Cabinet.dressCase($('#almanac'));
 renderWorks();      // the dials stand engraved before the first reading
 buildAisles();
 renderAlmanac();    // the plate is engraved before the first forecast lands
-startWorks();
-startAlmanac();
+// Their first readings are part of the hall the entrance waits for.
+var boardsRead = [startWorks(), startAlmanac()];
 // Seed the inline --drive: without it the first throw's getDrive() would
 // read the wing-attribute CSS rule AFTER setWing flips the attribute —
 // from === target, so the ease and the 55% steam latch would both vanish.
@@ -5070,9 +5459,7 @@ if (new URLSearchParams(location.search).get('steam') === '1' && deskNozzle) {
   });
 }
 
-if (root.dataset.entered === 'no') playEntrance();
-
-fetchJson('/api/services').then(function (payload) {
+var hallBuilt = fetchJson('/api/services').then(function (payload) {
   services = payload.services || [];
   renderGates();
   return refresh();
@@ -5082,7 +5469,13 @@ fetchJson('/api/services').then(function (payload) {
   // region, before anything said the hub was not answering. refresh()
   // retries the registry, says NO WORD FROM THE HUB and arms the retry.
   return refresh();
-}).then(function () {
+});
+
+if (root.dataset.entered === 'no') {
+  playEntrance(Promise.all([hallBuilt].concat(boardsRead)).catch(function () {}));
+}
+
+hallBuilt.then(function () {
   // Deep links run regardless of how the boot fetch fared. ?ledger=1 is the
   // debug-only twin of ?prefs=1 — the drawer is the one surface a headless
   // screenshot cannot reach, since opening it takes a click.

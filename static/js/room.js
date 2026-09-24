@@ -867,9 +867,12 @@ function chaser() {
   var tk = $('#ticker'), track = $('#ticker-track');
   if (!tk || !track) return;
   var timer = null, k = 0;
+  // Not behind the curtain either: the entrance's house beat chases the
+  // bulbs once, and a steady chase already stepping under the curtain left
+  // that sweep running over the every-third-bulb pattern.
   function wanted() {
     return !document.hidden && root.dataset.motion === 'full' && root.dataset.theme === 'onyx' &&
-      !!track.querySelector('.t-new');
+      root.dataset.entered === 'yes' && !!track.querySelector('.t-new');
   }
   function step() {
     k = (k + 1) % 3;
@@ -887,7 +890,7 @@ function chaser() {
     // the board is rebuilt whole today; a dispatch marked read in place
     // (its class dropped) must stop the chase just the same
     new MutationObserver(sync).observe(track, { childList: true, subtree: true, attributes: true, attributeFilter: ['class'] });
-    new MutationObserver(sync).observe(root, { attributes: true, attributeFilter: ['data-theme', 'data-motion'] });
+    new MutationObserver(sync).observe(root, { attributes: true, attributeFilter: ['data-theme', 'data-motion', 'data-entered'] });
   }
   document.addEventListener('visibilitychange', sync);
   sync();
