@@ -781,18 +781,27 @@ html[lang="zh"] #masthead .p-caption { letter-spacing: 0.3em; }
 .st-torch { --sc: rgba(255, 184, 102, 0.62); --so: 0.75; }
 .st-pier { --sc: rgba(255, 168, 84, 0.58); --so: 0.8; }
 .st-marquee { --sc: rgba(255, 226, 170, 0.5); --so: 0.55; }
-.st-fan { --so: 0.36; }
+/* A fanlight's streak is that lamp's own layer (syncStreaks copies its
+   gate's state and beat): it comes up with the fanlight, after the arch has
+   risen into its bay, and goes down with it, never ahead of it (MO-3). */
+.st-fan { --so: 0.36; opacity: 0; transition: opacity 0.35s ease; }
+.st-fan.on[data-state="open"] {
+  opacity: calc(var(--lamp-on) * var(--so));
+  transition: opacity 0.7s ease calc(var(--slot-delay, 0ms) + 420ms);
+}
+/* The entrance holds the fanlights dark until the house lights come up, and
+   then lights them from the clock outward; their streaks with them. */
+html[data-entered="no"] #entrance.night:not(.house) ~ #hall .st-fan { opacity: 0; transition: none; }
+html[data-entered="no"] #entrance.night.house ~ #hall .st-fan.on[data-state="open"] {
+  transition: opacity 0.5s ease calc(140ms + var(--fan-i, 0) * 170ms);
+}
 .st-fan[data-glass="amber"] { --sc: rgba(255, 190, 110, 0.6); }
 .st-fan[data-glass="rose"] { --sc: rgba(246, 170, 146, 0.6); }
 .st-fan[data-glass="celadon"] { --sc: rgba(180, 222, 160, 0.55); }
 .st-fan[data-glass="opal"] { --sc: rgba(244, 226, 190, 0.55); }
 .st-fan[data-glass="honey"] { --sc: rgba(242, 206, 120, 0.6); }
 .st-fan[data-glass="aqua"] { --sc: rgba(150, 224, 212, 0.55); }
-/* a fanlight comes back only while its wing stands in the hall and its
-   lines are open */
-:root[data-wing="salon"] .st-fan[data-wing="bureau"],
-:root[data-wing="bureau"] .st-fan[data-wing="salon"],
-.st-fan:not([data-state="open"]) { opacity: 0; }
+
 /* The inlays: cut stone with its own figure, under the floor's wax. HTML
    layers over the inlay's SVG (the circle is r 474 of 1000 on the
    medallion, 190 of 400 on a roundel), so they raster once and stay. */

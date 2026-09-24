@@ -766,13 +766,22 @@ function streak(host, x, w, len, kind, attrs) {
   host.appendChild(s);
   return s;
 }
+/* A fanlight's streak is that fanlight's lamp on the floor, so it follows
+   its own gate: lit while the gate stands in the hall with its line open,
+   rising and falling on the gate's own beat (--slot-delay, and --fan-i in
+   the entrance). Gated on the root's wing, every streak switched at once,
+   up to a second ahead of the lamp it stands for (MO-3). */
 function syncStreaks() {
   var host = $('#floorplane .fl-streaks');
   if (!host) return;
   var ss = host.querySelectorAll('.st-fan');
   for (var i = 0; i < ss.length; i++) {
-    var g = document.getElementById(ss[i].dataset.gate);
-    if (g) ss[i].dataset.state = g.dataset.state || '';
+    var s = ss[i], g = document.getElementById(s.dataset.gate);
+    if (!g) continue;
+    s.style.setProperty('--slot-delay', g.style.getPropertyValue('--slot-delay') || '0ms');
+    s.style.setProperty('--fan-i', g.style.getPropertyValue('--fan-i') || '0');
+    if (s.dataset.state !== (g.dataset.state || '')) s.dataset.state = g.dataset.state || '';
+    s.classList.toggle('on', g.classList.contains('active'));
   }
 }
 function layoutFloor() {
@@ -786,7 +795,13 @@ function layoutFloor() {
     fp.insertBefore(host, plane ? plane.nextSibling : null);
     var gates = $('#gates');
     if (gates && window.MutationObserver) {
-      new MutationObserver(syncStreaks).observe(gates, { subtree: true, attributes: true, attributeFilter: ['data-state'] });
+      // a gate's state, its place in the lit wing (class) and its beat
+      // (style); anything inside a gate is not the streak's business
+      new MutationObserver(function (ms) {
+        for (var i = 0; i < ms.length; i++) {
+          if (ms[i].target.classList && ms[i].target.classList.contains('gate')) { syncStreaks(); return; }
+        }
+      }).observe(gates, { subtree: true, attributes: true, attributeFilter: ['data-state', 'class', 'style'] });
     }
   }
   var fr = fp.getBoundingClientRect();
@@ -835,6 +850,7 @@ function layoutFloor() {
       streak(host, x - fr.left, 22 * u, H, 'marquee');
     });
   }
+  syncStreaks();
 }
 
 /* ==========================================================================
