@@ -324,6 +324,12 @@ html[lang="zh"] .display { letter-spacing: 0.26em; }
      ground below the floor on a 1235px viewport — a bright dead band under
      the terrazzo that no amount of tuning inside the floor could reach. */
   min-height: 100vh;
+  /* The room ends at its own floor. Each arch's reflection hangs 44% of an
+     arch below its plinth, and on a short or narrow screen it ran as much
+     as 22px past the bottom of the hall and gave the page a scrollbar. clip,
+     not hidden: it leaves the other axis visible, so the full-bleed wall
+     and floor still reach the screen edges. */
+  overflow-y: clip;
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   grid-template-rows: auto auto minmax(0, 1fr);
