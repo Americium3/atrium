@@ -2665,30 +2665,39 @@ var worksOkAt = 0;
    It kept its last needle through any number of failed polls and looked
    live the whole time. Two and a half beats: one miss is a hiccup. */
 var WORKS_STALE_MS = 10000;
+/* The stale mark is a timer of its own, armed by every reading that lands.
+   Checked only on the beat, it waited behind a request that was still out:
+   a hanging hub held the last figure up for 16 s (the ticks at 8 and 12 s
+   were skipped as busy) and plain failures for 12 s (the next beat). */
+var worksStaleT = null;
+
+function worksLapse() {
+  worksStaleT = null;
+  if (!works) return;
+  works = null;
+  syncWorks();
+}
 
 function pollWorks() {
   if (!worksVisible() || worksBusy) return Promise.resolve();
   // A reading that sat on the dials past the stale mark while the board could
   // not poll (a background tab, a narrow window, a folded case) is not live.
   // It comes down before the next one is asked for; it used to stand as the
-  // current figure until the next beat landed.
-  if (works && Date.now() - worksOkAt > WORKS_STALE_MS) {
-    works = null;
-    syncWorks();
-  }
+  // current figure until the next beat landed. A hidden tab's timers are
+  // throttled, so the lapse may not have run yet.
+  if (works && Date.now() - worksOkAt > WORKS_STALE_MS) worksLapse();
   worksBusy = true;
   return fetchJson('/api/works').then(function (w) {
     // An older reading never replaces a newer one.
     if (works && w && w.generated < works.generated) return;
     works = w;
     worksOkAt = Date.now();
+    clearTimeout(worksStaleT);
+    worksStaleT = setTimeout(worksLapse, WORKS_STALE_MS);
     syncWorks();
   }).catch(function () {
-    // A restarting hub is not a reading, and neither is the last one kept.
-    if (works && Date.now() - worksOkAt > WORKS_STALE_MS) {
-      works = null;
-      syncWorks();
-    }
+    // A restarting hub is not a reading, and neither is the last one kept:
+    // worksLapse() takes it down at the stale mark.
   }).then(function () { worksBusy = false; });
 }
 
