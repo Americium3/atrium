@@ -189,7 +189,10 @@ function tone(m, t) {
 }
 
 /* Faces are gathered per part, culled against the eye, and laid far to
-   near. */
+   near. On the static board each face of any size also takes a sheen down
+   its height: the room's light on its upper part, a little dirt and shade
+   gathering toward its foot, so a flat facet reads as a surface. */
+var SHEEN = false;
 function Faces() { this.list = []; }
 Faces.prototype.push = function (pts, n, m, o) {
   var c = [0, 0, 0];
@@ -197,7 +200,10 @@ Faces.prototype.push = function (pts, n, m, o) {
   c = vmul(c, 1 / pts.length);
   if (vdot(n, viewAt(c)) <= 1e-3) return null;
   var t = shadeT(n, c, m) + ((o && o.bias) || 0);
-  var f = { d: path3(pts), w: proj(c)[2], fill: tone(m, t), tex: o && o.tex !== undefined ? o.tex : m.tex, texOp: m.texOp };
+  var pp = pts.map(proj), y0 = Infinity, y1 = -Infinity;
+  pp.forEach(function (q) { y0 = Math.min(y0, q[1]); y1 = Math.max(y1, q[1]); });
+  var f = { d: pathOf(pp), w: proj(c)[2], fill: tone(m, t), tex: o && o.tex !== undefined ? o.tex : m.tex, texOp: m.texOp,
+            sheen: SHEEN && y1 - y0 > 5 };
   this.list.push(f);
   return f;
 };
@@ -205,6 +211,7 @@ Faces.prototype.flush = function (g) {
   this.list.sort(function (a, b) { return a.w - b.w; }).forEach(function (f) {
     add(g, 'path', { d: f.d, style: F(f.fill) });
     if (f.tex) add(g, 'path', { d: f.d, fill: U(f.tex), style: 'opacity:var(' + (f.texOp || '--sb-tex') + ')' });
+    if (f.sheen) add(g, 'path', { d: f.d, fill: U('hb-sheen') });
   });
   this.list = [];
 };
@@ -442,6 +449,7 @@ function buildDefs(svg) {
   grad(defs, 'hb-br-dome', true, { cx: 0.36, cy: 0.3, r: 0.8 }, [[0, 'var(--bz-4)'], [0.45, 'var(--bz-2)'], [1, 'var(--bz-0)']]);
   grad(defs, 'hb-sb-dome', true, { cx: 0.36, cy: 0.3, r: 0.8 }, [[0, 'var(--sb-5)'], [0.4, 'var(--sb-3)'], [1, 'var(--sb-0)']]);
   grad(defs, 'hb-facet-dark', true, { cx: 0.4, cy: 0.35, r: 0.8 }, [[0, '#fff', 0.2], [1, '#fff', 0.04]]);
+  grad(defs, 'hb-sheen', false, { x1: 0, y1: 0, x2: 0, y2: 1 }, [[0, '#fff', 0.1], [0.3, '#fff', 0.02], [0.6, '#000', 0], [1, '#000', 0.16]]);
   grad(defs, 'hb-bz-h', false, { x1: 0, y1: 0, x2: 0, y2: 1 }, [[0, 'var(--bz-4)'], [0.4, 'var(--bz-2)'], [1, 'var(--bz-0)']]);
   return defs;
 }
@@ -867,6 +875,7 @@ function buildFocus(q) {
 }
 
 function buildBoard(q) {
+  SHEEN = true;
   q.setAttribute('viewBox', '0 0 ' + BOX_W + ' ' + BOX_H);
   buildDefs(q);
   buildFocus(q);
@@ -879,6 +888,7 @@ function buildBoard(q) {
   buildCrest(q);
   buildMeter(q);
   buildSwitch(q);
+  SHEEN = false;
 }
 
 /* ------------------------------------------------------------ the swing */
