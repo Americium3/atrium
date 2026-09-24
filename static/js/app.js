@@ -1558,6 +1558,7 @@ function gateClick(e, a, svc) {
 
 /* Triptych stage: slots computed from the registry so future services
    flank symmetrically. Transform-only (60 fps law). */
+var SWAP_OUT = 200, SWAP_GAP = 20, SWAP_STEP = 60;   // ms, see the throw below
 function layoutStage(initial) {
   var wrap = $('#gates');
   var W = wrap.clientWidth;
@@ -1596,58 +1597,123 @@ function layoutStage(initial) {
      niche rather than straddling the centre. */
   var half = clock ? (c0 * fit) / 2 + gateW * CLEAR : 0;
 
-  // The active gates split equally to either side of the clock; slots()
-  // has already made the count even, so the dial keeps the axis at full size.
-  var perSide = Math.floor(active.length / 2);
-  var leftActives = active.slice(0, perSide);          // outermost → innermost
-  var rightActives = active.slice(perSide);            // innermost → outermost
-
-  function placeActive(svc, x, side, order) {
-    var a = $('#gate-' + svc.id);
-    if (!a) return;
-    a.classList.add('active'); a.classList.remove('receded');
-    // Depth order is set here, not left to DOM order (absolutely positioned
-    // siblings), so a gate sweeping out to a flank drops behind before it
-    // travels rather than eclipsing the pair coming forward.
-    a.style.zIndex = '3';
-    a.style.setProperty('--slot-x', x + 'px');
-    a.style.setProperty('--slot-s', '1');
-    a.style.setProperty('--sink', '0px');   // a former centre gate rises back
-    a.style.setProperty('--side', String(side));
-    a.style.setProperty('--slot-delay', initial ? '0ms' : (80 + order * 60) + 'ms');
+  /* The bays of a wing of n, left to right. slots() has already made n even,
+     so half stand left of the clock (outermost first) and half right
+     (innermost first), and the dial keeps the axis at full size. rank counts
+     out from the clock on both sides. Both wings are laid in the same bays:
+     the waiting wing stands exactly where its counterparts stand, out of the
+     room, so a throw of the lever lets one wing's arches sink while the
+     other's rise in place, and the doors change places rather than slide
+     across the hall. */
+  function bays(n) {
+    var per = Math.floor(n / 2), out = [];
+    for (var i = 0; i < n; i++) {
+      var left = i < per;
+      var rank = left ? per - 1 - i : i - per;
+      out.push({ x: (left ? -1 : 1) * (half + gateW / 2 + rank * spacing),
+                 side: left ? 0.55 : -0.55, rank: rank });
+    }
+    return out;
   }
-  leftActives.forEach(function (svc, i) {
-    var rank = leftActives.length - 1 - i;                  // 0 = nearest clock
-    placeActive(svc, -(half + gateW / 2 + rank * spacing), 0.55, i);
-  });
-  rightActives.forEach(function (svc, i) {
-    placeActive(svc, +(half + gateW / 2 + i * spacing), -0.55, i);   // mirror
-  });
-  // The waiting wing stands exactly where its counterparts stand, out of the
-  // room: a throw of the lever lets one wing's arches sink and fade while the
-  // other's rise in the same bays, so the doors change places rather than
-  // slide across the hall. It is inert while it waits, so it takes no tab
-  // stop, no pointer and no screen-reader attention.
-  var slotX = [];
-  leftActives.forEach(function (svc, i) {
-    slotX.push(-(half + gateW / 2 + (leftActives.length - 1 - i) * spacing));
-  });
-  rightActives.forEach(function (svc, i) {
-    slotX.push(+(half + gateW / 2 + i * spacing));
+  var litBays = bays(active.length), waitBays = bays(receded.length);
+
+  /* A slot is never travelled to. Arches used to glide 0.6s from wherever
+     they last stood: out from behind the clock when they were first laid
+     out (a forced style read put new gates at the centre before their slot
+     was written), and across each other and the niche after a resize, when
+     their size changed at once but their slots did not. Every move is now
+     written with the gate's transitions cut (.no-slide), flushed, and the
+     cut lifted, so an arch is in its bay in the same frame the bay exists. */
+  var cut = [];
+  function place(a, bay) {
+    var x = bay.x.toFixed(2) + 'px', side = String(bay.side);
+    a.style.setProperty('--slot-s', '1');
+    if (a.style.getPropertyValue('--slot-x') === x &&
+        a.style.getPropertyValue('--side') === side) return;
+    hold(a);
+    a.style.setProperty('--slot-x', x);
+    a.style.setProperty('--side', side);
+  }
+  function role(a, lit, delay) {
+    a.classList.toggle('active', lit);
+    a.classList.toggle('receded', !lit);
+    // Depth order is set here, not left to DOM order (absolutely positioned
+    // siblings).
+    a.style.zIndex = lit ? '3' : '1';
+    a.style.setProperty('--slot-delay', delay + 'ms');
+  }
+  function gate(svc) { return $('#gate-' + svc.id); }
+
+  var swaps = [];
+  function hold(a) { if (cut.indexOf(a) < 0) { a.classList.add('no-slide'); cut.push(a); } }
+  active.forEach(function (svc, i) {
+    var a = gate(svc);
+    if (!a) return;
+    place(a, litBays[i]);
+    if (initial) {
+      // First layout, resize, --ui: the row simply is where it is solved.
+      hold(a);
+      role(a, true, 0);
+      a.classList.remove('arriving');
+    } else if (!a.classList.contains('active')) {
+      swaps.push({ a: a, lit: true, rank: litBays[i].rank, vacant: !!svc.vacant, x: litBays[i].x });
+    }
   });
   receded.forEach(function (svc, i) {
-    var a = $('#gate-' + svc.id);
+    var a = gate(svc);
     if (!a) return;
-    a.classList.add('receded'); a.classList.remove('active');
-    a.style.zIndex = '1';
-    a.style.setProperty('--sink', '0px');
-    a.style.setProperty('--slot-x', (slotX[i] !== undefined ? slotX[i] : 0) + 'px');
-    a.style.setProperty('--slot-s', '1');
-    a.style.setProperty('--slot-delay', '0ms');
-    a.style.setProperty('--side', '0');
+    a.classList.remove('arriving');
+    if (initial) {
+      place(a, waitBays[i]);
+      hold(a);
+      role(a, false, 0);
+    } else if (!a.classList.contains('active')) {
+      place(a, waitBays[i]);     // out of the room, so it moves unseen
+    } else {
+      // Going out: it sinks where it stands.
+      swaps.push({ a: a, lit: false, rank: waitBays[i].rank, vacant: !!svc.vacant,
+                   x: parseFloat(a.style.getPropertyValue('--slot-x')) || 0 });
+    }
   });
+
+  /* The RESERVED arch is the same arch in both wings. Where one stands down
+     and the other takes its bay, they change places under the cut, so the
+     bay stays put through the throw instead of blinking out and back. */
+  var outV = swaps.filter(function (s) { return s.vacant && !s.lit; })[0];
+  var inV = swaps.filter(function (s) { return s.vacant && s.lit; })[0];
+  if (outV && inV && Math.abs(outV.x - inV.x) < 0.5) {
+    [outV, inV].forEach(function (s) {
+      hold(s.a);
+      role(s.a, s.lit, 0);
+    });
+    swaps = swaps.filter(function (s) { return s !== outV && s !== inV; });
+  }
+
+  if (cut.length) {
+    void wrap.offsetWidth;   // the cut values become the before-change style
+    cut.forEach(function (a) { a.classList.remove('no-slide'); });
+  }
+
+  /* The throw, bay by bay: the outgoing arch sinks and fades in 200ms, the
+     bay stands empty for a beat, and only then does the incoming arch rise
+     into it. Both faces used to share the bay for ~280ms, and the lettering
+     of AUTOPILOT and OUTREACH DESK printed over each other. The beat runs out
+     from the clock on both sides at once (rank), mirrored about the axis the
+     clock holds; by DOM order it used to lead with the outer left and the
+     inner right. An incoming arch takes no pointer until its fade is under
+     way (.arriving, timed in CSS off the same delay): visibility has to
+     switch at once so W can put focus on it, and for its whole delay it was
+     an invisible target that took the clicks meant for the arch still
+     fading out above it. */
+  swaps.forEach(function (s) {
+    var delay = s.rank * SWAP_STEP;
+    if (s.lit) delay += SWAP_OUT + SWAP_GAP;
+    s.a.classList.toggle('arriving', s.lit);
+    role(s.a, s.lit, delay);
+  });
+
   all.forEach(function (svc) {
-    var a = $('#gate-' + svc.id);
+    var a = gate(svc);
     if (!a) return;
     var waiting = svc.wing !== wing;
     a.inert = waiting;
@@ -1661,11 +1727,11 @@ function layoutStage(initial) {
   if (!initial) scheduleMirror(680);
 }
 
-var resizeT;
-window.addEventListener('resize', function () {
-  clearTimeout(resizeT);
-  resizeT = setTimeout(function () { layoutStage(true); }, 120);
-});
+/* Re-solved in the resize event itself, which runs before the frame is
+   styled, so the new size and the new slots paint together. A 120ms
+   debounce used to leave the arches at their new size in their old slots,
+   overlapping each other and the clock, for the length of the wait. */
+window.addEventListener('resize', function () { layoutStage(true); });
 
 /* ========================================================================
    The concourse — aisle walls, boards, floor inlay

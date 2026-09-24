@@ -1801,26 +1801,33 @@ html[lang="zh"] .al-arc text {
   left: 50%; bottom: 0;
   width: var(--gate-fit);
   aspect-ratio: 300 / 570;
+  /* transform carries the slot and the hover lift. The slot never animates:
+     layoutStage writes it under .no-slide, so the only transform transition
+     that ever runs is the lift. The throw's sink and rise live on the
+     separate `translate` property (.active/.receded), so they can wait for
+     their bay's beat without delaying a hover. */
   transform: translateX(calc(-50% + var(--slot-x, 0px)))
-             translateY(calc(var(--rise, 0px) + var(--sink, 0px)))
+             translateY(var(--rise, 0px))
              scale(var(--slot-s, 1));
   transform-origin: center bottom;
   transition: transform 0.6s var(--ease-stage);
-  transition-delay: var(--slot-delay, 0ms);
   cursor: pointer;
   display: block;
   /* Plain perspective property — NEVER preserve-3d on #gates (it would
      depth-sort away the active/receded z-index contract). */
   perspective: 900px;
 }
-/* 3D chain: .g-pose = static wing tilt (transitions with the stage
-   choreography); .g-shell = pointer parallax (NO transition — it would
-   smear the tilt). Children stay flat so the intra-gate z-stack holds. */
+/* Every slot move lands in one frame: first layout, resize, --ui, the
+   waiting wing taking its bays. */
+.gate.no-slide { transition: none !important; }
+/* 3D chain: .g-pose = static wing tilt (set with the bay, never animated:
+   both wings stand in a bay at its own tilt); .g-shell = pointer parallax
+   (NO transition — it would smear the tilt). Children stay flat so the
+   intra-gate z-stack holds. */
 .g-pose {
   position: absolute; inset: 0;
   transform-style: preserve-3d;
   transform: rotateY(calc(var(--side, 0) * 10deg));
-  transition: transform 0.6s var(--ease-stage);
 }
 .g-shell {
   position: absolute; inset: 0;
@@ -1987,18 +1994,33 @@ html[lang="zh"] .al-arc text {
 /* The waiting wing: same bays, out of the room. Opacity sits on .gate, the
    PARENT of the preserve-3d pose, never on the pose itself: on the pose it
    would flatten the tilt. Visibility follows the fade so a hidden arch can
-   never take a pointer or a hover. */
+   never take a pointer or a hover.
+   A throw runs one bay at a time, never two faces at once. The outgoing
+   arch sinks 14px and fades in 200ms from its bay's beat (--slot-delay,
+   rank x 60ms out from the clock); the incoming one waits until that bay is
+   empty (+220ms), then rises and fades up. The two used to cross-fade with
+   offset timings, and for ~280ms each bay printed both wings' lettering. */
 .gate.receded {
   opacity: 0; visibility: hidden;
-  --rise: 14px;
-  transition: transform 0.6s var(--ease-stage), opacity 0.36s ease,
-              visibility 0s linear 0.36s;
+  translate: 0 14px;
+  transition: transform 0.6s var(--ease-stage),
+              translate 0.2s ease-in var(--slot-delay, 0ms),
+              opacity 0.2s ease-in var(--slot-delay, 0ms),
+              visibility 0s linear calc(var(--slot-delay, 0ms) + 0.2s);
 }
 .gate.active {
   opacity: 1; visibility: visible;
+  translate: 0 0;
   transition: transform 0.6s var(--ease-stage),
-              opacity 0.42s ease var(--slot-delay, 0ms), visibility 0s;
+              translate 0.4s var(--ease-out) var(--slot-delay, 0ms),
+              opacity 0.36s ease-out var(--slot-delay, 0ms),
+              visibility 0s;
 }
+/* An incoming arch is visible at once (W puts focus on it), but it takes no
+   pointer until its fade is 120ms under way. An animation, not a timer, so
+   it runs on the same clock as the fade however late the first frame is. */
+.gate.active.arriving { animation: gate-arrive 0.12s linear var(--slot-delay, 0ms) backwards; }
+@keyframes gate-arrive { from, to { pointer-events: none; } }
 .gate.receded .frame path, .gate.receded .frame rect { stroke: var(--chrome); }
 .gate.active { z-index: 2; }
 .gate.receded { z-index: 1; }
