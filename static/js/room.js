@@ -855,7 +855,9 @@ function chaser() {
     }
   }
   if (window.MutationObserver) {
-    new MutationObserver(sync).observe(track, { childList: true });
+    // the board is rebuilt whole today; a dispatch marked read in place
+    // (its class dropped) must stop the chase just the same
+    new MutationObserver(sync).observe(track, { childList: true, subtree: true, attributes: true, attributeFilter: ['class'] });
     new MutationObserver(sync).observe(root, { attributes: true, attributeFilter: ['data-theme', 'data-motion'] });
   }
   document.addEventListener('visibilitychange', sync);
