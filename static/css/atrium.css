@@ -138,15 +138,15 @@
   color-scheme: light;
 }
 /* ----- Material foundation: the picture palace (direction C) -------------
-   A Deco gold room is a chord of metals, never one: gold leaf, aluminium
-   leaf and warm bronze, each as six tones across a moulding (0 glaze in the
+   A Deco gold room is a chord of metals, never one: gold leaf, nickel
+   silver (the Bureau's leaf; it was a flat aluminium grey) and warm bronze, each as six tones across a moulding (0 glaze in the
    reveal, 1 shade, 2 body, 3 crest in the light, 4 relief body, 5 lip).
    Night keeps the metal dark and lets the lamps find it; day lifts the body
    and cools the crest toward the sky. Gold is glazed down: the glaze token
    is what lies in every reveal. */
 :root[data-theme="onyx"] {
   --au-0: #251806; --au-1: #57401a; --au-2: #94722e; --au-3: #f3d993; --au-4: #b68d3c; --au-5: #e6c67a;
-  --ag-0: #1a1b1b; --ag-1: #454644; --ag-2: #86877f; --ag-3: #f1f0e6; --ag-4: #a9a9a1; --ag-5: #dcdcd2;
+  --ag-0: #17140f; --ag-1: #433c31; --ag-2: #8d8475; --ag-3: #f4e8c8; --ag-4: #b2a68d; --ag-5: #dccaa2;
   --cu-0: #180f08; --cu-1: #382513; --cu-2: #684a2a; --cu-3: #d5a769; --cu-4: #8b6a3f; --cu-5: #b38a58;
   --pl-0: #121110; --pl-1: #24211c; --pl-2: #3a362f; --pl-3: #6c665a; --pl-4: #4b463d; --pl-5: #5c574c;
   --relief-shadow: rgba(8, 5, 2, 0.74);
@@ -176,7 +176,7 @@
 }
 :root[data-theme="ivory"] {
   --au-0: #6a5220; --au-1: #94763a; --au-2: #c4a45e; --au-3: #fdf0c8; --au-4: #d6b772; --au-5: #f1dea4;
-  --ag-0: #6c6f70; --ag-1: #999c9c; --ag-2: #c1c3c2; --ag-3: #fdfdfb; --ag-4: #d5d7d5; --ag-5: #edefed;
+  --ag-0: #6b6558; --ag-1: #9a9385; --ag-2: #c7c1b3; --ag-3: #fdfbf4; --ag-4: #dbd5c7; --ag-5: #f6f3ec;
   --cu-0: #4a3620; --cu-1: #6c5133; --cu-2: #92714a; --cu-3: #e6c79c; --cu-4: #aa895e; --cu-5: #caa77b;
   --pl-0: #aea593; --pl-1: #c7bfae; --pl-2: #dad3c4; --pl-3: #f8f5ee; --pl-4: #e5dfd3; --pl-5: #efeae1;
   --relief-shadow: rgba(62, 45, 20, 0.46);

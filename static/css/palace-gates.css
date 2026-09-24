@@ -1,0 +1,28 @@
+/* ==========================================================================
+   THE PICTURE PALACE: THE GATES AND THE CLOCK NICHE (material pass)
+   ==========================================================================
+   Loaded after atrium.css. The proscenium itself (portal geometry, the face,
+   the light states) is set up in atrium.css under "GATES: THE PROSCENIUM";
+   this sheet dresses it: the machined bezel on the cartouche, the lantern
+   slide the description is projected on, the contour curtain, the painted
+   iron, the focus ring, the apron's type budget and the clock niche in
+   statuary bronze. Tokens for the metals live with the other metals in
+   atrium.css; the statuary bronze is new here because only the niche and
+   the bezels use it.
+
+   One light model. At night only emitters glow (glass, bulbs, coves, the
+   dial, the projector's slide); metal, stone and velvet take their light
+   from them. By day nothing is lit and the skylight is the key light.
+   ========================================================================== */
+
+/* ----- Statuary bronze ----------------------------------------------------
+   Cast bronze with a dark chemical patina, waxed: chocolate in the body,
+   near black in the recesses, a warm lift where a face turns to the light.
+   Six tones in the same order as the leaf ramps: 0 glaze, 1 shade, 2 body,
+   3 crest, 4 relief body, 5 lip. */
+:root[data-theme="onyx"] {
+  --sb-0: #0c0806; --sb-1: #1c140d; --sb-2: #34261a; --sb-3: #8a6a45; --sb-4: #4c3824; --sb-5: #6e5436;
+}
+:root[data-theme="ivory"] {
+  --sb-0: #2a1f15; --sb-1: #453525; --sb-2: #5d4a35; --sb-3: #b89a70; --sb-4: #735c42; --sb-5: #9c8160;
+}
