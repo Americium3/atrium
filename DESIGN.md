@@ -857,7 +857,9 @@ the lamp and takes the address line's place while it stands.
   (extinguished, not alarmed, no red).
   Clicking pins a printed card on the curtain, a house notice headed DARK,
   with the service's launcher hint (from the registry) instead of opening a
-  dead tab; a keyboard press pins it and says it every time. The path
+  dead tab; a keyboard press pins it and says it every time, and Esc on
+  the gate takes it down again (the key plate, when it shows, closes
+  first). The path
   breaks only at its separators, so a copy is exact, and the card tightens
   a step at a time to stay inside the house. All-dark hall: the marquee leads with one line,
   "The hall is dark. No services are reachable.", where LINES OPEN would

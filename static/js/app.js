@@ -1302,6 +1302,20 @@ function renderGates() {
         e.preventDefault();
         showNotice(a, svc);
       });
+      // Esc (the key plate's Close) takes a pinned card down from the gate
+      // that has focus, as a click on the arch does for the pointer. The
+      // keyboard could pin the card and never take it down again, and it
+      // hid the gate's own description for the rest of the visit. The key
+      // plate lies over the hall, so while it shows, its Esc comes first;
+      // with no card pinned, Esc keeps its meaning.
+      a.addEventListener('keydown', function (e) {
+        if (e.key !== 'Escape' || e.ctrlKey || e.metaKey || e.altKey) return;
+        if (notice.hidden || (keyplate && !keyplate.hidden)) return;
+        e.preventDefault();
+        e.stopPropagation();
+        hideNotice(a);
+        layerMoved();
+      });
     }
     wrap.appendChild(a);
   });
