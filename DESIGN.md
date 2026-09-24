@@ -705,8 +705,11 @@ behind it `inert` while open.
 
 All strings via en/zh dictionary. Feed headlines composed client-side from
 `kind` + `params` so already-fetched dispatches localize on switch. Relative
-times and date line localized. Hairline rules are flexbox-driven from text
-width, never absolutely positioned (zh/en width shift).
+times and date line localized. Ages are floored (59 min, never a rounded
+"60 min"), and past 48 h they count calendar days. No dispatch line says
+"today": a plaque under EARLIER is read after its day has ended. Hairline
+rules are flexbox-driven from text width, never absolutely positioned (zh/en
+width shift).
 
 ## Backend (FastAPI, 127.0.0.1:8769)
 
