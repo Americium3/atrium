@@ -3064,8 +3064,11 @@ function buildSky(where, host, weather) {
 
   // Inked as far as the day has got, which after sunset is all of it: the
   // plate reports how much daylight has been SPENT, not merely where the sun
-  // is standing.
-  var inkTo = up ? phi : half;
+  // is standing. Below the horizon the wrapped angle cannot say which side
+  // of the day this is, and it sent every hour from midnight to sunrise to
+  // "all of it" too. The place's clock can: before noon the day has not
+  // begun, after it the day is done.
+  var inkTo = up ? phi : here.hours < noon ? -half : half;
   if (inkTo > -half) {
     svg.appendChild(svgEl('path', {
       d: ringArc(g, -half, inkTo), fill: 'none', 'stroke-width': 1.5
