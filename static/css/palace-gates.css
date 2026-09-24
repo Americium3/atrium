@@ -141,7 +141,29 @@
    on the lamp side. */
 .ckc.s0 { stop-color: var(--sb-4); } .ckc.s1 { stop-color: var(--sb-2); } .ckc.s2 { stop-color: var(--sb-1); }
 .ck-case { stroke: var(--sb-0); }
-.ck-patina { fill: url(#ck-patina); mix-blend-mode: soft-light; opacity: 0.55; pointer-events: none; }
+/* The face: cast statuary bronze (metal-bronze, multiplied over the ramp:
+   patina clouds, rubbed high spots, casting pits, a file grain), a warm
+   lift toward the key light, and the band of reflected light that says it
+   is waxed metal and not a painted panel. */
+.ck-patina { fill: url(#ck-patina); mix-blend-mode: multiply; opacity: 0.92; pointer-events: none; }
+.ck-lift, .ck-sheen { pointer-events: none; }
+.cks2.s0 { stop-color: #ffe6b8; stop-opacity: 0; }
+.cks2.s1 { stop-color: #ffe6b8; stop-opacity: 0.2; }
+.cks2.s2 { stop-color: #ffe6b8; stop-opacity: 0.07; }
+.cks2.s3 { stop-color: #ffe6b8; stop-opacity: 0; }
+.cks2.s4 { stop-color: #000000; stop-opacity: 0.28; }
+.ckl.s0 { stop-color: #d9a86a; stop-opacity: 0.2; }
+.ckl.s1 { stop-color: #d9a86a; stop-opacity: 0; }
+:root[data-theme="ivory"] .cks2.s1 { stop-color: #fff6e6; stop-opacity: 0.26; }
+:root[data-theme="ivory"] .cks2.s2 { stop-color: #fff6e6; stop-opacity: 0.09; }
+:root[data-theme="ivory"] .cks2.s4 { stop-color: #1a1008; stop-opacity: 0.22; }
+:root[data-theme="ivory"] .ckl.s0 { stop-color: #f0c890; stop-opacity: 0.22; }
+.ck-bevel-sheen { pointer-events: none; }
+.ckb.s0 { stop-color: #fffaf0; stop-opacity: 0; }
+.ckb.s1 { stop-color: #fffaf0; stop-opacity: 0.34; }
+.ckb.s2 { stop-color: #fffaf0; stop-opacity: 0; }
+.ckb.s3 { stop-color: #0a0602; stop-opacity: 0; }
+.ckb.s4 { stop-color: #0a0602; stop-opacity: 0.34; }
 .ck-bevel-leaf { fill: url(#ck-leaf); mix-blend-mode: soft-light; opacity: 0.6; pointer-events: none; }
 .ck-caseline2, .ck-caseline { stroke: rgba(0, 0, 0, 0.7); }
 .ck-step { stroke: var(--sb-3); }
