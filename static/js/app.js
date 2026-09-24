@@ -1018,11 +1018,10 @@ function renderGates() {
     } else {
       a.href = svc.url;
       // Named by its engraved name and its lamp, described by everything
-      // else it says. An aria-label of the bare name used to hide the lamp,
-      // the description and the status line from a screen reader.
+      // else it says (describeGate, which follows the state). An aria-label
+      // of the bare name used to hide the lamp, the description and the
+      // status line from a screen reader.
       a.setAttribute('aria-labelledby', 'gn-' + svc.id + ' gl-' + svc.id);
-      a.setAttribute('aria-describedby', ['gd-', 'gs-', 'gnote-', 'gx-']
-        .map(function (p) { return p + svc.id; }).join(' ') + ' opens-tab');
     }
     a.dataset.service = svc.id;
     a.dataset.state = svc.vacant ? 'vacant' : 'checking';
@@ -1093,10 +1092,18 @@ function renderGates() {
     // The launch-hint notice of a DARK gate is a card pinned on the closed
     // curtain, in the description's place while it shows. It used to hang
     // over the apron and cover the gate's own lamp and address.
+    // The card is a picture of its words: its path breaks at every separator
+    // (<wbr>), and each break came out of the gate's description as a
+    // space. A screen reader is given a hidden twin holding the words in
+    // one piece, filled only while the card is pinned.
     var notice = el('div', 'g-notice');
-    notice.id = 'gx-' + svc.id;
+    notice.setAttribute('aria-hidden', 'true');
     notice.hidden = true;
     house.appendChild(notice);
+    var noticeSr = el('span', 'g-notice-sr');
+    noticeSr.id = 'gx-' + svc.id;
+    noticeSr.hidden = true;
+    house.appendChild(noticeSr);
     face.appendChild(house);
     // The apron: the stage front, with the house's live line, its address
     // and the lamp.
@@ -1189,6 +1196,8 @@ function letterNotice(n, svc) {
     if (i) n.appendChild(document.createElement('wbr'));
     n.appendChild(document.createTextNode(part));
   });
+  var sr = $('.g-notice-sr', n.parentNode);
+  if (sr) sr.textContent = text;
   // The card has to stand inside the house whatever the path's length and
   // however small the arch: it is set tighter, a step at a time, until it
   // fits, and set again whenever the house changes size.
@@ -1208,14 +1217,55 @@ function fitNotice(n) {
   for (var k = 1; k <= 3 && n.offsetHeight > house.clientHeight; k++) n.dataset.fit = String(k);
 }
 
-function showNotice(a, svc) {
+/* Pins the card. It is said out loud when it goes up, and again whenever
+   `again` asks (a keyboard press on a card already showing). */
+function showNotice(a, svc, again) {
   var n = $('.g-notice', a);
-  if (!n.hidden) return;
-  letterNotice(n, svc);
-  n.hidden = false;
-  fitNotice(n);
-  // Shown on screen, so said out loud once as well.
-  var hs = $('#hall-status'); if (hs) hs.textContent = n.textContent;
+  if (n.hidden) {
+    letterNotice(n, svc);
+    n.hidden = false;
+    fitNotice(n);
+    describeGate(a);
+  } else if (!again) {
+    return;
+  }
+  sayGate($('.g-notice-sr', a).textContent);
+}
+
+function hideNotice(a) {
+  var n = $('.g-notice', a), sr = $('.g-notice-sr', a);
+  n.hidden = true;
+  // Emptied, not just hidden: aria-describedby reads a hidden element it
+  // points at, and a gate back OPEN used to keep its launch path.
+  var said = $('#gate-say');
+  if (said && sr.textContent && said.textContent === sr.textContent) said.textContent = '';
+  sr.textContent = '';
+  describeGate(a);
+}
+
+/* A gate is described by what it says and what it does: the description,
+   the live line, the service's note, the launch card only while it is
+   pinned, and "opens in its own tab" only when a press would open one. A
+   DARK gate opens nothing, and it used to say that it did. */
+function describeGate(a) {
+  var id = a.dataset.service;
+  var ids = ['gd-', 'gs-', 'gnote-'].map(function (p) { return p + id; });
+  if (!$('.g-notice', a).hidden) ids.push('gx-' + id);
+  if (a.dataset.state !== 'dark') ids.push('opens-tab');
+  a.setAttribute('aria-describedby', ids.join(' '));
+}
+
+/* The launch card is said in a polite region of its own. It used to borrow
+   #hall-status, and the next poll, finding the card's words there, said an
+   unchanged line count again. The region is emptied and written a beat
+   later, so the same card said twice is still a change a reader hears. */
+var gateSayT = null;
+function sayGate(text) {
+  var n = $('#gate-say');
+  if (!n) return;
+  clearTimeout(gateSayT);
+  n.textContent = '';
+  gateSayT = setTimeout(function () { n.textContent = text; }, 80);
 }
 
 /* The browser's new-tab modifier: Cmd on a Mac, Ctrl everywhere else.
@@ -1240,10 +1290,14 @@ function gateClick(e, a, svc) {
     // that began in it (selecting the path), is not asking for it to close.
     // Keyboard clicks carry detail 0 and no press of their own.
     if (n.contains(e.target) || (e.detail > 0 && a._pressInNotice)) return;
+    // A keyboard press pins the card and says it, every time. A second
+    // Enter used to take the card down without a word; a reader pressing
+    // again is asking to hear the path again.
+    if (e.detail === 0) { showNotice(a, svc, true); return; }
     // A double-click is two clicks, and a plain toggle ended it hidden.
     // Only the first click of a run toggles; the rest leave it showing.
     if (e.detail > 1 || n.hidden) showNotice(a, svc);
-    else n.hidden = true;
+    else hideNotice(a);
     return;
   }
   // One gesture, one tab: each click of a double-click used to schedule
@@ -2840,7 +2894,8 @@ function applyStatuses() {
                     state === 'dark' ? 'lampDark' : 'lampChecking');
     var sr = $('.lamp-sr', a);
     if (sr) sr.textContent = t(state === 'open' ? 'srOpen' : state === 'dark' ? 'srDark' : 'srChecking');
-    if (state !== 'dark') $('.g-notice', a).hidden = true;
+    if (state !== 'dark' && !$('.g-notice', a).hidden) hideNotice(a);
+    describeGate(a);
     var note = st && st.note && STR.en['note.' + st.note] !== undefined ? t('note.' + st.note) : '';
     $('.g-lamp', a).title = note || lampT.title;
     var noteEl = $('.g-note', a);
