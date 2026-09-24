@@ -1114,6 +1114,15 @@ html[lang="zh"] #ledger :is(.pl-head, .pl-detail, .pl-time, .chip, .l-close-cap,
 /* A new dispatch drops into its holder and settles on the felt: a short
    fall, a two-pixel bounce, still. Transform and opacity only. */
 #ledger .plaque.arrive { animation: card-drop 0.5s cubic-bezier(0.3, 0.9, 0.4, 1) both; }
+/* Held at the drop's first keyframe while the column is laid out again and
+   the card is given its own layer (app.js), so the drop starts on a layer
+   already drawn. And the falling card paints over the column rather than
+   under the cards below it: the browser assumes a card moving by transform
+   may overlap anything painted after it, and gave every card below it a
+   layer of its own to redraw. At 3440 that first frame of the drop took
+   117-134 ms and the card went from 18% to 90% of its fall in it. */
+#ledger .plaque.arrive-hold, #ledger .plaque.arrive { z-index: 2; will-change: transform, opacity; }
+#ledger .plaque.arrive-hold { opacity: 0.004; transform: translateY(-14px); }
 @keyframes card-drop {
   0% { opacity: 0; transform: translateY(-14px); }
   55% { opacity: 1; transform: translateY(2px); }

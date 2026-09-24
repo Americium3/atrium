@@ -4087,12 +4087,21 @@ function renderLedger() {
       // Normal arrive animation on poll-driven new dispatch. A plaque that
       // is only coming back (the hub restarted and answered empty once) is
       // not news, and nine of them replaying 'arrive' said it was.
-      li.classList.add('arrive');
-      li.addEventListener('animationend', function () {
-        li.classList.remove('arrive');
-      }, { once: true });
-      (function (el) {
-        setTimeout(function () { el.classList.remove('arrive'); }, 700);
+      // The card goes in held at the drop's first keyframe, and the drop
+      // waits for the column to be redrawn (afterReflow). Started with the
+      // insert, it ran through the frame that redraws every card below it
+      // (117-134 ms at 3440), and that one frame took the card from 18% to
+      // 90% of its fall.
+      li.classList.add('arrive-hold');
+      (function (card) {
+        afterReflow(function () {
+          card.classList.remove('arrive-hold');
+          card.classList.add('arrive');
+          card.addEventListener('animationend', function () {
+            card.classList.remove('arrive');
+          }, { once: true });
+          setTimeout(function () { card.classList.remove('arrive'); }, 700);
+        });
       })(li);
     }
   });
@@ -4110,6 +4119,23 @@ function renderLedger() {
   feed.forEach(function (d) { seenIds[d.id] = 1; });
   refocus();
   syncStamp();      // a chip change moves what the stamp's scope line says
+}
+
+/* A card let into the column moves every card below it, and the frame that
+   draws them in their new places is the slow one, two or three frames after
+   the insert rather than the next (the GPU is still redrawing the column;
+   117-167 ms at 3440 on an integrated GPU, after a 50 ms one). A fixed wait
+   is either too short for a slow machine or makes a fast one wait for it,
+   so this watches the frames: it runs on the first frame after a slow one,
+   or once 150 ms have gone by without one. */
+function afterReflow(fn) {
+  var first = 0, last = 0;
+  requestAnimationFrame(function tick(t) {
+    if (!first) first = t;
+    else if (t - last > 80 || t - first > 150) { fn(); return; }
+    last = t;
+    requestAnimationFrame(tick);
+  });
 }
 
 var badgeCount = 0;
