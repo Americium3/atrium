@@ -670,29 +670,77 @@ function dockEntrance() {
   entrance.classList.add('dock');
 }
 
-function playEntrance() {
+/* The curtain is dressed at once, but its clock starts only when the hall
+   behind it is built and drawn. It used to start as the script ran, while
+   the gates, their first readings, the band and the Ledger were still going
+   in behind it: at 3440 their first raster froze the curtain twice in its
+   first 400ms, just as the footlights came up and the spot opened (MO-8).
+   Now that raster happens under a curtain that is standing still: the
+   clock starts once the boot's first readings are in (the gates', and the
+   cases' where they stand) and the frames that draw them have gone out. A
+   hub slow to answer holds the curtain ENTRANCE_HOLD ms at most. */
+var ENTRANCE_HOLD = 900;
+/* Calls fn once what has been handed to the compositor is on screen. No
+   callback says so, and a fixed two frames is not it: the main thread runs
+   a frame or two ahead of the GPU, so its animation frames kept arriving on
+   time while a heavy frame was still being rastered, and then stopped. So
+   this waits for the frames to run at the display's pace again, two short
+   intervals in a row: by then the heavy frame has gone out. "Short" is
+   under 25ms, or near the best this machine has shown, for a renderer that
+   never gets under it. */
+function afterDrawn(fn) {
+  var last = 0, best = Infinity, calm = 0;
+  requestAnimationFrame(function tick(t) {
+    if (last) {
+      var dt = t - last;
+      best = Math.min(best, dt);
+      calm = dt < Math.max(25, best * 1.5) ? calm + 1 : 0;
+    }
+    last = t;
+    if (calm >= 2) fn(); else requestAnimationFrame(tick);
+  });
+}
+function playEntrance(built) {
   // Disable ledger button during entrance; re-enabled in finishEntrance()
   var lb = $('#ledger-btn');
   if (lb) lb.disabled = true;
   var day = root.dataset.theme === 'ivory';
+  entrance.classList.add(day ? 'day' : 'night');
+  if (day) {
+    segmentRing($('.e-ring-whole'), 34, 40, [['e-ring-sh', 1], ['e-ring-hi', 0.6], ['e-ring-c', 0]]);
+  } else {
+    buildRays();
+    buildSwag();
+    segmentRing($('.e-crest > .e-circle'), 92, 60, [['e-circle', 0]]);
+  }
+  var started = false;
+  function start() {
+    if (started || root.dataset.entered !== 'no') return;
+    started = true;
+    runEntrance(day);
+  }
+  entranceTimers.push(setTimeout(start, ENTRANCE_HOLD));
+  Promise.resolve(built).then(function () {
+    afterDrawn(start);
+  });
+  armEntranceSkip();
+}
+
+function runEntrance(day) {
   var at = function (ms, fn) { entranceTimers.push(setTimeout(fn, ms)); };
   var beat = function (cls) { return function () { entrance.classList.add(cls); }; };
   window.__entranceT0 = performance.now();   // read by the frame-capture scripts
-  entrance.classList.add('play', day ? 'day' : 'night');
+  entrance.classList.add('play');
 
   if (day) {
     // The doors are open to the street and the curtain is already up: the
     // hall arrives as an exposure settling, with the sun's shafts in it,
     // while the gilt ring that drew itself in the glare docks.
-    segmentRing($('.e-ring-whole'), 34, 40, [['e-ring-sh', 1], ['e-ring-hi', 0.6], ['e-ring-c', 0]]);
     at(280, beat('expose'));
     at(900, dockEntrance);
     at(1400, beat('done-fade'));
     at(1700, finishEntrance);
   } else {
-    buildRays();
-    buildSwag();
-    segmentRing($('.e-crest > .e-circle'), 92, 60, [['e-circle', 0]]);
     // The house is dark. The footlights come up along the curtain's hem.
     at(60, beat('foot'));
     // A follow spot opens on the crest; the rays catch it one by one.
@@ -713,7 +761,11 @@ function playEntrance() {
     at(2140, beat('done-fade'));
     at(2700, finishEntrance);
   }
+}
 
+/* Armed with the curtain, before its clock starts: a skip during the hold
+   lands the hall just the same. */
+function armEntranceSkip() {
   // Any input cuts the entrance short. Until done-fade the overlay has
   // pointer-events:auto, so a pointerdown lands on the overlay; it is
   // swallowed there, and so is the click it turns into (swallowNextClick),
@@ -2266,7 +2318,7 @@ function pollWorks() {
 function startWorks() {
   clearInterval(worksTimer);
   worksTimer = setInterval(pollWorks, 4000);
-  pollWorks();
+  return pollWorks();
 }
 
 /* ----- THE ALMANAC -------------------------------------------------------
@@ -2791,7 +2843,7 @@ function startAlmanac() {
     if (!almanac) { pollAlmanac(); return; }
     renderAlmanac();
   }, SKY_TICK_MS);
-  pollAlmanac();
+  return pollAlmanac();
 }
 
 /* Pointer parallax: one rAF writer. It writes each gate shell's transform
@@ -4456,8 +4508,8 @@ window.Cabinet.dressCase($('#almanac'));
 renderWorks();      // the dials stand engraved before the first reading
 buildAisles();
 renderAlmanac();    // the plate is engraved before the first forecast lands
-startWorks();
-startAlmanac();
+// Their first readings are part of the hall the entrance waits for.
+var boardsRead = [startWorks(), startAlmanac()];
 // Seed the inline --drive: without it the first throw's getDrive() would
 // read the wing-attribute CSS rule AFTER setWing flips the attribute —
 // from === target, so the ease and the 55% steam latch would both vanish.
@@ -4479,9 +4531,7 @@ if (new URLSearchParams(location.search).get('steam') === '1' && deskNozzle) {
   });
 }
 
-if (root.dataset.entered === 'no') playEntrance();
-
-fetchJson('/api/services').then(function (payload) {
+var hallBuilt = fetchJson('/api/services').then(function (payload) {
   services = payload.services || [];
   renderGates();
   return refresh();
@@ -4491,7 +4541,13 @@ fetchJson('/api/services').then(function (payload) {
   // Ledger could say it had not been read.
   clearTimeout(retryT);
   retryT = setTimeout(poll, RETRY_MS);
-}).then(function () {
+});
+
+if (root.dataset.entered === 'no') {
+  playEntrance(Promise.all([hallBuilt].concat(boardsRead)).catch(function () {}));
+}
+
+hallBuilt.then(function () {
   // Deep links run regardless of how the boot fetch fared. ?ledger=1 is the
   // debug-only twin of ?prefs=1 — the drawer is the one surface a headless
   // screenshot cannot reach, since opening it takes a click.
