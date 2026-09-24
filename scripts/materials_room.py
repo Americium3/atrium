@@ -236,6 +236,18 @@ def mast_frieze(day=False):
     return rgb
 
 
+def vein_gray(n=512, seed=301):
+    """Grey marble figure (mean 0.5) for soft-light over the floor's cut
+    stones: a cloud and a few flowing veins, so every slab of the medallion
+    reads as quarried stone, whatever colour it is cut from."""
+    cloud = fbm(n, seed, 1.8)
+    v = (flow_veins(n, seed + 1, 2.4, (1.6, 1.0), 0.10, 30, 0.8) * 0.8
+         + ridges(n, seed + 2, 2.2, 140) * 0.4)
+    lum = 0.5 + (cloud - 0.5) * 0.40 + np.clip(v, 0, 1) * 0.46
+    g = np.clip(lum, 0, 1) * 255
+    return np.dstack([g, g, g])
+
+
 BAKES = [
     ("room-portoro", lambda: portoro_calm(), None),
     ("room-onyx-lit", lambda: onyx(lit=True), None),
@@ -244,6 +256,7 @@ BAKES = [
     ("room-dentil-day", lambda: dentils(True), None),
     ("room-mfrieze-night", lambda: mast_frieze(False), None),
     ("room-mfrieze-day", lambda: mast_frieze(True), None),
+    ("room-veins", lambda: vein_gray(), None),
 ]
 
 
