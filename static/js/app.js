@@ -191,7 +191,7 @@ var STR = {
     ledgerUnreadable: '消息总台暂时读不出来',
     ledgerStale: '{t} 之后没有回音',
     'desc.autopilot': '当季新番，睡着也替你追完入库。',
-    'desc.groundstation': '创意工坊 Mod 尽在轨道监测之中。',
+    'desc.groundstation': '工坊 Mod 追踪，更新在轨截获。',
     'desc.outreach': '今日的引荐名单，已备好草稿待发。',
     'desc.pressroom': '昨夜的世界，天亮前已排版付印。',
     'desc.arsenal': '一张游戏实用小工具的工作台。',
