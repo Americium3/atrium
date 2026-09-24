@@ -211,105 +211,130 @@ function hatch(svg) {
 }
 
 /* ----- The crown over the clock's axis ------------------------------------
-   The picture palace's answer to the Chrysler crown: three gilt archivolts
-   stepping out from a lit fanlight, the outer two pierced with triangular
-   windows lit from inside, on a stepped base, under a stepped spire. It is
-   in the wing's leaf (--lead-*), so it re-leafs with the lever. */
+   The picture palace's answer to the Chrysler crown: three arched tiers
+   telescoping up and back, each one narrower and higher than the one in
+   front of it, so the silhouette steps at every shoulder. Every tier is a
+   gilt archivolt pierced with triangular windows lit from inside; the
+   setbacks between them are dark reveals; the top tier holds a leaded
+   fanlight over a lit transom, and a stepped spire stands on it. The whole
+   stands on a stepped base. It is in the wing's leaf (--lead-*), so it
+   re-leafs with the lever. */
+var CROWN_W = 220, CROWN_H = 112;
 function crown(host) {
-  var CX = 100, CY = 90;
-  var s = '';
-  s += '<defs>';
-  // one radial ramp per band, six tones across its width, glaze to lip
-  var bands = [[52, 62], [40, 49], [29, 37]];
-  bands.forEach(function (b, i) {
-    var a = b[0] / b[1], w = 1 - a;
-    s += '<radialGradient id="mc-b' + i + '" gradientUnits="userSpaceOnUse" cx="' + CX + '" cy="' + CY + '" r="' + b[1] + '">' +
+  var CX = CROWN_W / 2, BASE = 92;
+  // [springing y, outer rx, outer ry, inner rx, inner ry, windows]
+  var tiers = [
+    [BASE, 101, 47, 89, 37, 17],
+    [78, 74, 46, 63, 36.5, 13],
+    [65, 47, 46, 37.5, 36.5, 9]
+  ];
+  function arc(sy, rx, ry, bottom) {
+    return 'M' + f2(CX - rx) + ' ' + f2(bottom) + ' V' + f2(sy) +
+           ' A' + rx + ' ' + ry + ' 0 0 1 ' + f2(CX + rx) + ' ' + f2(sy) + ' V' + f2(bottom) + ' Z';
+  }
+  function band(t) {
+    var sy = t[0];
+    return 'M' + f2(CX - t[1]) + ' ' + BASE + ' V' + f2(sy) +
+           ' A' + t[1] + ' ' + t[2] + ' 0 0 1 ' + f2(CX + t[1]) + ' ' + f2(sy) + ' V' + BASE +
+           ' H' + f2(CX + t[3]) + ' V' + f2(sy) +
+           ' A' + t[3] + ' ' + t[4] + ' 0 0 0 ' + f2(CX - t[3]) + ' ' + f2(sy) + ' V' + BASE + ' Z';
+  }
+  // windows: triangles cut through a band, apex outward, a sunburst
+  function windows(t) {
+    var n = t[5], w = '';
+    var p = function (rx, ry, a) { return f2(CX + Math.cos(a) * rx) + ' ' + f2(t[0] + Math.sin(a) * ry); };
+    var irx = t[3] + (t[1] - t[3]) * 0.2, iry = t[4] + (t[2] - t[4]) * 0.2;
+    var orx = t[1] - (t[1] - t[3]) * 0.3, ory = t[2] - (t[2] - t[4]) * 0.3;
+    for (var k = 0; k < n; k++) {
+      var a = Math.PI + (k + 0.5) / n * Math.PI, half = Math.PI / n * 0.3;
+      w += 'M' + p(irx, iry, a - half) + ' L' + p(orx, ory, a) + ' L' + p(irx, iry, a + half) + ' Z ';
+    }
+    return w;
+  }
+  var s = '<defs>';
+  // each band's gilt: an elliptical ramp from its glaze to its lip
+  tiers.forEach(function (t, i) {
+    var a = (t[3] / t[1] + t[4] / t[2]) / 2, w = 1 - a;
+    s += '<radialGradient id="mc-b' + i + '" gradientUnits="userSpaceOnUse" cx="0" cy="0" r="1" ' +
+         'gradientTransform="translate(' + CX + ' ' + t[0] + ') scale(' + t[1] + ' ' + t[2] + ')">' +
       '<stop offset="' + f2(a) + '" class="mcg g0"/><stop offset="' + f2(a + w * 0.14) + '" class="mcg g1"/>' +
       '<stop offset="' + f2(a + w * 0.4) + '" class="mcg g2"/><stop offset="' + f2(a + w * 0.62) + '" class="mcg g3"/>' +
       '<stop offset="' + f2(a + w * 0.84) + '" class="mcg g4"/><stop offset="1" class="mcg g5"/></radialGradient>';
   });
-  s += '<radialGradient id="mc-glass" gradientUnits="userSpaceOnUse" cx="' + CX + '" cy="' + CY + '" r="64">' +
+  s += '<radialGradient id="mc-glass" gradientUnits="userSpaceOnUse" cx="' + CX + '" cy="' + tiers[2][0] + '" r="46">' +
        '<stop offset="0" class="mcw s0"/><stop offset=".45" class="mcw s1"/><stop offset=".8" class="mcw s2"/><stop offset="1" class="mcw s3"/></radialGradient>';
   s += '<linearGradient id="mc-course" x1="0" y1="0" x2="0" y2="1">' +
        '<stop offset="0" class="mcc s0"/><stop offset=".12" class="mcc s1"/><stop offset=".5" class="mcc s2"/><stop offset="1" class="mcc s3"/></linearGradient>';
-  s += '<linearGradient id="mc-light" x1="0" y1="0" x2="0.35" y2="1">' +
+  s += '<linearGradient id="mc-light" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="30" y2="' + BASE + '">' +
        '<stop offset="0" class="mcl s0"/><stop offset="1" class="mcl s1"/></linearGradient>';
   s += '<filter id="mc-bloom" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="3.2"/></filter>';
   s += '</defs>';
-  // base courses, each a slab with a lit top and a dark foot
-  var courses = [[8, 192, 102, 112], [22, 178, 95, 102], [33, 167, 90, 95]];
-  var base = '';
-  courses.forEach(function (c) {
-    base += '<rect class="mc-face" x="' + c[0] + '" y="' + c[2] + '" width="' + (c[1] - c[0]) + '" height="' + (c[3] - c[2]) + '" fill="url(#mc-course)"/>' +
-            '<rect class="mc-top" x="' + c[0] + '" y="' + c[2] + '" width="' + (c[1] - c[0]) + '" height="1.1"/>' +
-            '<rect class="mc-foot" x="' + c[0] + '" y="' + (c[3] - 0.9) + '" width="' + (c[1] - c[0]) + '" height="0.9"/>';
-  });
-  // windows: triangles cut through a band, apex outward
-  function windows(r0, r1, n, inset) {
-    var w = '';
-    for (var k = 0; k < n; k++) {
-      var a = Math.PI + (k + 0.5) / n * Math.PI, half = Math.PI / n * 0.40;
-      var ri = r0 + inset, ro = r1 - inset;
-      var p = function (r, t) { return f2(CX + Math.cos(t) * r) + ' ' + f2(CY + Math.sin(t) * r); };
-      w += 'M' + p(ri, a - half) + ' L' + p(ro, a) + ' L' + p(ri, a + half) + ' Z';
-    }
-    return w;
-  }
-  var win = windows(52, 62, 13, 1.4) + windows(40, 49, 9, 1.3);
-  // the fanlight inside the inner band, and its cames
-  var fan = 'M' + (CX - 29) + ' ' + CY + ' A29 29 0 0 1 ' + (CX + 29) + ' ' + CY + ' Z';
+  // the silhouette: every tier's outer arch, and the spire
+  var spire = [[104, 116, 11, 18.6], [106.4, 113.6, 5.5, 11], [108.2, 111.8, 2.2, 5.5]];
+  var sil = tiers.map(function (t) { return arc(t[0], t[1], t[2], BASE); }).join(' ');
+  var spPath = spire.map(function (b) { return 'M' + b[0] + ' ' + b[2] + ' H' + b[1] + ' V' + b[3] + ' H' + b[0] + ' Z'; }).join(' ');
+  s += '<g class="mc-shadow" transform="translate(2.2 3.2)"><path d="' + sil + '"/><path d="' + spPath + '"/></g>';
+  // back to front: the top tier's glass, then each tier in front of it
+  var t3 = tiers[2];
+  var fan = arc(t3[0], t3[3], t3[4], t3[0]);
+  var transom = 'M' + f2(CX - t3[3]) + ' ' + t3[0] + ' H' + f2(CX + t3[3]) + ' V' + BASE + ' H' + f2(CX - t3[3]) + ' Z';
   var cames = '';
   for (var c = 1; c < 8; c++) {
     var ca = Math.PI + c / 8 * Math.PI;
-    cames += 'M' + f2(CX + Math.cos(ca) * 6) + ' ' + f2(CY + Math.sin(ca) * 6) + ' L' + f2(CX + Math.cos(ca) * 29) + ' ' + f2(CY + Math.sin(ca) * 29) + ' ';
+    cames += 'M' + f2(CX + Math.cos(ca) * 6) + ' ' + f2(t3[0] + Math.sin(ca) * 6) +
+             ' L' + f2(CX + Math.cos(ca) * t3[3]) + ' ' + f2(t3[0] + Math.sin(ca) * t3[4]) + ' ';
   }
-  cames += 'M' + (CX - 17) + ' ' + CY + ' A17 17 0 0 1 ' + (CX + 17) + ' ' + CY;
-  // the reeded inner band: raised ribs radiating over the fanlight
-  var reeds = '';
-  for (var q = 0; q < 17; q++) {
-    var qa = Math.PI + (q + 0.5) / 17 * Math.PI;
-    reeds += 'M' + f2(CX + Math.cos(qa) * 30) + ' ' + f2(CY + Math.sin(qa) * 30) + ' L' + f2(CX + Math.cos(qa) * 36.2) + ' ' + f2(CY + Math.sin(qa) * 36.2) + ' ';
-  }
-  // the outer band's bead course
-  var beads = '';
-  for (var bI = 0; bI < 27; bI++) {
-    var ba = Math.PI + (bI + 0.5) / 27 * Math.PI;
-    beads += '<circle cx="' + f2(CX + Math.cos(ba) * 60.6) + '" cy="' + f2(CY + Math.sin(ba) * 60.6) + '" r="0.95"/>';
-  }
-  // the spire: stepped blocks and a needle
-  var spire = [[93, 107, 21, 29], [95.5, 104.5, 14, 21], [97.4, 102.6, 7, 14]];
-  var sp = '';
-  spire.forEach(function (b) {
-    sp += '<rect class="mc-face" x="' + b[0] + '" y="' + b[2] + '" width="' + (b[1] - b[0]) + '" height="' + (b[3] - b[2]) + '" fill="url(#mc-course)"/>' +
-          '<rect class="mc-top" x="' + b[0] + '" y="' + b[2] + '" width="' + (b[1] - b[0]) + '" height="0.9"/>';
-  });
-  sp += '<path class="mc-needle" d="M98.7 7 L100 0.4 L101.3 7 Z"/><path class="mc-needle-lt" d="M98.7 7 L100 0.4 L100 7 Z"/>';
-  sp += '<path class="mc-win" d="M98.3 15.5 h3.4 v4 h-3.4 Z M98.6 23 h2.8 v4.4 h-2.8 Z"/>';
-  // assemble: shadow, glow, arch bands, windows, glass, relief, base, spire
-  var arch = function (r0, r1) {
-    return 'M' + (CX - r1) + ' ' + CY + ' A' + r1 + ' ' + r1 + ' 0 0 1 ' + (CX + r1) + ' ' + CY +
-           ' H' + (CX + r0) + ' A' + r0 + ' ' + r0 + ' 0 0 0 ' + (CX - r0) + ' ' + CY + ' Z';
-  };
-  s += '<g class="mc-shadow" transform="translate(2.2 3.2)"><path d="' + arch(0, 62.6) + '"/>' +
-       '<path d="M93 21 h14 v8 h-14 Z M95.5 14 h9 v7 h-9 Z M97.4 7 h5.2 v7 h-5.2 Z"/></g>';
-  s += '<path class="mc-reveal" d="' + arch(0, 62) + '"/>';
-  bands.forEach(function (b, i) {
-    s += '<path d="' + arch(b[0], b[1]) + '" fill="url(#mc-b' + i + ')"/>';
-  });
-  s += '<path class="mc-glaze" d="' + arch(49, 52) + '"/><path class="mc-glaze" d="' + arch(37, 40) + '"/>';
-  s += '<path class="mc-win-rv" d="' + win + '" transform="translate(-0.5 -0.6)"/>';
-  s += '<path class="mc-win" d="' + win + '"/>';
-  s += '<path class="mc-glass" d="' + fan + '"/>';
-  s += '<path class="mc-glass-lit lamp" d="' + fan + '"/>';
+  cames += 'M' + f2(CX - 20) + ' ' + t3[0] + ' A20 19.5 0 0 1 ' + f2(CX + 20) + ' ' + t3[0] + ' ';
+  // the transom's glazing: mullions and a bar, set out from the axis
+  [-26, -13, 0, 13, 26].forEach(function (dx) { cames += 'M' + f2(CX + dx) + ' ' + t3[0] + ' V' + BASE + ' '; });
+  cames += 'M' + f2(CX - t3[3]) + ' ' + (t3[0] + 12) + ' H' + f2(CX + t3[3]) + ' ';
+  // the setbacks: each front tier's opening is a dark recess wherever the
+  // tier behind it does not fill it
+  s += '<path class="mc-reveal" d="' + arc(tiers[0][0], tiers[0][3] + 0.6, tiers[0][4] + 0.6, BASE) + '"/>';
+  s += '<path class="mc-reveal" d="' + arc(tiers[1][0], tiers[1][3] + 0.6, tiers[1][4] + 0.6, BASE) + '"/>';
+  s += '<path class="mc-glass" d="' + fan + ' ' + transom + '"/>';
+  s += '<path class="mc-glass-lit lamp" d="' + fan + ' ' + transom + '"/>';
   s += '<path class="mc-came-sh" d="' + cames + '" transform="translate(0.4 0.5)"/><path class="mc-came" d="' + cames + '"/>';
-  s += '<path class="mc-reed-sh" d="' + reeds + '" transform="translate(0.45 0.5)"/><path class="mc-reed" d="' + reeds + '"/>';
+  s += '<path class="mc-hub" d="M' + f2(CX - 6) + ' ' + t3[0] + ' A6 6 0 0 1 ' + f2(CX + 6) + ' ' + t3[0] + ' Z"/>';
+  var winAll = '';
+  for (var i = tiers.length - 1; i >= 0; i--) {
+    var t = tiers[i];
+    s += '<path class="mc-glaze" d="' + band(t) + '" transform="translate(0.8 1.1)"/>';
+    s += '<path d="' + band(t) + '" fill="url(#mc-b' + i + ')"/>';
+    var w = windows(t);
+    winAll += w;
+    s += '<path class="mc-win-rv" d="' + w + '" transform="translate(-0.5 -0.6)"/>';
+    s += '<path class="mc-win" d="' + w + '"/>';
+    // the tier's lit arris along its outer edge
+    s += '<path class="mc-reed" d="M' + f2(CX - t[1] + 1.2) + ' ' + BASE + ' V' + f2(t[0]) +
+         ' A' + f2(t[1] - 1.2) + ' ' + f2(t[2] - 1.2) + ' 0 0 1 ' + f2(CX + t[1] - 1.2) + ' ' + f2(t[0]) + ' V' + BASE + '"/>';
+  }
+  // a bead course on the front tier's lip
+  var beads = '', t1 = tiers[0];
+  for (var bI = 0; bI < 33; bI++) {
+    var ba = Math.PI + (bI + 0.5) / 33 * Math.PI;
+    beads += '<circle cx="' + f2(CX + Math.cos(ba) * (t1[1] - 2.6)) + '" cy="' + f2(t1[0] + Math.sin(ba) * (t1[2] - 2.6)) + '" r="0.95"/>';
+  }
   s += '<g class="mc-bead">' + beads + '</g>';
-  s += '<path class="mc-hub" d="M' + (CX - 6) + ' ' + CY + ' A6 6 0 0 1 ' + (CX + 6) + ' ' + CY + ' Z"/>';
-  s += '<path class="mc-light" d="' + arch(0, 62) + '"/>';
-  s += base + sp;
+  s += '<path class="mc-light" d="' + sil + '"/>';
+  // base courses, each a slab with a lit top and a dark foot
+  [[3, 217, 104, 112], [11, 209, 98, 104], [19, 201, 92, 98]].forEach(function (c) {
+    s += '<rect class="mc-face" x="' + c[0] + '" y="' + c[2] + '" width="' + (c[1] - c[0]) + '" height="' + (c[3] - c[2]) + '" fill="url(#mc-course)"/>' +
+         '<rect class="mc-top" x="' + c[0] + '" y="' + c[2] + '" width="' + (c[1] - c[0]) + '" height="1.1"/>' +
+         '<rect class="mc-foot" x="' + c[0] + '" y="' + (c[3] - 0.9) + '" width="' + (c[1] - c[0]) + '" height="0.9"/>';
+  });
+  // the spire: stepped blocks, a lit slot in each, and a needle
+  spire.forEach(function (b) {
+    s += '<rect class="mc-face" x="' + b[0] + '" y="' + b[2] + '" width="' + (b[1] - b[0]) + '" height="' + (b[3] - b[2]) + '" fill="url(#mc-course)"/>' +
+         '<rect class="mc-top" x="' + b[0] + '" y="' + b[2] + '" width="' + (b[1] - b[0]) + '" height="0.9"/>';
+  });
+  s += '<path class="mc-needle" d="M108.9 2.2 L110 -3.6 L111.1 2.2 Z"/><path class="mc-needle-lt" d="M108.9 2.2 L110 -3.6 L110 2.2 Z"/>';
+  var slots = 'M108.6 12.6 h2.8 v4.2 h-2.8 Z M109.1 6.6 h1.8 v3.4 h-1.8 Z';
+  s += '<path class="mc-win" d="' + slots + '"/>';
   // the glass's own light spilling onto the gilt round each window
-  s += '<g class="mc-bloom lamp" filter="url(#mc-bloom)"><path d="' + win + '"/><path d="' + fan + '"/></g>';
-  host.innerHTML = '<div class="mc-wash lamp"></div><svg viewBox="0 0 200 112" preserveAspectRatio="xMidYMax meet">' + s + '</svg>';
+  s += '<g class="mc-bloom lamp" filter="url(#mc-bloom)"><path d="' + winAll + slots + '"/><path d="' + fan + ' ' + transom + '"/></g>';
+  host.innerHTML = '<div class="mc-wash lamp"></div><svg viewBox="0 -4 ' + CROWN_W + ' ' + (CROWN_H + 4) +
+    '" preserveAspectRatio="xMidYMax meet">' + s + '</svg>';
 }
 
 /* ----- Book-matched stone -------------------------------------------------
@@ -386,11 +411,16 @@ function fitMasthead() {
   var tr = title.getBoundingClientRect();
   var rr = (date && date.offsetWidth ? date : right).getBoundingClientRect();
   var axis = mr.width / 2;
-  var cw = cr.offsetWidth;
   var gap = 26 * u, min = 110 * u;
   var tRight = tr.right - mr.left, rLeft = rr.left - mr.left;
-  var crownFits = axis - cw / 2 > tRight + gap * 0.6 && axis + cw / 2 < rLeft - gap * 0.6;
+  // The crown is cast smaller, down to four fifths, before it gives up its
+  // place: a tight masthead (1366 with the large engraving) keeps it.
+  var room = 2 * Math.min(axis - tRight, rLeft - axis) - 2 * gap * 0.6;
+  var k = Math.min(1, room / (168 * u));
+  var crownFits = k >= 0.8;
+  cr.style.setProperty('--ck', crownFits ? k.toFixed(3) : '1');
   cr.classList.toggle('stowed', !crownFits);
+  var cw = crownFits ? 168 * u * k : 0;
   var lo = crownFits ? axis - cw / 2 - gap : null, ro = crownFits ? axis + cw / 2 + gap : null;
   function hang(f, x0, x1) {
     if (!f) return;
