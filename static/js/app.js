@@ -1244,6 +1244,12 @@ function renderGates() {
     stat.id = 'gs-' + svc.id;
     stat.appendChild(el('span', 'num-roll num', ''));
     apron.appendChild(stat);
+    // What the description reads for the live line and the note: each one
+    // whole, its stop in the same run of text (describeGate).
+    var statSaid = el('span', 'g-said-stat');
+    statSaid.id = 'gss-' + svc.id;
+    statSaid.hidden = true;
+    apron.appendChild(statSaid);
     apron.appendChild(el('div', 'g-addr addr', svc.vacant ? '' : svc.addr));
     var lamp = el('div', 'g-lamp');
     lamp.appendChild(el('span', 'lamp-d'));
@@ -1264,6 +1270,10 @@ function renderGates() {
     note.id = 'gnote-' + svc.id;
     note.hidden = true;
     apron.appendChild(note);
+    var noteSaid = el('span', 'g-said-note');
+    noteSaid.id = 'gns-' + svc.id;
+    noteSaid.hidden = true;
+    apron.appendChild(noteSaid);
     face.appendChild(apron);
     shell.appendChild(face);
 
@@ -1411,10 +1421,13 @@ function actsDark(a) {
 /* A gate is described by what it says and what it does: its lamp, the description,
    the live line, the service's note, the launch card only while it is
    pinned, and "opens in its own tab" only when a press would open one. A
-   DARK gate opens nothing, and it used to say that it did. */
+   DARK gate opens nothing, and it used to say that it did. The live line
+   and the note are read from twins that carry each part and its stop in
+   one run of text: a stop in a box of its own came out detached, as in
+   "4 AIRING TODAY . Opens in its own tab.", on a braille line as well. */
 function describeGate(a) {
   var id = a.dataset.service;
-  var ids = ['gl-', 'gd-', 'gs-', 'gnote-'].map(function (p) { return p + id; });
+  var ids = ['gl-', 'gd-', 'gss-', 'gns-'].map(function (p) { return p + id; });
   if (!$('.g-notice', a).hidden) ids.push('gx-' + id);
   if (!actsDark(a)) ids.push('opens-tab');
   a.setAttribute('aria-describedby', ids.join(' '));
@@ -3660,9 +3673,10 @@ function applyStatuses() {
     var noteEl = $('.g-note', a);
     if (noteEl) {
       noteEl.textContent = note;
-      if (note) noteEl.appendChild(el('span', 'sr-only', t('srStop')));
       noteEl.hidden = !note;
     }
+    var noteSaid = $('.g-said-note', a);
+    if (noteSaid) noteSaid.textContent = note ? note + t('srStop') : '';
   });
   var allDark = known === services.length && known > 0 && openCount === 0;
 
@@ -3721,9 +3735,9 @@ function applyStats() {
     if (!a) return;
     var span = $('.num-roll', a);
     var txt = statText(svc);
-    var stop = $('.g-stat > .sr-only', a);
-    if (!stop) { stop = el('span', 'sr-only'); span.parentNode.appendChild(stop); }
-    stop.textContent = txt ? t('srStop') : '';
+    // Said at once, whole: the odometer's words land 240 ms later.
+    var said = $('.g-said-stat', a);
+    if (said) said.textContent = txt ? txt + t('srStop') : '';
     // The odometer is for a reading that changed. A line re-lettered into
     // the other language holds the same numbers, and every gate used to
     // roll on a language switch; the text swaps in place instead.
@@ -3903,15 +3917,23 @@ function buildPlaque(d) {
   li.appendChild(medal);   // outside the clipped layers — overhangs the spine
   // The card's name is read as one line, so its parts are parted for
   // speech: title, unread, detail and age used to run together unbroken.
-  a.appendChild(el('div', 'pl-head'));
-  a.appendChild(el('span', 'sr-only pl-unread'));
-  a.appendChild(el('span', 'sr-only pl-sep'));
-  a.appendChild(el('div', 'pl-detail'));
-  a.appendChild(el('span', 'sr-only pl-sep'));
+  // They are said from one hidden line of inline text. Each separator in
+  // a box of its own came out detached from the words before it ("The
+  // edition is out , unread , ..."), in speech and on a braille display.
+  var head = el('div', 'pl-head');
+  head.setAttribute('aria-hidden', 'true');
+  a.appendChild(head);
+  var detail = el('div', 'pl-detail');
+  detail.setAttribute('aria-hidden', 'true');
+  a.appendChild(detail);
   var when = el('div', 'pl-time num');
   when.setAttribute('aria-hidden', 'true');
   a.appendChild(when);
-  a.appendChild(el('span', 'sr-only pl-said'));
+  var said = el('span', 'sr-only pl-name');
+  ['pl-said-head', 'pl-unread', 'pl-sep', 'pl-said-detail', 'pl-sep', 'pl-said'].forEach(function (c) {
+    said.appendChild(el('span', c));
+  });
+  a.appendChild(said);
   frame.appendChild(a);
   shadowWrap.appendChild(frame);
   li.appendChild(shadowWrap);
@@ -3927,11 +3949,16 @@ function updatePlaque(li, d) {
   var cjk = /[\u3040-\u30ff\u3400-\u9fff]/.test(h.head || '');
   if (cjk !== (lang === 'zh')) head.lang = cjk ? 'zh' : 'en';
   else head.removeAttribute('lang');
+  var headSaid = $('.pl-said-head', li);
+  headSaid.textContent = h.head || '';
+  if (head.lang) headSaid.lang = head.lang; else headSaid.removeAttribute('lang');
   $('.pl-unread', li).textContent = t('list') + t('unread');
-  Array.prototype.forEach.call(li.querySelectorAll('.pl-sep'), function (n) {
-    n.textContent = t('list');
-  });
+  // No detail, no separator for it: "title, , age" otherwise.
+  var seps = li.querySelectorAll('.pl-sep');
+  seps[0].textContent = h.detail ? t('list') : '';
+  seps[1].textContent = t('list');
   $('.pl-detail', li).textContent = h.detail || '';
+  $('.pl-said-detail', li).textContent = h.detail || '';
   $('.pl-time', li).textContent = relTime(d.ts);
   $('.pl-said', li).textContent = relTime(d.ts, true);
 }
