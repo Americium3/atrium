@@ -705,8 +705,11 @@ behind it `inert` while open.
 
 All strings via en/zh dictionary. Feed headlines composed client-side from
 `kind` + `params` so already-fetched dispatches localize on switch. Relative
-times and date line localized. Hairline rules are flexbox-driven from text
-width, never absolutely positioned (zh/en width shift).
+times and date line localized. Ages are floored (59 min, never a rounded
+"60 min"), and past 48 h they count calendar days. No dispatch line says
+"today": a plaque under EARLIER is read after its day has ended. Hairline
+rules are flexbox-driven from text width, never absolutely positioned (zh/en
+width shift).
 
 ## Backend (FastAPI, 127.0.0.1:8769)
 
@@ -838,7 +841,9 @@ payload. Feed capped ~60 items, deduped by id, sorted ts desc.
 ## Client polling
 
 `/api/feed` + `/api/status` (+stats) every 45 s, gated on
-`document.visibilityState`, immediate refetch on tab refocus.
+`document.visibilityState`, immediate refetch on tab refocus. The dateline
+and the Ledger's TODAY / EARLIER break do not wait for a poll: a timer aimed
+at the next local midnight turns them with the clock's date aperture.
 
 ## Implementation notes (60 fps)
 

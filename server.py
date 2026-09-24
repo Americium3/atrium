@@ -1181,13 +1181,53 @@ def works_payload(cpu, mem, gpu, net, disk, hub_up, host_up) -> dict:
 _gpu_at = -1e9
 _gpu_last: dict | None = None
 _net_mark: tuple[float, int, int] | None = None
+_cpu_mark: tuple[float, tuple] | None = None
+_cpu_last: float | None = None
 _works_at = -1e9
 _works_last: dict | None = None
 HUB_STARTED = time.time()
+# Windows moves the cpu_times counters in 15.6 ms ticks, so two marks closer
+# than this are a coin toss between 0 and 100, not an average.
+CPU_MIN_WINDOW_S = 0.5
+
+
+def read_cpu() -> float | None:
+    """Busy share of every core since the previous reading, in percent.
+
+    The baseline lives here, not in psutil: cpu_percent(interval=None) keeps
+    one per thread, and /api/works samples on whichever asyncio.to_thread
+    worker is free. A worker's first call had no baseline of its own, diffed
+    two back-to-back reads, and the dial said 0% (or 100%) on a busy machine.
+    """
+    global _cpu_mark, _cpu_last
+    if psutil is None:
+        return None
+    try:
+        times = psutil.cpu_times()
+    except Exception:
+        return None
+    mono = time.monotonic()
+    prev = _cpu_mark
+    if prev is not None and mono - prev[0] < CPU_MIN_WINDOW_S:
+        return _cpu_last                # keep the older mark; its window is real
+    _cpu_mark = (mono, times)
+    if prev is None:
+        return None
+    # psutil's own arithmetic: every field's delta clamped at zero, idle (and
+    # iowait, where there is one) is the only time not busy, and guest time is
+    # already counted inside user on Linux.
+    delta = {f: max(0.0, a - b) for f, a, b in zip(times._fields, times, prev[1])}
+    total = sum(delta.values()) - delta.get("guest", 0.0) - delta.get("guest_nice", 0.0)
+    if total <= 0:
+        return _cpu_last
+    busy = total - delta.get("idle", 0.0) - delta.get("iowait", 0.0)
+    _cpu_last = 100.0 * busy / total
+    return _cpu_last
+
 
 if psutil is not None:                  # lay the deltas' baselines at import,
     with suppress(Exception):           # so the first reading is a reading
-        psutil.cpu_percent(interval=None)
+        read_cpu()
 
 
 def read_gpu() -> dict | None:
@@ -1239,10 +1279,12 @@ def read_works() -> dict:
     _works_at = mono
     cpu = mem = disk = host_up = None
     if psutil is not None:
-        with suppress(Exception):
-            # interval=None reports the load since the previous call, which
-            # the TTL makes a ~3.5s window rather than a meaningless instant.
-            cpu = (psutil.cpu_percent(interval=None), psutil.cpu_count())
+        # The load since the previous reading, which the TTL makes a ~3.5s
+        # window rather than a meaningless instant.
+        busy = read_cpu()
+        if busy is not None:
+            with suppress(Exception):
+                cpu = (busy, psutil.cpu_count())
         with suppress(Exception):
             vm = psutil.virtual_memory()
             mem = (vm.total - vm.available, vm.total)

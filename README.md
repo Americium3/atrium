@@ -106,8 +106,8 @@ Atrium serves `http://127.0.0.1:8769` and currently fronts:
   auto-completed, one-shots imported by hand, which watched workshop mod
   updated or got pulled, outreach
   daily-queue readiness and invites sent, the morning edition going to
-  press, and the bourse desk's brief (with its order count) plus any
-  watchtower alarms. Dispatches you have not read carry a champagne rim, and the hatch
+  press, and the bourse desk's brief (with its market day and order count)
+  plus any watchtower alarms. Dispatches you have not read carry a champagne rim, and the hatch
   button wears a single disc on its housing ring while any of them are
   unread. The count behind it is in the button's tooltip rather than on the
   disc. **Reading is done by resting on it**: leave the cursor on a card for

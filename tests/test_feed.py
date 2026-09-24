@@ -655,6 +655,33 @@ def test_works_pct_clamps_to_the_engraved_face():
     assert server.pct(None, 100) is None
 
 
+def test_cpu_reading_does_not_depend_on_the_calling_thread():
+    """psutil keeps cpu_percent's baseline per thread and /api/works samples
+    on whichever pool worker is free, so a fresh worker read 0% on a busy
+    machine. The mark is the module's now: any thread reads the same window."""
+    import threading
+    import time
+    from collections import namedtuple
+    if server.psutil is None:
+        return
+    Times = namedtuple("scputimes", "user system idle")
+    saved = (server._cpu_mark, server._cpu_last, server.psutil.cpu_times)
+    try:
+        server._cpu_mark = (time.monotonic() - 5, Times(100.0, 50.0, 850.0))
+        server.psutil.cpu_times = lambda: Times(160.0, 70.0, 870.0)  # 80 of 100 busy
+        got = []
+        worker = threading.Thread(target=lambda: got.append(server.read_cpu()))
+        worker.start()
+        worker.join()
+        assert got == [80.0], got
+        # A second read inside the minimum window repeats the reading rather
+        # than diffing two marks a few ticks apart.
+        server.psutil.cpu_times = lambda: Times(160.5, 70.0, 870.0)
+        assert server.read_cpu() == 80.0
+    finally:
+        server._cpu_mark, server._cpu_last, server.psutil.cpu_times = saved
+
+
 def test_grace_ts_deterministic():
     overview = {"grace_hours": 0.5, "shows": [
         {"bgm_id": 9, "title": "G", "status": "grace",
