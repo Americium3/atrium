@@ -1252,7 +1252,9 @@ at the next local midnight turns them with the clock's date aperture.
   notice is said through the same region, so the hall compares against what
   it last said about the lines, never against the region's current text.
 - A DARK gate's notice is emptied when it is put away, whether the reader
-  closes it or the lamp comes back. The gate's `aria-describedby` names the
+  closes it or the lamp comes back OPEN. A lamp that is only asking again
+  (one missed poll) has not come back: the card stays, and the gate stays
+  dark to a press until a status says otherwise. The gate's `aria-describedby` names the
   card, and Chrome voices a named node even while it is hidden, so a gate
   back OPEN kept describing itself as "Dark. Launch with ...".
 - Polls overlap (the beat, a refocus, a retry); their answers apply in

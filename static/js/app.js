@@ -1298,7 +1298,7 @@ function renderGates() {
       // Middle-click never fires 'click', so the browser used to open a DARK
       // gate's dead address in a new tab. It gets the launch notice instead.
       a.addEventListener('auxclick', function (e) {
-        if (e.button !== 1 || a.dataset.state !== 'dark') return;
+        if (e.button !== 1 || !actsDark(a)) return;
         e.preventDefault();
         showNotice(a, svc);
       });
@@ -1383,6 +1383,14 @@ function hideNotice(a) {
   describeGate(a);
 }
 
+/* A gate last known DARK stays dark to the reader's hand while its lamp only
+   asks again: one missed poll used to take down the card being read, and
+   a press in that moment opened the dead address. Only a lamp known OPEN
+   opens the gate again. */
+function actsDark(a) {
+  return a.dataset.state === 'dark' || (a.dataset.state === 'checking' && a._known === 'dark');
+}
+
 /* A gate is described by what it says and what it does: its lamp, the description,
    the live line, the service's note, the launch card only while it is
    pinned, and "opens in its own tab" only when a press would open one. A
@@ -1391,7 +1399,7 @@ function describeGate(a) {
   var id = a.dataset.service;
   var ids = ['gl-', 'gd-', 'gs-', 'gnote-'].map(function (p) { return p + id; });
   if (!$('.g-notice', a).hidden) ids.push('gx-' + id);
-  if (a.dataset.state !== 'dark') ids.push('opens-tab');
+  if (!actsDark(a)) ids.push('opens-tab');
   a.setAttribute('aria-describedby', ids.join(' '));
 }
 
@@ -1417,7 +1425,7 @@ var NEW_TAB_KEY = /mac|iphone|ipad|ipod/i.test(
   navigator.platform || '') ? 'metaKey' : 'ctrlKey';
 
 function gateClick(e, a, svc) {
-  var dark = a.dataset.state === 'dark';
+  var dark = actsDark(a);
   // The new-tab modifier and Shift are the browser's own new-tab and
   // new-window gestures, and middle-click already gets them. Any other
   // modifier falls through to the named window below. A DARK gate keeps
@@ -3598,6 +3606,7 @@ function applyStatuses() {
     if (!a) return;
     var state = st ? st.state : 'checking';
     a.dataset.state = state;
+    if (state !== 'checking') a._known = state;   // see actsDark
     var lampT = $('.lamp-t', a);
     if (state === 'open') { lampT.textContent = 'OPEN'; openCount++; known++; }
     else if (state === 'dark') { lampT.textContent = 'DARK'; known++; }
@@ -3608,7 +3617,10 @@ function applyStatuses() {
     // Stopped, like every part of the gate's description, or speech runs
     // the lamp word straight into the curtain's sentence.
     if (sr) sr.textContent = t(state === 'open' ? 'srOpen' : state === 'dark' ? 'srDark' : 'srChecking') + t('srStop');
-    if (state !== 'dark' && !$('.g-notice', a).hidden) hideNotice(a);
+    // The card comes down when the lamp comes back, and only then: a lamp
+    // that is only asking (one missed poll, a hub restarting) has not come
+    // back, and the card went with it, the path half read or half copied.
+    if (state === 'open' && !$('.g-notice', a).hidden) hideNotice(a);
     describeGate(a);
     var note = st && st.note && STR.en['note.' + st.note] !== undefined ? t('note.' + st.note) : '';
     $('.g-lamp', a).title = note || lampT.title;
