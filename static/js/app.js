@@ -4823,20 +4823,41 @@ function prefsKeydown(e) {
 }
 
 /* aria-modal promises the rest of the page is out of reach; inert makes
-   it true for a screen reader's virtual cursor as well as for Tab. */
-var PREFS_BEHIND = ['#hall', '#signal-desk', '#ledger', '#ledger-scrim', '#keyplate'];
+   it true for a screen reader's virtual cursor as well as for Tab. The
+   wall and the floor are left out: they are aria-hidden, hold nothing to
+   focus, and the backdrop covers them, and inert on them made the whole
+   terrazzo plane be rastered again for nothing (MO-14). */
+var PREFS_BEHIND = ['#masthead', '#ticker', '#works', '#stage', '#almanac',
+  '#signal-desk', '#ledger', '#ledger-scrim', '#keyplate'];
+/* The page behind goes inert in the frame after the sheet's first, not in
+   the key's task. inert restyles everything under it (7,600 elements at
+   3440, ~37ms), and the focus() below forced that restyle inside the key
+   handler, ahead of the sheet: at 3440 the sheet was first seen 200-540ms
+   after P (MO-14). Until then focus is in the sheet, Tab is held there
+   (prefsKeydown), no hall key acts while it is open and the backdrop takes
+   the pointer. */
+var prefsInertRaf = 0;
 function openPrefs() {
   layerMoved();
   lastFocus = document.activeElement;
-  PREFS_BEHIND.forEach(function (s) { var n = $(s); if (n) n.inert = true; });
   prefs.hidden = false;
   syncPrefRadios();
   document.addEventListener('keydown', prefsKeydown);
   var first = prefs.querySelector('[role=radio][aria-checked=true]') ||
               prefs.querySelector('button');
   if (first) first.focus();
+  cancelAnimationFrame(prefsInertRaf);
+  prefsInertRaf = requestAnimationFrame(function () {
+    prefsInertRaf = requestAnimationFrame(function () {
+      prefsInertRaf = 0;
+      if (prefs.hidden) return;
+      PREFS_BEHIND.forEach(function (s) { var n = $(s); if (n) n.inert = true; });
+    });
+  });
 }
 function closePrefs() {
+  cancelAnimationFrame(prefsInertRaf);
+  prefsInertRaf = 0;
   layerMoved();
   PREFS_BEHIND.forEach(function (s) { var n = $(s); if (n) n.inert = false; });
   // The drawer keeps its own rule: inert whenever it is shut.
