@@ -797,7 +797,9 @@ card leans up to 0.35 degrees off its dispatch's hash, its time is a violet
 rubber stamp crooked by the same hash, and every card's right edge shares
 one line. The head is a brass card frame holding THE LEDGER, with a close
 knob beside it; the chips are a bank of three push-keys. Cards are links
-opening the dispatch url.
+opening the dispatch url. A press on the holder's rim or the medallion is a
+press on the card, and a modifier or middle click is left to the browser,
+as on a gate.
 
 - **Read is what the pointer rested on**: an unread card carries a jewel
   lamp in its holder's corner (champagne at night, gold glass by day); the Ledger itself always shows the full window. A
@@ -887,8 +889,9 @@ opening the dispatch url.
   could not be read" under the same ornament; only a feed that answered
   empty may say "No dispatches". After one good read a failed poll keeps the
   plaques, since a dispatch that happened is still true when the hub goes
-  quiet. The first feed landing in an open drawer falls in as the opening
-  cascade.
+  quiet. Their ages keep counting, and once a beat has gone by without a
+  fresh feed the drawer engraves NO WORD SINCE HH:MM beside the stamp. The
+  first feed landing in an open drawer falls in as the opening cascade.
 - Client keys DOM nodes by dispatch id, so re-polls never re-animate existing
   plaques; same-id dispatches update in place. A dispatch this page has
   already shown does not play its arrival again after dropping out of one
@@ -939,7 +942,11 @@ jewel over each legend, language a double-throw knife switch on slate,
 engraving size an interlocked push-button bank, motion a three-position bat
 toggle, REPLAY ENTRANCE a spring-return key. Roles, roving tabindex, the
 focus trap and Esc are unchanged; focus is a champagne collar round the
-legend's jewel plus a rule under its name. The radios:
+legend's jewel plus a rule under its name (the push keys, which have no
+jewel, take a gold ring laid in ink). The hardware answers the pointer: a
+press on the rotary or the bat toggle turns it to the detent nearest the
+press, a press on its boss steps it one detent, and either half of the
+knife switch throws it to that side. The radios:
 
 - Appearance: Onyx / Ivory / Follow system (follow-system attaches a
   `matchMedia` change listener and applies the 400 ms crossfade live)
