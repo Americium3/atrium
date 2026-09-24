@@ -641,6 +641,31 @@ function layoutWall(g) {
     bays.appendChild(bay(a0, a1, nm, outside && a1 - a0 > 60 * u));
   }
 
+  // Console blocks: the frieze is broken over every pier light and every
+  // pilaster by a cast gilt block, so the cornice keeps the wall's bays
+  // instead of running one stamp from end to end. Each block's motif is
+  // its own (off its place counted out from the axis).
+  if (corn) {
+    var old = corn.querySelectorAll('.cn-block');
+    for (var ob = 0; ob < old.length; ob++) old[ob].remove();
+    var at = pierXs.map(function (p) { return { x: p.x, w: 24 * u }; });
+    var pl = wall.querySelectorAll('.aisle-wall .pilaster');
+    var wr1 = wall.getBoundingClientRect();
+    for (var pq = 0; pq < pl.length; pq++) {
+      var b0 = pl[pq].getBoundingClientRect();
+      at.push({ x: b0.left + b0.width / 2 - wr1.left, w: b0.width * 0.8 });
+    }
+    at.forEach(function (c) {
+      if (c.x < -20 || c.x > W + 20) return;
+      var nm = 'console-' + (c.x < axis ? 'w' : 'e') + Math.round(Math.abs(c.x - axis) / (20 * u));
+      var blk = el('span', 'cn-block');
+      blk.dataset.motif = pick(['fan', 'lozenge', 'steps'], nm, 0);
+      blk.style.left = f2(c.x - c.w / 2) + 'px';
+      blk.style.width = f2(c.w) + 'px';
+      corn.appendChild(blk);
+    });
+  }
+
   // Pier lights
   var piers = $('.wall-piers', wall);
   if (!piers) {

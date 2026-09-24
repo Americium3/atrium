@@ -795,3 +795,35 @@ html[lang="zh"] #masthead .p-caption { letter-spacing: 0.3em; }
   :root[data-ui="l"] .wk-read { font-size: calc(11.5px * var(--ui)); letter-spacing: 0; }
   :root[data-ui="l"] .al-station { letter-spacing: 0.03em; }
 }
+
+/* Console blocks in the frieze over each pier light and pilaster: a cast
+   gilt block the height of the frieze, its face lit from the key's side,
+   carrying a small relief of its own. */
+.cn-block {
+  position: absolute; top: calc(20px * var(--ui)); height: var(--frieze-h);
+  background:
+    linear-gradient(90deg, rgba(255, 244, 214, 0.35) 0 1px, transparent 1px calc(100% - 1.5px), rgba(0, 0, 0, 0.6) calc(100% - 1.5px)),
+    linear-gradient(180deg, var(--au-5) 0 1px, var(--au-3) 1px 8%, var(--au-2) 30%, var(--au-4) 55%, var(--au-1) 88%, var(--au-0));
+  box-shadow: calc(2px * var(--ui)) 0 calc(3px * var(--ui)) rgba(0, 0, 0, 0.55), calc(-1px * var(--ui)) 0 0 var(--au-0);
+}
+:root[data-theme="onyx"] .cn-block {
+  background:
+    linear-gradient(90deg, rgba(255, 244, 214, 0.22) 0 1px, transparent 1px calc(100% - 1.5px), rgba(0, 0, 0, 0.6) calc(100% - 1.5px)),
+    linear-gradient(180deg, var(--au-1) 0, var(--au-2) 30%, var(--au-4) 62%, var(--au-3) 88%, var(--au-5) 96%, var(--au-0));
+}
+:root[data-wing="bureau"] .cn-block { filter: none; }
+.cn-block::after {
+  content: ""; position: absolute; left: 18%; right: 18%; top: 18%; bottom: 18%;
+  background: linear-gradient(160deg, var(--au-5), var(--au-3) 30%, var(--au-1) 70%, var(--au-0));
+  box-shadow: calc(1px * var(--ui)) calc(1.5px * var(--ui)) 0 rgba(0, 0, 0, 0.55);
+}
+.cn-block[data-motif="lozenge"]::after { clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%); box-shadow: none; }
+.cn-block[data-motif="fan"]::after {
+  top: 30%; bottom: 22%;
+  border-radius: 50% 50% 0 0 / 100% 100% 0 0;
+  background: repeating-conic-gradient(from -90deg at 50% 100%, var(--au-5) 0 7deg, var(--au-1) 7deg 12deg, var(--au-3) 12deg 18deg);
+}
+.cn-block[data-motif="steps"]::after {
+  clip-path: polygon(0 100%, 0 66%, 20% 66%, 20% 33%, 40% 33%, 40% 0, 60% 0, 60% 33%, 80% 33%, 80% 66%, 100% 66%, 100% 100%);
+  box-shadow: none;
+}
