@@ -1211,7 +1211,9 @@ function prebuild() {
 
 /* ------------------------------------------------------------ lamps and meter */
 function buildFx(fx) {
-  var face = path3(facePts(-PX, PX, PY0, PY1, 0));
+  // the whole face: the pilots sit on the step, and a pool cut off at the
+  // top of the body drew a hard line across the stone under them
+  var face = slabPath(0);
   // Night: each lit pilot throws its light on its half of the panel.
   ['salon', 'bureau'].forEach(function (side, s) {
     var p = layer(fx, 'sw-pool sw-drive sw-pool-' + side);
