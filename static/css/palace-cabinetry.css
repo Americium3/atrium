@@ -1228,6 +1228,34 @@ html[lang="zh"] #ledger :is(.pl-head, .pl-detail, .pl-time, .chip, .l-close-cap,
     inset 0 2px 5px var(--well-rim), inset 0 -1px 0 rgba(255, 255, 255, 0.06),
     0 0 0 1px var(--pn-fillet), 0 0 0 3px transparent;
 }
+/* By day the panel read as a greige form: wells a few levels off the field,
+   each outlined by a 1px line. The wells are now let into the shagreen
+   behind ebonised fillets, a polished black moulding with the skylight on
+   its outer lip and a line of bone inside it, and the skin's scales stand up
+   in the raking light. */
+:root[data-theme="ivory"] .p-group:not([data-control="replay"]) {
+  background:
+    radial-gradient(ellipse 90% 60% at 40% 0%, rgba(255, 255, 255, 0.22), transparent 70%),
+    /* the skin twice over itself, so its scales stand twice as proud */
+    url('/static/assets/tex/grain-shagreen.webp') 0 0 / 150px, url('/static/assets/tex/grain-shagreen.webp') 0 0 / 150px,
+    var(--well);
+  background-blend-mode: normal, soft-light, soft-light, normal;
+  box-shadow:
+    inset 0 2px 6px rgba(40, 30, 16, 0.5), inset 1px 1px 0 rgba(40, 30, 16, 0.35),
+    inset 0 0 0 1px rgba(250, 244, 226, 0.55),
+    0 0 0 1px #0c0907, 0 0 0 3px #231a12,
+    -1px -1px 0 3.5px rgba(255, 252, 242, 0.95), 1px 1px 0 3.5px rgba(60, 46, 28, 0.55);
+}
+:root[data-theme="ivory"] .p-sheet::before { border-width: 2.5px; opacity: 1; }
+/* The brackets were pale leaf on pale shagreen, the size of a thumbnail.
+   Larger by day, and cast in the deep half of the leaf so they read. */
+:root[data-theme="ivory"] .p-bracket {
+  width: calc(44px * var(--ui)); height: calc(44px * var(--ui));
+  background:
+    url('/static/assets/tex/grain-gilt.webp') 0 0 / 40px,
+    linear-gradient(135deg, var(--lead-3), var(--lead-4) 22%, var(--lead-2) 48%, var(--lead-1) 74%, var(--lead-0));
+  background-blend-mode: soft-light, normal;
+}
 .p-group[data-control="theme"] { grid-area: theme; }
 .p-group[data-control="lang"] { grid-area: lang; }
 .p-group[data-control="ui"] { grid-area: ui; }
