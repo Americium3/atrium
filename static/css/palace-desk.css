@@ -429,19 +429,38 @@
    still above the 10px floor). */
 .assembly .l-label {
   --pl-u: min(var(--ui), 1.16);
+  /* The face, top layer first: the lip the lamp runs along; tarnish
+     gathering toward the margins with the middle rubbed bright by hands;
+     horizontal brushing (overlay, so it cuts both ways); and the room
+     reflected in polished brass, the lit ceiling in the top third and the
+     dark house as a band just under the middle. */
+  --pl-face:
+    linear-gradient(180deg, rgba(255, 250, 230, 0.55) 0 1px, transparent 1px),
+    radial-gradient(80% 115% at 44% 40%, rgba(255, 240, 200, 0.2), transparent 52%, rgba(46, 26, 3, 0.42) 100%),
+    url('/static/assets/tex/grain-brushed.webp') 0 0 / 260px 130px,
+    linear-gradient(180deg, color-mix(in srgb, var(--bz-3) 60%, var(--bz-4)) 0%, var(--bz-3) 12%,
+      var(--bz-2) 38%, var(--bz-1) 56%, color-mix(in srgb, var(--bz-1) 70%, var(--bz-2)) 64%,
+      var(--bz-2) 80%, var(--bz-1) 100%);
   font-size: calc(11px * var(--pl-u));
   padding: calc(4px * var(--pl-u)) calc(9px * var(--pl-u)) calc(3px * var(--pl-u));
   color: var(--bz-ink);
   font-weight: 640;
-  text-shadow: 0 0.6px 0 color-mix(in srgb, var(--bz-4) 70%, transparent);
-  background:
-    linear-gradient(180deg, rgba(255, 250, 230, 0.4) 0 1px, transparent 1px),
-    url('/static/assets/tex/grain-brushed.webp') 0 0 / 140px 70px,
-    linear-gradient(180deg, var(--bz-3), var(--bz-2) 46%, var(--bz-1));
-  background-blend-mode: normal, soft-light, normal;
+  /* cut into the brass: the lower wall of each stroke catches the light */
+  text-shadow: 0 0.7px 0 color-mix(in srgb, var(--bz-4) 75%, transparent),
+               0 -0.5px 0 rgba(20, 10, 0, 0.35);
+  background: var(--pl-face);
+  background-blend-mode: normal, normal, overlay, normal;
   border: 1px solid;
   border-color: var(--bz-4) var(--bz-1) var(--bz-0) var(--bz-3);
-  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.55), 1px 2px 3px rgba(0, 0, 0, 0.55);
+  /* a chamfer all round (lit top and left, shaded bottom and right), then
+     the plate's own shadow on the cornice */
+  box-shadow:
+    inset 0 1px 0 rgba(255, 246, 214, 0.45),
+    inset 1px 0 0 rgba(255, 238, 196, 0.22),
+    inset 0 -1.5px 0 rgba(44, 26, 4, 0.55),
+    inset -1px 0 0 rgba(44, 26, 4, 0.4),
+    inset 0 0 calc(3px * var(--pl-u)) rgba(46, 26, 3, 0.35),
+    0 1px 0 rgba(0, 0, 0, 0.55), 1px 2px 3px rgba(0, 0, 0, 0.55);
 }
 :root[data-wing="salon"] .l-salon,
 :root[data-wing="bureau"] .l-bureau,
@@ -449,11 +468,8 @@
 :root[data-theme="ivory"][data-wing="bureau"] .l-bureau {
   color: var(--bz-ink);
   border-color: var(--bz-4) var(--bz-1) var(--bz-0) var(--bz-3);
-  background:
-    linear-gradient(180deg, rgba(255, 250, 230, 0.4) 0 1px, transparent 1px),
-    url('/static/assets/tex/grain-brushed.webp') 0 0 / 140px 70px,
-    linear-gradient(180deg, var(--bz-3), var(--bz-2) 46%, var(--bz-1));
-  background-blend-mode: normal, soft-light, normal;
+  background: var(--pl-face);
+  background-blend-mode: normal, normal, overlay, normal;
 }
 .assembly .l-label::before,
 .assembly .l-label::after {
@@ -462,7 +478,11 @@
   background:
     linear-gradient(var(--slot, 30deg), transparent 42%, rgba(18, 11, 4, 0.9) 42% 58%, transparent 58%),
     radial-gradient(circle at 36% 30%, var(--bz-4), var(--bz-2) 55%, var(--bz-0));
-  box-shadow: 0 0.5px 0.5px rgba(0, 0, 0, 0.6);
+  /* seated in a countersink, with the oil of years in the gap */
+  box-shadow:
+    0 0 0 0.6px rgba(24, 13, 2, 0.85),
+    0 0 0 1.4px color-mix(in srgb, var(--bz-1) 70%, transparent),
+    0 0.6px 1.2px 1.2px rgba(30, 16, 2, 0.45);
 }
 .assembly .l-label::before { left: calc(3px * var(--pl-u)); }
 .assembly .l-label::after { right: calc(3px * var(--pl-u)); }
@@ -477,7 +497,14 @@
   background:
     radial-gradient(circle at 36% 30%, rgba(255, 255, 255, 0.5) 0 11%, transparent 22%),
     radial-gradient(circle at 50% 58%, var(--jw-off), #0a0503 72%);
-  box-shadow: 0 0 0 0.8px var(--bz-0), 0 0 0 1.6px var(--bz-3), 0 1px 1px 1.2px rgba(0, 0, 0, 0.5);
+  /* the collet: a dark seat, a bright bezel, then the oil-dark countersink
+     the bezel sits in */
+  box-shadow:
+    0 0 0 0.8px var(--bz-0),
+    0 0 0 1.6px var(--bz-3),
+    0 -0.4px 0 1.8px color-mix(in srgb, var(--bz-4) 60%, transparent),
+    0 0 0 2.6px rgba(26, 14, 2, 0.7),
+    0 0.8px 1.6px 2.6px rgba(26, 14, 2, 0.4);
 }
 .l-salon .l-jewel { right: calc(1.6px * var(--pl-u)); }
 .l-bureau .l-jewel { left: calc(1.6px * var(--pl-u)); }
@@ -497,8 +524,11 @@
   :root[data-wing="salon"] .l-bureau:hover,
   :root[data-wing="bureau"] .l-salon:hover {
     border-color: var(--bz-4) var(--bz-2) var(--bz-1) var(--bz-4);
-    box-shadow: 0 1px 0 rgba(0, 0, 0, 0.55), 1px 2px 3px rgba(0, 0, 0, 0.55),
-                inset 0 0 0 1px color-mix(in srgb, var(--bz-4) 60%, transparent);
+    box-shadow:
+      inset 0 0 0 1px color-mix(in srgb, var(--bz-4) 60%, transparent),
+      inset 0 -1.5px 0 rgba(44, 26, 4, 0.55),
+      inset 0 0 calc(3px * var(--pl-u)) rgba(46, 26, 3, 0.35),
+      0 1px 0 rgba(0, 0, 0, 0.55), 1px 2px 3px rgba(0, 0, 0, 0.55);
   }
 }
 
