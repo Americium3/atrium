@@ -117,6 +117,10 @@ FEED_WINDOW_MS = 7 * 24 * 3600 * 1000
 EPISODE_WINDOW_MS = 48 * 3600 * 1000
 FEED_CAP = 60
 DAEMON_STALE_S = 15 * 60
+# How long /api/status, /api/feed and /api/stats hold a request while the
+# first round of adapter ticks is still out. Well under the page's own 12 s
+# fetch timeout, and past a round in which every source times out once.
+WARM_WAIT_S = 8.0
 
 AUTOPILOT_URL = "http://127.0.0.1:8767"
 GS_URL = "http://127.0.0.1:8768"
@@ -638,6 +642,20 @@ _gs_games: dict[str, str] = {}
 # idempotent, and their timestamps are the events' own — nothing resurfaces as
 # unread.
 _warmed: set[str] = set()
+
+# Set once the first round of ticks has come back. Until then every Source is
+# as its constructor left it (lamp 'checking', no groups, no stat), and a
+# page that polled in that window took the empties as truth: the Ledger
+# emptied, then replayed every plaque as a new arrival a poll later.
+_first_round = asyncio.Event()
+
+
+async def _hub_is_warm() -> bool:
+    """Wait (briefly) for the first round, and say whether it arrived."""
+    if not _first_round.is_set():
+        with suppress(asyncio.TimeoutError):
+            await asyncio.wait_for(_first_round.wait(), WARM_WAIT_S)
+    return _first_round.is_set()
 
 
 def load_cursors() -> None:
@@ -1348,6 +1366,7 @@ async def refresher() -> None:
                 if isinstance(r, Exception):
                     log.warning("tick error: %s", r)
             _report_lamps()
+            _first_round.set()
             tick_no += 1
             await asyncio.sleep(FAST_TICK_S)
 
@@ -1440,28 +1459,37 @@ async def api_services():
     return JSONResponse({"services": sorted(SERVICES, key=lambda s: s["order"])})
 
 
+# The three hall payloads wait out the hub's first round (bounded by
+# WARM_WAIT_S) and then say whether they were taken after it. "warm": false
+# means every empty in the payload is "not asked yet", not "nothing there".
 @app.get("/api/status")
 async def api_status():
+    warm = await _hub_is_warm()
     return JSONResponse({
         "services": {sid: src.status() for sid, src in SOURCES.items()},
         "generated": now_ms(),
+        "warm": warm,
     })
 
 
 @app.get("/api/feed")
 async def api_feed():
+    warm = await _hub_is_warm()
     now = now_ms()
     merged: list[dict] = []
     for src in SOURCES.values():
         merged.extend(d for d in src.dispatches()
                       if now - d["ts"] <= FEED_WINDOW_MS)
     merged.sort(key=lambda d: d["ts"], reverse=True)
-    return JSONResponse({"dispatches": merged[:FEED_CAP], "generated": now})
+    return JSONResponse({"dispatches": merged[:FEED_CAP], "generated": now,
+                         "warm": warm})
 
 
 @app.get("/api/stats")
 async def api_stats():
-    return JSONResponse({"stats": {sid: src.stat for sid, src in SOURCES.items()}})
+    warm = await _hub_is_warm()
+    return JSONResponse({"stats": {sid: src.stat for sid, src in SOURCES.items()},
+                         "warm": warm})
 
 
 @app.get("/api/works")

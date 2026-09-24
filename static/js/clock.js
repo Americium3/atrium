@@ -566,7 +566,12 @@ function start(paint) {
   document.addEventListener('visibilitychange', function () {
     if (document.hidden) { stop(); } else { run(); }
   });
-  window.addEventListener('atrium:motionchange', run);
+  // A motion flip in a hidden tab (another tab's Preferences, the OS
+  // setting) only chooses the loop; visibilitychange starts it on the way
+  // back. Running it here restarted the deadbeat tick in the background.
+  window.addEventListener('atrium:motionchange', function () {
+    if (!document.hidden) run();
+  });
   run();
 }
 

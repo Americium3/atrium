@@ -527,6 +527,23 @@ html[data-boot="suppressed"] #hall { animation: hall-fade 0.3s var(--ease-out) b
 }
 :root[data-theme="ivory"] .l-badge { background: var(--gold-text); }
 .l-badge[hidden] { display: none; }
+/* The count the disc stands for, engraved just outside the housing beside
+   it, in the gap before PREFERENCES. Hover and keyboard focus only: at rest
+   the disc carries no numeral, and a title tooltip never reaches focus. */
+.l-count {
+  position: absolute;
+  top: 0; left: calc(100% + 7px);   /* clear of the 5px focus ring */
+  font-size: calc(10px * var(--ui));
+  line-height: 1;
+  letter-spacing: 0.04em;
+  color: var(--gold-text);
+  opacity: 0;
+  transition: opacity 0.2s;
+  pointer-events: none;
+}
+.l-count[hidden] { display: none; }
+#ledger-btn:hover .l-count,
+#ledger-btn:focus-visible .l-count { opacity: 1; }
 /* Arrival: the carrier seats itself, once. Event-driven, never idle — the
    hall at rest is silent architecture. As a CSS animation this also collapses
    under REDUCED motion, which the inline transform it replaces did not. */
@@ -570,6 +587,20 @@ html[data-boot="suppressed"] #hall { animation: hall-fade 0.3s var(--ease-out) b
 #ticker.rolling:focus-within .t-track { animation-play-state: paused; }
 #ticker.static { text-align: center; }
 @keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+/* Reduced motion: the band is set in pages stacked in one cell, and turns
+   them with a slow crossfade. Opacity only, so every page stays in the
+   accessibility tree and the band is heard whole. */
+#ticker.paged { text-align: center; }
+#ticker.paged .t-track { display: grid; width: 100%; }
+.t-page {
+  grid-area: 1 / 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  opacity: 0;
+  transition: opacity 0.9s ease;
+}
+.t-page.on { opacity: 1; }
 .t-sep { color: var(--gold); padding: 0 14px; }
 /* The loop's second copy; aria-hidden, and layout-neutral. */
 .t-twin { display: inline; }
@@ -2665,6 +2696,15 @@ html[lang="zh"] .g-name { letter-spacing: 0.17em; }
   transition: color 0.25s, border-color 0.25s, opacity 0.25s;
 }
 .l-stamp-cap { font-size: calc(10px * var(--ui)); letter-spacing: 0.18em; }
+/* Engraved beside the label only while a chip narrows the column: the stamp
+   clears both wings regardless, and the tooltip was the only place that
+   said so. */
+.l-stamp-scope {
+  font-size: calc(9px * var(--ui)); letter-spacing: 0.18em;
+  padding-left: calc(7px * var(--ui));
+  border-left: 1px solid var(--line);
+}
+.l-stamp-scope[hidden] { display: none; }
 .l-stamp-ico { width: calc(15px * var(--ui)); height: calc(15px * var(--ui)); }
 .l-stamp-ico .s-head, .l-stamp-ico .s-grip { fill: var(--bronze); }
 .l-stamp-ico .s-base { fill: var(--bronze-cap); }
@@ -3404,6 +3444,12 @@ html[data-entered="no"] #stage { animation: stage-dolly 0.9s var(--ease-out) bot
 }
 :root[data-motion="reduced"] #ticker.rolling .t-track {
   animation: none; transform: none;
+}
+/* The one motion the band keeps (DESIGN: "at most a slow crossfade
+   rotation"). Without this the kill switch above turns each page into a
+   hard cut. */
+:root[data-motion="reduced"] #ticker.paged .t-page {
+  transition-duration: 0.9s !important;
 }
 
 /* Ledger drawer: a fade instead of the slide. data-motion is the one switch:

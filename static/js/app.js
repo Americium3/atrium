@@ -33,6 +33,8 @@ var STR = {
     lampOpen: 'Reachable', lampDark: 'Offline', lampChecking: 'Checking',
     justNow: 'just now', minAgo: '{n} min ago', hAgo: '{n} h ago', dAgo: '{n} d ago',
     linesOpen: 'LINES OPEN {n}/{m}',
+    hubLost: 'NO WORD FROM THE HUB',
+    ledgerUnreadable: 'The Ledger could not be read',
     'desc.autopilot': 'Season anime, fetched and shelved while you sleep.',
     'desc.groundstation': 'Workshop mods tracked, updates caught in orbit.',
     'desc.outreach': "The day's introductions, briefed and dealt.",
@@ -131,6 +133,7 @@ var STR = {
     markAllHint: 'Strike every dispatch in the window, both wings',
     markAllDone: 'Nothing left to strike',
     markAllStruck: '{n} {n|dispatch|dispatches} struck',
+    markAllScope: 'BOTH WINGS',
     srOpen: 'open', srDark: 'dark', srChecking: 'checking',
     opensTab: 'Opens in its own tab.',
     unread: 'unread',
@@ -165,6 +168,8 @@ var STR = {
     lampOpen: '已点亮', lampDark: '离线', lampChecking: '检查中',
     justNow: '刚刚', minAgo: '{n} 分钟前', hAgo: '{n} 小时前', dAgo: '{n} 天前',
     linesOpen: '线路畅通 {n}/{m}',
+    hubLost: '中枢没有回音',
+    ledgerUnreadable: '消息总台暂时读不出来',
     'desc.autopilot': '当季新番，睡着也替你追完入库。',
     'desc.groundstation': '创意工坊 Mod 尽在轨道监测之中。',
     'desc.outreach': '今日的引荐名单，已备好草稿待发。',
@@ -261,6 +266,7 @@ var STR = {
     markAllHint: '把窗口内两翼的消息一次全部盖章',
     markAllDone: '没有未读了',
     markAllStruck: '已划去 {n} 条',
+    markAllScope: '两翼一并',
     srOpen: '已点亮', srDark: '未点亮', srChecking: '检查中',
     opensTab: '在单独的标签页中打开。',
     unread: '未读',
@@ -308,7 +314,15 @@ var statuses = {};
 var stats = {};
 var feed = [];
 var firstFeed = true;
+/* What the Ledger may claim. Until a feed has landed it is 'loading' and the
+   ghosts stay; a feed that could not be read is 'failed', which is not the
+   same fact as an empty window and must not say "No dispatches". */
+var feedState = 'loading';
 var plaqueEls = {};   // dispatch id -> element (re-polls never re-animate)
+/* Every dispatch id this page has shown. The plaque cache forgets an id the
+   moment it leaves the feed, so a dispatch that dropped out for one poll (a
+   hub restarting) came back playing 'arrive' as if it were news. */
+var seenIds = {};
 var chipFilter = 'all';   // session-only, resets to ALL on every load (R11)
 /* Ledger drawer state */
 var ledgerOpening = false;    // true only during openLedger() render pass
@@ -397,11 +411,32 @@ function syncReadMarks() {
   updateLedgerBadge();
 }
 
+/* Where the pointer last really was. Chrome answers content moving under a
+   still pointer (the drawer sliding in, a poll pushing the column down, a
+   chip reflowing it) with pointerover/pointerenter at the SAME coordinates
+   and no pointermove, so an enter proves nothing about the reader. Recorded
+   in the capture phase, before any card sees the event, with the verdict
+   kept for the cards to read. */
+var ptrX = NaN, ptrY = NaN, ptrMoved = false;
+window.addEventListener('pointermove', function (e) {
+  ptrMoved = e.clientX !== ptrX || e.clientY !== ptrY;
+  ptrX = e.clientX;
+  ptrY = e.clientY;
+}, { capture: true, passive: true });
+
+/* Set while the hall itself moves focus onto a plaque (the focused one left
+   the feed): the caret landed there, but the reader did not put it there. */
+var quietFocus = false;
+
 /* Arm a card so resting on it marks its dispatch read. Touch is excluded on
    purpose: a tap fires pointerenter, which would mark dispatches read for
    the crime of being scrolled past under a thumb. Keyboard gets the same
    deal as the pointer — focus IS the caret coming to rest, so it marks at
-   once rather than after a dwell nobody could see. */
+   once rather than after a dwell nobody could see.
+   The dwell starts on a pointermove that actually moved, never on
+   pointerenter: a card that slides under a pointer resting on the hall was
+   not reached by the reader, and the drawer opening over a parked mouse
+   used to strike whichever plaque landed under it. */
 function armDwell(node, id) {
   var timer = null;
   function cancel() {
@@ -409,9 +444,12 @@ function armDwell(node, id) {
     timer = null;
     node.classList.remove('reading');
   }
-  node.addEventListener('pointerenter', function (e) {
+  // renderLedger calls this when it detaches or moves the card: a removed
+  // node never hears pointerleave, and its timer struck it anyway.
+  node._dwellCancel = cancel;
+  node.addEventListener('pointermove', function (e) {
     if (e.pointerType && e.pointerType !== 'mouse' && e.pointerType !== 'pen') return;
-    cancel();
+    if (timer || !ptrMoved) return;
     // .reading runs the dwell out loud — the champagne rim drains and the
     // diamond closes over exactly DWELL_MS, so a mechanic with no button to
     // press still shows its work, and leaving early visibly aborts it.
@@ -419,11 +457,28 @@ function armDwell(node, id) {
     timer = setTimeout(function () {
       timer = null;
       node.classList.remove('reading');
-      markRead(id);
+      // A dwell that ran its course on a card still in the column stands,
+      // even with a poll in flight that will drop the dispatch: the reader
+      // rested on what the hall showed, for the whole dwell. Holding the
+      // mark until the answer lands would leave a drained rim on an unread
+      // card for as long as the hub takes (up to FETCH_MS).
+      if (node.isConnected) markRead(id);
     }, DWELL_MS);
   });
   node.addEventListener('pointerleave', cancel);
-  node.addEventListener('focusin', function () { cancel(); markRead(id); });
+  node.addEventListener('focusin', function () {
+    cancel();
+    if (!quietFocus) markRead(id);
+  });
+}
+
+/* Every running dwell stops: the drawer opening or shutting moves the whole
+   column out from under the pointer. */
+function cancelDwells() {
+  Object.keys(plaqueEls).forEach(function (id) {
+    var li = plaqueEls[id];
+    if (li._dwellCancel) li._dwellCancel();
+  });
 }
 
 /* ========================================================================
@@ -2338,12 +2393,32 @@ function worksVisible() {
          document.visibilityState === 'visible';
 }
 
+/* One request at a time. The 4 s beat used to fire whether or not the last
+   request had come back, and a slow reply landing after a quick one swung
+   the needle back to the older reading. */
+var worksBusy = false;
+var worksOkAt = 0;
+/* A dial that has heard nothing for this long stops pointing at a number.
+   It kept its last needle through any number of failed polls and looked
+   live the whole time. Two and a half beats: one miss is a hiccup. */
+var WORKS_STALE_MS = 10000;
+
 function pollWorks() {
-  if (!worksVisible()) return Promise.resolve();
+  if (!worksVisible() || worksBusy) return Promise.resolve();
+  worksBusy = true;
   return fetchJson('/api/works').then(function (w) {
+    // An older reading never replaces a newer one.
+    if (works && w && w.generated < works.generated) return;
     works = w;
+    worksOkAt = Date.now();
     syncWorks();
-  }).catch(function () { /* a restarting hub is not a reading */ });
+  }).catch(function () {
+    // A restarting hub is not a reading, and neither is the last one kept.
+    if (works && Date.now() - worksOkAt > WORKS_STALE_MS) {
+      works = null;
+      syncWorks();
+    }
+  }).then(function () { worksBusy = false; });
 }
 
 /* Instruments read live or they are decoration, so the cadence is the
@@ -2841,13 +2916,37 @@ function almanacVisible() {
          document.visibilityState === 'visible';
 }
 
+/* A payload without weather is the hub reporting a miss, and the hub asks
+   the forecast service again 120 s later (almanac.py FAIL_TTL_S).
+   The board asks on the same beat: waiting out the ten-minute poll kept one
+   missed forecast engraved as NO READING for ten minutes. */
+var ALM_RETRY_MS = 121000;   // just past the hub's 120 s, so the retry is real
+var almRetryT = null;
+var almReadAt = 0;
+
 function pollAlmanac() {
   if (!almanacVisible()) return Promise.resolve();
   return fetchJson('/api/almanac').then(function (a) {
     almanac = a;
+    almReadAt = Date.now();
+    clearTimeout(almRetryT);
+    if (!a.weather) almRetryT = setTimeout(pollAlmanac, ALM_RETRY_MS);
     renderAlmanac();
   }).catch(function () { /* a restarting hub is not a forecast */ });
 }
+
+/* The boards open at 2800px, so a window that grows past that shows a case
+   that has never read anything: the boot poll declined while it was hidden,
+   and the Almanac waited out a minute of blank plate for its sky tick. Read
+   the moment the case opens. */
+var boardsT = null;
+window.addEventListener('resize', function () {
+  clearTimeout(boardsT);
+  boardsT = setTimeout(function () {
+    if (!works) pollWorks();
+    if (!almanac || !almanac.weather || Date.now() - almReadAt > ALM_POLL_MS) pollAlmanac();
+  }, 150);
+});
 
 function startAlmanac() {
   clearInterval(almTimer);
@@ -2988,11 +3087,15 @@ function applyStatuses() {
   // The hall is a picture; say out loud how many lines are open, so a screen
   // reader learns the same thing the lamps show. Only on change — a live
   // region rewritten every poll would announce itself every poll.
-  // Nothing is said until a status is known: before the first answer (or
-  // when /api/status fails) "LINES OPEN 0/6" was announced as fact.
+  // Nothing is said until a status is known: before the first answer
+  // "LINES OPEN 0/6" was announced as fact. A hub that stops answering is
+  // said out loud, and a hub still asking clears the old count rather than
+  // repeating a number it no longer knows.
   var st = $('#hall-status');
-  if (st && services.length && known) {
-    var msg = allDark ? t('allDark') : t('linesOpen', { n: openCount, m: services.length });
+  // (A hub that never answered at all has no registry either, and is said.)
+  if (st && (services.length || hubLost)) {
+    var msg = hubLost ? t('hubLost') : !known ? ''
+      : allDark ? t('allDark') : t('linesOpen', { n: openCount, m: services.length });
     if (st.textContent !== msg) st.textContent = msg;
   }
 }
@@ -3034,8 +3137,13 @@ function applyStats() {
     if (!a) return;
     var span = $('.num-roll', a);
     var txt = statText(svc);
+    // The odometer is for a reading that changed. A line re-lettered into
+    // the other language holds the same numbers, and every gate used to
+    // roll on a language switch; the text swaps in place instead.
+    var relettered = span._lang !== undefined && span._lang !== lang;
+    span._lang = lang;
     if (span.textContent !== txt) {
-      if (span.textContent && root.dataset.motion !== 'reduced') {
+      if (span.textContent && !relettered && root.dataset.motion !== 'reduced') {
         clearTimeout(span._rollT);      // a stale timer would swap in old text
         span.classList.remove('roll');
         void span.offsetWidth;          // restart the odometer animation
@@ -3205,24 +3313,56 @@ function updatePlaque(li, d) {
 
 function renderLedger() {
   var ol = $('#plaques');
+  // Nothing is known yet, so nothing is claimed: the ghosts stay until the
+  // first feed lands. Opening the drawer used to wipe them and engrave "No
+  // dispatches" over a feed that was still on its way.
+  if (feedState === 'loading') {
+    if (!ol.querySelector('.ghost')) renderGhosts();
+    return;
+  }
   var shown = feed.filter(function (d) {
     return chipFilter === 'all' || d.wing === chipFilter;
   });
   if (firstFeed) { ol.textContent = ''; }
+  var shownIds = {};
+  shown.forEach(function (d) { shownIds[d.id] = 1; });
+  // A focused plaque about to leave hands focus to its neighbour, the next
+  // one down that stays (else the one above), found in the column as it
+  // stands now. Removing the focused node dropped focus to <body>, and the
+  // next arrow key started the walk over from the top.
+  var hadLi = document.activeElement && document.activeElement.closest
+    ? document.activeElement.closest('#plaques .plaque') : null;
+  var heir = null;
+  if (hadLi && !shownIds[hadLi.dataset.id]) {
+    heir = stays(hadLi, 'nextElementSibling') || stays(hadLi, 'previousElementSibling');
+  }
+  function stays(li, dir) {
+    for (var n = li[dir]; n; n = n[dir]) {
+      if (n.classList.contains('plaque') && shownIds[n.dataset.id]) return n;
+    }
+    return null;
+  }
+  function refocus() {
+    if (!hadLi || hadLi.contains(document.activeElement)) return;
+    // The hall put the caret here, not the reader, so it strikes nothing.
+    // (A plaque that stayed but was moved lost focus the same way.)
+    var to = hadLi.isConnected ? $('.pl-in', hadLi)
+      : heir && heir.isConnected ? $('.pl-in', heir) : $('#ledger-title');
+    quietFocus = true;
+    try { if (to) to.focus(); } finally { quietFocus = false; }
+  }
   // Cache-prune ONLY dispatches that left the feed window for real; a
   // chip-hidden plaque is detached but keeps its cache entry, so toggling
   // the filter back never rebuilds it as "fresh" (would re-animate).
-  var shownIds = {};
-  shown.forEach(function (d) { shownIds[d.id] = 1; });
   Object.keys(plaqueEls).forEach(function (id) {
     var li = plaqueEls[id];
     var inFeed = feed.some(function (d) { return d.id === id; });
-    if (!inFeed) {
+    if (!inFeed || (!shownIds[id] && li.parentNode)) {
+      // A detached card never hears pointerleave; its dwell stops here.
+      if (li._dwellCancel) li._dwellCancel();
       if (li.parentNode) li.parentNode.removeChild(li);
-      delete plaqueEls[id];
-    } else if (!shownIds[id] && li.parentNode) {
-      li.parentNode.removeChild(li);
     }
+    if (!inFeed) delete plaqueEls[id];
   });
   // Clear empty markers and ghosts; day breaks are reused below.
   Array.prototype.slice.call(ol.querySelectorAll('.l-empty, .ghost'))
@@ -3231,11 +3371,17 @@ function renderLedger() {
   if (!shown.length) {
     Array.prototype.slice.call(ol.querySelectorAll('.daybreak'))
       .forEach(function (n) { n.parentNode.removeChild(n); });
-    var empty = el('li', 'l-empty');
+    // An unread feed is not an empty one. Only a feed that answered with
+    // nothing may say "No dispatches".
+    var failed = feedState === 'failed';
+    var empty = el('li', 'l-empty' + (failed ? ' l-failed' : ''));
     var fl = svgUse('', '0 0 60 40', '#fleuron');
     empty.appendChild(fl);
-    empty.appendChild(el('div', 'zh-sentence', t('empty')));
+    empty.appendChild(el('div', 'zh-sentence', t(failed ? 'ledgerUnreadable' : 'empty')));
     ol.appendChild(empty);
+    feed.forEach(function (d) { seenIds[d.id] = 1; });
+    refocus();
+    syncStamp();
     return;
   }
   var midnight = new Date(); midnight.setHours(0, 0, 0, 0);
@@ -3304,8 +3450,10 @@ function renderLedger() {
       (function (el) {
         setTimeout(function () { el.classList.remove('cascading'); }, 1400);
       })(li);
-    } else if (fresh && !firstFeed) {
-      // Normal arrive animation on poll-driven new dispatch
+    } else if (fresh && !firstFeed && !seenIds[d.id]) {
+      // Normal arrive animation on poll-driven new dispatch. A plaque that
+      // is only coming back (the hub restarted and answered empty once) is
+      // not news, and nine of them replaying 'arrive' said it was.
       li.classList.add('arrive');
       li.addEventListener('animationend', function () {
         li.classList.remove('arrive');
@@ -3321,8 +3469,14 @@ function renderLedger() {
   });
   order.forEach(function (node, i) {
     var at = ol.children[i];
-    if (at !== node) ol.insertBefore(node, at || null);
+    if (at === node) return;
+    // A card being moved is leaving the spot the pointer rested on.
+    if (node._dwellCancel && node.isConnected) node._dwellCancel();
+    ol.insertBefore(node, at || null);
   });
+  feed.forEach(function (d) { seenIds[d.id] = 1; });
+  refocus();
+  syncStamp();      // a chip change moves what the stamp's scope line says
 }
 
 var badgeCount = 0;
@@ -3345,6 +3499,17 @@ function updateLedgerBadge() {
   if (btn) {
     if (count > 0) btn.title = label;
     else btn.removeAttribute('title');
+    // A browser never shows a title to keyboard focus, so the count was the
+    // pointer's alone. The same number is engraved beside the disc, shown
+    // only on hover and focus-visible (CSS): at rest the mark stays a mark.
+    var num = btn.querySelector('.l-count');
+    if (!num) {
+      num = el('span', 'l-count num');
+      num.setAttribute('aria-hidden', 'true');   // the sr-only line says it
+      btn.appendChild(num);
+    }
+    num.textContent = count > 0 ? String(count) : '';
+    num.hidden = count <= 0;
   }
 
   // Seat the disc only when the count actually grows. Re-polls return the
@@ -3378,6 +3543,16 @@ function syncStamp() {
   btn.setAttribute('aria-disabled', String(idle));
   btn.classList.toggle('inert', idle);
   btn.title = idle ? t('markAllDone') : t('markAllHint');
+  // While a chip narrows the column, the stamp still clears both wings, and
+  // only the tooltip said so: engraved on the stamp itself, keyboard and
+  // pointer both see it before they press.
+  var scope = btn.querySelector('.l-stamp-scope');
+  if (!scope) {
+    scope = el('span', 'l-stamp-scope display');
+    btn.appendChild(scope);
+  }
+  scope.textContent = t('markAllScope');
+  scope.hidden = idle || chipFilter === 'all';
   // Re-arm the live region while there is something to strike, so the next
   // run announces itself instead of writing a message that is already there.
   var say = $('#mark-all-status');
@@ -3424,6 +3599,9 @@ function openLedger() {
   var scrimEl = $('#ledger-scrim');
   var ledgerBtnEl = $('#ledger-btn');
   if (!ledgerEl || !scrimEl || !ledgerBtnEl) return;
+  // The column is about to slide in under wherever the pointer rests; no
+  // dwell from before may carry over into it.
+  cancelDwells();
   // Mark opening for cascade
   ledgerOpening = true;
   cascadeIndex = 0;
@@ -3453,6 +3631,8 @@ function closeLedger() {
   // struck the whole Ledger. Focus inside it goes back to the button first,
   // or making it inert would drop the reader's place onto <body>.
   if (ledgerEl.contains(document.activeElement)) ledgerBtnEl.focus();
+  // A dwell under way when the drawer shuts was not finished by the reader.
+  cancelDwells();
   ledgerEl.inert = true;
   ledgerEl.classList.remove('open');
   scrimEl.classList.remove('visible');
@@ -3518,27 +3698,87 @@ function selectChip(chip) {
 
 /* ========================================================================
    Ticker — status band + only-what's-new; never wing-filtered (R11)
+   ------------------------------------------------------------------------
+   The band is rebuilt only where nobody is reading it. A poll that changed
+   one figure used to tear the track down mid-scroll: a paused band swapped
+   the segment under the pointer, and a rolling one jumped to another
+   dispatch. Now a changed band waits for the loop to come round (the one
+   moment the track stands at its own start), for the pointer or the focus
+   to leave, or, under reduced motion, for the next page turn. A band that
+   says the same thing as before changes nothing at all.
    ======================================================================== */
-function renderTicker() {
-  var ticker = $('#ticker');
-  var track = $('#ticker-track');
+/* Crawl speed in px/s at --ui 1, so the band keeps its pace whatever the
+   engraving size. It was 0.32 s per character counted over BOTH copies of
+   the loop, which ran it at half the rate it meant: 1.6 characters a second,
+   three minutes before the last unread dispatch came on screen. */
+var TICKER_PX_S = 50;
+/* Reduced motion: the band stands still and turns a page this often. */
+var TICKER_PAGE_MS = 6000;
+var tickerKey = null;      // what the band on screen says
+var tickerLang = null;     // ...and in which language
+var tickerBox = '';        // the band width and engraving it was laid out for
+var tickerPending = null;  // a newer band waiting for its moment
+var tickerPageT = null;
+
+function tickerModel() {
   var segs = [];
   var open = 0, known = 0;
   services.forEach(function (s) {
     var st = statuses[s.id];
     if (st && st.state !== 'checking') { known++; if (st.state === 'open') open++; }
   });
-  if (known) segs.push(t('linesOpen', { n: open, m: services.length }));
+  // A hub that stopped answering is the first thing the band says; a count
+  // of open lines it cannot vouch for is not said at all.
+  if (hubLost) segs.push(t('hubLost'));
+  else if (known) segs.push(t('linesOpen', { n: open, m: services.length }));
   services.forEach(function (s) {
     var txt = statText(s);
     if (txt) segs.push(txt);
   });
-  var fresh = feed.filter(isNew).slice(0, 6);
-  var freshTexts = fresh.map(function (d) {
+  var fresh = feed.filter(isNew).slice(0, 6).map(function (d) {
     var h = headline(d);
     return (h.head + ' · ' + h.detail);
   });
+  var paged = root.dataset.motion === 'reduced';
+  return {
+    segs: segs, fresh: fresh, paged: paged,
+    key: [lang, paged ? 'r' : 'f', segs.join('\u0001'), fresh.join('\u0001')].join('\u0002')
+  };
+}
 
+/* now: the reader asked for this (language, motion, a new band width), so it
+   lands at once instead of waiting for the loop. */
+function renderTicker(now) {
+  var ticker = $('#ticker');
+  var m = tickerModel();
+  // A language switch re-letters the whole hall at once; the band with it.
+  if (tickerLang !== lang) now = true;
+  if (!now && m.key === tickerKey) { tickerPending = null; return; }
+  if (!now && tickerKey !== null && tickerHeld(ticker)) { tickerPending = m; return; }
+  applyTicker(m);
+}
+
+/* Is somebody reading the band right now? A rolling band always is, until
+   its loop comes round; a still one is while the pointer or the focus is on
+   it; a paged one is between page turns. */
+function tickerHeld(ticker) {
+  var track = $('#ticker-track');
+  if (ticker.classList.contains('rolling') && track.getAnimations &&
+      track.getAnimations().some(function (a) { return a.playState !== 'finished'; })) return true;
+  if (ticker.matches(':hover, :focus-within')) return true;
+  return !!tickerPageT;
+}
+
+function applyTicker(m) {
+  var ticker = $('#ticker');
+  var track = $('#ticker-track');
+  tickerPending = null;
+  tickerKey = m.key;
+  tickerLang = lang;
+  tickerBox = ticker.clientWidth + '|' + uiScale();
+  clearTimeout(tickerPageT);
+  tickerPageT = null;
+  ticker.classList.remove('rolling', 'static', 'paged');
   track.textContent = '';
   function sep() {
     // The diamond is ornament; a screen reader hears a pause instead of
@@ -3550,94 +3790,229 @@ function renderTicker() {
     s.appendChild(el('span', 'sr-only', '; '));
     return s;
   }
-  function pushSegs(list, cls) {
-    list.forEach(function (s, i) {
-      if (track.childNodes.length) track.appendChild(sep());
-      var seg = el('span', cls || '', s);
-      // A CJK title in the English hall (or a Latin one in the Chinese) is
-      // tagged, so a screen reader switches voice instead of spelling it.
-      var cjk = /[\u3040-\u30ff\u3400-\u9fff]/.test(s);
-      if (cjk !== (lang === 'zh')) seg.lang = cjk ? 'zh' : 'en';
-      track.appendChild(seg);
-    });
+  function seg(s, cls) {
+    var n = el('span', cls || '', s);
+    // A CJK title in the English hall (or a Latin one in the Chinese) is
+    // tagged, so a screen reader switches voice instead of spelling it.
+    var cjk = /[\u3040-\u30ff\u3400-\u9fff]/.test(s);
+    if (cjk !== (lang === 'zh')) n.lang = cjk ? 'zh' : 'en';
+    return n;
   }
-  function makeRolling() {
-    // Append the trailing separator FIRST, then clone — the track becomes
-    // (A◆)(A◆) so the -50% loop lands exactly on the period (a clone taken
-    // before the separator would jump by half a separator every cycle).
-    track.appendChild(sep());
-    // The loop needs a second copy of the band; a screen reader does not.
-    var twin = el('span', 't-twin');
-    twin.setAttribute('aria-hidden', 'true');
-    Array.prototype.slice.call(track.childNodes).forEach(function (n) {
-      twin.appendChild(n.cloneNode(true));
-    });
-    track.appendChild(twin);
-    var chars = track.textContent.length;
-    ticker.style.setProperty('--t-dur', Math.max(26, chars * 0.32) + 's');
-    ticker.classList.add('rolling');
-    ticker.classList.remove('static');
+  var items = m.segs.map(function (s) { return seg(s); })
+    .concat(m.fresh.map(function (s) { return seg(s, 't-new'); }));
+  if (!items.length) items = [seg('—')];
+  items.forEach(function (n) {
+    if (track.childNodes.length) track.appendChild(sep());
+    track.appendChild(n);
+  });
+  // Decided before any class goes on: the line is measured as it would
+  // stand still, so a band that has to roll is never set static first and
+  // then restarted a frame later (which snapped it back every poll).
+  var room = ticker.clientWidth - 8;
+  var overflows = track.getBoundingClientRect().width > room;
+  if (m.paged) {
+    if (overflows) pageTicker(ticker, track, items, room, sep);
+    else ticker.classList.add('static');
+    return;
   }
-  if (freshTexts.length) {
-    pushSegs(segs);
-    pushSegs(freshTexts, 't-new');
-    makeRolling();
-  } else {
-    pushSegs(segs.length ? segs : ['—']);
-    ticker.classList.add('static');
-    ticker.classList.remove('rolling');
-    // A status line wider than the band still needs to roll.
-    requestAnimationFrame(function () {
-      if (track.scrollWidth > ticker.clientWidth - 8) makeRolling();
-    });
-  }
+  if (!m.fresh.length && !overflows) { ticker.classList.add('static'); return; }
+  // Append the trailing separator FIRST, then clone — the track becomes
+  // (A◆)(A◆) so the -50% loop lands exactly on the period (a clone taken
+  // before the separator would jump by half a separator every cycle).
+  track.appendChild(sep());
+  var copy = track.getBoundingClientRect().width;
+  // The loop needs a second copy of the band; a screen reader does not.
+  var twin = el('span', 't-twin');
+  twin.setAttribute('aria-hidden', 'true');
+  Array.prototype.slice.call(track.childNodes).forEach(function (n) {
+    twin.appendChild(n.cloneNode(true));
+  });
+  track.appendChild(twin);
+  ticker.style.setProperty('--t-dur',
+    Math.max(8, copy / (TICKER_PX_S * uiScale())).toFixed(2) + 's');
+  ticker.classList.add('rolling');
 }
+
+/* Reduced motion: the band cannot crawl, and frozen at its start it showed
+   one screenful and cut the next title mid-word, so the rest of the unread
+   dispatches never appeared at all. It is set in pages that each fit the
+   band, broken only between segments, and turns one every TICKER_PAGE_MS
+   with a slow crossfade (the one motion DESIGN allows it). Every page stays
+   in the accessibility tree, so a screen reader still hears the whole band
+   once. A single segment wider than the band gets a page of its own and an
+   ellipsis rather than a cut. */
+function pageTicker(ticker, track, items, room, sep) {
+  var probe = sep();
+  track.appendChild(probe);
+  var sepW = probe.getBoundingClientRect().width;
+  var widths = items.map(function (n) { return n.getBoundingClientRect().width; });
+  // A page is set with a separator's width of margin at either end: packed
+  // to the very edge it read as a line that had been cut, not set.
+  room -= 2 * sepW;
+  var pages = [], cur = [], used = 0;
+  items.forEach(function (n, i) {
+    var w = widths[i] + (cur.length ? sepW : 0);
+    if (cur.length && used + w > room) { pages.push(cur); cur = []; used = 0; w = widths[i]; }
+    cur.push(n);
+    used += w;
+  });
+  if (cur.length) pages.push(cur);
+  track.textContent = '';
+  pages.forEach(function (list, i) {
+    var page = el('span', 't-page' + (i === 0 ? ' on' : ''));
+    list.forEach(function (n, j) {
+      if (j) page.appendChild(sep());
+      page.appendChild(n);
+    });
+    // Between pages a screen reader hears the same pause as between
+    // segments; nothing is drawn.
+    if (i < pages.length - 1) page.appendChild(el('span', 'sr-only', '; '));
+    track.appendChild(page);
+  });
+  ticker.classList.add('paged');
+  if (pages.length > 1) turnTickerPage();
+}
+
+function turnTickerPage() {
+  tickerPageT = setTimeout(function () {
+    var ticker = $('#ticker');
+    tickerPageT = null;
+    // Pauses on hover and focus, like the crawl, and never turns unseen.
+    if (document.hidden || ticker.matches(':hover, :focus-within')) { turnTickerPage(); return; }
+    // A newer band comes in on a page turn, the paged band's loop boundary.
+    if (tickerPending) { applyTicker(tickerPending); return; }
+    var pages = Array.prototype.slice.call(document.querySelectorAll('#ticker-track .t-page'));
+    var at = pages.findIndex(function (p) { return p.classList.contains('on'); });
+    pages.forEach(function (p, i) { p.classList.toggle('on', i === (at + 1) % pages.length); });
+    turnTickerPage();
+  }, TICKER_PAGE_MS);
+}
+
+(function () {
+  var ticker = $('#ticker'), track = $('#ticker-track');
+  if (!ticker || !track) return;
+  // The loop has come round: the track stands at its own start, which is
+  // the one moment a new band can go up without anything on screen jumping.
+  track.addEventListener('animationiteration', function (e) {
+    if (e.target === track && tickerPending) applyTicker(tickerPending);
+  });
+  // A still band that was held for a reader goes up when they leave it.
+  function released() {
+    if (!tickerPending || ticker.classList.contains('rolling')) return;
+    setTimeout(function () {
+      if (tickerPending && !tickerHeld(ticker)) applyTicker(tickerPending);
+    }, 0);
+  }
+  ticker.addEventListener('pointerleave', released);
+  ticker.addEventListener('focusout', released);
+  // Crawl or pages is a motion decision, and the pages are cut to the
+  // band's width and the engraving: either changing re-sets the band now.
+  window.addEventListener('atrium:motionchange', function () { renderTicker(true); });
+  var resizeT = null;
+  window.addEventListener('resize', function () {
+    clearTimeout(resizeT);
+    resizeT = setTimeout(function () {
+      if (tickerKey !== null && ticker.clientWidth + '|' + uiScale() !== tickerBox) {
+        renderTicker(true);
+      }
+    }, 200);
+  });
+})();
 
 /* ========================================================================
    Polling — 45 s, visibility-gated, immediate refetch on refocus
    ======================================================================== */
+/* Every request gives up after FETCH_MS. A hub that takes the connection and
+   then hangs left a poll pending for minutes, and a poll that never ends can
+   never report that it failed. Longer than the hub's own warm-up wait. */
+var FETCH_MS = 12000;
 function fetchJson(url) {
-  return fetch(url).then(function (r) {
+  var ctl = window.AbortController ? new AbortController() : null;
+  var timer = ctl ? setTimeout(function () { ctl.abort(); }, FETCH_MS) : null;
+  return fetch(url, ctl ? { signal: ctl.signal } : undefined).then(function (r) {
     if (!r.ok) throw new Error(url + ' -> ' + r.status);
     return r.json();
-  });
+  }).finally(function () { clearTimeout(timer); });
 }
+
+/* Whether the hall still hears its hub. The lamps, the stat lines and the
+   band used to hold the last good reading forever when /api/status stopped
+   answering, so a dead hub looked exactly like a healthy hall. */
+var hubLost = false;
+var RETRY_MS = 15000;      // after a miss, ask again well inside the 45 s beat
+var retryT = null;
+var refreshSeq = 0, appliedSeq = 0;
 
 function refresh() {
   // The dateline was written once at load, so a hall left open overnight
   // printed yesterday under a clock whose date aperture had already turned.
   renderDateline();
+  clearTimeout(retryT);
+  var seq = ++refreshSeq;
+  var none = function () { return null; };
   // Self-heal a failed boot: if the registry never arrived (hub restarting
   // when the tab loaded), retry it on the regular poll cadence.
   var reg = services.length ? Promise.resolve(null)
     : fetchJson('/api/services').then(function (payload) {
         services = payload.services || [];
         if (services.length) renderGates();
-      }).catch(function () { return null; });
+      }).catch(none);
   return Promise.all([
     reg,
-    fetchJson('/api/status').catch(function () { return null; }),
-    fetchJson('/api/feed').catch(function () { return null; }),
-    fetchJson('/api/stats').catch(function () { return null; })
+    fetchJson('/api/status').catch(none),
+    fetchJson('/api/feed').catch(none),
+    fetchJson('/api/stats').catch(none)
   ]).then(function (all) {
-    var res = all.slice(1);
-    if (res[0]) statuses = res[0].services || {};
-    if (res[2]) stats = res[2].stats || {};
+    // Polls overlap (the beat, a refocus, a retry); an answer to an older
+    // question never overwrites a newer one.
+    if (seq < appliedSeq) return;
+    appliedSeq = seq;
+    var st = all[1], fd = all[2], sx = all[3];
+    // A hub still on its first round of adapter polls answers with every
+    // group empty and every stat blank. That is the hub clearing its throat,
+    // not a reading: it emptied the Ledger and then replayed every plaque as
+    // an arrival. The last reading stands and the hall asks again shortly.
+    function cold(p) { return !!p && p.warm === false; }
+    // No answer, an error, or a body that is not a status: every lamp goes
+    // back to asking, and the band and the live region say why.
+    var wasLost = hubLost;
+    hubLost = !(st && st.services && typeof st.services === 'object');
+    statuses = hubLost ? {} : st.services;
+    if (!(sx && sx.stats && typeof sx.stats === 'object')) stats = {};
+    else if (!cold(sx)) stats = sx.stats;
     applyStatuses();
     applyStats();
-    if (res[1]) {
-      feed = res[1].dispatches || [];
+    if (fd && Array.isArray(fd.dispatches)) {
+      if (!cold(fd)) {
+        // The first feed landing in an open drawer falls in as the opening
+        // cascade would have; the drawer held its ghosts until now.
+        var falling = firstFeed && $('#ledger').classList.contains('open');
+        feed = fd.dispatches;
+        feedState = 'ok';
+        if (falling) { ledgerOpening = true; cascadeIndex = 0; }
+        renderLedger();
+        ledgerOpening = false;
+        firstFeed = false;
+      }
+    } else if (feedState !== 'ok') {
+      // Only a Ledger that never read says so. After a good read the plaques
+      // stay: a dispatch that happened is still true when the hub goes quiet.
+      feedState = 'failed';
       renderLedger();
-      firstFeed = false;
     }
     updateLedgerBadge();
-    renderTicker();
+    // Losing the hub (or finding it again) is not a routine change of
+    // figure: the band says so at once rather than a loop later, still
+    // counting open lines it can no longer see.
+    renderTicker(hubLost !== wasLost);
+    if (hubLost || !fd || cold(st) || cold(fd) || cold(sx)) retryT = setTimeout(poll, RETRY_MS);
   });
 }
 
-setInterval(function () {
+function poll() {
   if (document.visibilityState === 'visible') refresh();
-}, 45000);
+}
+setInterval(poll, 45000);
 document.addEventListener('visibilitychange', function () {
   if (document.visibilityState !== 'visible') return;
   refresh();
@@ -3828,6 +4203,12 @@ function setLang(next) {
     var a = $('#gate-' + svc.id);
     if (!a) return;
     $('.g-desc', a).textContent = t(descKey(svc));
+    // An open launch notice is lettered once, on the click that opened it,
+    // so it kept its English under a Chinese description.
+    var notice = $('.g-notice', a);
+    if (notice && !notice.hidden) {
+      notice.textContent = t('darkNotice', { hint: svc.launch_hint || svc.url });
+    }
     if (svc.vacant) {
       $('.g-name', a).title = t('vacantName');
       $('.lamp-t', a).title = t('vacantLamp');
@@ -4109,7 +4490,11 @@ fetchJson('/api/services').then(function (payload) {
   renderGates();
   return refresh();
 }).catch(function () {
-  // Hub API unreachable — leave ghosts; refresh() retries the registry.
+  // Hub API unreachable — leave ghosts; refresh() retries the registry, and
+  // sooner than the 45 s beat, which left the ghosts up that long before the
+  // Ledger could say it had not been read.
+  clearTimeout(retryT);
+  retryT = setTimeout(poll, RETRY_MS);
 }).then(function () {
   // Deep links run regardless of how the boot fetch fared. ?ledger=1 is the
   // debug-only twin of ?prefs=1 — the drawer is the one surface a headless

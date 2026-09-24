@@ -343,7 +343,12 @@ third of its face.
 read live or they are decoration, but only while the board is genuinely on
 screen. Below 2800px it is `display:none`, and a hidden panel must never
 keep the host sampling: `worksVisible()` gates every tick, and the hub's own
-TTL means an unopened panel spawns no `nvidia-smi` at all.
+TTL means an unopened panel spawns no `nvidia-smi` at all. One request is out
+at a time (a tick is skipped while one is), and a reading whose `generated`
+is older than the one on the dials is dropped: overlapping replies used to
+land out of order and swing a needle back. A board that has heard nothing
+for 10 s drops every needle to NO READING instead of holding the last figure
+as if it were live.
 
 **Floor (v4.2), cut rather than drawn.** One plane hinged on its NEAR edge,
 `transform-origin: bottom center` with `rotateX(58deg)`, so the hall recedes
@@ -546,10 +551,13 @@ ignored. A lobby board has nowhere to report a parse error to.
 **The almanac poll.** `/api/almanac` every 10 minutes and the plate re-drawn
 every 60 seconds, both gated on `almanacVisible()` for the same reason the
 works board is: below 2800px the case is `display:none`, and a hidden panel
-must not have the hub calling a weather service on the reader's behalf. The
-60s tick is also the way back from a cold start: the case can be opened by
-a resize long after the boot fetch declined to run, and ten minutes of a
-blank plate is not a wait, it is a fault.
+must not have the hub calling a weather service on the reader's behalf. A
+resize that opens the case reads it at once, since the boot fetch declined
+while the case was hidden and the 60 s tick used to leave a blank plate for
+up to a minute; the tick stays as the fallback. A payload with no weather
+is the hub reporting a miss, and the board asks again 121 s later, just past
+the hub's own 120 s retry, rather than keeping NO READING up for the whole
+ten-minute poll.
 
 ## Gates (R9)
 
@@ -606,7 +614,9 @@ Plaques are links opening the dispatch url.
   * It clears **both wings** even while a chip is filtering the column,
     because the annunciator on the masthead counts both: a control labelled
     "mark all read" that leaves the disc lit has not done what it says. The
-    tooltip states this rather than leaving it to be found.
+    tooltip states this rather than leaving it to be found, and while a chip
+    is filtering, the stamp engraves BOTH WINGS beside its label, because a
+    tooltip never shows for keyboard focus.
   * It runs the **dwell's own 420 ms drain**, staggered down the column from
     the top, so the confirmation is the same mechanic the reader already
     knows, shown at scale, rather than a new one. The stagger is capped in
@@ -637,10 +647,23 @@ Plaques are links opening the dispatch url.
   `pointerenter` would empty the badge as a side effect of aiming at the
   hatch. Touch is excluded outright, because a tap fires `pointerenter`, which would
   mark dispatches read for being scrolled past under a thumb.
+- The dwell starts on a pointer **movement** that lands on the card, never on
+  `pointerenter` by itself. When content moves under a parked pointer (the
+  drawer sliding in, a poll pushing the column down, a chip reflowing it),
+  Chrome raises enter events with no movement at all, and each of those used
+  to strike whichever plaque arrived under the cursor. A card that leaves the
+  column mid-dwell, or is moved by the poll, has its dwell cancelled; so does
+  every card when the drawer opens or shuts. A dwell that runs its full
+  420 ms on a card still in the column marks it read, even when a poll that
+  drops that dispatch is already on its way. The reader rested on a plaque the
+  hall was showing, and the hall cannot know the hub has let it go until the
+  answer lands.
 - **Unread signal (masthead)**: one 9 px disc seated at 45° on the hatch
   housing ring, an annunciator on the dispatch cap rather than a badge pinned to
   the button's bounding box. Carries no numeral: the count is exposed through
-  the button's tooltip and an `.sr-only` span, so the mark stays a mark. Flat
+  the button's tooltip and an `.sr-only` span, so the mark stays a mark. On
+  hover and keyboard focus the same count is engraved just outside the
+  housing, beside the disc, since a title tooltip never reaches focus. Flat
   fill + a single `--machine-edge` seat hairline; the ban on outer glow means
   value contrast does the work of "lit", which is why the colour is
   per-theme: champagne on Onyx bronze (13.9:1), `--gold-text` on Ivory's
@@ -652,20 +675,41 @@ Plaques are links opening the dispatch url.
   load; **no code path ties the lever to the chips** (R11). Chips are a
   radiogroup with arrow keys.
 - Empty state: small ornament + "No dispatches". Loading: hairline-pulse
-  plaques (no gray skeleton blocks).
+  plaques (no gray skeleton blocks), kept until the first feed lands, the
+  drawer opening included. A feed that could not be read says "The Ledger
+  could not be read" under the same ornament; only a feed that answered
+  empty may say "No dispatches". After one good read a failed poll keeps the
+  plaques, since a dispatch that happened is still true when the hub goes
+  quiet. The first feed landing in an open drawer falls in as the opening
+  cascade.
 - Client keys DOM nodes by dispatch id, so re-polls never re-animate existing
-  plaques; same-id dispatches update in place.
+  plaques; same-id dispatches update in place. A dispatch this page has
+  already shown does not play its arrival again after dropping out of one
+  poll (a hub restarting).
 
 ## Ticker (status band, not an echo)
 
 The band under the masthead carries **status segments** (LINES OPEN n/3 ·
 per-gate live stats) plus only dispatches **still unread**. When nothing is
-new: a static line, no scroll. Pauses on hover AND focus; reduced motion =
-static line with at most a slow crossfade rotation. The ticker draws from the
-same unfiltered feed as the Ledger and ignores both the lever and the chips
-(R11). It is the one surface a read does **not** update on the spot: it is a
-marquee, and rebuilding the track mid-scroll snaps it back to the start, so it
-catches up on its own poll instead.
+new: a static line, no scroll. Pauses on hover AND focus. The crawl runs at
+50 px/s times `--ui`, measured on one copy of the loop (the old per-character
+rate counted the `aria-hidden` twin as well and ran at half speed). Reduced
+motion = static line with at most a slow crossfade rotation: an overflowing
+band is set in pages that each fit, broken only between segments, and turns
+one every 6 s with a 0.9 s crossfade, held on hover and focus. A single
+segment wider than the band gets a page of its own and an ellipsis. Every
+page stays in the accessibility tree, so a screen reader hears the band once
+and whole. The ticker draws from the same unfiltered feed as the Ledger and
+ignores both the lever and the chips (R11).
+
+It is the one surface a read does **not** update on the spot, and no poll
+rebuilds it under a reader either. A band that says something new waits for
+its moment: the loop coming round (the one instant the track stands at its
+own start), the pointer or focus leaving a still band, or the next page turn.
+A poll that says the same thing changes nothing on screen. Losing the hub or
+finding it again lands at once, with NO WORD FROM THE HUB in place of the
+line count. A language switch, a motion change and a new band width re-set
+it at once as well.
 
 ## Mode lever (R11)
 
@@ -724,10 +768,10 @@ Endpoints:
   mandatory per service; adapter and custom sigil optional (no adapter =
   lamp-only gate, no dispatches).
 - `GET /api/status`: served **from adapter caches** (no on-demand probing):
-  `{services: {id: {state: 'open'|'dark', latency_ms, note}}, generated}`
+  `{services: {id: {state: 'open'|'dark', latency_ms, note}}, generated, warm}`
 - `GET /api/feed`: `{dispatches: [{id, origin, wing, kind, params, ts,
-  url}], generated}`
-- `GET /api/stats`: `{stats: {id: {kind, params}}}` (piggybacked by client)
+  url}], generated, warm}`
+- `GET /api/stats`: `{stats: {id: {kind, params}}, warm}` (piggybacked by client)
 - `GET /api/works`: host instrumentation for the west board:
   `{cpu:{pct,cores}, mem:{pct,used_gb,total_gb}, gpu:{pct,used_gb,total_gb,
   util_pct,name}, net:{pct,down_mbs,up_mbs}, disk:{pct,free_gb,total_gb,
@@ -838,12 +882,35 @@ DARK, feed keeps others). File fallbacks catch `OSError` as well as
 `JSONDecodeError` (Windows sharing violations) and reuse the last good
 payload. Feed capped ~60 items, deduped by id, sorted ts desc.
 
+Warm-up: until the first round of adapter ticks has come back, every source
+is as its constructor left it (lamp checking, no dispatches, no stat).
+`/api/status`, `/api/feed` and `/api/stats` hold a request for up to
+`WARM_WAIT_S` (8 s) while that round is out, and every one of them carries
+`warm`, false when it had to answer before the round finished. A page that
+polled in that window used to take the empties as truth: the Ledger emptied,
+then replayed every plaque as an arrival on the next poll.
+
 ## Client polling
 
 `/api/feed` + `/api/status` (+stats) every 45 s, gated on
 `document.visibilityState`, immediate refetch on tab refocus. The dateline
 and the Ledger's TODAY / EARLIER break do not wait for a poll: a timer aimed
 at the next local midnight turns them with the clock's date aperture.
+
+- Every request gives up after 12 s, so a hub that hangs is a failed poll
+  rather than one that never ends.
+- The hall says when it has lost touch. A `/api/status` that is refused,
+  errors, or returns a body that is not a status puts every lamp back to
+  "…", and the live region and the band say NO WORD FROM THE HUB instead of
+  a line count nobody can vouch for. A failed `/api/stats` takes the stat
+  lines off the gates. Holding the last good reading made a dead hub look
+  exactly like a healthy hall.
+- After a miss (or a cold payload, or a boot that could not reach the
+  registry) the hall asks again 15 s later instead of waiting out the beat.
+- A payload marked `warm: false` comes from a hub still on its first round
+  of adapter polls. Its empties mean "not asked yet", so it is not applied.
+- Polls overlap (the beat, a refocus, a retry); their answers apply in
+  order, and an older one never overwrites a newer one.
 
 ## Implementation notes (60 fps)
 
@@ -869,7 +936,10 @@ Motion setting collapse all of the above to fades/instant.
 - **The Ledger drawer** lives at body level beside its scrim (inside `#hall`
   it painted under the scrim on every quiet boot). Opening it moves focus to
   its heading; while open, Tab cycles the drawer and its hatch. The poll
-  moves a plaque only when it is out of place, so focus survives it.
+  moves a plaque only when it is out of place, so focus survives it. When
+  the focused dispatch leaves the feed, focus goes to the next plaque down
+  (else the one above, else the heading), and that move marks nothing read:
+  the hall put the caret there, not the reader.
 - **Names**: a gate is named by its engraved name and lamp word and described
   by its description, status line, service note and "opens in its own tab".
   Service warnings are engraved under the lamp, not hidden in a title. The
