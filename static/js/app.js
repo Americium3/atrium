@@ -2037,6 +2037,9 @@ function renderWorks() {
     row.appendChild(el('span', 'wk-sval num', '—'));
     tape.appendChild(row);
   });
+  // A dial's drawn size moves without its register moving (the captions
+  // settle once the faces load), and its figures are sized from it.
+  if (casesRO) casesRO.observe($('.wk-dial', box));
   syncWorks();
 }
 
@@ -2155,8 +2158,8 @@ function relabelWorks() {
   syncWorks();
 }
 
-/* On screen only: the board is display:none below 2200px, and a hidden
-   panel must not keep the host sampling. */
+/* On screen only: the board is display:none below 2800px and when the
+   cases are folded, and a hidden panel must not keep the host sampling. */
 function worksVisible() {
   var b = $('#works');
   return !!b && getComputedStyle(b).display !== 'none' &&
@@ -2741,6 +2744,8 @@ function renderAlmanac() {
   var sky = buildSky(where, host, wx);
   host.textContent = '';
   host.appendChild(sky.svg);
+  // fitCases() re-cuts the plate when the register changes size under it.
+  host.dataset.plate = skyBox(host).key;
   // The plate is a picture (aria-hidden); what it engraves is said here.
   var said = sky.shown ? t('almSrTimes', { rise: hhmm(sky.shown.rise), set: hhmm(sky.shown.set) })
     : sky.sun && sky.sun.polar ? t(sky.sun.polar === 'day' ? 'almPolarDay' : 'almPolarNight') : '';
@@ -2755,8 +2760,9 @@ function renderAlmanac() {
   if (sky.here) almMidnightT = setTimeout(pollAlmanac, (24 - sky.here.hours) * 3600000 + 2000);
 }
 
-/* On screen only: the board is display:none below 2200px, and a hidden panel
-   must never keep the hub calling out to a weather service. */
+/* On screen only: the board is display:none below 2800px (and when the case
+   is folded), and a hidden panel must never keep the hub calling out to a
+   weather service. */
 function almanacVisible() {
   var b = $('#almanac');
   return !!b && getComputedStyle(b).display !== 'none' &&
@@ -2823,6 +2829,72 @@ function startAlmanac() {
     renderAlmanac();
   }, SKY_TICK_MS);
   pollAlmanac();
+}
+
+/* ----- Hanging the cases -------------------------------------------------
+   A case hangs from the cornice to the chair rail, so a short screen gives it
+   a short door, and the head and the tape keep their size while the
+   instruments take what is left. On a short enough wall that was nothing:
+   four captions over dials of 0px, a sky plate of no height, and the
+   Almanac's tape running out under the station plate. So the pair is
+   measured as laid out, and when a dial would be drawn smaller than its
+   figures can be read at, or the sky plate lower than its crossings can be
+   lettered in, both cases fold away and the aisle walls take their bays.
+   They go as a pair: one case left hanging in a symmetric hall reads as the
+   other one having fallen off.
+
+   The same pass hands the dials their drawn size (--dpu, which sizes their
+   figures) and re-cuts the sky plate when its register has changed size;
+   it used to keep the old register's proportions for up to a minute and
+   then change shape by itself on the next sky tick. */
+var DIAL_MIN_PX = 80;   // the figures are 13 units at most: 10px needs 77px
+var SKY_MIN_PX = 90;    // RISE and 07:09 at 10px beside a readable ellipse
+var casesHung = null;   // null: below 2800px, where there is no aisle
+var casesRO = null;     // set below; renderWorks() adds the dials to it
+
+function fitCases() {
+  var boards = [$('#works'), $('#almanac')];
+  var dials = $('#wk-dials'), host = $('#al-sky');
+  if (!boards[0] || !boards[1] || !dials || !host) return;
+  // Measured unfolded and folded again in this one task, so an unfolded
+  // frame is never painted.
+  boards.forEach(function (b) { delete b.dataset.fold; });
+  var open = getComputedStyle(boards[0]).display !== 'none';
+  var hung = null, dpu = 1;
+  if (open) {
+    var d = $('.wk-dial', dials), r = d ? d.getBoundingClientRect() : null;
+    var dialPx = r ? Math.min(r.width, r.height) : 0;
+    dpu = dialPx / 100;
+    hung = dialPx >= DIAL_MIN_PX && skyRoom(host).h >= SKY_MIN_PX;
+  }
+  if (hung === false) boards.forEach(function (b) { b.dataset.fold = 'away'; });
+  if (hung) {
+    // Rounded down, so the figures round up: never a hair under their size.
+    dials.style.setProperty('--dpu', (Math.floor(dpu * 1000) / 1000).toFixed(3));
+    if (host.dataset.plate !== skyBox(host).key) renderAlmanac();
+  }
+  var was = casesHung;
+  casesHung = hung;
+  if (was === hung) return;
+  // The wall was laid against the old answer: re-lay its bays around the
+  // cases, or across the aisle where they were.
+  buildAisles();
+  if (hung) readCases();
+}
+
+if (window.ResizeObserver) {
+  // The stage answers a new window size, the doors and the two flexing
+  // registers a new language, engraving size or reading's height.
+  casesRO = new ResizeObserver(function () { fitCases(); });
+  ['#stage', '#works .cs-door', '#almanac .cs-door', '#wk-dials', '#al-sky']
+    .forEach(function (sel) { var n = $(sel); if (n) casesRO.observe(n); });
+}
+// A folded case has no box to report a change of engraving size or language
+// with, and the stage does not always move for one, so the pair stayed folded
+// at a size it would now fit. Those two are asked about directly.
+if (window.MutationObserver) {
+  new MutationObserver(function () { fitCases(); })
+    .observe(root, { attributes: true, attributeFilter: ['data-ui', 'lang'] });
 }
 
 /* Pointer parallax: one rAF writer. It writes each gate shell's transform

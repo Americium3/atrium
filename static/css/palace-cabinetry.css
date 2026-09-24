@@ -130,6 +130,11 @@
 }
 :root[data-theme="ivory"] .board { --wood-tint: rgba(255, 244, 222, 0.06); }
 .board:hover .bd-glass::after { animation: none; }
+/* An aisle too short to hang the pair: fitCases() in app.js measured a dial
+   under its smallest legible face, or a sky plate under its smallest, and
+   the wall's bays take the aisle instead of a case with its instruments
+   squeezed out of it. */
+.board[data-fold="away"] { display: none; }
 
 /* The case's own shadow on the wall. The carcass is chamfered with a
    clip-path, which would eat a shadow, so the shadow is a filter on this
@@ -273,6 +278,10 @@
   display: flex; flex-direction: column;
   margin: var(--top) var(--st) 0;
   padding: calc(var(--fw) + 1.3cqw) calc(var(--fw) + 2.6cqw) calc(var(--fw) + 1.2cqw);
+  /* Whatever the door holds stays behind its glass. fitCases() folds the
+     cases before anything would need this, so it is the backstop, not the
+     layout: the tape used to run out under the station plate. */
+  overflow: clip;
   color: var(--cab-ink);
   --ink: var(--cab-ink);
   --ink-faint: var(--cab-faint);
