@@ -731,20 +731,27 @@ var ENTRANCE_HOLD = 900;
    callback says so, and a fixed two frames is not it: the main thread runs
    a frame or two ahead of the GPU, so its animation frames kept arriving on
    time while a heavy frame was still being rastered, and then stopped. So
-   this waits for the frames to run at the display's pace again, two short
-   intervals in a row: by then the heavy frame has gone out. "Short" is
-   under 25ms, or near the best this machine has shown, for a renderer that
-   never gets under it. */
+   this watches the frames for the heavy one, a gap of three frames or
+   more, and goes two short intervals after it: by then it has gone out.
+   With no heavy frame in CALM_RUN short intervals, nothing was heavy
+   enough to hold a frame back. "Short" is under 25ms, or near the best
+   this machine has shown, for a renderer that never gets under it. Two
+   short intervals from the start were not enough: at 3440 the GPU began a
+   flip's raster up to five frames after the flip, so the calm pair came
+   before it, and the throw's first frame went into the stall it was
+   waiting out (MO-1). */
+var CALM_RUN = 6;
 function afterDrawn(fn) {
-  var last = 0, best = Infinity, calm = 0;
+  var last = 0, best = Infinity, calm = 0, heavy = false;
   requestAnimationFrame(function tick(t) {
     if (last) {
       var dt = t - last;
       best = Math.min(best, dt);
-      calm = dt < Math.max(25, best * 1.5) ? calm + 1 : 0;
+      if (dt > Math.max(45, best * 2.7)) { heavy = true; calm = 0; }
+      else calm = dt < Math.max(25, best * 1.5) ? calm + 1 : 0;
     }
     last = t;
-    if (calm >= 2) fn(); else requestAnimationFrame(tick);
+    if (calm >= (heavy ? 2 : CALM_RUN)) fn(); else requestAnimationFrame(tick);
   });
 }
 function playEntrance(built) {
