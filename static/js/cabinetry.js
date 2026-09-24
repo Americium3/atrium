@@ -461,6 +461,16 @@ function skyPlate(svgEl, g, horizonY, seed) {
   var clip = sv('clipPath', { id: 'sky-enamel' });
   clip.appendChild(sv('ellipse', { cx: g.cx, cy: g.cy, rx: g.rx, ry: g.ry }));
   defs.appendChild(clip);
+  // Fired glass is never quite flat: a baked cloud grain, tiled small, is
+  // its orange peel.
+  var peel = sv('pattern', { id: 'sky-peel', patternUnits: 'userSpaceOnUse', width: 30, height: 30 });
+  peel.appendChild(sv('image', { href: '/static/assets/tex/grain-plaster.webp',
+    width: 30, height: 30, preserveAspectRatio: 'none' }));
+  defs.appendChild(peel);
+  // The bezel's shade on the enamel, off centre so it lies heaviest under
+  // the upper-left wall, the one standing between the plate and the key.
+  defs.appendChild(grad('radialGradient', 'sky-shade', { cx: 0.56, cy: 0.62, r: 0.64 },
+    [[0.7, 'sk-sh', 0], [0.9, 'sk-sh', 0.3], [1, 'sk-sh', 0.75]]));
   svgEl.appendChild(defs);
   var B = 6.5;
   svgEl.appendChild(sv('ellipse', { cx: g.cx + 1.2, cy: g.cy + 2.4, rx: g.rx + B, ry: g.ry + B }, 'sk-cast'));
@@ -487,11 +497,34 @@ function skyPlate(svgEl, g, horizonY, seed) {
     }
   }
   en.appendChild(stars);
-  // the enamel's own gloss, and the bezel's shade falling on it
-  en.appendChild(sv('ellipse', { cx: g.cx - g.rx * 0.25, cy: g.cy - g.ry * 0.55, rx: g.rx * 0.7, ry: g.ry * 0.28 }, 'sk-gloss'));
+  en.appendChild(sv('rect', { x: 0, y: g.cy - g.ry - 2, width: g.W, height: 2 * g.ry + 4,
+    fill: 'url(#sky-peel)' }, 'sk-peel'));
+  en.appendChild(sv('ellipse', { cx: g.cx, cy: g.cy, rx: g.rx, ry: g.ry, fill: 'url(#sky-shade)' }, 'sk-shade'));
+  // The one light the glaze gives back: a hairline crescent where the domed
+  // enamel rolls up to the bezel, under its upper-left wall. It was a broad
+  // white lozenge across the sky, which read as a glossy web button rather
+  // than enamel under a bezel.
+  en.appendChild(sv('path', { d: crescent(g, -84, 26, Math.max(2.6, g.ry * 0.075), 2.2) }, 'sk-shine'));
   svgEl.appendChild(en);
   svgEl.appendChild(sv('ellipse', { cx: g.cx, cy: g.cy, rx: g.rx, ry: g.ry }, 'sk-groove'));
   svgEl.appendChild(sv('ellipse', { cx: g.cx, cy: g.cy + 0.9, rx: g.rx, ry: g.ry }, 'sk-lip'));
+}
+/* A crescent lying just inside the plate's ellipse between two angles on
+   its own clock (0 at the apex, clockwise), set in along the curve's true
+   normal and swelling to t at its middle from nothing at either tip. */
+function crescent(g, a0, a1, t, inset) {
+  var outer = [], inner = [], N = 36;
+  for (var i = 0; i <= N; i++) {
+    var a = (a0 + (a1 - a0) * i / N) * Math.PI / 180;
+    var nx = Math.sin(a) / g.rx, ny = -Math.cos(a) / g.ry;
+    var m = Math.sqrt(nx * nx + ny * ny) || 1;
+    nx /= m; ny /= m;
+    var x = g.cx + g.rx * Math.sin(a), y = g.cy - g.ry * Math.cos(a);
+    var w = t * Math.pow(Math.sin(Math.PI * i / N), 1.3);
+    outer.push([x - nx * inset, y - ny * inset]);
+    inner.push([x - nx * (inset + w), y - ny * (inset + w)]);
+  }
+  return 'M' + outer.map(P).join(' L') + ' L' + inner.reverse().map(P).join(' L') + ' Z';
 }
 function sunBead(svgEl, x, y, up) {
   var gr = sv('g', null, 'sk-sun' + (up ? '' : ' down'));

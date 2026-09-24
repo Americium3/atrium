@@ -675,8 +675,15 @@ html[lang="zh"] .board .wk-slabel, html[lang="zh"] .board .al-strips .al-slabel 
 .board .al-arc .sk-bezel-lip { fill: none; stroke: rgba(255, 244, 214, 0.35); stroke-width: 0.5; }
 .board .al-arc .sk-stars { fill: var(--leaf-1); opacity: 0.85; }
 :root[data-theme="ivory"] .board .al-arc .sk-stars { opacity: 0; }
-.board .al-arc .sk-gloss { fill: rgba(255, 255, 255, 0.05); }
-:root[data-theme="ivory"] .board .al-arc .sk-gloss { fill: rgba(255, 255, 255, 0.28); }
+/* The enamel under its bezel: orange peel laid soft over both colours, the
+   bezel's shade at the rim, and one hairline of light where the glaze rolls
+   up to the bezel. */
+.board .al-arc .sk-peel { mix-blend-mode: soft-light; opacity: 0.45; }
+:root[data-theme="ivory"] .board .al-arc .sk-peel { opacity: 0.35; }
+.sk-sh { stop-color: #000; }
+:root[data-theme="ivory"] .board .al-arc .sk-shade { opacity: 0.55; }
+.board .al-arc .sk-shine { fill: #fff6e0; opacity: 0.14; }
+:root[data-theme="ivory"] .board .al-arc .sk-shine { fill: #ffffff; opacity: 0.6; }
 .board .al-arc .sk-groove { fill: none; stroke: #0b0703; stroke-width: 2.8; }
 .board .al-arc .sk-lip { fill: none; stroke: rgba(255, 236, 190, 0.32); stroke-width: 0.55; }
 .board .al-arc .a-track { stroke: none; }
