@@ -11,8 +11,15 @@
   var d = document.documentElement, ls;
   try { ls = window.localStorage; } catch (e) { ls = null; }
   var q = new URLSearchParams(location.search);   // debug overrides, not persisted
-  function get(k, f) { return (ls && ls.getItem(k)) || f; }
+  // getItem can throw as well as the getter (storage disabled per site, a
+  // quota error in some browsers). Unguarded, one throw aborted this whole
+  // script and the page lost its theme, its motion and ?entrance=0 at once.
+  function get(k, f) { try { return (ls && ls.getItem(k)) || f; } catch (e) { return f; } }
   var pref = q.get('theme') || get('atrium.theme', 'system');
+  // Anything else falls back to FOLLOW SYSTEM, as motion and ui do. An
+  // unknown value ("dark", a stored "Onyx") painted Ivory with no radio
+  // checked, and Appearance dropped out of the Tab ring.
+  if (pref !== 'onyx' && pref !== 'ivory') pref = 'system';
   var dark = pref === 'onyx' ||
     (pref === 'system' && matchMedia('(prefers-color-scheme: dark)').matches);
   d.dataset.theme = dark ? 'onyx' : 'ivory';
@@ -25,8 +32,15 @@
   // whole hall in front of the reader.
   var ui = q.get('ui') || get('atrium.ui', 'm');
   d.dataset.ui = (ui === 's' || ui === 'l') ? ui : 'm';
-  var motion = q.get('motion') || get('atrium.motion',
-    matchMedia('(prefers-reduced-motion: reduce)').matches ? 'reduced' : 'full');
+  // Motion, like the theme, has a FOLLOW SYSTEM setting (the default). The
+  // reader's choice is data-motion-pref; data-motion is what it resolves to,
+  // and it is the only thing the sheet and the scripts ever read.
+  var motionPref = q.get('motion') || get('atrium.motion', 'system');
+  if (motionPref !== 'full' && motionPref !== 'reduced') motionPref = 'system';
+  var motion = motionPref === 'system'
+    ? (matchMedia('(prefers-reduced-motion: reduce)').matches ? 'reduced' : 'full')
+    : motionPref;
+  d.dataset.motionPref = motionPref;
   d.dataset.motion = motion;
   // The entrance plays on every load. It was previously gated by a 6 h
   // localStorage stamp (`atrium.entered`), which meant the hall's best moment
@@ -37,6 +51,16 @@
   var play = motion === 'full';
   if (q.get('entrance') === '1') play = true;
   if (q.get('entrance') === '0') play = false;
+  // PREFERENCES > REPLAY ENTRANCE is a one-shot flag for the next load. It
+  // used to append ?entrance=1, which then stuck to the address bar and
+  // replayed on every reload. Under reduced motion a replay is the plain
+  // fade, like any other quiet boot: the beats would only be hard cuts.
+  try {
+    if (sessionStorage.getItem('atrium.replay')) {
+      sessionStorage.removeItem('atrium.replay');
+      play = motion === 'full';
+    }
+  } catch (e) { /* no session storage, no replay flag */ }
   d.dataset.entered = play ? 'no' : 'yes';
   // data-boot distinguishes a suppressed load (hall fades in at boot) from
   // a played entrance (flipping data-entered later must NOT re-fade).
@@ -54,6 +78,10 @@
 <link rel="preload" href="/static/fonts/EBGaramond-wght.ttf" as="font" type="font/ttf" crossorigin>
 <link rel="preload" href="/static/fonts/LXGWHeartSerif.ttf" as="font" type="font/ttf" crossorigin>
 <link rel="stylesheet" href="/static/css/atrium.css">
+<link rel="stylesheet" href="/static/css/palace-gates.css">
+<link rel="stylesheet" href="/static/css/palace-room.css">
+<link rel="stylesheet" href="/static/css/palace-cabinetry.css">
+<link rel="stylesheet" href="/static/css/palace-desk.css">
 </head>
 <body>
 
@@ -83,6 +111,65 @@
     <rect class="fs2" x="106" y="52" width="88" height="88"
           transform="rotate(45 150 96)" fill="none" stroke-width="1"/>
   </g>
+
+  <!-- Picture palace: shared paint for every proscenium. All gates share the
+       fanlight geometry (hub at 150,196, glass radius 113 on the 300x570
+       box), so one userSpace gradient per glass colour serves all six.
+       Stop colours come from CSS classes: var() does not resolve in
+       presentation attributes. -->
+  <radialGradient id="fl-amber" gradientUnits="userSpaceOnUse" cx="150" cy="196" r="113">
+    <stop offset="0" class="fl-amber s0"/><stop offset=".48" class="fl-amber s1"/>
+    <stop offset=".84" class="fl-amber s2"/><stop offset="1" class="fl-amber s3"/></radialGradient>
+  <radialGradient id="fl-rose" gradientUnits="userSpaceOnUse" cx="150" cy="196" r="113">
+    <stop offset="0" class="fl-rose s0"/><stop offset=".48" class="fl-rose s1"/>
+    <stop offset=".84" class="fl-rose s2"/><stop offset="1" class="fl-rose s3"/></radialGradient>
+  <radialGradient id="fl-celadon" gradientUnits="userSpaceOnUse" cx="150" cy="196" r="113">
+    <stop offset="0" class="fl-celadon s0"/><stop offset=".48" class="fl-celadon s1"/>
+    <stop offset=".84" class="fl-celadon s2"/><stop offset="1" class="fl-celadon s3"/></radialGradient>
+  <radialGradient id="fl-opal" gradientUnits="userSpaceOnUse" cx="150" cy="196" r="113">
+    <stop offset="0" class="fl-opal s0"/><stop offset=".48" class="fl-opal s1"/>
+    <stop offset=".84" class="fl-opal s2"/><stop offset="1" class="fl-opal s3"/></radialGradient>
+  <radialGradient id="fl-honey" gradientUnits="userSpaceOnUse" cx="150" cy="196" r="113">
+    <stop offset="0" class="fl-honey s0"/><stop offset=".48" class="fl-honey s1"/>
+    <stop offset=".84" class="fl-honey s2"/><stop offset="1" class="fl-honey s3"/></radialGradient>
+  <radialGradient id="fl-aqua" gradientUnits="userSpaceOnUse" cx="150" cy="196" r="113">
+    <stop offset="0" class="fl-aqua s0"/><stop offset=".48" class="fl-aqua s1"/>
+    <stop offset=".84" class="fl-aqua s2"/><stop offset="1" class="fl-aqua s3"/></radialGradient>
+  <!-- Unlit glass by day: it shows the sky it faces, pale at the head. -->
+  <linearGradient id="fl-day" gradientUnits="userSpaceOnUse" x1="0" y1="83" x2="0" y2="196">
+    <stop offset="0" class="fl-day s0"/><stop offset=".55" class="fl-day s1"/>
+    <stop offset="1" class="fl-day s2"/></linearGradient>
+  <!-- Etching: concentric frosted bands cut into the glass, every 9 units. -->
+  <radialGradient id="fl-etch" gradientUnits="userSpaceOnUse" cx="150" cy="196" r="9"
+                  spreadMethod="repeat">
+    <stop offset="0" class="fl-etch-s0"/><stop offset=".5" class="fl-etch-s1"/>
+    <stop offset="1" class="fl-etch-s0"/></radialGradient>
+  <!-- Leaf and glass grain, tiled in the portal's own units: an 88-unit
+       tile holds 8 x 8 leaves of 85 mm; the glass tooth is finer. -->
+  <pattern id="pt-gilt" patternUnits="userSpaceOnUse" width="88" height="88">
+    <image href="/static/assets/tex/grain-gilt.webp" width="88" height="88"/></pattern>
+  <pattern id="pt-frost" patternUnits="userSpaceOnUse" width="72" height="72">
+    <image href="/static/assets/tex/grain-frost.webp" width="72" height="72"/></pattern>
+  <!-- The fanlight's reflection of the room: one soft diagonal band. -->
+  <linearGradient id="fl-spec" gradientUnits="userSpaceOnUse" x1="70" y1="84" x2="190" y2="200">
+    <stop offset="0" class="fl-spec-s0"/><stop offset=".34" class="fl-spec-s0"/>
+    <stop offset=".44" class="fl-spec-s1"/><stop offset=".56" class="fl-spec-s0"/>
+    <stop offset="1" class="fl-spec-s0"/></linearGradient>
+  <!-- The hover sheen: one soft band of light travelling over the gilding. -->
+  <linearGradient id="p-sheen" x1="0" y1="0" x2="1" y2="0">
+    <stop offset="0" class="p-sheen-s0"/><stop offset=".5" class="p-sheen-s1"/>
+    <stop offset="1" class="p-sheen-s0"/></linearGradient>
+
+  <!-- Turned brass, seen as a cylinder: dark at both edges, the room's light
+       on the near-left face, a hot line where it faces the lamp. -->
+  <linearGradient id="cyl-lead" x1="0" y1="0" x2="1" y2="0">
+    <stop offset="0" class="cyl s0"/><stop offset=".22" class="cyl s1"/>
+    <stop offset=".36" class="cyl s2"/><stop offset=".62" class="cyl s3"/>
+    <stop offset="1" class="cyl s4"/></linearGradient>
+  <!-- Alabaster: lit from inside at night, stone by day. -->
+  <radialGradient id="alab" cx=".5" cy=".05" r=".95">
+    <stop offset="0" class="alab s0"/><stop offset=".45" class="alab s1"/>
+    <stop offset="1" class="alab s2"/></radialGradient>
 
   <!-- Registered services wear their own mark (see the generated block at the
        foot of this defs list). The fallback keystone is line art referenced
@@ -141,286 +228,54 @@
   <g id="mark-atrium"><g transform="translate(48,48) scale(1) translate(-48,-48)" fill="#8a6c12"><path d="M4 94 V44 A44 44 0 0 1 92 44 V94 Z"/></g><g transform="translate(48,48) scale(0.855) translate(-48,-48)" fill="#c9a227"><path d="M4 94 V44 A44 44 0 0 1 92 44 V94 Z"/></g><g transform="translate(48,48) scale(0.8) translate(-48,-48)" fill="none" stroke="#1a1409" stroke-opacity=".55" stroke-width="1.4"><path d="M4 94 V44 A44 44 0 0 1 92 44 V94 Z"/></g><g transform="translate(48,48) scale(0.755) translate(-48,-48)" fill="none" stroke="#1a1409" stroke-opacity=".3" stroke-width="1.4"><path d="M4 94 V44 A44 44 0 0 1 92 44 V94 Z"/></g><line x1="65.00" y1="48.00" x2="85.00" y2="48.00" stroke="#1a1409" stroke-width="0.7" stroke-opacity=".26"/><line x1="64.74" y1="50.95" x2="84.44" y2="54.42" stroke="#1a1409" stroke-width="0.7" stroke-opacity=".26"/><line x1="63.97" y1="53.81" x2="82.77" y2="60.65" stroke="#1a1409" stroke-width="0.7" stroke-opacity=".26"/><line x1="62.72" y1="56.50" x2="80.04" y2="66.50" stroke="#1a1409" stroke-width="0.7" stroke-opacity=".26"/><line x1="61.02" y1="58.93" x2="76.34" y2="71.78" stroke="#1a1409" stroke-width="0.7" stroke-opacity=".26"/><line x1="58.93" y1="61.02" x2="71.78" y2="76.34" stroke="#1a1409" stroke-width="0.7" stroke-opacity=".26"/><line x1="56.50" y1="62.72" x2="66.50" y2="80.04" stroke="#1a1409" stroke-width="0.7" stroke-opacity=".26"/><line x1="53.81" y1="63.97" x2="60.65" y2="82.77" stroke="#1a1409" stroke-width="0.7" stroke-opacity=".26"/><line x1="50.95" y1="64.74" x2="54.42" y2="84.44" stroke="#1a1409" stroke-width="0.7" stroke-opacity=".26"/><line x1="48.00" y1="65.00" x2="48.00" y2="85.00" stroke="#1a1409" stroke-width="0.7" stroke-opacity=".26"/><line x1="45.05" y1="64.74" x2="41.58" y2="84.44" stroke="#1a1409" stroke-width="0.7" stroke-opacity=".26"/><line x1="42.19" y1="63.97" x2="35.35" y2="82.77" stroke="#1a1409" stroke-width="0.7" stroke-opacity=".26"/><line x1="39.50" y1="62.72" x2="29.50" y2="80.04" stroke="#1a1409" stroke-width="0.7" stroke-opacity=".26"/><line x1="37.07" y1="61.02" x2="24.22" y2="76.34" stroke="#1a1409" stroke-width="0.7" stroke-opacity=".26"/><line x1="34.98" y1="58.93" x2="19.66" y2="71.78" stroke="#1a1409" stroke-width="0.7" stroke-opacity=".26"/><line x1="33.28" y1="56.50" x2="15.96" y2="66.50" stroke="#1a1409" stroke-width="0.7" stroke-opacity=".26"/><line x1="32.03" y1="53.81" x2="13.23" y2="60.65" stroke="#1a1409" stroke-width="0.7" stroke-opacity=".26"/><line x1="31.26" y1="50.95" x2="11.56" y2="54.42" stroke="#1a1409" stroke-width="0.7" stroke-opacity=".26"/><line x1="31.00" y1="48.00" x2="11.00" y2="48.00" stroke="#1a1409" stroke-width="0.7" stroke-opacity=".26"/><line x1="31.26" y1="45.05" x2="11.56" y2="41.58" stroke="#1a1409" stroke-width="0.7" stroke-opacity=".26"/><line x1="32.03" y1="42.19" x2="13.23" y2="35.35" stroke="#1a1409" stroke-width="0.7" stroke-opacity=".26"/><line x1="33.28" y1="39.50" x2="15.96" y2="29.50" stroke="#1a1409" stroke-width="0.7" stroke-opacity=".26"/><line x1="34.98" y1="37.07" x2="19.66" y2="24.22" stroke="#1a1409" stroke-width="0.7" stroke-opacity=".26"/><line x1="37.07" y1="34.98" x2="24.22" y2="19.66" stroke="#1a1409" stroke-width="0.7" stroke-opacity=".26"/><line x1="39.50" y1="33.28" x2="29.50" y2="15.96" stroke="#1a1409" stroke-width="0.7" stroke-opacity=".26"/><line x1="42.19" y1="32.03" x2="35.35" y2="13.23" stroke="#1a1409" stroke-width="0.7" stroke-opacity=".26"/><line x1="45.05" y1="31.26" x2="41.58" y2="11.56" stroke="#1a1409" stroke-width="0.7" stroke-opacity=".26"/><line x1="48.00" y1="31.00" x2="48.00" y2="11.00" stroke="#1a1409" stroke-width="0.7" stroke-opacity=".26"/><line x1="50.95" y1="31.26" x2="54.42" y2="11.56" stroke="#1a1409" stroke-width="0.7" stroke-opacity=".26"/><line x1="53.81" y1="32.03" x2="60.65" y2="13.23" stroke="#1a1409" stroke-width="0.7" stroke-opacity=".26"/><line x1="56.50" y1="33.28" x2="66.50" y2="15.96" stroke="#1a1409" stroke-width="0.7" stroke-opacity=".26"/><line x1="58.93" y1="34.98" x2="71.78" y2="19.66" stroke="#1a1409" stroke-width="0.7" stroke-opacity=".26"/><line x1="61.02" y1="37.07" x2="76.34" y2="24.22" stroke="#1a1409" stroke-width="0.7" stroke-opacity=".26"/><line x1="62.72" y1="39.50" x2="80.04" y2="29.50" stroke="#1a1409" stroke-width="0.7" stroke-opacity=".26"/><line x1="63.97" y1="42.19" x2="82.77" y2="35.35" stroke="#1a1409" stroke-width="0.7" stroke-opacity=".26"/><line x1="64.74" y1="45.05" x2="84.44" y2="41.58" stroke="#1a1409" stroke-width="0.7" stroke-opacity=".26"/><g transform="rotate(45 48 48)" fill="none" stroke="#1a1409" stroke-opacity=".5" stroke-width="1.4"><path d="M41 12.5 L48 7 L55 12.5"/><path d="M43 17.5 L48 13.5 L53 17.5"/></g><g transform="rotate(135 48 48)" fill="none" stroke="#1a1409" stroke-opacity=".5" stroke-width="1.4"><path d="M41 12.5 L48 7 L55 12.5"/><path d="M43 17.5 L48 13.5 L53 17.5"/></g><g transform="rotate(225 48 48)" fill="none" stroke="#1a1409" stroke-opacity=".5" stroke-width="1.4"><path d="M41 12.5 L48 7 L55 12.5"/><path d="M43 17.5 L48 13.5 L53 17.5"/></g><g transform="rotate(315 48 48)" fill="none" stroke="#1a1409" stroke-opacity=".5" stroke-width="1.4"><path d="M41 12.5 L48 7 L55 12.5"/><path d="M43 17.5 L48 13.5 L53 17.5"/></g><g transform="translate(48,48) scale(0.86) translate(-48,-48)"><g fill="#1a1409"><rect x="22" y="66" width="52" height="6"/><path d="M28 66 L28 47 A20 20 0 0 1 68 47 L68 66 L59 66 L59 47 A11 11 0 0 0 37 47 L37 66 Z"/><polygon points="48,16 58,26 48,36 38,26" fill="#fff8e1"/></g></g></g>
   <g id="mark-pressroom"><g transform="translate(48,48) scale(1) translate(-48,-48)" fill="#1c2f10"><path d="M20 4 H76 L92 20 V92 H4 V20 Z"/></g><g transform="translate(48,48) scale(0.855) translate(-48,-48)" fill="#2d6428"><path d="M20 4 H76 L92 20 V92 H4 V20 Z"/></g><g transform="translate(48,48) scale(0.8) translate(-48,-48)" fill="none" stroke="#eef4e6" stroke-opacity=".55" stroke-width="1.4"><path d="M20 4 H76 L92 20 V92 H4 V20 Z"/></g><g transform="translate(48,48) scale(0.755) translate(-48,-48)" fill="none" stroke="#eef4e6" stroke-opacity=".3" stroke-width="1.4"><path d="M20 4 H76 L92 20 V92 H4 V20 Z"/></g><line x1="65.00" y1="48.00" x2="85.00" y2="48.00" stroke="#eef4e6" stroke-width="0.7" stroke-opacity=".26"/><line x1="64.74" y1="50.95" x2="84.44" y2="54.42" stroke="#eef4e6" stroke-width="0.7" stroke-opacity=".26"/><line x1="63.97" y1="53.81" x2="82.77" y2="60.65" stroke="#eef4e6" stroke-width="0.7" stroke-opacity=".26"/><line x1="62.72" y1="56.50" x2="80.04" y2="66.50" stroke="#eef4e6" stroke-width="0.7" stroke-opacity=".26"/><line x1="61.02" y1="58.93" x2="76.34" y2="71.78" stroke="#eef4e6" stroke-width="0.7" stroke-opacity=".26"/><line x1="58.93" y1="61.02" x2="71.78" y2="76.34" stroke="#eef4e6" stroke-width="0.7" stroke-opacity=".26"/><line x1="56.50" y1="62.72" x2="66.50" y2="80.04" stroke="#eef4e6" stroke-width="0.7" stroke-opacity=".26"/><line x1="53.81" y1="63.97" x2="60.65" y2="82.77" stroke="#eef4e6" stroke-width="0.7" stroke-opacity=".26"/><line x1="50.95" y1="64.74" x2="54.42" y2="84.44" stroke="#eef4e6" stroke-width="0.7" stroke-opacity=".26"/><line x1="48.00" y1="65.00" x2="48.00" y2="85.00" stroke="#eef4e6" stroke-width="0.7" stroke-opacity=".26"/><line x1="45.05" y1="64.74" x2="41.58" y2="84.44" stroke="#eef4e6" stroke-width="0.7" stroke-opacity=".26"/><line x1="42.19" y1="63.97" x2="35.35" y2="82.77" stroke="#eef4e6" stroke-width="0.7" stroke-opacity=".26"/><line x1="39.50" y1="62.72" x2="29.50" y2="80.04" stroke="#eef4e6" stroke-width="0.7" stroke-opacity=".26"/><line x1="37.07" y1="61.02" x2="24.22" y2="76.34" stroke="#eef4e6" stroke-width="0.7" stroke-opacity=".26"/><line x1="34.98" y1="58.93" x2="19.66" y2="71.78" stroke="#eef4e6" stroke-width="0.7" stroke-opacity=".26"/><line x1="33.28" y1="56.50" x2="15.96" y2="66.50" stroke="#eef4e6" stroke-width="0.7" stroke-opacity=".26"/><line x1="32.03" y1="53.81" x2="13.23" y2="60.65" stroke="#eef4e6" stroke-width="0.7" stroke-opacity=".26"/><line x1="31.26" y1="50.95" x2="11.56" y2="54.42" stroke="#eef4e6" stroke-width="0.7" stroke-opacity=".26"/><line x1="31.00" y1="48.00" x2="11.00" y2="48.00" stroke="#eef4e6" stroke-width="0.7" stroke-opacity=".26"/><line x1="31.26" y1="45.05" x2="11.56" y2="41.58" stroke="#eef4e6" stroke-width="0.7" stroke-opacity=".26"/><line x1="32.03" y1="42.19" x2="13.23" y2="35.35" stroke="#eef4e6" stroke-width="0.7" stroke-opacity=".26"/><line x1="33.28" y1="39.50" x2="15.96" y2="29.50" stroke="#eef4e6" stroke-width="0.7" stroke-opacity=".26"/><line x1="34.98" y1="37.07" x2="19.66" y2="24.22" stroke="#eef4e6" stroke-width="0.7" stroke-opacity=".26"/><line x1="37.07" y1="34.98" x2="24.22" y2="19.66" stroke="#eef4e6" stroke-width="0.7" stroke-opacity=".26"/><line x1="39.50" y1="33.28" x2="29.50" y2="15.96" stroke="#eef4e6" stroke-width="0.7" stroke-opacity=".26"/><line x1="42.19" y1="32.03" x2="35.35" y2="13.23" stroke="#eef4e6" stroke-width="0.7" stroke-opacity=".26"/><line x1="45.05" y1="31.26" x2="41.58" y2="11.56" stroke="#eef4e6" stroke-width="0.7" stroke-opacity=".26"/><line x1="48.00" y1="31.00" x2="48.00" y2="11.00" stroke="#eef4e6" stroke-width="0.7" stroke-opacity=".26"/><line x1="50.95" y1="31.26" x2="54.42" y2="11.56" stroke="#eef4e6" stroke-width="0.7" stroke-opacity=".26"/><line x1="53.81" y1="32.03" x2="60.65" y2="13.23" stroke="#eef4e6" stroke-width="0.7" stroke-opacity=".26"/><line x1="56.50" y1="33.28" x2="66.50" y2="15.96" stroke="#eef4e6" stroke-width="0.7" stroke-opacity=".26"/><line x1="58.93" y1="34.98" x2="71.78" y2="19.66" stroke="#eef4e6" stroke-width="0.7" stroke-opacity=".26"/><line x1="61.02" y1="37.07" x2="76.34" y2="24.22" stroke="#eef4e6" stroke-width="0.7" stroke-opacity=".26"/><line x1="62.72" y1="39.50" x2="80.04" y2="29.50" stroke="#eef4e6" stroke-width="0.7" stroke-opacity=".26"/><line x1="63.97" y1="42.19" x2="82.77" y2="35.35" stroke="#eef4e6" stroke-width="0.7" stroke-opacity=".26"/><line x1="64.74" y1="45.05" x2="84.44" y2="41.58" stroke="#eef4e6" stroke-width="0.7" stroke-opacity=".26"/><g transform="rotate(45 48 48)" fill="none" stroke="#eef4e6" stroke-opacity=".5" stroke-width="1.4"><path d="M41 12.5 L48 7 L55 12.5"/><path d="M43 17.5 L48 13.5 L53 17.5"/></g><g transform="rotate(135 48 48)" fill="none" stroke="#eef4e6" stroke-opacity=".5" stroke-width="1.4"><path d="M41 12.5 L48 7 L55 12.5"/><path d="M43 17.5 L48 13.5 L53 17.5"/></g><g transform="rotate(225 48 48)" fill="none" stroke="#eef4e6" stroke-opacity=".5" stroke-width="1.4"><path d="M41 12.5 L48 7 L55 12.5"/><path d="M43 17.5 L48 13.5 L53 17.5"/></g><g transform="rotate(315 48 48)" fill="none" stroke="#eef4e6" stroke-opacity=".5" stroke-width="1.4"><path d="M41 12.5 L48 7 L55 12.5"/><path d="M43 17.5 L48 13.5 L53 17.5"/></g><g transform="translate(48,48) scale(0.86) translate(-48,-48)"><g fill="#eef4e6"><rect x="22" y="66" width="52" height="6"/><path d="M28 21 H58 L70 33 V61 H28 Z"/></g><g fill="#1c2f10"><path d="M58 21 L70 33 H58 Z"/><rect x="33" y="27" width="18" height="5.5"/><rect x="33" y="38" width="30" height="3.2"/><rect x="33" y="44" width="30" height="3.2"/><rect x="33" y="50" width="17" height="3.2"/></g></g><polygon points="48,3.5 53,8.5 48,13.5 43,8.5" fill="#7ab870"/></g>
   <g id="mark-arsenal"><g transform="translate(48,48) scale(1) translate(-48,-48)" fill="#3b434c"><polygon points="4,48 26,10 70,10 92,48 70,86 26,86"/></g><g transform="translate(48,48) scale(0.855) translate(-48,-48)" fill="#6b747f"><polygon points="4,48 26,10 70,10 92,48 70,86 26,86"/></g><g transform="translate(48,48) scale(0.8) translate(-48,-48)" fill="none" stroke="#eef1f5" stroke-opacity=".55" stroke-width="1.4"><polygon points="4,48 26,10 70,10 92,48 70,86 26,86"/></g><g transform="translate(48,48) scale(0.755) translate(-48,-48)" fill="none" stroke="#eef1f5" stroke-opacity=".3" stroke-width="1.4"><polygon points="4,48 26,10 70,10 92,48 70,86 26,86"/></g><line x1="65.00" y1="48.00" x2="85.00" y2="48.00" stroke="#eef1f5" stroke-width="0.7" stroke-opacity=".26"/><line x1="64.74" y1="50.95" x2="84.44" y2="54.42" stroke="#eef1f5" stroke-width="0.7" stroke-opacity=".26"/><line x1="63.97" y1="53.81" x2="82.77" y2="60.65" stroke="#eef1f5" stroke-width="0.7" stroke-opacity=".26"/><line x1="62.72" y1="56.50" x2="80.04" y2="66.50" stroke="#eef1f5" stroke-width="0.7" stroke-opacity=".26"/><line x1="61.02" y1="58.93" x2="76.34" y2="71.78" stroke="#eef1f5" stroke-width="0.7" stroke-opacity=".26"/><line x1="58.93" y1="61.02" x2="71.78" y2="76.34" stroke="#eef1f5" stroke-width="0.7" stroke-opacity=".26"/><line x1="56.50" y1="62.72" x2="66.50" y2="80.04" stroke="#eef1f5" stroke-width="0.7" stroke-opacity=".26"/><line x1="53.81" y1="63.97" x2="60.65" y2="82.77" stroke="#eef1f5" stroke-width="0.7" stroke-opacity=".26"/><line x1="50.95" y1="64.74" x2="54.42" y2="84.44" stroke="#eef1f5" stroke-width="0.7" stroke-opacity=".26"/><line x1="48.00" y1="65.00" x2="48.00" y2="85.00" stroke="#eef1f5" stroke-width="0.7" stroke-opacity=".26"/><line x1="45.05" y1="64.74" x2="41.58" y2="84.44" stroke="#eef1f5" stroke-width="0.7" stroke-opacity=".26"/><line x1="42.19" y1="63.97" x2="35.35" y2="82.77" stroke="#eef1f5" stroke-width="0.7" stroke-opacity=".26"/><line x1="39.50" y1="62.72" x2="29.50" y2="80.04" stroke="#eef1f5" stroke-width="0.7" stroke-opacity=".26"/><line x1="37.07" y1="61.02" x2="24.22" y2="76.34" stroke="#eef1f5" stroke-width="0.7" stroke-opacity=".26"/><line x1="34.98" y1="58.93" x2="19.66" y2="71.78" stroke="#eef1f5" stroke-width="0.7" stroke-opacity=".26"/><line x1="33.28" y1="56.50" x2="15.96" y2="66.50" stroke="#eef1f5" stroke-width="0.7" stroke-opacity=".26"/><line x1="32.03" y1="53.81" x2="13.23" y2="60.65" stroke="#eef1f5" stroke-width="0.7" stroke-opacity=".26"/><line x1="31.26" y1="50.95" x2="11.56" y2="54.42" stroke="#eef1f5" stroke-width="0.7" stroke-opacity=".26"/><line x1="31.00" y1="48.00" x2="11.00" y2="48.00" stroke="#eef1f5" stroke-width="0.7" stroke-opacity=".26"/><line x1="31.26" y1="45.05" x2="11.56" y2="41.58" stroke="#eef1f5" stroke-width="0.7" stroke-opacity=".26"/><line x1="32.03" y1="42.19" x2="13.23" y2="35.35" stroke="#eef1f5" stroke-width="0.7" stroke-opacity=".26"/><line x1="33.28" y1="39.50" x2="15.96" y2="29.50" stroke="#eef1f5" stroke-width="0.7" stroke-opacity=".26"/><line x1="34.98" y1="37.07" x2="19.66" y2="24.22" stroke="#eef1f5" stroke-width="0.7" stroke-opacity=".26"/><line x1="37.07" y1="34.98" x2="24.22" y2="19.66" stroke="#eef1f5" stroke-width="0.7" stroke-opacity=".26"/><line x1="39.50" y1="33.28" x2="29.50" y2="15.96" stroke="#eef1f5" stroke-width="0.7" stroke-opacity=".26"/><line x1="42.19" y1="32.03" x2="35.35" y2="13.23" stroke="#eef1f5" stroke-width="0.7" stroke-opacity=".26"/><line x1="45.05" y1="31.26" x2="41.58" y2="11.56" stroke="#eef1f5" stroke-width="0.7" stroke-opacity=".26"/><line x1="48.00" y1="31.00" x2="48.00" y2="11.00" stroke="#eef1f5" stroke-width="0.7" stroke-opacity=".26"/><line x1="50.95" y1="31.26" x2="54.42" y2="11.56" stroke="#eef1f5" stroke-width="0.7" stroke-opacity=".26"/><line x1="53.81" y1="32.03" x2="60.65" y2="13.23" stroke="#eef1f5" stroke-width="0.7" stroke-opacity=".26"/><line x1="56.50" y1="33.28" x2="66.50" y2="15.96" stroke="#eef1f5" stroke-width="0.7" stroke-opacity=".26"/><line x1="58.93" y1="34.98" x2="71.78" y2="19.66" stroke="#eef1f5" stroke-width="0.7" stroke-opacity=".26"/><line x1="61.02" y1="37.07" x2="76.34" y2="24.22" stroke="#eef1f5" stroke-width="0.7" stroke-opacity=".26"/><line x1="62.72" y1="39.50" x2="80.04" y2="29.50" stroke="#eef1f5" stroke-width="0.7" stroke-opacity=".26"/><line x1="63.97" y1="42.19" x2="82.77" y2="35.35" stroke="#eef1f5" stroke-width="0.7" stroke-opacity=".26"/><line x1="64.74" y1="45.05" x2="84.44" y2="41.58" stroke="#eef1f5" stroke-width="0.7" stroke-opacity=".26"/><g transform="rotate(45 48 48)" fill="none" stroke="#eef1f5" stroke-opacity=".5" stroke-width="1.4"><path d="M41 12.5 L48 7 L55 12.5"/><path d="M43 17.5 L48 13.5 L53 17.5"/></g><g transform="rotate(135 48 48)" fill="none" stroke="#eef1f5" stroke-opacity=".5" stroke-width="1.4"><path d="M41 12.5 L48 7 L55 12.5"/><path d="M43 17.5 L48 13.5 L53 17.5"/></g><g transform="rotate(225 48 48)" fill="none" stroke="#eef1f5" stroke-opacity=".5" stroke-width="1.4"><path d="M41 12.5 L48 7 L55 12.5"/><path d="M43 17.5 L48 13.5 L53 17.5"/></g><g transform="rotate(315 48 48)" fill="none" stroke="#eef1f5" stroke-opacity=".5" stroke-width="1.4"><path d="M41 12.5 L48 7 L55 12.5"/><path d="M43 17.5 L48 13.5 L53 17.5"/></g><g transform="translate(48,48) scale(0.86) translate(-48,-48)"><g fill="#eef1f5"><rect x="22" y="66" width="52" height="5"/><rect x="24" y="34" width="44" height="9" rx="2"/><polygon points="24,34 24,43 10,39"/><rect x="40" y="43" width="12" height="11"/><rect x="28" y="54" width="36" height="9" rx="1"/></g><circle cx="61" cy="29" r="4" fill="#e2b552"/></g><polygon points="48,3.5 53,8.5 48,13.5 43,8.5" fill="#e2b552"/></g>
-  <g id="mark-bourse"><g transform="translate(48,48) scale(1) translate(-48,-48)" fill="#7a5c1a"><polygon points="48,4 92,48 48,92 4,48"/></g><g transform="translate(48,48) scale(0.855) translate(-48,-48)" fill="#b8963f"><polygon points="48,4 92,48 48,92 4,48"/></g><g transform="translate(48,48) scale(0.8) translate(-48,-48)" fill="none" stroke="#f1e3b6" stroke-opacity="0.55" stroke-width="1.6"><polygon points="48,4 92,48 48,92 4,48"/></g><g transform="translate(48,48) scale(0.62) translate(-48,-48)" fill="#2a2109"><polygon points="48,4 92,48 48,92 4,48"/></g><path d="M30 60 L42 44 L52 52 L66 30" fill="none" stroke="#f1e3b6" stroke-width="4" stroke-linecap="square"/><circle cx="66" cy="30" r="4" fill="#f1e3b6"/><rect x="44" y="66" width="8" height="3" fill="#f1e3b6" opacity="0.7"/></g>
   <!-- END generated marks -->
+  <!-- Kept by hand, outside the generated block: icons/gen.py has no
+       Bourse in APPS and rewrites everything between its sentinels, so
+       a mark inside them would be deleted by the next run. -->
+  <g id="mark-bourse"><g transform="translate(48,48) scale(1) translate(-48,-48)" fill="#7a5c1a"><polygon points="48,4 92,48 48,92 4,48"/></g><g transform="translate(48,48) scale(0.855) translate(-48,-48)" fill="#b8963f"><polygon points="48,4 92,48 48,92 4,48"/></g><g transform="translate(48,48) scale(0.8) translate(-48,-48)" fill="none" stroke="#f1e3b6" stroke-opacity="0.55" stroke-width="1.6"><polygon points="48,4 92,48 48,92 4,48"/></g><g transform="translate(48,48) scale(0.62) translate(-48,-48)" fill="#2a2109"><polygon points="48,4 92,48 48,92 4,48"/></g><path d="M30 60 L42 44 L52 52 L66 30" fill="none" stroke="#f1e3b6" stroke-width="4" stroke-linecap="square"/><circle cx="66" cy="30" r="4" fill="#f1e3b6"/><rect x="44" y="66" width="8" height="3" fill="#f1e3b6" opacity="0.7"/></g>
 
 </defs>
 </svg>
 
 <!-- ======================================================================
-     Entrance — vault-door sequence per DESIGN.md v1 spec.
-     Beat ladder: 0=circle+engrave, 1=wheel+bolts(500ms),
-     2=wheel-turn+bolt-retract(700ms), 3=seam(870ms),
-     4=doors-open(1030ms), 5=wordmark(1500ms),
-     6=dock(1800ms), 7=done-fade(2200ms), 8=finish(2700ms).
-     65+ individually-animated elements across 9 groups.
+     Entrance: the house curtain (DESIGN.md, Entrance).
+     Night: the hall is dark behind a velvet house curtain; the footlights
+     come up along its hem, a follow spot opens on the gilt crest, the
+     curtain flies out on a festoon, the marquee's bulbs chase once, the
+     fanlights light from the clock outward and the spot docks on the
+     masthead's rosette. Day: the curtain is already up and the street's
+     light floods in, an exposure that settles while a gilt ring docks.
+     Beat ladder (ms): foot 60, spot 250, rise 950, house 1450, dock 1750,
+     done-fade 2140, finish 2700 (day: expose 280, dock 900, done-fade
+     1400, finish 1700).
 ====================================================================== -->
 <div id="entrance" aria-hidden="true">
   <div class="e-void"></div>
-
-  <!-- CENTER BURST SVG — lock face, wheel, boltwork, dial ring -->
-  <svg class="e-burst" viewBox="0 0 800 800">
-    <defs>
-      <!-- engine_turned.png on lock case housing -->
-      <pattern id="eng-turned" patternUnits="userSpaceOnUse" width="60" height="60">
-        <image href="/static/assets/tex/engine_turned.png" width="60" height="60" opacity="0.28"/>
-      </pattern>
-    </defs>
-
-    <!-- Group A: Lock case housing (behind wheel, appears with play) -->
-    <rect class="e-lock-case" x="335" y="335" width="130" height="130" rx="4"
-          fill="var(--bronze-deep)"/>
-    <rect x="335" y="335" width="130" height="130" rx="4"
-          fill="url(#eng-turned)" style="mix-blend-mode:overlay"/>
-    <!-- Lit top-edge plane (flat-shaded anatomy) -->
-    <rect class="e-lock-case-lit" x="335" y="335" width="130" height="5" rx="0"
-          fill="var(--champagne)" opacity="0"/>
-    <!-- Static occlusion shadow (never on a mover) -->
-    <rect class="e-lock-case-shadow" x="339" y="465" width="126" height="4"
-          fill="var(--base)" opacity="0.35"/>
-    <!-- Relocker bar (secondary locking bar visible on the case) -->
-    <rect class="e-relocker" x="386" y="344" width="28" height="12"
-          stroke="var(--bronze)" stroke-width="1.5" fill="var(--bronze-deep)" opacity="0"/>
-    <!-- Relocker lit top edge -->
-    <line class="e-relocker-lit" x1="386" y1="344" x2="414" y2="344"
-          stroke="var(--champagne)" stroke-width="1.5" opacity="0"/>
-
-    <!-- Group D: Dial ring with graduated markings (r=76, between wheel and bolt roots) -->
-    <circle class="e-dial-ring" cx="400" cy="400" r="76"
-            stroke="var(--bronze)" stroke-width="1.6" fill="none" opacity="0"/>
-    <circle class="e-dial-ring-inner" cx="400" cy="400" r="72"
-            stroke="var(--bronze)" stroke-width="1.1" fill="none" opacity="0"/>
-    <!-- 12 major graduation ticks (every 30 deg), individually staggered -->
-    <line class="e-dial-major" style="--di:0"  x1="400" y1="318" x2="400" y2="328" stroke="var(--gold)" stroke-width="1.9" opacity="0"/>
-    <line class="e-dial-major" style="--di:1"  x1="438" y1="328" x2="433" y2="337" stroke="var(--gold)" stroke-width="1.9" opacity="0"/>
-    <line class="e-dial-major" style="--di:2"  x1="466" y1="362" x2="457" y2="367" stroke="var(--gold)" stroke-width="1.9" opacity="0"/>
-    <line class="e-dial-major" style="--di:3"  x1="472" y1="400" x2="482" y2="400" stroke="var(--gold)" stroke-width="1.9" opacity="0"/>
-    <line class="e-dial-major" style="--di:4"  x1="466" y1="438" x2="457" y2="433" stroke="var(--gold)" stroke-width="1.9" opacity="0"/>
-    <line class="e-dial-major" style="--di:5"  x1="438" y1="472" x2="433" y2="463" stroke="var(--gold)" stroke-width="1.9" opacity="0"/>
-    <line class="e-dial-major" style="--di:6"  x1="400" y1="482" x2="400" y2="472" stroke="var(--gold)" stroke-width="1.9" opacity="0"/>
-    <line class="e-dial-major" style="--di:7"  x1="362" y1="472" x2="367" y2="463" stroke="var(--gold)" stroke-width="1.9" opacity="0"/>
-    <line class="e-dial-major" style="--di:8"  x1="334" y1="438" x2="343" y2="433" stroke="var(--gold)" stroke-width="1.9" opacity="0"/>
-    <line class="e-dial-major" style="--di:9"  x1="318" y1="400" x2="328" y2="400" stroke="var(--gold)" stroke-width="1.9" opacity="0"/>
-    <line class="e-dial-major" style="--di:10" x1="334" y1="362" x2="343" y2="367" stroke="var(--gold)" stroke-width="1.9" opacity="0"/>
-    <line class="e-dial-major" style="--di:11" x1="362" y1="328" x2="367" y2="337" stroke="var(--gold)" stroke-width="1.9" opacity="0"/>
-    <!-- 10 staggered minor ticks -->
-    <line class="e-dial-minor" style="--dmi:0"  x1="400" y1="323" x2="400" y2="327" stroke="var(--bronze)" stroke-width="1.3" opacity="0"/>
-    <line class="e-dial-minor" style="--dmi:1"  x1="419" y1="325" x2="418" y2="329" stroke="var(--bronze)" stroke-width="1.3" opacity="0"/>
-    <line class="e-dial-minor" style="--dmi:2"  x1="435" y1="333" x2="433" y2="337" stroke="var(--bronze)" stroke-width="1.3" opacity="0"/>
-    <line class="e-dial-minor" style="--dmi:3"  x1="446" y1="346" x2="443" y2="349" stroke="var(--bronze)" stroke-width="1.3" opacity="0"/>
-    <line class="e-dial-minor" style="--dmi:4"  x1="452" y1="362" x2="449" y2="363" stroke="var(--bronze)" stroke-width="1.3" opacity="0"/>
-    <line class="e-dial-minor" style="--dmi:5"  x1="454" y1="381" x2="450" y2="381" stroke="var(--bronze)" stroke-width="1.3" opacity="0"/>
-    <line class="e-dial-minor" style="--dmi:6"  x1="452" y1="400" x2="456" y2="400" stroke="var(--bronze)" stroke-width="1.3" opacity="0"/>
-    <line class="e-dial-minor" style="--dmi:7"  x1="448" y1="419" x2="452" y2="420" stroke="var(--bronze)" stroke-width="1.3" opacity="0"/>
-    <line class="e-dial-minor" style="--dmi:8"  x1="441" y1="436" x2="444" y2="438" stroke="var(--bronze)" stroke-width="1.3" opacity="0"/>
-    <line class="e-dial-minor" style="--dmi:9"  x1="431" y1="450" x2="434" y2="453" stroke="var(--bronze)" stroke-width="1.3" opacity="0"/>
-    <!-- Remaining 38 minor ticks as a compound path (group fade) -->
-    <path class="e-dial-minor-group"
-          d="M381 323 L380 327 M362 327 L363 331 M346 334 L348 338
-             M333 345 L336 348 M323 359 L326 361 M318 375 L322 376
-             M318 400 L322 400 M319 419 L323 418 M323 438 L327 436
-             M331 453 L334 451 M343 466 L345 463 M358 475 L359 471
-             M375 480 L376 476 M400 482 L400 478 M419 480 L418 476
-             M437 475 L435 471 M452 465 L450 462 M463 452 L460 450
-             M472 438 L469 436 M477 419 L473 418 M477 400 L473 400
-             M477 381 L473 381 M473 362 L469 363 M465 346 L462 349
-             M454 333 L452 336 M440 324 L439 328 M419 319 L418 323
-             M381 477 L382 473 M362 473 L363 469 M346 466 L348 462
-             M333 455 L336 452 M323 441 L326 439 M318 425 L322 424
-             M318 381 L322 381 M319 362 L323 363 M323 343 L327 345
-             M331 328 L334 330"
-          stroke="var(--bronze)" stroke-width="1.3" fill="none" opacity="0"/>
-
-    <!-- Group C: Boltwork (JS-populated lines + new anatomy) -->
-    <g class="e-bolts"></g>
-
-    <!-- Group A: Circle (lock face boundary) -->
-    <circle class="e-circle" cx="400" cy="400" r="92" fill="none" stroke-width="2"/>
-
-    <!-- Group B: Handwheel — 20 elements (rim, inner rim, hub, hub-cap,
-         4 individual spokes, 4 spoke fillets, 4 knobs, 4 knob-inner, spindle) -->
-    <g class="e-wheel" fill="none" stroke-width="1.5">
-      <!-- Rim outer + inner chamfer -->
-      <circle class="e-wh-rim" cx="400" cy="400" r="58" stroke="var(--gold)"/>
-      <circle class="e-wh-rim-inner" cx="400" cy="400" r="53" stroke="var(--bronze)" opacity="0.4"/>
-      <!-- Hub ring + cap -->
-      <circle class="e-wh-hub" cx="400" cy="400" r="13" stroke="var(--gold)"/>
-      <circle class="e-wh-hub-cap" cx="400" cy="400" r="9"
-              fill="var(--bronze-deep)" stroke="none"/>
-      <!-- 4 individual spokes (split from compound path) -->
-      <line class="e-wh-spoke-0" x1="400" y1="342" x2="400" y2="387" stroke="var(--gold)" stroke-width="3"/>
-      <line class="e-wh-spoke-1" x1="400" y1="413" x2="400" y2="458" stroke="var(--gold)" stroke-width="3"/>
-      <line class="e-wh-spoke-2" x1="342" y1="400" x2="387" y2="400" stroke="var(--gold)" stroke-width="3"/>
-      <line class="e-wh-spoke-3" x1="413" y1="400" x2="458" y2="400" stroke="var(--gold)" stroke-width="3"/>
-      <!-- Spoke fillets at hub junctions (curved micro-arcs) -->
-      <path class="e-wh-fillet-0" d="M400 395 Q398 390 395 389" stroke="var(--bronze)" stroke-width="2.1" opacity="0.6"/>
-      <path class="e-wh-fillet-1" d="M400 405 Q402 410 405 411" stroke="var(--bronze)" stroke-width="2.1" opacity="0.6"/>
-      <path class="e-wh-fillet-2" d="M395 400 Q390 402 389 405" stroke="var(--bronze)" stroke-width="2.1" opacity="0.6"/>
-      <path class="e-wh-fillet-3" d="M405 400 Q410 398 411 395" stroke="var(--bronze)" stroke-width="2.1" opacity="0.6"/>
-      <!-- 4 grip knobs with hash-derived radii (hollow bronze, not solid gold) -->
-      <circle class="e-wh-knob-0" cx="400" cy="334" r="4"   stroke="var(--gold)"/>
-      <circle class="e-wh-knob-1" cx="400" cy="466" r="5"   stroke="var(--gold)"/>
-      <circle class="e-wh-knob-2" cx="334" cy="400" r="3.5" stroke="var(--gold)"/>
-      <circle class="e-wh-knob-3" cx="466" cy="400" r="4.5" stroke="var(--gold)"/>
-      <!-- Knob interior fills -->
-      <circle class="e-wh-knob-inner-0" cx="400" cy="334" r="2"   fill="var(--bronze-deep)" stroke="none"/>
-      <circle class="e-wh-knob-inner-1" cx="400" cy="466" r="2.5" fill="var(--bronze-deep)" stroke="none"/>
-      <circle class="e-wh-knob-inner-2" cx="334" cy="400" r="1.5" fill="var(--bronze-deep)" stroke="none"/>
-      <circle class="e-wh-knob-inner-3" cx="466" cy="400" r="2"   fill="var(--bronze-deep)" stroke="none"/>
-    </g>
-
-    <!-- Drive cams (4, keyed to wheel spindle at diagonal positions).
-         Outer <g>: fixed base rotation (HTML attribute, never animated).
-         Inner <g class="e-drive-cam">: CSS-animated 60deg additional rotation. -->
-    <g transform="rotate(45 400 400)">
-      <g class="e-drive-cam e-drive-cam-0">
-        <ellipse cx="400" cy="322" rx="6" ry="4" fill="var(--bronze)" opacity="0"/>
-      </g>
-    </g>
-    <g transform="rotate(135 400 400)">
-      <g class="e-drive-cam e-drive-cam-1">
-        <ellipse cx="400" cy="322" rx="6" ry="4" fill="var(--bronze)" opacity="0"/>
-      </g>
-    </g>
-    <g transform="rotate(225 400 400)">
-      <g class="e-drive-cam e-drive-cam-2">
-        <ellipse cx="400" cy="322" rx="6" ry="4" fill="var(--bronze)" opacity="0"/>
-      </g>
-    </g>
-    <g transform="rotate(315 400 400)">
-      <g class="e-drive-cam e-drive-cam-3">
-        <ellipse cx="400" cy="322" rx="6" ry="4" fill="var(--bronze)" opacity="0"/>
-      </g>
-    </g>
-
-    <!-- Group A: Spindle hub cap (appears with wheel at beat 1) -->
-    <circle class="e-spindle" cx="400" cy="400" r="5"
-            fill="var(--bronze)" opacity="0"/>
-
-    <!-- Group D: Rays (JS-populated) -->
-    <g class="e-rays"></g>
-  </svg>
-
-  <!-- Seam hairline (beat 3) -->
-  <div class="e-seam"></div>
-  <!-- Threshold plate visible when seam breaks (beat 3) -->
-  <div class="e-threshold" aria-hidden="true"></div>
-
-  <!-- LEFT DOOR PANEL — Group E: 12 individually-classed engraving elements
-       + Group F: jamb planes (static anatomy) + Group G: maker's plate -->
-  <div class="e-panel e-left">
-    <svg viewBox="0 0 400 900" preserveAspectRatio="xMaxYMid slice">
-      <!-- Jamb planes (static, flat-shaded occlusion) -->
-      <rect class="e-jamb-left" x="390" y="0" width="10" height="900"
-            fill="var(--champagne)" opacity="0.06"/>
-      <rect class="e-jamb-shadow-left" x="380" y="0" width="10" height="900"
-            fill="var(--base)" opacity="0.25"/>
-      <g class="e-engrave" fill="none" stroke="var(--gold)" stroke-width="1">
-        <!-- 8 individual arcs (upper 4 + lower 4), staggered by --ai -->
-        <!-- Upper arcs (above seam midpoint) -->
-        <path class="e-arc" style="--ai:0"
-              d="M400 450 m-60 0 a60 60 0 0 1 60 -60"
-              />
-        <path class="e-arc" style="--ai:1"
-              d="M400 450 m-110 0 a110 110 0 0 1 110 -110"
-              />
-        <path class="e-arc" style="--ai:2"
-              d="M400 450 m-160 0 a160 160 0 0 1 160 -160"
-              />
-        <path class="e-arc" style="--ai:3"
-              d="M400 450 m-210 0 a210 210 0 0 1 210 -210"
-              />
-        <!-- Lower arcs -->
-        <path class="e-arc" style="--ai:4"
-              d="M400 450 m-60 0 a60 60 0 0 0 60 60"
-              />
-        <path class="e-arc" style="--ai:5"
-              d="M400 450 m-110 0 a110 110 0 0 0 110 110"
-              />
-        <path class="e-arc" style="--ai:6"
-              d="M400 450 m-160 0 a160 160 0 0 0 160 160"
-              />
-        <path class="e-arc" style="--ai:7"
-              d="M400 450 m-210 0 a210 210 0 0 0 210 210"
-              />
-        <!-- 3 individual vlines, staggered by --vi -->
-        <path class="e-vline" style="--vi:0" d="M340 60 V840" transform-origin="340px 0px"/>
-        <path class="e-vline" style="--vi:1" d="M300 100 V800" transform-origin="300px 0px"/>
-        <path class="e-vline" style="--vi:2" d="M260 140 V760" transform-origin="260px 0px"/>
-        <!-- Rivet column -->
-        <path class="e-rivet"
-              d="M386 90 V810" stroke-dasharray="0 44"
-              stroke-linecap="round" stroke-width="3"/>
+  <div class="e-flood"><div class="e-shafts"></div></div>
+  <div class="e-house">
+    <div class="e-drop"></div>
+    <div class="e-foot"></div>
+    <svg class="e-crest" viewBox="-400 -400 800 800">
+      <g class="e-rays"></g>
+      <g class="e-medal"></g>
+      <circle class="e-circle" cx="0" cy="0" r="92" fill="none"/>
+    </svg>
+    <div class="e-wordmark">ATRIUM</div>
+    <svg class="e-swag" preserveAspectRatio="none"></svg>
+    <div class="e-fringe"></div>
+  </div>
+  <div class="e-footlights"><div class="e-trough"></div><div class="e-lamps"></div></div>
+  <div class="e-marquee"><i class="e-chase e-chase-t"></i><i class="e-chase e-chase-b"></i></div>
+  <div class="e-burst">
+    <div class="e-spot"></div>
+    <svg class="e-ring" viewBox="-100 -100 200 200">
+      <g class="e-ring-whole">
+        <circle class="e-ring-sh" cx="0" cy="1" r="34" fill="none"/>
+        <circle class="e-ring-hi" cx="0" cy="0.6" r="34" fill="none"/>
+        <circle class="e-ring-c" cx="0" cy="0" r="34" fill="none"/>
       </g>
     </svg>
   </div>
-
-  <!-- RIGHT DOOR PANEL — mirror geometry + maker's plate -->
-  <div class="e-panel e-right">
-    <svg viewBox="0 0 400 900" preserveAspectRatio="xMinYMid slice">
-      <!-- Jamb planes (static) -->
-      <rect class="e-jamb-right" x="0" y="0" width="10" height="900"
-            fill="var(--champagne)" opacity="0.06"/>
-      <rect class="e-jamb-shadow-right" x="10" y="0" width="10" height="900"
-            fill="var(--base)" opacity="0.25"/>
-      <g class="e-engrave" fill="none" stroke="var(--gold)" stroke-width="1">
-        <!-- 8 individual arcs (mirrored) -->
-        <path class="e-arc" style="--ai:0"
-              d="M0 450 m60 0 a60 60 0 0 0 -60 -60"
-              />
-        <path class="e-arc" style="--ai:1"
-              d="M0 450 m110 0 a110 110 0 0 0 -110 -110"
-              />
-        <path class="e-arc" style="--ai:2"
-              d="M0 450 m160 0 a160 160 0 0 0 -160 -160"
-              />
-        <path class="e-arc" style="--ai:3"
-              d="M0 450 m210 0 a210 210 0 0 0 -210 -210"
-              />
-        <path class="e-arc" style="--ai:4"
-              d="M0 450 m60 0 a60 60 0 0 1 -60 60"
-              />
-        <path class="e-arc" style="--ai:5"
-              d="M0 450 m110 0 a110 110 0 0 1 -110 110"
-              />
-        <path class="e-arc" style="--ai:6"
-              d="M0 450 m160 0 a160 160 0 0 1 -160 160"
-              />
-        <path class="e-arc" style="--ai:7"
-              d="M0 450 m210 0 a210 210 0 0 1 -210 210"
-              />
-        <!-- 3 vlines -->
-        <path class="e-vline" style="--vi:0" d="M60 60 V840" transform-origin="60px 0px"/>
-        <path class="e-vline" style="--vi:1" d="M100 100 V800" transform-origin="100px 0px"/>
-        <path class="e-vline" style="--vi:2" d="M140 140 V760" transform-origin="140px 0px"/>
-        <!-- Rivet column -->
-        <path class="e-rivet"
-              d="M14 90 V810" stroke-dasharray="0 44"
-              stroke-linecap="round" stroke-width="3"/>
-      </g>
-      <!-- Group G: Maker's plate (right panel lower area) -->
-      <rect class="e-maker-frame" x="20" y="720" width="140" height="70" rx="2"
-            stroke="var(--gold)" stroke-width="0.5" fill="none" opacity="0"/>
-      <text class="e-maker-t1" x="90" y="740" text-anchor="middle"
-            font-size="8" letter-spacing="1.5" fill="var(--gold)" opacity="0">ATRIUM WORKS</text>
-      <text class="e-maker-t2" x="90" y="755" text-anchor="middle"
-            font-size="7" letter-spacing="0.8" fill="var(--gold)" opacity="0">No. 8769</text>
-      <text class="e-maker-t3" x="90" y="775" text-anchor="middle"
-            font-size="6" letter-spacing="2" fill="var(--gold)" opacity="0">MMXXVI</text>
-    </svg>
-  </div>
-
-  <!-- Group H: Wordmark (6 individually-staggered letter spans) -->
-  <div class="e-wordmark" aria-hidden="true" style="perspective:900px">
-    <span style="--wi:0">A</span>
-    <span style="--wi:1">T</span>
-    <span style="--wi:2">R</span>
-    <span style="--wi:3">I</span>
-    <span style="--wi:4">U</span>
-    <span style="--wi:5">M</span>
-  </div>
-  <!-- Steam rises from the seam foot as the doors part -->
-  <div class="e-nozzle" aria-hidden="true"></div>
 </div>
 
 <!-- ====================================================================== -->
@@ -429,65 +284,47 @@
   <header id="masthead">
     <svg id="monogram" viewBox="0 0 48 48" aria-hidden="true"><use href="#rosette"/></svg>
     <div class="m-title">
-      <h1 class="display">ATRIUM</h1>
+      <h1 class="display" lang="en">ATRIUM</h1>
       <div class="m-sub display" data-i18n="subtitle">GRAND CONCOURSE</div>
     </div>
     <div class="m-underline" aria-hidden="true"></div>
+    <!-- The canopy's own ornament, all scenery: a crown over the clock's
+         axis and a cast frieze panel in each stretch of fascia either side
+         of it. room.js draws them and sizes each panel to its gap. -->
+    <div class="m-crown" aria-hidden="true"></div>
+    <div class="m-frieze m-frieze-l" aria-hidden="true"></div>
+    <div class="m-frieze m-frieze-r" aria-hidden="true"></div>
     <div class="m-right">
       <div id="dateline"></div>
-      <button id="ledger-btn" aria-label="Open Ledger" aria-expanded="false"
+      <button id="ledger-btn" aria-keyshortcuts="L" aria-label="Open Ledger" aria-describedby="ledger-badge-count" aria-expanded="false"
               aria-controls="ledger" data-i18n-aria="ariaLedger">
-        <!-- Pneumatic-tube dispatch hatch: anatomically flat-shaded brass cap -->
-        <svg viewBox="0 0 48 48" aria-hidden="true" width="40" height="40">
-          <!-- Housing ring (outer 3px band) -->
-          <circle class="hatch-housing" cx="24" cy="24" r="22"
-                  fill="none" stroke="var(--bronze-deep)" stroke-width="3"/>
-          <!-- Inner hairline (gold) -->
-          <circle cx="24" cy="24" r="20.5"
-                  fill="none" stroke="var(--gold)" stroke-width="0.8" opacity="0.6"/>
-          <!-- Outer hairline -->
-          <circle cx="24" cy="24" r="23.5"
-                  fill="none" stroke="var(--bronze)" stroke-width="0.8" opacity="0.5"/>
-          <!-- Knurl: 12 radial grip ticks on the outer housing ring -->
-          <g class="hatch-knurl" stroke="var(--bronze)" stroke-width="1" opacity="0.7">
-            <line x1="24" y1="1.5" x2="24" y2="4.5"/>
-            <line x1="30.2" y1="2.8" x2="28.7" y2="5.5"/>
-            <line x1="35.5" y1="6.5" x2="33.0" y2="8.2"/>
-            <line x1="39.2" y1="12.3" x2="36.6" y2="13.6"/>
-            <line x1="41.5" y1="19.2" x2="38.5" y2="19.8"/>
-            <line x1="41.5" y1="26.2" x2="38.5" y2="25.6"/>
-            <line x1="39.2" y1="33.1" x2="36.6" y2="31.8"/>
-            <line x1="35.5" y1="39.0" x2="33.0" y2="37.3"/>
-            <line x1="30.2" y1="43.2" x2="28.7" y2="40.5"/>
-            <line x1="24.0" y1="45.5" x2="24.0" y2="42.5"/>
-            <line x1="17.8" y1="43.2" x2="19.3" y2="40.5"/>
-            <line x1="12.5" y1="39.0" x2="15.0" y2="37.3"/>
-          </g>
-          <!-- 4 rivet dots at N/E/S/W on housing -->
-          <g class="hatch-rim" fill="var(--rivet)">
-            <circle cx="24" cy="2.5" r="1.4"/>
-            <circle cx="45.5" cy="24" r="1.4"/>
-            <circle cx="24" cy="45.5" r="1.4"/>
-            <circle cx="2.5" cy="24" r="1.4"/>
-          </g>
-          <!-- Main disc (3 flat-shaded zones) -->
+        <!-- The pneumatic dispatch hatch: a domed brass cap with a turned knob,
+             seated in a turned bronze housing. room.js lays the housing's
+             turning; the unread jewel is the span below. -->
+        <svg class="hatch" viewBox="0 0 48 48" aria-hidden="true" width="40" height="40">
+          <defs>
+            <radialGradient id="lh-dome" cx=".36" cy=".3" r=".8">
+              <stop offset="0" class="lhd s0"/><stop offset=".16" class="lhd s1"/>
+              <stop offset=".5" class="lhd s2"/><stop offset=".84" class="lhd s3"/>
+              <stop offset="1" class="lhd s4"/></radialGradient>
+            <linearGradient id="lh-knob" x1=".15" y1=".1" x2=".85" y2=".95">
+              <stop offset="0" class="lhb s0"/><stop offset=".3" class="lhb s1"/>
+              <stop offset=".7" class="lhb s2"/><stop offset="1" class="lhb s3"/></linearGradient>
+          </defs>
+          <circle class="hatch-seat" cx="24.6" cy="25.4" r="23.2"/>
+          <g class="hatch-housing hatch-turn"></g>
+          <g class="hatch-knurl"></g>
+          <g class="hatch-rim"></g>
+          <circle class="hatch-well" cx="24" cy="24" r="18.3"/>
           <g class="hatch-disc">
-            <!-- Main disc face -->
-            <circle class="hatch-face" cx="24" cy="24" r="18"
-                    fill="color-mix(in srgb, var(--bronze) 80%, var(--base) 20%)"/>
-            <!-- Top specular crescent (single flat highlight plane) -->
-            <path class="hatch-bevel"
-                  d="M10 18 A18 18 0 0 1 38 18 Q31 12 24 12 Q17 12 10 18 Z"
-                  fill="var(--champagne)" opacity="0.22"/>
-            <!-- Bayonet cut slots (two slot-shaped polygons at 135°/315°) -->
-            <!-- Slot 1: NW-SE direction -->
-            <rect class="hatch-recess" x="15" y="22.5" width="18" height="3"
-                  rx="1.5" fill="var(--machine-edge)"
-                  transform="rotate(45 24 24)"/>
-            <!-- Slot 2: NE-SW direction (45° rotated opposite) -->
-            <rect class="hatch-recess" x="15" y="22.5" width="18" height="3"
-                  rx="1.5" fill="var(--machine-edge)"
-                  transform="rotate(-45 24 24)"/>
+            <circle class="hatch-face" cx="24" cy="24" r="17.1" fill="url(#lh-dome)"/>
+            <g class="hatch-lathe"></g>
+            <path class="hatch-bevel" d="M9.6 19.5 A15.2 15.2 0 0 1 33 10.6 A17.4 17.4 0 0 0 9.6 19.5 Z"/>
+            <path class="hatch-lug" d="M7.4 21.2 l-1.6 -0.4 v5.6 l1.6 -0.4 Z M40.6 21.2 l1.6 -0.4 v5.6 l-1.6 -0.4 Z"/>
+            <circle class="hatch-recess" cx="24" cy="24" r="8.2"/>
+            <circle class="hatch-knob-sh" cx="25.1" cy="25.6" r="6.4"/>
+            <circle class="hatch-knob" cx="24" cy="24" r="6.2" fill="url(#lh-knob)"/>
+            <circle class="hatch-knob-cap" cx="24" cy="24" r="3.1" fill="url(#lh-dome)"/>
           </g>
         </svg>
         <!-- Unread signal. The disc is the whole visual; the count it stands
@@ -496,15 +333,19 @@
           ><span class="sr-only" id="ledger-badge-count"></span></span>
         <span class="p-caption display" data-i18n="ledgerBtnLabel">LEDGER</span>
       </button>
-      <button id="prefs-btn" aria-haspopup="dialog">
-        <svg viewBox="0 0 48 48" aria-hidden="true"><use href="#rosette-key"/></svg>
+      <button id="prefs-btn" aria-haspopup="dialog" aria-keyshortcuts="P">
+        <svg class="pkey" viewBox="0 0 48 48" aria-hidden="true"><use href="#rosette-key"/></svg>
         <span class="p-caption" data-i18n="preferences">PREFERENCES</span>
       </button>
     </div>
   </header>
 
-  <div id="ticker" aria-live="off" tabindex="0" data-i18n-aria="ariaTicker">
+  <div id="ticker" role="marquee" aria-live="off" tabindex="0" data-i18n-aria="ariaTicker">
+    <!-- The marquee: milk glass between two rows of chaser bulbs. The bulbs
+         and the chase are scenery; the track is the only thing read. -->
+    <div class="t-bulbs t-top" aria-hidden="true"><div class="t-chase"></div></div>
     <div class="t-track" id="ticker-track"></div>
+    <div class="t-bulbs t-bot" aria-hidden="true"><div class="t-chase"></div></div>
   </div>
 
   <!-- ====================================================================
@@ -522,6 +363,7 @@
     <div id="backwall" aria-hidden="true">
       <div class="wall-field"></div>
       <div class="wall-cornice"></div>
+      <div class="wall-cove"></div>
       <div class="wall-dado"></div>
       <div class="aisle-wall wall-l"></div>
       <div class="aisle-wall wall-r"></div>
@@ -557,38 +399,44 @@
          stay "works" because that is the DATA — the works of the machine —
          and because /api/stats is already the services' status route. -->
     <aside id="works" class="board" data-i18n-aria="ariaWorks"
-           aria-label="Statistics" data-i18n-title="worksTitle">
+           aria-label="Statistics">
+      <!-- The case: carcass, crest and picture lamp are drawn by
+           cabinetry.js; the door holds the glass and everything read
+           through it; the maker's plate is screwed to the apron below. -->
       <div class="bd-frame" aria-hidden="true"></div>
-      <header class="bd-head">
-        <h2 class="bd-title display">STATISTICS</h2>
-        <p class="bd-sub zh-sentence" data-i18n="worksSub">Readings from the engine room</p>
-      </header>
-      <div class="wk-dials" id="wk-dials"></div>
-      <div class="wk-tape" id="wk-tape"></div>
+      <div class="cs-top" aria-hidden="true"></div>
+      <div class="cs-door">
+        <header class="bd-head">
+          <h2 class="bd-title display" lang="en">STATISTICS</h2>
+          <p class="bd-sub zh-sentence" data-i18n="worksSub">Readings from the engine room</p>
+        </header>
+        <div class="wk-dials" id="wk-dials"></div>
+        <div class="wk-tape" id="wk-tape"></div>
+      </div>
       <footer class="bd-foot">
-        <!-- The maker's plate, off the retired rail. Single frame: double
-             rules stay reserved for the ticker and the Ledger day-breaks. -->
-        <svg class="wk-plate" viewBox="0 0 208 52" aria-hidden="true">
-          <rect x="1.5" y="1.5" width="205" height="49" fill="none" stroke-width="1.5"/>
-          <circle cx="10" cy="10" r="1.6"/><circle cx="198" cy="10" r="1.6"/>
-          <circle cx="10" cy="42" r="1.6"/><circle cx="198" cy="42" r="1.6"/>
-          <text class="bp-name display" x="104" y="23" text-anchor="middle">ATRIUM WORKS</text>
-          <text class="bp-no addr" x="104" y="40" text-anchor="middle">No. 8769 · MMXXVI</text>
-        </svg>
+        <!-- The maker's plate: cast, the letters and the rim raised and
+             polished, the field between them filled black. -->
+        <div class="wk-plate cs-plate" aria-hidden="true">
+          <span class="bp-name display">ATRIUM WORKS</span>
+          <span class="bp-no addr">No. 8769 · MMXXVI</span>
+        </div>
       </footer>
     </aside>
 
-    <main id="stage" data-i18n-aria="ariaGates" aria-label="Gates">
+    <main id="stage" aria-labelledby="stage-title">
+      <h2 id="stage-title" class="sr-only" data-i18n="ariaGates">Gates</h2>
+      <span id="opens-tab" hidden data-i18n="opensTab">Opens in its own tab.</span>
       <div class="stage-glow" aria-hidden="true"></div>
       <div class="wall-rule" aria-hidden="true"></div>
       <!-- The hall's centrepiece, set into the back wall between the gates.
            Built by clock.js — the 1000-unit geometry stays in one place with
            its drive loop. It sits inside #stage so the stage solves its slot
-           alongside the gates and the three re-compose together. -->
-      <div id="clock" aria-hidden="true"></div>
+           alongside the gates and the three re-compose together. Its
+           drawing is aria-hidden; the time it keeps is read as text. -->
+      <div id="clock"></div>
       <div id="gates"></div>
       <p id="hall-status" class="sr-only" role="status" aria-live="polite"></p>
-      <div id="all-dark" hidden data-i18n="allDark">The hall is dark. No services are reachable.</div>
+      <p id="gate-say" class="sr-only" role="status" aria-live="polite"></p>
     </main>
 
     <!-- The east board. It was a BULLETIN — four dispatch stubs under a
@@ -598,32 +446,60 @@
          sun is standing over this machine at this minute. Same case, same
          chamfer, same rivets; the instrument inside it is new. -->
     <aside id="almanac" class="board" data-i18n-aria="ariaAlmanac"
-           aria-label="Almanac" data-i18n-title="almTitle">
+           aria-label="Almanac">
       <div class="bd-frame" aria-hidden="true"></div>
-      <header class="bd-head">
-        <h2 class="bd-title display">ALMANAC</h2>
-        <p class="bd-sub zh-sentence" id="al-sub"></p>
-      </header>
-      <!-- Built by app.js: the reading, the heliograph, the moon and the
-           daylight tape. Empty at rest so the case is never half-engraved. -->
-      <div class="al-read" id="al-read"></div>
-      <div class="al-sky" id="al-sky"></div>
-      <div class="al-tape" id="al-tape"></div>
+      <div class="cs-top" aria-hidden="true"></div>
+      <div class="cs-door">
+        <header class="bd-head">
+          <h2 class="bd-title display" lang="en">ALMANAC</h2>
+          <p class="bd-sub zh-sentence" id="al-sub"></p>
+        </header>
+        <!-- Built by app.js: the reading, the heliograph, the moon and the
+             daylight tape. Empty at rest so the case is never half-engraved. -->
+        <div class="al-read" id="al-read"></div>
+        <div class="al-sky" id="al-sky"></div>
+        <div class="al-tape" id="al-tape"></div>
+        <div class="bd-glass" aria-hidden="true"></div>
+      </div>
       <footer class="bd-foot">
-        <p class="al-station addr" id="al-station">&mdash;</p>
+        <div class="cs-plate al-plate">
+          <p class="al-station addr" id="al-station" lang="en">&mdash;</p>
+        </div>
       </footer>
-      <div class="bd-glass" aria-hidden="true"></div>
     </aside>
 
   </div>
 
-  <aside id="ledger" data-i18n-aria="ariaLedger" aria-label="Dispatches">
+</div>
+
+<!-- The Ledger lives at body level, beside its scrim and the signal desk.
+     Inside #hall it shared whatever stacking context the hall was in: on a
+     suppressed boot the hall's fade made #hall a context of its own, so the
+     drawer (z 55) painted under its body-level scrim (z 54), and a click on
+     any plaque landed on the scrim and closed the drawer. -->
+  <aside id="ledger" aria-labelledby="ledger-title" inert>
     <div class="l-head">
-      <h2 class="display" data-i18n="ledger">THE LEDGER</h2>
+      <h2 id="ledger-title" class="display" data-i18n="ledger" tabindex="-1">THE LEDGER</h2>
+      <!-- The drawer covers the hatch that opened it, so it carries its own
+           way shut: a brass knob on its head. Esc and the scrim still work. -->
+      <button id="ledger-close" class="l-close" type="button"
+              data-i18n-aria="ariaLedgerClose" aria-label="Close the Ledger">
+        <svg class="l-close-knob" viewBox="0 0 32 32" aria-hidden="true">
+          <circle class="k-sh" cx="17" cy="17.6" r="12.6"/>
+          <circle class="k-rose" cx="16" cy="16" r="12.6"/>
+          <circle class="k-rose-lip" cx="16" cy="16" r="11.4"/>
+          <circle class="k-cap" cx="16" cy="16" r="7.4"/>
+          <circle class="k-ring" cx="16" cy="16" r="4.6"/>
+          <ellipse class="k-glint" cx="13.4" cy="12.8" rx="2.6" ry="1.2" transform="rotate(-35 13.4 12.8)"/>
+        </svg>
+        <span class="l-close-cap display" data-i18n="keyClose" aria-hidden="true">Close</span>
+      </button>
       <div class="chips" role="radiogroup" data-i18n-aria="ariaFilter" aria-label="Filter">
         <button class="chip display" role="radio" aria-checked="true" data-chip="all" data-i18n="chipAll">ALL</button>
-        <button class="chip display" role="radio" aria-checked="false" data-chip="salon" data-i18n-title="salonWing" tabindex="-1">SALON</button>
-        <button class="chip display" role="radio" aria-checked="false" data-chip="bureau" data-i18n-title="bureauWing" tabindex="-1">BUREAU</button>
+        <!-- The engraved word is English; the tooltip that describes it is in
+             the hall's language, so lang=en sits on the word, not the chip. -->
+        <button class="chip display" role="radio" aria-checked="false" data-chip="salon" data-i18n-title="salonWing" tabindex="-1"><span lang="en">SALON</span></button>
+        <button class="chip display" role="radio" aria-checked="false" data-chip="bureau" data-i18n-title="bureauWing" tabindex="-1"><span lang="en">BUREAU</span></button>
       </div>
     </div>
     <!-- The stamp. Resting on a plaque strikes one dispatch; this strikes the
@@ -633,12 +509,99 @@
          inert with nothing to strike rather than disappearing, so its place
          on the drawer does not move under the pointer. -->
     <div class="l-tools">
+      <!-- Shown once a poll has gone by without a fresh feed: since when the
+           Ledger has had no word from the hub (app.js syncStale). -->
+      <span class="l-stale display" id="ledger-stale" hidden></span>
       <button class="l-stamp inert" id="mark-all" type="button" aria-disabled="true">
-        <svg class="l-stamp-ico" viewBox="0 0 24 24" aria-hidden="true">
-          <path class="s-head" d="M6.5 3.5h11v4h-11z"/>
-          <path class="s-grip" d="M10 7.5h4v3.5h-4z"/>
-          <path class="s-base" d="M3.5 11h17v3.5h-17z"/>
-          <line class="s-rule" x1="3.5" y1="19" x2="20.5" y2="19"/>
+        <!-- A brass rubber dater standing in its cradle, lit like the drawer's
+             other fittings: a turned walnut knob with lathe rings and a
+             varnish highlight on a brass ferrule, a cast brass yoke in the
+             six tones of the metal, rubber date wheels with their figures
+             catching the light, the rubber foot over a wet violet pad, and
+             the whole standing on its own shadow in the tray. The press
+             drives knob, yoke and foot down onto the pad. -->
+        <svg class="l-stamp-ico" viewBox="0 0 40 44" aria-hidden="true">
+          <defs>
+            <linearGradient id="st-brass-h" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0" class="cs-b0"/><stop offset="0.14" class="cs-b1"/>
+              <stop offset="0.36" class="cs-b2"/><stop offset="0.52" class="cs-b3"/>
+              <stop offset="0.72" class="cs-b4"/><stop offset="0.9" class="cs-b5"/>
+              <stop offset="1" class="cs-b1"/>
+            </linearGradient>
+            <linearGradient id="st-brass-v" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" class="cs-b5"/><stop offset="0.18" class="cs-b3"/>
+              <stop offset="0.42" class="cs-b2"/><stop offset="0.66" class="cs-b4"/>
+              <stop offset="0.86" class="cs-b1"/><stop offset="1" class="cs-b0"/>
+            </linearGradient>
+            <linearGradient id="st-tray" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" class="cs-b0"/><stop offset="0.6" class="cs-b1"/><stop offset="1" class="cs-b2"/>
+            </linearGradient>
+            <radialGradient id="st-wood" cx="0.36" cy="0.3" r="0.78">
+              <stop offset="0" stop-color="#a0683a"/><stop offset="0.32" stop-color="#6b3f20"/>
+              <stop offset="0.7" stop-color="#34200f"/><stop offset="1" stop-color="#140b05"/>
+            </radialGradient>
+            <radialGradient id="st-gloss" cx="0.5" cy="0.5" r="0.5">
+              <stop offset="0" stop-color="#fff6e6" stop-opacity="0.95"/><stop offset="1" stop-color="#fff6e6" stop-opacity="0"/>
+            </radialGradient>
+            <linearGradient id="st-rubber" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="#050403"/><stop offset="0.3" stop-color="#2a231e"/>
+              <stop offset="0.46" stop-color="#4a4038"/><stop offset="0.62" stop-color="#211b17"/>
+              <stop offset="1" stop-color="#050403"/>
+            </linearGradient>
+            <linearGradient id="st-pad" x1="0" y1="0" x2="1" y2="0.6">
+              <stop offset="0" stop-color="#1b0e31"/><stop offset="0.3" stop-color="#3e2169"/>
+              <stop offset="0.44" stop-color="#6a4a9c"/><stop offset="0.52" stop-color="#3a1f63"/>
+              <stop offset="1" stop-color="#190c2c"/>
+            </linearGradient>
+            <radialGradient id="st-shadow" cx="0.5" cy="0.5" r="0.5">
+              <stop offset="0" stop-color="#000" stop-opacity="0.7"/><stop offset="1" stop-color="#000" stop-opacity="0"/>
+            </radialGradient>
+          </defs>
+          <!-- the tray: its back wall in shadow, the inked pad let into it -->
+          <path class="s-cradle-back" d="M5 33 h30 l-2 -5 h-26 z" fill="url(#st-tray)"/>
+          <rect class="s-pad" x="7" y="32.6" width="26" height="4.6" rx="1" fill="url(#st-pad)"/>
+          <path class="s-pad-wet" d="M12 33.2 h9 l-1.6 1.1 h-9 z"/>
+          <ellipse class="s-contact" cx="20" cy="32.9" rx="11.5" ry="1.6" fill="url(#st-shadow)"/>
+          <g class="s-head">
+            <ellipse class="s-knob-sh" cx="20.8" cy="7.2" rx="6.5" ry="5.3"/>
+            <ellipse class="s-knob" cx="20" cy="6.4" rx="6.4" ry="5.2" fill="url(#st-wood)"/>
+            <path class="s-lathe" d="M14.1 7.4 Q20 9.6 25.9 7.4 M14.9 9.1 Q20 11 25.1 9.1"/>
+            <path class="s-lathe-lit" d="M14.2 6.9 Q20 9.1 25.8 6.9 M15 8.6 Q20 10.5 25 8.6"/>
+            <ellipse cx="17.4" cy="4" rx="3.1" ry="1.3" transform="rotate(-20 17.4 4)" fill="url(#st-gloss)"/>
+            <circle class="s-knob-spec" cx="16.6" cy="3.7" r="0.55"/>
+            <rect class="s-ferrule" x="16.4" y="10.7" width="7.2" height="2" rx="0.7" fill="url(#st-brass-h)"/>
+          </g>
+          <g class="s-grip">
+            <rect class="s-neck" x="18.3" y="12.5" width="3.4" height="4.7" fill="url(#st-brass-h)"/>
+            <path class="s-frame" d="M9 17 h22 v2.6 l-2 1.4 v7 h-18 v-7 l-2 -1.4 z" fill="url(#st-brass-h)"/>
+            <path class="s-frame-arris" d="M9.4 17.45 H30.6"/>
+            <path class="s-frame-shade" d="M11.2 27.75 H28.8"/>
+            <rect class="s-window" x="11.7" y="20.5" width="16.6" height="7"/>
+            <g class="s-band">
+              <rect x="12.3" y="20.9" width="3.6" height="6.2" rx="0.9" fill="url(#st-rubber)"/>
+              <rect x="16.2" y="20.9" width="3.6" height="6.2" rx="0.9" fill="url(#st-rubber)"/>
+              <rect x="20.2" y="20.9" width="3.6" height="6.2" rx="0.9" fill="url(#st-rubber)"/>
+              <rect x="24.1" y="20.9" width="3.6" height="6.2" rx="0.9" fill="url(#st-rubber)"/>
+            </g>
+            <!-- the figures on the wheels, drawn rather than set: they are the
+                 wheels' raised rubber, not lettering -->
+            <path class="s-digits" d="M13.25 23.2 Q13.25 22.6 14.1 22.6 Q14.95 22.6 14.95 23.3 Q14.95 23.9 13.25 25.4 H15 M18.45 25.4 V22.6 L17.1 24.6 H18.95 M22 22.6 A0.8 1.4 0 1 0 22 25.4 A0.8 1.4 0 1 0 22 22.6 M26.65 23.3 A0.75 0.75 0 1 0 25.15 23.3 A0.75 0.75 0 1 0 26.65 23.3 V24.2 Q26.65 25.4 25.35 25.4"/>
+            <path class="s-band-catch" d="M12.6 23.1 H27.4"/>
+            <circle class="s-pin" cx="11.3" cy="24" r="0.85"/>
+            <circle class="s-pin" cx="28.7" cy="24" r="0.85"/>
+          </g>
+          <g class="s-base">
+            <rect class="s-plate" x="10" y="28" width="20" height="1.4" rx="0.4" fill="url(#st-brass-h)"/>
+            <rect class="s-die" x="10.6" y="29.3" width="18.8" height="2.3" rx="0.5"/>
+            <rect class="s-die-ink" x="10.8" y="30.9" width="18.4" height="0.7" rx="0.3"/>
+          </g>
+          <!-- the tray's front lip, turned to the light along its top -->
+          <path class="s-cradle" d="M3 37.2 h34 l-1.6 5 h-30.8 z" fill="url(#st-brass-v)"/>
+          <path class="s-rule" d="M3.4 37.5 H36.6"/>
+          <path class="s-cradle-foot" d="M4.8 42 H35.2"/>
+          <circle class="s-screw" cx="6.3" cy="39.7" r="0.95"/>
+          <circle class="s-screw" cx="33.7" cy="39.7" r="0.95"/>
+          <path class="s-slot" d="M5.7 39.4 L6.9 40 M33.1 40 L34.3 39.4"/>
         </svg>
         <span class="l-stamp-cap display" data-i18n="markAll">MARK ALL READ</span>
       </button>
@@ -652,73 +615,84 @@
     </div>
   </aside>
 
-</div>
+<!-- The key plate, shown and hidden with "?". Rows are written by app.js
+     so the gate count and the language are always current. -->
+<aside id="keyplate" aria-labelledby="keyplate-title" hidden>
+  <h2 id="keyplate-title" class="kp-title display" tabindex="-1">KEYS</h2>
+  <dl class="kp-rows"></dl>
+</aside>
 
 <!-- Ledger scrim — dims the hall when the drawer is open; click to close -->
 <div id="ledger-scrim" aria-hidden="true"></div>
 
 <!-- ======================================================================
-     Signal desk — the works of the hall, standing on the terrazzo. Fixed
-     and body-level (never inside #stage: parallax vars are scoped there,
-     and a transformed ancestor would trap the fixed box).
+     The house-lights board: the hall's one control, standing at the foot of
+     the runner. Fixed and body-level (never inside #stage: parallax vars are
+     scoped there, and a transformed ancestor would trap the fixed box).
 
-     This was a full-bleed bronze rail across the foot of the page. The bar
-     read as a strip of UI taped under the picture rather than as anything
-     in the room, so the housing, the LINES dial (the ticker already counts
-     the lines) and the maker's plate are gone. What is left is the machine
-     itself, planted centre stage on the floor. It stays outside the aisle
-     grid on purpose: the boards fold away below 1800px and the wing switch
-     may never fold away with them.
-     Layers: .desk-art (static housing, contained) / .desk-fx (the three
-     movers + steam nozzle, overflow visible) / #lever (hit surface).
+     A theatre's front-of-house switchboard cut down to one circuit pair: an
+     upright Bardiglio panel in a bronze frame on a reeded bronze standard,
+     carrying one double-throw knife switch. The blades lie in the SALON
+     jaws or the BUREAU jaws with the handle out past them; the pilot over
+     the live jaws is lit at night and the meter's needle stands on that
+     side. Drawn by static/js/desk.js.
+     Layers: .desk-art (the static board, contained) / the two name plates /
+     .desk-fx (the lamps, their pools and the meter's needle and glass, each
+     its own layer) / .desk-sw (the swing's poses and the sparks) / #lever
+     (the switch a keyboard reaches, with the handle's hit strip).
+     A named region, not a <footer>: at body level a footer is the page's
+     contentinfo landmark, which filed the hall's one wing control under
+     the page's small print.
 ====================================================================== -->
-<footer id="signal-desk" data-i18n-aria="ariaDesk" aria-label="Signal desk">
+<div id="signal-desk" role="region" data-i18n-aria="ariaDesk" aria-label="House-lights board: wing switch">
   <div class="desk-core">
     <div class="assembly" aria-hidden="true">
       <div class="desk-art">
-        <svg class="quadrant" viewBox="0 0 360 220"></svg>
+        <svg class="hl-board" viewBox="0 0 460 296"></svg>
       </div>
-      <div class="desk-fx">
-        <div class="gear-well" aria-hidden="true">
-          <svg class="gearA-svg" viewBox="-52 -52 104 104"></svg>
-          <svg class="gearB-svg" viewBox="-30 -30 60 60"></svg>
-        </div>
-        <svg class="lever-svg" viewBox="0 0 140 210"></svg>
-        <div class="nozzle"></div>
-      </div>
-      <span class="l-label l-salon display" data-i18n-title="salonWing">SALON</span>
-      <span class="l-label l-bureau display" data-i18n-title="bureauWing">BUREAU</span>
+      <span class="l-label l-salon display" data-side="salon" data-i18n-title="salonWing" lang="en">SALON</span>
+      <span class="l-label l-bureau display" data-side="bureau" data-i18n-title="bureauWing" lang="en">BUREAU</span>
+      <div class="desk-fx"></div>
+      <div class="desk-sw"></div>
     </div>
-    <div id="lever" role="switch" aria-checked="false" tabindex="0"
-         data-i18n-aria="ariaLever" data-i18n-title="ariaLever"
-         aria-label="Mode lever: off = Salon, on = Bureau">
-      <!-- The arm hit zone rides above the box so clicks land only where
-           hardware is actually drawn — never a floating rectangle. -->
-      <span class="hit-arm" aria-hidden="true"></span>
+    <span id="lever-desc" hidden data-i18n="leverDesc">Off lights the Salon, the play wing. On lights the Bureau, the work wing.</span>
+    <div id="lever" role="switch" aria-checked="false" tabindex="0" aria-keyshortcuts="W"
+         aria-describedby="lever-desc" data-i18n-aria="ariaLever"
+         aria-label="Bureau wing">
+      <!-- The blade's hit strip: it swings with the drawn blade and handle
+           and scales with the board, so the switch takes the pointer and
+           the floor and the clock above it do not. The board hit-tests on
+           its own drawn shapes (atrium.css). -->
+      <span class="hit-arm sw-drive" aria-hidden="true"></span>
     </div>
   </div>
-</footer>
+</div>
 
 <!-- ====================================================================== -->
 <div id="prefs" role="dialog" aria-modal="true" aria-labelledby="prefs-title" hidden>
   <div class="p-wrap">
   <div class="p-sheet">
-    <header class="p-head">
+    <!-- A div, not a header: inside the dialog a header was a second banner
+         landmark, and the masthead is the page's only banner. -->
+    <div class="p-head">
       <h2 id="prefs-title" class="display" data-i18n="preferences">PREFERENCES</h2>
       <button id="prefs-close" data-i18n-aria="ariaClose" aria-label="Close">✕</button>
-    </header>
+    </div>
 
+    <!-- In the order the panel shows them (appearance, language, motion,
+         engraving size, replay), which is the order Tab and a screen reader
+         take. The grid places each well by its data-control area. -->
     <section class="p-group">
       <h3 class="p-label display" id="lbl-appearance" data-i18n="appearance">APPEARANCE</h3>
       <div class="p-options" role="radiogroup" aria-labelledby="lbl-appearance" data-pref="theme">
         <button class="p-plaque" role="radio" data-value="onyx">
           <span class="swatch sw-onyx" aria-hidden="true"></span>
-          <span class="p-name display" data-i18n="onyx">ONYX</span>
+          <span class="p-name display"><span data-i18n="onyxGloss"></span><span lang="en">ONYX</span></span>
           <span class="p-desc" data-i18n="onyxDesc">Black &amp; gold</span>
         </button>
         <button class="p-plaque" role="radio" data-value="ivory">
           <span class="swatch sw-ivory" aria-hidden="true"></span>
-          <span class="p-name display" data-i18n="ivory">IVORY</span>
+          <span class="p-name display"><span data-i18n="ivoryGloss"></span><span lang="en">IVORY</span></span>
           <span class="p-desc" data-i18n="ivoryDesc">Platinum &amp; gold</span>
         </button>
         <button class="p-plaque" role="radio" data-value="system">
@@ -732,11 +706,28 @@
     <section class="p-group">
       <h3 class="p-label display" id="lbl-language" data-i18n="language">LANGUAGE</h3>
       <div class="p-options" role="radiogroup" aria-labelledby="lbl-language" data-pref="lang">
-        <button class="p-plaque" role="radio" data-value="en">
+        <!-- lang on the radio itself: its name is what a screen reader says,
+             and a name is voiced in the language of the element it names. -->
+        <button class="p-plaque" role="radio" data-value="en" lang="en">
           <span class="p-name display">ENGLISH</span>
         </button>
-        <button class="p-plaque" role="radio" data-value="zh">
-          <span class="p-name display" lang="zh">中文</span>
+        <button class="p-plaque" role="radio" data-value="zh" lang="zh">
+          <span class="p-name display">中文</span>
+        </button>
+      </div>
+    </section>
+
+    <section class="p-group">
+      <h3 class="p-label display" id="lbl-motion" data-i18n="motion">MOTION</h3>
+      <div class="p-options" role="radiogroup" aria-labelledby="lbl-motion" data-pref="motion">
+        <button class="p-plaque" role="radio" data-value="full">
+          <span class="p-name display" data-i18n="motionFull">FULL</span>
+        </button>
+        <button class="p-plaque" role="radio" data-value="reduced">
+          <span class="p-name display" data-i18n="motionReduced">REDUCED</span>
+        </button>
+        <button class="p-plaque" role="radio" data-value="system">
+          <span class="p-name display" data-i18n="system">FOLLOW SYSTEM</span>
         </button>
       </div>
     </section>
@@ -760,27 +751,20 @@
     </section>
 
     <section class="p-group">
-      <h3 class="p-label display" id="lbl-motion" data-i18n="motion">MOTION</h3>
-      <div class="p-options" role="radiogroup" aria-labelledby="lbl-motion" data-pref="motion">
-        <button class="p-plaque" role="radio" data-value="full">
-          <span class="p-name display" data-i18n="motionFull">FULL</span>
-        </button>
-        <button class="p-plaque" role="radio" data-value="reduced">
-          <span class="p-name display" data-i18n="motionReduced">REDUCED</span>
-        </button>
-      </div>
-    </section>
-
-    <section class="p-group">
       <button id="replay" class="p-plaque">
         <span class="p-name display" data-i18n="replay">REPLAY ENTRANCE</span>
+        <span class="p-desc" data-i18n="replayDesc">Reloads the hall to play it once more</span>
       </button>
     </section>
   </div>
   </div>
 </div>
 
+<script src="/static/js/palace.js"></script>
+<script src="/static/js/cabinetry.js"></script>
+<script src="/static/js/room.js"></script>
 <script src="/static/js/clock.js"></script>
+<script src="/static/js/desk.js"></script>
 <script src="/static/js/app.js"></script>
 <script>
 /* ?probe=1 - layout read-out for scripts/probe.py.
@@ -788,17 +772,20 @@
    was allowed to be, and CSS cannot report what a clamp() resolved to. This
    writes the live boxes into document.title, which headless Chrome hands
    back through --dump-dom with no debugger attached. Debug-only, in the same
-   spirit as the ?theme= and ?prefs=1 overrides above; it renders nothing. */
-if (location.search.indexOf('probe=1') >= 0) setTimeout(function () {
+   spirit as the ?theme= and ?prefs=1 overrides above; it renders nothing.
+   Every level brings this read-out with it: probe=2 and probe=3 used to sit
+   inside a probe=1 test, so on their own they did nothing at all. */
+var probeAt = new URLSearchParams(location.search).getAll('probe');
+if (probeAt.some(function (v) { return /^[123]$/.test(v); })) setTimeout(function () {
   var out = [];
   var sels = ['#hall', '#concourse', '#stage', '#floorplane', '#works',
     '#almanac', '#clock', '#gates', '.gate.active', '.gate.receded',
-    '#signal-desk', '.assembly', '.quadrant', '.gear-well', '.lever-svg'];
-  if (location.search.indexOf('probe=2') >= 0) {
+    '#signal-desk', '.assembly', '.hl-board', '#lever', '.sw-handle'];
+  if (probeAt.indexOf('2') >= 0) {
     /* Deep read for hardware work: the machinery is drawn inside three
        nested transformed boxes, so a part's page position cannot be derived
        from CSS by hand. Ask each part where it actually landed. */
-    sels = sels.concat(['.gearA-svg', '.gearB-svg', '.l-salon', '.l-bureau',
+    sels = sels.concat(['.sw-blade-far', '.sw-needle', '.l-salon', '.l-bureau',
                         '#lever', '.fl-plane', '.fl-rail',
                         /* The almanac's four registers: the case has a fixed
                            height and only the arc may flex, so the way this
@@ -825,7 +812,7 @@ if (location.search.indexOf('probe=1') >= 0) setTimeout(function () {
      crop taken from those numbers lands on the floor instead of the machine.
      Painting the numbers into the shot is the only read that cannot
      disagree with the pixels next to it. */
-  if (location.search.indexOf('probe=3') >= 0) {
+  if (probeAt.indexOf('3') >= 0) {
     var tag = document.createElement('div');
     tag.setAttribute('style', 'position:fixed;left:0;top:0;z-index:9999;' +
       'background:#000;color:#0f0;font:12px monospace;padding:4px 6px;' +
@@ -834,7 +821,7 @@ if (location.search.indexOf('probe=1') >= 0) setTimeout(function () {
     /* Outline the hardware too. Numbers still have to be trusted against a
        crop; an outline drawn by the page itself is in the same pixels as
        the thing it surrounds and cannot be off by a viewport. */
-    [['.assembly', '#f0f'], ['.gear-well', '#f00'], ['#lever', '#0ff']]
+    [['.assembly', '#f0f'], ['.sw-handle', '#f00'], ['#lever', '#0ff']]
       .forEach(function (pair) {
         var e = document.querySelector(pair[0]);
         if (e) e.style.outline = '2px solid ' + pair[1];
@@ -845,7 +832,7 @@ if (location.search.indexOf('probe=1') >= 0) setTimeout(function () {
        is the same 100px lie in a different disguise. */
     setInterval(function () {
       tag.textContent = 'vp=' + innerWidth + 'x' + innerHeight +
-        ['.assembly', '.gear-well', '#lever'].map(function (s) {
+        ['.assembly', '.sw-handle', '#lever'].map(function (s) {
           var e = document.querySelector(s);
           if (!e) return '\n' + s + '=none';
           var r = e.getBoundingClientRect();

@@ -132,9 +132,8 @@ async def fetch_weather(lat: float, lon: float) -> dict[str, Any] | None:
         "latitude": lat,
         "longitude": lon,
         "daily": ("weather_code,temperature_2m_max,temperature_2m_min,"
-                  "precipitation_probability_max,wind_speed_10m_max,"
-                  "sunrise,sunset"),
-        "current": "temperature_2m,weather_code",
+                  "precipitation_probability_max,sunrise,sunset"),
+        "current": "temperature_2m,weather_code,wind_speed_10m",
         "timezone": "auto",
         "forecast_days": 1,
     }
@@ -148,7 +147,13 @@ async def fetch_weather(lat: float, lon: float) -> dict[str, Any] | None:
 
     daily = doc.get("daily") or {}
     current = doc.get("current") or {}
-    code = _first(daily.get("weather_code"))
+    # The condition printed beside the current temperature is the current
+    # one. The daily code is the day's most severe condition, so a clear
+    # morning with an evening storm used to read "Thunderstorm" all day. It
+    # stands in only when the current block has no code.
+    code = current.get("weather_code")
+    if code is None:
+        code = _first(daily.get("weather_code"))
     if code is None:
         return None
     label, label_zh = WMO.get(int(code), ("Unknown", "—"))
@@ -164,7 +169,10 @@ async def fetch_weather(lat: float, lon: float) -> dict[str, Any] | None:
         "high_c": high, "high_f": _c_to_f(high),
         "low_c": low, "low_f": _c_to_f(low),
         "precip_prob": _first(daily.get("precipitation_probability_max")),
-        "wind_kmh": _first(daily.get("wind_speed_10m_max")),
+        # The wind now, printed beside the temperature now. The day's peak
+        # (wind_speed_10m_max) used to stand there unlabelled. A missing
+        # current reading is a dash, never the peak standing in for it.
+        "wind_kmh": current.get("wind_speed_10m"),
         # The service's own sun times. The board computes its own from the
         # coordinates so it still has a sky when this block is missing; these
         # are kept as the check on that arithmetic.
@@ -172,6 +180,22 @@ async def fetch_weather(lat: float, lon: float) -> dict[str, Any] | None:
         "sunset": _first(daily.get("sunset")),
         "utc_offset_s": doc.get("utc_offset_seconds"),
     }
+
+
+def for_another_day(weather: dict[str, Any] | None, now: float | None = None) -> bool:
+    """A forecast is for one local day at the place, and past that place's
+    midnight the cached one is yesterday's, however young the TTL says it is.
+    The day is read off its own sunrise and the offset the service reported,
+    so no timezone database is needed. No sunrise (a polar day) is no claim.
+    """
+    if not weather:
+        return False
+    day = str(weather.get("sunrise") or "")[:10]
+    off = weather.get("utc_offset_s")
+    if len(day) != 10 or not isinstance(off, (int, float)):
+        return False
+    t = time.time() if now is None else now
+    return day != time.strftime("%Y-%m-%d", time.gmtime(t + off))
 
 
 _weather: dict[str, Any] | None = None
@@ -192,7 +216,8 @@ async def snapshot(state_dir: Path) -> dict[str, Any]:
     where = place(state_dir)
     key = (where["lat"], where["lon"])
     async with _lock:
-        stale = (time.monotonic() - _weather_at) > _weather_ttl
+        stale = ((time.monotonic() - _weather_at) > _weather_ttl
+                 or for_another_day(_weather))
         if stale or _weather_for != key:
             _weather = await fetch_weather(where["lat"], where["lon"])
             _weather_at = time.monotonic()

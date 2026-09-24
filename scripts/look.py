@@ -28,9 +28,10 @@ import os
 import re
 import subprocess
 import sys
-import tempfile
 
 from PIL import Image
+
+from safe_chrome import profile   # never a bare temp profile: see safe_chrome.py
 
 CHROME = r"C:\Program Files\Google\Chrome\Application\chrome.exe"
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -55,7 +56,7 @@ def render(size, dpr, query):
             "--dump-dom",
             "--virtual-time-budget=4500",
             "--force-device-scale-factor=" + str(dpr),
-            "--user-data-dir=" + tempfile.mkdtemp(prefix="atr-look-")]
+            "--user-data-dir=" + profile("atr-look-")]
     args.append(url)
     dom = subprocess.run(args, capture_output=True, timeout=180).stdout.decode(
         "utf-8", "replace")

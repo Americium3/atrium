@@ -1,0 +1,1092 @@
+/* ==========================================================================
+   THE PICTURE PALACE: THE ROOM (material pass)
+   ==========================================================================
+   The canopy fascia and its fittings, the marquee, the back wall and the
+   floor. Loaded after atrium.css; the gates, the clock and the furniture
+   are dressed in their own sheets.
+
+   One light model. At night only emitters glow: the marquee's bulbs, the
+   crown's windows, the onyx in the pier lights, the torchieres' alabaster,
+   the fanlights. Stone, gilt and velvet take their light from those. By
+   day nothing is lit and the skylight, up and a little left, is the key.
+   Every lamp is a layer whose opacity is --lamp-on.
+   ========================================================================== */
+
+:root[data-theme="onyx"] {
+  /* the canopy */
+  --fascia-img: url('/static/assets/tex/room-portoro.webp');
+  --fascia-veil: rgba(10, 7, 4, 0.06);
+  --fascia-up: rgba(255, 170, 88, 0.24);       /* the bulbs' light rising */
+  --fascia-head: rgba(0, 0, 0, 0.55);
+  --wm-return: #d8a446;                         /* lit from below */
+  --wm-return-ag: #cfc5ae;
+  --wm-lip: rgba(0, 0, 0, 0);
+  --wm-cast: 0.02em -0.13em 0.16em rgba(0, 0, 0, 0.78);
+  --wm-face-a: #6e4e14; --wm-face-b: #a47c2b; --wm-face-c: #e3bd62; --wm-face-d: #fff0c4; --wm-face-e: #d9b25a;
+  --wm-ni-a: #3e3b35; --wm-ni-b: #7f786a; --wm-ni-c: #cfc4aa; --wm-ni-d: #f7f1e4; --wm-ni-e: #b3aa96;
+  --cut-ink: #c4a466; --cut-top: rgba(0, 0, 0, 0.9); --cut-lip: rgba(255, 226, 170, 0.20);
+  --tm-seat: rgba(0, 0, 0, 0.62);
+  --brass-hi: #f4d68c; --brass-lo: #2e1f0b;
+  --bronze-hi: #d9a868; --bronze-lo: #1c1108;
+  --nickel-hi: #eee8da; --nickel-lo: #2f2d28;
+  --enamel-a: #8e1d22; --enamel-b: #4a0c10; --enamel-c: #160305;
+  --gu-line: rgba(255, 210, 160, 0.34);
+  --jewel-bloom: 0 0 calc(7px * var(--ui)) calc(1.5px * var(--ui)) rgba(255, 168, 70, 0.62);
+  --crown-glass-a: #fff4d6; --crown-glass-b: #ffcb72; --crown-glass-c: #d9832a; --crown-glass-d: #6e3410;
+}
+:root[data-theme="ivory"] {
+  --fascia-img: url('/static/assets/tex/stone-calacatta.webp');
+  --fascia-veil: rgba(250, 246, 238, 0.10);
+  --fascia-up: rgba(255, 176, 92, 0);
+  --fascia-head: rgba(255, 255, 255, 0.35);
+  /* The underside, in shade, and the letters seated on the stone: a close
+     occlusion where each casting meets the Calacatta under the skylight's
+     soft cast. The relief is what outlines the word against the pale marble,
+     so it is kept deep enough to read at 3:1 on its own (LY-5). */
+  --wm-return: #3d2a0b;
+  --wm-return-ag: #3b3934;
+  --wm-lip: rgba(255, 249, 226, 0.95);
+  --wm-cast: 0.02em 0.055em 0.04em rgba(40, 27, 7, 0.58), 0.05em 0.16em 0.13em rgba(70, 48, 16, 0.38);
+  /* The day faces are ramped deep: gilt and nickel under a skylight give back
+     the pale room over most of their height, and with the head's light run
+     down to the middle the letters sat within a few levels of the Calacatta,
+     1.8-3.0:1 (LY-5). The lit head stays; the body is the leaf in shade. */
+  --wm-face-a: #dcb566; --wm-face-b: #a57828; --wm-face-c: #74501a; --wm-face-d: #8a6224; --wm-face-e: #4a320a;
+  --wm-ni-a: #b9b6ac; --wm-ni-b: #7b786f; --wm-ni-c: #45433e; --wm-ni-d: #5a5852; --wm-ni-e: #2c2b28;
+  /* The cut lettering's gilt, deep enough for the 10px captions (LY-2). */
+  --cut-ink: #4e3a15; --cut-top: rgba(60, 42, 14, 0.55); --cut-lip: rgba(255, 255, 255, 0.95);
+  --tm-seat: rgba(70, 50, 20, 0.34);
+  --brass-hi: #fff3cc; --brass-lo: #6f5322;
+  --bronze-hi: #f1d2a6; --bronze-lo: #5a3d20;
+  --nickel-hi: #ffffff; --nickel-lo: #7c7a72;
+  --enamel-a: #a8262c; --enamel-b: #5e1218; --enamel-c: #22070a;
+  --gu-line: rgba(255, 226, 190, 0.45);
+  --jewel-bloom: 0 0 calc(4px * var(--ui)) rgba(255, 168, 70, 0.35);
+  --crown-glass-a: #efe0bd; --crown-glass-b: #d9bd86; --crown-glass-c: #a8844c; --crown-glass-d: #5d4524;
+}
+
+/* ==========================================================================
+   THE MASTHEAD: the canopy fascia
+   ========================================================================== */
+#masthead {
+  --med: calc(40px * var(--ui));
+  grid-template-columns: calc(52px * var(--ui)) 1fr auto;
+  column-gap: calc(20px * var(--ui));
+  padding-bottom: calc(15px * var(--ui));
+}
+/* The ticker is the board set into the fascia; it has to stand in front of
+   the stone that now runs down behind it. */
+#ticker { z-index: 2; }
+
+/* The fascia: book-matched Portoro by night, Calacatta by day, laid slab by
+   slab from the clock's axis by room.js, running down behind the marquee to
+   the cornice. The ::before of the old sign band is retired. Its head is the
+   top of the screen: a fixed -20px stood it 8px above the page wherever the
+   short-screen rule takes the hall's padding down to 12px, and the crest
+   moulding never showed (VD-13). */
+#masthead::before { content: none; }
+.m-fascia {
+  position: absolute; z-index: -1;
+  left: calc(50% - 50vw); width: 100vw;
+  top: calc(-1 * var(--hall-pad-top, 20px)); bottom: calc(-1px - var(--mast-drop, 0px));
+  overflow: hidden;
+  pointer-events: none;
+  background-color: #0b0908;
+}
+:root[data-theme="ivory"] .m-fascia { background-color: #ebe5d9; }
+.m-slab {
+  position: absolute; top: 0; bottom: 0;
+  overflow: hidden;
+  /* the joint: a dark hairline with the next slab's lit arris beside it */
+  box-shadow: inset 1px 0 0 rgba(0, 0, 0, 0.55), inset 2px 0 0 rgba(255, 240, 210, 0.07);
+}
+:root[data-theme="ivory"] .m-slab {
+  box-shadow: inset 1px 0 0 rgba(90, 70, 40, 0.28), inset 2px 0 0 rgba(255, 255, 255, 0.7);
+}
+.m-slab .sl-tex {
+  position: absolute; inset: 0;
+  background-image: var(--fascia-img);
+  background-size: calc(760px * var(--ui)) auto;
+  background-position: var(--sx, 0) var(--sy, 0);
+}
+.m-slab.mir .sl-tex { transform: scaleX(-1); }
+.m-slab .sl-tone { position: absolute; inset: 0; background: rgba(0, 0, 0, calc(0.04 + var(--tn, 0) * 0.26)); }
+:root[data-theme="ivory"] .m-slab .sl-tone { background: rgba(120, 94, 56, calc(var(--tn, 0) * 0.09)); }
+/* Light on the stone: the head in the ceiling's shadow, and at night the
+   marquee's bulbs lighting it from below and the crown's glass from its
+   own axis. By day the skylight, falling from the head. */
+.mf-light {
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(calc(300px * var(--ui)) 90% at 50% 70%, color-mix(in srgb, var(--fascia-up) 90%, transparent), transparent 70%),
+    linear-gradient(180deg, var(--fascia-head) 0%, transparent 38%, transparent 55%, var(--fascia-up) 100%),
+    linear-gradient(var(--fascia-veil), var(--fascia-veil));
+}
+:root[data-theme="ivory"] .mf-light {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.40) 0%, transparent 45%, rgba(120, 96, 60, 0.10) 100%),
+    linear-gradient(var(--fascia-veil), var(--fascia-veil));
+}
+/* The cresting along the head of the fascia: a rolled gilt moulding. */
+.mf-crest {
+  position: absolute; left: 0; right: 0; top: 0; height: calc(7px * var(--ui));
+  background: linear-gradient(180deg, var(--lead-0) 0 12%, var(--lead-5) 22%, var(--lead-3) 34%, var(--lead-2) 58%, var(--lead-1) 78%, var(--lead-0) 100%);
+  box-shadow: 0 calc(2px * var(--ui)) calc(4px * var(--ui)) rgba(0, 0, 0, 0.55);
+}
+/* Where the fascia meets the cornice: a shadow line under the marquee. */
+.mf-foot {
+  position: absolute; left: 0; right: 0; bottom: 0; height: calc(10px * var(--ui));
+  background: linear-gradient(180deg, transparent, rgba(0, 0, 0, 0.45));
+}
+:root[data-theme="ivory"] .mf-foot { background: linear-gradient(180deg, transparent, rgba(90, 66, 30, 0.18)); }
+
+/* The fascia's foot: a moulding the width of the building, a shadow line,
+   a rolled bead in the wing's metal (one of its three surfaces), and a lip
+   the marquee hangs under. */
+.m-underline {
+  left: calc(50% - 50vw); right: auto; width: 100vw;
+  height: calc(7px * var(--ui));
+  bottom: calc(-2px * var(--ui));
+  background:
+    linear-gradient(180deg, rgba(0, 0, 0, 0.6) 0 14%, var(--metal-hi) 24%, var(--metal) 50%,
+      color-mix(in srgb, var(--metal) 45%, #000) 72%, rgba(0, 0, 0, 0.7) 80%, var(--lead-3) 86%, var(--lead-1) 100%);
+  box-shadow: 0 calc(2px * var(--ui)) calc(4px * var(--ui)) rgba(0, 0, 0, 0.55);
+  z-index: 0;
+}
+
+/* ----- ATRIUM: cast gilt letters standing off the stone ------------------
+   Three layers of one word. The h1's own text is the letters' return (the
+   thickness of the casting, seen at its foot by day and lit from under it
+   at night) and carries the stand-off shadow they throw on the stone; the
+   face is drawn over it, lifted a hair; and a nickel-silver face crossfades
+   over the gilt one when the Bureau is lit. The face is ramped for the key:
+   bright at the foot by night, where the marquee's bulbs catch it, and at
+   the head by day. */
+.m-title {
+  padding: 0; background: none; box-shadow: none;
+  gap: calc(22px * var(--ui));
+}
+.m-title::before, .m-title::after { content: none; }
+.m-title h1,
+:root[data-theme="ivory"] .m-title h1 {
+  position: relative;
+  font-size: calc(34px * var(--ui));
+  font-weight: 640;
+  letter-spacing: 0.26em;
+  background: none;
+  -webkit-background-clip: border-box; background-clip: border-box;
+  color: var(--wm-return);
+  text-shadow: 0 -0.075em 0 var(--wm-lip), var(--wm-cast);
+  filter: none;
+}
+:root[data-wing="bureau"] .m-title h1 { color: var(--wm-return-ag); }
+.m-title h1::before, .m-title h1::after {
+  content: "ATRIUM" / "";
+  position: absolute; left: 0; top: 0;
+  transform: translateY(-0.045em);
+  color: transparent;
+  /* text-shadow is inherited, and a clipped face paints its shadows over
+     its own background: the faces cast nothing, the return does */
+  text-shadow: none;
+  -webkit-background-clip: text; background-clip: text;
+  background-blend-mode: soft-light, normal;
+  pointer-events: none;
+}
+.m-title h1::before {
+  background-image:
+    url('/static/assets/tex/grain-gilt.webp'),
+    linear-gradient(180deg, var(--wm-face-a) 4%, var(--wm-face-b) 30%, var(--wm-face-c) 58%, var(--wm-face-d) 82%, var(--wm-face-e) 100%);
+  background-size: calc(90px * var(--ui)), 100% 100%;
+}
+.m-title h1::after {
+  background-image:
+    url('/static/assets/tex/grain-brushed.webp'),
+    linear-gradient(180deg, var(--wm-ni-a) 4%, var(--wm-ni-b) 30%, var(--wm-ni-c) 58%, var(--wm-ni-d) 82%, var(--wm-ni-e) 100%);
+  background-size: calc(160px * var(--ui)), 100% 100%;
+  opacity: 0;
+  transition: opacity 0.45s ease;
+}
+:root[data-wing="bureau"] .m-title h1::after { opacity: 1; }
+
+/* Lettering cut into the stone and gilded in the cut: GRAND CONCOURSE, the
+   date and the two control captions. The cut's upper wall is in shade and
+   its lower lip catches the light. */
+.m-sub, #dateline, #masthead .p-caption {
+  color: var(--cut-ink);
+  text-shadow: 0 -1px 0 var(--cut-top), 0 1px 0 var(--cut-lip);
+}
+.m-sub { font-size: calc(12.5px * var(--ui)); font-weight: 560; letter-spacing: 0.3em; }
+#dateline { font-size: calc(15px * var(--ui)); letter-spacing: 0.05em; font-weight: 520; }
+html[lang="zh"] .m-sub { letter-spacing: 0.4em; }
+
+/* ----- The frieze panels and the crown ------------------------------------ */
+.m-crown, .m-frieze { position: absolute; pointer-events: none; }
+.m-crown.stowed, .m-frieze.stowed { display: none; }
+.m-crown {
+  left: 50%; bottom: calc(1px * var(--ui));
+  width: calc(168px * var(--ui) * var(--ck, 1)); height: calc(88px * var(--ui) * var(--ck, 1));
+  margin-left: calc(-84px * var(--ui) * var(--ck, 1));
+  z-index: 1;
+}
+.m-crown svg { position: relative; width: 100%; height: 100%; overflow: visible; }
+/* The crown's glass lights the stone behind it: a wash in normal paint
+   (the masthead is an isolated group, and the stone under it is dark). */
+.mc-wash {
+  position: absolute; left: -60%; right: -60%; top: -10%; bottom: -8%;
+  background: radial-gradient(50% 58% at 50% 72%, rgba(255, 170, 84, 0.20), rgba(255, 150, 70, 0.07) 55%, transparent 80%);
+}
+.m-crown .lamp { opacity: var(--lamp-on); }
+.mcg.g0 { stop-color: var(--lead-0); } .mcg.g1 { stop-color: var(--lead-1); }
+.mcg.g2 { stop-color: var(--lead-2); } .mcg.g3 { stop-color: var(--lead-3); }
+.mcg.g4 { stop-color: var(--lead-4); } .mcg.g5 { stop-color: var(--lead-5); }
+.mcc.s0 { stop-color: var(--lead-5); } .mcc.s1 { stop-color: var(--lead-3); }
+.mcc.s2 { stop-color: var(--lead-2); } .mcc.s3 { stop-color: var(--lead-0); }
+.mcw.s0 { stop-color: var(--crown-glass-a); } .mcw.s1 { stop-color: var(--crown-glass-b); }
+.mcw.s2 { stop-color: var(--crown-glass-c); } .mcw.s3 { stop-color: var(--crown-glass-d); }
+.mcl.s0 { stop-color: #000; stop-opacity: 0.62; } .mcl.s1 { stop-color: #1a0e02; stop-opacity: 0.05; }
+:root[data-theme="ivory"] .mcl.s0 { stop-color: #fff; stop-opacity: 0.20; }
+:root[data-theme="ivory"] .mcl.s1 { stop-color: #3a2a10; stop-opacity: 0.18; }
+.mc-shadow path { fill: rgba(0, 0, 0, 0.55); }
+:root[data-theme="ivory"] .mc-shadow path { fill: rgba(70, 48, 16, 0.26); }
+.mc-bloom { mix-blend-mode: screen; }
+.mc-bloom path { fill: #ff9f40; }
+:root[data-theme="onyx"] .m-crown .mc-bloom { opacity: calc(var(--lamp-on) * 0.85); }
+.mc-reveal, .mc-glaze { fill: var(--lead-0); }
+.mc-glaze { opacity: 0.9; }
+.mc-win-rv { fill: var(--lead-0); }
+.mc-win { fill: var(--crown-glass-b); }
+:root[data-theme="ivory"] .mc-win { fill: var(--crown-glass-c); }
+.mc-glass { fill: var(--crown-glass-d); }
+.mc-glass-lit { fill: url(#mc-glass); }
+:root[data-theme="ivory"] .mc-glass-lit { opacity: 1; }
+.mc-came-sh { fill: none; stroke: rgba(0, 0, 0, 0.55); stroke-width: 1.3; }
+.mc-came { fill: none; stroke: var(--lead-1); stroke-width: 1.1; }
+.mc-reed { fill: none; stroke: var(--lead-5); stroke-width: 0.8; opacity: 0.85; }
+.mc-bead circle { fill: var(--lead-5); }
+.mc-hub { fill: var(--lead-3); stroke: var(--lead-0); stroke-width: 0.6; }
+.mc-light { fill: url(#mc-light); }
+.mc-top { fill: var(--lead-5); }
+.mc-foot { fill: rgba(0, 0, 0, 0.5); }
+.mc-needle { fill: var(--lead-1); }
+.mc-needle-lt { fill: var(--lead-3); }
+
+.m-frieze {
+  top: 50%;
+  height: calc(34px * var(--ui));
+  margin-top: calc(-17px * var(--ui) - 7px * var(--ui));
+  /* A cast panel is modelled to its length (AR-37). The run is laid out
+     from the panel's middle, a reed trio under the cartouche, so the two
+     halves mirror each other; a plain stile closes each end; and the frame
+     is a moulding in section, the same all round: a dark arris, the lit
+     bead, its crest, the shaded cove and the sinking at the field. It was
+     anchored at the left, each panel ending on an arbitrary cut of its
+     repeat, and framed in four flat mitred colours. The field is 26 of the
+     panel's 34 units, so one repeat is 26 x 192/72 wide, and the reeds sit
+     at three quarters of it. */
+  --mfr-w: calc(4px * var(--ui));
+  --mfr-stile: calc(11px * var(--ui));
+  padding: var(--mfr-w);
+  background:
+    linear-gradient(90deg, var(--lead-0) 0 1px, var(--lead-3) 1px 2px, var(--lead-2) 2px calc(var(--mfr-stile) - 2.5px),
+      var(--lead-1) calc(var(--mfr-stile) - 2.5px) calc(var(--mfr-stile) - 1px), var(--lead-0) calc(var(--mfr-stile) - 1px) var(--mfr-stile), transparent var(--mfr-stile))
+      0 0 / 100% 100% no-repeat content-box,
+    linear-gradient(270deg, var(--lead-0) 0 1px, var(--lead-1) 1px 2px, var(--lead-2) 2px calc(var(--mfr-stile) - 2.5px),
+      var(--lead-3) calc(var(--mfr-stile) - 2.5px) calc(var(--mfr-stile) - 1px), var(--lead-0) calc(var(--mfr-stile) - 1px) var(--mfr-stile), transparent var(--mfr-stile))
+      0 0 / 100% 100% no-repeat content-box,
+    var(--mfrieze-img) calc(50% - 26px * var(--ui) * 2 / 3) 50% / auto 100% repeat-x content-box;
+  background-clip: content-box;
+  border: none;
+  box-shadow:
+    0 0 0 calc(1px * var(--ui)) var(--lead-0),
+    0 0 0 calc(2.6px * var(--ui)) var(--mfr-bead),
+    0 0 0 calc(3.6px * var(--ui)) var(--lead-0),
+    var(--mfr-cast),
+    inset 0 0 0 calc(0.6px * var(--ui)) var(--lead-0),
+    inset 0 0 0 calc(1.5px * var(--ui)) var(--mfr-lip),
+    inset 0 0 0 calc(2.3px * var(--ui)) var(--mfr-crest),
+    inset 0 0 0 calc(3.3px * var(--ui)) var(--mfr-cove),
+    inset 0 0 0 var(--mfr-w) var(--lead-0),
+    inset 0 calc(1px * var(--ui)) 0 calc(-0.5px * var(--ui)) var(--mfr-key);
+}
+:root[data-theme="onyx"] .m-frieze {
+  --mfrieze-img: url('/static/assets/tex/room-mfrieze-night.webp');
+  --mfr-lip: var(--lead-4); --mfr-crest: var(--lead-2); --mfr-cove: var(--lead-1);
+  --mfr-key: rgba(255, 214, 150, 0.35);
+  --mfr-bead: var(--lead-2);
+  --mfr-cast: 0 calc(-4px * var(--ui)) calc(9px * var(--ui)) rgba(0, 0, 0, 0.75);
+}
+:root[data-theme="ivory"] .m-frieze {
+  --mfrieze-img: url('/static/assets/tex/room-mfrieze-day.webp');
+  --mfr-lip: var(--lead-5); --mfr-crest: var(--lead-3); --mfr-cove: var(--lead-1);
+  --mfr-key: rgba(255, 255, 255, 0.45);
+  --mfr-bead: var(--lead-4);
+  --mfr-cast: calc(2px * var(--ui)) calc(4px * var(--ui)) calc(6px * var(--ui)) rgba(70, 48, 16, 0.38);
+}
+:root[data-wing="bureau"] .m-frieze { filter: saturate(0.18) brightness(1.06); }
+/* The bolsters: a stepped cast block at each end, set on the frame. (The
+   frame is padding now, not border, so they are placed from the outer
+   edge.) */
+.m-frieze::before, .m-frieze::after {
+  content: ""; position: absolute; top: calc(-7px * var(--ui)); bottom: calc(-7px * var(--ui));
+  width: calc(16px * var(--ui));
+  background:
+    linear-gradient(180deg, rgba(255, 245, 215, 0.35) 0 1px, transparent 1px calc(100% - 2px), rgba(0, 0, 0, 0.6) calc(100% - 2px)),
+    linear-gradient(90deg, var(--lead-1), var(--lead-5) 22%, var(--lead-3) 38%, var(--lead-2) 62%, var(--lead-1) 84%, var(--lead-0));
+  clip-path: polygon(0 26%, 22% 26%, 22% 10%, 40% 10%, 40% 0, 60% 0, 60% 10%, 78% 10%, 78% 26%, 100% 26%, 100% 74%, 78% 74%, 78% 90%, 60% 90%, 60% 100%, 40% 100%, 40% 90%, 22% 90%, 22% 74%, 0 74%);
+}
+.m-frieze::before { left: calc(-14px * var(--ui)); }
+.m-frieze::after { right: calc(-14px * var(--ui)); }
+
+/* The cartouche that breaks each panel at its middle: a gilt lozenge,
+   stepped once, round a lozenge of the badge's oxblood enamel with a gilt
+   boss. It stands off the frame, so it throws the panel's own shadow. */
+.mfz-boss {
+  position: absolute; left: 50%; top: 50%;
+  width: calc(36px * var(--ui)); height: calc(46px * var(--ui));
+  transform: translate(-50%, -50%);
+  filter: drop-shadow(0 calc(2px * var(--ui)) calc(2px * var(--ui)) rgba(0, 0, 0, 0.55));
+}
+.mfz-boss::before, .mfz-boss::after {
+  content: ""; position: absolute;
+  clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
+}
+.mfz-boss::before {
+  inset: 0;
+  background:
+    linear-gradient(135deg, transparent 0 46%, rgba(0, 0, 0, 0.35) 46% 100%),
+    linear-gradient(160deg, var(--lead-5), var(--lead-3) 26%, var(--lead-2) 52%, var(--lead-1) 78%, var(--lead-0));
+}
+.mfz-boss::after {
+  inset: 24%;
+  background:
+    radial-gradient(circle at 50% 50%, var(--lead-3) 0 12%, var(--lead-1) 16%, transparent 19%),
+    radial-gradient(circle at 42% 36%, var(--enamel-a), var(--enamel-b) 58%, var(--enamel-c));
+  box-shadow: none;
+}
+
+/* ----- The controls: turned-metal medallions ----------------------------- */
+.md-seat { fill: var(--tm-seat); }
+#monogram {
+  width: calc(52px * var(--ui)); height: calc(52px * var(--ui));
+  overflow: visible;
+  --tm-hi: var(--brass-hi); --tm-lo: var(--brass-lo);
+}
+.tm-ring { fill: none; stroke: rgba(0, 0, 0, 0.10); stroke-width: 0.22; }
+.tm-ring-lt { stroke: rgba(255, 244, 214, 0.10); }
+.kn-cut { stroke: rgba(0, 0, 0, 0.55); stroke-width: 0.5; }
+.kn-lit { stroke: color-mix(in srgb, var(--tm-hi) 70%, transparent); }
+.md-groove { fill: none; stroke: rgba(0, 0, 0, 0.7); stroke-width: 0.7; }
+.md-step .tm-sec { opacity: 0.95; }
+.md-gu-ground { fill: var(--enamel-c); }
+.md-gu-ray { fill: none; stroke: var(--gu-line); stroke-width: 0.35; }
+.md-gu-ring { fill: none; stroke: var(--gu-line); stroke-width: 0.3; opacity: 0.6; }
+.md-enamel { opacity: 0.84; }
+.mge.s0 { stop-color: var(--enamel-a); } .mge.s1 { stop-color: var(--enamel-b); } .mge.s2 { stop-color: var(--enamel-c); }
+.md-a-sh { fill: rgba(0, 0, 0, 0.7); }
+.md-a-lit { fill: var(--leaf-0); opacity: 0.85; }
+.mga.s0 { stop-color: var(--leaf-0); } .mga.s1 { stop-color: var(--leaf-1); } .mga.s2 { stop-color: var(--leaf-2); }
+.mga.s3 { stop-color: var(--leaf-3); } .mga.s4 { stop-color: var(--leaf-4); }
+.md-a-rule { stroke: var(--leaf-2); stroke-width: 0.9; opacity: 0; }
+.md-dome { opacity: 1; }
+.mgd.s0 { stop-color: #fffaf0; stop-opacity: 0.30; } .mgd.s1 { stop-color: #fffaf0; stop-opacity: 0; }
+.md-glint { fill: none; stroke: rgba(255, 252, 240, 0.55); stroke-width: 0.8; stroke-linecap: round; }
+
+/* The two controls stand on one caption line, one size, one caption. */
+.m-right { align-items: flex-end; gap: calc(24px * var(--ui)); }
+#dateline { align-self: center; }
+#ledger-btn, #prefs-btn {
+  width: auto; min-width: calc(var(--med) + 8px);
+  gap: calc(4px * var(--ui));
+  color: var(--cut-ink);
+}
+#ledger-btn::before { content: none; }
+#ledger-btn svg, #prefs-btn svg {
+  width: var(--med); height: var(--med);
+  overflow: visible;
+}
+/* The captions are the two controls' only visible labels: never under the
+   10px floor, which 9.5px x --ui put them below on every laptop (LY-16). */
+#masthead .p-caption,
+#ledger-btn .p-caption, #prefs-btn .p-caption {
+  font-size: max(10px, calc(9.5px * var(--ui))); letter-spacing: 0.24em; line-height: 1.2;
+  font-weight: 560; white-space: nowrap;
+}
+html[lang="zh"] #masthead .p-caption { letter-spacing: 0.3em; }
+/* The captions are the two controls' only labels (LY-2). Under 12px the cut's
+   lit lip is a pale line as heavy as the stroke it sits under, and by day it
+   washed the letters out toward the stone, so it is half as bright there.
+   Han strokes at this size are hairlines: they take the same thickening the
+   board labels and the Ledger's heads get, and so does the rest of the cut
+   lettering, which fell to 3:1 in Chinese by day. */
+:root[data-theme="ivory"] #masthead .p-caption { text-shadow: 0 -1px 0 var(--cut-top), 0 1px 0 rgba(255, 255, 255, 0.5); }
+html[lang="zh"] #masthead .p-caption { -webkit-text-stroke: 0.45px currentColor; }
+html[lang="zh"] .m-sub, html[lang="zh"] #dateline { -webkit-text-stroke: 0.35px currentColor; }
+#ledger-btn:hover .p-caption, #prefs-btn:hover .p-caption,
+#ledger-btn:focus-visible .p-caption, #prefs-btn:focus-visible .p-caption { color: var(--gold-text); }
+:root[data-theme="onyx"] #ledger-btn:hover .p-caption, :root[data-theme="onyx"] #prefs-btn:hover .p-caption,
+:root[data-theme="onyx"] #ledger-btn:focus-visible .p-caption, :root[data-theme="onyx"] #prefs-btn:focus-visible .p-caption { color: var(--leaf-0); }
+
+/* The Preferences key: nickel, and only the escutcheon turns. */
+#prefs-btn svg { --tm-hi: var(--nickel-hi); --tm-lo: var(--nickel-lo); }
+#prefs-btn:hover svg { transform: none; }
+.pk-turn { transform-box: view-box; transform-origin: 24px 24px; transition: transform 0.5s var(--ease-spring); }
+#prefs-btn:hover .pk-turn, #prefs-btn:focus-visible .pk-turn { transform: rotate(22.5deg); }
+.pk-field .tm-sec { opacity: 0.9; }
+.pkp.s0 { stop-color: var(--nickel-hi); } .pkp.s1 { stop-color: color-mix(in oklab, var(--nickel-hi) 55%, var(--nickel-lo)); }
+.pkp.s2 { stop-color: var(--nickel-lo); }
+.pk-sh { fill: rgba(0, 0, 0, 0.55); }
+.pk-edge { fill: none; stroke: rgba(0, 0, 0, 0.55); stroke-width: 0.5; }
+.pk-lit { fill: none; stroke: rgba(255, 255, 255, 0.55); stroke-width: 0.5; }
+.pk-hole-lip { fill: rgba(255, 255, 255, 0.35); }
+.pk-hole { fill: #070605; }
+.sc-seat { fill: rgba(0, 0, 0, 0.5); }
+.sc-head { fill: color-mix(in oklab, var(--tm-hi) 60%, var(--tm-lo)); stroke: rgba(0, 0, 0, 0.45); stroke-width: 0.3; }
+.sc-slot { stroke: rgba(0, 0, 0, 0.8); stroke-width: 0.45; stroke-linecap: round; }
+
+/* The Ledger hatch: a domed brass cap with a lift bar in a turned bronze
+   housing. The bar is what turns when the drawer is open. */
+#ledger-btn svg { --tm-hi: var(--bronze-hi); --tm-lo: var(--bronze-lo); }
+.hatch-seat { fill: var(--tm-seat); }
+.hatch-well { fill: none; stroke: rgba(0, 0, 0, 0.8); stroke-width: 1.1; }
+.lhd.s0 { stop-color: #fffaf0; } .lhd.s1 { stop-color: var(--brass-hi); }
+.lhd.s2 { stop-color: color-mix(in oklab, var(--brass-hi) 50%, var(--brass-lo)); }
+.lhd.s3 { stop-color: color-mix(in oklab, var(--brass-hi) 20%, var(--brass-lo)); }
+.lhd.s4 { stop-color: var(--brass-lo); }
+.hl-ring { fill: none; stroke: rgba(40, 24, 6, 0.10); stroke-width: 0.25; }
+.hatch-bevel { fill: rgba(255, 250, 235, 0.32); opacity: 1; }
+.hatch-lug { fill: color-mix(in oklab, var(--brass-hi) 45%, var(--brass-lo)); stroke: rgba(0, 0, 0, 0.5); stroke-width: 0.3; }
+.hatch-recess { fill: none; stroke: rgba(30, 18, 4, 0.45); stroke-width: 0.8; }
+.hatch-knob-sh { fill: rgba(0, 0, 0, 0.55); }
+.hatch-knob-kn .kn-cut { stroke-width: 0.35; }
+.hatch-knob-cap { stroke: rgba(0, 0, 0, 0.35); stroke-width: 0.3; }
+.lhb.s0 { stop-color: #fff6da; } .lhb.s1 { stop-color: var(--brass-hi); }
+.lhb.s2 { stop-color: color-mix(in oklab, var(--brass-hi) 40%, var(--brass-lo)); } .lhb.s3 { stop-color: var(--brass-lo); }
+/* hover keeps the one-pass sheen on the cap */
+#ledger-btn:hover .hatch-face { animation: hatch-sheen 0.6s linear both; }
+
+/* The unread signal: a jewel lamp set in the housing, a faceted amber
+   cabochon in a brass bezel. It is a lamp, so it may bloom at night. */
+.l-badge {
+  --jw: calc(10px * var(--ui));
+  width: var(--jw); height: var(--jw);
+  top: calc(var(--med) * 0.176 - var(--jw) / 2);
+  left: calc(50% - var(--med) / 2 + var(--med) * 0.824 - var(--jw) / 2);
+  right: auto;
+  background:
+    radial-gradient(circle at 36% 30%, #fffdf2 0 10%, transparent 22%),
+    radial-gradient(circle at 50% 55%, #ffd98a 0%, #f5a23c 38%, #b8541a 70%, #5a1f06 100%);
+  box-shadow:
+    0 0 0 calc(0.8px * var(--ui)) #2a1a08,
+    0 0 0 calc(1.8px * var(--ui)) var(--brass-hi),
+    0 0 0 calc(2.4px * var(--ui)) #2a1a08,
+    var(--jewel-bloom);
+}
+:root[data-theme="ivory"] .l-badge { background:
+    radial-gradient(circle at 36% 30%, #fffdf2 0 10%, transparent 22%),
+    radial-gradient(circle at 50% 55%, #ffcf7a 0%, #e8892a 40%, #a4460f 72%, #4a1904 100%); }
+/* the count stands outside the button, clear of its focus ring */
+.l-count { left: calc(100% + 6px); top: calc(var(--med) * 0.05); }
+
+/* Forced colours: the medallions are ornament; the jewel keeps its
+   Highlight, and the captions stay system text. The fascia and the
+   marquee's glass carry the lettering, so they give way to the system as
+   well: kept in their own paint, every word stood in a Canvas backplate on
+   the stone, black slabs like label tape on the day's cream (VD-22). The
+   masthead and the board read as Canvas, the words as CanvasText, and the
+   ornament set on them keeps its colours. */
+@media (forced-colors: active) {
+  .m-crown, .m-frieze, #monogram, #ledger-btn svg, #prefs-btn svg,
+  .t-bulbs, #ticker::before, #ticker::after { forced-color-adjust: none; }
+  .m-fascia { display: none; }
+  #hall #ticker { background-image: none; }
+  .m-title h1::before, .m-title h1::after { display: none; }
+  .m-title h1 { color: CanvasText; text-shadow: none; }
+  .m-sub, #dateline, #masthead .p-caption { text-shadow: none; }
+  .l-badge { box-shadow: 0 0 0 1px CanvasText; }
+}
+
+/* ==========================================================================
+   THE THROW: the room re-leafs in the flip's frame
+   ==========================================================================
+   The lever re-leafs every fixture through --lead-*, and the room's gilt
+   changes metal in the one frame the flip is drawn in, as the clock, the
+   stage rule and the console do (DESIGN.md, Implementation notes). The
+   marquee, the frieze panels and the aisle walls used to ease a registered
+   leaf over 450ms, and the frieze and the cornice a nickel filter: the room
+   changed metal in two halves, and every frame of the fade re-rastered the
+   aisle walls with their 90 blended, masked parts at 3440 (MO-21). Only
+   the crossfade layers fade, by opacity: the wordmark's nickel face. */
+/* The aisle walls are layers of their own, so the frame the leaf swaps in
+   rasters the walls' own leaf and not the whole wall's tiles around them
+   (damask, dado and cornice). */
+.aisle-wall { will-change: transform; }
+
+/* ==========================================================================
+   THE BACK WALL
+   ========================================================================== */
+:root[data-theme="onyx"] {
+  --dentil-img: url('/static/assets/tex/room-dentil-night.webp');
+  --dado-stone: url('/static/assets/tex/room-portoro.webp');
+  --lot-oxblood: #2a0e0f; --lot-garnet: #2d0b13; --lot-wine: #240b11;
+  --lot-umber: #2b130e; --lot-claret: #310f15;
+  --pier-wash: rgba(255, 164, 82, 0.46);
+  --pier-halo: rgba(255, 190, 110, 0.55);
+  --bay-frame-hi: var(--au-2); --bay-frame-lo: var(--au-0);
+}
+:root[data-theme="ivory"] {
+  --dentil-img: url('/static/assets/tex/room-dentil-day.webp');
+  --dado-stone: url('/static/assets/tex/stone-calacatta.webp');
+  --lot-oxblood: #e4d6bd; --lot-garnet: #e6d4c2; --lot-wine: #e1d3c1;
+  --lot-umber: #e6d8ba; --lot-claret: #e9d5c3;
+  --pier-wash: rgba(255, 164, 82, 0);
+  --pier-halo: rgba(255, 190, 110, 0);
+  --bay-frame-hi: var(--au-3); --bay-frame-lo: var(--au-1);
+}
+
+/* The dado and the skirting stand on the arches' plinth nosing (536 of the
+   gate's 570 units), fitted with the row: --fit is mirrored onto the
+   concourse by the layout pass, so a fitted-down row no longer leaves the
+   skirting a few pixels off its plinths (LY-14). */
+#concourse {
+  --gh-fit: calc(var(--gate-w) * var(--fit, 1) * 1.9);
+  --skirt-h: calc(var(--gh-fit) * 34 / 570);
+  --dado-h: calc(var(--gh-fit) * 0.19);
+  --frieze-h: calc(36px * var(--ui));
+  --cornice-h: calc(var(--frieze-h) + 24px * var(--ui));
+}
+
+/* ----- The cornice ---------------------------------------------------------
+   Classical order, top to bottom: a rolled crown, the dentil course (each
+   block with its lit top, its shaded return and a deep gap), the bed mould
+   with the dentils' shadow cast on it, the relief frieze, and a fillet over
+   the lamp trough. The marquee's bulbs hang just above it, so by night the
+   dentils take their light from over their heads, as they do from the
+   skylight by day. */
+.wall-cornice {
+  /* the light's bearing for the cast shadows: straight down from the
+     marquee's bulbs by night, down and to the right from the skylight */
+  --cs-dx: 0px;
+  --cs-tooth: rgba(16, 5, 0, 0.72);
+  --cs-core: rgba(16, 5, 0, 0.86);
+  --cs-mid: rgba(34, 12, 2, 0.42);
+  background:
+    linear-gradient(180deg, var(--au-0) 0, var(--au-5) calc(1.2px * var(--ui)), var(--au-3) calc(2.2px * var(--ui)),
+      var(--au-2) calc(3.6px * var(--ui)), var(--au-1) calc(5px * var(--ui)), var(--au-0) calc(6px * var(--ui)), transparent calc(6px * var(--ui)))
+      0 0 / 100% 100% no-repeat,
+    /* each dentil throws its own tooth of shadow onto the bed mould */
+    linear-gradient(90deg, transparent 0 18%, var(--cs-tooth) 18% 82%, transparent 82%)
+      var(--cs-dx) calc(17px * var(--ui)) / calc(13.2px * var(--ui)) calc(2.2px * var(--ui)) repeat-x,
+    linear-gradient(180deg, transparent calc(17px * var(--ui)), var(--au-1) calc(17px * var(--ui)), var(--au-4) calc(18.2px * var(--ui)), var(--au-2) calc(19.2px * var(--ui)), var(--au-0) calc(20px * var(--ui)), transparent calc(20px * var(--ui)))
+      0 0 / 100% 100% no-repeat,
+    /* and the bed mould throws a hard shadow onto the head of the frieze,
+       so the two courses stand apart in depth */
+    linear-gradient(180deg, transparent calc(20px * var(--ui)), var(--cs-core) calc(20px * var(--ui)), var(--cs-mid) calc(23px * var(--ui)), transparent calc(29px * var(--ui)))
+      0 0 / 100% 100% no-repeat,
+    linear-gradient(180deg, transparent calc(100% - 4px * var(--ui)), var(--au-0) calc(100% - 4px * var(--ui)), var(--au-5) calc(100% - 3.2px * var(--ui)), var(--au-2) calc(100% - 2px * var(--ui)), var(--au-0) 100%)
+      0 0 / 100% 100% no-repeat,
+    var(--dentil-img) 0 calc(6px * var(--ui)) / auto calc(11px * var(--ui)) repeat-x,
+    var(--frieze-img) 0 calc(20px * var(--ui)) / auto var(--frieze-h) repeat-x;
+  background-color: var(--au-0);
+  box-shadow: 0 calc(5px * var(--ui)) calc(9px * var(--ui)) rgba(0, 0, 0, 0.6);
+}
+:root[data-theme="ivory"] .wall-cornice {
+  --cs-dx: calc(1.4px * var(--ui));
+  --cs-tooth: rgba(70, 48, 16, 0.42);
+  --cs-core: rgba(70, 48, 16, 0.55);
+  --cs-mid: rgba(90, 64, 26, 0.22);
+  box-shadow: 0 calc(4px * var(--ui)) calc(8px * var(--ui)) rgba(80, 58, 24, 0.28);
+}
+
+/* ----- The damask, hung bay by bay ------------------------------------------
+   No two bays were cut from the same length: each takes its own phase of
+   the repeat and its own dye lot. By day a second pass of the weave, in
+   multiply, keeps the pattern from going to a rumour on cream. */
+.wall-field { background: var(--lot-oxblood); }
+.wall-bays { position: absolute; inset: 0; pointer-events: none; }
+.wall-bay {
+  position: absolute; top: 0; bottom: 0;
+  --lot: var(--lot-oxblood);
+  background:
+    url('/static/assets/tex/fab-damask.webp') var(--bx, 0) var(--by, 0) / calc(var(--bs, 128px) * var(--ui)) auto,
+    linear-gradient(var(--lot), var(--lot));
+  background-blend-mode: soft-light, normal;
+  box-shadow: inset 1px 0 0 rgba(0, 0, 0, 0.30);
+}
+.wall-bay[data-lot="garnet"] { --lot: var(--lot-garnet); }
+.wall-bay[data-lot="wine"] { --lot: var(--lot-wine); }
+.wall-bay[data-lot="umber"] { --lot: var(--lot-umber); }
+.wall-bay[data-lot="claret"] { --lot: var(--lot-claret); }
+:root[data-theme="ivory"] .wall-bay::before {
+  content: ""; position: absolute; inset: 0;
+  background: url('/static/assets/tex/fab-damask.webp') var(--bx, 0) var(--by, 0) / calc(var(--bs, 128px) * var(--ui)) auto;
+  mix-blend-mode: multiply; opacity: 0.18;
+}
+/* The light on the whole wall: the head in shade under the cornice, the
+   foot darkening toward the dado. */
+.wall-bays::after {
+  content: ""; position: absolute; inset: 0;
+  background: linear-gradient(to bottom, var(--wall-dim) 0%, transparent 42%, transparent 70%, color-mix(in srgb, var(--wall-dim) 60%, transparent) 100%);
+}
+/* An aisle bay, with room to spare, has its panel framed in a gilt bead. */
+.wall-bay.framed::after {
+  content: ""; position: absolute;
+  /* clear of the half pilaster standing at each end of the bay */
+  left: calc(26px * var(--ui)); right: calc(26px * var(--ui));
+  top: calc(var(--cornice-h) + 18px * var(--ui)); bottom: calc(var(--dado-h) + 16px * var(--ui));
+  border: calc(2px * var(--ui)) solid;
+  border-color: var(--bay-frame-hi) var(--bay-frame-lo) var(--bay-frame-lo) var(--bay-frame-hi);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.45), inset 0 0 0 1px rgba(0, 0, 0, 0.45), inset 0 0 calc(10px * var(--ui)) rgba(0, 0, 0, 0.35);
+  opacity: 0.9;
+}
+
+/* ----- The dado: book-matched stone ---------------------------------------- */
+.wall-dado { background: var(--skirt); opacity: 1; }
+.dado-slabs {
+  position: absolute; left: 0; right: 0;
+  top: calc(6px * var(--ui)); bottom: var(--skirt-h);
+  overflow: hidden;
+}
+.d-slab {
+  position: absolute; top: 0; bottom: 0; overflow: hidden;
+  box-shadow: inset 1px 0 0 rgba(0, 0, 0, 0.6), inset 2px 0 0 rgba(255, 236, 200, 0.08);
+}
+:root[data-theme="ivory"] .d-slab { box-shadow: inset 1px 0 0 rgba(90, 70, 40, 0.30), inset 2px 0 0 rgba(255, 255, 255, 0.65); }
+.d-slab .sl-tex {
+  position: absolute; inset: 0;
+  background: var(--dado-stone) var(--sx, 0) var(--sy, 0) / calc(560px * var(--ui)) auto;
+}
+.d-slab.mir .sl-tex { transform: scaleX(-1); }
+.d-slab .sl-tone { position: absolute; inset: 0; background: rgba(0, 0, 0, calc(0.10 + var(--tn, 0) * 0.22)); }
+:root[data-theme="ivory"] .d-slab .sl-tone { background: rgba(120, 94, 56, calc(0.03 + var(--tn, 0) * 0.08)); }
+/* polished stone: dark in the rail's shadow, a sheen low down where the
+   floor's light comes back up */
+.dado-slabs::after {
+  content: ""; position: absolute; inset: 0;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.55) 0, transparent calc(9px * var(--ui)), transparent 70%, rgba(255, 220, 170, 0.05) 100%);
+}
+:root[data-theme="ivory"] .dado-slabs::after {
+  background: linear-gradient(180deg, rgba(80, 60, 30, 0.28) 0, transparent calc(8px * var(--ui)), transparent 70%, rgba(255, 255, 255, 0.18) 100%);
+}
+/* The chair rail: a rolled gilt moulding. */
+.dado-rail {
+  position: absolute; left: 0; right: 0; top: 0; height: calc(7px * var(--ui));
+  background: linear-gradient(180deg, var(--au-0) 0, var(--au-5) 18%, var(--au-3) 32%, var(--au-2) 56%, var(--au-1) 80%, var(--au-0) 100%);
+}
+/* The skirting: black marble set with two channelled nickel strips, the
+   Paramount's channelled chromium. */
+.dado-skirt {
+  position: absolute; left: 0; right: 0; bottom: 0; height: var(--skirt-h);
+  background:
+    linear-gradient(to top, transparent calc(var(--skirt-h) * 0.30), var(--channel) 0, color-mix(in srgb, var(--channel) 40%, #000) calc(var(--skirt-h) * 0.30 + 2px), transparent 0),
+    linear-gradient(to top, transparent calc(var(--skirt-h) * 0.62), var(--channel) 0, color-mix(in srgb, var(--channel) 40%, #000) calc(var(--skirt-h) * 0.62 + 2px), transparent 0),
+    linear-gradient(180deg, rgba(0, 0, 0, 0.6), transparent 30%),
+    url('/static/assets/tex/room-portoro.webp') 0 0 / calc(640px * var(--ui)) auto,
+    var(--skirt);
+  background-blend-mode: normal, normal, normal, soft-light, normal;
+}
+
+/* ----- Pier lights ---------------------------------------------------------- */
+.wall-piers { position: absolute; inset: 0; z-index: 1; pointer-events: none; }
+.pier { position: absolute; inset: 0; }
+.pier .lamp { opacity: var(--lamp-on); }
+.pr-body { position: absolute; overflow: visible; }
+:root[data-theme="onyx"] .pr-body .on-day,
+:root[data-theme="ivory"] .pr-body .on-lit { display: none; }
+.pier[data-tint="honey"] .pr-body { filter: hue-rotate(9deg) saturate(0.92) brightness(1.06); }
+.pier[data-tint="rose"] .pr-body { filter: hue-rotate(-13deg) saturate(1.04); }
+.pier[data-tint="smoke"] .pr-body { filter: saturate(0.72) brightness(0.94); }
+/* A lamp casts little shadow of its own: at night only the frame's edge
+   darkens the wall; by day the skylight throws the whole pier's. */
+.pr-cast { fill: rgba(0, 0, 0, 0.3); }
+:root[data-theme="ivory"] .pr-cast { fill: rgba(70, 48, 16, 0.24); }
+.pr-halo { fill: #ff9a3c; stroke: #ffb45e; stroke-linejoin: miter; mix-blend-mode: screen; opacity: calc(var(--lamp-on) * 0.62); }
+.pr-lip { fill: none; stroke: #ffd592; stroke-linejoin: miter; mix-blend-mode: screen; opacity: calc(var(--lamp-on) * 0.7); }
+.pr-rim { fill: none; stroke: var(--lead-0); stroke-linejoin: miter; }
+.pr-frame { fill: none; stroke-linejoin: miter; }
+.prg.s0 { stop-color: var(--lead-1); } .prg.s1 { stop-color: var(--lead-5); } .prg.s2 { stop-color: var(--lead-3); }
+.prg.s3 { stop-color: var(--lead-2); } .prg.s4 { stop-color: var(--lead-0); }
+.pr-lamp { mix-blend-mode: screen; opacity: var(--lamp-on); }
+/* The lamp behind the glass: a hot core down the middle of the shaft, and
+   the glass brightest where the lamps are, in the capital and over the
+   trough, a little lower in the long run between. By day the glass is
+   dead: only the skylight's polish on its head and the shade at its foot. */
+.prc.s0 { stop-color: #ffa84c; stop-opacity: 0; } .prc.s1 { stop-color: #ffd088; stop-opacity: 0.30; }
+.prv.s0 { stop-color: #ffe6b8; stop-opacity: 0.18; } .prv.s1 { stop-color: #000; stop-opacity: 0; }
+.prv.s2 { stop-color: #1a0600; stop-opacity: 0.22; } .prv.s3 { stop-color: #ffc47a; stop-opacity: 0.30; }
+:root[data-theme="ivory"] .prv.s0 { stop-color: #fff; stop-opacity: 0.30; }
+:root[data-theme="ivory"] .prv.s1, :root[data-theme="ivory"] .prv.s2 { stop-color: #1e1408; stop-opacity: 0.10; }
+:root[data-theme="ivory"] .prv.s3 { stop-color: #1e1408; stop-opacity: 0.22; }
+.pr-glaze { fill: none; stroke: rgba(0, 0, 0, 0.65); }
+.pr-fillet { fill: var(--lead-2); }
+.pr-fillet-lt { fill: var(--lead-5); }
+.pr-abacus { fill: var(--lead-2); stroke: var(--lead-0); stroke-width: 0.6; }
+.pr-abacus-lt { fill: var(--lead-5); }
+.pr-trough { stroke: var(--lead-0); stroke-width: 0.8; }
+.pr-trough-lt { fill: #fff0cc; opacity: 0.8; }
+:root[data-theme="ivory"] .pr-trough-lt { fill: #fffaf0; opacity: 0.9; }
+.pr-trough-sh { fill: rgba(0, 0, 0, 0.5); }
+/* The light the onyx throws: most of the pier stands in the dark gap
+   between two portals, so what shows of its light is on the wall above the
+   arches and in the spandrels either side of its capital, and on the stone
+   of the dado under its trough. */
+.pr-wash {
+  position: absolute;
+  left: calc(var(--px) - var(--pw) * 3.4); width: calc(var(--pw) * 6.8);
+  top: calc(var(--ptop) - 40px); height: calc((var(--phead) - var(--ptop)) * 2.4 + 60px);
+  background:
+    radial-gradient(50% 50% at 50% 38%, var(--pier-wash), color-mix(in srgb, var(--pier-wash) 35%, transparent) 45%, transparent 78%);
+  mix-blend-mode: screen;
+}
+.pr-foot {
+  position: absolute;
+  left: calc(var(--px) - var(--pw) * 1.6); width: calc(var(--pw) * 3.2);
+  top: calc(var(--pbot) - 30px); height: 90px;
+  background: radial-gradient(50% 50% at 50% 30%, color-mix(in srgb, var(--pier-wash) 80%, transparent), transparent 75%);
+  mix-blend-mode: screen;
+}
+.pr-up {
+  position: absolute;
+  left: calc(var(--px) - var(--pw) * 1.2); width: calc(var(--pw) * 2.4);
+  top: calc(var(--ptop) - 16px); height: calc(var(--phead) - var(--ptop) + 30px);
+  background: radial-gradient(50% 50% at 50% 50%, var(--pier-halo), transparent 72%);
+  mix-blend-mode: screen;
+  filter: blur(calc(4px * var(--ui)));
+}
+
+/* ----- Pilasters: the mirror's warmth and the stone foot --------------------
+   By day the antique mirror read as a grey chrome pipe. It is gold-backed
+   glass, as the palaces hung it for warmth, and it holds the cream room. */
+:root[data-theme="ivory"] {
+  --mirror-glass: #c4b38f;
+  --mirror-room: rgba(250, 238, 214, 0.62);
+  --mirror-streak: rgba(255, 250, 236, 0.75);
+}
+.pil-base {
+  position: relative; flex: none;
+  width: 100%; height: calc(26px * var(--ui));
+}
+.pb-stone, .pb-plinth {
+  position: absolute;
+  background: var(--dado-stone) var(--sx, 0) var(--sy, 0) / calc(300px * var(--ui)) auto;
+}
+.pb-stone {
+  left: 9%; right: 9%; top: 0; bottom: 34%;
+  border-top: calc(3px * var(--ui)) solid var(--lead-2);
+  box-shadow: inset 0 1px 0 var(--lead-5), inset 0 calc(-1px * var(--ui)) 0 rgba(0, 0, 0, 0.55),
+              inset 1px 0 0 rgba(255, 240, 210, 0.12), inset -1px 0 0 rgba(0, 0, 0, 0.5);
+}
+.pb-plinth {
+  left: 0; right: 0; bottom: 0; height: 34%;
+  border-top: calc(2.5px * var(--ui)) solid var(--lead-2);
+  box-shadow: inset 0 1px 0 var(--lead-5), 0 calc(-2px * var(--ui)) calc(3px * var(--ui)) rgba(0, 0, 0, 0.45),
+              inset 1px 0 0 rgba(255, 240, 210, 0.12), inset -1px 0 0 rgba(0, 0, 0, 0.5);
+}
+.pb-stone::after, .pb-plinth::after {
+  content: ""; position: absolute; inset: 0;
+  background: linear-gradient(90deg, rgba(0, 0, 0, 0.35), transparent 30%, transparent 70%, rgba(0, 0, 0, 0.45));
+}
+
+/* ----- Torchieres: the bracket in cast brass --------------------------------
+   Every turned part of the bracket (the wall plate, the stem, its collars and
+   the drop) is six strips in the leaf's order across a round moulding (app.js
+   turned()), with a lit edge over each collar and its shade under it, and
+   two flutes cut in the stem between the collars (AR-20). */
+.sc-body .sc-t0 { fill: var(--lead-5); }
+.sc-body .sc-t1 { fill: var(--lead-3); }
+.sc-body .sc-t2 { fill: var(--lead-2); }
+.sc-body .sc-t3 { fill: var(--lead-4); }
+.sc-body .sc-t4 { fill: var(--lead-1); }
+.sc-body .sc-t5 { fill: var(--lead-0); }
+.sc-body .sc-shade { fill: var(--lead-0); opacity: 0.8; }
+.sc-body path.sc-groove { fill: none; stroke: var(--lead-0); stroke-width: 0.6; opacity: 0.75; }
+
+/* ==========================================================================
+   THE FLOOR
+   ========================================================================== */
+/* The stanchions: turned brass posts on weighted domed bases, a finial with
+   its collar and knop, a lit arris down the shaft, each post's stub
+   reflection in the wax; the rope is a round section of velvet, crushed
+   pile over its dye, dark and soft on its underside, one broad soft sheen
+   above its centre, crimped into brass ferrules at the ends. */
+.fl-rail .st-dome, .fl-rail .st-collar { fill: url(#cyl-lead); }
+.fl-rail .st-dome-lt { fill: none; stroke: var(--lead-5); stroke-width: calc(1px * var(--ui)); stroke-linecap: round; opacity: 0.7; }
+.fl-rail .st-arris { fill: var(--lead-5); opacity: 0.7; }
+.stref.s0 { stop-color: var(--lead-3); stop-opacity: 0.32; }
+.stref.s1 { stop-color: var(--lead-3); stop-opacity: 0; }
+:root[data-theme="onyx"] .stref.s0 { stop-opacity: 0.22; }
+.fl-rail .st-rope-pile {
+  fill: none; stroke-width: calc(4.6px * var(--ui)); stroke-linecap: round;
+  mix-blend-mode: soft-light; opacity: 0.7;
+}
+.fl-rail .st-rope-dk {
+  fill: none; stroke: color-mix(in srgb, var(--rope) 45%, #000);
+  stroke-width: calc(2.4px * var(--ui)); stroke-linecap: round; opacity: 0.8;
+}
+.fl-rail .st-rope-lt { stroke-width: calc(2.6px * var(--ui)); opacity: 0.6; }
+.fl-rail .st-ferrule { stroke: rgba(0, 0, 0, 0.35); stroke-width: 0.5; }
+.fl-rail .st-crimp { fill: var(--lead-0); opacity: 0.6; }
+.fl-rail .st-hook { fill: none; stroke: var(--lead-2); stroke-width: calc(1px * var(--ui)); }
+/* The streaks: each a warm column under its lamp, ripple-cut by the wax,
+   screened onto the stone, faint at the skirting and brightest toward the
+   viewer where its image would lie. */
+.fl-streaks { position: absolute; inset: 0; z-index: 1; pointer-events: none; }
+.fl-streak {
+  position: absolute; top: 0;
+  --sc: rgba(255, 186, 104, 0.55);
+  /* the wax breaks a reflection into ripples that run across it, uneven
+     in pitch and never hard: two soft courses of different pitch */
+  background:
+    repeating-linear-gradient(180deg, transparent 0 calc(7px * var(--ui)), rgba(0, 0, 0, 0.16) calc(9px * var(--ui)), transparent calc(11px * var(--ui))),
+    repeating-linear-gradient(180deg, transparent 0 calc(13px * var(--ui)), rgba(0, 0, 0, 0.12) calc(16px * var(--ui)), transparent calc(19px * var(--ui))),
+    linear-gradient(90deg, transparent, var(--sc) 32%, color-mix(in srgb, var(--sc) 100%, #fff 14%) 50%, var(--sc) 68%, transparent);
+  -webkit-mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.22) 0, #000 42%, rgba(0, 0, 0, 0.75) 72%, transparent 100%);
+  mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.22) 0, #000 42%, rgba(0, 0, 0, 0.75) 72%, transparent 100%);
+  mix-blend-mode: screen;
+  filter: blur(calc(2.2px * var(--ui)));
+  opacity: calc(var(--lamp-on) * var(--so, 0.6));
+  transition: opacity 0.4s ease;
+}
+.st-torch { --sc: rgba(255, 184, 102, 0.62); --so: 0.75; }
+.st-pier { --sc: rgba(255, 168, 84, 0.58); --so: 0.8; }
+.st-marquee { --sc: rgba(255, 226, 170, 0.5); --so: 0.55; }
+/* A fanlight's streak is that lamp's own layer (syncStreaks copies its
+   gate's state and beat): it comes up with the fanlight, after the arch has
+   risen into its bay, and goes down with it, never ahead of it (MO-3). Going
+   out it takes the lamp's own fall, --gate-dim from its bay's beat: on one
+   0.35s curve from the throw every streak went down together, an inner
+   bay's still at 41% when its lamp was out and an outer bay's a third gone
+   before its lamp began to dim (MO-19). */
+.st-fan { --so: 0.36; opacity: 0; transition: opacity 0.35s ease; will-change: opacity; }
+.st-fan:not(.on) { transition: opacity var(--gate-dim, 0ms) ease-in var(--slot-delay, 0ms); }
+.st-fan.on[data-state="open"] {
+  opacity: calc(var(--lamp-on) * var(--so));
+  transition: opacity 0.7s ease calc(var(--slot-delay, 0ms) + 420ms);
+}
+/* The entrance holds the fanlights dark until the house lights come up, and
+   then lights them from the clock outward; their streaks with them. */
+html[data-entered="no"] #entrance.night:not(.house) ~ #hall .st-fan { opacity: 0; transition: none; }
+html[data-entered="no"] #entrance.night.house ~ #hall .st-fan.on[data-state="open"] {
+  transition: opacity 0.5s ease calc(140ms + var(--fan-i, 0) * 170ms);
+}
+.st-fan[data-glass="amber"] { --sc: rgba(255, 190, 110, 0.6); }
+.st-fan[data-glass="rose"] { --sc: rgba(246, 170, 146, 0.6); }
+.st-fan[data-glass="celadon"] { --sc: rgba(180, 222, 160, 0.55); }
+.st-fan[data-glass="opal"] { --sc: rgba(244, 226, 190, 0.55); }
+.st-fan[data-glass="honey"] { --sc: rgba(242, 206, 120, 0.6); }
+.st-fan[data-glass="aqua"] { --sc: rgba(150, 224, 212, 0.55); }
+
+/* The border course: a band of cut stone laid in the plane, 1.5% of its
+   width (the plane is a size container, so cqw is its width), with its own
+   aggregate, butted to the field with a thin brass strip in each joint. It
+   was a 3-4px border of flat slate, the darkest mark on the pale floor,
+   and it read as a painted court line (AR-19). By day it is a rouge
+   terrazzo at about half that value contrast; by night the same course in
+   oxblood stone, barely apart from the dark field. */
+.fl-plane { container-type: size; }
+.fl-border,
+:root[data-theme] .fl-border {
+  border: none; outline: none;
+  padding: 1.5cqw;
+  background: var(--course-tint), var(--course-img) 0 0 / calc(var(--fh, 320px) * 0.9) auto;
+  background-blend-mode: var(--course-blend, multiply), normal;
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+  box-shadow: inset 0 0 0 2px var(--course-strip);
+}
+.fl-border::after,
+:root[data-theme] .fl-border::after {
+  inset: 1.5cqw; border: none;
+  box-shadow: 0 0 0 2px var(--course-strip);
+}
+:root[data-theme="onyx"] {
+  --course-img: url('/static/assets/tex/stone-rouge.webp');
+  --course-tint: linear-gradient(rgba(10, 4, 3, 0.42), rgba(10, 4, 3, 0.42));
+  --course-blend: normal;
+}
+:root[data-theme="ivory"] {
+  --course-img: url('/static/assets/tex/terrazzo-ivory.webp');
+  --course-tint: linear-gradient(#a57e74, #a57e74);
+  --course-blend: multiply;
+}
+/* The strips are the wing's leaf, taken on the course itself, where the
+   Bureau's nickel is set (atrium.css), not on :root. */
+:root[data-theme="onyx"] .fl-border { --course-strip: color-mix(in srgb, var(--lead-2) 55%, transparent); }
+:root[data-theme="ivory"] .fl-border { --course-strip: color-mix(in srgb, var(--lead-2) 75%, transparent); }
+/* The runner's wool (the tiles are baked with a cut pile and softened
+   motifs, AR-11): down its centre lane the traffic has flattened the pile,
+   which then gives back more of the room's light and less of its dye, and
+   the far end carries a knotted fringe, the warp ends tied in bunches under
+   the heading, hanging away from the rug. */
+.fl-runner::before {
+  background-image:
+    linear-gradient(90deg, transparent 24%, rgba(255, 236, 214, 0.075) 40%, rgba(255, 236, 214, 0.075) 60%, transparent 76%),
+    linear-gradient(to top, rgba(0, 0, 0, 0.35) 0%, transparent 30%, rgba(255, 220, 170, 0.10) 100%),
+    linear-gradient(var(--rug-veil), var(--rug-veil));
+}
+.fl-runner::after {
+  top: calc(var(--fh, 320px) * -0.085); height: calc(var(--fh, 320px) * 0.085);
+  background: url('/static/assets/tex/carpet-fringe.webp') 0 0 / auto 100% repeat-x;
+  transform: scaleY(-1);
+  opacity: 1;
+}
+:root[data-theme="onyx"] .fl-runner::after { filter: brightness(0.62); }
+/* The inlays: cut stone with its own figure, under the floor's wax. HTML
+   layers over the inlay's SVG (the circle is r 474 of 1000 on the
+   medallion, 190 of 400 on a roundel), so they raster once and stay. */
+:root[data-theme="onyx"] { --fls-0: rgba(255, 230, 191, 0.16); --fls-1: rgba(255, 230, 191, 0.04); }
+:root[data-theme="ivory"] { --fls-0: rgba(255, 255, 255, 0.32); --fls-1: rgba(255, 255, 255, 0.08); }
+.fl-vein, .fl-sheen {
+  position: absolute; inset: 2.6%;
+  border-radius: 50%;
+  pointer-events: none;
+}
+.fl-round .fl-vein, .fl-round .fl-sheen { inset: 2.5%; }
+.fl-vein { overflow: hidden; mix-blend-mode: soft-light; opacity: 0.95; }
+.fl-vein::before {
+  content: ""; position: absolute; inset: -22%;
+  background: url('/static/assets/tex/room-inlay-figure.webp') 0 0 / 26.4% auto;
+  transform: rotate(var(--vr, 0deg));
+}
+.fl-round .fl-vein::before { background-size: 65.8% auto; }
+.fl-sheen {
+  background: radial-gradient(62% 62% at 50% 30%, var(--fls-0), var(--fls-1) 60%, transparent 100%);
+  mix-blend-mode: screen;
+}
+
+/* ==========================================================================
+   THE MARQUEE
+   ========================================================================== */
+/* At night the lamps behind the glass show through it as a faint banding,
+   brighter over each lamp, a shade warmer between. */
+:root[data-theme="onyx"] #ticker {
+  background:
+    repeating-linear-gradient(90deg, transparent 0, rgba(196, 146, 72, 0.07) calc(60px * var(--ui)), transparent calc(120px * var(--ui))),
+    url('/static/assets/tex/grain-frost.webp') 0 0 / 160px,
+    radial-gradient(72% 170% at 50% 50%, var(--glass-milk-hi), var(--glass-milk) 55%, var(--glass-milk-lo));
+  background-blend-mode: normal, soft-light, normal;
+}
+/* With nothing new on the board the chaser stops and every bulb burns
+   evenly; the chase layer only shows while it runs. */
+#ticker:not([data-chase]) .t-chase { opacity: 0; }
+/* By day the bulbs are out: clear glass in a brass socket. They were an
+   opaque cream disc with a grey ring and a dark dot, and in a row read as
+   upholstery tacks (AR-40). The envelope is now glass the channel shows
+   through, darker in the socket's throat behind the filament, with a bright
+   rim where the glass turns away and a dark line at its edge; inside it
+   the filament's small loop on its lead-in wires; one crisp skylight
+   specular at the upper left and a faint caustic at the foot; round it the
+   socket's brass collar. --bR is the envelope's radius. */
+:root[data-theme="ivory"] .t-bulbs,
+:root[data-theme="ivory"] #ticker::before, :root[data-theme="ivory"] #ticker::after {
+  --clear-bulb:
+    radial-gradient(circle calc(var(--bR) * 0.3) at calc(50% - var(--bR) * 0.38) calc(50% - var(--bR) * 0.4), #fff 0 62%, rgba(255, 255, 255, 0) 100%),
+    radial-gradient(ellipse calc(var(--bR) * 0.36) calc(var(--bR) * 0.13) at calc(50% + var(--bR) * 0.28) calc(50% + var(--bR) * 0.62), rgba(255, 250, 232, 0.8), rgba(255, 250, 232, 0) 100%),
+    radial-gradient(ellipse calc(var(--bR) * 0.34) calc(var(--bR) * 0.14) at 50% calc(50% - var(--bR) * 0.12), rgba(74, 46, 14, 0) 0 38%, rgba(74, 46, 14, 0.9) 55% 76%, rgba(74, 46, 14, 0) 95%),
+    radial-gradient(ellipse calc(var(--bR) * 0.06) calc(var(--bR) * 0.4) at calc(50% - var(--bR) * 0.3) calc(50% + var(--bR) * 0.26), rgba(74, 46, 14, 0.6), rgba(74, 46, 14, 0) 100%),
+    radial-gradient(ellipse calc(var(--bR) * 0.06) calc(var(--bR) * 0.4) at calc(50% + var(--bR) * 0.3) calc(50% + var(--bR) * 0.26), rgba(74, 46, 14, 0.6), rgba(74, 46, 14, 0) 100%),
+    radial-gradient(circle var(--bR) at 50% 50%, rgba(255, 250, 238, 0.06) 0 52%, rgba(255, 252, 242, 0.28) 78%, rgba(255, 255, 250, 0.62) 88%, rgba(60, 42, 14, 0.72) 94%, rgba(60, 42, 14, 0) 100%),
+    radial-gradient(circle calc(var(--bR) * 0.7) at 50% 50%, rgba(36, 24, 8, 0.42), rgba(36, 24, 8, 0) 100%),
+    radial-gradient(circle calc(var(--bR) * 1.18) at 50% 50%, rgba(40, 28, 8, 0) 0 80%, rgba(40, 28, 8, 0.75) 83%, var(--lead-4) 88%, var(--lead-1) 95%, rgba(40, 28, 8, 0) 100%);
+}
+/* The channel is a vertical ramp, so it can take the bulbs' tile as it is. */
+:root[data-theme="ivory"] .t-bulbs {
+  --bR: calc(3.7px * var(--ui));
+  background: none;
+  background-image: var(--clear-bulb), linear-gradient(180deg, var(--lead-1), var(--lead-3) 30%, var(--lead-2) 55%, var(--lead-0));
+  background-size: calc(13px * var(--ui)) 100%;
+  background-position: 0 50%;
+  background-repeat: repeat-x;
+}
+/* The returns: a stepped gilt jamb at each end, a column of three bulbs
+   set in it, its outer face stepping back in two setbacks. */
+#ticker::before, #ticker::after {
+  width: calc(22px * var(--ui));
+  background:
+    radial-gradient(circle, var(--bulb-core) 0 14%, var(--bulb) 26%, color-mix(in srgb, var(--bulb) 30%, transparent) 40%, transparent 46%) 50% 50% / calc(16px * var(--ui)) 33.4% repeat-y,
+    linear-gradient(180deg, rgba(255, 244, 214, 0.45) 0 1px, transparent 1px calc(100% - 2px), rgba(0, 0, 0, 0.55) calc(100% - 2px)),
+    linear-gradient(90deg, var(--lead-0), var(--lead-5) 12%, var(--lead-3) 26%, var(--lead-2) 52%, var(--lead-1) 80%, var(--lead-0));
+}
+:root[data-theme="ivory"] #ticker::before, :root[data-theme="ivory"] #ticker::after {
+  --bR: calc(4.8px * var(--ui));
+  background: none;
+  background-image: var(--clear-bulb),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.6) 0 1px, transparent 1px calc(100% - 2px), rgba(60, 40, 10, 0.45) calc(100% - 2px)),
+    linear-gradient(90deg, var(--lead-0), var(--lead-5) 12%, var(--lead-3) 26%, var(--lead-2) 52%, var(--lead-1) 80%, var(--lead-0));
+  /* eight layers of bulb in their tile, then the jamb whole */
+  background-size: calc(16px * var(--ui)) 33.4%, calc(16px * var(--ui)) 33.4%, calc(16px * var(--ui)) 33.4%,
+    calc(16px * var(--ui)) 33.4%, calc(16px * var(--ui)) 33.4%, calc(16px * var(--ui)) 33.4%,
+    calc(16px * var(--ui)) 33.4%, calc(16px * var(--ui)) 33.4%, 100% 100%, 100% 100%;
+  background-position: 50% 50%;
+  background-repeat: repeat-y, repeat-y, repeat-y, repeat-y, repeat-y, repeat-y, repeat-y, repeat-y, no-repeat, no-repeat;
+}
+#ticker::before { clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%); }
+#ticker .t-track { padding-left: calc(26px * var(--ui)); }
+
+/* ==========================================================================
+   FINDINGS ON NEIGHBOURING SURFACES (smallest fixes; see notes-room.md)
+   ========================================================================== */
+/* VD-17's gilt fillet on the sill lives with the niche now (.n-fillet in
+   palace-gates.css). */
+/* VD-19: the maker's plate lettering was sized in --ui inside a viewBox
+   that already scales with --ui, so it grew as --ui squared and ran into
+   the corner rivets at 3440. Plain user units inside the plate. */
+.wk-plate .bp-name, html[lang="zh"] .wk-plate .bp-name { font-size: 12px; letter-spacing: 0.16em; }
+.wk-plate .bp-no { font-size: 10.5px; letter-spacing: 0.06em; }
+/* LY-13: at 2800 with the SIGNBOARD size the narrowest cases cut their
+   readings. The reading and the station line close up their tracking
+   there instead of taking an ellipsis. */
+@media (max-width: 3100px) {
+  :root[data-ui="l"] .wk-read { font-size: calc(11.5px * var(--ui)); letter-spacing: 0; }
+  :root[data-ui="l"] .al-station { letter-spacing: 0.03em; }
+}
+
+/* Console blocks in the frieze over each pier light and pilaster: a cast
+   gilt block the height of the frieze, its face lit from the key's side,
+   carrying a small relief of its own. */
+.cn-block {
+  position: absolute; top: calc(20px * var(--ui)); height: var(--frieze-h);
+  background:
+    linear-gradient(90deg, rgba(255, 244, 214, 0.35) 0 1px, transparent 1px calc(100% - 1.5px), rgba(0, 0, 0, 0.6) calc(100% - 1.5px)),
+    linear-gradient(180deg, var(--au-5) 0 1px, var(--au-3) 1px 8%, var(--au-2) 30%, var(--au-4) 55%, var(--au-1) 88%, var(--au-0));
+  box-shadow: calc(2px * var(--ui)) 0 calc(3px * var(--ui)) rgba(0, 0, 0, 0.55), calc(-1px * var(--ui)) 0 0 var(--au-0);
+}
+:root[data-theme="onyx"] .cn-block {
+  background:
+    linear-gradient(90deg, rgba(255, 244, 214, 0.22) 0 1px, transparent 1px calc(100% - 1.5px), rgba(0, 0, 0, 0.6) calc(100% - 1.5px)),
+    linear-gradient(180deg, var(--au-1) 0, var(--au-2) 30%, var(--au-4) 62%, var(--au-3) 88%, var(--au-5) 96%, var(--au-0));
+}
+:root[data-wing="bureau"] .cn-block { filter: none; }
+.cn-block::after {
+  content: ""; position: absolute; left: 18%; right: 18%; top: 18%; bottom: 18%;
+  background: linear-gradient(160deg, var(--au-5), var(--au-3) 30%, var(--au-1) 70%, var(--au-0));
+  box-shadow: calc(1px * var(--ui)) calc(1.5px * var(--ui)) 0 rgba(0, 0, 0, 0.55);
+}
+.cn-block[data-motif="lozenge"]::after { clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%); box-shadow: none; }
+.cn-block[data-motif="fan"]::after {
+  top: 30%; bottom: 22%;
+  border-radius: 50% 50% 0 0 / 100% 100% 0 0;
+  background: repeating-conic-gradient(from -90deg at 50% 100%, var(--au-5) 0 7deg, var(--au-1) 7deg 12deg, var(--au-3) 12deg 18deg);
+}
+.cn-block[data-motif="steps"]::after {
+  clip-path: polygon(0 100%, 0 66%, 20% 66%, 20% 33%, 40% 33%, 40% 0, 60% 0, 60% 33%, 80% 33%, 80% 66%, 100% 66%, 100% 100%);
+  box-shadow: none;
+}
+
+/* The pilasters' mirror is a flat sheet, not a pipe: no band down its
+   middle and no shading at its sides. It gives back the room as it is laid
+   out in front of it, the cornice dark at its head, the dado at its foot,
+   the nearest lamp as a soft spot, through the foxing of old silvering. */
+:root[data-theme="onyx"] { --mirror-head: rgba(0, 0, 0, 0.45); --mirror-foot: rgba(30, 14, 8, 0.55); }
+:root[data-theme="ivory"] { --mirror-head: rgba(96, 74, 40, 0.28); --mirror-foot: rgba(110, 90, 60, 0.30); }
+.pil-mirror {
+  background:
+    radial-gradient(46% 16% at var(--mx) var(--my), var(--mirror-streak), transparent 72%),
+    linear-gradient(180deg, var(--mirror-head) 0, transparent 14%, transparent 76%, var(--mirror-foot) 100%),
+    linear-gradient(100deg, transparent 0 30%, rgba(255, 244, 220, 0.06) 42%, transparent 60%),
+    url('/static/assets/tex/glass-mirror.webp') 0 0 / 180px auto,
+    var(--mirror-glass);
+  background-blend-mode: screen, normal, screen, soft-light, normal;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.5);
+}
+:root[data-theme="onyx"] .pil-mirror { background-blend-mode: screen, normal, screen, multiply, normal; }

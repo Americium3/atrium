@@ -1,0 +1,1789 @@
+/* ==========================================================================
+   THE CABINETRY (the picture palace, direction C)
+   ==========================================================================
+   The furniture of the foyer: the two wall cases in the aisles (Statistics
+   in macassar ebony, the Almanac in figured walnut), the Ledger's black
+   lacquer drawer, and the Preferences panel. Loaded after atrium.css; the
+   rules there that drew these as flat panels are overridden here rather
+   than edited.
+
+   Light: at night the only emitters here are the picture lamps' slots and
+   the jewels; wood, gilt, brass and enamel take their light from them. By
+   day nothing is lit and the skylight is the key, from above and a little
+   left. Everything that is lit is its own layer faded by --lamp-on.
+   ========================================================================== */
+
+/* ----- Tokens --------------------------------------------------------------
+   Brass is the fittings' metal and never changes with the wing (bezels,
+   lamps, screws, holders). The case frames and crests are leaf and read
+   --lead-*, so the lever re-leafs them with every other fixture. */
+:root[data-theme="onyx"] {
+  --br-0: #1c1307; --br-1: #4a3413; --br-2: #8a6a2c; --br-3: #f2d48c; --br-4: #b38b3e; --br-5: #e2c47c;
+  --cab-glass: #0a0807;
+  --cab-ink: #eadfc4;          /* lettering on the black glass */
+  --cab-faint: #a6977a;
+  --cab-gold: #dcbd72;
+  --ivorine: #cdbf9c;          /* celluloid labels under the lamp */
+  --ivorine-lo: #a89877;
+  --ivorine-ink: #21180d;
+  --wood-light: rgba(255, 196, 128, 0.26);   /* the picture lamp on the carcass */
+  --wood-shade: rgba(4, 2, 1, 0.52);
+  --lamp-slot: #fff4dc;
+  --lamp-glow: rgba(255, 200, 120, 0.85);
+  --lamp-cone: rgba(255, 210, 150, 0.34);
+  --lamp-cone-2: rgba(255, 184, 110, 0.13);
+  --enamel-0: #1f1e20; --enamel-1: #131214; --enamel-2: #070707;
+  --scale-ink: #dcc07c;
+  --needle: #efe5cc; --needle-edge: #6d6250; --needle-sh: rgba(0, 0, 0, 0.62);
+  --lacquer-red: #8e1f14; --lacquer-red-hi: #c0402c; --lacquer-red-lo: #5a0f09;
+  --turning: rgba(255, 255, 255, 0.022);
+  --case-shadow: rgba(0, 0, 0, 0.72);
+}
+:root[data-theme="ivory"] {
+  --br-0: #5a4520; --br-1: #8a6c3a; --br-2: #bc9b58; --br-3: #fcefcb; --br-4: #d3b271; --br-5: #efd9a0;
+  --cab-glass: #0c0a08;
+  --cab-ink: #efe6d0;
+  --cab-faint: #b3a58a;
+  --cab-gold: #e2c47e;
+  --ivorine: #f1e8d2;
+  --ivorine-lo: #d6cab0;
+  --ivorine-ink: #1d160c;
+  --wood-light: rgba(255, 250, 238, 0.10);
+  --wood-shade: rgba(40, 24, 10, 0.30);
+  --lamp-slot: #3a2a14;
+  --lamp-glow: rgba(255, 200, 120, 0);
+  --lamp-cone: rgba(255, 206, 140, 0);
+  --lamp-cone-2: rgba(255, 184, 110, 0);
+  --enamel-0: #fbf5e3; --enamel-1: #efe5ca; --enamel-2: #d7c69e;
+  --scale-ink: #1d150b;
+  --needle: #161210; --needle-edge: #000; --needle-sh: rgba(40, 26, 10, 0.34);
+  --lacquer-red: #9a2416; --lacquer-red-hi: #c8503a; --lacquer-red-lo: #62140b;
+  --turning: rgba(90, 64, 24, 0.05);
+  --case-shadow: rgba(52, 36, 16, 0.42);
+}
+
+/* SVG stops, coloured through classes (var() does not resolve in a
+   stop-color attribute). */
+.cs-b0 { stop-color: var(--br-0); } .cs-b1 { stop-color: var(--br-1); }
+.cs-b2 { stop-color: var(--br-2); } .cs-b3 { stop-color: var(--br-3); }
+.cs-b4 { stop-color: var(--br-4); } .cs-b5 { stop-color: var(--br-5); }
+.cs-l0 { stop-color: var(--lead-0); } .cs-l1 { stop-color: var(--lead-1); }
+.cs-l2 { stop-color: var(--lead-2); } .cs-l3 { stop-color: var(--lead-3); }
+.cs-l4 { stop-color: var(--lead-4); } .cs-l5 { stop-color: var(--lead-5); }
+:root[data-theme="onyx"] .cs-lit0 { stop-color: #ffcf8a; }
+:root[data-theme="onyx"] .cs-lit1 { stop-color: #ffe6b8; }
+:root[data-theme="onyx"] .cs-lit2 { stop-color: #fffaf0; }
+:root[data-theme="ivory"] .cs-lit0,
+:root[data-theme="ivory"] .cs-lit1,
+:root[data-theme="ivory"] .cs-lit2 { stop-color: #2a1f10; }
+.d-clear { stop-color: #000; }
+.d-seat { stop-color: #000; }
+.d-crest { stop-color: #fffaf0; }
+.d-glint { stop-color: #ffffff; }
+.d-face0 { stop-color: var(--enamel-0); }
+.d-face1 { stop-color: var(--enamel-1); }
+.d-face2 { stop-color: var(--enamel-2); }
+.d-red0 { stop-color: var(--lacquer-red); }
+.d-red1 { stop-color: var(--lacquer-red-hi); }
+.d-red2 { stop-color: var(--lacquer-red-lo); }
+
+/* ----- Screws ----------------------------------------------------------- */
+.cs-screw {
+  position: absolute;
+  width: var(--sc, 7px); height: var(--sc, 7px);
+  border-radius: 50%;
+  background: radial-gradient(circle at 36% 32%, var(--br-5), var(--br-2) 48%, var(--br-0) 100%);
+  box-shadow: 0.5px 0.8px 1px rgba(0, 0, 0, 0.7), inset 0 0 0 0.5px rgba(0, 0, 0, 0.45);
+  pointer-events: none;
+}
+.cs-screw::after {
+  content: "";
+  position: absolute; left: 12%; right: 12%; top: 50%;
+  height: 1.2px; margin-top: -0.6px;
+  background: rgba(20, 12, 4, 0.85);
+  box-shadow: 0 0.6px 0 rgba(255, 238, 190, 0.35);
+  transform: rotate(var(--slot, 0deg));
+}
+
+/* ==========================================================================
+   THE CASES
+   ========================================================================== */
+.board {
+  container-type: inline-size;
+  padding: 0;
+  z-index: 2;
+  /* proportions from the case's own width, so a 300px aisle and a 520px
+     aisle get the same piece of furniture at two sizes */
+  --ch: 3.4cqw;                         /* the carcass chamfer */
+  --st: clamp(12px, 4.4cqw, 25px);      /* stile: veneer showing beside the door */
+  --fw: clamp(5px, 1.9cqw, 10px);       /* the gilt frame round the door */
+  --top: 13.6cqw;                        /* lamp and crest above the door */
+  --wood: url('/static/assets/tex/veneer-macassar-q.webp');
+  --band: url('/static/assets/tex/veneer-ash.webp');
+  --wood-tint: rgba(0, 0, 0, 0);
+  --band-tint: #c98f4a;
+}
+#almanac {
+  --wood: url('/static/assets/tex/veneer-walnut-fig.webp');
+  --band: url('/static/assets/tex/veneer-macassar.webp');
+  --band-tint: #b08a6a;
+}
+:root[data-theme="ivory"] .board { --wood-tint: rgba(255, 244, 222, 0.06); }
+.board:hover .bd-glass::after { animation: none; }
+/* An aisle too short to hang the pair: fitCases() in app.js measured a dial
+   under its smallest legible face, or a sky plate under its smallest, and
+   the wall's bays take the aisle instead of a case with its instruments
+   squeezed out of it. The rule that opens the aisles (atrium.css,
+   `#concourse:not([data-aisles="shut"]) .board`, 1-2-0) outweighed a bare
+   `.board[data-fold]` (0-2-0), so a folded case stood on with 0px dials and
+   no sky plate. This one outweighs it (1-3-0) whatever order the sheets
+   load in. */
+#concourse:not([data-aisles="shut"]) .board[data-fold="away"] { display: none; }
+
+/* The case's own shadow on the wall. The carcass is chamfered with a
+   clip-path, which would eat a shadow, so the shadow is a filter on this
+   unclipped parent and the clip lives on the carcass inside it. */
+.board .bd-frame {
+  clip-path: none;
+  background: none;
+  border: 0;
+  inset: 0;
+  filter: drop-shadow(0 2px 2px var(--case-shadow)) drop-shadow(0 18px 26px var(--case-shadow));
+}
+.board .bd-frame::before, .board .bd-frame::after { content: none; }
+
+.cs-carcass, .cs-string, .cs-bead {
+  position: absolute;
+  left: 0; right: 0; top: 2.4cqw; bottom: 0;
+}
+/* The carcass: book-matched veneer, grain standing up the stiles. */
+.cs-carcass {
+  clip-path: polygon(var(--ch) 0, calc(100% - var(--ch)) 0, 100% var(--ch),
+    100% calc(100% - var(--ch)), calc(100% - var(--ch)) 100%, var(--ch) 100%,
+    0 calc(100% - var(--ch)), 0 var(--ch));
+  background: var(--wood) var(--fig-x, 0) var(--fig-y, 0) / 64cqw auto;
+}
+/* The left half is the right half mirrored about the centre seam, as a
+   veneerer lays two consecutive leaves of one flitch: the same stretch of
+   figure, turned over. */
+.cs-inlay {
+  position: absolute; inset: 0 50% 0 0;
+  background: var(--wood) calc(var(--fig-x, 0px) - 50cqw) var(--fig-y, 0) / 64cqw auto;
+  transform: scaleX(-1);
+}
+/* The finish: waxed, holding a soft sheen where the lamp or the sky finds
+   it, the returns darker, the foot in shade. */
+.cs-carcass::after {
+  content: ""; position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse 70% 42% at 50% 0%, var(--wood-light), transparent 70%),
+    linear-gradient(90deg, rgba(0, 0, 0, 0.38), transparent 12%, transparent 88%, rgba(0, 0, 0, 0.46)),
+    linear-gradient(180deg, transparent 30%, var(--wood-shade)),
+    linear-gradient(var(--wood-tint), var(--wood-tint));
+}
+/* Crossbanding: a narrow band of a contrasting wood round the carcass
+   inside the chamfer, with a pale boxwood line at either edge (.cs-bead). */
+.cs-string {
+  --b: calc(0.9cqw + 1.2px); --c: calc(0.9cqw + 1.2px + clamp(4px, 1.5cqw, 8px));
+  background:
+    linear-gradient(180deg, transparent 20%, var(--wood-shade)),
+    linear-gradient(var(--band-tint), var(--band-tint)),
+    var(--band) 0 0 / 38cqw auto;
+  background-blend-mode: normal, multiply, normal;
+  clip-path: polygon(evenodd,
+    calc(var(--ch) + var(--b) * 0.414) var(--b), calc(100% - var(--ch) - var(--b) * 0.414) var(--b),
+    calc(100% - var(--b)) calc(var(--ch) + var(--b) * 0.414), calc(100% - var(--b)) calc(100% - var(--ch) - var(--b) * 0.414),
+    calc(100% - var(--ch) - var(--b) * 0.414) calc(100% - var(--b)), calc(var(--ch) + var(--b) * 0.414) calc(100% - var(--b)),
+    var(--b) calc(100% - var(--ch) - var(--b) * 0.414), var(--b) calc(var(--ch) + var(--b) * 0.414),
+    var(--b) calc(var(--ch) + var(--b) * 0.414),
+    calc(var(--ch) + var(--c) * 0.414) var(--c), calc(100% - var(--ch) - var(--c) * 0.414) var(--c),
+    calc(100% - var(--c)) calc(var(--ch) + var(--c) * 0.414), calc(100% - var(--c)) calc(100% - var(--ch) - var(--c) * 0.414),
+    calc(100% - var(--ch) - var(--c) * 0.414) calc(100% - var(--c)), calc(var(--ch) + var(--c) * 0.414) calc(100% - var(--c)),
+    var(--c) calc(100% - var(--ch) - var(--c) * 0.414), var(--c) calc(var(--ch) + var(--c) * 0.414));
+  opacity: 0.9;
+}
+.cs-bead {
+  --i: 0.9cqw; --o: calc(0.9cqw + 1.1px);
+  --j: calc(0.9cqw + 1.2px + clamp(4px, 1.5cqw, 8px)); --k: calc(var(--j) + 1.1px);
+  background: #d8c08c;
+  clip-path: polygon(evenodd,
+    calc(var(--ch) + var(--i) * 0.414) var(--i), calc(100% - var(--ch) - var(--i) * 0.414) var(--i),
+    calc(100% - var(--i)) calc(var(--ch) + var(--i) * 0.414), calc(100% - var(--i)) calc(100% - var(--ch) - var(--i) * 0.414),
+    calc(100% - var(--ch) - var(--i) * 0.414) calc(100% - var(--i)), calc(var(--ch) + var(--i) * 0.414) calc(100% - var(--i)),
+    var(--i) calc(100% - var(--ch) - var(--i) * 0.414), var(--i) calc(var(--ch) + var(--i) * 0.414),
+    var(--i) calc(var(--ch) + var(--i) * 0.414),
+    calc(var(--ch) + var(--o) * 0.414) var(--o), calc(100% - var(--ch) - var(--o) * 0.414) var(--o),
+    calc(100% - var(--o)) calc(var(--ch) + var(--o) * 0.414), calc(100% - var(--o)) calc(100% - var(--ch) - var(--o) * 0.414),
+    calc(100% - var(--ch) - var(--o) * 0.414) calc(100% - var(--o)), calc(var(--ch) + var(--o) * 0.414) calc(100% - var(--o)),
+    var(--o) calc(100% - var(--ch) - var(--o) * 0.414), var(--o) calc(var(--ch) + var(--o) * 0.414),
+    var(--o) calc(var(--ch) + var(--o) * 0.414),
+    calc(var(--ch) + var(--j) * 0.414) var(--j), calc(100% - var(--ch) - var(--j) * 0.414) var(--j),
+    calc(100% - var(--j)) calc(var(--ch) + var(--j) * 0.414), calc(100% - var(--j)) calc(100% - var(--ch) - var(--j) * 0.414),
+    calc(100% - var(--ch) - var(--j) * 0.414) calc(100% - var(--j)), calc(var(--ch) + var(--j) * 0.414) calc(100% - var(--j)),
+    var(--j) calc(100% - var(--ch) - var(--j) * 0.414), var(--j) calc(var(--ch) + var(--j) * 0.414),
+    var(--j) calc(var(--ch) + var(--j) * 0.414),
+    calc(var(--ch) + var(--k) * 0.414) var(--k), calc(100% - var(--ch) - var(--k) * 0.414) var(--k),
+    calc(100% - var(--k)) calc(var(--ch) + var(--k) * 0.414), calc(100% - var(--k)) calc(100% - var(--ch) - var(--k) * 0.414),
+    calc(100% - var(--ch) - var(--k) * 0.414) calc(100% - var(--k)), calc(var(--ch) + var(--k) * 0.414) calc(100% - var(--k)),
+    var(--k) calc(100% - var(--ch) - var(--k) * 0.414), var(--k) calc(var(--ch) + var(--k) * 0.414));
+  opacity: 0.55;
+}
+:root[data-theme="onyx"] .cs-bead { background: #b39866; opacity: 0.5; }
+
+/* ----- The top: crest and picture lamp -------------------------------- */
+.cs-top {
+  position: absolute; left: 0; right: 0; top: 0;
+  height: var(--top);
+  z-index: 5;
+  pointer-events: none;
+}
+.cs-lamp {
+  position: absolute; left: 27cqw; width: 46cqw; top: 0; height: auto;
+  overflow: visible;
+}
+.cs-crest {
+  position: absolute; left: 37cqw; width: 26cqw; top: 5cqw; height: auto;
+  overflow: visible;
+}
+.cs-crest .cr-sh { fill: rgba(0, 0, 0, 0.6); }
+.cs-crest .cr-lt { fill: var(--lead-5); opacity: 0.75; }
+.cs-crest .cr-body { stroke: rgba(0, 0, 0, 0.35); stroke-width: 0.35; }
+.cs-lamp .la-stem-sh, .cs-lamp .la-shade-sh { fill: rgba(0, 0, 0, 0.5); }
+.cs-lamp .la-flutes line { stroke: rgba(0, 0, 0, 0.26); stroke-width: 0.8; }
+.cs-lamp .la-lip { fill: var(--br-2); stroke: var(--br-0); stroke-width: 0.4; }
+.cs-lamp .la-cap { stroke: rgba(0, 0, 0, 0.4); stroke-width: 0.35; }
+.cs-lamp .la-finial { fill: var(--br-1); }
+.cs-lamp .la-slotline { stroke: var(--br-0); stroke-width: 0.55; }
+.cs-lamp .la-glint { fill: var(--br-5); opacity: 0.55; }
+.cs-lamp .la-slot { filter: drop-shadow(0 0 2px var(--lamp-glow)) drop-shadow(0 2px 6px var(--lamp-glow)); }
+.cs-lamp .la-spill { opacity: var(--lamp-on, 0); }
+.la-sp0 { stop-color: #fff3d8; } .la-sp1 { stop-color: #ffc877; }
+
+/* The cone: the lamp's throw down the case. Its own layer in the board's
+   stacking context, so its screen blend reaches the wood and the glass. */
+.cs-cone {
+  position: absolute;
+  left: 4cqw; right: 4cqw; top: 3.6cqw; height: 70%;
+  background:
+    radial-gradient(ellipse 30% 24% at 50% 0%, var(--lamp-cone), transparent 100%),
+    radial-gradient(ellipse 50% 70% at 50% 0%, var(--lamp-cone-2), transparent 100%);
+  mix-blend-mode: screen;
+  opacity: var(--lamp-on, 0);
+  pointer-events: none;
+  z-index: 4;
+}
+
+/* ----- The door ---------------------------------------------------------- */
+.board .cs-door {
+  position: relative;
+  z-index: 1;
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex; flex-direction: column;
+  margin: var(--top) var(--st) 0;
+  padding: calc(var(--fw) + 1.3cqw) calc(var(--fw) + 2.6cqw) calc(var(--fw) + 1.2cqw);
+  /* Whatever the door holds stays behind its glass. fitCases() folds the
+     cases before anything would need this, so it is the backstop, not the
+     layout: the tape used to run out under the station plate. */
+  overflow: clip;
+  color: var(--cab-ink);
+  --ink: var(--cab-ink);
+  --ink-faint: var(--cab-faint);
+  --gold-text: var(--cab-gold);
+  --line: rgba(220, 190, 120, 0.22);
+}
+.board .cs-door > :not(.cf, .cs-glass, .cs-reflect, .cs-pool) { position: relative; z-index: 1; }
+/* The black glass: verre eglomise, like the gates' signs. One reflection
+   band, a lit top rim, the frame's shadow falling on it. */
+.board .cs-door > .cs-glass {
+  position: absolute; inset: 0; z-index: 0;
+  background:
+    linear-gradient(104deg, transparent 22%, rgba(255, 248, 230, 0.05) 34%, transparent 47%),
+    linear-gradient(180deg, rgba(255, 244, 220, 0.07), transparent 22%),
+    radial-gradient(ellipse 80% 60% at 50% 110%, rgba(255, 255, 255, 0.025), transparent 70%),
+    var(--cab-glass);
+  box-shadow:
+    inset 0 calc(var(--fw) + 1px) 10px -2px rgba(0, 0, 0, 0.85),
+    inset calc(var(--fw) + 1px) 0 8px -3px rgba(0, 0, 0, 0.6),
+    inset calc(-1 * var(--fw) - 1px) 0 8px -3px rgba(0, 0, 0, 0.6);
+}
+/* The gilt pinstripe painted on the back of the glass: the head rule between
+   the two fans and the short returns beside them. Its foot brackets went
+   with the foot fans (cabinetry.js): they ran under the ivorine strips. */
+.cs-pin {
+  position: absolute;
+  inset: calc(var(--fw) + 1cqw);
+  border: 1px solid rgba(214, 180, 104, 0.42);
+  clip-path: polygon(4.6cqw 0, calc(100% - 4.6cqw) 0, calc(100% - 4.6cqw) 1.5px, 100% 1.5px, 100% 4.6cqw,
+    calc(100% - 1.5px) 4.6cqw, calc(100% - 1.5px) calc(100% - 1.5px), 1.5px calc(100% - 1.5px),
+    1.5px 4.6cqw, 0 4.6cqw, 0 1.5px, 4.6cqw 1.5px);
+}
+.cs-fan {
+  position: absolute; width: 5.6cqw; height: 5.6cqw; overflow: visible;
+}
+.cs-fan .fan-leaf { fill: rgba(222, 188, 112, 0.5); }
+.cs-fan .fan-rule { stroke: rgba(214, 180, 104, 0.42); stroke-width: 0.9; }
+.cs-fan-tl { left: calc(var(--fw) + 1cqw); top: calc(var(--fw) + 1cqw); }
+.cs-fan-tr { right: calc(var(--fw) + 1cqw); top: calc(var(--fw) + 1cqw); transform: scaleX(-1); }
+
+/* The frame: a bolection moulding in the leaf, four mitred facets, each
+   carrying the profile across its width (arris, crest, body, the step down
+   onto the glass), with the leaf lattice laid over the metal. */
+.cf {
+  position: absolute; z-index: 3;
+  pointer-events: none;
+  --gilt: url('/static/assets/tex/grain-gilt.webp');
+  background-blend-mode: soft-light, normal;
+}
+.board .cf { --w: var(--fw); }
+.cf-t, .cf-b { left: 0; right: 0; height: var(--w); }
+.cf-l, .cf-r { top: 0; bottom: 0; width: var(--w); }
+.cf-t { top: 0; clip-path: polygon(0 0, 100% 0, calc(100% - var(--w)) 100%, var(--w) 100%);
+  background: var(--gilt) 0 0 / 46px,
+    linear-gradient(180deg, var(--lead-1), var(--lead-5) 20%, var(--lead-3) 36%, var(--lead-4) 58%, var(--lead-2) 78%, var(--lead-0)); }
+.cf-l { left: 0; clip-path: polygon(0 0, 100% var(--w), 100% calc(100% - var(--w)), 0 100%);
+  background: var(--gilt) 0 0 / 46px,
+    linear-gradient(90deg, var(--lead-1), var(--lead-3) 22%, var(--lead-4) 40%, var(--lead-2) 62%, var(--lead-1) 82%, var(--lead-0)); }
+.cf-r { right: 0; clip-path: polygon(0 var(--w), 100% 0, 100% 100%, 0 calc(100% - var(--w)));
+  background: var(--gilt) 0 0 / 46px,
+    linear-gradient(270deg, var(--lead-0), var(--lead-2) 22%, var(--lead-4) 38%, var(--lead-1) 64%, var(--lead-1) 82%, var(--lead-0)); }
+.cf-b { bottom: 0; clip-path: polygon(var(--w) 0, calc(100% - var(--w)) 0, 100% 100%, 0 100%);
+  background: var(--gilt) 0 0 / 46px,
+    linear-gradient(0deg, var(--lead-0), var(--lead-1) 24%, var(--lead-2) 40%, var(--lead-1) 66%, var(--lead-0) 86%, var(--lead-0)); }
+
+/* One reflection across the whole door and a hairline where the top rim
+   catches the lamp or the sky. Nothing moves on the glass. */
+.cs-reflect {
+  position: absolute; z-index: 4;
+  inset: var(--fw);
+  pointer-events: none;
+  background:
+    linear-gradient(115deg, transparent 8%, rgba(255, 250, 238, 0.045) 16%, rgba(255, 250, 238, 0.01) 28%, transparent 36%),
+    linear-gradient(180deg, rgba(255, 244, 222, 0.26), transparent 1.5px);
+}
+.cs-pool {
+  position: absolute; z-index: 0;
+  left: 8%; right: 8%; top: 0; height: 30%;
+  background: radial-gradient(ellipse 60% 70% at 50% 0%, rgba(255, 214, 160, 0.10), transparent 72%);
+  opacity: var(--lamp-on, 0);
+  pointer-events: none;
+}
+.board .bd-glass { display: none; }
+
+/* ----- On the glass: the title in leaf ----------------------------------- */
+.board .bd-head { padding-bottom: 1.2cqw; }
+.board .bd-sub { margin-top: 0.2cqw; }
+
+.board .bd-head::after {
+  left: 12%; right: 12%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(222, 188, 112, 0.55) 18%, rgba(222, 188, 112, 0.55) 82%, transparent);
+  opacity: 1;
+}
+.board .bd-title {
+  font-weight: 600;
+  background:
+    url('/static/assets/tex/grain-gilt.webp') 0 0 / 60px,
+    linear-gradient(180deg, var(--leaf-0) 0%, var(--leaf-1) 34%, var(--leaf-2) 55%, var(--leaf-3) 72%, var(--leaf-4) 100%) 0 0 / 100% 1em;
+  background-blend-mode: soft-light, normal;
+  -webkit-background-clip: text; background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 0.6px 0 rgba(0, 0, 0, 0.9));
+}
+.board .bd-title::before, .board .bd-title::after { color: var(--leaf-2); -webkit-text-fill-color: var(--leaf-2); opacity: 0.9; }
+/* Set roman, as every sentence in the hall is. It was italic, and with no
+   italic face loaded the browser slanted the roman ones: an oblique
+   Garamond, and in the Chinese hall a sheared Mincho. The line keeps apart
+   from the title by size, ink and case. */
+.board .bd-sub { color: var(--cab-faint); letter-spacing: 0.04em; }
+
+/* ----- The dials ------------------------------------------------------------
+   The turned brass of the bezel is the svg's own background: a conic
+   brushing (two bright wedges facing each other across the ring, the way a
+   lathe-turned surface takes a light) over the fine turning lines. */
+/* One grid for all four instruments: each cell's dial, caption and reading
+   sit on tracks the pair in its row shares (subgrid). A reading that takes a
+   second line then makes its whole row's reading track taller, instead of
+   taking the height out of its own dial and lifting its caption out of line
+   with its neighbour's; the two dial tracks are equal fractions, so the four
+   dials always match. */
+.board .wk-dials {
+  grid-template-rows: minmax(0, 1fr) auto auto 0.8cqw minmax(0, 1fr) auto auto;
+  gap: 0 2.6cqw; padding: 0.8cqw 0 0.4cqw;
+}
+.board .wk-cell { grid-row: 1 / span 3; grid-template-rows: subgrid; }
+.board .wk-cell:nth-child(n + 3) { grid-row: 5 / span 3; }
+.board .wk-dial { overflow: visible; }
+.board .wk-dial .d-brass {
+  width: 100%; height: 100%;
+  border-radius: 50%;
+  background:
+    repeating-radial-gradient(circle at 50% 50%, rgba(255, 246, 220, 0.06) 0 0.35px, rgba(30, 18, 4, 0.06) 0.35px 0.75px),
+    conic-gradient(from var(--turn, -30deg),
+      var(--br-5), var(--br-2) 9%, var(--br-1) 22%, var(--br-2) 34%, var(--br-4) 44%, var(--br-3) 50%,
+      var(--br-2) 59%, var(--br-1) 72%, var(--br-2) 84%, var(--br-4) 93%, var(--br-5));
+}
+.board .wk-dial .d-profile { stroke: none; }
+.board .wk-dial .kn-lit { stroke: #fff6dc; stroke-width: 0.55; }
+.board .wk-dial .kn-shade { stroke: #140c02; stroke-width: 0.55; }
+.board .wk-dial .d-screw { stroke: rgba(0, 0, 0, 0.55); stroke-width: 0.25; }
+.board .wk-dial .d-slot { stroke: rgba(20, 12, 4, 0.9); stroke-width: 0.42; stroke-linecap: round; }
+.board .wk-dial .d-face { stroke: rgba(0, 0, 0, 0.6); stroke-width: 0.4; }
+.board .wk-dial .d-turning circle { fill: none; stroke: var(--turning); stroke-width: 0.9; }
+.board .wk-dial .g-red { stroke: none; opacity: 1; }
+.board .wk-dial .d-red-lit { fill: none; stroke: rgba(255, 190, 170, 0.35); stroke-width: 0.35; }
+.board .wk-dial .d-arc { stroke: var(--scale-ink); stroke-width: 0.45; opacity: 0.8; }
+.board .wk-dial .g-tick path { stroke: var(--scale-ink); stroke-linecap: butt; }
+.board .wk-dial .tk-min { stroke-width: 0.35; opacity: 0.75; }
+.board .wk-dial .tk-med { stroke-width: 0.7; }
+.board .wk-dial .tk-maj { stroke-width: 1.35; }
+.board .wk-dial text {
+  fill: var(--scale-ink);
+  font-family: var(--serif);
+  font-weight: 600;
+  font-variant-numeric: lining-nums tabular-nums;
+}
+/* The figures and the unit are sized from the dial as it is drawn: --dpu is
+   its pixels per unit, which app.js's fitCases() writes on #wk-dials. They
+   ask for 7.4px x --ui and never less than 10px, so a larger engraving size
+   only ever makes them larger. 13 units is the most a figure can take before
+   it reaches the ticks; the cases fold away before a dial is too small to
+   carry 10px at that. (Inside the dial px are user units, hence the divide.) */
+.board .wk-dials { --num: max(10px, calc(7.4px * var(--ui))); }
+.board .wk-dial .d-num text { font-size: clamp(7.4px, calc(var(--num) / var(--dpu, 1)), 13px); }
+.board .wk-dial .d-legend { font-size: clamp(7.4px, calc(var(--num) / var(--dpu, 1)), 13px); letter-spacing: 0.04em; }
+.board .wk-dial .d-serial { opacity: 0.55; }
+.board .wk-dial .d-serial path { stroke: var(--scale-ink); stroke-width: 0.45; stroke-linecap: round; }
+.board .wk-dial .d-zero { stroke: rgba(0, 0, 0, 0.5); stroke-width: 0.3; }
+.board .wk-dial .d-lip { pointer-events: none; }
+/* The needle. Both of its sheets turn on the spring settle the base sheet
+   gives .wk-rotor; the shadow's sheet stands off ahead of the turn. */
+.board .wk-hands .g-needle { stroke: none; }
+.board .wk-hands .nd-shadow .g-needle { fill: var(--needle-sh); }
+.board .wk-hands .nd-lacq { fill: var(--needle); stroke: var(--needle-edge); stroke-width: 0.3; }
+.board .wk-hands .nd-tip { fill: var(--needle); }
+.board .wk-hands .nd-weight { fill: var(--br-2); stroke: var(--br-0); stroke-width: 0.35; }
+.board .wk-hands .nd-rivet { fill: var(--br-4); }
+.board .wk-hands .nd-hi { stroke: rgba(255, 255, 255, 0.5); stroke-width: 0.35; fill: none; }
+.board .wk-hands .d-hub { stroke: rgba(0, 0, 0, 0.6); stroke-width: 0.35; }
+.board .wk-hands .d-hubglint { fill: #fffbe8; opacity: 0.7; }
+.board .wk-hands .d-xtal { pointer-events: none; }
+.board .wk-hands .d-xtal-edge { stroke: rgba(255, 252, 240, 0.28); stroke-width: 0.6; }
+.board .wk-hands .d-glint { fill: #ffffff; opacity: 0.55; }
+/* In the red: the needle's tip takes the lacquer of the arc it has
+   reached. One signal, no flashing. */
+.board .wk-cell[data-hot="yes"] .nd-tip { fill: var(--lacquer-red-hi); }
+.board .wk-cell[data-hot="yes"] .g-needle { stroke: none; }
+/* No reading: the needle rests on its stop and the instrument stays an
+   instrument, only its face a shade smoked. */
+.board .wk-cell[data-blank="yes"] .wk-dial { opacity: 1; }
+.board .wk-cell[data-blank="yes"] .d-face { opacity: 0.8; }
+
+/* Caption: the name in leaf on the glass, the reading in a small ivorine
+   window set in a brass bezel. */
+.board .wk-name {
+  margin-top: 0.6cqw;
+  color: var(--cab-gold);
+  font-weight: 600;
+}
+.board .wk-read {
+  margin-top: 0.5cqw;
+  /* first lines level across a row, whichever reading takes two */
+  align-self: start;
+  padding: 0.1em 0.45em 0.05em;
+  /* a long reading takes a second line in its window rather than losing
+     its tail to an ellipsis */
+  white-space: normal; overflow: visible; text-overflow: clip;
+  text-wrap: balance; text-align: center;
+  letter-spacing: 0.02em;
+  background:
+    linear-gradient(180deg, rgba(0, 0, 0, 0.16), transparent 30%),
+    url('/static/assets/tex/grain-card.webp') 0 0 / 120px,
+    var(--ivorine);
+  background-blend-mode: normal, soft-light, normal;
+  color: var(--ivorine-ink);
+  box-shadow:
+    0 0 0 1px var(--br-1), 0 0 0 2px var(--br-3), 0 0 0 3px var(--br-1),
+    0 2px 3px 2px rgba(0, 0, 0, 0.5);
+  border-radius: 1px;
+  font-weight: 600;
+}
+.board .wk-cell[data-hot="yes"] .wk-read { color: var(--lacquer-red); }
+.board .wk-cell[data-blank="yes"] .wk-read { color: #6b5f4a; letter-spacing: 0.14em; font-size: calc(10.5px * var(--ui)); }
+
+/* The tape: two ivorine labels in brass holders, screwed to the glass. */
+.board .wk-tape, .board .al-tape { border-top: 0; margin-top: 0.3cqw; padding-top: 0.4cqw; }
+.board .wk-strip, .board .al-strips .al-strip {
+  position: relative;
+  margin: 0.8cqw 0.4cqw 0;
+  /* the screws sit 5px in and are 6px across; the lettering keeps clear of
+     them by half an em, and no more, so STORE's value keeps to one line in a
+     300px aisle at the standard size */
+  padding: 0.18em calc(11px + 0.5em) 0.12em;
+  background:
+    linear-gradient(180deg, rgba(0, 0, 0, 0.14), transparent 30%),
+    url('/static/assets/tex/grain-card.webp') 0 0 / 120px,
+    var(--ivorine);
+  background-blend-mode: normal, soft-light, normal;
+  box-shadow:
+    0 0 0 1px var(--br-0), 0 0 0 2.5px var(--br-2), 0 0 0 3.5px var(--br-0),
+    0 3px 5px 3px rgba(0, 0, 0, 0.45);
+}
+.board .wk-strip::before, .board .wk-strip::after,
+.board .al-strips .al-strip::before, .board .al-strips .al-strip::after {
+  content: ""; position: absolute; top: 50%;
+  width: 6px; height: 6px; margin-top: -3px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 36% 32%, var(--br-5), var(--br-2) 50%, var(--br-0));
+  box-shadow: 0.5px 0.8px 1px rgba(0, 0, 0, 0.6);
+}
+.board .wk-strip::before, .board .al-strips .al-strip::before { left: 5px; }
+.board .wk-strip::after, .board .al-strips .al-strip::after { right: 5px; }
+/* A strip too narrow for its label and its value side by side (STORE at
+   SIGNBOARD in a 300px aisle) sets the value under the label, still to the
+   right. On one line it ran past the strip and under the screw. */
+.board .wk-strip, .board .al-strips .al-strip { flex-wrap: wrap; row-gap: 0; }
+.board .wk-sval, .board .al-strips .al-sval { margin-left: auto; }
+/* The label ink is dark enough to hold 4.5:1 on the ivorine once the grain
+   and the holder's shade are laid over it; #5a4c34 painted at 3.8. */
+.board .wk-slabel, .board .al-slabel { color: #43381f; }
+/* The Chinese face has one weight and hairline strokes, which the tracking
+   thins further (2.6:1 painted in that ink); a trace of its own ink round
+   every stroke brings it up to strength, as on the gates' day cards. */
+html[lang="zh"] .board .wk-slabel, html[lang="zh"] .board .al-strips .al-slabel { -webkit-text-stroke: 0.6px currentColor; }
+.board .wk-sval, .board .al-sval { color: var(--ivorine-ink); font-weight: 600; }
+
+/* The long line: what a dial's or the reading's tooltip says, for a reader
+   with no mouse to hover with. A focused instrument (Tab, or a tap) lays
+   it on a slip of the windows' ivorine, a dial's over the head of the tape
+   and the reading's under the reading, across the top of the sky plate.
+   The mouse keeps its tooltip. The slip stays inside the door, behind its
+   glass, and covers only the case's own furniture while it is up. */
+.board .cs-tip {
+  display: none;
+  position: absolute; z-index: 3;
+  left: 0.4cqw; right: 0.4cqw; top: calc(100% + 0.6cqw);
+  padding: 0.28em 0.8em 0.22em;
+  font-size: calc(12px * var(--ui));
+  line-height: 1.3;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-align: center; text-wrap: balance;
+  white-space: normal;
+  color: var(--ivorine-ink);
+  background:
+    linear-gradient(180deg, rgba(0, 0, 0, 0.16), transparent 30%),
+    url('/static/assets/tex/grain-card.webp') 0 0 / 120px,
+    var(--ivorine);
+  background-blend-mode: normal, soft-light, normal;
+  box-shadow:
+    0 0 0 1px var(--br-1), 0 0 0 2px var(--br-3), 0 0 0 3px var(--br-1),
+    0 4px 7px 3px rgba(0, 0, 0, 0.55);
+  border-radius: 1px;
+  pointer-events: none;
+}
+.board .wk-cell:focus .cs-tip, .board .al-read:focus .cs-tip { display: block; }
+/* Over the next register down, which otherwise paints later at the same
+   level. */
+.board .wk-dials:focus-within, .board .al-read:focus { z-index: 2; }
+
+/* ----- The apron and the maker's plate ------------------------------------ */
+.board .bd-foot {
+  position: relative; z-index: 2;
+  border-top: 0;
+  margin: 0 var(--st);
+  padding: 1.5cqw 0 2.2cqw;
+  display: flex; justify-content: center;
+}
+.cs-plate {
+  position: relative;
+  display: inline-flex; flex-direction: column; align-items: center;
+  padding: 0.5em 2.4em 0.45em;
+  width: auto; height: auto;
+  margin: 0;
+  background:
+    url('/static/assets/tex/grain-plaster.webp') 0 0 / 90px,
+    #16110b;
+  background-blend-mode: soft-light, normal;
+  border-radius: 2px;
+  box-shadow:
+    inset 0 0 0 1.5px var(--br-1),
+    inset 0 0 0 3px var(--br-3),
+    inset 0 0 0 4px var(--br-0),
+    inset 1px 1px 0 4.5px rgba(255, 240, 200, 0.18),
+    0 0 0 1px var(--br-0),
+    0 2px 3px rgba(0, 0, 0, 0.7);
+  --sc: clamp(5px, 1.7cqw, 8px);
+}
+.cs-plate .bp-name, .cs-plate .bp-no, .cs-plate .al-station {
+  display: block;
+  background: linear-gradient(180deg, var(--br-5) 0%, var(--br-3) 30%, var(--br-2) 62%, var(--br-4) 100%);
+  -webkit-background-clip: text; background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0.6px 0.9px 0 rgba(0, 0, 0, 0.85));
+  line-height: 1.25;
+  white-space: nowrap;
+}
+.cs-plate .bp-name { font-size: calc(12px * var(--ui)); letter-spacing: 0.22em; font-weight: 700; }
+.cs-plate .bp-no { font-size: calc(10.5px * var(--ui)); letter-spacing: 0.1em; font-weight: 600; }
+.cs-plate .cs-screw { top: 50%; margin-top: calc(var(--sc) / -2); }
+.cs-plate .sc-0 { left: 0.8em; top: 28%; }
+.cs-plate .sc-1 { right: 0.8em; top: 28%; }
+.cs-plate .sc-2 { left: 0.8em; top: 72%; }
+.cs-plate .sc-3 { right: 0.8em; top: 72%; }
+.al-plate { padding: 0.5em 2.6em; }
+.board .al-station { font-size: min(calc(10px * var(--ui)), 3.3cqw); letter-spacing: 0.12em; font-weight: 600; overflow: visible; }
+.board .cs-plate { max-width: 100%; }
+.board .al-plate { padding-left: 2.2em; padding-right: 2.2em; }
+
+/* ----- The almanac's registers ------------------------------------------- */
+.board .al-read { border-bottom: 0; padding: 0.4cqw 0.8cqw 1cqw; }
+.board .al-read::after {
+  content: ""; position: absolute; left: 6%; right: 6%; bottom: 0; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(222, 188, 112, 0.38) 20%, rgba(222, 188, 112, 0.38) 80%, transparent);
+}
+/* The temperature in leaf, like the title: the one big figure on the glass. */
+.board .al-temp {
+  font-weight: 500;
+  background:
+    url('/static/assets/tex/grain-gilt.webp') 0 0 / 60px,
+    linear-gradient(180deg, var(--leaf-0) 0%, var(--leaf-1) 34%, var(--leaf-2) 58%, var(--leaf-3) 76%, var(--leaf-4) 100%) 0 0 / 100% 1em;
+  background-blend-mode: soft-light, normal;
+  -webkit-background-clip: text; background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 0.8px 0 rgba(0, 0, 0, 0.9));
+}
+.board .al-read[data-blank="yes"] .al-temp { background: none; color: var(--cab-faint); }
+/* The moment has lapsed and the day's figures stand: only the dash drains. */
+.board .al-read[data-blank="now"] .al-temp { background: none; color: var(--cab-faint); }
+.board .al-vlabel { color: var(--cab-gold); opacity: 0.85; }
+.board .al-sky { padding: 0.8cqw 0 0.4cqw; }
+.board .al-tape { margin-top: 0.4cqw; }
+.board .al-tape::before {
+  content: ""; position: absolute; left: 6%; right: 6%; top: 0; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(222, 188, 112, 0.38) 20%, rgba(222, 188, 112, 0.38) 80%, transparent);
+}
+.board .al-mtext .al-strip { margin: 0; padding: 0; background: none; box-shadow: none; }
+.board .al-mtext .al-slabel { color: var(--cab-gold); opacity: 0.85; }
+.board .al-mtext .al-sval { color: var(--cab-ink); font-weight: 400; }
+.board .al-strips { border-top: 0; padding-top: 0; }
+.board .al-disc { width: calc(56px * var(--ui)); height: calc(56px * var(--ui)); overflow: visible; }
+
+/* The sky plate. */
+.board .al-arc .sk-cast { fill: rgba(0, 0, 0, 0.55); }
+.board .al-arc .sk-bezel { stroke: rgba(0, 0, 0, 0.6); stroke-width: 0.6; }
+.board .al-arc .sk-bezel-lip { fill: none; stroke: rgba(255, 244, 214, 0.35); stroke-width: 0.5; }
+.board .al-arc .sk-stars { fill: var(--leaf-1); opacity: 0.85; }
+:root[data-theme="ivory"] .board .al-arc .sk-stars { opacity: 0; }
+/* The enamel under its bezel: orange peel laid soft over both colours, the
+   bezel's shade at the rim, and one hairline of light where the glaze rolls
+   up to the bezel. */
+.board .al-arc .sk-peel { mix-blend-mode: soft-light; opacity: 0.45; }
+:root[data-theme="ivory"] .board .al-arc .sk-peel { opacity: 0.35; }
+.sk-sh { stop-color: #000; }
+:root[data-theme="ivory"] .board .al-arc .sk-shade { opacity: 0.55; }
+.board .al-arc .sk-shine { fill: #fff6e0; opacity: 0.14; }
+:root[data-theme="ivory"] .board .al-arc .sk-shine { fill: #ffffff; opacity: 0.6; }
+.board .al-arc .sk-groove { fill: none; stroke: #0b0703; stroke-width: 2.8; }
+.board .al-arc .sk-lip { fill: none; stroke: rgba(255, 236, 190, 0.32); stroke-width: 0.55; }
+.board .al-arc .a-track { stroke: none; }
+.board .al-arc .a-night { stroke: var(--cab-faint); opacity: 0.35; }
+.board .al-arc .a-done { stroke: var(--leaf-1); opacity: 0.9; stroke-width: 1.6; }
+.board .al-arc .a-horizon { stroke: var(--leaf-2); opacity: 0.9; }
+.board .al-arc .a-h-day { stroke: #1a1006; opacity: 0.9; stroke-width: 1.4; }
+.board .al-arc .a-h-night { stroke: #1a1006; opacity: 0.5; stroke-width: 1; }
+.board .al-arc .a-foot { stroke: var(--leaf-2); }
+.board .al-arc text { fill: var(--cab-faint); }
+/* Full strength: at the plate's lettering size a dimmed leaf painted under
+   4.5:1 on the glass. The Chinese labels take a trace of stroke for the
+   same reason as the tape's; --ppu (pixels per plate unit) keeps it at a
+   third of a pixel on screen whatever the plate is drawn at. */
+.board .al-arc .a-lab { fill: var(--cab-gold); }
+html[lang="zh"] .board .al-arc .a-lab { stroke: var(--cab-gold); stroke-width: calc(0.35px / var(--ppu, 1)); }
+.board .al-arc .a-time { fill: var(--cab-ink); }
+.board .al-arc .a-polar { fill: var(--cab-gold); }
+.board .al-arc .sk-bead-sh { fill: rgba(0, 0, 0, 0.55); }
+.board .al-arc .sk-bead { stroke: rgba(0, 0, 0, 0.5); stroke-width: 0.4; }
+.board .al-arc .sk-bead-glint { fill: #fffbea; opacity: 0.85; }
+.board .al-arc .sk-sun.down .sk-bead { opacity: 0.8; }
+:root[data-theme="onyx"] .sk-up0 { stop-color: #10204f; }
+:root[data-theme="onyx"] .sk-up1 { stop-color: #1b3278; }
+:root[data-theme="onyx"] .sk-up2 { stop-color: #2a4592; }
+:root[data-theme="onyx"] .sk-dn0 { stop-color: #0d0c0c; }
+:root[data-theme="onyx"] .sk-dn1 { stop-color: #050505; }
+:root[data-theme="ivory"] .sk-up0 { stop-color: #86a6cf; }
+:root[data-theme="ivory"] .sk-up1 { stop-color: #a9c1de; }
+:root[data-theme="ivory"] .sk-up2 { stop-color: #d3e0ec; }
+:root[data-theme="ivory"] .sk-dn0 { stop-color: #efe7d4; }
+:root[data-theme="ivory"] .sk-dn1 { stop-color: #d9ccae; }
+.sk-bd0 { stop-color: #fff6d8; }
+
+/* The moon: a ball under its own crystal, in a turned brass bezel. */
+.board .al-disc .mn-bezel { fill: url(#cs-lamp-almanac-cap); stroke: rgba(0, 0, 0, 0.6); stroke-width: 0.5; }
+.board .al-disc .mn-bezel-lip { stroke: rgba(255, 240, 200, 0.4); stroke-width: 0.5; }
+.board .al-disc .mn-seat { fill: #050403; }
+.board .al-disc .m-bezel { stroke: rgba(0, 0, 0, 0.55); stroke-width: 0.6; }
+.mn-m0 { stop-color: #5d5646; }
+.board .al-disc .mn-xtal { pointer-events: none; }
+.board .al-disc .d-glint { fill: #fff; opacity: 0.6; }
+:root[data-theme="onyx"] .mn-l0 { stop-color: #fbf3dc; }
+:root[data-theme="onyx"] .mn-l1 { stop-color: #e2d3ae; }
+:root[data-theme="onyx"] .mn-l2 { stop-color: #8f8166; }
+:root[data-theme="onyx"] .mn-d0 { stop-color: #2b2a2c; }  /* earthshine */
+:root[data-theme="onyx"] .mn-d1 { stop-color: #0c0c0e; }
+:root[data-theme="ivory"] .mn-l0 { stop-color: #fffdf4; }
+:root[data-theme="ivory"] .mn-l1 { stop-color: #efe8d6; }
+:root[data-theme="ivory"] .mn-l2 { stop-color: #b8ae97; }
+:root[data-theme="ivory"] .mn-d0 { stop-color: #3b3934; }
+:root[data-theme="ivory"] .mn-d1 { stop-color: #1b1a18; }
+#almanac .al-disc .m-dark { fill: url(#mn-dark); }
+#almanac .al-disc .m-lit { fill: url(#mn-lit); }
+
+/* ==========================================================================
+   THE LEDGER: a black lacquer cabinet drawer
+   ==========================================================================
+   It slides out over the hall with the room behind it softened (the one
+   place a room really is behind a pane). Black lacquer by night, ivory
+   lacquer by day, one wide reflection band, a lit leading edge. Down it
+   runs the pneumatic main, a brass tube with lit collars, and on the main
+   hang the dispatches: programme cards in small gilt holders.
+   The inks are set by what the pixels measure, not by what the swatches
+   promise: Garamond's hairlines at 10 to 14px never reach full ink, and the
+   detail lines, the stamped ages and the chips printed at 2.4 to 3.5:1 in
+   inks that were 4.3:1 as colours. */
+:root[data-theme="onyx"] {
+  --lq: #0b0908; --lq-2: #14100c; --lq-refl: rgba(255, 244, 222, 0.085); --lq-edge: rgba(255, 226, 170, 0.55);
+  --lq-ink: #e7dcc2; --lq-faint: #b9aa89; --lq-gold: #d8b96c;
+  --card: #d3c49d; --card-2: #c9b88e; --card-ink: #20170c; --card-faint: #2b2115; --card-rule: rgba(80, 58, 28, 0.42);
+  --stamp-ink: #2f1656;
+  --jewel-0: #fffbe8; --jewel-1: #ffd98a; --jewel-2: #e0922e; --jewel-3: #6e3208;
+  --jewel-glow: rgba(255, 200, 110, 0.75);
+  --scrim-blur: 3px;
+}
+:root[data-theme="ivory"] {
+  --lq: #e8e0cc; --lq-2: #ddd3bb; --lq-refl: rgba(255, 255, 255, 0.45); --lq-edge: rgba(255, 255, 255, 0.9);
+  --lq-ink: #221a10; --lq-faint: #3a2f1e; --lq-gold: #49360a;
+  --card: #f3e7c4; --card-2: #eadbb2; --card-ink: #1f170c; --card-faint: #3a2f1f; --card-rule: rgba(90, 66, 30, 0.40);
+  --stamp-ink: #321858;
+  --jewel-0: #f6e3a8; --jewel-1: #d8b25a; --jewel-2: #a07a2a; --jewel-3: #5a420e;
+  --jewel-glow: rgba(0, 0, 0, 0);
+  --scrim-blur: 3px;
+}
+
+#ledger {
+  width: min(calc(372px * var(--ui)), 100vw);
+  padding: calc(22px * var(--ui)) calc(18px * var(--ui)) calc(72px * var(--ui)) calc(22px * var(--ui));
+  border-left: 0;
+  color: var(--lq-ink);
+  background:
+    linear-gradient(100deg, transparent 18%, var(--lq-refl) 30%, transparent 44%) 0 0 / 100% 100% no-repeat,
+    linear-gradient(100deg, transparent 52%, color-mix(in srgb, var(--lq-refl) 40%, transparent) 58%, transparent 63%) 0 0 / 100% 100% no-repeat,
+    linear-gradient(180deg, rgba(255, 255, 255, 0.035), transparent 18%, transparent 82%, rgba(0, 0, 0, 0.18)),
+    var(--lq);
+  box-shadow:
+    inset 1px 0 0 var(--lq-edge),
+    inset 3px 0 0 var(--lead-2),
+    inset 4px 0 0 var(--lead-4),
+    inset 6px 0 0 var(--lead-1),
+    inset 7px 0 0 rgba(0, 0, 0, 0.6),
+    -14px 0 40px var(--shadow-drop), -3px 0 8px var(--shadow-soft);
+  scrollbar-width: thin;
+  scrollbar-color: var(--lead-2) transparent;
+}
+/* The riveted strip retired: the drawer's leading edge is the gilt bead in
+   the inset shadows above, lit where the room's light catches it. */
+#ledger::before { content: none; }
+@media (max-width: 1279px) { #ledger { width: 100%; padding-top: calc(22px * var(--ui)); } }
+/* The hall behind is softened, not just dimmed. A static blur on a layer
+   that only fades. */
+#ledger-scrim { -webkit-backdrop-filter: blur(var(--scrim-blur)); backdrop-filter: blur(var(--scrim-blur)); }
+
+/* ----- The head: a label holder, a knob, three push-keys ---------------- */
+#ledger .l-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas: "title close" "chips chips";
+  align-items: center;
+  row-gap: calc(14px * var(--ui));
+  column-gap: calc(12px * var(--ui));
+  padding: calc(4px * var(--ui)) 0 calc(14px * var(--ui)) calc(8px * var(--ui));
+  margin-bottom: calc(10px * var(--ui));
+  position: relative;
+}
+#ledger .l-head::after {
+  content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 2px;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.55), rgba(255, 236, 190, 0.12));
+}
+/* The title in a brass card frame, the kind screwed to a cabinet drawer:
+   a pressed brass surround with a card slid in behind a lip. */
+#ledger .l-head h2 {
+  grid-area: title;
+  justify-self: start;
+  position: relative;
+  white-space: nowrap;
+  font-size: calc(14px * var(--ui));
+  letter-spacing: 0.26em;
+  padding: calc(6px * var(--ui)) calc(14px * var(--ui)) calc(5px * var(--ui)) calc(18px * var(--ui));
+  color: var(--card-ink);
+  background:
+    url('/static/assets/tex/grain-card.webp') 0 0 / 140px,
+    var(--card);
+  background-blend-mode: soft-light, normal;
+  box-shadow:
+    inset 0 2px 3px rgba(0, 0, 0, 0.35),
+    0 0 0 1px var(--br-0), 0 0 0 3px var(--br-2), 0 0 0 4px var(--br-4), 0 0 0 5px var(--br-0),
+    0 3px 6px 4px rgba(0, 0, 0, 0.45);
+  border-radius: 1px;
+  margin-left: calc(10px * var(--ui));
+}
+#ledger .l-head h2::before, #ledger .l-head h2::after {
+  content: ""; position: absolute; top: 50%;
+  width: 7px; height: 7px; margin-top: -3.5px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 36% 32%, var(--br-5), var(--br-2) 50%, var(--br-0));
+  box-shadow: 0.5px 0.8px 1px rgba(0, 0, 0, 0.6);
+}
+#ledger .l-head h2::before { left: -12px; }
+#ledger .l-head h2::after { right: -12px; }
+#ledger h2:focus-visible { outline: 2px solid var(--focus); outline-offset: 9px; }
+
+.l-close {
+  grid-area: close;
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  padding: 2px 4px;
+  color: var(--lq-faint);
+}
+.l-close-knob { width: calc(30px * var(--ui)); height: calc(30px * var(--ui)); overflow: visible; }
+.l-close-knob .k-sh { fill: rgba(0, 0, 0, 0.55); }
+.l-close-knob .k-rose { fill: var(--br-2); stroke: var(--br-0); stroke-width: 0.6; }
+.l-close-knob .k-rose-lip { fill: none; stroke: var(--br-4); stroke-width: 1.2; }
+.l-close-knob .k-cap { fill: var(--br-3); stroke: var(--br-0); stroke-width: 0.6; }
+.l-close-knob .k-ring { fill: none; stroke: var(--br-1); stroke-width: 0.8; }
+.l-close-knob .k-glint { fill: #fffbea; opacity: 0.7; }
+.l-close-cap { font-size: max(10px, calc(10px * var(--ui))); letter-spacing: 0.22em; margin-right: -0.22em; text-transform: uppercase; white-space: nowrap; }
+.l-close:hover { color: var(--lq-gold); }
+.l-close:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.l-close svg { transition: transform 0.14s var(--ease-out); }
+.l-close:active svg { transform: translateY(1px) scale(0.97); }
+
+/* Chips as a bank of three push-keys with ivorine caps in brass collars.
+   The key that is in stands pressed down; the others stand up. */
+#ledger .chips {
+  grid-area: chips;
+  display: flex; gap: calc(10px * var(--ui));
+  justify-content: flex-start;
+  padding-left: calc(8px * var(--ui));
+}
+#ledger .chip {
+  position: relative;
+  font-size: max(10px, calc(10px * var(--ui)));
+  letter-spacing: 0.2em;
+  white-space: nowrap;
+  padding: calc(5px * var(--ui)) calc(12px * var(--ui)) calc(4px * var(--ui));
+  color: var(--card-faint);
+  border: 0;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.5), transparent 40%, rgba(0, 0, 0, 0.12)),
+    var(--card);
+  box-shadow:
+    0 0 0 1px var(--br-0), 0 0 0 2px var(--br-3), 0 0 0 3px var(--br-1),
+    0 3px 0 1px var(--br-0), 0 4px 5px 2px rgba(0, 0, 0, 0.45);
+  border-radius: 2px;
+  transition: transform 0.12s var(--ease-out), box-shadow 0.12s, color 0.2s;
+}
+#ledger .chip:hover { color: var(--card-ink); }
+#ledger .chip[aria-checked="true"] {
+  color: var(--card-ink);
+  transform: translateY(2px);
+  background:
+    linear-gradient(180deg, rgba(0, 0, 0, 0.12), transparent 40%),
+    var(--card-2);
+  box-shadow:
+    0 0 0 1px var(--br-0), 0 0 0 2px var(--br-2), 0 0 0 3px var(--br-0),
+    0 1px 0 1px var(--br-0), 0 1px 2px 1px rgba(0, 0, 0, 0.5),
+    inset 0 2px 3px rgba(0, 0, 0, 0.3);
+}
+#ledger .chip:focus-visible { outline: 2px solid var(--focus); outline-offset: 5px; }
+
+/* ----- The dater ---------------------------------------------------------- */
+#ledger .l-tools { justify-content: flex-end; align-items: center; margin: 0 0 calc(10px * var(--ui)); }
+/* No word since HH:MM: cut into the lacquer at the left of the stamp's row,
+   in the head's faint ink. */
+#ledger .l-stale {
+  margin-right: auto;
+  padding-left: calc(8px * var(--ui));
+  font-size: max(10px, calc(10px * var(--ui)));
+  white-space: nowrap;
+  color: var(--lq-faint);
+}
+#ledger .l-stale[hidden] { display: none; }
+.l-stamp {
+  gap: calc(9px * var(--ui));
+  padding: calc(3px * var(--ui)) calc(6px * var(--ui));
+  color: var(--lq-gold);
+}
+/* The dater is drawn at 1.3 times the size it had as a flat pictogram, so
+   its turned and cast parts hold at a pixel ratio of one. Its fills are
+   gradients in the markup (the brass ones through the cs-b* stops); the
+   lines and the small parts are coloured here. */
+.l-stamp-ico { width: calc(39px * var(--ui)); height: calc(43px * var(--ui)); overflow: visible; }
+.l-stamp-ico .s-cradle-back { stroke: var(--br-0); stroke-width: 0.4; }
+.l-stamp-ico .s-cradle { stroke: var(--br-0); stroke-width: 0.5; }
+.l-stamp-ico .s-rule { stroke: var(--br-5); stroke-width: 0.6; opacity: 0.9; }
+.l-stamp-ico .s-cradle-foot { stroke: rgba(0, 0, 0, 0.55); stroke-width: 0.8; }
+.l-stamp-ico .s-screw { fill: var(--br-3); stroke: var(--br-0); stroke-width: 0.35; }
+.l-stamp-ico .s-slot { stroke: var(--br-0); stroke-width: 0.45; }
+.l-stamp-ico .s-pad { stroke: #0c0616; stroke-width: 0.4; }
+/* the ink standing wet on the pad, one sheen across it */
+.l-stamp-ico .s-pad-wet { fill: rgba(236, 222, 255, 0.34); }
+.l-stamp-ico .s-knob-sh { fill: rgba(0, 0, 0, 0.5); }
+.l-stamp-ico .s-knob { stroke: #0e0703; stroke-width: 0.45; }
+/* lathe rings: a cut in shade and its lit edge just above it */
+.l-stamp-ico .s-lathe { fill: none; stroke: rgba(10, 5, 2, 0.6); stroke-width: 0.4; }
+.l-stamp-ico .s-lathe-lit { fill: none; stroke: rgba(255, 214, 160, 0.22); stroke-width: 0.35; }
+.l-stamp-ico .s-knob-spec { fill: #fffaf0; opacity: 0.9; }
+.l-stamp-ico .s-ferrule, .l-stamp-ico .s-neck, .l-stamp-ico .s-plate { stroke: var(--br-0); stroke-width: 0.35; }
+.l-stamp-ico .s-frame { stroke: var(--br-0); stroke-width: 0.5; }
+.l-stamp-ico .s-frame-arris { stroke: var(--br-5); stroke-width: 0.5; opacity: 0.95; }
+.l-stamp-ico .s-frame-shade { stroke: rgba(0, 0, 0, 0.6); stroke-width: 0.5; }
+.l-stamp-ico .s-window { fill: #0b0806; stroke: var(--br-1); stroke-width: 0.4; }
+.l-stamp-ico .s-band rect { stroke: #030202; stroke-width: 0.3; }
+/* the wheels' figures, raised rubber catching the light on the drum */
+.l-stamp-ico .s-digits { fill: none; stroke: #d9ccb0; stroke-width: 0.45; stroke-linecap: round; stroke-linejoin: round; opacity: 0.88; }
+.l-stamp-ico .s-band-catch { stroke: rgba(255, 240, 214, 0.2); stroke-width: 0.5; }
+.l-stamp-ico .s-pin { fill: var(--br-3); stroke: var(--br-0); stroke-width: 0.3; }
+.l-stamp-ico .s-die { fill: #1d1512; stroke: #070504; stroke-width: 0.3; }
+.l-stamp-ico .s-die-ink { fill: var(--stamp-ink); opacity: 0.85; }
+.l-stamp-ico .s-head, .l-stamp-ico .s-grip, .l-stamp-ico .s-base { transition: transform 0.14s var(--ease-out); }
+.l-stamp:active .l-stamp-ico .s-head,
+.l-stamp:active .l-stamp-ico .s-grip,
+.l-stamp:active .l-stamp-ico .s-base { transform: translateY(3.2px); }
+.l-stamp-cap { font-size: max(10px, calc(10px * var(--ui))); letter-spacing: 0.2em; white-space: nowrap; }
+#ledger .l-stamp-scope { font-size: max(10px, calc(9.5px * var(--ui))); }
+.l-stamp:hover, .l-stamp:focus-visible { color: var(--lq-ink); border-color: transparent; }
+.l-stamp:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.l-stamp.inert:hover { color: var(--lq-gold); }
+.l-stamp-scope { border-left-color: var(--lq-faint); }
+
+/* ----- The main --------------------------------------------------------- */
+/* The main is architecture, so it runs the drawer's working height whatever
+   the feed holds: the column fills the drawer below the head. Sized by its
+   cards alone, an empty or unreadable Ledger stood a 130px brass stub in
+   the middle of bare lacquer. */
+#ledger { display: flex; flex-direction: column; }
+#ledger .l-col { flex: 1 0 auto; padding-left: calc(56px * var(--ui)); }
+#ledger .spine {
+  left: calc(20px * var(--ui)); width: calc(9px * var(--ui));
+  border: 0;
+  opacity: 1;
+  background:
+    repeating-linear-gradient(180deg, transparent 0 calc(118px * var(--ui)),
+      rgba(0, 0, 0, 0.55) calc(118px * var(--ui)) calc(119px * var(--ui)),
+      rgba(255, 240, 200, 0.35) calc(119px * var(--ui)) calc(120px * var(--ui))),
+    linear-gradient(90deg, var(--br-0), var(--br-1) 12%, var(--br-4) 30%, var(--br-5) 40%, var(--br-2) 62%, var(--br-1) 84%, var(--br-0));
+  box-shadow: 2px 0 3px rgba(0, 0, 0, 0.5);
+}
+/* the terminal at the head of the main: a flared brass mouth */
+#ledger .spine::before {
+  top: calc(-6px * var(--ui)); left: calc(-5px * var(--ui)); right: calc(-5px * var(--ui));
+  height: calc(10px * var(--ui));
+  border: 0; border-radius: 2px 2px 1px 1px;
+  background: linear-gradient(90deg, var(--br-0), var(--br-2) 16%, var(--br-5) 36%, var(--br-3) 48%, var(--br-2) 70%, var(--br-0));
+  box-shadow: inset 0 1.5px 0 rgba(255, 244, 214, 0.5), 0 2px 3px rgba(0, 0, 0, 0.6);
+}
+/* and at its foot a capped end: a collar, then a domed cap, standing on its
+   own shadow, so a short column still ends in a fitting */
+#ledger .spine::after {
+  content: ""; position: absolute;
+  left: calc(-4px * var(--ui)); right: calc(-4px * var(--ui));
+  bottom: calc(-11px * var(--ui)); height: calc(13px * var(--ui));
+  border-radius: 1px 1px 45% 45% / 1px 1px 75% 75%;
+  background:
+    linear-gradient(180deg, rgba(255, 244, 214, 0.55) 0 1.5px, transparent 1.5px calc(4px * var(--ui)),
+      rgba(0, 0, 0, 0.55) calc(4px * var(--ui)) calc(4px * var(--ui) + 1px), rgba(255, 240, 200, 0.28) calc(4px * var(--ui) + 1px) calc(4px * var(--ui) + 2px),
+      transparent calc(4px * var(--ui) + 2px) 70%, rgba(0, 0, 0, 0.4)),
+    radial-gradient(60% 90% at 42% 30%, rgba(255, 246, 220, 0.5), transparent 70%),
+    linear-gradient(90deg, var(--br-0), var(--br-2) 16%, var(--br-5) 36%, var(--br-3) 48%, var(--br-2) 70%, var(--br-0));
+  box-shadow: 1px 3px 4px rgba(0, 0, 0, 0.6), 0 1px 1px rgba(0, 0, 0, 0.5);
+}
+#ledger.opening .spine { animation-name: spine-draw-cab; }
+@keyframes spine-draw-cab { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+
+/* Day breaks: a collar girdling the main, lit on its top, and the day
+   engraved on the lacquer beside it. */
+#ledger .daybreak { margin: calc(18px * var(--ui)) 0 calc(14px * var(--ui)) calc(-56px * var(--ui)); color: var(--lq-gold); font-size: max(10px, calc(10.5px * var(--ui))); }
+#ledger .daybreak::before {
+  flex: 0 0 calc(17px * var(--ui)); max-width: calc(17px * var(--ui));
+  height: calc(12px * var(--ui));
+  margin-left: calc(16px * var(--ui));
+  border: 0; border-radius: 2px;
+  background: linear-gradient(90deg, var(--br-0), var(--br-2) 16%, var(--br-5) 36%, var(--br-3) 48%, var(--br-2) 70%, var(--br-0));
+  box-shadow: inset 0 1.5px 0 rgba(255, 244, 214, 0.55), inset 0 -1.5px 0 rgba(0, 0, 0, 0.5), 0 2px 3px rgba(0, 0, 0, 0.55);
+}
+#ledger .daybreak::after {
+  height: 2px;
+  border: 0;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.5) 50%, rgba(255, 236, 190, 0.14) 50%);
+}
+
+/* ----- The programme cards ----------------------------------------------- */
+#ledger .plaque { margin: 0 0 calc(14px * var(--ui)); --pl-off: 0px; --n: calc(7px * var(--ui)); }
+/* The holder and the cartouche are in the metal of the dispatch's own wing,
+   whichever wing the lever has lit: gold leaf for the Salon, aluminium for
+   the Bureau, as the old medallion rims were. */
+#ledger .plaque { --cm-0: var(--au-0); --cm-1: var(--au-1); --cm-2: var(--au-2); --cm-3: var(--au-3); --cm-4: var(--au-4); --cm-5: var(--au-5); }
+#ledger .plaque:has(.medal.m-bureau) { --cm-0: var(--ag-0); --cm-1: var(--ag-1); --cm-2: var(--ag-2); --cm-3: var(--ag-3); --cm-4: var(--ag-4); --cm-5: var(--ag-5); }
+#ledger .plaque:nth-child(even) { --pl-off: 0px; }
+#ledger .plaque .pl-shadow-wrap { position: relative; }
+#ledger .plaque:not(.ghost) .pl-shadow-wrap {
+  transform: rotate(var(--lean, 0deg));
+  filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.55)) drop-shadow(0 9px 12px rgba(0, 0, 0, 0.4));
+}
+@media (hover: hover) {
+  #ledger .plaque:not(.ghost):hover .pl-shadow-wrap { transform: translateY(-2px) rotate(var(--lean, 0deg)); }
+}
+/* The holder: a thin gilt frame the card slides into. */
+#ledger .pl-frame,
+#ledger .plaque.new .pl-frame, #ledger .plaque.new.reading .pl-frame {
+  padding: calc(3px * var(--ui));
+  background:
+    url('/static/assets/tex/grain-gilt.webp') 0 0 / 50px,
+    linear-gradient(170deg, var(--cm-5), var(--cm-3) 18%, var(--cm-2) 46%, var(--cm-4) 70%, var(--cm-1));
+  background-blend-mode: soft-light, normal;
+}
+#ledger .pl-frame > a, #ledger .pl-frame > .pl-in {
+  color: var(--card-ink);
+  padding: calc(11px * var(--ui)) calc(38px * var(--ui)) calc(10px * var(--ui)) calc(20px * var(--ui));
+  background:
+    linear-gradient(180deg, rgba(0, 0, 0, 0.16), transparent 12%),
+    url('/static/assets/tex/grain-card.webp') calc(var(--stock, 0) * 300px) 0 / 160px,
+    linear-gradient(90deg, var(--card), var(--card-2));
+  background-blend-mode: normal, soft-light, normal;
+}
+/* the programme's printed border: a double rule in brown ink */
+#ledger .pl-frame > a::before {
+  content: ""; position: absolute; pointer-events: none;
+  inset: calc(4px * var(--ui));
+  border: 3px double var(--card-rule);
+}
+#ledger .pl-frame > a:hover {
+  background:
+    linear-gradient(180deg, rgba(0, 0, 0, 0.16), transparent 12%),
+    url('/static/assets/tex/grain-card.webp') calc(var(--stock, 0) * 300px) 0 / 160px,
+    linear-gradient(90deg, #fffaf0 -40%, var(--card), var(--card-2));
+  background-blend-mode: normal, soft-light, normal;
+}
+/* The whole card answers the pointer, holder and all (the click is handed to
+   the link from #plaques), so the whole card says so. */
+#ledger .plaque:not(.ghost) { cursor: pointer; }
+/* A dispatch title is someone else's text: a mod's file name with no space
+   in it ran under the jewel and out past the card's edge. */
+#ledger .pl-head, #ledger .pl-detail { overflow-wrap: anywhere; }
+#ledger .pl-head { color: var(--card-ink); font-weight: 600; }
+#ledger .plaque.warn .pl-head { color: #7a1a10; }
+#ledger .pl-detail { color: var(--card-faint); font-weight: 500; }
+#ledger .plaque.new .pl-head::after { content: none; }
+/* The Chinese face has one weight and hairline strokes, and set at 10 to
+   15px it printed at half the contrast of the English beside it (a card's
+   details at 2.1:1, the ages at 1.9:1). Four tenths of a pixel of each line's
+   own ink round every stroke brings it up to strength, as on the gates'
+   day cards. English lines in the Chinese hall keep their own weight. */
+html[lang="zh"] #ledger :is(.pl-head, .pl-detail, .pl-time, .chip, .l-close-cap, .l-stamp-cap,
+  .l-stamp-scope, .db-h, h2, .l-empty, .l-stale):not([lang="en"]),
+#ledger .pl-head[lang="zh"] { -webkit-text-stroke: 0.4px currentColor; }
+/* The time, struck with a violet rubber stamp: ink in a rounded border,
+   a little crooked, heavier on one side. */
+#ledger .pl-time {
+  display: inline-block;
+  margin-top: calc(6px * var(--ui));
+  margin-left: var(--stamp-x, 0);
+  padding: 0.05em 0.55em 0;
+  font-size: max(10px, calc(10.5px * var(--ui)));
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--stamp-ink);
+  border: 1.5px solid var(--stamp-ink);
+  border-radius: 3px;
+  transform: rotate(var(--stamp-rot, 0deg));
+  opacity: var(--ink-a, 0.94);
+  border-color: color-mix(in srgb, var(--stamp-ink) 85%, transparent);
+  /* The pad runs a little dry toward the far side of the stamp. It ran to
+     70% ink over a 0.74 opacity, which left the ages at 2.6:1. */
+  background:
+    url('/static/assets/tex/grain-frost.webp') calc(var(--stock, 0) * 200px) 0 / 70px,
+    linear-gradient(100deg, var(--stamp-ink) 40%, color-mix(in srgb, var(--stamp-ink) 86%, var(--card)) 100%);
+  background-blend-mode: soft-light, normal;
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* The cartouche on the main. */
+#ledger .medal {
+  width: calc(46px * var(--ui)); height: calc(46px * var(--ui));
+  left: calc(24.5px * var(--ui) - 56px * var(--ui) - 23px * var(--ui) - var(--pl-off, 0px));
+  top: calc(8px * var(--ui));
+  background: none; border-radius: 0;
+  filter: drop-shadow(1px 2px 1.5px rgba(0, 0, 0, 0.7));
+}
+#ledger .medal svg { width: 100%; height: 100%; }
+#ledger .medal .c-outer.fa-tl, #ledger .medal .c-mid.fa-br { fill: var(--cm-5); }
+#ledger .medal .c-outer.fa-tr, #ledger .medal .c-mid.fa-bl { fill: var(--cm-3); }
+#ledger .medal .c-outer.fa-bl, #ledger .medal .c-mid.fa-tr { fill: var(--cm-2); }
+#ledger .medal .c-outer.fa-br, #ledger .medal .c-mid.fa-tl { fill: var(--cm-1); }
+#ledger .medal .c-field { fill: #0c0a08; stroke: var(--cm-0); stroke-width: 0.4; }
+#ledger .medal .c-screw { fill: var(--br-3); stroke: var(--br-0); stroke-width: 0.25; }
+#ledger .medal .c-slot { stroke: var(--br-0); stroke-width: 0.35; }
+#ledger .medal .m-mark { transform: translate(10.4px, 10.4px) scale(0.2); }
+#ledger .medal .m-sig:not(.m-mark) { color: var(--cm-3); transform: translate(10.4px, 10.4px) scale(0.2); }
+
+/* The unread jewel: a cabochon set in the holder's corner. Lit champagne at
+   night (it is a lamp), gold glass by day. A dwell drains it over the 420ms
+   the read takes; a read card keeps only the empty bezel. */
+.pl-jewel {
+  position: absolute; z-index: 2;
+  right: calc(12px * var(--ui)); top: calc(10px * var(--ui));
+  width: calc(14px * var(--ui)); height: calc(14px * var(--ui));
+  border-radius: 50%;
+  background: radial-gradient(circle at 40% 36%, #3a342c, #0e0c0a 70%);
+  box-shadow: 0 0 0 1.5px var(--br-1), 0 0 0 3px var(--br-3), 0 0 0 3.8px var(--br-0), 1px 2px 3px 2px rgba(0, 0, 0, 0.45);
+  pointer-events: none;
+}
+.pl-jewel-lit {
+  position: absolute; inset: 0; border-radius: 50%;
+  background:
+    radial-gradient(circle at 36% 30%, #ffffff 0 10%, transparent 24%),
+    radial-gradient(circle at 50% 55%, var(--jewel-0), var(--jewel-1) 32%, var(--jewel-2) 64%, var(--jewel-3));
+  box-shadow: 0 0 6px 1px var(--jewel-glow);
+  opacity: 0;
+}
+#ledger .plaque.new .pl-jewel-lit { opacity: 1; }
+#ledger .plaque.new.reading .pl-jewel-lit { animation: jewel-drain 420ms linear both; }
+@keyframes jewel-drain { from { opacity: 1; } to { opacity: 0; } }
+#ledger .plaque.ghost .pl-jewel { display: none; }
+
+/* A new dispatch drops into its holder and settles on the felt: a short
+   fall, a two-pixel bounce, still. Transform and opacity only. */
+#ledger .plaque.arrive { animation: card-drop 0.5s cubic-bezier(0.3, 0.9, 0.4, 1) both; }
+/* Held at the drop's first keyframe while the column is laid out again and
+   the card is given its own layer (app.js), so the drop starts on a layer
+   already drawn. And the falling card paints over the column rather than
+   under the cards below it: the browser assumes a card moving by transform
+   may overlap anything painted after it, and gave every card below it a
+   layer of its own to redraw. At 3440 that first frame of the drop took
+   117-134 ms and the card went from 18% to 90% of its fall in it. */
+#ledger .plaque.arrive-hold, #ledger .plaque.arrive { z-index: 2; will-change: transform, opacity; }
+#ledger .plaque.arrive-hold { opacity: 0.004; transform: translateY(-14px); }
+@keyframes card-drop {
+  0% { opacity: 0; transform: translateY(-14px); }
+  55% { opacity: 1; transform: translateY(2px); }
+  78% { transform: translateY(-0.6px); }
+  100% { opacity: 1; transform: none; }
+}
+
+/* Loading: blank cards in their holders, breathing. */
+#ledger .plaque.ghost { animation: ghost-card 1.4s ease-in-out infinite; }
+@keyframes ghost-card { 50% { opacity: 0.55; } }
+#ledger .plaque.ghost .pl-in {
+  height: calc(62px * var(--ui));
+  background: url('/static/assets/tex/grain-card.webp') 0 0 / 160px, var(--card);
+  background-blend-mode: soft-light, normal;
+  box-shadow: 0 0 0 calc(3px * var(--ui)) var(--lead-2), 0 3px 8px rgba(0, 0, 0, 0.4);
+  opacity: 0.7;
+}
+#ledger .l-empty { color: var(--lq-faint); }
+#ledger .l-empty svg { color: var(--lead-2); }
+
+/* ==========================================================================
+   PREFERENCES: the starter's panel
+   ==========================================================================
+   Dunand lacquer with a leaf fillet inset from the edge and a bone line
+   inside it, stepped brackets at the four corners, and each preference in
+   its own well of shagreen. By day the field itself is pale shagreen with
+   ebonised fillets. The controls are switchgear; the radios, the buttons,
+   the focus trap and Esc are unchanged underneath it. */
+:root[data-theme="onyx"] {
+  --pn: #0b0908; --pn-refl: rgba(255, 244, 222, 0.06);
+  --pn-string: rgba(236, 226, 200, 0.28);
+  --well: #2e2b24; --well-tex: 0.9; --well-rim: rgba(0, 0, 0, 0.7);
+  --pn-ink: #eadfc4; --pn-faint: #cbbe9e; --pn-label: #dcbf72;
+  --pk-0: #4a4640; --pk-1: #1a1816; --pk-2: #060505;
+  --bat-0: #0c0b0a; --bat-1: #6f6a62; --bat-2: #d9d6cf;
+  --pilot-0: #fff8e2; --pilot-1: #ffcf7a; --pilot-2: #d97e20; --pilot-3: #5c2606;
+  --pilot-glow: rgba(255, 190, 100, 0.8);
+}
+:root[data-theme="ivory"] {
+  --pn: #d8d5c6; --pn-refl: rgba(255, 255, 255, 0.3);
+  --pn-fillet: #15110d; --pn-string: rgba(255, 253, 246, 0.9);
+  --well: #c6c1ae; --well-tex: 1; --well-rim: rgba(40, 30, 16, 0.45);
+  --pn-ink: #1f180e; --pn-faint: #2b2216; --pn-label: #30230a;
+  --pk-0: #4a4640; --pk-1: #1a1816; --pk-2: #060505;
+  --bat-0: #3a3834; --bat-1: #a7a39a; --bat-2: #f4f2ec;
+  --pilot-0: #ffe7b0; --pilot-1: #e0a040; --pilot-2: #a4600e; --pilot-3: #4a2a06;
+  --pilot-glow: rgba(0, 0, 0, 0);
+}
+/* The night fillet is the wing's leaf, so it is taken on the sheet, where
+   the Bureau's nickel is set (atrium.css), not on :root. */
+:root[data-theme="onyx"] .p-sheet { --pn-fillet: var(--lead-3); }
+.pk-0 { stop-color: var(--pk-0); } .pk-1 { stop-color: var(--pk-1); } .pk-2 { stop-color: var(--pk-2); }
+/* The bat lever's nickel shaft. These were --pl-*, which is the plaster
+   ramp's name in atrium.css: set on :root after it, they re-leafed the
+   reserved gate as bright chrome with its relief turned inside out. */
+.bat-0 { stop-color: var(--bat-0); } .bat-1 { stop-color: var(--bat-1); } .bat-2 { stop-color: var(--bat-2); }
+
+#prefs {
+  background-color: color-mix(in srgb, var(--base) 58%, transparent);
+  -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px);
+}
+/* On a short screen the sheet's own scale gives way before it outgrows the
+   screen: at 3440x900 on SIGNBOARD it ran 51px taller than its 94vh and the
+   REPLAY line sat on the bottom fillet. */
+@media (max-height: 960px) {
+  #prefs { --ui: min(calc(var(--ui-auto) * var(--ui-user)), 1.45); }
+}
+/* Asked for more contrast or less transparency: the dialog's backdrop is a
+   scrim like the Ledger's, and it stops showing the hall through. (Here and
+   not beside the Ledger's rule in atrium.css, which this sheet overrides.) */
+@media (prefers-contrast: more), (prefers-reduced-transparency: reduce) {
+  #prefs { background-color: var(--base); -webkit-backdrop-filter: none; backdrop-filter: none; }
+}
+.p-sheet {
+  --u: calc(1px * var(--ui));
+  --n: calc(16px * var(--ui));
+  position: relative;
+  width: min(calc(680px * var(--ui)), 94vw);
+  max-height: 94vh;
+  padding: calc(24px * var(--ui)) calc(30px * var(--ui)) calc(26px * var(--ui));
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-areas: "head head" "theme lang" "theme motion" "ui ui" "replay replay";
+  column-gap: calc(16px * var(--ui));
+  row-gap: calc(12px * var(--ui));
+  color: var(--pn-ink);
+  background:
+    linear-gradient(112deg, transparent 18%, var(--pn-refl) 30%, transparent 44%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.03), transparent 30%, rgba(0, 0, 0, 0.14)),
+    var(--pn);
+}
+:root[data-theme="ivory"] .p-sheet {
+  background:
+    linear-gradient(112deg, transparent 18%, var(--pn-refl) 30%, transparent 44%),
+    url('/static/assets/tex/grain-shagreen.webp') 0 0 / 210px,
+    var(--pn);
+  background-blend-mode: normal, soft-light, normal;
+}
+/* the leaf fillet and, inside it, a line of bone stringing */
+.p-sheet::before, .p-sheet::after {
+  content: ""; position: absolute; pointer-events: none;
+  clip-path: polygon(var(--n) 0, calc(100% - var(--n)) 0, 100% var(--n), 100% calc(100% - var(--n)),
+    calc(100% - var(--n)) 100%, var(--n) 100%, 0 calc(100% - var(--n)), 0 var(--n));
+}
+.p-sheet::before { inset: calc(7px * var(--ui)); border: 1.5px solid var(--pn-fillet); opacity: 0.8; }
+.p-sheet::after { inset: calc(10px * var(--ui)); border: 1px solid var(--pn-string); }
+.p-bracket {
+  position: absolute; z-index: 2;
+  width: calc(30px * var(--ui)); height: calc(30px * var(--ui));
+  pointer-events: none;
+  background:
+    url('/static/assets/tex/grain-gilt.webp') 0 0 / 40px,
+    linear-gradient(135deg, var(--lead-5), var(--lead-3) 30%, var(--lead-2) 60%, var(--lead-1));
+  background-blend-mode: soft-light, normal;
+  /* a stepped L running along the chamfer, two courses deep */
+  clip-path: polygon(0 55%, 55% 0, 100% 0, 100% 16%, 64% 16%, 16% 64%, 16% 100%, 0 100%,
+    0 55%, 8% 55%, 8% 88%, 12% 88%, 12% 58%, 58% 12%, 88% 12%, 88% 8%, 58% 8%, 8% 58%);
+  forced-color-adjust: none;
+}
+.p-bracket-tl { left: calc(3px * var(--ui)); top: calc(3px * var(--ui)); }
+.p-bracket-tr { right: calc(3px * var(--ui)); top: calc(3px * var(--ui)); transform: scaleX(-1); }
+.p-bracket-bl { left: calc(3px * var(--ui)); bottom: calc(3px * var(--ui)); transform: scaleY(-1); }
+.p-bracket-br { right: calc(3px * var(--ui)); bottom: calc(3px * var(--ui)); transform: scale(-1, -1); }
+
+.p-head {
+  grid-area: head;
+  position: relative; z-index: 1;
+  border-bottom: 0;
+  padding: calc(4px * var(--ui)) calc(8px * var(--ui)) calc(10px * var(--ui));
+  margin: 0;
+}
+.p-head::after {
+  content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--pn-fillet) 12%, var(--pn-fillet) 88%, transparent);
+  opacity: 0.7;
+}
+.p-head h2 {
+  font-size: calc(16px * var(--ui));
+  font-weight: 600;
+  letter-spacing: 0.3em;
+  background:
+    url('/static/assets/tex/grain-gilt.webp') 0 0 / 60px,
+    linear-gradient(180deg, var(--leaf-0) 0%, var(--leaf-1) 34%, var(--leaf-2) 58%, var(--leaf-3) 76%, var(--leaf-4) 100%) 0 0 / 100% 1.2em;
+  background-blend-mode: soft-light, normal;
+  -webkit-background-clip: text; background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 0.6px 0 rgba(0, 0, 0, 0.8));
+}
+/* By day small lettering is ink, never bright gold: the leaf title printed
+   at 2.4:1 on the pale shagreen. It is cast in dark bronze-gilt instead,
+   still leaf-grained, lit along its top edge rather than shaded under. */
+:root[data-theme="ivory"] .p-head h2 {
+  background:
+    url('/static/assets/tex/grain-gilt.webp') 0 0 / 60px,
+    linear-gradient(180deg, #5a4414 0%, #3a2a08 42%, #4e3b10 62%, #2c1f06 100%) 0 0 / 100% 1.2em;
+  background-blend-mode: soft-light, normal;
+  -webkit-background-clip: text; background-clip: text;
+  color: #3a2a08; -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 -0.6px 0 rgba(255, 250, 235, 0.7));
+}
+/* Close: a small brass knob with its word engraved beside it. */
+#prefs-close {
+  display: flex; align-items: center; gap: calc(7px * var(--ui));
+  font-size: 0;
+  padding: 4px 2px 4px 8px;
+  color: var(--pn-faint);
+}
+#prefs-close::before {
+  content: "";
+  width: calc(24px * var(--ui)); height: calc(24px * var(--ui));
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 50% 50%, transparent 0 34%, rgba(0, 0, 0, 0.45) 36%, transparent 40%),
+    radial-gradient(circle at 38% 32%, var(--br-5), var(--br-3) 30%, var(--br-2) 58%, var(--br-0) 100%);
+  box-shadow: 0 0 0 1px var(--br-0), 1px 2px 3px rgba(0, 0, 0, 0.6);
+  order: 2;
+}
+#prefs-close::after {
+  content: attr(aria-label);
+  font-size: max(10px, calc(10px * var(--ui)));
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  font-family: var(--serif);
+}
+@media (hover: hover) { #prefs-close:hover { color: var(--pn-label); } }
+#prefs-close:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; }
+
+/* ----- The wells ------------------------------------------------------- */
+.p-group {
+  position: relative; z-index: 1;
+  margin: 0;
+  padding: calc(9px * var(--ui)) calc(12px * var(--ui)) calc(12px * var(--ui));
+  border-radius: calc(3px * var(--ui));
+  background:
+    radial-gradient(ellipse 90% 60% at 40% 0%, rgba(255, 255, 255, 0.06), transparent 70%),
+    url('/static/assets/tex/grain-shagreen.webp') 0 0 / 150px,
+    var(--well);
+  background-blend-mode: normal, soft-light, normal;
+  box-shadow:
+    inset 0 2px 5px var(--well-rim), inset 0 -1px 0 rgba(255, 255, 255, 0.06),
+    0 0 0 1px var(--pn-fillet), 0 0 0 3px transparent;
+}
+/* By day the panel read as a greige form: wells a few levels off the field,
+   each outlined by a 1px line, and then as a form with fieldsets: an even
+   black line round every well, round-cornered, the same weight on all four
+   sides. The wells are let into the shagreen behind ebonised mouldings
+   with a profile. Square and mitred at the corners, the bead's upper and
+   left faces turned to the skylight and the other two in shade, its outer
+   arris lit up and to the left; inside it the cove drops to black and a
+   line of bone catches the light before the well. The skin is laid once;
+   laid twice over itself it read as grey gravel. The border takes its
+   width out of the padding, so the well keeps its size. */
+:root[data-theme="ivory"] .p-group:not([data-control="replay"]) {
+  border-radius: 0;
+  border: calc(3px * var(--ui)) solid;
+  border-color: #4d4236 #120e0a #090706 #3a3027;
+  padding: calc(6px * var(--ui)) calc(9px * var(--ui)) calc(9px * var(--ui));
+  background:
+    radial-gradient(ellipse 90% 60% at 40% 0%, rgba(255, 255, 255, 0.22), transparent 70%),
+    url('/static/assets/tex/grain-shagreen.webp') 0 0 / 150px,
+    var(--well);
+  background-blend-mode: normal, soft-light, normal;
+  box-shadow:
+    inset 0 0 0 1px #0c0907,
+    inset 0 0 0 2px rgba(240, 231, 206, 0.92),
+    inset 1px 2px 0 2px rgba(255, 253, 244, 0.55),
+    inset 0 4px 7px 1px rgba(40, 30, 16, 0.42),
+    0 0 0 1px #0c0907,
+    -1px -1px 0 1px rgba(255, 252, 242, 0.95),
+    1px 1px 0 1px rgba(60, 46, 28, 0.5);
+}
+:root[data-theme="ivory"] .p-sheet::before { border-width: 2.5px; opacity: 1; }
+/* The brackets were pale leaf on pale shagreen, the size of a thumbnail.
+   Larger by day, and cast in the deep half of the leaf so they read. */
+:root[data-theme="ivory"] .p-bracket {
+  width: calc(44px * var(--ui)); height: calc(44px * var(--ui));
+  background:
+    url('/static/assets/tex/grain-gilt.webp') 0 0 / 40px,
+    linear-gradient(135deg, var(--lead-3), var(--lead-4) 22%, var(--lead-2) 48%, var(--lead-1) 74%, var(--lead-0));
+  background-blend-mode: soft-light, normal;
+}
+.p-group[data-control="theme"] { grid-area: theme; }
+.p-group[data-control="lang"] { grid-area: lang; }
+.p-group[data-control="ui"] { grid-area: ui; }
+.p-group[data-control="motion"] { grid-area: motion; }
+.p-group[data-control="replay"] { grid-area: replay; background: none; box-shadow: none; padding: 0; }
+/* Engraving size FINE sets the whole hall at 0.9: the panel that undoes it
+   keeps the hall's 10px floor. */
+.p-label {
+  font-size: max(10px, calc(10.5px * var(--ui)));
+  letter-spacing: 0.28em;
+  color: var(--pn-label);
+  margin-bottom: calc(6px * var(--ui));
+}
+/* the radios themselves: no box of their own; the hardware carries them */
+.p-group .p-plaque {
+  position: relative; z-index: 2;
+  border: 0;
+  background: none;
+  color: var(--pn-faint);
+  padding: calc(4px * var(--ui)) calc(4px * var(--ui));
+  gap: calc(3px * var(--ui));
+  transition: color 0.25s;
+}
+/* The hover ink is a mouse's alone: a tap left the legend it fell on lit
+   beside the one it chose. Over the rotary and the bat the columns stand
+   over the hardware, so there the ink goes to the radio a press would pick
+   (data-aim, app.js), not to the column under the pointer. */
+@media (hover: hover) {
+  .p-group .p-plaque:hover:where(:not([data-pref="theme"] > *, [data-pref="motion"] > *)) { color: var(--pn-ink); }
+}
+.p-group .p-plaque[data-aim] { color: var(--pn-ink); }
+.p-group .p-plaque[aria-checked="true"] { color: var(--pn-ink); border: 0; }
+.p-group .p-plaque:focus-visible { outline: none; }
+/* Focus is a champagne collar round the legend's jewel, and a rule under
+   its name: no box drawn round a column of the panel. */
+.p-group .p-plaque:focus-visible > .p-jewel {
+  box-shadow: 0 0 0 1.5px var(--br-1), 0 0 0 3px var(--br-3), 0 0 0 3.8px var(--br-0),
+    0 0 0 6px var(--focus), 1px 2px 3px 6px rgba(0, 0, 0, 0.4);
+}
+.p-group .p-plaque:focus-visible > .p-name { text-decoration: underline 2px var(--focus); text-underline-offset: 4px; }
+/* By day the slate collar and a 2px slate rule sank into the mottled
+   shagreen (2.6:1 against the unfocused column). They are drawn in the
+   rope's oxblood over a cream bed instead, as the gate and lever marquees
+   mark focus by day, and the rule is a pixel heavier. */
+:root[data-theme="ivory"] .p-group .p-plaque:focus-visible > .p-jewel {
+  box-shadow: 0 0 0 1.5px var(--br-1), 0 0 0 3px var(--br-3), 0 0 0 3.8px var(--br-0),
+    0 0 0 5.5px #fbf6e8, 0 0 0 8px #7a1a16, 0 0 0 9px rgba(251, 246, 232, 0.8), 1px 2px 3px 8px rgba(40, 26, 10, 0.3);
+}
+:root[data-theme="ivory"] .p-group .p-plaque:focus-visible > .p-name {
+  text-decoration: underline 3px #7a1a16; text-decoration-skip-ink: none;
+}
+/* The push keys have no jewel to collar. Their ring is gold laid in an ink
+   bed on both sides: a bare gold outline fell on the gold of the brass tray
+   and all but vanished (1.5:1), and the gold rule sat on cream card stock.
+   The focused key stands over its neighbours so the ring is not cut. */
+[data-pref="ui"] .p-plaque:focus-visible { z-index: 3; }
+[data-pref="ui"] .p-plaque:focus-visible::after {
+  content: ""; position: absolute; inset: -5px; pointer-events: none;
+  border: 2px solid var(--focus); border-radius: 4px;
+  box-shadow: 0 0 0 3px #0b0806, inset 0 0 0 2px #0b0806;
+}
+.p-group[data-control="ui"] .p-plaque:focus-visible > .p-name { text-decoration-color: #120c04; }
+.p-name { font-size: max(10px, calc(11px * var(--ui))); letter-spacing: 0.18em; white-space: nowrap; }
+.p-desc { font-size: max(10px, calc(10.5px * var(--ui))); font-weight: 500; line-height: 1.3; text-align: center; text-wrap: balance; }
+html[lang="zh"] .p-name { letter-spacing: 0.1em; }
+/* The Chinese face's hairlines, as in the Ledger: its own ink round every
+   stroke, or the group labels printed at 1.9:1 by day. Keyed on the
+   lettering's own language rather than the hall's: 中文 is Chinese in the
+   English hall too, and printed there at 2.7:1 with no stroke at all. The
+   English signage inside a Chinese name keeps its own weight. */
+#prefs :is(.p-label, .p-name, .p-desc):lang(zh),
+html[lang="zh"] #prefs-close::after { -webkit-text-stroke: 0.4px currentColor; }
+#prefs .p-name [lang="en"] { -webkit-text-stroke-width: 0; }
+html[lang="zh"]:root[data-theme="ivory"] .p-head h2 { -webkit-text-stroke: 0.45px currentColor; }
+
+/* Pilot jewels. The live one is lit; the others are smoked glass. */
+.p-jewel {
+  position: relative; display: block; flex: none;
+  width: calc(13px * var(--ui)); height: calc(13px * var(--ui));
+  margin-bottom: calc(3px * var(--ui));
+  border-radius: 50%;
+  background: radial-gradient(circle at 40% 35%, #4a4236, #120f0b 72%);
+  box-shadow: 0 0 0 1.5px var(--br-1), 0 0 0 3px var(--br-3), 0 0 0 3.8px var(--br-0), 1px 2px 3px 2px rgba(0, 0, 0, 0.5);
+  forced-color-adjust: none;
+}
+.p-jewel-sm { width: calc(10px * var(--ui)); height: calc(10px * var(--ui)); }
+.p-jewel-lit {
+  position: absolute; inset: 0; border-radius: 50%;
+  background:
+    radial-gradient(circle at 36% 30%, #ffffff 0 10%, transparent 24%),
+    radial-gradient(circle at 50% 55%, var(--pilot-0), var(--pilot-1) 32%, var(--pilot-2) 64%, var(--pilot-3));
+  box-shadow: 0 0 7px 2px var(--pilot-glow);
+  opacity: 0;
+  transition: opacity 0.18s;
+}
+[aria-checked="true"] > .p-jewel .p-jewel-lit { opacity: 1; }
+
+/* The lacquer chips that were the swatches. */
+.p-group .swatch {
+  width: calc(26px * var(--ui)); height: calc(9px * var(--ui));
+  border: 0; border-radius: 1px;
+  box-shadow: 0 0 0 1px var(--br-1), 0 1px 2px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+}
+.p-group .sw-onyx { background: linear-gradient(115deg, #0c0a07 40%, #2a241a 50%, #0c0a07 60%); }
+.p-group .sw-ivory { background: linear-gradient(115deg, #ece4cf 40%, #fffaf0 50%, #ece4cf 60%); }
+.p-group .sw-system { background: linear-gradient(90deg, #0c0a07 50%, #ece4cf 50%); }
+
+/* ----- Appearance: the rotary --------------------------------------------- */
+[data-pref="theme"].p-options {
+  position: relative;
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: calc(4px * var(--ui));
+  height: calc(100% - 20px * var(--ui));
+  min-height: calc(176px * var(--ui));
+}
+[data-pref="theme"] .p-plaque { justify-content: flex-start; height: 100%; }
+[data-pref="theme"] .p-name { white-space: normal; text-align: center; line-height: 1.25; }
+[data-pref="theme"] .p-plaque { padding-left: calc(2px * var(--ui)); padding-right: calc(2px * var(--ui)); }
+/* A seven-character description (与操作系统一致) has to stand on one line
+   under its jewel: balanced, CJK splits it mid-word. */
+html[lang="zh"] [data-pref="theme"] .p-desc { font-size: max(10px, calc(10.5px * 1.06 * var(--ui))); }
+.p-rotary {
+  position: absolute; z-index: 1;
+  left: 50%; bottom: calc(8px * var(--ui));
+  width: calc(112px * var(--ui)); height: calc(112px * var(--ui));
+  margin-left: calc(-56px * var(--ui));
+  pointer-events: none;
+  forced-color-adjust: none;
+}
+.p-rotary-plate { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.p-rotary .pr-sh { fill: rgba(0, 0, 0, 0.5); }
+.p-rotary .pr-plate { stroke: var(--br-0); stroke-width: 0.8; }
+.p-rotary .pr-turning circle { fill: none; stroke: rgba(40, 24, 4, 0.12); stroke-width: 0.5; }
+.p-rotary .pr-lip { fill: none; stroke: rgba(255, 246, 220, 0.4); stroke-width: 0.6; }
+.p-rotary .pr-index { stroke: #1a1006; stroke-width: 1.8; stroke-linecap: round; }
+.p-rotary .pr-index-lip { stroke: rgba(255, 244, 214, 0.6); stroke-width: 1; stroke-linecap: round; }
+.p-rotary .pr-tick { stroke: rgba(26, 16, 6, 0.55); stroke-width: 0.7; }
+/* The chicken-head turns on its round cap, the shaft, which sits on the
+   plate's centre: the cap is drawn at (50, 60) of the knob's box, so the
+   box stands a tenth of itself higher than the plate's inset and turns
+   about that point. Turned about its box's middle, the cap swung round
+   the dial's centre and half the visible boss missed the step zone. */
+.p-knob {
+  position: absolute; inset: 6.8% 14% 21.2%;
+  transform-origin: 50% 60%;
+  transform: rotate(0deg);
+  transition: transform 0.3s cubic-bezier(0.3, 1.45, 0.5, 1);
+}
+.p-knob svg { width: 100%; height: 100%; overflow: visible; }
+.p-knob .pk-sh { fill: rgba(0, 0, 0, 0.5); }
+.p-knob .pk-body { stroke: #000; stroke-width: 0.8; }
+.p-knob .pk-pointer { stroke: #efe6d0; stroke-width: 3; stroke-linecap: round; }
+.p-knob .pk-cap { fill: url(#pr-plate); stroke: #000; stroke-width: 0.6; }
+.p-knob .pk-hi { stroke: rgba(255, 255, 255, 0.45); stroke-width: 1.4; stroke-linecap: round; }
+.p-knob .pk-hi2 { fill: rgba(255, 255, 255, 0.14); }
+[data-pref="theme"]:has([data-value="onyx"][aria-checked="true"]) .p-knob { transform: rotate(-52deg); }
+[data-pref="theme"]:has([data-value="system"][aria-checked="true"]) .p-knob { transform: rotate(52deg); }
+
+/* ----- Language: the knife switch ---------------------------------------- */
+[data-pref="lang"].p-options {
+  position: relative;
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 0;
+  height: calc(80px * var(--ui));
+}
+[data-pref="lang"] .p-plaque { padding-top: 0; flex-direction: row; gap: calc(7px * var(--ui)); }
+[data-pref="lang"] .p-plaque .p-jewel { margin: 0; }
+[data-pref="lang"] .p-plaque[data-value="zh"] { flex-direction: row-reverse; }
+/* Each radio reaches down over its half of the slate, so a press anywhere on
+   the switch throws it to that side; the jewel and the name stay at the top.
+   They stood 23px tall over the legend alone, and the switch itself took no
+   press at all. */
+[data-pref="lang"] .p-plaque {
+  align-self: stretch; height: auto; justify-content: flex-start;
+  flex-wrap: wrap; align-content: flex-start; align-items: center;
+}
+[data-pref="lang"] .p-plaque[data-value="en"] { padding-left: calc(6px * var(--ui)); }
+[data-pref="lang"] .p-plaque[data-value="zh"] { padding-right: calc(6px * var(--ui)); }
+.p-knife {
+  position: absolute; z-index: 1;
+  left: 0; right: 0; bottom: 0; height: calc(54px * var(--ui));
+  pointer-events: none;
+  perspective: 300px;
+  forced-color-adjust: none;
+}
+.kn-slate {
+  position: absolute; inset: 0;
+  border-radius: calc(3px * var(--ui));
+  background:
+    linear-gradient(112deg, transparent 20%, rgba(255, 255, 255, 0.06) 32%, transparent 44%),
+    url('/static/assets/tex/stone-slate.webp') 0 0 / 180px;
+  box-shadow: 0 0 0 1px #0a0b0c, 0 2px 4px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+.kn-jaw, .kn-hinge {
+  position: absolute; bottom: calc(6px * var(--ui));
+  width: calc(24px * var(--ui)); height: calc(32px * var(--ui));
+  overflow: visible;
+}
+.kn-jaw-l { left: 13%; }
+.kn-jaw-r { right: 13%; }
+.kn-hinge { left: 50%; margin-left: calc(-12px * var(--ui)); }
+.p-knife .kj-foot { fill: #3b2a1a; stroke: #120a04; stroke-width: 0.5; }
+.p-knife .kj-leaf { fill: url(#pb-plate); stroke: #2a1a0a; stroke-width: 0.5; }
+.p-knife .kj-nut { fill: var(--br-3); stroke: var(--br-0); stroke-width: 0.4; }
+.p-knife .kj-pin { fill: var(--br-4); stroke: var(--br-0); stroke-width: 0.6; }
+.kn-blade {
+  position: absolute; z-index: 2;
+  left: 50%; width: 35%;
+  bottom: calc(20px * var(--ui)); height: calc(14px * var(--ui));
+  transform-origin: 0 50%;
+  transform: rotateY(0deg);
+  transition: transform 0.38s cubic-bezier(0.5, 0, 0.3, 1);
+}
+.kn-blade svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible;
+  filter: drop-shadow(1px 2px 1.2px rgba(0, 0, 0, 0.6)); }
+.p-knife .kb-bar { fill: #b06a3a; stroke: #3c1c08; stroke-width: 0.4; }
+.p-knife .kb-hi { fill: rgba(255, 214, 180, 0.6); }
+.p-knife .kb-cross { fill: #1b1512; }
+.kn-handle {
+  position: absolute; right: calc(-9px * var(--ui)); top: 50%;
+  width: calc(20px * var(--ui)); height: calc(20px * var(--ui));
+  margin-top: calc(-10px * var(--ui));
+  border-radius: 50%;
+  background: radial-gradient(circle at 38% 32%, #6a655f, #1a1816 45%, #040303);
+  box-shadow: 1px 2px 3px rgba(0, 0, 0, 0.7), inset 0 0 0 1px #000;
+}
+[data-pref="lang"]:has([data-value="en"][aria-checked="true"]) .kn-blade { transform: rotateY(180deg); }
+
+/* ----- Engraving size: the push-button bank ---------------------------- */
+[data-pref="ui"].p-options {
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: calc(3px * var(--ui));
+  padding: calc(5px * var(--ui)) calc(5px * var(--ui)) calc(7px * var(--ui));
+  border-radius: calc(3px * var(--ui));
+  background:
+    url('/static/assets/tex/grain-brushed.webp') 0 0 / 200px,
+    linear-gradient(180deg, var(--br-3), var(--br-2) 40%, var(--br-1));
+  background-blend-mode: soft-light, normal;
+  box-shadow: 0 0 0 1px var(--br-0), 0 2px 4px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 244, 214, 0.5);
+}
+[data-pref="ui"] .p-plaque {
+  color: #2a2012;
+  padding: calc(8px * var(--ui)) calc(6px * var(--ui)) calc(7px * var(--ui));
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.55), transparent 30%, rgba(0, 0, 0, 0.08)),
+    url('/static/assets/tex/grain-card.webp') 0 0 / 140px,
+    #efe6cc;
+  background-blend-mode: normal, soft-light, normal;
+  border-radius: 2px;
+  box-shadow: 0 0 0 1px #1c140a, 0 calc(4px * var(--ui)) 0 0 #3a2a18, 0 calc(4px * var(--ui)) 0 1px #1c140a,
+    0 calc(6px * var(--ui)) 5px rgba(0, 0, 0, 0.45);
+  transform: translateY(0);
+  transition: transform 0.12s var(--ease-out), box-shadow 0.12s, color 0.2s;
+}
+@media (hover: hover) { [data-pref="ui"] .p-plaque:hover { color: #1a1208; } }
+[data-pref="ui"] .p-plaque[aria-checked="true"] {
+  color: #120c04;
+  transform: translateY(calc(3px * var(--ui)));
+  background:
+    linear-gradient(180deg, rgba(0, 0, 0, 0.1), transparent 30%),
+    url('/static/assets/tex/grain-card.webp') 0 0 / 140px,
+    #e2d6b4;
+  background-blend-mode: normal, soft-light, normal;
+  box-shadow: 0 0 0 1px #1c140a, 0 calc(1px * var(--ui)) 0 0 #3a2a18, 0 calc(1px * var(--ui)) 0 1px #1c140a,
+    0 calc(2px * var(--ui)) 2px rgba(0, 0, 0, 0.45), inset 0 2px 3px rgba(0, 0, 0, 0.18);
+}
+[data-pref="ui"] .p-desc { color: #231a0d; font-weight: 600; }
+
+/* ----- Motion: the bat toggle -------------------------------------------- */
+[data-pref="motion"].p-options {
+  position: relative;
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: calc(2px * var(--ui));
+  height: calc(100px * var(--ui));
+}
+[data-pref="motion"] .p-plaque { justify-content: flex-start; height: 100%; }
+[data-pref="motion"] .p-name { white-space: normal; text-align: center; line-height: 1.2; }
+.p-bat {
+  position: absolute; z-index: 1;
+  left: 50%; bottom: 0;
+  width: calc(130px * var(--ui)); height: calc(52px * var(--ui));
+  margin-left: calc(-65px * var(--ui));
+  pointer-events: none;
+  forced-color-adjust: none;
+}
+.p-bat-plate { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.p-bat .pb-sh { fill: rgba(0, 0, 0, 0.5); }
+.p-bat .pb-body { stroke: var(--br-0); stroke-width: 0.6; }
+.p-bat .pb-screw { fill: var(--br-3); stroke: var(--br-0); stroke-width: 0.4; }
+.p-bat .pb-slot { stroke: var(--br-0); stroke-width: 0.6; }
+.p-bat .pb-index { stroke: #1a1006; stroke-width: 1.3; stroke-linecap: round; }
+.p-bat .pb-bush { stroke: var(--br-0); stroke-width: 0.5; }
+.p-bat .pb-nut { fill: none; stroke: rgba(40, 24, 4, 0.7); stroke-width: 0.6; }
+.p-lever {
+  position: absolute;
+  left: 50%; bottom: 22%;
+  width: calc(17px * var(--ui)); height: calc(46px * var(--ui));
+  margin-left: calc(-8.5px * var(--ui));
+  transform-origin: 50% 96%;
+  transform: rotate(0deg);
+  transition: transform 0.16s cubic-bezier(0.3, 1.5, 0.5, 1);
+}
+.p-lever svg { width: 100%; height: 100%; overflow: visible; }
+.p-lever .pv-sh { fill: rgba(0, 0, 0, 0.45); }
+.p-lever .pv-body { stroke: rgba(0, 0, 0, 0.6); stroke-width: 0.5; }
+.p-lever .pv-hi { stroke: rgba(255, 255, 255, 0.8); stroke-width: 1.2; stroke-linecap: round; }
+[data-pref="motion"]:has([data-value="full"][aria-checked="true"]) .p-lever { transform: rotate(-38deg); }
+[data-pref="motion"]:has([data-value="system"][aria-checked="true"]) .p-lever { transform: rotate(38deg); }
+
+/* ----- Replay: the spring-return key ------------------------------------- */
+#replay.p-plaque {
+  display: grid;
+  grid-template-columns: auto auto;
+  grid-template-rows: auto auto;
+  column-gap: calc(12px * var(--ui));
+  justify-content: center; align-items: center;
+  width: auto; margin: 0 auto;
+  padding: calc(4px * var(--ui)) calc(14px * var(--ui));
+  color: var(--pn-faint);
+  background: none; border: 0;
+}
+#replay .p-key { grid-row: 1 / span 2; width: calc(40px * var(--ui)); height: calc(40px * var(--ui)); overflow: visible; }
+#replay .p-name { align-self: end; color: var(--pn-label); }
+#replay .p-desc { align-self: start; text-align: left; color: var(--pn-faint); }
+@media (hover: hover) { #replay:hover .p-desc { color: var(--pn-ink); } }
+.p-key .pkey-sh { fill: rgba(0, 0, 0, 0.45); }
+.p-key .pkey-plate { stroke: var(--br-0); stroke-width: 0.5; }
+.p-key .pkey-screw { fill: var(--br-4); stroke: var(--br-0); stroke-width: 0.4; }
+.p-key .pkey-slot { fill: #0e0a06; }
+.p-key .pkey-shaft { fill: #c9c4b8; stroke: #2a2620; stroke-width: 0.4; }
+.p-key .pkey-cap { fill: #151210; stroke: #000; stroke-width: 0.5; }
+.p-key .pkey-hi { fill: rgba(255, 255, 255, 0.3); }
+.p-key .pkey-arm {
+  transform-box: view-box; transform-origin: 21.5px 31px;
+  transition: transform 0.22s cubic-bezier(0.3, 1.6, 0.5, 1);
+}
+#replay:active .p-key .pkey-arm { transform: rotate(-24deg); transition-duration: 0.08s; }
+#replay:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; }
+
+/* Forced colours: the hardware is ornament and keeps its own paint; every
+   radio keeps a border it cannot lose and the live one a Highlight one. */
+@media (forced-colors: active) {
+  .p-group .p-plaque { border: 1px solid CanvasText; }
+  .p-group .p-plaque[aria-checked="true"] { border: 3px solid Highlight; }
+  .p-sheet::before, .p-sheet::after { border-color: CanvasText; }
+  #ledger .chip { border: 1px solid CanvasText; }
+  #ledger .chip[aria-checked="true"] { border: 2px solid Highlight; color: Highlight; }
+  .pl-jewel, .p-knife, .p-rotary, .p-bat, .l-close-knob, .l-stamp-ico { forced-color-adjust: none; }
+  #ledger .plaque .pl-frame, #ledger .plaque .pl-frame > a, #ledger .plaque .pl-frame > .pl-in { background-image: none !important; }
+  #ledger .plaque .pl-frame { background-color: CanvasText !important; }
+  #ledger .plaque .pl-frame > a { background-color: Canvas !important; }
+  #ledger .pl-frame > a::before { border-color: GrayText; }
+  #ledger .plaque.new .pl-shadow-wrap { outline: 2px solid Highlight; outline-offset: 2px; }
+  /* The caret's ring stands clear of the unread one, and heavier. On the
+     same box the unread outline painted over it, and a walk that always
+     lands on unread cards could not tell the caret's card from the rest. */
+  #ledger .plaque:has(a:focus-visible) { outline: 3px solid CanvasText; outline-offset: 7px; }
+  #ledger .spine { background: CanvasText; }
+  .board .cs-door > .cs-glass { background: Canvas; }
+}
+
+/* Reduced motion: the switchgear snaps. */
+:root[data-motion="reduced"] .p-knob,
+:root[data-motion="reduced"] .kn-blade,
+:root[data-motion="reduced"] .p-lever,
+:root[data-motion="reduced"] .p-key .pkey-arm { transition: none; }
+
+/* Outside the cabinetry, one line: the Ledger hatch's caption on the
+   masthead. CJK breaks between any two characters, and the 48px hatch
+   broke 消息总台 as 消息总 / 台 and pushed the whole hall down (LY-06,
+   VD-07). Held to one line; the hatch centres the overflow. */
+#ledger-btn .p-caption { white-space: nowrap; }

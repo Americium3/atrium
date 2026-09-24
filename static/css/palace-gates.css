@@ -1,0 +1,1207 @@
+/* ==========================================================================
+   THE PICTURE PALACE: THE GATES AND THE CLOCK NICHE (material pass)
+   ==========================================================================
+   Loaded after atrium.css. The proscenium itself (portal geometry, the face,
+   the light states) is set up in atrium.css under "GATES: THE PROSCENIUM";
+   this sheet dresses it: the machined bezel on the cartouche, the lantern
+   slide the description is projected on, the contour curtain, the painted
+   iron, the focus ring, the apron's type budget and the clock niche in
+   statuary bronze. Tokens for the metals live with the other metals in
+   atrium.css; the statuary bronze is new here because only the niche and
+   the bezels use it.
+
+   One light model. At night only emitters glow (glass, bulbs, coves, the
+   dial, the projector's slide); metal, stone and velvet take their light
+   from them. By day nothing is lit and the skylight is the key light.
+   ========================================================================== */
+
+/* ----- Statuary bronze ----------------------------------------------------
+   Cast bronze with a dark chemical patina, waxed: chocolate in the body,
+   near black in the recesses, a warm lift where a face turns to the light.
+   Six tones in the same order as the leaf ramps: 0 glaze, 1 shade, 2 body,
+   3 crest, 4 relief body, 5 lip. */
+:root[data-theme="onyx"] {
+  --sb-0: #0c0806; --sb-1: #1c140d; --sb-2: #34261a; --sb-3: #8a6a45; --sb-4: #4c3824; --sb-5: #6e5436;
+}
+:root[data-theme="ivory"] {
+  --sb-0: #2a1f15; --sb-1: #453525; --sb-2: #5d4a35; --sb-3: #b89a70; --sb-4: #735c42; --sb-5: #9c8160;
+}
+
+/* ==========================================================================
+   THE CLOCK NICHE
+   ==========================================================================
+   It was a solid gold slab, the loudest thing in the room. Now the frame is
+   statuary bronze glazed almost to black, the smalti go dark toward the foot
+   of the recess, the case is cast bronze with leaf on its eight bevels only,
+   and the sill is book-matched stone: Portoro by night, Calacatta by day.
+   Leaf is kept to the bevels, the inner fillet and the crest, near a tenth
+   of the niche. */
+
+/* The outer frame: bronze under a dark glaze, four mitred facets taking the
+   one light, a hairline of worn leaf on the arris that faces the lamp. */
+.n-s1 {
+  border-color: var(--nf-t) var(--nf-r) var(--nf-b) var(--nf-l);
+  box-shadow:
+    inset 1px 1px 0 var(--nf-lip), inset -1px -1px 0 rgba(0, 0, 0, 0.7),
+    0 0 0 1px rgba(0, 0, 0, 0.7),
+    4px 8px 18px rgba(0, 0, 0, 0.55);
+}
+/* The cavetto: the step turns inward, so its facets take the light the
+   other way round. Statuary bronze, unglazed, with the patina showing. */
+.n-s2 {
+  border-color: var(--sb-0) var(--sb-2) var(--sb-4) var(--sb-1);
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.55);
+}
+/* The inner fillet: the one moulding of the frame left in leaf, narrow,
+   a bead that rings the smalti. */
+.n-s3 {
+  inset: calc(var(--st) * 2.2); bottom: calc(var(--sill) - var(--st) * 0.8);
+  border-width: calc(var(--st) * 0.45);
+  border-color: var(--lead-4) var(--lead-1) var(--lead-0) var(--lead-2);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.6),
+              inset 0 0 0 1px rgba(0, 0, 0, 0.55),
+              inset 0 calc(var(--st) * 1.4) calc(var(--st) * 1.6) rgba(0, 0, 0, 0.6);
+}
+:root[data-theme="onyx"] #clock {
+  --nf-t: #2b2016; --nf-r: #120d09; --nf-b: #070504; --nf-l: #1b140e;
+  --nf-lip: rgba(214, 170, 96, 0.34);
+  --niche-bloom: rgba(255, 214, 150, 0.16);
+  --niche-glaze-top: rgba(16, 9, 3, 0.52);
+  --niche-glaze-mid: rgba(10, 6, 2, 0.80);
+  --niche-glaze-bot: rgba(4, 3, 1, 0.95);
+  --niche-cove: rgba(255, 196, 116, 0.46);
+  --sill-veil: rgba(4, 3, 2, 0.30);
+  --sill-gloss: rgba(255, 226, 170, 0.07);
+}
+:root[data-theme="ivory"] #clock {
+  --nf-t: #6e5a42; --nf-r: #3a2d20; --nf-b: #2a2017; --nf-l: #4d3d2c;
+  --nf-lip: rgba(255, 238, 196, 0.55);
+  --niche-bloom: rgba(255, 255, 255, 0);
+  --niche-glaze-top: rgba(58, 40, 16, 0.30);
+  --niche-glaze-mid: rgba(44, 30, 12, 0.62);
+  --niche-glaze-bot: rgba(30, 20, 8, 0.86);
+  --niche-cove: rgba(255, 255, 255, 0);
+  --sill-veil: rgba(255, 252, 244, 0.06);
+  --sill-gloss: rgba(255, 255, 255, 0.35);
+}
+/* The smalti: glazed down hard, and darker still toward the foot, where the
+   head's lamp does not reach and the recess keeps its shadow. */
+.n-mosaic {
+  background:
+    radial-gradient(60% 34% at 50% 0%, var(--niche-bloom), transparent 80%),
+    linear-gradient(180deg, var(--niche-glaze-top) 0%, var(--niche-glaze-mid) 55%, var(--niche-glaze-bot) 100%),
+    url('/static/assets/tex/mosaic-gold.webp') 0 0 / calc(var(--gh) * 0.22) auto;
+  box-shadow: inset 0 0 calc(var(--reveal) * 1.4) rgba(0, 0, 0, 0.8);
+}
+.n-cove { height: 34%; }
+/* The frame's leaf lattice only over the one gilt fillet now: the bronze
+   steps carry their own patina, not leaf. */
+.niche::after { opacity: 0.22; }
+
+/* The sill: a slab of stone book-matched about the axis, the right half the
+   left one opened like a book, so the veins meet at the joint and run out
+   either way. A bronze nosing with one hairline of leaf on its lip. */
+.n-sill { background: none; overflow: hidden; box-shadow: 0 -1px 0 rgba(0, 0, 0, 0.6); }
+.n-sill::before, .n-sill::after {
+  content: ""; position: absolute; top: 0; bottom: 0; width: 50%;
+  background:
+    linear-gradient(var(--sill-veil), var(--sill-veil)),
+    var(--sill-stone) 100% var(--sill-y) / calc(var(--gh) * 0.72) auto no-repeat,
+    var(--sill-stone2, none) 100% var(--sill-y) / calc(var(--gh) * 0.72) auto no-repeat,
+    var(--sill-base, transparent);
+  background-blend-mode: normal, multiply, multiply, normal;
+}
+.n-sill::before { left: 0; }
+.n-sill::after { right: 0; transform: scaleX(-1); }
+/* The nosing: bronze with one hairline of leaf on its lip, its shade on the
+   slab below; then the slab's polished face gives back one band of room. */
+.n-nose {
+  position: absolute; inset: 0; z-index: 1; pointer-events: none;
+  background:
+    linear-gradient(180deg,
+      var(--lead-5) 0 1px, var(--sb-3) 1px 2px, var(--sb-2) 2px calc(var(--st) * 0.7),
+      var(--sb-0) calc(var(--st) * 0.7 + 1px), rgba(0, 0, 0, 0.5) calc(var(--st) * 0.7 + 1px),
+      transparent calc(var(--st) * 2.2)),
+    linear-gradient(180deg, transparent 40%, var(--sill-gloss) 55%, transparent 72%),
+    linear-gradient(90deg, transparent calc(50% - 1px), rgba(0, 0, 0, 0.28) calc(50% - 1px) calc(50% + 0.5px), transparent calc(50% + 0.5px));
+  box-shadow: inset 0 -2px 3px rgba(0, 0, 0, 0.35);
+}
+/* The gilt fillet on the plinth line: every arch's plinth nosing and the
+   wall's skirting meet at 536 of the gate's 570 units, and this carries that
+   rule across the niche (VD-17). It is its own element, the sill's full
+   width: drawn as the sill's ::after it took the place of the mirrored
+   right half of the slab, and the wall showed through the gap (AR-1). */
+.n-fillet {
+  position: absolute; left: 0; right: 0; z-index: 2; pointer-events: none;
+  bottom: calc(var(--gh) * 34 / 570 - var(--gh) * 2.6 / 570);
+  height: calc(var(--gh) * 2.6 / 570);
+  background: linear-gradient(180deg, var(--lead-5), var(--lead-2) 50%, var(--lead-0));
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.55);
+}
+:root[data-theme="onyx"] .n-sill { --sill-stone: url('/static/assets/tex/stone-portoro.webp'); --sill-y: 5%; }
+:root[data-theme="ivory"] .n-sill {
+  --sill-stone: url('/static/assets/tex/stone-calacatta.webp'); --sill-y: 76%;
+  --sill-stone2: url('/static/assets/tex/stone-calacatta.webp');
+  --sill-base: #fbf7ee;
+}
+
+
+/* ----- The case -----------------------------------------------------------
+   Statuary bronze, lit from up and to the left: the flat face in its patina,
+   the eight bevels in the wing's leaf, the shoulders and rivets cast with the
+   case. The bezel is turned bronze with a knurl whose teeth take the light
+   on the lamp side. */
+/* The case's own ground: statuary bronze under wax is an even warm
+   brown-black, warmer than the niche's glazed frame (AR-29: the face read
+   as grey-brown, value 0.14 with black clouds, dusty cast iron). */
+:root[data-theme="onyx"] #clock { --ckc-0: #56361c; --ckc-1: #412815; --ckc-2: #2c1a0c; --cks-body: #6a4a2b; }
+:root[data-theme="ivory"] #clock { --ckc-0: #71492a; --ckc-1: #5a3b21; --ckc-2: #452c17; --cks-body: #8a643c; }
+.ckc.s0 { stop-color: var(--ckc-0); } .ckc.s1 { stop-color: var(--ckc-1); } .ckc.s2 { stop-color: var(--ckc-2); }
+.ck-case { stroke: var(--sb-0); }
+/* The face: cast statuary bronze (metal-bronze, multiplied over the ramp:
+   a shallow mottle, rubbed high spots, casting pits, a file grain), a warm
+   lift toward the key light, and the band of reflected light that says it
+   is waxed metal and not a painted panel. The mottle is a few per cent: at
+   0.92 it laid 100px clouds of soot across the flat face. */
+.ck-patina { fill: url(#ck-patina); mix-blend-mode: multiply; opacity: 0.42; pointer-events: none; }
+/* The recesses keep the dark: a shade inside the bevel's foot, soft over
+   about thirty units, and a ring round the bezel. */
+.ck-recess { pointer-events: none; }
+.ck-rc { fill: none; stroke: #0e0703; }
+.ck-rc-a { stroke-width: 64; stroke-opacity: 0.12; }
+.ck-rc-b { stroke-width: 34; stroke-opacity: 0.16; }
+.ck-rc-c { stroke-width: 12; stroke-opacity: 0.24; }
+.ckz.s0 { stop-color: #0e0703; stop-opacity: 0; } .ckz.s1 { stop-color: #0e0703; stop-opacity: 0.55; }
+.ckz.s2 { stop-color: #0e0703; stop-opacity: 0.1; } .ckz.s3 { stop-color: #0e0703; stop-opacity: 0; }
+:root[data-theme="ivory"] .ck-rc { stroke: #24160a; }
+:root[data-theme="ivory"] .ckz.s1 { stop-color: #24160a; stop-opacity: 0.42; }
+.ck-lift, .ck-sheen { pointer-events: none; }
+.cks2.s0 { stop-color: #ffe6b8; stop-opacity: 0; }
+.cks2.s1 { stop-color: #ffe6b8; stop-opacity: 0.2; }
+.cks2.s2 { stop-color: #ffe6b8; stop-opacity: 0.07; }
+.cks2.s3 { stop-color: #ffe6b8; stop-opacity: 0; }
+.cks2.s4 { stop-color: #000000; stop-opacity: 0.28; }
+.ckl.s0 { stop-color: #d9a86a; stop-opacity: 0.2; }
+.ckl.s1 { stop-color: #d9a86a; stop-opacity: 0; }
+:root[data-theme="ivory"] .cks2.s1 { stop-color: #fff6e6; stop-opacity: 0.26; }
+:root[data-theme="ivory"] .cks2.s2 { stop-color: #fff6e6; stop-opacity: 0.09; }
+:root[data-theme="ivory"] .cks2.s4 { stop-color: #1a1008; stop-opacity: 0.22; }
+:root[data-theme="ivory"] .ckl.s0 { stop-color: #f0c890; stop-opacity: 0.22; }
+.ck-bevel-sheen { pointer-events: none; }
+.ckb.s0 { stop-color: #fffaf0; stop-opacity: 0; }
+.ckb.s1 { stop-color: #fffaf0; stop-opacity: 0.34; }
+.ckb.s2 { stop-color: #fffaf0; stop-opacity: 0; }
+.ckb.s3 { stop-color: #0a0602; stop-opacity: 0; }
+.ckb.s4 { stop-color: #0a0602; stop-opacity: 0.34; }
+.ck-bevel-leaf { fill: url(#ck-leaf); mix-blend-mode: soft-light; opacity: 0.6; pointer-events: none; }
+.ck-caseline2, .ck-caseline { stroke: rgba(0, 0, 0, 0.7); }
+/* The casting and its wear over the patina: a signed tile in plain alpha,
+   darkening the islands and the pits and lifting the rubbed patches, so the
+   face reads as cast metal, not a painted plate (AR-7). */
+.ck-cast { fill: url(#ck-cast); opacity: 0.3; pointer-events: none; }
+/* The stepped shoulders under each diagonal bevel, cast with the case: a
+   soft shadow down and right on the face, the relief body a step lighter
+   and warmer than the face with its own light, and each riser lit, mid or
+   dark by the way it faces the key. The risers toward the lamp are rubbed
+   bright and warm, as the high spots of a handled bronze are. */
+.ck-sho-sh { fill: rgba(0, 0, 0, 0.5); }
+.ck-sho { fill: var(--cks-body); }
+.ck-sho-tex { fill: url(#ck-cast); opacity: 0.3; }
+.ckh.s0 { stop-color: #ffd9a0; stop-opacity: 0.2; } .ckh.s1 { stop-color: #000; stop-opacity: 0.14; }
+.ck-sho-e-lt { fill: color-mix(in srgb, var(--sb-3) 60%, #ffdca0); }
+.ck-sho-e-md { fill: var(--sb-5); }
+.ck-sho-e-dk { fill: var(--sb-0); }
+/* The bevel's arrises: the crest where each plane leaves the face and the
+   lip where it drops to the case side, lit or in shade by the plane's angle,
+   and the leaf rubbed through to the bronze along the lip. */
+.ck-wear { fill: url(#ck-cast); opacity: 0.6; }
+.ck-crest-lt { fill: var(--lead-5); }
+.ck-crest-md { fill: var(--lead-3); opacity: 0.55; }
+.ck-crest-dk { fill: var(--lead-0); opacity: 0.75; }
+.ck-lip-lt { fill: var(--lead-3); }
+.ck-lip-md { fill: var(--lead-1); }
+.ck-lip-dk { fill: rgba(0, 0, 0, 0.6); }
+.ck-rivet { fill: var(--sb-2); stroke: var(--sb-0); }
+.ck-rivet-sh { fill: rgba(0, 0, 0, 0.45); }
+.ck-rivet-lt { fill: var(--sb-3); }
+.ck-case2 { fill: url(#ck-turn); stroke: var(--sb-0); }
+.ckt.s0 { stop-color: var(--sb-3); } .ckt.s1 { stop-color: var(--sb-2); }
+.ckt.s2 { stop-color: var(--sb-1); } .ckt.s3 { stop-color: var(--sb-4); }
+.ckt.s4 { stop-color: var(--sb-0); }
+.ck-knurl.kn-lt { fill: var(--sb-3); }
+.ck-knurl.kn-md { fill: var(--sb-4); }
+.ck-knurl.kn-dk { fill: var(--sb-0); }
+.ck-well { stroke: var(--sb-0); }
+.ck-bezel-sh { stroke: rgba(20, 12, 4, 0.34); }
+#clock .ck-rivet-sh, #clock .ck-rivet-lt { transition: none; }
+
+/* The niche in the waxed floor: the bronze sides, the dark back, the sill,
+   and the dial's light, whose centre stands the sill and half the dial
+   above the floor line. Its sides fade into the wax the way a reflection's
+   do; cut square, they ran two hard vertical edges across the medallion,
+   like a strip of paper laid on the floor (AR-8).
+   It lies in the floor, so it is foreshortened as the portals' smears are
+   (--cm-k), its dial an ellipse with a soft rim broken by the wax's
+   ripple, and it stops where the runner begins (--cm-runner, the runner's
+   far end below the mirror's head, from room.js): wool gives back nothing.
+   Drawn upright it was a hard-rimmed cream disc 430px across on the red
+   runner behind the desk, a spotlight on the carpet (AR-23). The mask is
+   in the layer's own units, so the cut is divided by the squash. */
+.ck-mirror {
+  --cm-k: 0.36;
+  transform: scaleY(var(--cm-k)); transform-origin: 50% 0;
+  filter: blur(3px);
+  background:
+    linear-gradient(180deg, var(--cm-sill-c) 0, var(--cm-sill-c) calc(var(--cm-sill) - 3px), var(--sb-3) calc(var(--cm-sill) - 3px), var(--sb-1) var(--cm-sill), transparent var(--cm-sill)),
+    radial-gradient(circle calc(var(--dial) * 0.43) at 50% calc(var(--sill) + var(--dial) * 0.5), var(--cm-dial) 0 84%, color-mix(in srgb, var(--cm-dial) 45%, var(--sb-2)) 92%, transparent 99%),
+    linear-gradient(90deg, var(--nf-l) 0 calc(var(--st) * 3), var(--cm-back) calc(var(--st) * 3) calc(100% - var(--st) * 3), var(--nf-r) calc(100% - var(--st) * 3));
+  -webkit-mask-image:
+    linear-gradient(180deg, rgba(0, 0, 0, 0.95), rgba(0, 0, 0, 0.6) 20%, rgba(0, 0, 0, 0.3) 50%, transparent 76%),
+    linear-gradient(90deg, transparent, #000 16%, #000 84%, transparent),
+    repeating-linear-gradient(180deg, #000 0 calc(15px * var(--ui)), rgba(0, 0, 0, 0.5) calc(21px * var(--ui)), #000 calc(27px * var(--ui))),
+    linear-gradient(180deg, #000 calc(var(--cm-runner, 100vh) / var(--cm-k) - 30px), transparent calc(var(--cm-runner, 100vh) / var(--cm-k)));
+  -webkit-mask-composite: source-in;
+  mask-image:
+    linear-gradient(180deg, rgba(0, 0, 0, 0.95), rgba(0, 0, 0, 0.6) 20%, rgba(0, 0, 0, 0.3) 50%, transparent 76%),
+    linear-gradient(90deg, transparent, #000 16%, #000 84%, transparent),
+    repeating-linear-gradient(180deg, #000 0 calc(15px * var(--ui)), rgba(0, 0, 0, 0.5) calc(21px * var(--ui)), #000 calc(27px * var(--ui))),
+    linear-gradient(180deg, #000 calc(var(--cm-runner, 100vh) / var(--cm-k) - 30px), transparent calc(var(--cm-runner, 100vh) / var(--cm-k)));
+  mask-composite: intersect;
+}
+/* The marker room.js reads the runner's far end from: the head of its
+   fringe, laid in the runner's own plane so the floor's projection places
+   it. */
+.rn-far {
+  position: absolute; left: 50%; top: calc(var(--fh, 320px) * -0.085);
+  width: 1px; height: 1px;
+  visibility: hidden; pointer-events: none;
+}
+:root[data-theme="onyx"] #clock { --cm-back: #120b05; --cm-sill-c: #0a0807; }
+/* By day the floor gives back only the gilt and the screen (law 10), as
+   the portals' reflections do, at 1.5 times --mirror-a: the gilt lip of the
+   sill's nosing, the inner fillet's two sides and the pale dial in its gilt
+   bezel. The dark back and the bronze sides came back as a dark box. */
+:root[data-theme="ivory"] .ck-mirror {
+  opacity: calc(var(--mirror-a) * 1.5);
+  background:
+    linear-gradient(180deg, transparent calc(var(--cm-sill) - 3px), var(--lead-3) calc(var(--cm-sill) - 3px), var(--lead-1) var(--cm-sill), transparent var(--cm-sill)),
+    radial-gradient(circle calc(var(--dial) * 0.43) at 50% calc(var(--sill) + var(--dial) * 0.5), var(--cm-dial) 0 84%, color-mix(in srgb, var(--cm-dial) 45%, var(--lead-2)) 92%, transparent 99%),
+    linear-gradient(90deg, transparent calc(var(--st) * 2.2), var(--lead-2) calc(var(--st) * 2.2) calc(var(--st) * 2.65), transparent calc(var(--st) * 2.65) calc(100% - var(--st) * 2.65), var(--lead-2) calc(100% - var(--st) * 2.65) calc(100% - var(--st) * 2.2), transparent calc(100% - var(--st) * 2.2));
+}
+
+/* Corner blocks: the four mitres of the outer frame meet on cast bronze
+   squares, each with a turned boss lit on the lamp side and a pin of leaf
+   at its crown. */
+.n-corner {
+  position: absolute; z-index: 1; pointer-events: none;
+  width: calc(var(--st) * 2); height: calc(var(--st) * 2);
+  background:
+    radial-gradient(circle at 42% 40%, var(--lead-3) 0 6%, var(--lead-1) 12%, transparent 15%),
+    radial-gradient(circle at 50% 50%, transparent 0 20%, var(--sb-0) 21% 24%, transparent 25%),
+    radial-gradient(circle at 38% 36%, var(--sb-3) 0, var(--sb-4) 22%, var(--sb-1) 40%, transparent 42%),
+    linear-gradient(135deg, var(--sb-4) 0 14%, var(--sb-2) 14% 86%, var(--sb-0) 86%);
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.7), 1px 2px 3px rgba(0, 0, 0, 0.5);
+}
+.nc-tl { left: 0; top: 0; }
+.nc-tr { right: 0; top: 0; }
+.nc-br { right: 0; bottom: calc(var(--sill) - var(--st) * 1.4); }
+.nc-bl { left: 0; bottom: calc(var(--sill) - var(--st) * 1.4); }
+
+/* ==========================================================================
+   THE ARCHIVOLTS: BURNISHED RELIEF, MATTE GROUND, ONE KEY LIGHT
+   ==========================================================================
+   The bands read as smooth graded rings at 1920: the ground of a carved band
+   was as bright as its ornament, and every band was lit the same all round.
+   Now a carved band's ground is matte and a step darker than its burnished
+   relief, and the whole stack takes one key light from up and to the left
+   (the skylight by day, from above and softer). */
+:root[data-theme="onyx"] { --gild-ground: rgba(26, 14, 3, 0.46); }
+:root[data-theme="ivory"] { --gild-ground: rgba(74, 50, 18, 0.30); }
+.portal .b-ground { fill: var(--gild-ground); pointer-events: none; }
+.gate.vacant .portal .b-ground { opacity: 0.45; }
+.portal .p-key { pointer-events: none; }
+.pk-s0 { stop-color: #fff4d6; stop-opacity: 0.20; }
+.pk-s1 { stop-color: #fff4d6; stop-opacity: 0; }
+.pk-s2 { stop-color: #0a0602; stop-opacity: 0; }
+.pk-s3 { stop-color: #0a0602; stop-opacity: 0.38; }
+:root[data-theme="ivory"] .pk-s0 { stop-color: #ffffff; stop-opacity: 0.24; }
+:root[data-theme="ivory"] .pk-s3 { stop-color: #3a2a12; stop-opacity: 0.24; }
+
+/* ==========================================================================
+   THE CARTOUCHE: A MACHINED BEZEL FOR THE MARK
+   ==========================================================================
+   Grafted from prototype B. The lozenge plate is screwed to the fanlight's
+   hub and a machined bezel is set into it: knurled rim, turned ring with
+   its conic highlight, rivets each lit on the lamp side, a black enamel
+   field, and a domed crystal over the mark. Drawn in palace.js. */
+.portal .bz-shadow { fill: rgba(0, 0, 0, 0.55); }
+.portal .bz-rim { fill: none; stroke: var(--lead-1); }
+.portal .bz-kn0 { fill: var(--lead-3); }
+.portal .bz-kn1 { fill: var(--lead-2); }
+.portal .bz-kn2 { fill: var(--lead-0); }
+.portal .bz-t0 { fill: var(--lead-0); }
+.portal .bz-t1 { fill: var(--lead-1); }
+.portal .bz-t2 { fill: var(--lead-2); }
+.portal .bz-t3 { fill: var(--lead-4); }
+.portal .bz-t4 { fill: var(--lead-5); }
+.portal .bz-t5 { fill: var(--lead-3); }
+.portal .bz-groove { fill: none; stroke: rgba(0, 0, 0, 0.32); stroke-width: 0.45; }
+.portal .bz-arris { fill: none; stroke: var(--glaze); stroke-width: 0.8; }
+.portal .bz-rv-sh { fill: rgba(0, 0, 0, 0.55); }
+.portal .bz-rv { fill: var(--lead-2); }
+.portal .bz-rv-lt { fill: var(--lead-5); }
+.portal .bz-field { fill: var(--enamel); }
+.portal .bz-lip-lt { fill: var(--lead-4); opacity: 0.75; }
+.portal .bz-lip-sh { fill: rgba(0, 0, 0, 0.65); }
+.portal .bz-blank { fill: var(--lead-2); stroke: var(--lead-0); stroke-width: 0.6; }
+.portal .bz-blank-ring { fill: none; stroke: var(--lead-0); stroke-width: 0.8; }
+/* The plate's lozenge now shows only its points round the bezel; its
+   field is the plate's own ground, a step darker than the facets. */
+.portal .c-field { fill: var(--lead-1); }
+/* The crystal: its own small sheet over the mark, in portal units
+   (viewBox 104 100 92 92 on the 300 x 570 gate box). */
+.g-crystal {
+  position: absolute;
+  left: 34.667%; top: 17.544%; width: 30.667%; height: auto; aspect-ratio: 1;
+  overflow: visible; pointer-events: none;
+}
+.g-crystal .cr-dome { fill: #fffaf0; opacity: 0.13; }
+.g-crystal .cr-bounce { fill: #fff6e0; opacity: 0.08; }
+.g-crystal .cr-arc { fill: none; stroke: #fffaf0; stroke-width: 0.8; stroke-linecap: round; opacity: 0.38; }
+.g-crystal .cr-glint { fill: #fffdf6; opacity: 0.9; }
+.g-crystal .cr-edge { fill: none; stroke: rgba(255, 250, 235, 0.2); stroke-width: 0.6; }
+/* A reserved gate's bezel holds a blank cover plate: no mark, no crystal. */
+.gate.vacant .sigil, .gate.vacant .g-crystal { visibility: hidden; }
+
+/* ==========================================================================
+   THE FACE: THE APRON'S TYPE BUDGET, THE NOTE, THE LANTERN SLIDE
+   ========================================================================== */
+
+/* ----- The apron ----------------------------------------------------------
+   Every string on the apron stands at 10px or more at every size. The type
+   does not shrink to fit: at the laptop sizes the status line tightens its
+   tracking first and, where it still does not fit, takes a second line, and
+   the house above gives up the height. The address and lamp word are set in
+   a brighter ink on the black lacquer (the old ink measured about 2.2:1 at
+   9px once anti-aliased). */
+:root[data-theme="onyx"], :root[data-theme="ivory"] { --apron-ink: #d6c7a2; --apron-lamp: #c9b995; --note-ink: #f2c47e; }
+.g-apron { padding: 2.1cqw 0.6cqw 2cqw; }
+
+/* ----- The apron as lacquer -------------------------------------------------
+   It read as a black div holding text: a 6% fade and then flat black for
+   its lower two thirds. It is black lacquer on a plinth now. A lit arris
+   along the top, one soft band of room light slanting across the face
+   (the one reflection lacquer carries, law 9), the lacquer's fine grain
+   showing only inside that band, the foot in shade where the plinth takes
+   it, and a little depth where the face meets the gilt either side. Two
+   gilt corner blocks join it to the pilasters, clear of the lettering
+   (the first line starts below them). The band is behind the words and
+   too soft to read as a line. */
+.g-apron {
+  isolation: isolate;
+  background:
+    linear-gradient(180deg, rgba(255, 244, 222, 0.30) 0 1px, rgba(255, 244, 222, 0.07) 1px 2px, transparent 2px),
+    linear-gradient(104deg, transparent 12%, rgba(255, 248, 230, 0.07) 26%, rgba(255, 248, 230, 0.03) 36%, transparent 48%),
+    linear-gradient(0deg, rgba(0, 0, 0, 0.5), transparent 30%),
+    linear-gradient(180deg, rgba(255, 250, 235, 0.05), transparent 45%),
+    var(--apron);
+  box-shadow:
+    0 -1px 0 var(--lead-5),
+    0 -2.2px 0 var(--lead-2),
+    0 -3.4px 0 rgba(0, 0, 0, 0.6),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.6),
+    inset 1.2cqw 0 1.4cqw -0.8cqw rgba(0, 0, 0, 0.7),
+    inset -1.2cqw 0 1.4cqw -0.8cqw rgba(0, 0, 0, 0.7);
+}
+.g-apron::before {
+  content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+  background: url('/static/assets/tex/grain-frost.webp') 0 0 / 34cqw auto;
+  mix-blend-mode: screen; opacity: 0.09;
+  -webkit-mask-image: linear-gradient(104deg, transparent 10%, #000 26%, rgba(0, 0, 0, 0.45) 38%, transparent 50%);
+  mask-image: linear-gradient(104deg, transparent 10%, #000 26%, rgba(0, 0, 0, 0.45) 38%, transparent 50%);
+}
+.g-apron::after {
+  content: ""; position: absolute; left: 0; right: 0; top: 0; height: 2cqw; pointer-events: none;
+  background:
+    radial-gradient(circle at 42% 40%, var(--lead-5) 0 10%, var(--lead-3) 18%, var(--lead-1) 34%, transparent 40%) 0 0 / 2cqw 2cqw no-repeat,
+    radial-gradient(circle at 42% 40%, var(--lead-5) 0 10%, var(--lead-3) 18%, var(--lead-1) 34%, transparent 40%) 100% 0 / 2cqw 2cqw no-repeat,
+    linear-gradient(135deg, var(--lead-4) 0 18%, var(--lead-2) 18% 82%, var(--lead-0) 82%) 0 0 / 2cqw 2cqw no-repeat,
+    linear-gradient(135deg, var(--lead-4) 0 18%, var(--lead-2) 18% 82%, var(--lead-0) 82%) 100% 0 / 2cqw 2cqw no-repeat;
+  filter: drop-shadow(0.3cqw 0.4cqw 0.3cqw rgba(0, 0, 0, 0.6));
+}
+.g-stat {
+  font-size: clamp(calc(10px * var(--gf)), calc(4.7cqw * var(--gu)), calc(13px * var(--ui)));
+  letter-spacing: clamp(0.05em, calc((100cqw - 190px) * 0.02), 0.12em);
+  line-height: 1.24;
+  font-weight: 530;
+  text-wrap: balance;
+}
+.g-addr {
+  margin-top: 0.4cqw;
+  font-size: clamp(calc(10px * var(--gf)), calc(4.1cqw * var(--gu)), calc(12px * var(--ui)));
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  color: var(--apron-ink);
+}
+.g-lamp {
+  order: 3;
+  margin-top: 0.8cqw;
+  font-size: clamp(calc(10px * var(--gf)), calc(3.9cqw * var(--gu)), calc(11px * var(--ui)));
+  letter-spacing: 0.2em;
+  font-weight: 560;
+  color: var(--apron-lamp);
+}
+.g-lamp .lamp-d { min-width: 9px; min-height: 9px; }
+html[lang="zh"] .g-lamp { letter-spacing: 0.2em; }
+
+/* ----- The service note ----------------------------------------------------
+   A service's own warning (a stale edition, the downloader down) engraved on
+   the apron in amber. While it stands it takes the address line's place, so
+   the apron grows by at most one line, and it sits above the lamp: nothing
+   on the apron ever overlaps the lamp. */
+.g-apron .g-note {
+  order: 2;
+  margin: 0.6cqw 0 0;
+  max-width: 100%;
+  font-size: clamp(calc(10px * var(--gf)), calc(4cqw * var(--gu)), calc(11px * var(--ui)));
+  line-height: 1.3;
+  letter-spacing: 0.02em;
+  font-weight: 500;
+  color: var(--note-ink);
+  text-wrap: balance;
+}
+.g-apron:has(.g-note:not([hidden])) .g-addr { display: none; }
+
+/* ----- The house's budget -------------------------------------------------
+   A shallower valance and a tighter sign give the house back the height the
+   apron now spends on 10px type.
+   Inside the house the height gives way before a word does. A service note
+   under a two-line status (Ground Station's "server down" at 1280) grew
+   the apron, and with the description hung at a fixed drop the house cut
+   the slide's last line in half, or the day card's foot. The valance now
+   hangs in the house's own column, and it and the gap under it are what
+   shrink: the swags draw up shallower (down to 4.5cqw), the gap down to
+   the slide's own margin, and the words keep their size and stay clear of
+   the hem. The slide's field reaches 2.4cqw past the words, so the column
+   keeps that much room under them as well. */
+.g-sign { padding: 2.9cqw 2.4cqw 2.6cqw; }
+.g-valance {
+  position: relative; left: auto; right: auto; top: auto; height: auto;
+  flex: 0 1 11.5cqw; min-height: 4.5cqw;
+  margin: 0 -3%;
+}
+.g-house::before { content: ""; order: 1; flex: 0 1 4cqw; min-height: 2.4cqw; }
+.gate.vacant .g-house::before { display: none; }
+.g-desc { order: 2; margin-top: 0; margin-bottom: 2.4cqw; }
+
+/* ----- The lantern slide ----------------------------------------------------
+   At night the description is a lantern slide thrown on the closed tabs: a
+   black slide with the words clear, so they land on the velvet as light
+   inside a dark field, framed by the slide's own ruled border and the
+   gate's corner ornament (the same fans, steps or lozenge its day card
+   carries, here in light). The field is what keeps the words legible over
+   lit folds (over 10:1), and the curtain's meeting line runs behind it,
+   never through a letter. The field is the description's own box pushed
+   out by a margin, so it moves and grows with the words.
+   By day a closed curtain (a dark or unchecked line) keeps the black field
+   with no light in it; an open line shows its title card instead. */
+.gate { --slide-field: rgba(9, 6, 4, 0.9); --slide-ink: rgba(255, 226, 170, 0.5); --slide-ink2: rgba(255, 226, 170, 0.26); }
+:root[data-theme="ivory"] .gate { --slide-field: rgba(12, 9, 7, 0.9); --slide-ink: transparent; --slide-ink2: transparent; }
+.g-desc::before {
+  content: ""; position: absolute; z-index: -1; pointer-events: none;
+  inset: -2.4cqw -3.2cqw;
+  background-color: var(--slide-field);
+  box-shadow:
+    inset 0 0 0 1px var(--slide-ink),
+    inset 0 0 0 0.9cqw var(--slide-field),
+    inset 0 0 0 calc(0.9cqw + 1px) var(--slide-ink2),
+    inset 0 0 1.4cqw rgba(255, 214, 150, 0.05),
+    0 0 2.4cqw 1.6cqw rgba(9, 6, 4, 0.55);
+  opacity: 0;
+  transition: opacity 0.35s ease;
+}
+:root[data-theme="onyx"] .gate.active[data-state="open"] .g-desc::before {
+  opacity: 1;
+  transition: opacity 0.7s ease calc(var(--slot-delay, 0ms) + 420ms);
+}
+:root[data-theme="onyx"] .gate[data-state="checking"] .g-desc::before { opacity: 0.8; }
+/* The slide is projected light: it goes out with the lamps, ahead of the sink. */
+.gate.receded .g-desc::before { transition: opacity var(--gate-dim, 0ms) ease-in var(--slot-delay, 0ms); }
+:root[data-theme="ivory"] .gate:not([data-state="open"]) .g-desc::before { opacity: 0.9; }
+/* A DARK house keeps its slide too, unlit: the black field with no ruled
+   border, no ornament and no light in it, by night as by day. With the
+   field gone at night the curtain's meeting line ran down through the
+   middle of both lines of the description (law 6), and by day the field
+   was there but faded with the words to a third, so the seam still read
+   through it. The words are dimmed by their own ink now, not by the
+   element's opacity, which took the field down with them. */
+.gate[data-state="dark"] .g-desc {
+  opacity: 1;
+  color: color-mix(in srgb, var(--desc-night) 35%, transparent);
+  text-shadow: none;
+}
+:root[data-theme] .gate[data-state="dark"]:not(.vacant) .g-desc::before {
+  opacity: 0.92;
+  background: var(--slide-field);
+  box-shadow: 0 0 2.4cqw 1.6cqw rgba(9, 6, 4, 0.55);
+}
+.gate.vacant .g-desc::before { display: none; }
+/* The slide's corner ornament: the gate's own card, in projected light. */
+:root[data-theme="onyx"] .gate[data-card="fans"] .g-desc::before {
+  background:
+    radial-gradient(circle at 0 0, transparent 0 2.2cqw, var(--slide-ink) 2.2cqw calc(2.2cqw + 1px), transparent calc(2.2cqw + 1px) 3.2cqw, var(--slide-ink2) 3.2cqw calc(3.2cqw + 1px), transparent calc(3.2cqw + 1px)) 0.9cqw 0.9cqw / 4.2cqw 4.2cqw no-repeat,
+    radial-gradient(circle at 100% 0, transparent 0 2.2cqw, var(--slide-ink) 2.2cqw calc(2.2cqw + 1px), transparent calc(2.2cqw + 1px) 3.2cqw, var(--slide-ink2) 3.2cqw calc(3.2cqw + 1px), transparent calc(3.2cqw + 1px)) calc(100% - 0.9cqw) 0.9cqw / 4.2cqw 4.2cqw no-repeat,
+    radial-gradient(circle at 0 100%, transparent 0 2.2cqw, var(--slide-ink) 2.2cqw calc(2.2cqw + 1px), transparent calc(2.2cqw + 1px) 3.2cqw, var(--slide-ink2) 3.2cqw calc(3.2cqw + 1px), transparent calc(3.2cqw + 1px)) 0.9cqw calc(100% - 0.9cqw) / 4.2cqw 4.2cqw no-repeat,
+    radial-gradient(circle at 100% 100%, transparent 0 2.2cqw, var(--slide-ink) 2.2cqw calc(2.2cqw + 1px), transparent calc(2.2cqw + 1px) 3.2cqw, var(--slide-ink2) 3.2cqw calc(3.2cqw + 1px), transparent calc(3.2cqw + 1px)) calc(100% - 0.9cqw) calc(100% - 0.9cqw) / 4.2cqw 4.2cqw no-repeat,
+    var(--slide-field);
+}
+:root[data-theme="onyx"] .gate[data-card="steps"] .g-desc::before {
+  background:
+    linear-gradient(var(--slide-ink), var(--slide-ink)) 1.9cqw 1.9cqw / 2.4cqw 1px no-repeat,
+    linear-gradient(var(--slide-ink), var(--slide-ink)) 1.9cqw 1.9cqw / 1px 2.4cqw no-repeat,
+    linear-gradient(var(--slide-ink), var(--slide-ink)) calc(100% - 1.9cqw) 1.9cqw / 2.4cqw 1px no-repeat,
+    linear-gradient(var(--slide-ink), var(--slide-ink)) calc(100% - 1.9cqw) 1.9cqw / 1px 2.4cqw no-repeat,
+    linear-gradient(var(--slide-ink), var(--slide-ink)) 1.9cqw calc(100% - 1.9cqw) / 2.4cqw 1px no-repeat,
+    linear-gradient(var(--slide-ink), var(--slide-ink)) 1.9cqw calc(100% - 1.9cqw) / 1px 2.4cqw no-repeat,
+    linear-gradient(var(--slide-ink), var(--slide-ink)) calc(100% - 1.9cqw) calc(100% - 1.9cqw) / 2.4cqw 1px no-repeat,
+    linear-gradient(var(--slide-ink), var(--slide-ink)) calc(100% - 1.9cqw) calc(100% - 1.9cqw) / 1px 2.4cqw no-repeat,
+    var(--slide-field);
+}
+:root[data-theme="onyx"] .gate[data-card="lozenge"] .g-desc::before {
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'%3E%3Cpath d='M5 0L10 5L5 10L0 5Z' fill='rgb(255,226,170)' fill-opacity='.55'/%3E%3C/svg%3E") 50% 0.35cqw / 1.5cqw 1.5cqw no-repeat,
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'%3E%3Cpath d='M5 0L10 5L5 10L0 5Z' fill='rgb(255,226,170)' fill-opacity='.55'/%3E%3C/svg%3E") 50% calc(100% - 0.35cqw) / 1.5cqw 1.5cqw no-repeat,
+    var(--slide-field);
+}
+
+/* Balanced lines: no description ends on one orphaned word, and no Chinese
+   description ends on a single character that splits a two-character word. */
+.g-desc { text-wrap: balance; }
+
+/* ----- The day card's budget ------------------------------------------------
+   The card is the description's own box. It never shrinks below its words
+   (a squeezed card let the first line ride up over its own top ornament at
+   1280), so its margins and padding are what give way: the tie-backs take
+   a tenth of the house each side, and the card stands just inside them.
+   It stands a hair under the valance's hem, and when the house is short
+   the valance draws up rather than the card losing its foot. */
+:root[data-theme="ivory"] .gate[data-state="open"] .g-house { padding-top: 0; }
+:root[data-theme="ivory"] .gate[data-state="open"] .g-house::before { flex-basis: 1cqw; min-height: 0; }
+:root[data-theme="ivory"] .gate[data-state="open"] .g-desc {
+  min-height: auto;
+  margin: 0 10.5cqw 2cqw;
+  padding: 2.4cqw 2.6cqw 2.2cqw;
+}
+:root[data-theme="ivory"] .gate[data-state="open"] .g-desc::after { margin-top: 1.3cqw; }
+/* SIGNBOARD on a laptop arch: the lettering is 15% larger in the same
+   house, and The Press Room's card took four lines under a name on two
+   and ran out of the house at 1280 and 1366. The card stands a little
+   wider, still inside the gathered tabs (8.2cqw), and its leading tightens,
+   so every card keeps to three lines. */
+@container (max-width: 200px) {
+  :root[data-ui="l"][data-theme="ivory"] .gate[data-state="open"] .g-desc {
+    margin-left: 8.8cqw; margin-right: 8.8cqw; line-height: 1.32;
+  }
+}
+
+/* ----- The screen by night ---------------------------------------------------
+   Before the show the screen is not lit. What shows under the lifted
+   curtain is its foot, warmed by the footlights, not a bright white bar.
+   Only an open line's footlights burn: any other house shows a cold, unlit
+   screen (a DARK one never lifts its curtain at all). */
+:root[data-theme="onyx"] .gate { --screen: #2e2822; --screen-hi: #6a5a44; }
+:root[data-theme="onyx"] .gate:not(.opening) .g-screen {
+  background: linear-gradient(180deg, #151312, #232020 70%, #2c2826);
+}
+:root[data-theme="onyx"] .gate[data-state="open"]:not(.opening) .g-screen {
+  background:
+    radial-gradient(70% 38% at 50% 100%, rgba(255, 196, 120, 0.85), rgba(190, 120, 60, 0.5) 45%, transparent 100%),
+    linear-gradient(180deg, #1c1814, #2e2822 70%, #4a3a2a);
+}
+
+/* ==========================================================================
+   VELVET AND GLASS
+   ==========================================================================
+   The house velvet and the fanlight glass each come a step toward the
+   Paramount's amber and green: no violet, no electric blue, no aqua. Every
+   gate keeps its own colour (the names stay as the hash's keys).
+   The fold map is new: broad rounded crests and deep soft valleys that
+   hang in their own weight, each crest lit on the footlights' side and
+   brighter toward the hem. It is laid in `multiply`, so --velvet is the
+   colour of the cloth at its brightest crest and the folds only take it
+   down: the highlights keep the velvet's own hue instead of going pastel.
+   Cloth has to stand against the gilt round it, so every velvet's crest
+   is at least a quarter darker than the leaf's body (--au-2, relative
+   luminance). Umber was amber at 1.7 times the leaf by night, and the
+   house read as gold curtains in a gold frame; it is a tobacco brown
+   now, the pigment its name says. */
+:root[data-theme="onyx"] .gate[data-velvet="claret"]   { --velvet: #c22b3b; }
+:root[data-theme="onyx"] .gate[data-velvet="emerald"]  { --velvet: #24754b; }
+:root[data-theme="onyx"] .gate[data-velvet="sapphire"] { --velvet: #3f5d6e; }
+:root[data-theme="onyx"] .gate[data-velvet="plum"]     { --velvet: #92304c; }
+:root[data-theme="onyx"] .gate[data-velvet="peacock"]  { --velvet: #6b692c; }
+:root[data-theme="onyx"] .gate[data-velvet="umber"]    { --velvet: #8c4a2c; }
+:root[data-theme="ivory"] .gate[data-velvet="claret"]   { --velvet: #c83a4a; }
+:root[data-theme="ivory"] .gate[data-velvet="emerald"]  { --velvet: #36906a; }
+:root[data-theme="ivory"] .gate[data-velvet="sapphire"] { --velvet: #56727f; }
+:root[data-theme="ivory"] .gate[data-velvet="plum"]     { --velvet: #9c4660; }
+:root[data-theme="ivory"] .gate[data-velvet="peacock"]  { --velvet: #8e8c4a; }
+:root[data-theme="ivory"] .gate[data-velvet="umber"]    { --velvet: #98563a; }
+/* The fold map is shaded as velvet: the crests' cores dark where the pile
+   is seen end-on, rims of light down the flanks where it turns edge-on.
+   Over it the pile itself, a fine crushed grain in soft light, so the
+   cloth has a nap at arm's length and not the smooth ramp of satin. */
+.g-tab {
+  background:
+    linear-gradient(180deg, rgba(0, 0, 0, 0.5), transparent 20%, transparent 78%, var(--tab-foot) 100%),
+    url('/static/assets/tex/grain-pile.webp') 0 0 / 30cqw auto,
+    url('/static/assets/tex/fab-velvet-pile.webp') var(--fold-x) 0 / calc(1800% / var(--folds)) 100% repeat-x,
+    var(--velvet);
+  background-blend-mode: normal, soft-light, multiply, normal;
+}
+.g-tab-r {
+  background-position: 0 0, 11cqw 0, calc(var(--fold-x) + 37%) 0, 0 0;
+}
+/* The valance is three festoon swags of the same cloth, each gathered into
+   its two top corners with its folds sagging after its own hem (a baked
+   strip of four different swags; the gate hangs three of them, chosen by
+   its hash, so no two valances hang alike and no swag repeats its
+   neighbour). The swag mask and its gilt fringe are atrium.css's. */
+.g-valance {
+  background:
+    url('/static/assets/tex/grain-pile.webp') 0 0 / 30cqw auto,
+    url('/static/assets/tex/fab-velvet-festoon.webp') calc(var(--swag, 0) * 100%) 0 / 133.34% 100% repeat-x,
+    var(--velvet);
+  background-blend-mode: soft-light, multiply, normal;
+}
+/* The footlights warm the hem without bleaching it, and the projector's
+   spot no longer floods the tabs: the slide carries the light now. */
+:root[data-theme="onyx"] { --footlight: rgba(255, 158, 70, 0.34); --tab-foot: rgba(255, 170, 90, 0.10);
+  --spot: rgba(255, 220, 170, 0.10); --spot-edge: rgba(255, 206, 146, 0.04); }
+/* A DARK house is in shadow. The velvet takes its light from the
+   footlights, and with them out the cloth is mixed most of the way to one
+   shadow tone, so every dye lands near the same dark value; a relative
+   dimming (brightness 0.7) left a light dye as bright as an open house.
+   The hem keeps only a faint cold bounce off the stage. By day the shade
+   goes as deep: an open house shows only its gathered tabs beside a lit
+   card, and a 72% day mix left the lighter dyes (peacock, emerald,
+   sapphire) brighter than a claret or plum house that was open. The day
+   velvets are a step lighter than the night ones, so the same depth of
+   shade lands them a touch above the night's dark houses, and every DARK
+   house sits well under the darkest open one in both themes. */
+:root[data-theme="onyx"] .gate[data-state="dark"] { --velvet-shade: color-mix(in srgb, var(--velvet) 34%, #0f0d0f); --tab-foot: rgba(150, 168, 190, 0.05); }
+:root[data-theme="ivory"] .gate[data-state="dark"] { --velvet-shade: color-mix(in srgb, var(--velvet) 28%, #110e0c); }
+.gate[data-state="dark"] .g-tab,
+.gate[data-state="dark"] .g-valance { background-color: var(--velvet-shade); }
+.gate[data-state="dark"] .mirror-art .mr-house { fill: color-mix(in srgb, var(--velvet-shade) 42%, #000); }
+
+/* Fanlight glass, lit (hub to rim) and by day (greyed, unlit). */
+.fl-rose.s0 { stop-color: #fff2e2; } .fl-rose.s1 { stop-color: #f4c7a2; }
+.fl-rose.s2 { stop-color: #c4825c; } .fl-rose.s3 { stop-color: #5c2c1c; }
+.fl-celadon.s0 { stop-color: #f7fbe6; } .fl-celadon.s1 { stop-color: #d3e0a4; }
+.fl-celadon.s2 { stop-color: #87a25a; } .fl-celadon.s3 { stop-color: #2e4220; }
+.fl-aqua.s0 { stop-color: #f3f8ee; } .fl-aqua.s1 { stop-color: #c3d6bd; }
+.fl-aqua.s2 { stop-color: #6f977f; } .fl-aqua.s3 { stop-color: #22382d; }
+:root[data-theme="ivory"] .gate[data-glass="rose"]    { --glass-day: #dcc3b0; }
+:root[data-theme="ivory"] .gate[data-glass="celadon"] { --glass-day: #cad1ae; }
+:root[data-theme="ivory"] .gate[data-glass="aqua"]    { --glass-day: #bdcbbd; }
+/* The floor gives the house back as its shadowed body, not its lit crest. */
+.mirror-art .mr-house { fill: color-mix(in srgb, var(--velvet) 42%, #000); }
+
+/* ==========================================================================
+   FOCUS: THE ARCH'S MARQUEE
+   ==========================================================================
+   Keyboard focus traces the outer arch, five units out from the arris: a
+   dark bed, a lit core over it and, at night, a string of bulbs riding the
+   core like the marquee's. By day a cream bed and an oxblood core, the
+   rope's colour, which stands off both the gilt and the cream wall. Thick
+   enough to see from across the room in both themes. */
+:root[data-theme="onyx"] .gate { --focus-bed: rgba(6, 4, 2, 0.82); --focus-core: #ffdf9a; --focus-bulb: #fffbf0; }
+:root[data-theme="ivory"] .gate { --focus-bed: rgba(255, 252, 244, 0.95); --focus-core: #7a1a16; --focus-bulb: transparent; }
+.portal .p-focus-g { opacity: 0; transition: opacity 0.16s ease; pointer-events: none; }
+.gate:focus-visible .p-focus-g { opacity: 1; }
+.portal .p-focus-bed {
+  fill: none; stroke: var(--focus-bed); stroke-width: 12; stroke-linejoin: round;
+  /* the bulbs' own light on the wall round the arch, at night only */
+  filter: drop-shadow(0 0 3px var(--focus-glow));
+}
+.portal .p-focus { fill: none; stroke: var(--focus-core); stroke-width: 5; stroke-linejoin: round; opacity: 1; }
+.portal .p-focus-bulbs {
+  fill: none; stroke: var(--focus-bulb); stroke-width: 5.4;
+  stroke-linecap: round; stroke-dasharray: 0 11;
+}
+:root[data-theme="onyx"] .gate { --focus-glow: rgba(255, 196, 110, 0.55); }
+:root[data-theme="ivory"] .gate { --focus-glow: rgba(90, 20, 14, 0.25); }
+@media (forced-colors: active) {
+  .portal .p-focus-bed { stroke: Canvas; }
+  .portal .p-focus { stroke: Highlight; stroke-width: 4; }
+  .portal .p-focus-bulbs { display: none; }
+}
+/* A DARK gate dims its engraving to 35%. Under forced colours, or for a
+   reader who asked for more contrast, that left the words at 2 to 3:1.
+   They get the words at full strength instead, and the gate still reads
+   DARK by its lamp word, its hollow jewel and its unlit house. Under forced
+   colours the words take the system's own grey for text that is out of
+   service. */
+@media (forced-colors: active) {
+  .gate[data-state="dark"] :is(.g-desc, .g-stat, .g-addr, .sigil) { opacity: 1; color: GrayText; }
+}
+@media (prefers-contrast: more) {
+  .gate[data-state="dark"] :is(.g-desc, .g-stat, .g-addr, .sigil) { opacity: 1; }
+  .gate[data-state="dark"] .g-desc { color: var(--desc-night); }
+}
+/* The niche is scenery (its drawing is aria-hidden and the clock says the
+   time in text): under forced colours it keeps its own paint rather than
+   being redrawn as system lines. */
+@media (forced-colors: active) { .niche { forced-color-adjust: none; } }
+
+/* ==========================================================================
+   THE IRON: THE RESERVED GATE'S SAFETY CURTAIN
+   ==========================================================================
+   It read as a disabled grey panel with dotted rules. It is now what a
+   theatre's iron is: steel plate in red oxide primer (built, not yet
+   dressed, like the bare plaster round it), lapped in three courses with a
+   butt joint down the middle, a row of domed rivets under every lap, each
+   lit on the lamp side, a double border stencilled in cream, a heavy bottom
+   bar resting on the stage, paint worn thin at the edges and the foot, and
+   the one lit arris on the side that faces the key light. The builder's
+   plate is bolted over the middle and carries the words, so no seam ever
+   runs through them. It is never lit and it never lifts.
+   It then read as suede or rust: plaster clouds blotched the paint, the
+   courses met on a hairline, and the border was a card's double rule. The
+   primer is an even satin now, sprayed with a fine orange peel, with
+   one soft sheen across it. Each upper course laps the one below: its
+   rolled arris takes the light, and its edge throws a shadow a few pixels
+   down onto the next course. The border is sprayed through a stencil: a
+   broad band and a thin rule, both broken by the stencil's bridges, with
+   a soft overspray either side. */
+:root[data-theme="onyx"] .gate.vacant {
+  --iron: #45241a; --iron-hi: #522d21; --iron-lo: #2e1811;
+  --iron-seam: rgba(0, 0, 0, 0.62); --iron-seam-lt: rgba(255, 214, 180, 0.16);
+  --iron-lap-sh: rgba(0, 0, 0, 0.42);
+  --iron-rv: #5e3528; --iron-rv-lt: #a07560; --iron-rv-sh: rgba(0, 0, 0, 0.6);
+  --iron-stencil: rgba(222, 204, 166, 0.6); --iron-stencil2: rgba(222, 204, 166, 0.4);
+  --iron-overspray: rgba(222, 204, 166, 0.15);
+  --iron-veil: rgba(69, 36, 26, 0.7); --iron-satin: rgba(255, 214, 190, 0.05);
+  --iron-edge: rgba(255, 216, 170, 0.16);
+}
+:root[data-theme="ivory"] .gate.vacant {
+  --iron: #86412f; --iron-hi: #954d39; --iron-lo: #6b3325;
+  --iron-seam: rgba(40, 14, 6, 0.55); --iron-seam-lt: rgba(255, 232, 214, 0.34);
+  --iron-lap-sh: rgba(40, 14, 6, 0.36);
+  --iron-rv: #914e3b; --iron-rv-lt: #dcaa90; --iron-rv-sh: rgba(40, 14, 6, 0.45);
+  --iron-stencil: rgba(246, 236, 212, 0.8); --iron-stencil2: rgba(246, 236, 212, 0.55);
+  --iron-overspray: rgba(246, 236, 212, 0.2);
+  --iron-veil: rgba(134, 65, 47, 0.7); --iron-satin: rgba(255, 236, 222, 0.12);
+  --iron-edge: rgba(255, 248, 236, 0.35);
+}
+.g-iron {
+  background:
+    /* the lit arris on the lamp side, and the foot's heavy bar */
+    linear-gradient(90deg, var(--iron-edge) 0 0.5cqw, transparent 1.6cqw),
+    linear-gradient(0deg, var(--iron-lo) 0 3.4cqw, var(--iron-seam-lt) 3.4cqw calc(3.4cqw + 1px), var(--iron-seam) calc(3.4cqw + 1px) calc(3.4cqw + 3px), transparent calc(3.4cqw + 3px)),
+    /* rivets under each lap: a dome lit up and to the left, its shadow */
+    radial-gradient(circle at 1.5cqw 1.5cqw, var(--iron-rv-lt) 0 0.3cqw, var(--iron-rv) 0.62cqw 0.86cqw, var(--iron-rv-sh) 1cqw 1.18cqw, transparent 1.22cqw) 0 calc(33.333% + 0.3cqw) / 4.6cqw 3.4cqw repeat-x,
+    radial-gradient(circle at 1.5cqw 1.5cqw, var(--iron-rv-lt) 0 0.3cqw, var(--iron-rv) 0.62cqw 0.86cqw, var(--iron-rv-sh) 1cqw 1.18cqw, transparent 1.22cqw) 0 calc(66.666% + 0.3cqw) / 4.6cqw 3.4cqw repeat-x,
+    /* and a column either side of the butt joint */
+    radial-gradient(circle at 1.5cqw 1.5cqw, var(--iron-rv-lt) 0 0.3cqw, var(--iron-rv) 0.62cqw 0.86cqw, var(--iron-rv-sh) 1cqw 1.18cqw, transparent 1.22cqw) calc(50% - 2.6cqw) 1cqw / 3.4cqw 4.6cqw repeat-y,
+    radial-gradient(circle at 1.5cqw 1.5cqw, var(--iron-rv-lt) 0 0.3cqw, var(--iron-rv) 0.62cqw 0.86cqw, var(--iron-rv-sh) 1cqw 1.18cqw, transparent 1.22cqw) calc(50% + 3.6cqw) 1cqw / 3.4cqw 4.6cqw repeat-y,
+    /* the two laps: the upper course's rolled arris in the light, its edge,
+       and its shadow cast down onto the course below */
+    linear-gradient(180deg, transparent calc(33.333% - 2px), var(--iron-seam-lt) calc(33.333% - 2px) calc(33.333% - 1px), var(--iron-seam) calc(33.333% - 1px) calc(33.333% + 1px), var(--iron-lap-sh) calc(33.333% + 1px), transparent calc(33.333% + 5px)),
+    linear-gradient(180deg, transparent calc(66.666% - 2px), var(--iron-seam-lt) calc(66.666% - 2px) calc(66.666% - 1px), var(--iron-seam) calc(66.666% - 1px) calc(66.666% + 1px), var(--iron-lap-sh) calc(66.666% + 1px), transparent calc(66.666% + 5px)),
+    /* the butt joint: a shaded groove, a lit lip */
+    linear-gradient(90deg, transparent calc(50% - 1.5px), var(--iron-seam) calc(50% - 1.5px) calc(50% + 0.5px), var(--iron-seam-lt) calc(50% + 0.5px) calc(50% + 1.5px), transparent calc(50% + 1.5px)),
+    /* each course primed on its own, a shade apart */
+    linear-gradient(180deg, rgba(255, 240, 225, 0.035) 0 33.333%, transparent 33.333% 66.666%, rgba(0, 0, 0, 0.05) 66.666%),
+    /* the satin: one broad, soft sheen */
+    linear-gradient(112deg, transparent 16%, var(--iron-satin) 40%, transparent 64%),
+    /* the primer's fine orange peel, sprayed over the plate */
+    linear-gradient(var(--iron-veil), var(--iron-veil)),
+    url('/static/assets/tex/grain-frost.webp') 0 0 / 16cqw auto,
+    linear-gradient(180deg, var(--iron-hi), var(--iron) 45%, var(--iron-lo));
+  background-blend-mode: normal, normal, normal, normal, normal, normal, normal, normal, normal, normal, normal, normal, soft-light, normal;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.5);
+  outline: none;
+}
+/* The stencilled border. A broad band and a thin rule inside it, each
+   broken by the stencil's bridges, and a soft overspray either side of the
+   band where the paint missed the card. The frame stands above the foot
+   bar. */
+.g-iron::before {
+  content: ""; position: absolute; inset: 0; border: 0;
+  pointer-events: none;
+  background:
+    repeating-linear-gradient(90deg, var(--iron-stencil) 0 9.2cqw, transparent 9.2cqw 9.65cqw) 2cqw 2cqw / calc(100% - 4cqw) 0.8cqw no-repeat,
+    repeating-linear-gradient(90deg, var(--iron-stencil) 0 9.2cqw, transparent 9.2cqw 9.65cqw) 2cqw calc(100% - 4.6cqw) / calc(100% - 4cqw) 0.8cqw no-repeat,
+    repeating-linear-gradient(180deg, var(--iron-stencil) 0 9.2cqw, transparent 9.2cqw 9.65cqw) 2cqw 2cqw / 0.8cqw calc(100% - 6.6cqw) no-repeat,
+    repeating-linear-gradient(180deg, var(--iron-stencil) 0 9.2cqw, transparent 9.2cqw 9.65cqw) calc(100% - 2cqw) 2cqw / 0.8cqw calc(100% - 6.6cqw) no-repeat,
+    repeating-linear-gradient(90deg, var(--iron-stencil2) 0 7.1cqw, transparent 7.1cqw 7.5cqw) 3.5cqw 3.5cqw / calc(100% - 7cqw) max(1px, 0.3cqw) no-repeat,
+    repeating-linear-gradient(90deg, var(--iron-stencil2) 0 7.1cqw, transparent 7.1cqw 7.5cqw) 3.5cqw calc(100% - 6.1cqw) / calc(100% - 7cqw) max(1px, 0.3cqw) no-repeat,
+    repeating-linear-gradient(180deg, var(--iron-stencil2) 0 7.1cqw, transparent 7.1cqw 7.5cqw) 3.5cqw 3.5cqw / max(1px, 0.3cqw) calc(100% - 9.6cqw) no-repeat,
+    repeating-linear-gradient(180deg, var(--iron-stencil2) 0 7.1cqw, transparent 7.1cqw 7.5cqw) calc(100% - 3.5cqw) 3.5cqw / max(1px, 0.3cqw) calc(100% - 9.6cqw) no-repeat,
+    linear-gradient(180deg, transparent, var(--iron-overspray) 50%, transparent) 1.4cqw 1.4cqw / calc(100% - 2.8cqw) 2cqw no-repeat,
+    linear-gradient(180deg, transparent, var(--iron-overspray) 50%, transparent) 1.4cqw calc(100% - 4cqw) / calc(100% - 2.8cqw) 2cqw no-repeat,
+    linear-gradient(90deg, transparent, var(--iron-overspray) 50%, transparent) 1.4cqw 1.4cqw / 2cqw calc(100% - 5.4cqw) no-repeat,
+    linear-gradient(90deg, transparent, var(--iron-overspray) 50%, transparent) calc(100% - 1.4cqw) 1.4cqw / 2cqw calc(100% - 5.4cqw) no-repeat;
+}
+/* Stencil corner blocks, painted through a card: four squares on the
+   corners of the band. */
+.g-iron::after {
+  content: ""; position: absolute; inset: 1.6cqw 1.6cqw 4.2cqw; pointer-events: none;
+  background:
+    linear-gradient(var(--iron-stencil), var(--iron-stencil)) 0 0 / 1.6cqw 1.6cqw no-repeat,
+    linear-gradient(var(--iron-stencil), var(--iron-stencil)) 100% 0 / 1.6cqw 1.6cqw no-repeat,
+    linear-gradient(var(--iron-stencil), var(--iron-stencil)) 0 100% / 1.6cqw 1.6cqw no-repeat,
+    linear-gradient(var(--iron-stencil), var(--iron-stencil)) 100% 100% / 1.6cqw 1.6cqw no-repeat;
+}
+/* The builder's plate: sand-cast brass screwed to the iron, carrying the
+   words, so no seam ever runs through them. It read as a pale wooden rule:
+   a blond plate under long brushed streaks, no bead, its screws cut off at
+   the corners and its words printed flat. It is a casting now. The field
+   keeps the sand's tooth and is the deeper, browner brass of a casting
+   left as it came from the mould; a raised bead runs round it; four
+   slotted screws hold it inside the bead; the letters stand in relief,
+   filed and polished on their faces, each lit along its top edge with its
+   lower wall in shade. The same object by day and by night. */
+.gate.vacant {
+  --plate-hi: #8c6c2b; --plate: #775a22; --plate-lo: #5f4518;
+  --plate-face: #f3dfa2; --plate-lit: rgba(255, 249, 226, 0.8); --plate-wall: #2a1904;
+  --bead-lt: #edd28a; --bead-dk: #4e3710;
+  --screw: radial-gradient(circle closest-side at 46% 42%, #f8e8b8 0 14%, #cfa95a 38%, #86652a 70%, #3a2808 88%, rgba(20, 12, 2, 0.5) 94%, transparent 100%);
+}
+.gate.vacant .g-desc {
+  margin: auto 12cqw;
+  color: var(--plate-face); font-weight: 620;
+  text-shadow: -0.04em -0.05em 0 var(--plate-lit), 0.05em 0.07em 0 var(--plate-wall),
+               0.07em 0.12em 0.08em rgba(20, 12, 2, 0.55);
+}
+:root[data-theme] .gate.vacant[data-card] .g-desc::before {
+  display: block; opacity: 1;
+  inset: -2.4cqw -4.6cqw;
+  border-radius: 0.5cqw;
+  background:
+    /* the four screws, each slot turned its own way */
+    linear-gradient(28deg, transparent 41%, rgba(24, 14, 2, 0.85) 41% 59%, transparent 59%) 2.05cqw 2.05cqw / 1.1cqw 1.1cqw no-repeat,
+    linear-gradient(-61deg, transparent 41%, rgba(24, 14, 2, 0.85) 41% 59%, transparent 59%) calc(100% - 2.05cqw) 2.05cqw / 1.1cqw 1.1cqw no-repeat,
+    linear-gradient(83deg, transparent 41%, rgba(24, 14, 2, 0.85) 41% 59%, transparent 59%) 2.05cqw calc(100% - 2.05cqw) / 1.1cqw 1.1cqw no-repeat,
+    linear-gradient(-17deg, transparent 41%, rgba(24, 14, 2, 0.85) 41% 59%, transparent 59%) calc(100% - 2.05cqw) calc(100% - 2.05cqw) / 1.1cqw 1.1cqw no-repeat,
+    var(--screw) 1.5cqw 1.5cqw / 2.2cqw 2.2cqw no-repeat,
+    var(--screw) calc(100% - 1.5cqw) 1.5cqw / 2.2cqw 2.2cqw no-repeat,
+    var(--screw) 1.5cqw calc(100% - 1.5cqw) / 2.2cqw 2.2cqw no-repeat,
+    var(--screw) calc(100% - 1.5cqw) calc(100% - 1.5cqw) / 2.2cqw 2.2cqw no-repeat,
+    /* the sand's fine tooth, and the casting's cloud where it cooled */
+    url('/static/assets/tex/grain-frost.webp') 0 0 / 7cqw auto,
+    url('/static/assets/tex/metal-bronze.webp') 30% 40% / 46cqw auto,
+    linear-gradient(172deg, var(--plate-hi), var(--plate) 50%, var(--plate-lo));
+  background-blend-mode: normal, normal, normal, normal, normal, normal, normal, normal, overlay, soft-light, normal;
+  /* the plate's edge, chamfered to the light, and its shadow on the iron */
+  box-shadow:
+    inset 0.15cqw 0.2cqw 0 rgba(255, 238, 190, 0.4), inset -0.15cqw -0.2cqw 0 rgba(30, 18, 2, 0.55),
+    0.3cqw 0.5cqw 0.6cqw rgba(20, 8, 2, 0.6), 0 0 0 0.5px rgba(20, 10, 2, 0.6);
+}
+/* The bead: a ridge cast round the plate's field, lit on its upper and
+   left runs, in shade on the others, throwing its own shadow down and to
+   the right, inside the ring on the lit runs and outside on the others. */
+:root[data-theme] .gate.vacant[data-card] .g-desc::after {
+  content: ""; position: absolute; z-index: -1; pointer-events: none;
+  inset: -1.75cqw -3.95cqw;
+  border: max(1px, 0.42cqw) solid;
+  border-color: var(--bead-lt) var(--bead-dk) var(--bead-dk) var(--bead-lt);
+  border-radius: 0.35cqw;
+  box-shadow: 0.12cqw 0.18cqw 0.05cqw rgba(24, 12, 2, 0.55),
+              inset 0.12cqw 0.18cqw 0.05cqw rgba(24, 12, 2, 0.45);
+}
+
+/* ==========================================================================
+   THE DAY FLOOR'S REFLECTION
+   ==========================================================================
+   By day the cream terrazzo gives back only what is lit by the skylight:
+   the gilt jambs and the screen, softly. The black plinth, the apron and
+   the sign came back as a grey smear under every gate, so by day they are
+   left out, and the whole copy is a little softer and fades sooner. */
+:root[data-theme="ivory"] .mirror-art .pl-body,
+:root[data-theme="ivory"] .mirror-art .pl-nose,
+:root[data-theme="ivory"] .mirror-art .mr-apron,
+:root[data-theme="ivory"] .mirror-art .mr-sign,
+:root[data-theme="ivory"] .mirror-art .p-reveal { display: none; }
+/* The house comes back only as an open screen. A closed or reserved house
+   is not lit by the skylight, and its shadowed velvet or its iron laid a
+   dark, square-sided block in the wax under a DARK gate and the reserved
+   one (12 and 8 levels under the floor round it at 1920). */
+:root[data-theme="ivory"] .gate:not([data-state="open"]) .mirror-art .mr-house { display: none; }
+:root[data-theme="ivory"] .g-mirror .mirror-art { filter: blur(2.4px); }
+/* With the smear gone the gilt and the screen may come back a little
+   stronger: half again the day's own strength, still well under the
+   night's. */
+:root[data-theme="ivory"] .g-mirror { opacity: calc(var(--mirror-a) * 1.5); }
+:root[data-theme="ivory"] .g-mirror {
+  -webkit-mask-image: linear-gradient(180deg, transparent 0, rgba(0, 0, 0, 0.7) 7%, rgba(0, 0, 0, 0.3) 26%, transparent 52%);
+  mask-image: linear-gradient(180deg, transparent 0, rgba(0, 0, 0, 0.7) 7%, rgba(0, 0, 0, 0.3) 26%, transparent 52%);
+}
+
+/* ==========================================================================
+   THE GATE'S BOX: HIT AREA, FEET, THE DARK LINE'S NOTICE
+   ========================================================================== */
+
+/* The link takes the pointer only inside the arch. The gate is a 300 x 570
+   box, and its top corners are bare wall either side of the crown; they
+   used to open the gate. The arch's own hit area is a box rounded to the
+   outer arris (semicircle of radius 140 on the 280-unit span), and the face
+   takes the pointer where it has lettering, so titles still show. */
+.gate { pointer-events: none; }
+.g-pose, .g-shell, .face, svg.portal { pointer-events: none; }
+.g-hit {
+  position: absolute; left: 3.33%; right: 3.33%; top: 3.86%;
+  /* The hit area lifts with the arch, so it reaches down by the lift to
+     keep its foot on the floor line. Lifted with the art, it left a
+     pointer resting at the foot: the hover dropped, the arch fell back
+     under the pointer, the hover returned, and the arch bobbed while
+     clicks in its bottom 3px landed on the floor. */
+  bottom: var(--lift, 0px);
+  border-radius: 50% 50% 0 0 / 25.5% 25.5% 0 0;
+  pointer-events: auto;
+}
+.face > .g-sign, .face > .g-house, .face > .g-apron { pointer-events: auto; }
+/* An incoming arch still takes no pointer for its first 120 ms. */
+.gate.active.arriving .g-hit,
+.gate.active.arriving .face > .g-sign,
+.gate.active.arriving .face > .g-house,
+.gate.active.arriving .face > .g-apron { animation: gate-arrive 0.12s linear var(--slot-delay, 0ms) backwards; }
+
+/* The feet stay on the floor line whatever the bay's tilt: the vanishing
+   point sits on the plinth's foot, not half way up the arch. */
+.gate { perspective-origin: 50% 100%; }
+.g-pose { transform-origin: 50% 100%; }
+
+/* A DARK line's launch notice: a printed card pinned on the closed curtain,
+   standing in the description's place while it shows. It used to hang
+   over the apron and cover the lamp and address. It rides the arch now,
+   so it no longer needs its own lift.
+   It read as a browser tooltip: a pale box, body text, a hairline. It is a
+   house notice now. Card stock with its grain, pinned a little off true
+   (the gate's own tilt, under a degree) by two brass tacks at its head,
+   each tack's shadow on the card and the card's own shadow cast down and
+   right onto the velvet. DARK is printed in the display caps in a
+   printer's red between two rules, then what to do, then the path in
+   the address face. The ink is a near-black in a bold cut, heavier than
+   the day card's: the tilted bay resamples the raster, and the regular cut
+   in a brown ink painted at 2.2 to 3.6:1 (10px at 1280 needs the weight).
+   By night the card is paper in a house with its lights out. It was the
+   day's cream, relative luminance 0.78, as bright as the marquee's milk
+   glass and brighter than the clock's dial: the one light box in a dark
+   gate. At night the stock is a warm grey that takes only a faint cold
+   bounce at its head, near half that luminance, the tacks' brass is
+   dulled with it and the red is deepened; the ink still stands at 7:1
+   or more on the darkest of the stock. */
+.g-notice {
+  --nc-0: #f8f0dc; --nc-1: #eee2c6; --nc-2: #e3d4b2; --nc-bounce: transparent;
+  --tack-0: #fff6d4; --tack-1: #e6c36e; --tack-2: #a57c34; --tack-3: #5e4216;
+  --nc-red: #6e1712;
+}
+:root[data-theme="onyx"] .g-notice {
+  --nc-0: #b3aa98; --nc-1: #aba18c; --nc-2: #a59c86; --nc-bounce: rgba(206, 216, 232, 0.10);
+  --tack-0: #d9cca2; --tack-1: #a8894a; --tack-2: #6e5222; --tack-3: #36260c;
+  --nc-red: #5a110d;
+}
+.g-notice {
+  position: absolute; left: 7cqw; right: 7cqw; top: 50%; bottom: auto;
+  z-index: 5;
+  display: flex; flex-direction: column; align-items: center;
+  transform: translateY(-50%) rotate(var(--card-tilt, 0deg));
+  transition: none;
+  font-size: clamp(calc(10px * var(--gf)), calc(4.6cqw * var(--gu)), calc(11.5px * var(--ui)));
+  line-height: 1.36;
+  letter-spacing: 0.02em;
+  text-align: center;
+  color: #0b0703;
+  font-weight: 680;
+  word-break: normal; overflow-wrap: anywhere;
+  padding: 3.6cqw 2.8cqw 2.8cqw;
+  border: 1px solid rgba(84, 64, 34, 0.55);
+  outline: 1px solid rgba(84, 64, 34, 0.35); outline-offset: -0.9cqw;
+  background:
+    radial-gradient(circle at 2.3cqw 2cqw, var(--tack-0) 0 0.3cqw, var(--tack-1) 0.6cqw, var(--tack-2) 0.92cqw, var(--tack-3) 1.1cqw, transparent 1.18cqw),
+    radial-gradient(circle at calc(100% - 2.3cqw) 2cqw, var(--tack-0) 0 0.3cqw, var(--tack-1) 0.6cqw, var(--tack-2) 0.92cqw, var(--tack-3) 1.1cqw, transparent 1.18cqw),
+    radial-gradient(circle at 2.8cqw 2.6cqw, rgba(40, 24, 6, 0.45) 0 1cqw, transparent 1.5cqw),
+    radial-gradient(circle at calc(100% - 1.8cqw) 2.6cqw, rgba(40, 24, 6, 0.45) 0 1cqw, transparent 1.5cqw),
+    radial-gradient(120% 70% at 0 0, var(--nc-bounce), transparent 70%),
+    url('/static/assets/tex/grain-card.webp') 0 0 / 26cqw auto,
+    linear-gradient(172deg, var(--nc-0), var(--nc-1) 55%, var(--nc-2));
+  background-blend-mode: normal, normal, normal, normal, normal, soft-light, normal;
+  box-shadow: 0.5cqw 1cqw 1.6cqw rgba(8, 4, 2, 0.55), 0.15cqw 0.35cqw 0.25cqw rgba(8, 4, 2, 0.45);
+}
+.g-notice[hidden] { display: none; }
+.g-notice .gx-head {
+  display: flex; align-items: center; gap: 1.6cqw; align-self: stretch;
+  margin: 0 0 0.9cqw;
+  font-weight: 700; letter-spacing: 0.3em;
+  color: var(--nc-red);
+}
+.g-notice .gx-head::before, .g-notice .gx-head::after {
+  content: ""; flex: 1 1 0; height: 3px;
+  border-top: 1px solid rgba(110, 23, 18, 0.7); border-bottom: 1px solid rgba(110, 23, 18, 0.45);
+}
+/* the tracking hangs off the last letter, so the word sits on the axis */
+.g-notice .gx-head::after { margin-left: -0.3em; }
+.g-notice .gx-path { font-variant-numeric: tabular-nums; letter-spacing: 0.03em; }
+/* Each folder of the path is one box, so the line breaks only between
+   folders (app.js letterNotice). A box too long for the card still wraps
+   inside itself rather than run out of the card. */
+.g-notice .gx-run { display: inline-block; }
+html[lang="zh"] .g-notice .gx-say { -webkit-text-stroke: 0.45px currentColor; letter-spacing: 0.04em; }
+.g-house:has(> .g-notice:not([hidden])) > .g-desc { visibility: hidden; }
+/* A long launcher path on a small arch: app.js sets the card tighter a step
+   at a time until it stands inside the house (data-fit 1 to 3). The type
+   never goes under its 10px floor; the margins, the leading and at the last
+   step the pins and the DARK heading give way. The card never runs out over the sign or the
+   apron, where the house would clip it. */
+.g-notice[data-fit="1"] { left: 4cqw; right: 4cqw; line-height: 1.26; padding: 3cqw 2.2cqw 1.9cqw; }
+.g-notice[data-fit="1"] .gx-head { margin-bottom: 0.5cqw; }
+.g-notice[data-fit="2"] { left: 2.4cqw; right: 2.4cqw; line-height: 1.2; letter-spacing: 0; padding: 2.6cqw 1.6cqw 1.5cqw; }
+.g-notice[data-fit="2"] .gx-head { margin-bottom: 0.2cqw; }
+.g-notice[data-fit="3"] {
+  left: 1.2cqw; right: 1.2cqw; line-height: 1.16; letter-spacing: 0;
+  padding: 1cqw 1cqw 0.9cqw; outline: none;
+  background: url('/static/assets/tex/grain-card.webp') 0 0 / 26cqw auto, linear-gradient(172deg, var(--nc-0), var(--nc-1) 55%, var(--nc-2));
+  background-blend-mode: soft-light, normal;
+}
+.g-notice[data-fit="3"] .gx-head { display: none; }
+
+/* ----- Stroke weight for legibility -------------------------------------
+   Garamond's hairlines at 10 to 14px never reach full ink once
+   anti-aliased, so measured contrast fell far short of the colours'
+   own (the day card's #3a2e1c on the screen is 11:1 as colours and
+   measured 3.6:1 as pixels). The description and the apron lines take a
+   heavier cut of the same face, the day card a darker ink, and the Chinese
+   description, whose face has one weight, a size step up. */
+.g-desc { font-weight: 500; }
+/* The day card is set in the semibold cut and a printer's near-black. The
+   tilted bays resample the card's raster, which softens every stroke by a
+   further half pixel, so the regular cut in a brown ink measured 3.5 to
+   4.3:1 over the whole card at 1920 even where its lines alone passed. */
+:root[data-theme="ivory"] .gate[data-state="open"] .g-desc { color: #160f06; font-weight: 620; }
+html[lang="zh"] .g-desc { font-size: clamp(calc(11px * var(--gf)), calc(5.4cqw * var(--gu)), calc(14.5px * var(--ui))); }
+/* A Chinese description breaks between words, never inside one. Left to
+   itself the browser broke between any two characters (世|界, 轨|道, 小|工具)
+   and passed over the comma. Keep-all takes every break away, and the
+   strings put back the good ones as zero-width spaces (app.js STR). */
+html[lang="zh"] .g-desc { word-break: keep-all; }
+:root[data-theme="onyx"], :root[data-theme="ivory"] { --apron-gilt: #e8c677; }
+/* The Chinese face has one weight and hairline strokes; on the day card
+   and the builder's plate a quarter pixel of its own ink round every
+   stroke brings it up to strength. */
+:root[lang="zh"][data-theme="ivory"] .gate[data-state="open"] .g-desc { -webkit-text-stroke: 0.45px currentColor; }
+html[lang="zh"] .gate.vacant .g-desc { -webkit-text-stroke: 0.45px currentColor; }
+
+/* ----- The day's title card as an object ------------------------------------
+   By day the card read as a bordered white box on a white screen, a web
+   card. It is now printed card stock standing before the screen: warm
+   stock with its own shadow on a matte silver screen whose fine weave and
+   falloff show round it. */
+:root[data-theme="ivory"] .gate:not(.opening) .g-screen {
+  background:
+    radial-gradient(90% 80% at 50% 40%, transparent 55%, rgba(60, 50, 36, 0.28) 100%),
+    url('/static/assets/tex/grain-frost.webp') 0 0 / 18cqw auto,
+    linear-gradient(180deg, #d6d1c5, #c7c1b2);
+  background-blend-mode: normal, soft-light, normal;
+}
+/* ----- The title card, printed ---------------------------------------------
+   The card read as a blank cream rectangle with a hairline round it, its
+   fans, steps or lozenge drawn in 1px lines nobody could see from across
+   the room, so the three cards of a wing were twins. It is printed now, as
+   a picture palace's title cards were: a deco border band in the gate's
+   own ink (oxblood, bottle green or navy), a hairline inside the band, the
+   gate's corner motif printed solid in the same ink, a headpiece over the
+   words and the rule under them, on the gate's own card stock (cream, bone
+   or buff) with a lithographic grain. Ink, stock and motif each come from
+   the hash, unique within a wing. The headpiece is the first thing to give
+   way when the house is short; the words never do. */
+.gate[data-ink="oxblood"] { --card-ink: #6a1d19; --ink-loz: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'%3E%3Cpath d='M5 0L10 5L5 10L0 5Z' fill='%236a1d19'/%3E%3C/svg%3E"); }
+.gate[data-ink="bottle"]  { --card-ink: #1d4633; --ink-loz: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'%3E%3Cpath d='M5 0L10 5L5 10L0 5Z' fill='%231d4633'/%3E%3C/svg%3E"); }
+.gate[data-ink="navy"]    { --card-ink: #1c2b4c; --ink-loz: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'%3E%3Cpath d='M5 0L10 5L5 10L0 5Z' fill='%231c2b4c'/%3E%3C/svg%3E"); }
+.gate[data-stock="cream"] { --card-stock: #f3ead3; }
+.gate[data-stock="bone"]  { --card-stock: #f6f1e3; }
+.gate[data-stock="buff"]  { --card-stock: #f3e6cb; }
+:root[data-theme="ivory"] .gate[data-state="open"][data-card] .g-desc {
+  --band: clamp(3px, 2cqw, 7px);
+  border: var(--band) solid var(--card-ink);
+  outline: 1px solid var(--card-ink); outline-offset: calc(-1 * var(--band) - 0.7cqw);
+  padding: 1.4cqw 2.4cqw 1.3cqw;
+  background-color: var(--card-stock);
+  box-shadow: 0 0.4cqw 0.5cqw rgba(50, 36, 18, 0.28), 0 1.4cqw 2.6cqw rgba(50, 36, 18, 0.16),
+              inset 0 0 2.4cqw rgba(150, 120, 70, 0.12);
+}
+:root[data-theme="ivory"] .gate[data-state="open"][data-card="fans"] .g-desc {
+  background:
+    radial-gradient(circle at 0 0, var(--card-ink) 0 1.7cqw, transparent calc(1.7cqw + 0.5px) 2.4cqw, var(--card-ink) calc(2.4cqw + 0.5px) 2.9cqw, transparent calc(2.9cqw + 0.5px) 3.5cqw, var(--card-ink) calc(3.5cqw + 0.5px) 3.9cqw, transparent calc(3.9cqw + 0.5px)) 0 0 / 4.2cqw 4.2cqw no-repeat,
+    radial-gradient(circle at 100% 0, var(--card-ink) 0 1.7cqw, transparent calc(1.7cqw + 0.5px) 2.4cqw, var(--card-ink) calc(2.4cqw + 0.5px) 2.9cqw, transparent calc(2.9cqw + 0.5px) 3.5cqw, var(--card-ink) calc(3.5cqw + 0.5px) 3.9cqw, transparent calc(3.9cqw + 0.5px)) 100% 0 / 4.2cqw 4.2cqw no-repeat,
+    radial-gradient(circle at 0 100%, var(--card-ink) 0 1.7cqw, transparent calc(1.7cqw + 0.5px) 2.4cqw, var(--card-ink) calc(2.4cqw + 0.5px) 2.9cqw, transparent calc(2.9cqw + 0.5px) 3.5cqw, var(--card-ink) calc(3.5cqw + 0.5px) 3.9cqw, transparent calc(3.9cqw + 0.5px)) 0 100% / 4.2cqw 4.2cqw no-repeat,
+    radial-gradient(circle at 100% 100%, var(--card-ink) 0 1.7cqw, transparent calc(1.7cqw + 0.5px) 2.4cqw, var(--card-ink) calc(2.4cqw + 0.5px) 2.9cqw, transparent calc(2.9cqw + 0.5px) 3.5cqw, var(--card-ink) calc(3.5cqw + 0.5px) 3.9cqw, transparent calc(3.9cqw + 0.5px)) 100% 100% / 4.2cqw 4.2cqw no-repeat,
+    url('/static/assets/tex/grain-card.webp') 0 0 / 24cqw auto,
+    var(--card-stock);
+  background-blend-mode: normal, normal, normal, normal, soft-light, normal;
+}
+:root[data-theme="ivory"] .gate[data-state="open"][data-card="steps"] .g-desc {
+  background:
+    linear-gradient(var(--card-ink), var(--card-ink)) 0 0 / 4.2cqw 1cqw no-repeat,
+    linear-gradient(var(--card-ink), var(--card-ink)) 0 0 / 3.15cqw 2cqw no-repeat,
+    linear-gradient(var(--card-ink), var(--card-ink)) 0 0 / 2.1cqw 3cqw no-repeat,
+    linear-gradient(var(--card-ink), var(--card-ink)) 0 0 / 1.05cqw 4cqw no-repeat,
+    linear-gradient(var(--card-ink), var(--card-ink)) 100% 0 / 4.2cqw 1cqw no-repeat,
+    linear-gradient(var(--card-ink), var(--card-ink)) 100% 0 / 3.15cqw 2cqw no-repeat,
+    linear-gradient(var(--card-ink), var(--card-ink)) 100% 0 / 2.1cqw 3cqw no-repeat,
+    linear-gradient(var(--card-ink), var(--card-ink)) 100% 0 / 1.05cqw 4cqw no-repeat,
+    linear-gradient(var(--card-ink), var(--card-ink)) 0 100% / 4.2cqw 1cqw no-repeat,
+    linear-gradient(var(--card-ink), var(--card-ink)) 0 100% / 3.15cqw 2cqw no-repeat,
+    linear-gradient(var(--card-ink), var(--card-ink)) 0 100% / 2.1cqw 3cqw no-repeat,
+    linear-gradient(var(--card-ink), var(--card-ink)) 0 100% / 1.05cqw 4cqw no-repeat,
+    linear-gradient(var(--card-ink), var(--card-ink)) 100% 100% / 4.2cqw 1cqw no-repeat,
+    linear-gradient(var(--card-ink), var(--card-ink)) 100% 100% / 3.15cqw 2cqw no-repeat,
+    linear-gradient(var(--card-ink), var(--card-ink)) 100% 100% / 2.1cqw 3cqw no-repeat,
+    linear-gradient(var(--card-ink), var(--card-ink)) 100% 100% / 1.05cqw 4cqw no-repeat,
+    url('/static/assets/tex/grain-card.webp') 0 0 / 24cqw auto,
+    var(--card-stock);
+  background-blend-mode: normal, normal, normal, normal, normal, normal, normal, normal, normal, normal, normal, normal, normal, normal, normal, normal, soft-light, normal;
+}
+:root[data-theme="ivory"] .gate[data-state="open"][data-card="lozenge"] .g-desc {
+  background:
+    var(--ink-loz) 0 0 / 3.2cqw 3.2cqw no-repeat,
+    var(--ink-loz) 100% 0 / 3.2cqw 3.2cqw no-repeat,
+    var(--ink-loz) 0 100% / 3.2cqw 3.2cqw no-repeat,
+    var(--ink-loz) 100% 100% / 3.2cqw 3.2cqw no-repeat,
+    var(--ink-loz) 3.4cqw 0.3cqw / 1.3cqw 1.3cqw no-repeat,
+    var(--ink-loz) 0.3cqw 3.4cqw / 1.3cqw 1.3cqw no-repeat,
+    var(--ink-loz) calc(100% - 3.4cqw) 0.3cqw / 1.3cqw 1.3cqw no-repeat,
+    var(--ink-loz) calc(100% - 0.3cqw) 3.4cqw / 1.3cqw 1.3cqw no-repeat,
+    var(--ink-loz) 3.4cqw calc(100% - 0.3cqw) / 1.3cqw 1.3cqw no-repeat,
+    var(--ink-loz) 0.3cqw calc(100% - 3.4cqw) / 1.3cqw 1.3cqw no-repeat,
+    var(--ink-loz) calc(100% - 3.4cqw) calc(100% - 0.3cqw) / 1.3cqw 1.3cqw no-repeat,
+    var(--ink-loz) calc(100% - 0.3cqw) calc(100% - 3.4cqw) / 1.3cqw 1.3cqw no-repeat,
+    url('/static/assets/tex/grain-card.webp') 0 0 / 24cqw auto,
+    var(--card-stock);
+  background-blend-mode: normal, normal, normal, normal, normal, normal, normal, normal, normal, normal, normal, normal, soft-light, normal;
+}
+/* The headpiece: the card's motif flanked by two rules, printed in its ink
+   (a mask over the ink, so one drawing serves all three inks). It stands in
+   the card's column over the words and takes only room the card has to
+   spare: it grows from nothing up to its full size (and a gap under it),
+   so a short house loses the headpiece before anything else. */
+:root[data-theme="ivory"] .gate[data-state="open"][data-card] .g-desc::before {
+  content: ""; display: block; position: relative; inset: auto; z-index: auto;
+  flex: 1 1 0; min-height: 0; max-height: 4.3cqw; width: 72%; margin: 0 auto;
+  opacity: 1; box-shadow: none;
+  background: var(--card-ink);
+  -webkit-mask: var(--headpiece) 50% 0 / auto min(3.2cqw, 100%) no-repeat;
+  mask: var(--headpiece) 50% 0 / auto min(3.2cqw, 100%) no-repeat;
+}
+.gate[data-card="fans"] { --headpiece: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 16'%3E%3Crect x='0' y='12.4' width='45' height='1.2' fill='white'/%3E%3Crect x='75' y='12.4' width='45' height='1.2' fill='white'/%3E%3Cg fill='none' stroke='white' stroke-width='1.5'%3E%3Cpath d='M47 13a13 13 0 0 1 26 0'/%3E%3Cpath d='M51.5 13a8.5 8.5 0 0 1 17 0'/%3E%3C/g%3E%3Cpath d='M56 13a4 4 0 0 1 8 0z' fill='white'/%3E%3Crect x='47' y='12.4' width='26' height='1.6' fill='white'/%3E%3C/svg%3E"); }
+.gate[data-card="steps"] { --headpiece: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 16'%3E%3Crect x='0' y='12.4' width='45' height='1.2' fill='white'/%3E%3Crect x='75' y='12.4' width='45' height='1.2' fill='white'/%3E%3Crect x='48' y='11' width='24' height='3' fill='white'/%3E%3Crect x='51.5' y='7.6' width='17' height='2.6' fill='white'/%3E%3Crect x='55' y='4.2' width='10' height='2.6' fill='white'/%3E%3Crect x='58.2' y='1' width='3.6' height='2.4' fill='white'/%3E%3C/svg%3E"); }
+.gate[data-card="lozenge"] { --headpiece: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 16'%3E%3Crect x='0' y='7.4' width='43' height='1.2' fill='white'/%3E%3Crect x='77' y='7.4' width='43' height='1.2' fill='white'/%3E%3Cpath d='M60 1L67 8L60 15L53 8Z' fill='white'/%3E%3Cpath d='M47 4.5L50.5 8L47 11.5L43.5 8Z' fill='white'/%3E%3Cpath d='M73 4.5L76.5 8L73 11.5L69.5 8Z' fill='white'/%3E%3C/svg%3E"); }
+/* The rule under the words, in the card's ink. */
+:root[data-theme="ivory"] .gate[data-state="open"][data-card] .g-desc::after {
+  background:
+    linear-gradient(var(--card-ink), var(--card-ink)) 0 50% / calc(50% - 1.6cqw) 1px no-repeat,
+    linear-gradient(var(--card-ink), var(--card-ink)) 100% 50% / calc(50% - 1.6cqw) 1px no-repeat,
+    var(--ink-loz) 50% 50% / 1.4cqw 1.4cqw no-repeat;
+}

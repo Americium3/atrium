@@ -632,14 +632,16 @@ def test_works_payload_nulls_through():
 def test_works_payload_shapes_readings():
     gib = 1024 ** 3
     out = server.works_payload(
-        cpu=(23.4, 32),
+        cpu=(23.4, 16, 32),
         mem=(48 * gib, 128 * gib),
         gpu={"name": "RTX 5090", "used_mb": 8192.0, "total_mb": 32768.0,
              "util_pct": 11.0},
         net=(12_500_000.0, 12_500_000.0),   # 25 MB/s of a 125 MB/s dial
         disk=(20000 * gib, 15000 * gib),
         hub_up=3600, host_up=90000)
-    assert out["cpu"] == {"pct": 23.4, "cores": 32}
+    # Physical cores and logical threads travel apart: the dial used to call
+    # a 16-core, 32-thread part "32 cores".
+    assert out["cpu"] == {"pct": 23.4, "cores": 16, "threads": 32}
     assert out["mem"]["pct"] == 37.5 and out["mem"]["total_gb"] == 128.0
     assert out["gpu"]["pct"] == 25.0 and out["gpu"]["used_gb"] == 8.0
     assert out["net"]["pct"] == 20.0 and out["net"]["down_mbs"] == 12.5
@@ -653,6 +655,33 @@ def test_works_pct_clamps_to_the_engraved_face():
     assert server.pct(-5, 100) == 0.0
     assert server.pct(1, 0) is None          # no scale, no reading
     assert server.pct(None, 100) is None
+
+
+def test_cpu_reading_does_not_depend_on_the_calling_thread():
+    """psutil keeps cpu_percent's baseline per thread and /api/works samples
+    on whichever pool worker is free, so a fresh worker read 0% on a busy
+    machine. The mark is the module's now: any thread reads the same window."""
+    import threading
+    import time
+    from collections import namedtuple
+    if server.psutil is None:
+        return
+    Times = namedtuple("scputimes", "user system idle")
+    saved = (server._cpu_mark, server._cpu_last, server.psutil.cpu_times)
+    try:
+        server._cpu_mark = (time.monotonic() - 5, Times(100.0, 50.0, 850.0))
+        server.psutil.cpu_times = lambda: Times(160.0, 70.0, 870.0)  # 80 of 100 busy
+        got = []
+        worker = threading.Thread(target=lambda: got.append(server.read_cpu()))
+        worker.start()
+        worker.join()
+        assert got == [80.0], got
+        # A second read inside the minimum window repeats the reading rather
+        # than diffing two marks a few ticks apart.
+        server.psutil.cpu_times = lambda: Times(160.5, 70.0, 870.0)
+        assert server.read_cpu() == 80.0
+    finally:
+        server._cpu_mark, server._cpu_last, server.psutil.cpu_times = saved
 
 
 def test_grace_ts_deterministic():
@@ -710,6 +739,77 @@ def test_a_dead_qbittorrent_yields_to_a_dead_daemon():
     assert [d["kind"] for d in out.values()] == ["autopilot.stalled"]
     out = server.anime_health_to_dispatches(_overview_synced(3, qb_ok=False), now)
     assert out["autopilot:qb-down"]["kind"] == "autopilot.qb_down"
+
+
+def _show(when: datetime, airing: bool = True) -> dict:
+    return {"airing_at": int(when.timestamp()), "airing": airing}
+
+
+def test_airing_today_walks_each_weekly_slot_forward():
+    """airing_at is episode 1's slot. Comparing it with today only caught
+    premieres: on Thursday 2026-09-24 four Thursday shows read as none."""
+    thu = datetime(2026, 9, 24, 12, 0)
+    shows = [
+        _show(datetime(2026, 7, 2, 11, 30)),          # a Thursday, weeks ago
+        _show(datetime(2025, 10, 2, 9, 0)),           # a Thursday, a year ago
+        _show(datetime(2026, 7, 9, 23, 41)),          # late Thursday slot
+        _show(datetime(2026, 7, 5, 10, 0)),           # a Sunday show
+        _show(datetime(2026, 7, 2, 11, 30), airing=False),   # finished
+        {"airing_at": None, "airing": True},          # dated, not timed
+    ]
+    assert server.anime_airing_today(shows, thu) == 3
+    assert server.anime_airing_today(shows, datetime(2026, 9, 27, 8)) == 1
+    assert server.anime_airing_today(shows, datetime(2026, 9, 25, 8)) == 0
+
+
+def test_a_premiere_counts_only_on_its_own_day():
+    first = datetime(2026, 10, 1, 21, 0)
+    shows = [_show(first, airing=False)]   # not on the air yet
+    assert server.anime_airing_today(shows, datetime(2026, 10, 1, 9)) == 1
+    assert server.anime_airing_today(shows, datetime(2026, 9, 24, 9)) == 0
+
+
+class _FailingClient:
+    def __init__(self, exc):
+        self.exc = exc
+
+    async def get(self, url, **kw):
+        raise self.exc
+
+
+def test_a_slow_service_stays_lit_and_a_refused_one_goes_dark():
+    """A timeout means the service took the connection: it is running. DARK
+    told the reader to launch a second Ground Station onto a taken port."""
+    src = server.SOURCES["arsenal"]
+    saved = (src.state, src.latency_ms, src.note, dict(src.stat), src.last_error)
+    try:
+        src.state, src.stat = "open", {"tools": 3}
+        asyncio.run(server.tick_arsenal(
+            _FailingClient(server.httpx.ReadTimeout("slow"))))
+        assert (src.state, src.note, src.latency_ms) == ("open", "slow", None)
+        assert src.stat == {"tools": 3}      # a slow gate keeps its figure
+        asyncio.run(server.tick_arsenal(
+            _FailingClient(server.httpx.ConnectError("refused"))))
+        assert (src.state, src.note) == ("dark", None)
+        assert src.stat == {}
+    finally:
+        (src.state, src.latency_ms, src.note, src.stat, src.last_error) = saved
+
+
+def test_a_closed_port_has_time_to_be_refused():
+    """Windows refuses a closed local port only after ~2 s of retries. Inside
+    a 2 s connect budget that arrived as a timeout, which now means "slow"."""
+    assert server.CONNECT_TIMEOUT_S >= 2 * server.HTTP_TIMEOUT_S
+
+
+def test_only_links_and_scripts_are_stamped():
+    """The SVG <image> tiles share their files with the stylesheets, which ask
+    by the plain URL. A stamped copy downloaded every texture twice."""
+    html = (Path(server.__file__).resolve().parent / "static" / "index.html"
+            ).read_text(encoding="utf-8")
+    refs = [m.group(2) for m in server._ASSET_REF.finditer(html)]
+    assert "/static/css/atrium.css" in refs and "/static/js/app.js" in refs
+    assert not [r for r in refs if "/assets/tex/" in r], refs
 
 
 if __name__ == "__main__":

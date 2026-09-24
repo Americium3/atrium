@@ -61,8 +61,9 @@
   --bronze: #6e522c;
   --machine-edge: #060504;   /* wells, slots, notches — darkest machine tone */
   --rivet: rgba(232, 220, 192, 0.34);
-  --steam-core: rgba(248, 240, 220, 0.60);
-  --steam-mid: rgba(248, 240, 220, 0.26);
+  --steam-core: rgba(248, 240, 220, 0.3);
+  --steam-mid: rgba(248, 240, 220, 0.2);
+  --steam-wisp: rgba(248, 240, 220, 0.12);
   /* Concourse fabric (v4) — plaster, stone and the light that falls on them.
      The wall must separate from the void behind the hall without becoming a
      second surface tone: these sit between --base and --surface. */
@@ -118,7 +119,8 @@
   --machine-edge: #57492f;
   --rivet: rgba(42, 36, 22, 0.30);
   --steam-core: rgba(42, 36, 22, 0.15);
-  --steam-mid: rgba(42, 36, 22, 0.07);
+  --steam-mid: rgba(42, 36, 22, 0.08);
+  --steam-wisp: rgba(42, 36, 22, 0.05);
   /* Ivory plaster is *darker* than the paper ground: on this theme the void
      behind the hall is the brightest thing on screen, so a wall lighter than
      --base would read as a hole rather than a plane. */
@@ -137,19 +139,122 @@
   --sconce-pool: rgba(154, 123, 45, 0.15);
   color-scheme: light;
 }
+/* ----- Material foundation: the picture palace (direction C) -------------
+   A Deco gold room is a chord of metals, never one: gold leaf, nickel
+   silver (the Bureau's leaf; it was a flat aluminium grey) and warm bronze, each as six tones across a moulding (0 glaze in the
+   reveal, 1 shade, 2 body, 3 crest in the light, 4 relief body, 5 lip).
+   Night keeps the metal dark and lets the lamps find it; day lifts the body
+   and cools the crest toward the sky. Gold is glazed down: the glaze token
+   is what lies in every reveal. */
+:root[data-theme="onyx"] {
+  --au-0: #251806; --au-1: #57401a; --au-2: #94722e; --au-3: #f3d993; --au-4: #b68d3c; --au-5: #e6c67a;
+  --ag-0: #17140f; --ag-1: #463d2f; --ag-2: #938670; --ag-3: #f4e8c8; --ag-4: #b9a987; --ag-5: #dccaa2;
+  --cu-0: #180f08; --cu-1: #382513; --cu-2: #684a2a; --cu-3: #d5a769; --cu-4: #8b6a3f; --cu-5: #b38a58;
+  --pl-0: #121110; --pl-1: #24211c; --pl-2: #3a362f; --pl-3: #6c665a; --pl-4: #4b463d; --pl-5: #5c574c;
+  --relief-shadow: rgba(8, 5, 2, 0.74);
+  --glaze: rgba(8, 5, 2, 0.8);
+  --portal-well: #0a0705;
+  --portal-arris: rgba(0, 0, 0, 0.85);
+  --portal-shadow: rgba(2, 1, 1, 0.5);
+  --cove: #ffd08e;
+  --glass-unlit: #18120b;
+  --etch-a: 0.10;
+  --bar: #2e2112;
+  --enamel: #0c0a08;
+  --plinth: #0d0b09;
+  --sign-glass: #090706;
+  --leaf-0: #fff2c6; --leaf-1: #e6c16a; --leaf-2: #a47c2b; --leaf-3: #deb760; --leaf-4: #7c5818;
+  --house-deep: #070504;
+  --screen: #c9bfa9; --screen-hi: #fff4de; --screen-flood: #fffaf0;
+  --tab-foot: rgba(255, 186, 104, 0.20);
+  --footlight: rgba(255, 170, 84, 0.62);
+  --spot: rgba(255, 226, 182, 0.34); --spot-edge: rgba(255, 206, 146, 0.11);
+  --desc-night: #f6e9cc; --desc-halo: rgba(255, 206, 140, 0.28);
+  --apron: #0b0907; --apron-gilt: #dcb662; --apron-ink: #a3967a;
+  --lamp-bloom: rgba(255, 176, 76, 0.6);
+  --iron: #262924; --iron-hi: #333630; --iron-lo: #181a17; --iron-line: #43473f;
+  --iron-rivet: #5c6057; --iron-ink: #a9ac9f;
+  --mirror-a: 0.6;
+}
+:root[data-theme="ivory"] {
+  --au-0: #6a5220; --au-1: #94763a; --au-2: #c4a45e; --au-3: #fdf0c8; --au-4: #d6b772; --au-5: #f1dea4;
+  --ag-0: #3c4046; --ag-1: #6e747b; --ag-2: #aab0b6; --ag-3: #f6f8fa; --ag-4: #c6cbd0; --ag-5: #e4e8ec;
+  --cu-0: #4a3620; --cu-1: #6c5133; --cu-2: #92714a; --cu-3: #e6c79c; --cu-4: #aa895e; --cu-5: #caa77b;
+  --pl-0: #bdb6a8; --pl-1: #cec8bb; --pl-2: #dbd5c9; --pl-3: #e8e3d8; --pl-4: #e0dbcf; --pl-5: #e5e0d5;
+  /* Nickel by day is cool and polished, a dark reflection band beside a
+     white crest; plaster is chalky, a narrow ramp with no specular crest.
+     The two used to be the same warm cream, and a lit Bureau arch read as
+     the reserved gate's bare stock. */
+  --relief-shadow: rgba(62, 45, 20, 0.46);
+  --glaze: rgba(58, 40, 16, 0.55);
+  --portal-well: #3b3024;
+  --portal-arris: rgba(62, 45, 20, 0.55);
+  --portal-shadow: rgba(52, 38, 18, 0.34);
+  --cove: #fff1d6;
+  --glass-unlit: url(#fl-day);
+  --etch-a: 0.26;
+  --bar: #57452a;
+  --enamel: #0d0a08;
+  --plinth: #1b1815;
+  --sign-glass: #0b0908;
+  --leaf-0: #fff2c6; --leaf-1: #e6c16a; --leaf-2: #a47c2b; --leaf-3: #deb760; --leaf-4: #7c5818;
+  --house-deep: #2b231b;
+  --screen: #e6e0d1; --screen-hi: #fcfaf4; --screen-flood: #ffffff;
+  --tab-foot: rgba(0, 0, 0, 0.10);
+  --footlight: transparent;
+  --spot: transparent; --spot-edge: transparent;
+  --desc-night: #f6e9cc; --desc-halo: transparent;
+  --apron: #15110d; --apron-gilt: #dcb662; --apron-ink: #b0a384;
+  --lamp-bloom: rgba(255, 176, 76, 0.35);
+  --iron: #a8ac9f; --iron-hi: #bcc0b3; --iron-lo: #8d9186; --iron-line: #7a7e74;
+  --iron-rivet: #676b62; --iron-ink: #2d312a;
+  --mirror-a: 0.24;
+}
+/* House velvets: the gate's own colour, deep at night, a full step up by
+   day when the drawn tabs catch the street light. */
+:root[data-theme="onyx"] .gate[data-velvet="claret"]   { --velvet: #5c1119; }
+:root[data-theme="onyx"] .gate[data-velvet="emerald"]  { --velvet: #0c3a2a; }
+:root[data-theme="onyx"] .gate[data-velvet="sapphire"] { --velvet: #13224d; }
+:root[data-theme="onyx"] .gate[data-velvet="plum"]     { --velvet: #3a1236; }
+:root[data-theme="onyx"] .gate[data-velvet="peacock"]  { --velvet: #0a3439; }
+:root[data-theme="onyx"] .gate[data-velvet="umber"]    { --velvet: #43290f; }
+:root[data-theme="ivory"] .gate[data-velvet="claret"]   { --velvet: #86202b; }
+:root[data-theme="ivory"] .gate[data-velvet="emerald"]  { --velvet: #1e6048; }
+:root[data-theme="ivory"] .gate[data-velvet="sapphire"] { --velvet: #274078; }
+:root[data-theme="ivory"] .gate[data-velvet="plum"]     { --velvet: #612659; }
+:root[data-theme="ivory"] .gate[data-velvet="peacock"]  { --velvet: #17585f; }
+:root[data-theme="ivory"] .gate[data-velvet="umber"]    { --velvet: #72502a; }
+.gate[data-velvet="iron"] { --velvet: var(--iron); }
+
 /* Wing metal — carried by exactly three surfaces:
-   lever needle, masthead underline, active gate frames + stage glow. */
-:root[data-wing="salon"]  { --metal: var(--gold); --metal-hi: var(--champagne); }
-:root[data-wing="bureau"] { --metal: var(--plat); --metal-hi: var(--plat-hi); }
+   lever needle, masthead underline, active gate frames + stage glow.
+   The Salon's is set here and never changes on :root; the Bureau's is set
+   on the fixtures that show it, with the leaf (--lead-*, further down). */
+:root { --metal: var(--gold); --metal-hi: var(--champagne); }
 
 :root {
-  --serif: 'EB Garamond', Georgia, 'Palatino Linotype', serif;
+  /* One stack for both languages. The CJK face sits second, so it sets every
+     Chinese character in either hall: with it only under html[lang="zh"],
+     a CJK title in the English hall, and any element that names var(--serif)
+     itself, fell through to the generic serif, which Chrome resolves to
+     SimSun for Chinese text (and bolds by hand at weight 600). The face only
+     sets what EB Garamond lacks, and measured glyph by glyph (arrows, the
+     diamond, primes, dashes) the only characters that change are Chinese. */
+  --serif: 'EB Garamond', 'LXGW Heart Serif', Georgia, 'Palatino Linotype',
+           'Microsoft YaHei', serif;
   /* The stage now seats a clock between the arches — the gates give up some
      width so all three stand on one screen without crowding. On a wide wall
      the module grows with the lettering (--ui): a 1720px diorama stranded in
-     the middle of a 3440px screen is the thing this pass exists to end. */
-  --gate-w: clamp(182px, min(13.6vw, 26.5vh),
+     the middle of a 3440px screen is the thing this pass exists to end.
+     --gate-vcap is the vertical budget's cap (budgetHall() in app.js): the
+     largest arch that still leaves the lever its floor under the stage. It
+     does not inherit (see the @property rules above). */
+  --gate-w: clamp(182px, min(13.6vw, 26.5vh, var(--gate-vcap, 100vh)),
                   calc(296px * (0.62 + 0.38 * var(--ui))));
+  /* The same module with no vertical cap: the arch as it would stand if the
+     floor asked nothing of the height. budgetHall() gives a tall screen's
+     surplus to the wall from it (LY-9); registered, so it reads back as px. */
+  --gate-free: clamp(182px, min(13.6vw, 26.5vh), calc(296px * (0.62 + 0.38 * var(--ui))));
   --desk-h: 210px;         /* the signal desk's own standing height */
   --hall-foot: 30px;       /* #hall's bottom padding, shared with the floor */
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
@@ -173,6 +278,16 @@
    "calc(var(--ui-auto) * var(--ui-user))" — which parseFloat reads as NaN,
    and every JS-side `* u` silently falls back to 1. */
 @property --ui { syntax: "<number>"; inherits: true; initial-value: 1; }
+@property --gate-free { syntax: "<length>"; inherits: true; initial-value: 0px; }
+/* Measurements the layout pass writes on every resize, each read only by
+   the element it is written on: the vertical cap (:root), the floor's
+   share (#concourse), an arch's slot (.gate) and the desk's room
+   (#signal-desk). Inherited, each new value restyled everything under its
+   element, some 11,000 elements per resize event at 1920 (MO-17). */
+@property --gate-vcap { syntax: "*"; inherits: false; }
+@property --floor-fit { syntax: "*"; inherits: false; }
+@property --slot-x { syntax: "*"; inherits: false; }
+@property --desk-room { syntax: "*"; inherits: false; }
 :root { --ui-auto: 1; --ui-user: 1; --ui: calc(var(--ui-auto) * var(--ui-user)); }
 @media (min-width: 1900px) { :root { --ui-auto: 1.12; } }
 @media (min-width: 2400px) { :root { --ui-auto: 1.24; } }
@@ -195,7 +310,6 @@ body {
   /* No bottom clearance any more. The signal desk stands ON the floor rather
      than under the page, so the hall owns every pixel down to the edge. */
 }
-html[lang="zh"] body { font-family: 'EB Garamond', 'LXGW Heart Serif', 'Microsoft YaHei', serif; }
 /* Atmosphere sheet: vignette + fine grain in front of the hall — implies
    air, unifies the depth layers, kills gradient banding on dark ground. */
 body::after {
@@ -217,8 +331,60 @@ button {
   font: inherit; color: inherit; background: none; border: none; cursor: pointer;
 }
 svg { display: block; }
+/* The hall is signage and scenery. A stray drag across it painted the
+   browser's blue selection boxes over the engraved gate faces. Text worth
+   copying (a DARK gate's launcher path) opts back in where it is drawn. */
+#masthead, #ticker, #concourse, #signal-desk { user-select: none; }
 /* Wing-neutral (the wing metal is reserved for exactly three surfaces). */
 :focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; }
+/* The lever's ring sits on bronze, which on ivory is a dark mid-tone the
+   palladium ring barely clears. A base-coloured halo under it keeps the
+   ring legible on the machine in both themes. */
+#lever:focus-visible { box-shadow: 0 0 0 5px var(--base); }
+
+/* The key plate. Dressed with the rest of the hall's plates in the
+   materials pass; here it only has to be legible and out of the way.
+   Out of the way means over the ticker band, not in a corner: standing in
+   the bottom-left corner it covered the first arch's lamp, address and
+   plinth at 1280 and 1366 wide. The band is the one strip of the hall no
+   arch or clock can reach, since the wall's headroom stands between it and
+   the arch heads at every size. So the plate lies along the band, as wide
+   as it, its rows side by side; placeKeyplate() in app.js lays it on the
+   band's box. */
+#keyplate {
+  position: fixed; left: 24px; right: 24px; top: 0;
+  z-index: 57;
+  display: grid; grid-template-columns: auto 1fr;
+  align-items: baseline; column-gap: calc(22px * var(--ui));
+  padding: calc(8px * var(--ui)) calc(18px * var(--ui));
+  background-color: var(--surface);
+  border: 1px solid var(--line);
+  box-shadow: 0 10px 30px var(--shadow-drop);
+  color: var(--ink);
+}
+#keyplate[hidden] { display: none; }
+/* The plate lies exactly on the band. Called up while the band holds the
+   caret, it carries the band's ring, or the focus would show nowhere. */
+body:has(#ticker:focus-visible) #keyplate { outline: 2px solid var(--focus); outline-offset: 3px; }
+.kp-title {
+  font-size: calc(12px * var(--ui)); letter-spacing: 0.28em;
+  color: var(--gold-text);
+}
+.kp-rows {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(calc(200px * var(--ui)), 1fr));
+  column-gap: calc(18px * var(--ui));
+}
+.kp-row {
+  display: grid; grid-template-columns: calc(52px * var(--ui)) 1fr;
+  align-items: baseline; gap: 10px;
+  font-size: calc(12.5px * var(--ui)); line-height: 1.8;
+}
+.kp-key {
+  font-size: calc(11px * var(--ui)); letter-spacing: 0.14em;
+  color: var(--gold-text); font-family: inherit;
+}
+.kp-do { color: var(--ink-faint); }
 
 /* Display caps: tracked EB Garamond, never below 0.15em, no ligatures. */
 .display {
@@ -231,10 +397,29 @@ svg { display: block; }
 html[lang="zh"] .zh-sentence,
 html[lang="zh"] .pl-head, html[lang="zh"] .pl-detail,
 html[lang="zh"] .g-desc, html[lang="zh"] .p-desc {
-  letter-spacing: 0; font-size: 1.06em;
+  letter-spacing: 0;
 }
+/* The CJK face runs a touch small beside Garamond, so zh sentences take 6%
+   more than their own size. It used to be `font-size: 1.06em`, which is 6%
+   more than the PARENT's size: every one of these ended up at body size, and
+   a preference's description outgrew the name above it by 41%.
+   The gate description is sized in container units with the English one
+   (see THE PICTURE PALACE), so it is not in this list. */
+html[lang="zh"] .bd-sub, html[lang="zh"] .al-mname,
+html[lang="zh"] .pl-detail { font-size: calc(12.5px * 1.06 * var(--ui)); }
+html[lang="zh"] .pl-head { font-size: calc(14.5px * 1.06 * var(--ui)); }
+html[lang="zh"] .p-desc { font-size: calc(11.5px * 1.06 * var(--ui)); }
+html[lang="zh"] .l-empty .zh-sentence, html[lang="zh"] .al-cond { font-size: calc(13px * 1.06 * var(--ui)); }
 /* Localized display lines need the CJK tracking floor (0.25-0.35em). */
 html[lang="zh"] .display { letter-spacing: 0.26em; }
+/* The Chinese face has one weight and hairline strokes. Set small outside
+   the gates and the cabinetry it printed at 2.5 to 4.4:1 where the English
+   it stands in for passes 4.5:1, so it takes its own ink round every stroke
+   here too. Keyed on the lettering's own language; English signage inside
+   it keeps its own weight. */
+:where(.m-sub, #dateline, .bd-sub, .al-vlabel, .al-slabel, .bay-plate, .t-track):lang(zh) { -webkit-text-stroke: 0.4px currentColor; }
+:where(.m-sub):lang(zh) { -webkit-text-stroke-width: 0.5px; }
+:where(.m-sub, #dateline, .bd-sub, .al-vlabel, .al-slabel, .bay-plate, .t-track) [lang="en"] { -webkit-text-stroke-width: 0; }
 /* Addresses / numerals: true caps + tabular figures (digits have no small caps). */
 .addr, .num {
   font-variant-numeric: tabular-nums;
@@ -249,19 +434,20 @@ html[lang="zh"] .display { letter-spacing: 0.26em; }
    the sequential-lighting stagger below and must win the cascade. */
 .sigil, #monogram, #prefs-btn svg,
 .medal, .medal .rim, .medal .m-sig, .chip,
-.quadrant path, .quadrant circle, .quadrant rect, .quadrant polygon,
-.quadrant ellipse,
 .wk-dial path, .wk-dial circle, .wk-dial line, .wk-dial text,
-.wk-plate rect, .wk-plate circle, .wk-plate text,
-.lever-svg path, .lever-svg circle, .lever-svg rect, .lever-svg text,
-.lever-svg polygon, .lever-svg ellipse,
-.gearA-svg path, .gearA-svg circle, .gearA-svg rect, .gearA-svg polygon,
-.gearA-svg ellipse, .gearA-svg text,
-.gearB-svg path, .gearB-svg circle, .gearB-svg rect, .gearB-svg polygon,
-.gearB-svg ellipse, .gearB-svg text {
+.wk-hands path, .wk-hands circle,
+.wk-plate rect, .wk-plate circle, .wk-plate text {
   transition: stroke 0.4s, fill 0.4s, color 0.4s,
               background-color 0.4s, border-color 0.4s;
 }
+
+/* The theme crossfade (resolveTheme): the old hall, captured as a picture,
+   fades out over the new one in 400ms. Under it the flip lands with every
+   transition cut, so the new hall is drawn once, already finished. */
+::view-transition-old(root),
+::view-transition-new(root) { animation-duration: 0.4s; }
+:root.theme-cut, :root.theme-cut *,
+:root.theme-cut *::before, :root.theme-cut *::after { transition: none !important; }
 
 /* ==========================================================================
    HALL LAYOUT
@@ -277,12 +463,21 @@ html[lang="zh"] .display { letter-spacing: 0.26em; }
      as one building rather than a panel floated in a void. */
   max-width: min(3360px, 100%);
   margin: 0 auto;
-  padding: 20px clamp(24px, 2.4vw, 68px) var(--hall-foot);
+  /* The masthead's fascia reaches up through this padding to the top of the
+     screen, so it reads the same figure (VD-13). */
+  --hall-pad-top: 20px;
+  padding: var(--hall-pad-top) clamp(24px, 2.4vw, 68px) var(--hall-foot);
   /* The hall stands the full screen, and the concourse row eats whatever the
      masthead and ticker leave. Content-height alone left ~270px of page
      ground below the floor on a 1235px viewport — a bright dead band under
      the terrazzo that no amount of tuning inside the floor could reach. */
   min-height: 100vh;
+  /* The room ends at its own floor. Each arch's reflection hangs 44% of an
+     arch below its plinth, and on a short or narrow screen it ran as much
+     as 22px past the bottom of the hall and gave the page a scrollbar. clip,
+     not hidden: it leaves the other axis visible, so the full-bleed wall
+     and floor still reach the screen edges. */
+  overflow-y: clip;
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   grid-template-rows: auto auto minmax(0, 1fr);
@@ -401,6 +596,23 @@ html[data-boot="suppressed"] #hall { animation: hall-fade 0.3s var(--ease-out) b
 }
 :root[data-theme="ivory"] .l-badge { background: var(--gold-text); }
 .l-badge[hidden] { display: none; }
+/* The count the disc stands for, engraved just outside the housing beside
+   it, in the gap before PREFERENCES. Hover and keyboard focus only: at rest
+   the disc carries no numeral, and a title tooltip never reaches focus. */
+.l-count {
+  position: absolute;
+  top: 0; left: calc(100% + 7px);   /* clear of the 5px focus ring */
+  font-size: calc(10px * var(--ui));
+  line-height: 1;
+  letter-spacing: 0.04em;
+  color: var(--gold-text);
+  opacity: 0;
+  transition: opacity 0.2s;
+  pointer-events: none;
+}
+.l-count[hidden] { display: none; }
+#ledger-btn:hover .l-count,
+#ledger-btn:focus-visible .l-count { opacity: 1; }
 /* Arrival: the carrier seats itself, once. Event-driven, never idle — the
    hall at rest is silent architecture. As a CSS animation this also collapses
    under REDUCED motion, which the inline transform it replaces did not. */
@@ -440,44 +652,67 @@ html[data-boot="suppressed"] #hall { animation: hall-fade 0.3s var(--ease-out) b
   animation: marquee var(--t-dur, 40s) linear infinite;
   will-change: transform;
 }
-#ticker.rolling:hover .t-track,
-#ticker.rolling:focus-within .t-track { animation-play-state: paused; }
+/* The hold for focus is for a keyboard reader. A mouse click also parks
+   focus on the band, and :focus-within kept it frozen, with no ring to say
+   why, until the reader clicked somewhere else (PT-6). The hold for the
+   pointer is a mouse or a pen resting on the band (data-reader, app.js),
+   not :hover, which a tap leaves stuck on the band (PT-12). */
+#ticker.rolling[data-reader] .t-track,
+#ticker.rolling:focus-visible .t-track { animation-play-state: paused; }
 #ticker.static { text-align: center; }
 @keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+/* Reduced motion: the band is set in pages stacked in one cell, and turns
+   them with a slow crossfade. Opacity only, so every page stays in the
+   accessibility tree and the band is heard whole. */
+#ticker.paged { text-align: center; }
+#ticker.paged .t-track { display: grid; width: 100%; }
+.t-page {
+  grid-area: 1 / 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  opacity: 0;
+  transition: opacity 0.9s ease;
+}
+.t-page.on { opacity: 1; }
 .t-sep { color: var(--gold); padding: 0 14px; }
+/* The loop's second copy; aria-hidden, and layout-neutral. */
+.t-twin { display: inline; }
 .t-new { color: var(--gold-text); }
 
 /* ==========================================================================
-   SIGNAL DESK — the works of the hall (DESIGN.md v4.1). A machine standing
-   on the terrazzo, not a strip of chrome bolted under the picture: the
-   bronze band, the LINES dial and the maker's plate that used to flank it
-   are gone, and what survives is the lever with its quadrant, gear train
-   and steam. z ladder: desk 50 < prefs 60 < grain 95 < entrance 100. The
-   shell is never clipped (steam must escape; clip-path kills shadows) —
-   only the gear well clips, via overflow:hidden. One scalar --drive
-   (0=salon, 1=bureau, written by the JS driver) derives the lever and both
-   gears; it lives on :root so the works board can read it too.
+   THE HOUSE-LIGHTS BOARD: the hall's one control (DESIGN.md "The
+   house-lights board"). An upright switchboard on a bronze standard at the
+   foot of the runner, drawn by static/js/desk.js and dressed in
+   palace-desk.css. z ladder: desk 50 < prefs 60 < grain 95 < entrance 100.
+   One number, --sw (0 = the blades in the Salon's jaws, 1 = in the
+   Bureau's), is written by app.js onto the few parts CSS moves: the
+   needle, the lamps and their pools, and the hit strip. The blades, the
+   crossbar and the handle are a stack of drawn poses that desk.js shows by
+   opacity from the same number. --sw is never written on the board or the
+   desk, so nothing larger is restyled by a throw.
    ========================================================================== */
+@property --sw { syntax: "<number>"; inherits: true; initial-value: 0; }
 #signal-desk {
   position: fixed; left: 0; right: 0; bottom: calc(10px * var(--ui));
   height: var(--desk-h);
   z-index: 50;
   isolation: isolate;
-  pointer-events: none;   /* only the lever hit surface takes the pointer */
+  pointer-events: none;   /* only the board's own parts take the pointer */
+  /* One scale for the board and everything that hit-tests on it. --desk-k
+     is what the viewport allows; --desk-room is what the floor under the
+     stage allows, written by fitDesk() in app.js. */
+  --desk-k: calc(0.62 + 0.4 * var(--ui));
+  --desk-s: min(var(--desk-k), var(--desk-room, 9));
 }
-/* Boot parity with the hall: suppressed loads fade, played entrances rise
-   in the old lever-row slot. Transform/opacity only — the entrance dock
-   measurement depends on zero layout shift. */
+/* Boot parity with the hall: suppressed loads fade. A played entrance
+   raises the house curtain on a board that is already standing. */
 html[data-boot="suppressed"] #signal-desk {
   animation: hall-fade 0.3s var(--ease-out) both;
 }
-html[data-entered="no"] #signal-desk {
-  animation: rise-in 0.45s var(--ease-out) both;
-  animation-delay: 2.1s;
-}
-/* Initial pose before the JS driver's first write. */
-:root[data-wing="salon"] { --drive: 0; }
-:root[data-wing="bureau"] { --drive: 1; }
+/* The rest pose before app.js writes its first value. */
+:root[data-wing="salon"] .sw-drive { --sw: 0; }
+:root[data-wing="bureau"] .sw-drive { --sw: 1; }
 
 .desk-core {
   position: relative;
@@ -485,322 +720,99 @@ html[data-entered="no"] #signal-desk {
   margin: 0 auto;
   padding: 0 44px;
 }
-
-/* ----- Lever assembly ---------------------------------------------------- */
+/* The board's box, in its own units (desk.js writes --hb-w and --hb-h). */
 .assembly {
   position: absolute; left: 50%; bottom: 0;
-  width: 360px; height: 220px;
-  /* Tracks the lettering, but at a third of its slope. On a 3440 screen the
-     old coefficient stood the machine 275px tall — taller than the stone it
-     stands on once the wall took its headroom back, so the lever tip came up
-     level with the skirting and the hall lost its floor to its furniture. */
-  transform: translateX(-50%) scale(calc(0.80 + 0.14 * var(--ui)));
+  width: var(--hb-w, 460px); height: var(--hb-h, 296px);
+  transform: translateX(-50%) scale(var(--desk-s));
   transform-origin: center bottom;
   pointer-events: none;
 }
 .desk-art { position: absolute; inset: 0; contain: layout paint; }
-.quadrant { position: absolute; inset: 0; width: 100%; height: 100%; }
+.hl-board { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+/* The board answers the pointer where it is drawn and nowhere else: its
+   shapes hit-test on their own paint. The wool under it is floor. */
+.hl-board { pointer-events: none; }
+.hl-board > g, .hl-board > g * { pointer-events: visiblePainted; cursor: pointer; }
+.hl-board .hb-floor, .hl-board .hb-floor *, .hl-board .hb-noptr, .hl-board .hb-noptr * { pointer-events: none; }
 
-/* ---- Console casework (v4.3) -------------------------------------------
-   The desk used to be three loose parts sharing a patch of floor: a lever
-   pivoting on nothing, a quadrant hanging in mid-air, and an aperture cut
-   into no surface. The stance in DESIGN.md is that mechanism is sublimated
-   by CASEWORK — the machine lives inside architecture and is revealed at
-   one opening — so the parts are now housed in a bronze console that stands
-   on the terrazzo: stepped plinth, fluted pilasters, frieze, cornice cap.
-   Every profile is borrowed from something already in the hall (the gates'
-   3-step shoulders, the aisle pilasters, the dado's chair rail), which is
-   what keeps it furniture in this room rather than a machine parked in it.
-
-   Three flat planes, no gradients: cap (lit top), face (front), deep
-   (recess). See the --bronze-face note in the token block for why the
-   front could not stay --bronze-deep. */
-.quadrant .cw-face     { fill: var(--bronze-face); stroke: none; }
-.quadrant .cw-cap      { fill: var(--bronze-cap); stroke: none; }
-.quadrant .cw-deep     { fill: var(--bronze-deep); stroke: none; }
-.quadrant .cw-recess   { fill: var(--machine-edge); stroke: none; }
-.quadrant .cw-edge     { fill: none; stroke: var(--bronze); stroke-width: 1; }
-.quadrant .cw-lit      { fill: none; stroke: var(--champagne); stroke-width: 1; opacity: 0.30; }
-.quadrant .cw-flute    { fill: none; stroke: var(--bronze-deep); stroke-width: 1.5; }
-.quadrant .cw-knurl    { fill: none; stroke: var(--bronze); stroke-width: 1; opacity: 0.55; }
-.quadrant .cw-rivet    { fill: var(--rivet); stroke: none; }
-/* Contact shadow where the plinth meets stone, and the waxed-floor return.
-   Every other thing standing in this hall comes back up off the terrazzo —
-   the arches, the clock, both aisle cases — and the machine was the one
-   object with no reflection, which is exactly why it read as pasted onto
-   the floor rather than set on it. The return is short and steep, so the
-   parallel-smear error a fixed element cannot avoid stays under a pixel. */
-.quadrant .cw-contact  { fill: var(--shade); stroke: none; }
-.quadrant .cw-return   { fill: var(--bronze-face); stroke: none; }
-.quadrant .q-plate { fill: var(--bronze-deep); stroke: var(--bronze); stroke-width: 1; }
-.quadrant .q-face { fill: none; stroke: var(--bronze); stroke-width: 1; }
-.quadrant .q-teeth { stroke: var(--ink-faint); stroke-width: 1; fill: none; }
-.quadrant .q-notch { fill: var(--machine-edge); stroke: none; }
-.quadrant .q-slot { fill: var(--machine-edge); stroke: var(--line); stroke-width: 1; }
-.quadrant .q-pipe { fill: var(--bronze-deep); stroke: var(--bronze); stroke-width: 1; }
-
-.desk-fx { position: absolute; inset: 0; }
-/* The aperture. It was a 176×56 rectangle — the only bare rectangle in a
-   hall built entirely from arches, stepped shoulders and arcs — and it was
-   so wide and so short that an 88px gear crossing it showed as a single
-   shallow band with no centre and no visible teeth: a stray arc, not a
-   machine. It is an ARCH now, on the hall's own semicircular head, and
-   narrow enough that the gear reads as round: 128 wide against a gear that
-   spans 88, showing 48px of it instead of 34. One deliberate opening per
-   region is the whole rule; this is the region's. */
-.gear-well {
-  position: absolute; left: 50%; bottom: 42px;
-  width: 112px; height: 60px;
-  margin-left: -56px;
-  border-radius: 56px 56px 2px 2px;   /* semicircular head, r = half width */
-  overflow: hidden;               /* the one sanctioned clip — not clip-path */
-  background-color: var(--machine-edge);
-  border: 1px solid var(--bronze);
-  transition: background-color 0.4s, border-color 0.4s;
-}
-.gearA-svg, .gearB-svg {
-  position: absolute;
+.desk-fx, .desk-sw { position: absolute; inset: 0; pointer-events: none; }
+.desk-fx > svg, .desk-sw > svg {
+  position: absolute; inset: 0; width: 100%; height: 100%;
   overflow: visible;
-  will-change: transform;
-}
-.gearA-svg {
-  width: 104px; height: 104px;
-  transform: rotate(calc((var(--drive, 0) - 0.5) * 90deg));
-}
-.gearB-svg {
-  width: 60px; height: 60px;
-  transform: rotate(calc((var(--drive, 0) - 0.5) * -180deg));
-}
-/* Legacy single-path fill — overridden by per-class rules below when the
-   multi-element gear is built. Kept so a fallback single path still renders. */
-.gearA-svg path, .gearB-svg path {
-  fill: var(--bronze); stroke: var(--machine-edge); stroke-width: 1;
-}
-
-/* ---- Gear A per-element classes ----------------------------------------- */
-.gearA-svg .ga-rim        { fill: var(--bronze); stroke: none; }
-.gearA-svg .ga-rim-lit    { fill: none; stroke: var(--champagne); stroke-width: 1.5; }
-.gearA-svg .ga-rim-shd    { fill: none; stroke: var(--bronze-deep); stroke-width: 1; }
-.gearA-svg .ga-fillet     { fill: none; stroke: var(--bronze-deep); stroke-width: 1; }
-.gearA-svg .ga-tip-lit    { fill: none; stroke: var(--champagne); stroke-width: 2; }
-.gearA-svg .ga-tip-shd    { fill: none; stroke: var(--bronze-deep); stroke-width: 1; }
-.gearA-svg .ga-web        { fill: var(--bronze); stroke: none; }
-.gearA-svg .ga-web-shd    { fill: var(--bronze-deep); stroke: none; opacity: 0.45; }
-.gearA-svg .ga-web-lit    { fill: var(--champagne); stroke: none; opacity: 0.18; }
-.gearA-svg .ga-spoke      { fill: var(--bronze-deep); stroke: none; }
-.gearA-svg .ga-spoke-shd  { fill: var(--machine-edge); stroke: none; opacity: 0.7; }
-.gearA-svg .ga-lhole      { fill: var(--machine-edge); stroke: var(--bronze-deep); stroke-width: 0.75; }
-.gearA-svg .ga-boss       { fill: var(--bronze); stroke: var(--bronze-deep); stroke-width: 1; }
-.gearA-svg .ga-boss-lit   { fill: none; stroke: var(--champagne); stroke-width: 2; }
-.gearA-svg .ga-boss-shd   { fill: none; stroke: var(--bronze-deep); stroke-width: 1; }
-.gearA-svg .ga-bore       { fill: var(--machine-edge); stroke: none; }
-.gearA-svg .ga-keyway     { fill: var(--machine-edge); stroke: none; }
-.gearA-svg .ga-key        { fill: var(--bronze); stroke: var(--bronze-deep); stroke-width: 0.5; }
-.gearA-svg .ga-ssboss     { fill: var(--bronze); stroke: var(--machine-edge); stroke-width: 0.75; }
-.gearA-svg .ga-sshex      { fill: var(--machine-edge); stroke: none; }
-.gearA-svg .ga-bhole      { fill: var(--machine-edge); stroke: var(--bronze); stroke-width: 0.75; }
-.gearA-svg .ga-witness    { fill: none; stroke: var(--ink-faint); stroke-width: 0.5; }
-.gearA-svg .ga-index      { fill: none; stroke: var(--champagne); stroke-width: 1; }
-.gearA-svg .ga-pno-bg     { fill: var(--bronze-deep); stroke: none; }
-.gearA-svg .ga-pno-t      { fill: var(--ink-faint); font-family: var(--serif); font-size: 4.5px; }
-
-/* ---- Gear B per-element classes ----------------------------------------- */
-.gearB-svg .gb-rim        { fill: var(--bronze); stroke: none; }
-.gearB-svg .gb-rim-lit    { fill: none; stroke: var(--champagne); stroke-width: 1.5; }
-.gearB-svg .gb-rim-shd    { fill: none; stroke: var(--bronze-deep); stroke-width: 1; }
-.gearB-svg .gb-fillet     { fill: none; stroke: var(--bronze-deep); stroke-width: 1; }
-.gearB-svg .gb-web        { fill: var(--bronze); stroke: none; }
-.gearB-svg .gb-web-shd    { fill: var(--bronze-deep); stroke: none; opacity: 0.45; }
-.gearB-svg .gb-web-lit    { fill: var(--champagne); stroke: none; opacity: 0.18; }
-.gearB-svg .gb-spoke      { fill: var(--bronze-deep); stroke: none; }
-.gearB-svg .gb-flange     { fill: var(--bronze); stroke: var(--bronze-deep); stroke-width: 1; }
-.gearB-svg .gb-fl-lit     { fill: none; stroke: var(--champagne); stroke-width: 1.5; }
-.gearB-svg .gb-fl-shd     { fill: none; stroke: var(--bronze-deep); stroke-width: 1; }
-.gearB-svg .gb-bore       { fill: var(--machine-edge); stroke: none; }
-.gearB-svg .gb-dflat      { fill: var(--bronze); stroke: none; }
-.gearB-svg .gb-tip-lit    { fill: none; stroke: var(--champagne); stroke-width: 2; }
-.gearB-svg .gb-tip-shd    { fill: none; stroke: var(--bronze-deep); stroke-width: 1; }
-.gearB-svg .gb-serial     { fill: none; stroke: var(--ink-faint); stroke-width: 0.5; stroke-dasharray: 1.5 3.5; }
-.gearB-svg .gb-sno        { fill: var(--ink-faint); font-family: var(--serif); font-size: 3.5px; }
-.gearB-svg .gb-index      { fill: none; stroke: var(--champagne); stroke-width: 1; }
-
-/* ---- Lever new per-element classes -------------------------------------- */
-.lever-svg .lv-arm-lit    { fill: var(--champagne); stroke: none; opacity: 0.35; }
-.lever-svg .lv-arm-shd    { fill: var(--bronze-deep); stroke: none; opacity: 0.6; }
-.lever-svg .lv-web        { fill: var(--bronze); stroke: none; opacity: 0.25; }
-.lever-svg .lv-rivet      { fill: var(--bronze-deep); stroke: var(--bronze); stroke-width: 0.75; }
-.lever-svg .lv-pin-boss   { fill: var(--bronze); stroke: var(--bronze-deep); stroke-width: 1; }
-.lever-svg .lv-pin-lit    { fill: none; stroke: var(--champagne); stroke-width: 1.5; }
-.lever-svg .lv-pin-hole   { fill: var(--machine-edge); stroke: none; }
-.lever-svg .lv-cotter     { fill: var(--machine-edge); stroke: none; }
-.lever-svg .lv-pawl-body  { fill: var(--bronze-deep); stroke: var(--bronze); stroke-width: 0.75; }
-.lever-svg .lv-pawl       { fill: var(--bronze); stroke: var(--machine-edge); stroke-width: 0.5; }
-.lever-svg .lv-spring     { fill: none; stroke: var(--bronze); stroke-width: 0.75; }
-.lever-svg .lv-roller     { fill: var(--bronze); stroke: var(--bronze-deep); stroke-width: 0.75; }
-.lever-svg .lv-roller-shd { fill: var(--bronze-deep); stroke: none; opacity: 0.55; }
-.lever-svg .lv-clevis     { fill: var(--bronze); stroke: var(--bronze-deep); stroke-width: 0.75; }
-.lever-svg .lv-clevis-t   { fill: var(--bronze-deep); stroke: var(--bronze); stroke-width: 0.5; }
-.lever-svg .lv-ferrule    { fill: var(--bronze-deep); stroke: var(--bronze); stroke-width: 1; }
-.lever-svg .lv-knurl      { fill: url(#knurl-a); stroke: none; }
-.lever-svg .lv-endcap     { fill: var(--bronze-deep); stroke: none; }
-.lever-svg .lv-endcap-lit { fill: var(--champagne); stroke: none; opacity: 0.7; }
-.lever-svg .lv-plate-ring { fill: none; stroke: var(--champagne); stroke-width: 0.75; stroke-dasharray: 1.2 2.4; }
-.lever-svg .lv-rspring    { fill: none; stroke: var(--bronze); stroke-width: 0.75; }
-/* Dual number texts — wing-state-toggled via data-wing */
-.lever-svg .lv-num-1 { opacity: 1; transition: opacity 0.15s; }
-.lever-svg .lv-num-2 { opacity: 0; transition: opacity 0.15s; }
-:root[data-wing="bureau"] .lever-svg .lv-num-1 { opacity: 0; }
-:root[data-wing="bureau"] .lever-svg .lv-num-2 { opacity: 1; }
-/* Pawl spring compressed tell in bureau mode */
-:root[data-wing="bureau"] .lever-svg .lv-spring { opacity: 0.4; }
-/* Flange + gaiter (on .quadrant, not lever-svg) */
-.quadrant .lv-flange  { fill: var(--bronze-deep); stroke: var(--bronze); stroke-width: 1; }
-.quadrant .lv-fbolt   { fill: var(--machine-edge); stroke: var(--bronze); stroke-width: 0.75; }
-.quadrant .lv-gaiter  { fill: var(--ink-faint); opacity: 0.5; }
-
-/* ---- Gear well riveted-iron texture via pseudo-element ------------------ */
-/* Do NOT add `.gear-well { position: relative }` here to "anchor" this
-   ::before. The well is already position:absolute (rule above) — that is what
-   sets it into the rail at bottom:14px. A later `relative` silently wins the
-   cascade and the whole gear assembly drops out of the rail into normal flow,
-   ~164px too high. Absolute positioning is already the containing block
-   ::before needs. */
-.gear-well::before {
-  content: ''; position: absolute; inset: 0;
-  background: url('/static/assets/tex/riveted_iron.png') center / 112px;
-  opacity: 0.22;
   pointer-events: none;
-  z-index: 0;
 }
-
-/* ---- Engine-turned texture overlay on grip (lever-svg defs) ------------ */
-.lv-tex-et {
-  opacity: 0.18;
-  mix-blend-mode: overlay;
-}
-
-/* The lever is BOLTED TO THE CONSOLE, not standing beside it. Its pivot
-   used to sit at assembly y=212 — below the console's own foot at 196 —
-   which made the arm a separate object that happened to lean across the
-   casework, and no amount of housing detail fixes two things sharing a
-   patch of floor. bottom:26px lands the pivot on the plinth's top face.
-   scale(.7) about that same pivot shortens the throw so the arm stops
-   sweeping wider than the machine it belongs to; every part on it scales
-   with it, so the anatomy keeps its proportions. */
-.lever-svg {
-  position: absolute; left: 110px; bottom: 26px;
-  width: 140px; height: 210px;
-  overflow: visible;
-  transform-origin: 70px 202px;
-  transform: rotate(calc(-16deg + var(--drive, 0) * 32deg)) scale(0.7);
+/* The swing: the moving parts drawn at each of 43 angles, the one nearest
+   the blades' angle shown (desk.js). The stack is its own layer,
+   so a frame of the throw repaints it and nothing under it, and it lies
+   outside .desk-fx, which the Bureau re-leafs: none of it reads the leaf,
+   and a flip would restyle every pose for nothing. */
+.sw-poses { will-change: transform; }
+/* The needle turns in the dial's own plane, which the eye sees shortened
+   by --sw-mk: stretch it back, turn it, shorten it again. It falls to zero
+   as the blades break one circuit, waits while they are in the air and
+   swings over as they make the other, carried a little past by the
+   throw's overshoot (the raw value, not the bounced one). */
+.sw-needle {
+  transform-origin: var(--sw-mx) var(--sw-my);
+  transform: scale(1, var(--sw-mk)) rotate(calc(44deg * (clamp(0, (var(--sw) - 0.7) / 0.25, 1) - clamp(0, (0.3 - var(--sw)) / 0.25, 1)
+                                  + max(0, var(--sw) - 1) * 3 - max(0, 0 - var(--sw)) * 3))) scale(1, calc(1 / var(--sw-mk)));
   will-change: transform;
 }
-.lever-svg .lv-arm { fill: var(--bronze); stroke: var(--bronze-deep); stroke-width: 1; }
-/* The polished grip inherits the old needle's wing-metal slot (1 of 3). */
-.lever-svg .lv-grip { fill: var(--metal); stroke: none; transition: fill 0.4s; }
-.lever-svg .lv-plate { fill: var(--bronze-deep); stroke: var(--champagne); stroke-width: 1; }
-.lever-svg .lv-plate-t {
-  fill: var(--ink-faint); font-family: var(--serif); font-size: 11px;
-}
+/* The lamps follow the blades, not the wing: a pilot goes out as its jaws
+   open and the other lights as the blades land, flickering if they bounce. */
+.sw-lit-salon, .sw-pool-salon { opacity: clamp(0, 1 - var(--sw) / 0.08, 1); will-change: opacity; }
+.sw-lit-bureau, .sw-pool-bureau { opacity: clamp(0, (var(--sw) - 0.92) / 0.08, 1); will-change: opacity; }
+.sw-spark { opacity: 0; will-change: opacity; }
+:root[data-motion="reduced"] .sw-spark { display: none; }
 
-/* Throw plates.
-   -----------
-   These were two bare words floating on the terrazzo either side of the
-   lever: engraved ink on pale stone, foreshortened by the floor's own
-   projection, at the one place in the hall with no plate behind them — so
-   they were the least legible lettering in the building, and they were the
-   labels for its only control. A signal lever's throws are named on brass
-   screwed to the quadrant, which is legible because it is a THING and not a
-   caption, and which incidentally answers the question the bare machine
-   left open: what does pulling this do.
-   The plates ride at the quadrant's own height, one per throw, and the live
-   wing is the one that is lit. */
-/* Bottom-anchored, not top-anchored: the plates SIT ON the cornice at
-   y=96, and the label's own height changes with --ui. Anchored from the
-   top they float off the cap the moment the user rescales the interface. */
+/* Name plates. Each names the jaws above it, and a click on it lights that
+   wing and never the other. The live one takes no cursor. They lie under
+   the swing, which passes in front of them. */
 .assembly .l-label {
-  position: absolute; bottom: 124px;
-  padding: calc(4px * var(--ui)) calc(9px * var(--ui)) calc(3px * var(--ui));
-  font-size: calc(11px * var(--ui)); letter-spacing: 0.2em;
-  color: var(--ink-faint);
-  background-color: var(--bronze-deep);
-  border: 1px solid var(--bronze);
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--machine-edge) 55%, transparent);
-  transition: color 0.4s, background-color 0.4s, border-color 0.4s;
+  position: absolute; top: var(--sw-plate-t);
+  transform: translateX(-50%);
+  pointer-events: auto; cursor: pointer;
+  white-space: nowrap;
 }
-/* The two countersunk screws that hold the plate on. */
-.assembly .l-label::before,
-.assembly .l-label::after {
-  content: "";
-  position: absolute; top: 50%;
-  width: 3px; height: 3px; margin-top: -1.5px;
-  border-radius: 50%;
-  background-color: var(--machine-edge);
-}
-.assembly .l-label::before { left: 3.5px; }
-.assembly .l-label::after { right: 3.5px; }
-.assembly .l-salon { right: calc(50% + 74px); }
-.assembly .l-bureau { left: calc(50% + 74px); }
-/* The live throw is lit. Only the GRIP carries the wing metal, so the plate
-   brightens to champagne rather than joining the wing-metal contract. */
+.assembly .l-salon { left: var(--sw-plate-l); }
+.assembly .l-bureau { left: var(--sw-plate-r); }
 :root[data-wing="salon"] .l-salon,
-:root[data-wing="bureau"] .l-bureau {
-  color: var(--champagne); border-color: var(--gold);
-  background-color: color-mix(in srgb, var(--gold) 16%, var(--bronze-deep));
-}
-:root[data-theme="ivory"][data-wing="salon"] .l-salon,
-:root[data-theme="ivory"][data-wing="bureau"] .l-bureau { color: var(--gold-text); }
+:root[data-wing="bureau"] .l-bureau { cursor: default; }
 
-/* Hit surface = the machine base box; the arm zone is a child riding above
-   it, so clicks land only where hardware is drawn (never a floating
-   rectangle over hall content) and the focus ring hugs the base. */
+/* #lever is the switch a keyboard and a screen reader use. It lies over
+   the board at the board's own scale and takes no pointer itself; the hit
+   strip inside it does, and it swings with the handle, so nothing but
+   drawn hardware throws the switch. */
 #lever {
   position: absolute; left: 50%; bottom: 0;
-  width: 300px; height: 108px;
-  transform: translateX(-50%);
-  pointer-events: auto;
-  cursor: pointer; user-select: none;
+  width: var(--hb-w, 460px); height: var(--hb-h, 296px); margin-left: calc(var(--hb-w, 460px) / -2);
+  transform: scale(var(--desk-s));
+  transform-origin: 50% 100%;
+  pointer-events: none;
   z-index: 2;
 }
+#lever:focus-visible { outline: none; box-shadow: none; }
+/* From the hinge out past the handle's end, a little wider than the grip.
+   The blades turn about an upright pin, so seen from the hall the handle's
+   end travels (-cos a, --sw-k sin a) off the hinge: the strip turns to
+   that direction and shortens with it. */
 #lever .hit-arm {
-  position: absolute; left: 50%; bottom: 100%;
-  width: 220px; height: 112px;
-  transform: translateX(-50%);
+  --a: calc(var(--sw) * 180deg);
+  position: absolute; left: calc(var(--sw-hx) - var(--sw-arm)); top: calc(var(--sw-hy) - 17px);
+  width: var(--sw-arm); height: 34px;
+  border-radius: 17px 4px 4px 17px;
+  transform-origin: 100% 50%;
+  transform: rotate(calc(-1 * atan2(calc(sin(var(--a)) * var(--sw-k)), cos(var(--a)))))
+             scaleX(hypot(cos(var(--a)), calc(sin(var(--a)) * var(--sw-k))));
   display: block;
   pointer-events: auto;
   cursor: pointer;
+  will-change: transform;
 }
-
-/* ----- Steam ------------------------------------------------------------- */
-/* Tracks the vent stack's mouth — moved with it onto the cornice. */
-.nozzle {
-  position: absolute; left: 245px; top: 24px;
-  width: 0; height: 0;
-  pointer-events: none; z-index: 3;
-}
-.puff {
-  position: absolute; left: -20px; top: -20px; width: 40px; height: 40px;
-  border-radius: 50%;
-  background: radial-gradient(circle at 50% 55%,
-      var(--steam-core), var(--steam-mid) 42%, transparent 70%);
-  filter: blur(6px);
-  will-change: transform, opacity;
-  opacity: 0;
-  animation: puff-rise both cubic-bezier(0.25, 0.6, 0.35, 1);
-}
-@keyframes puff-rise {
-  0% { transform: translate3d(0, 0, 0) scale(0.55) rotate(0deg); opacity: 0; }
-  12% { opacity: 1; }
-  100% {
-    transform: translate3d(var(--dx, 8px), var(--rise, -70px), 0)
-               scale(var(--s, 2.4)) rotate(var(--rot, 20deg));
-    opacity: 0;
-  }
-}
-/* Belt and braces: the CSS kill-switch collapses the animation, but a
-   spawned sprite would still flash — hide the class outright. */
-:root[data-motion="reduced"] .puff { display: none; }
-@media (prefers-reduced-motion: reduce) { .puff { display: none; } }
+/* While the handle is held the moving parts come a hair toward the hand,
+   asking for the pull. */
+.desk-core:has(.hit-arm:active) .sw-poses { translate: 0 1.2px; }
 
 /* ==========================================================================
    STAGE — triptych; gates positioned by transform only (60 fps law)
@@ -823,8 +835,11 @@ html[data-entered="no"] #signal-desk {
      take goes to the floor — and the floor was reading as the largest thing
      in the room. The room claims it back above 1080px of viewport and gives
      it to the wall and the two cases; below that the term is inert, so no
-     short screen inherits a taller hall than it can stand. */
-  --stage-h: calc(var(--gh2) + clamp(80px, calc(100vh - 1080px), 100px));
+     short screen inherits a taller hall than it can stand. On a 4:3 or
+     16:10 screen that 100px left the floor 42-43% of the height, so
+     budgetHall() in app.js writes --headroom, which also takes the surplus
+     down to about 31% (LY-9). The clamp is the term until it has run. */
+  --stage-h: calc(var(--gh2) + var(--headroom, clamp(80px, calc(100vh - 1080px), 100px)));
   --pad-top: 16px;
   /* Only the RESERVATION. The concourse is the hall's 1fr row, so on any
      screen with room to spare the floor simply takes everything under the
@@ -832,35 +847,54 @@ html[data-entered="no"] #signal-desk {
      taller than the screen, and it is deliberately modest so a short
      viewport gives up floor before it gives up a scrollbar. */
   --floor-min: clamp(84px, 12vh, 210px);
-  --aisle-w: clamp(300px, calc((100vw - 1700px) / 3.05), 560px);
+  /* Capped at 520 (it was 560 at 3440): the stage carries four arches and
+     the full-size clock in one row, and at 560 the arches had to shrink to
+     fit between the boards. And never wider than the room the row leaves
+     at full size (--aisle-room, written by layoutStage in app.js): the
+     cases give way before the arches do. */
+  --aisle-w: min(clamp(300px, calc((100vw - 2150px) / 2.4), 520px), var(--aisle-room, 520px));
   --bay-gap: clamp(20px, 2vw, 56px);
+  column-gap: var(--bay-gap);   /* read back by layoutStage; one column has no gaps */
   --skirt-h: calc(var(--gh2) * 0.079);   /* = the gates' own plinth rule */
   --dado-h: calc(var(--gh2) * 0.19);
   --cornice-h: calc(30px * var(--ui));
   padding-top: var(--pad-top);
-  padding-bottom: var(--floor-min);
+  /* --floor-fit is what the screen actually leaves under the stage, written
+     by budgetHall() in app.js: the masthead and the marquee grow with --ui,
+     which no height query can see. */
+  padding-bottom: min(var(--floor-min), var(--floor-fit, 100vh));
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   grid-template-areas: "stage";
   grid-template-rows: var(--stage-h);
 }
-/* 2200px, not 1800. Two 300px aisles plus their gaps take ~680px off the
-   stage, and at 1920 that left the triptych a column narrower than itself:
-   the flanking arches ended up half-swallowed by the arches in front of
-   them, which reads as a bug rather than as depth. The aisles are ultrawide
-   furniture — they open when there is genuinely room for them. */
-@media (min-width: 2200px) {
-  #concourse {
+/* 2800px. Two 300px aisles plus their gaps take ~680px off the stage, and
+   the stage has to hold four arches and the clock side by side (about 6.3
+   arch widths) without shrinking them. Below 2800 the boards would cost the
+   arches a quarter of their size, so the aisles, which are ultrawide
+   furniture, wait until there is genuinely room.
+   How much room the row needs grows with the engraving size, which no
+   width query can see: at 2800 the aisles took 305px arches for every
+   size, so crossing 2800 shrank the arches by up to a tenth and the
+   engraving size stopped moving them. So past 2800 the aisles open only
+   where the row stands at full size between two 300px cases (layoutStage
+   in app.js keeps them shut otherwise, data-aisles="shut"). */
+@media (min-width: 2800px) {
+  #concourse:not([data-aisles="shut"]) {
     grid-template-columns:
       minmax(0, var(--aisle-w)) minmax(0, 1fr) minmax(0, var(--aisle-w));
     grid-template-areas: "aisle-l stage aisle-r";
-    column-gap: var(--bay-gap);
   }
 }
 
 #stage {
   grid-area: stage;
   position: relative;
+  /* The arch module as drawn. --fit (0..1) is written by layoutStage when the
+     row of arches, the clock and the flanks would not otherwise stand side by
+     side without touching; everything that must line up with an arch (the
+     gates, the niche, the plinth rule) reads this, not --gate-w. */
+  --gate-fit: calc(var(--gate-w) * var(--fit, 1));
   min-height: var(--stage-h);
   align-self: stretch;   /* the plinth line is shared with the aisles */
   z-index: 2;
@@ -871,7 +905,6 @@ html[data-entered="no"] #signal-desk {
   transform: translateX(-50%);
   background-color: var(--metal);
   opacity: 0.6;
-  transition: background-color 0.4s;
   z-index: 1;
 }
 /* One-point-perspective floor: a real rotated plane whose deco seams
@@ -899,6 +932,9 @@ html[data-entered="no"] #signal-desk {
   left: calc(50% - 50vw); width: 100vw;
   z-index: 0;
   pointer-events: none;
+  /* The last pilaster and its sconce's pool are centred on the wall's edge,
+     so half of each hung past the screen and widened the page. */
+  overflow: clip;
 }
 /* Plaster: lit from the skylight, so the wash runs top-bright. A single
    two-stop tone — the ban on multi-stop metallic gradients is about metal;
@@ -970,7 +1006,6 @@ html[data-entered="no"] #signal-desk {
 .pil-cap, .pil-base { width: 100%; height: auto; flex: none; }
 .pil-cap path, .pil-cap rect, .pil-base path, .pil-base rect {
   fill: var(--wall-hi); stroke: var(--line); stroke-width: 1;
-  transition: fill 0.4s, stroke 0.4s;
 }
 .pil-shaft {
   flex: 1 1 auto;
@@ -989,7 +1024,6 @@ html[data-entered="no"] #signal-desk {
   background-size: 100% 100%, 100% 100%, calc(28px * var(--ui)) 100%;
   background-repeat: no-repeat, no-repeat, repeat-x;
   opacity: 0.92;
-  transition: background-color 0.4s;
 }
 
 /* Sconce: one lamp per bay, bracketed to the wall, throwing a pool on the
@@ -1012,10 +1046,10 @@ html[data-entered="no"] #signal-desk {
 .sc-body { position: relative; width: 100%; height: auto; }
 .sc-body .sc-shell { fill: var(--bronze-deep); stroke: var(--bronze); stroke-width: 1; }
 .sc-body .sc-step { fill: none; stroke: var(--bronze); stroke-width: 1; opacity: 0.8; }
+/* The flame holds still. It used to breathe on a 5.5s loop forever, and
+   the hall at rest keeps no idle motion but the clock's. */
 .sc-body .sc-flame { fill: var(--gold); opacity: 0.55; }
 .sc-body .sc-bracket { fill: none; stroke: var(--bronze); stroke-width: 1; }
-:root[data-motion="full"] .sc-flame { animation: sconce-breathe 5.5s ease-in-out infinite; }
-@keyframes sconce-breathe { 50% { opacity: 0.34; } }
 
 /* Bay number: each bay is engraved on the chair rail, so no two spans of
    wall are the same span of wall. */
@@ -1068,6 +1102,10 @@ html[data-entered="no"] #signal-desk {
     /* and the corners of the hall, which the skylight never reaches */
     radial-gradient(ellipse 62% 120% at 50% 108%,
       transparent 40%, color-mix(in srgb, var(--shade) 62%, transparent));
+  /* The corner term is still dark where this box begins, which cut a hard
+     line across the whole floor at 42% of its depth. Feather the top edge. */
+  -webkit-mask-image: linear-gradient(to top, #000 62%, transparent 100%);
+  mask-image: linear-gradient(to top, #000 62%, transparent 100%);
 }
 /* Contact shadow where the stone meets the skirting. */
 #floorplane::after {
@@ -1218,10 +1256,13 @@ html[data-entered="no"] #signal-desk {
   position: absolute; inset: 0; width: 100%; height: 100%;
   filter: blur(calc(var(--fh, 320px) * 0.017));
   opacity: 0.85;
-  transition: opacity 0.45s var(--ease-out);
 }
+/* A throw leaves the smears where they are and re-lights them with the
+   arches above: the stops carry the new --metal across in step with the
+   swap. */
 .fl-mirror .mir-lit { stop-color: var(--metal); }
 .fl-mirror .mir-dim { stop-color: var(--ink-faint); }
+.fl-mirror stop { transition: stop-color 0.4s ease 0.1s; }
 
 /* ----- The runner -------------------------------------------------------
    A rectangle in floor space, which the projection turns into the trapezoid
@@ -1340,9 +1381,9 @@ html[data-entered="no"] #signal-desk {
   color: var(--ink);
 }
 #works { grid-area: aisle-l; }
-#bulletin { grid-area: aisle-r; }
-@media (min-width: 2200px) {
-  .board { display: flex; }
+#almanac { grid-area: aisle-r; }
+@media (min-width: 2800px) {
+  #concourse:not([data-aisles="shut"]) .board { display: flex; }
 }
 /* The plate itself. clip-path kills box-shadow, so the lift is a pair of
    drop-shadow filters (same contract as the Ledger plaques). */
@@ -1407,7 +1448,7 @@ html[data-entered="no"] #signal-desk {
 }
 /* Flanking lozenges — the board's own mark of rank. */
 .bd-title::before, .bd-title::after {
-  content: "◆";
+  content: "◆" / "";
   font-size: 0.52em;
   color: var(--metal);
   vertical-align: middle;
@@ -1478,13 +1519,31 @@ html[data-entered="no"] #signal-desk {
   font-size: 9px;
   font-variant-numeric: tabular-nums;
 }
-.wk-dial .g-needle {
-  stroke: var(--gold);
-  transform: rotate(calc(var(--gauge, -120) * 1deg));
-  transform-box: view-box;
-  transform-origin: 50px 50px;
-  transition: transform 0.9s var(--ease-spring), stroke 0.4s;
+/* The needle and what lies over it (hub, crystal) are sheets the size of
+   the dial, laid over it in its grid cell (cabinetry.js). The needle's two
+   sheets are layers the compositor turns: turning a group inside the dial
+   re-laid and re-rastered the case on every frame of the swing (MO-16).
+   The shadow's sheet stands off down the key light ahead of the turn. */
+.wk-cell > .wk-dial, .wk-cell > .wk-hands { grid-area: 1 / 1; }
+.wk-hands {
+  position: relative;
+  height: 100%; width: auto; max-width: 100%;
+  aspect-ratio: 1;
+  pointer-events: none;
 }
+.wk-hands > svg {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  overflow: visible;
+}
+.wk-hands .g-needle { stroke: var(--gold); transition: stroke 0.4s; }
+.wk-rotor {
+  transform: rotate(calc(var(--gauge, -120) * 1deg));
+  transform-origin: 50% 50%;
+  transition: transform 0.9s var(--ease-spring);
+  will-change: transform;
+}
+.wk-rotor.nd-shadow { transform: translate(1.3%, 2.1%) rotate(calc(var(--gauge, -120) * 1deg)); }
 .wk-dial .g-hub { fill: var(--bronze); stroke: none; }
 /* Past the red sector the needle takes the alarm tone. One signal, no
    flashing: a hall does not blink at its reader. */
@@ -1645,12 +1704,6 @@ html[data-entered="no"] #signal-desk {
   fill: var(--ink-faint);
   font-variant-numeric: tabular-nums;
 }
-/* --serif carries no CJK face, and an SVG text node does not inherit the
-   body's zh stack — it takes whatever the browser substitutes, which is a
-   different serif from every other Chinese word in the hall. */
-html[lang="zh"] .al-arc text {
-  font-family: 'EB Garamond', 'LXGW Heart Serif', 'Microsoft YaHei', serif;
-}
 .al-arc .a-lab { font-size: 8px; letter-spacing: 1.5px; }
 .al-arc .a-time { font-size: 12px; fill: var(--ink); letter-spacing: 0.6px; }
 .al-arc .a-polar { font-size: 12px; letter-spacing: 1.5px; }
@@ -1724,133 +1777,440 @@ html[lang="zh"] .al-arc text {
 }
 
 #gates { position: absolute; inset: 26px 0 0 0; }
-#all-dark {
-  position: absolute; left: 50%; top: 46%;
-  transform: translate(-50%, -50%);
-  font-size: calc(15px * var(--ui)); letter-spacing: 0.12em; color: var(--ink-faint);
-  text-transform: uppercase;
-}
 
-/* ----- Gate -------------------------------------------------------------- */
+/* ==========================================================================
+   GATES: THE PROSCENIUM (direction C, the picture palace)
+   ==========================================================================
+   Each gate is a picture-palace proscenium in miniature: stepped gilt
+   archivolts telescoping out of a lit fanlight, a black glass sign on the
+   transom, a velvet house curtain, and a lacquered apron at the foot. The
+   portal is drawn by palace.js on the 300 x 570 design box; the face is HTML
+   laid over it on the same box, sized in container units so the lettering
+   rides the arch module at every width (--fit included).
+
+   Night is the house with the lights dimmed before the show: the fanlight
+   and the coves are lit, the footlights warm the closed tabs, and the
+   description is thrown onto the curtain by the projector. Day is the foyer
+   with the doors open to the street: nothing is lit, the tabs are drawn back
+   and the house shows its screen.
+   ========================================================================== */
 .gate {
   position: absolute;
   left: 50%; bottom: 0;
-  width: var(--gate-w);
+  width: var(--gate-fit);
   aspect-ratio: 300 / 570;
+  /* transform carries the slot and the hover lift. The slot never animates:
+     layoutStage writes it under .no-slide, so the only transform transition
+     that ever runs is the lift. The throw's sink and rise live on the
+     separate `translate` property (.active/.receded), so they can wait for
+     their bay's beat without delaying a hover. */
   transform: translateX(calc(-50% + var(--slot-x, 0px)))
-             translateY(calc(var(--rise, 0px) + var(--sink, 0px)))
+             translateY(var(--rise, 0px))
              scale(var(--slot-s, 1));
   transform-origin: center bottom;
   transition: transform 0.6s var(--ease-stage);
-  transition-delay: var(--slot-delay, 0ms);
   cursor: pointer;
   display: block;
   /* Plain perspective property — NEVER preserve-3d on #gates (it would
      depth-sort away the active/receded z-index contract). */
   perspective: 900px;
+  /* The face letters in cqw, so a gate scaled down by --fit takes its
+     signage down with it instead of overflowing the sign. */
+  container-type: inline-size;
+  /* The lead leaf is the wing's: gilt for the Salon, aluminium for the
+     Bureau. Every gilt fixture on the gate (cartouche, transom, crest,
+     plinth nosing, glazing hub) reads these, so the lever re-leafs the hall. */
+  --lead-0: var(--au-0); --lead-1: var(--au-1); --lead-2: var(--au-2);
+  --lead-3: var(--au-3); --lead-4: var(--au-4); --lead-5: var(--au-5);
+  /* The reader's engraving size (PREFERENCES), for the gate's lettering.
+     The face is set in cqw so it rides the arch, and --ui reached it only
+     as each size's cap, which the arch's own width never met below about
+     2400px: FINE and SIGNBOARD set every gate identically from 1280 to
+     1920 while the masthead grew 28%. The cqw size now takes the reader's
+     factor, and so does the floor on the way up, never on the way down:
+     SIGNBOARD lifts the 10px floor, FINE never goes under it. The house
+     gives up the height. */
+  --gu: var(--ui-user, 1);
+  --gf: max(1, var(--ui-user, 1));
 }
-/* 3D chain: .g-pose = static wing tilt (transitions with the stage
-   choreography); .g-shell = pointer parallax (NO transition — it would
-   smear the tilt). Children stay flat so the intra-gate z-stack holds. */
+.gate[data-wing="bureau"] {
+  --lead-0: var(--ag-0); --lead-1: var(--ag-1); --lead-2: var(--ag-2);
+  --lead-3: var(--ag-3); --lead-4: var(--ag-4); --lead-5: var(--ag-5);
+}
+.gate.vacant {
+  --lead-0: var(--pl-0); --lead-1: var(--pl-1); --lead-2: var(--pl-2);
+  --lead-3: var(--pl-3); --lead-4: var(--pl-4); --lead-5: var(--pl-5);
+}
+/* Every slot move lands in one frame: first layout, resize, --ui, the
+   waiting wing taking its bays. */
+.gate.no-slide, .gate.no-slide .g-pose { transition: none !important; }
+/* 3D chain: .g-pose = static wing tilt (set with the bay, never animated:
+   both wings stand in a bay at its own tilt); .g-shell = pointer parallax
+   (NO transition — it would smear the tilt). Children stay flat so the
+   intra-gate z-stack holds. */
 .g-pose {
   position: absolute; inset: 0;
   transform-style: preserve-3d;
-  transform: rotateY(calc(var(--side, 0) * 10deg));
+  transform: translateY(var(--lift, 0px)) rotateY(calc(var(--side, 0) * 10deg));
+  /* Only the hover lift animates here. The tilt is written with the bay
+     under .no-slide, which cuts this too, so it lands in one frame. */
   transition: transform 0.6s var(--ease-stage);
 }
 .g-shell {
   position: absolute; inset: 0;
-  transform: rotateY(calc(var(--par-x, 0) * var(--par-k, 5) * 1deg))
-             rotateX(calc(var(--par-y, 0) * var(--par-k, 5) * -0.6deg));
+  /* transform is written per frame by the parallax loop in app.js */
 }
-.gate.receded .g-shell { --par-k: 2.5; }
-/* Slab thickness: arch-shaped backing offset along the key light, carrying
-   the two-shadow grounding pair (contact + penumbra). */
+/* The portal's depth in the wall: its cast shadow along the key light.
+   It was a box with elliptical corners in near-black, and the box did not
+   follow the stilted arch: it stood out past the arris all round, on the
+   lit side too, a die-cut halo that made every portal a sticker on the
+   wall. The shadow is the portal's own outline now (the outer arch and
+   the plinth, the same path palace.js draws), moved down and to the right
+   along the key light and feathered, so it falls on the far side only and
+   the wall meets the arris cleanly on the lamp side. The blur is static
+   on this layer; the parallax moves the shell above it. The soft ground
+   shadow stays at the foot, where the portal stands on the floor. */
 .g-back {
-  position: absolute; inset: 2% 3% 1.5%;
-  border-radius: 50% 50% 0 0 / 26% 26% 0 0;
-  background-color: var(--edge);
-  transform: translate(4px, 7px);
-  box-shadow: 0 3px 5px var(--shadow-drop),
-              0 30px 60px -18px var(--shadow-soft);
+  position: absolute; inset: 0;
+  pointer-events: none;
+  filter: blur(1.1cqw);
+}
+.g-back::before {
+  content: ""; position: absolute; inset: 0;
+  background-color: var(--portal-shadow);
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 570' preserveAspectRatio='none'%3E%3Cpath d='M4 560V536H10V162A140 140 0 0 1 290 162V536H296V560Z'/%3E%3C/svg%3E") 0 0 / 100% 100% no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 570' preserveAspectRatio='none'%3E%3Cpath d='M4 560V536H10V162A140 140 0 0 1 290 162V536H296V560Z'/%3E%3C/svg%3E") 0 0 / 100% 100% no-repeat;
+  transform: translate(1.5%, 1.15%);
   transition: background-color 0.4s;
 }
-/* Polished-floor reflection: a mirrored frame clone under the plinth. */
-.g-mirror {
-  position: absolute; top: 99%; left: 0; right: 0;
-  height: 44%;
-  overflow: hidden;
-  transform: scaleY(-1);
-  mask-image: linear-gradient(to top, rgba(0, 0, 0, 0.28), transparent 62%);
-  -webkit-mask-image: linear-gradient(to top, rgba(0, 0, 0, 0.28), transparent 62%);
-  pointer-events: none;
-  opacity: 0.8;
+.g-back::after {
+  content: ""; position: absolute; left: 4%; right: 4%; top: 62%; bottom: 0;
+  box-shadow: 0 34px 70px -16px var(--shadow-soft);
 }
-.g-mirror svg { width: 100%; height: 227%; }
-.g-mirror path, .g-mirror rect { stroke: var(--chrome); fill: none; }
-.gate.active .g-mirror path, .gate.active .g-mirror rect { stroke: var(--metal); }
-.gate .frame { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
-.gate .frame path, .gate .frame rect { stroke: var(--chrome); }
-/* Sequential frame lighting on hover/focus (stroke transitions, staggered).
-   Specificity (0,3,0) so the stagger beats any shared theming rule. */
-.gate .frame .fs1 { transition: stroke 0.25s 0ms; }
-.gate .frame .fs2 { transition: stroke 0.25s 90ms; }
-.gate .frame .fs3 { transition: stroke 0.25s 180ms; }
-.gate .frame .fs4 { transition: stroke 0.25s 270ms; }
-.gate.active .frame path, .gate.active .frame rect { stroke: var(--metal); }
-.gate.active:hover .frame path, .gate.active:hover .frame rect,
-.gate.active:focus-visible .frame path, .gate.active:focus-visible .frame rect,
-.gate.receded:hover .frame path, .gate.receded:hover .frame rect,
-.gate.receded:focus-visible .frame path, .gate.receded:focus-visible .frame rect {
-  stroke: var(--metal-hi);
+svg.portal {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  overflow: visible;
 }
-.gate.flash .frame path, .gate.flash .frame rect {
-  stroke: var(--champagne) !important;
-  transition-duration: 0.05s;
-}
-.gate:hover, .gate:focus-visible { --rise: -4px; }
 
+/* ----- The archivolts -----------------------------------------------------
+   Six stops across every band, inner reveal (0) to outer lip (1): glaze in
+   the reveal, shade, the body, the crest where the band turns to the light,
+   a shade under the lip and the lip itself. The same six classes colour
+   every band on every gate; only the leaf changes (au, ag, cu, pl). */
+.s-au.s0 { stop-color: var(--au-0); } .s-au.s1 { stop-color: var(--au-1); }
+.s-au.s2 { stop-color: var(--au-2); } .s-au.s3 { stop-color: var(--au-3); }
+.s-au.s4 { stop-color: var(--au-4); } .s-au.s5 { stop-color: var(--au-5); }
+.s-ag.s0 { stop-color: var(--ag-0); } .s-ag.s1 { stop-color: var(--ag-1); }
+.s-ag.s2 { stop-color: var(--ag-2); } .s-ag.s3 { stop-color: var(--ag-3); }
+.s-ag.s4 { stop-color: var(--ag-4); } .s-ag.s5 { stop-color: var(--ag-5); }
+.s-cu.s0 { stop-color: var(--cu-0); } .s-cu.s1 { stop-color: var(--cu-1); }
+.s-cu.s2 { stop-color: var(--cu-2); } .s-cu.s3 { stop-color: var(--cu-3); }
+.s-cu.s4 { stop-color: var(--cu-4); } .s-cu.s5 { stop-color: var(--cu-5); }
+.s-pl.s0 { stop-color: var(--pl-0); } .s-pl.s1 { stop-color: var(--pl-1); }
+.s-pl.s2 { stop-color: var(--pl-2); } .s-pl.s3 { stop-color: var(--pl-3); }
+.s-pl.s4 { stop-color: var(--pl-4); } .s-pl.s5 { stop-color: var(--pl-5); }
+
+.portal .p-reveal { fill: var(--portal-well); }
+.portal .band { --m0: var(--au-0); --m2: var(--au-2); --m3: var(--au-3); --m4: var(--au-4); --m5: var(--au-5); }
+.portal .m-ag { --m0: var(--ag-0); --m2: var(--ag-2); --m3: var(--ag-3); --m4: var(--ag-4); --m5: var(--ag-5); }
+.portal .m-cu { --m0: var(--cu-0); --m2: var(--cu-2); --m3: var(--cu-3); --m4: var(--cu-4); --m5: var(--cu-5); }
+.portal .m-pl { --m0: var(--pl-0); --m2: var(--pl-2); --m3: var(--pl-3); --m4: var(--pl-4); --m5: var(--pl-5); }
+/* Cast relief: shadow along the key light, body, lit edge, body again. */
+.portal .r-sh { fill: var(--relief-shadow); }
+.portal .r-body { fill: var(--m4); }
+.portal .r-lt { fill: var(--m3); }
+.portal .b-lip { fill: none; stroke: var(--m5); stroke-width: 0.8; }
+.portal .b-crest { fill: none; stroke: var(--m3); stroke-width: 0.6; opacity: 0.55; }
+.portal .b-glaze { fill: none; stroke: var(--glaze); stroke-width: 1.5; }
+.portal .p-edge-out { fill: none; stroke: var(--portal-arris); stroke-width: 1.1; }
+.portal .p-edge-in { fill: none; stroke: var(--glaze); stroke-width: 1.8; }
+
+/* Coves: the light is IN the architecture, between the bands, never round
+   the gold. Three strokes of one warm lamp colour, clipped to their band. */
+.portal .cove path { fill: none; stroke: var(--cove); }
+.portal .cv1 { stroke-width: 1.3; opacity: 0.9; }
+.portal .cv2 { stroke-width: 3.6; opacity: 0.30; }
+.portal .cv3 { stroke-width: 9; opacity: 0.11; }
+
+/* ----- The fanlight ------------------------------------------------------ */
+.portal .fg-well { fill: var(--glaze); }
+.portal .fg-base { fill: var(--glass-unlit); }
+.portal .fg-etch { fill: url(#fl-etch); }
+.portal .bar-sh { fill: none; stroke: var(--relief-shadow); stroke-width: 3.2; stroke-linecap: round; }
+.portal .bar { fill: none; stroke: var(--bar); stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+.portal .bar-lt { fill: none; stroke: var(--lead-3); stroke-width: 0.7; opacity: 0.8; stroke-linecap: round; }
+.portal .hub { fill: var(--lead-2); }
+.portal .hub-lt { fill: none; stroke: var(--lead-3); stroke-width: 1; }
+.portal .rim { fill: none; stroke: var(--lead-1); stroke-width: 4.2; }
+.portal .rim-lt { fill: none; stroke: var(--lead-4); stroke-width: 0.9; }
+/* Glass colours, lit: a hot core at the hub dying to the rim. */
+.fl-amber.s0 { stop-color: #fff3d8; } .fl-amber.s1 { stop-color: #ffcf7a; }
+.fl-amber.s2 { stop-color: #d9892b; } .fl-amber.s3 { stop-color: #6e3a10; }
+.fl-rose.s0 { stop-color: #fff0e4; } .fl-rose.s1 { stop-color: #f6b79c; }
+.fl-rose.s2 { stop-color: #c56856; } .fl-rose.s3 { stop-color: #5a2320; }
+.fl-celadon.s0 { stop-color: #f1ffe6; } .fl-celadon.s1 { stop-color: #c3e4b0; }
+.fl-celadon.s2 { stop-color: #6f9e6a; } .fl-celadon.s3 { stop-color: #253f27; }
+.fl-opal.s0 { stop-color: #fffaf0; } .fl-opal.s1 { stop-color: #f1e2c4; }
+.fl-opal.s2 { stop-color: #c3a987; } .fl-opal.s3 { stop-color: #4f4130; }
+.fl-honey.s0 { stop-color: #fff6d6; } .fl-honey.s1 { stop-color: #f2d27c; }
+.fl-honey.s2 { stop-color: #c39330; } .fl-honey.s3 { stop-color: #553a0e; }
+.fl-aqua.s0 { stop-color: #efffff; } .fl-aqua.s1 { stop-color: #a4e2d8; }
+.fl-aqua.s2 { stop-color: #2ea6a1; } .fl-aqua.s3 { stop-color: #0d4543; }
+.fl-day.s0 { stop-color: #f2f3ef; } .fl-day.s1 { stop-color: #cdd2cc; }
+.fl-day.s2 { stop-color: #98a09a; }
+.fl-etch-s0 { stop-color: #fff; stop-opacity: 0; }
+.fl-etch-s1 { stop-color: #fff; stop-opacity: var(--etch-a); }
+.p-sheen-s0 { stop-color: #fffaf0; stop-opacity: 0; }
+.p-sheen-s1 { stop-color: #fffaf0; stop-opacity: 0.55; }
+
+/* ----- Transom, cartouche, crest, plinth --------------------------------- */
+.portal .tr-body { fill: var(--lead-2); }
+.portal .tr-lt { fill: var(--lead-5); }
+.portal .tr-sh { fill: var(--glaze); }
+/* The cartouche: outer step convex, middle step a cavetto (so its facets
+   take the light the other way round), then the black enamel field. */
+.portal .c-outer.fa-tl { fill: var(--lead-3); }
+.portal .c-outer.fa-tr { fill: var(--lead-4); }
+.portal .c-outer.fa-br { fill: var(--lead-1); }
+.portal .c-outer.fa-bl { fill: var(--lead-2); }
+.portal .c-mid.fa-tl { fill: var(--lead-1); }
+.portal .c-mid.fa-tr { fill: var(--lead-2); }
+.portal .c-mid.fa-br { fill: var(--lead-4); }
+.portal .c-mid.fa-bl { fill: var(--lead-2); }
+.portal .c-field { fill: var(--enamel); }
+.portal .screw { fill: var(--lead-2); stroke: var(--glaze); stroke-width: 0.4; }
+.portal .screw-slot { stroke: var(--lead-0); stroke-width: 0.7; }
+.portal .cr-sh { fill: var(--relief-shadow); }
+.portal .cr-body { fill: var(--lead-4); }
+.portal .cr-lt { fill: var(--lead-3); }
+.portal .im-sh { fill: var(--relief-shadow); }
+.portal .im-face { fill: var(--lead-2); }
+.portal .im-top { fill: var(--lead-3); }
+.portal .im-foot { fill: var(--lead-0); }
+.portal .im-end { fill: var(--lead-4); opacity: 0.7; }
+.portal .im-boss { fill: var(--lead-4); stroke: var(--lead-0); stroke-width: 0.35; }
+.portal .im-boss-lt { fill: var(--lead-3); }
+.portal .pl-body { fill: var(--plinth); }
+.portal .pl-nose { fill: var(--lead-2); }
+.portal .pl-nose-lt { fill: var(--lead-5); }
+.portal .pl-foot { fill: var(--glaze); }
+.portal .p-sheen { fill: url(#p-sheen); transform: translateX(0); }
+.portal .p-focus { fill: none; stroke: var(--focus); stroke-width: 2.4; opacity: 0; }
+.gate:focus-visible { outline: none; }
+.gate:focus-visible .p-focus { opacity: 1; }
+
+/* ----- The face ----------------------------------------------------------
+   Padding in % of the gate WIDTH: 204/300 puts the sign under the transom,
+   32/300 keeps the face inside the innermost reveal, 34/300 stands the apron
+   on the plinth. */
 .face {
   position: absolute; inset: 0;
-  display: flex; flex-direction: column; align-items: center;
-  padding: 12% 12% 0;
+  display: flex; flex-direction: column;
+  padding: 68% 10.7% 11.3%;
   text-align: center;
   /* no z-index: it would trap .g-name/.g-lamp below the sibling veil */
 }
+/* The mark on the cartouche at the fanlight hub (centre 150,146; 56 wide). */
 .sigil {
-  width: 34%; height: auto; aspect-ratio: 1;
-  margin-top: 5%;
+  position: absolute;
+  left: 40.67%; top: 20.7%;
+  width: 18.67%; height: auto; aspect-ratio: 1;
   color: var(--gold-text);
   overflow: visible;
 }
-/* Service marks carry their own colour — the hall does not tint them, and a
-   themed transition on their fills would fight the enamel. The keystone
-   diamond frames them, so they sit slightly smaller than a line sigil. */
-.sigil.mark { width: 30%; margin-top: 6.5%; }
-.sigil.mark, .medal .m-mark { transition: none; }
+.sigil.mark { transition: none; }
+.medal .m-mark { transition: none; }
+
+/* The sign: verre eglomise. Leaf laid behind black glass, a front veil with
+   one reflection band, and a thin gilt frame held by four corner clips. It
+   is an object, not the room, so it is the same black glass by day. */
+.g-sign {
+  position: relative;
+  margin: 0 1.2cqw;
+  padding: 3.4cqw 2.6cqw 3.1cqw;
+  background:
+    linear-gradient(104deg, transparent 18%, rgba(255, 248, 230, 0.07) 30%, transparent 44%),
+    linear-gradient(180deg, rgba(255, 250, 235, 0.07), transparent 38%),
+    var(--sign-glass);
+  box-shadow:
+    inset 0 0 0 1px var(--lead-1),
+    inset 0 0 0 2px var(--lead-4),
+    inset 0 0 0 3px rgba(0, 0, 0, 0.7),
+    inset 0 1.6cqw 2cqw -1cqw rgba(0, 0, 0, 0.8),
+    0 1px 0 var(--lead-5),
+    0 2px 3px rgba(0, 0, 0, 0.55);
+}
+.g-sign::before, .g-sign::after {
+  /* corner clips: small gilt lozenges pinning the glass */
+  content: ""; position: absolute; top: 50%;
+  width: 2.2cqw; height: 2.2cqw; margin-top: -1.1cqw;
+  background: linear-gradient(135deg, var(--lead-5), var(--lead-2) 55%, var(--lead-0));
+  transform: rotate(45deg);
+  box-shadow: 0 0 0 0.5px rgba(0, 0, 0, 0.6);
+}
+.g-sign::before { left: -1.1cqw; }
+.g-sign::after { right: -1.1cqw; }
 .g-name {
-  margin-top: 26%;
-  font-size: calc(clamp(14px, 1.15vw, 18px) * var(--ui));
-  font-weight: 560;
-  letter-spacing: 0.2em;
-  color: var(--ink);
+  font-size: clamp(calc(11px * var(--gf)), calc(6.4cqw * var(--gu)), 26px);
+  font-weight: 600;
+  letter-spacing: 0.17em;
+  margin-right: -0.17em;           /* tracking hangs off the last letter */
+  line-height: 1.16;
+  /* Gilt behind glass: the leaf ramp, soft-lit with the leaf lattice so the
+     seams show, clipped to the letters. Repeated per line box. */
+  background:
+    url('/static/assets/tex/grain-gilt.webp') 0 0 / 22cqw,
+    linear-gradient(180deg, var(--leaf-0) 0%, var(--leaf-1) 34%, var(--leaf-2) 55%, var(--leaf-3) 72%, var(--leaf-4) 100%) 0 0 / 100% 1.16em;
+  background-blend-mode: soft-light, normal;
+  -webkit-background-clip: text; background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 0.5px 0 rgba(0, 0, 0, 0.9));
   z-index: 3;
 }
+html[lang="zh"] .g-name { letter-spacing: 0.17em; }
+
+/* The house. Everything inside is clipped to the proscenium opening; the
+   reveal (the opening's own thickness) is an inset shade on its edges. */
+.g-house {
+  position: relative;
+  flex: 1 1 auto; min-height: 0;
+  margin-top: 2.2cqw;
+  overflow: hidden;
+  isolation: isolate;
+  background: var(--house-deep);
+  box-shadow: inset 2.4cqw 0 2.6cqw -1.2cqw rgba(0, 0, 0, 0.75),
+              inset -2.4cqw 0 2.6cqw -1.2cqw rgba(0, 0, 0, 0.75);
+}
+.g-house::after {
+  /* the reveal's shade, in front of the tabs */
+  content: ""; position: absolute; inset: 0; z-index: 4; pointer-events: none;
+  box-shadow: inset 1.6cqw 0 1.4cqw -0.8cqw rgba(0, 0, 0, 0.65),
+              inset -1.6cqw 0 1.4cqw -0.8cqw rgba(0, 0, 0, 0.65),
+              inset 0 3cqw 3cqw -2cqw rgba(0, 0, 0, 0.7);
+}
+/* The screen: matte, faintly pearl, seen only when the tabs are drawn. */
+.g-screen {
+  position: absolute; inset: 6% 7% 0;
+  background:
+    radial-gradient(120% 90% at 50% 20%, var(--screen-hi), var(--screen) 70%),
+    var(--screen);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35), inset 0 0 3cqw rgba(0, 0, 0, 0.18);
+}
+/* The tabs: velvet, relit by the fold map. `overlay` against the gate's own
+   velvet colour keeps the pile saturated in the valleys and lets the fold
+   crests take the grazing sheen. Fold pitch and phase are the gate's own. */
+.g-tab {
+  position: absolute; top: 0; bottom: 0; width: 52%;
+  z-index: 1;
+  background:
+    linear-gradient(180deg, rgba(0, 0, 0, 0.55), transparent 22%, transparent 70%, var(--tab-foot) 100%),
+    url('/static/assets/tex/fab-velvet.webp') var(--fold-x) 0 / calc(1800% / var(--folds)) 100% repeat-x,
+    var(--velvet);
+  background-blend-mode: normal, overlay, normal;
+  transition: transform 0.9s cubic-bezier(0.55, 0, 0.2, 1);
+}
+.g-tab-l { left: 0; transform-origin: 0 50%; }
+.g-tab-r { right: 0; transform-origin: 100% 50%; background-position: 0 0, calc(var(--fold-x) + 37%) 0, 0 0; }
+.g-tab-l::after, .g-tab-r::after {
+  /* the bullion fringe along the hem */
+  /* the bullion fringe along the hem: a gimp heading, then twisted
+     bullions hanging in pairs, each lit on its left and falling to shade */
+  content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 4.6cqw;
+  background:
+    linear-gradient(180deg, var(--lead-5) 0 0.25cqw, var(--lead-2) 0.25cqw 0.75cqw, var(--lead-0) 0.75cqw 0.95cqw, transparent 0.95cqw),
+    linear-gradient(180deg, transparent 0.95cqw, rgba(0, 0, 0, 0.35) 100%),
+    repeating-linear-gradient(90deg, var(--lead-4) 0 0.22cqw, var(--lead-1) 0.22cqw 0.5cqw, transparent 0.5cqw 0.62cqw, var(--lead-2) 0.62cqw 0.8cqw, var(--lead-0) 0.8cqw 1.05cqw, transparent 1.05cqw 1.45cqw);
+  -webkit-mask-image: linear-gradient(180deg, #000 55%, rgba(0, 0, 0, 0.4) 85%, transparent);
+  mask-image: linear-gradient(180deg, #000 55%, rgba(0, 0, 0, 0.4) 85%, transparent);
+}
+.g-tab-l::before, .g-tab-r::before {
+  /* the leading edge: where the two tabs overlap, a fold in shadow */
+  content: ""; position: absolute; top: 0; bottom: 0; width: 3cqw;
+  background: linear-gradient(90deg, transparent, rgba(0, 0, 0, 0.55));
+}
+.g-tab-l::before { right: 0; }
+.g-tab-r::before { left: 0; transform: scaleX(-1); }
+/* Valance: a swagged pelmet in the same velvet, three swags on the gate's
+   own fold phase, gilt fringe on every swag, a tassel at each join. */
+.g-valance {
+  position: absolute; left: -3%; right: -3%; top: 0; height: 13cqw;
+  z-index: 3;
+  background:
+    radial-gradient(60% 120% at 50% -10%, transparent 55%, rgba(0, 0, 0, 0.45) 100%) 0 0 / 33.34% 100%,
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.05) 0 1.4cqw, rgba(0, 0, 0, 0.12) 1.4cqw 2.6cqw),
+    var(--velvet);
+  -webkit-mask-image: radial-gradient(52% 100% at 50% 0, #000 96%, transparent 100%);
+  -webkit-mask-size: 33.34% 100%;
+  mask-image: radial-gradient(52% 100% at 50% 0, #000 96%, transparent 100%);
+  mask-size: 33.34% 100%;
+}
+.g-valance::after {
+  content: ""; position: absolute; inset: 0;
+  background: radial-gradient(52% 100% at 50% 0, transparent 88%, var(--lead-4) 90%, var(--lead-2) 95%, transparent 97%) 0 0 / 33.34% 100%;
+}
+/* Footlights: a warm wash rising off the apron onto the hem. */
+.g-foot {
+  position: absolute; left: -10%; right: -10%; bottom: 0; height: 58%;
+  z-index: 2; pointer-events: none;
+  background: radial-gradient(60% 100% at 50% 100%, var(--footlight) 0%, transparent 72%);
+  mix-blend-mode: screen;
+}
+/* The projector's spot on the closed tabs, where the description stands. */
+.g-pool {
+  position: absolute; left: 4%; right: 4%; top: 16%; height: 44%;
+  z-index: 2; pointer-events: none;
+  background: radial-gradient(closest-side, var(--spot) 0%, var(--spot-edge) 62%, transparent 100%);
+  mix-blend-mode: screen;
+}
 .g-desc {
-  margin-top: 10px;
-  font-size: calc(12.5px * var(--ui));
-  line-height: 1.55;
-  color: var(--ink-faint);
-  letter-spacing: 0.04em;
-  min-height: 3em;
+  position: relative; z-index: 3;
+  /* Side margins clear the drawn tabs (a fifth of 52% of the house, plus
+     the reveal's shade): by day the text stands on the screen between the
+     tie-backs and no fold of velvet may cross a letter. */
+  margin: 17cqw 11cqw 0;
+  font-size: clamp(calc(10.5px * var(--gf)), calc(5.2cqw * var(--gu)), calc(14px * var(--ui)));
+  line-height: 1.45;
+  letter-spacing: 0.035em;
+  color: var(--desc-night);
+  text-shadow: 0 0 1.2cqw var(--desc-halo);
+  transition: color 0.6s, opacity 0.4s;
+}
+/* The iron: the reserved gate's safety curtain, lowered. Painted steel,
+   riveted at the panel seams, a stencilled border. Built, sealed, waiting. */
+.g-iron {
+  position: absolute; inset: 0; z-index: 2;
+  background:
+    repeating-linear-gradient(180deg, transparent 0 calc(25% - 1px), rgba(0, 0, 0, 0.35) calc(25% - 1px) 25%),
+    radial-gradient(circle, var(--iron-rivet) 0 0.45cqw, transparent 0.55cqw) 1.5cqw 1.1cqw / 4cqw 25% repeat,
+    linear-gradient(180deg, var(--iron-hi), var(--iron) 45%, var(--iron-lo));
+  box-shadow: inset 0 0 0 1.4cqw var(--iron), inset 0 0 0 1.8cqw var(--iron-line),
+              inset 0 0 0 2.6cqw var(--iron), inset 0 0 0 2.9cqw var(--iron-line);
+}
+.gate.vacant .g-tab, .gate.vacant .g-valance, .gate.vacant .g-pool, .gate.vacant .g-foot { display: none; }
+.gate.vacant .g-desc { color: var(--iron-ink); text-shadow: none; }
+
+/* The apron: the stage front, black lacquer on a gilt nosing. */
+.g-apron {
+  position: relative;
+  padding: 2.4cqw 2cqw 2.2cqw;
+  background:
+    linear-gradient(180deg, rgba(255, 250, 235, 0.06), transparent 40%),
+    var(--apron);
+  box-shadow:
+    0 -1px 0 var(--lead-5),
+    0 -2.2px 0 var(--lead-2),
+    0 -3.4px 0 rgba(0, 0, 0, 0.6),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.6);
+  display: flex; flex-direction: column; align-items: center;
 }
 .g-stat {
-  margin-top: auto;
-  font-size: calc(13px * var(--ui));
-  letter-spacing: 0.14em;
-  color: var(--gold-text);
+  font-size: clamp(9.5px, 4.7cqw, calc(13px * var(--ui)));
+  line-height: 1.3;
+  letter-spacing: 0.12em;
+  color: var(--apron-gilt);
   text-transform: uppercase;
   overflow: hidden;
+  min-height: 1.3em;
 }
 .g-stat .num-roll { display: inline-block; }
 .g-stat .roll { animation: odometer 0.5s var(--ease-out); }
@@ -1860,73 +2220,179 @@ html[lang="zh"] .al-arc text {
   55% { transform: translateY(115%); opacity: 0; }
   100% { transform: translateY(0); opacity: 1; }
 }
-.g-addr { margin-top: 8px; color: var(--ink-faint); }
+.g-addr {
+  margin-top: 0.6cqw;
+  font-size: clamp(9px, 4.1cqw, calc(12px * var(--ui)));
+  color: var(--apron-ink);
+}
 .g-lamp {
-  margin-top: 10px;
-  margin-bottom: 24%;   /* clears the plinth double rule */
-  display: flex; align-items: center; gap: 7px;
-  font-size: calc(11px * var(--ui)); letter-spacing: 0.22em;
-  color: var(--ink-faint);
+  margin-top: 1cqw;
+  display: flex; align-items: center; gap: 2.4cqw;
+  font-size: clamp(8.5px, 3.9cqw, calc(11px * var(--ui))); letter-spacing: 0.22em;
+  color: var(--apron-ink);
   z-index: 3;
 }
+/* The lamp is a cabochon jewel in a gilt collet: smoked when dark, lit amber
+   with a hot core when open, an ember breathing while it checks. */
 .g-lamp .lamp-d {
-  width: 9px; height: 9px;
-  transform: rotate(45deg);
-  border: 1.5px solid var(--ink-faint);
-  transition: background-color 0.4s, border-color 0.4s;
+  position: relative;
+  width: 3.6cqw; height: 3.6cqw; min-width: 8px; min-height: 8px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 38% 32%, rgba(255, 255, 255, 0.35) 0 12%, transparent 16%),
+              radial-gradient(circle at 50% 55%, #3a3029, #120d09 70%);
+  box-shadow: 0 0 0 1.2px var(--lead-2), 0 0 0 2px rgba(0, 0, 0, 0.6);
+  transition: background 0.4s, box-shadow 0.4s;
 }
-.gate[data-state="open"] .g-lamp { color: var(--gold-text); }
+.gate[data-state="open"] .g-lamp { color: var(--apron-gilt); }
 .gate[data-state="open"] .g-lamp .lamp-d {
-  background-color: var(--gold-text); border-color: var(--gold-text);
+  background: radial-gradient(circle at 38% 32%, rgba(255, 255, 255, 0.9) 0 10%, transparent 16%),
+              radial-gradient(circle at 50% 50%, #fff4cf 0 18%, #ffbf55 42%, #b7650f 78%, #6b3508);
+  box-shadow: 0 0 0 1.2px var(--lead-2), 0 0 0 2px rgba(0, 0, 0, 0.6),
+              0 0 2.4cqw 0.4cqw var(--lamp-bloom);
 }
-.gate[data-state="dark"] .g-lamp .lamp-d { background: none; }
-.gate[data-state="dark"] .face > :not(.g-name):not(.g-lamp) { opacity: 0.35; }
-.gate[data-state="checking"] .g-lamp .lamp-d {
-  animation: lamp-breathe 1.6s ease-in-out infinite;
+/* By day nothing is lit, and an OPEN jewel carried its bloom into the
+   daylit foyer. It is coloured glass by day, as the Ledger's lamp is: an
+   amber cabochon, the skylight's white spot on its crown, the light that
+   passes through it gathered low on the far side, a darker rim where the
+   glass is thickest. Images only, so the forced-colours fill still lands. */
+:root[data-theme="ivory"] .gate[data-state="open"] .g-lamp .lamp-d {
+  background-image:
+    radial-gradient(circle at 36% 30%, rgba(255, 255, 255, 0.95) 0 9%, rgba(255, 255, 255, 0.35) 13%, transparent 17%),
+    radial-gradient(circle at 60% 70%, rgba(255, 232, 170, 0.7) 0 12%, transparent 36%),
+    radial-gradient(circle at 50% 50%, #e8a53e 0 32%, #c27414 60%, #7c420a 84%, #4a2605);
+  box-shadow: 0 0 0 1.2px var(--lead-2), 0 0 0 2px rgba(0, 0, 0, 0.6),
+              inset 0 0 0 0.5px rgba(60, 28, 0, 0.6);
 }
-@keyframes lamp-breathe { 50% { border-color: var(--gold-text); } }
+.gate[data-state="checking"] .g-lamp .lamp-d { animation: ember 1.8s ease-in-out infinite; }
+@keyframes ember {
+  50% { background: radial-gradient(circle at 38% 32%, rgba(255, 255, 255, 0.4) 0 10%, transparent 16%),
+                    radial-gradient(circle at 50% 55%, #b3531a, #4a1c07 75%); }
+}
+.gate.vacant .g-lamp .lamp-d {
+  /* a shuttered lamp: the collet capped with a louvred brass cover */
+  background: repeating-linear-gradient(180deg, var(--lead-2) 0 22%, var(--lead-0) 22% 33%);
+}
 
-/* Distance haze on the flanking gates. It must wear the ARCH, not the gate's
-   bounding box: a bordered rectangle of veil was invisible against the old
-   dark backdrop, but on the concourse's pale plaster it lit up as a white
-   card with square shoulders standing proud of the wall. Percentages come
-   off the frame path (M10 162 A140 140 0 0 1 290 162 L290 560 L10 560 Z on
-   a 300x570 viewBox): 22/570 top, 10/300 sides, 10/570 foot, and a 140-unit
-   springing radius over a 280x538 box. */
-.g-veil {
-  position: absolute; inset: 3.9% 3.3% 1.8%; z-index: 2;
-  border-radius: 50% 50% 0 0 / 26% 26% 0 0;
-  background-color: var(--veil);
-  opacity: 0; pointer-events: none;
-  transition: opacity 0.6s var(--ease-stage), background-color 0.4s;
+/* ----- Light states ------------------------------------------------------
+   One rule decides whether a gate's house is lit: night, the gate's wing is
+   the lit one, and the line behind it is open. The lights come up only
+   after the arch has risen into its bay, and go down before it sinks: an
+   outgoing arch's lamps go out in the first --gate-dim of its beat, and
+   its sink waits for them (.gate.receded below; app.js waits as long).
+   They used to fade with no delay over 0.35s, so an outer arch was still
+   at 0.7 when it began to sink and an inner one still glowed when it had
+   gone. */
+/* the fanlight's streak on the floor goes down on the same beat (room.js) */
+:root[data-theme="onyx"] :is(.gate, .st-fan) { --gate-dim: 120ms; }
+.gate .lit { opacity: 0; transition: opacity 0.35s ease; }
+/* The arches and their lamps (and the fanlights' streaks, palace-room.css)
+   stand as layers, not as layers made when a throw starts: made then, every
+   sink and every lamp fading out got a new layer in the throw's first frame,
+   and the overlap made a hundred more around them, 173 layers rastered at
+   3440 while the lamps were meant to be going out (MO-1). */
+.gate, .gate .lit { will-change: opacity; }
+.gate.receded .lit { transition: opacity var(--gate-dim, 0ms) ease-in var(--slot-delay, 0ms); }
+:root[data-theme="onyx"] .gate.active[data-state="open"] .lit {
+  opacity: 1;
+  transition: opacity 0.7s ease calc(var(--slot-delay, 0ms) + 420ms);
 }
-.gate.receded .g-veil { opacity: 1; }
-.gate.receded:hover .g-veil, .gate.receded.flash .g-veil { opacity: 0.25; }
-.gate.receded .frame path, .gate.receded .frame rect { stroke: var(--chrome); }
+:root[data-theme="onyx"] .gate.active[data-state="checking"] .lit { opacity: 0.35; }
+/* A dark line is a house with the lights out: engraving at 35%, the name
+   and the lamp stay (R9). The velvet goes into shadow in palace-gates.css. */
+.gate[data-state="dark"] .g-desc,
+.gate[data-state="dark"] .g-stat,
+.gate[data-state="dark"] .g-addr,
+.gate[data-state="dark"] .sigil { opacity: 0.35; }
+
+/* Day: the tabs are drawn back and tied while the line is open; a dark or
+   unchecked line keeps its curtain closed. Gathered velvet is compressed
+   velvet, so the draw is a scale about the outer edge, which bunches the
+   folds exactly as a gathered curtain bunches them. */
+:root[data-theme="ivory"] .gate[data-state="open"] .g-tab { transform: scaleX(0.2); }
+:root[data-theme="ivory"] .gate[data-state="open"] .g-desc { color: var(--ink); text-shadow: none; }
+
+/* Hover and focus: at night the house curtain lifts a hand's breadth off
+   the stage, like a contour curtain taking its first swag, and the
+   footlit foot of the screen shows under the fringe. The tabs never part:
+   a parting drew a thread of light up the meeting line, straight through
+   the projected description. By day the card stays. One sheen runs across
+   the gilding only. A DARK house keeps its curtain down: its footlights are
+   out, and a lifted hem showed a lit stage under a dead line. */
+:root[data-theme="onyx"] .gate:not(.vacant):not([data-state="dark"]):focus-visible .g-tab { transform: translateY(-8%); }
+.gate:not(.vacant):focus-visible .p-sheen { animation: gilt-sheen 0.8s var(--ease-out) 1; }
+@keyframes gilt-sheen { from { transform: translateX(0); } to { transform: translateX(560px); } }
+/* The rise rides on the pose inside the link (--lift), never on the link
+   itself: lifting the <a> moved the box that owns :hover out from under a
+   pointer resting at its foot, so the arch bobbed and clicks missed. And a
+   tap is a hover to a touch screen, where it stuck; hover effects only
+   answer a pointer that can rest. Focus keeps all of them. */
+.gate:not(.vacant):focus-visible { --lift: -3px; }
+@media (hover: hover) {
+  :root[data-theme="onyx"] .gate:not(.vacant):not([data-state="dark"]):hover .g-tab { transform: translateY(-8%); }
+  .gate:not(.vacant):hover .p-sheen { animation: gilt-sheen 0.8s var(--ease-out) 1; }
+  .gate:not(.vacant):hover { --lift: -3px; }
+}
+/* Opening: the curtain flies, the house floods and the portal flashes. */
+.gate.opening .g-tab { transform: scaleX(0.14) !important; transition-duration: 0.24s; }
+.gate.opening .g-screen { background: var(--screen-flood); transition: background 0.1s; }
+.gate.flash .b-lip, .gate.flash .rim-lt { stroke: var(--champagne); transition: stroke 0.05s; }
+
+.g-veil { display: none; }
+/* The waiting wing: same bays, out of the room. Opacity sits on .gate, the
+   PARENT of the preserve-3d pose, never on the pose itself: on the pose it
+   would flatten the tilt. Visibility follows the fade so a hidden arch can
+   never take a pointer or a hover.
+   A throw runs one bay at a time, never two faces at once. The outgoing
+   arch sinks 14px and fades in 200ms from its bay's beat (--slot-delay,
+   rank x 60ms out from the clock); the incoming one waits until that bay is
+   empty (+220ms), then rises and fades up. The two used to cross-fade with
+   offset timings, and for ~280ms each bay printed both wings' lettering. */
+.gate.receded {
+  opacity: 0; visibility: hidden;
+  translate: 0 14px;
+  transition: transform 0.6s var(--ease-stage),
+              translate 0.2s ease-in calc(var(--slot-delay, 0ms) + var(--gate-dim, 0ms)),
+              opacity 0.2s ease-in calc(var(--slot-delay, 0ms) + var(--gate-dim, 0ms)),
+              visibility 0s linear calc(var(--slot-delay, 0ms) + var(--gate-dim, 0ms) + 0.2s);
+}
+.gate.active {
+  opacity: 1; visibility: visible;
+  translate: 0 0;
+  transition: transform 0.6s var(--ease-stage),
+              translate 0.4s var(--ease-out) var(--slot-delay, 0ms),
+              opacity 0.36s ease-out var(--slot-delay, 0ms),
+              visibility 0s;
+}
+/* An incoming arch is visible at once (W puts focus on it), but it takes no
+   pointer until its fade is 120ms under way. An animation, not a timer, so
+   it runs on the same clock as the fade however late the first frame is. */
+.gate.active.arriving { animation: gate-arrive 0.12s linear var(--slot-delay, 0ms) backwards; }
+@keyframes gate-arrive { from, to { pointer-events: none; } }
+/* The reader's arch keeps focus while it sinks, and hands it to the arch
+   rising into its bay (layoutStage in app.js). Going hidden at the end of
+   the sink would drop focus to the page for the beat in between, so it
+   stays visible, faded out and taking no pointer, until the handoff. */
+.gate.receded:focus { visibility: visible; pointer-events: none; }
 .gate.active { z-index: 2; }
 .gate.receded { z-index: 1; }
 
-/* One masked 30-degree sheen sweep per hover — the only specular effect. */
-.sheen {
-  position: absolute; inset: 0; z-index: 2;
-  overflow: hidden; pointer-events: none;
-  clip-path: polygon(3% 0, 97% 0, 97% 100%, 3% 100%);
+/* ----- Reflection in the waxed floor ------------------------------------- */
+.g-mirror {
+  /* The portal's foot is at 560 of 570: the reflection starts there. */
+  position: absolute; top: 98.25%; left: 0; right: 0; height: 100%;
+  pointer-events: none;
+  -webkit-mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.95), rgba(0, 0, 0, 0.55) 18%, rgba(0, 0, 0, 0.24) 42%, transparent 68%);
+  mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.95), rgba(0, 0, 0, 0.55) 18%, rgba(0, 0, 0, 0.24) 42%, transparent 68%);
+  opacity: var(--mirror-a);
 }
-.sheen::after {
-  content: ""; position: absolute; top: -20%; bottom: -20%;
-  left: 0; width: 34%;
-  background: linear-gradient(105deg, transparent,
-              rgba(255, 252, 240, 0.10), transparent);
-  transform: translateX(-160%) rotate(0.001deg);
-}
-.gate:hover .sheen::after, .gate:focus-visible .sheen::after {
-  animation: sheen-sweep 0.6s var(--ease-out) 1;
-}
-@keyframes sheen-sweep {
-  from { transform: translateX(-160%); }
-  to { transform: translateX(420%); }
-}
-
+/* A static blur on the art, the transform on the shell above it: the blurred
+   raster is cached and parallax only moves it. */
+.g-mirror .mirror-art { position: absolute; inset: 0; width: 100%; height: 100%; filter: blur(1.6px); }
+.mirror-art .mr-sign { fill: var(--sign-glass); }
+.mirror-art .mr-house { fill: var(--velvet); }
+.mirror-art .mr-apron { fill: var(--apron); }
+:root[data-theme="ivory"] .gate[data-state="open"] .mirror-art .mr-house { fill: var(--screen); }
+.gate.vacant .mirror-art .mr-house { fill: var(--iron); }
 .g-notice {
   position: absolute; left: 8%; right: 8%; bottom: 4%;
   z-index: 4;
@@ -1937,7 +2403,20 @@ html[lang="zh"] .al-arc text {
   padding: 8px 10px;
   letter-spacing: 0.03em;
   word-break: break-all;
+  /* The launcher path is the one line here worth copying, so the notice is
+     the one thing on a gate a drag can select. It rides the arch's lift. */
+  user-select: text;
+  cursor: text;
+  transform: translateY(var(--lift, 0px));
+  transition: transform 0.6s var(--ease-stage);
 }
+/* No arch drags as a link. A press that wobbled 6px on the way to a click
+   started a link drag, and the gate never opened; a DARK gate's link leads
+   to a dead tab anyway, and a press on its notice has to select the path.
+   A Ledger plaque is the same kind of target and takes the same rule. */
+.gate, #ledger a.pl-in { -webkit-user-drag: none; }
+/* The RESERVED arch is not a link: no hand over it. */
+.gate.vacant { cursor: default; }
 
 /* ==========================================================================
    THE CONCOURSE CLOCK
@@ -1959,38 +2438,16 @@ html[lang="zh"] .al-arc text {
 #clock {
   position: absolute;
   left: 50%; bottom: 0;
+  /* the subdial captions ask how large the dial is drawn */
+  container: ck / inline-size;
   transform: translateX(-50%);
   z-index: 1;
   pointer-events: none;   /* the dial is scenery, never a click target */
-  --gh: calc(var(--gate-w) * 1.9);
+  --gh: calc(var(--gate-fit) * 1.9);
   --reveal: calc(var(--gh) * 0.055);   /* wall left at the head and sides */
   --sill: calc(var(--gh) * 0.125);     /* the shelf the dial stands on */
   --dial: calc(var(--gh) - var(--sill) - var(--reveal));
   width: calc(var(--dial) + 2 * var(--reveal));
-}
-/* When an odd active gate stands dead-centre, the dial is winched up into a
-   slot behind the cornice: full size, never shrunk, with only its lower rim
-   left hanging in the headroom above the arches — enough to say "the clock is
-   up there". Everything above the stage's top edge is clipped away (--tuck /
-   --tuck-clip, computed per viewport in layoutStage), so it reads as stowage
-   rather than an escape. Hovering the exposed rim lowers the whole dial back
-   down over the stage for a proper look; leaving hoists it again. Both moves
-   ride the base transition, and clip-path animates alongside transform. */
-#clock {
-  transform-origin: center bottom;
-  transition: transform 0.55s cubic-bezier(.22,1,.36,1),
-              clip-path 0.55s cubic-bezier(.22,1,.36,1);
-}
-:root.has-center #clock {
-  transform: translateX(-50%) translateY(calc(-1 * var(--tuck, 0px)));
-  clip-path: inset(var(--tuck-clip, 0px) 0 0 0);
-  pointer-events: auto;          /* the rim is a handle while stowed */
-  cursor: pointer;
-}
-:root.has-center #clock:hover {
-  transform: translateX(-50%);
-  clip-path: inset(0 0 0 0);
-  z-index: 6;                    /* over the centre gate while summoned */
 }
 .niche {
   position: relative;
@@ -2019,7 +2476,7 @@ html[lang="zh"] .al-arc text {
    facade rather than a dial parked between two doors. */
 .wall-rule {
   position: absolute; left: 3%; right: 3%;
-  bottom: calc(var(--gate-w) * 1.9 * 0.079);
+  bottom: calc(var(--gate-fit) * 1.9 * 0.079);
   height: 1px;
   background-color: var(--line);
   opacity: 0.85;
@@ -2036,12 +2493,6 @@ html[lang="zh"] .al-arc text {
   fill: none; stroke: var(--machine-edge);
   stroke-width: 1; vector-effect: non-scaling-stroke;
 }
-.ck-step, .ck-span {
-  fill: none; stroke-width: 1.5; vector-effect: non-scaling-stroke;
-}
-.ck-step { stroke: var(--bronze); }
-.ck-span { stroke: var(--metal); }
-.ck-spanin { fill: var(--metal); }
 .ck-rivet { fill: var(--rivet); }
 .ck-knurl { fill: var(--bronze); }
 .ck-well {
@@ -2078,10 +2529,14 @@ html[lang="zh"] .al-arc text {
   stroke-width: 1; vector-effect: non-scaling-stroke;
 }
 .ck-subcap {
-  fill: var(--ink-faint); font-size: 19px; letter-spacing: 4px;
+  fill: var(--ink-faint); font-size: 26px; font-weight: 600; letter-spacing: 2px;
   font-family: var(--serif);
 }
 .ck-subboss { fill: var(--bronze); }
+/* A subdial caption is 26 units, which is 10px on a dial drawn at 450px, and
+   the niche is the dial over 0.8817. On a smaller dial it cannot be read, so
+   it is not engraved at all (LY-5). */
+@container ck (max-width: 510px) { .ck-subcap { display: none; } }
 .ck-moonwell, .ck-gearwell, .ck-gearhole { fill: var(--base); }
 .ck-moondisc { fill: var(--metal); }
 .ck-moonshade { fill: var(--base); }
@@ -2091,7 +2546,7 @@ html[lang="zh"] .al-arc text {
   stroke-width: 1.5; vector-effect: non-scaling-stroke;
 }
 .ck-datenum {
-  fill: var(--ink); font-size: 38px; font-weight: 540; font-family: var(--serif);
+  fill: var(--ink); font-size: 44px; font-weight: 540; font-family: var(--serif);
   font-variant-numeric: tabular-nums lining-nums;
 }
 .ck-gear { fill: var(--bronze); }
@@ -2114,10 +2569,8 @@ html[lang="zh"] .al-arc text {
   fill: none; stroke: var(--metal);
   stroke-width: 1; vector-effect: non-scaling-stroke;
 }
-/* Theme flips ride the same 0.4s crossfade as the rest of the chrome. */
-#clock [class^="ck-"] { transition: fill 0.4s, stroke 0.4s; }
-/* ...but never the hands or the works: they are re-transformed every frame
-   and a transition on transform would smear the sweep. */
+/* The hands and the works never transition: they are re-transformed every
+   frame and a transition on transform would smear the sweep. */
 .ck-h, .ck-m, .ck-ss, .ck-gA, .ck-gB { transition: none; }
 
 /* ==========================================================================
@@ -2158,6 +2611,10 @@ html[lang="zh"] .al-arc text {
   pointer-events: none;
 }
 #ledger.open { transform: translateX(0); }
+/* The drawer, the key plate and Preferences are cabinetry like the rest of
+   the hall: a double-click or a drag across them painted the browser's blue
+   selection over the lacquer. */
+#ledger, #keyplate, #prefs { user-select: none; }
 
 /* Scrim — dims the hall behind the drawer; click to close */
 #ledger-scrim {
@@ -2178,6 +2635,20 @@ html[lang="zh"] .al-arc text {
   display: flex; align-items: baseline; justify-content: space-between;
   margin-bottom: 14px;
 }
+/* Room on the right for a focus ring: flush with the drawer's edge, the
+   BUREAU chip's ring was cut off by the overflow. */
+#ledger .l-head, #ledger .l-tools { padding-right: 10px; }
+#ledger h2:focus { outline: none; }
+#ledger h2:focus-visible { outline: 2px solid var(--focus); outline-offset: 4px; }
+/* The plaque's link sits inside two clip-paths, which cut any outline away,
+   so a focused plaque drew no ring at all. The ring goes on the unclipped
+   list item instead. */
+.plaque:has(a:focus-visible) {
+  outline: 2px solid var(--focus);
+  outline-offset: 3px;
+}
+/* Room for that ring when a walk brings the card into view. */
+.plaque { scroll-margin: 12px 0; }
 .l-head h2 { font-size: calc(15px * var(--ui)); color: var(--gold-text); letter-spacing: 0.28em; }
 .chips { display: flex; gap: 6px; }
 .chip {
@@ -2210,6 +2681,15 @@ html[lang="zh"] .al-arc text {
   transition: color 0.25s, border-color 0.25s, opacity 0.25s;
 }
 .l-stamp-cap { font-size: calc(10px * var(--ui)); letter-spacing: 0.18em; }
+/* Engraved beside the label only while a chip narrows the column: the stamp
+   clears both wings regardless, and the tooltip was the only place that
+   said so. */
+.l-stamp-scope {
+  font-size: calc(9px * var(--ui)); letter-spacing: 0.18em;
+  padding-left: calc(7px * var(--ui));
+  border-left: 1px solid var(--line);
+}
+.l-stamp-scope[hidden] { display: none; }
 .l-stamp-ico { width: calc(15px * var(--ui)); height: calc(15px * var(--ui)); }
 .l-stamp-ico .s-head, .l-stamp-ico .s-grip { fill: var(--bronze); }
 .l-stamp-ico .s-base { fill: var(--bronze-cap); }
@@ -2228,10 +2708,12 @@ html[lang="zh"] .al-arc text {
 /* Nothing to strike: inert, not gone. A control that vanishes when it has
    no work moves every other control on the drawer out from under the
    pointer, and comes back in a place the reader is no longer looking. */
-.l-stamp.inert {
-  opacity: 0.38;
-  cursor: default;
-}
+/* The stamp's works dim, not the button: at 38% on the whole button the
+   focus ring dimmed with it (2:1), and the stamp keeps focus when it goes
+   idle under the keyboard reader's own press. */
+.l-stamp > * { transition: opacity 0.25s; }
+.l-stamp.inert { cursor: default; }
+.l-stamp.inert > * { opacity: 0.38; }
 .l-stamp.inert:hover { color: var(--ink-faint); border-color: transparent; }
 
 .l-col { position: relative; padding-left: 44px; }
@@ -2278,18 +2760,28 @@ html[lang="zh"] .al-arc text {
 }
 /* box-shadow dies under clip-path, and drop-shadow on the clipped element
    itself gets clipped too — so the shadow lives on pl-shadow-wrap, which is
-   an unclipped wrapper around pl-frame. The li itself only carries transition
-   and animations (arrive/cascading) so the browser can promote those to
+   an unclipped wrapper around pl-frame. The li itself only carries the
+   arrive/cascading animations so the browser can promote those to
    compositor layers without re-rasterizing the filter every frame.
    Ghosts excluded (they re-raster on their own pulse). */
 .plaque:not(.ghost) .pl-shadow-wrap {
   filter: drop-shadow(0 3px 4px var(--shadow-drop))
           drop-shadow(0 12px 18px var(--shadow-soft));
 }
-.plaque:not(.ghost) {
+/* The hover lift moves the card, never the li. The li owns :hover and the
+   420ms dwell, and lifting it slid its box out from under a pointer resting
+   on its bottom edge: the rim drained and refilled over and over and the
+   plaque was never read. The medallion stays put on the spine it hangs
+   from; lifted, its overhang past the li would bob the same way. */
+.plaque:not(.ghost) .pl-shadow-wrap {
   transition: transform 0.25s var(--ease-out);
 }
-.plaque:not(.ghost):hover { transform: translateY(-2px); }
+@media (hover: hover) {
+  .plaque:not(.ghost):hover .pl-shadow-wrap { transform: translateY(-2px); }
+}
+/* The medallion is part of the plaque, and opens it like the rest of the
+   card (the click is forwarded from #plaques). */
+.plaque:not(.ghost) .medal { cursor: pointer; }
 .plaque.new .pl-frame { background-color: var(--champagne); }
 .pl-frame > a, .pl-frame > .pl-in {
   display: block;
@@ -2303,7 +2795,7 @@ html[lang="zh"] .al-arc text {
 }
 .pl-frame > a:hover { background-color: var(--base); }
 .plaque.new .pl-head::after {
-  content: "◆"; font-size: calc(9px * var(--ui)); color: var(--champagne);
+  content: "◆" / ""; font-size: calc(9px * var(--ui)); color: var(--champagne);
   margin-left: 8px; vertical-align: 2px;
   display: inline-block;                     /* so the strike can scale it */
 }
@@ -2462,7 +2954,7 @@ html[lang="zh"] .al-arc text {
 }
 .p-head h2 { font-size: calc(16px * var(--ui)); color: var(--gold-text); letter-spacing: 0.28em; }
 #prefs-close { color: var(--ink-faint); font-size: calc(16px * var(--ui)); padding: 4px 8px; }
-#prefs-close:hover { color: var(--ink); }
+@media (hover: hover) { #prefs-close:hover { color: var(--ink); } }
 .p-group { margin-bottom: 24px; }
 .p-label { font-size: calc(11px * var(--ui)); color: var(--ink-faint); letter-spacing: 0.26em; margin-bottom: 10px; }
 .p-options { display: flex; gap: 10px; flex-wrap: wrap; }
@@ -2474,7 +2966,7 @@ html[lang="zh"] .al-arc text {
   color: var(--ink-faint);
   transition: border-color 0.3s, color 0.3s;
 }
-.p-plaque:hover { color: var(--ink); }
+@media (hover: hover) { .p-plaque:hover { color: var(--ink); } }
 .p-plaque[aria-checked="true"] {
   border-color: var(--gold);
   color: var(--ink);
@@ -2489,407 +2981,9 @@ html[lang="zh"] .al-arc text {
 }
 
 /* ==========================================================================
-   ENTRANCE — vault-door sequence per DESIGN.md spec v1.
-   Beat ladder: 0=circle+engrave(0ms) 1=wheel+bolts(500ms)
-   2=wheel-turn+bolt-retract(700ms) 3=seam(870ms) 4=doors-open(1030ms)
-   5=wordmark(1500ms) 6=dock(1800ms) 7=done-fade(2200ms) 8=finish(2700ms)
-   Performance: transform/opacity only. Static shadows on static layers.
+   ENTRANCE: the house curtain. Its rules, and the hall's entrance-only
+   rules, are in palace-desk.css.
    ========================================================================== */
-#entrance {
-  position: fixed; inset: 0; z-index: 100;
-  pointer-events: none;
-  perspective: 1100px;   /* shared perspective; door leaves converge on seam */
-}
-html[data-entered="no"] #entrance { pointer-events: auto; cursor: pointer; }
-html[data-entered="yes"] #entrance { display: none; }
-
-#entrance .e-void {
-  position: absolute; inset: 0;
-  background-color: var(--base);
-}
-
-/* ---- Door panels --------------------------------------------------------- */
-.e-panel {
-  position: absolute; top: 0; bottom: 0; width: 51vw;
-  background-color: var(--base);
-  background-image: url('/static/assets/tex/riveted_iron.png');
-  background-size: 460px;
-  background-blend-mode: overlay;
-  transition: transform 0.88s cubic-bezier(0.22, 1, 0.36, 1);
-  backface-visibility: hidden;
-  will-change: transform;
-}
-.e-left  { left: 0;  transform-origin: left center; }
-.e-right { right: 0; transform-origin: right center; }
-.e-panel svg { width: 100%; height: 100%; }
-
-/* Doors swing open — 74 deg rotateY + translate. Contract: DO NOT change
-   these values; the dock calc reads .e-burst getBCR after doors begin moving. */
-#entrance.open .e-left  { transform: translateX(-26%) rotateY(74deg); }
-#entrance.open .e-right { transform: translateX(26%) rotateY(-74deg); }
-
-/* ---- Jamb planes (static anatomy — never animated) ---------------------- */
-.e-jamb-left, .e-jamb-right,
-.e-jamb-shadow-left, .e-jamb-shadow-right { opacity: 1; }
-/* (Entire #entrance is display:none on non-played loads, so these never
-   show outside the entrance context.) */
-
-/* ---- Beat 0: Engraving — arcs, vlines, rivets, maker's plate ----------- */
-/* All engrave children default opacity:0; class .engrave drives animations. */
-.e-arc, .e-vline, .e-rivet { opacity: 0; }
-.e-maker-frame, .e-maker-t1, .e-maker-t2, .e-maker-t3 { opacity: 0; }
-
-/* Arc: scaleX from seam edge outward. transform-box:fill-box centres the
-   origin on the element itself. The inline transform-origin HTML attributes
-   on arc paths are SVG presentation attributes; CSS animations require the
-   CSS transform-origin, set here to match (left/right panels use separate
-   rules so the origin is at the seam-facing edge of each arc). */
-.e-arc {
-  transform-box: fill-box;
-}
-.e-left .e-arc  { transform-origin: right center; }
-.e-right .e-arc { transform-origin: left center; }
-#entrance.engrave .e-arc {
-  animation: engrave-arc 200ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
-  animation-delay: calc(80ms + var(--ai, 0) * 22ms);
-}
-@keyframes engrave-arc {
-  from { opacity: 0; transform: scaleX(0); }
-  to   { opacity: 0.5; transform: scaleX(1); }
-}
-
-/* Vline: scaleY from top downward */
-.e-vline { transform-box: fill-box; transform-origin: top center; }
-#entrance.engrave .e-vline {
-  animation: engrave-vline 200ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
-  animation-delay: calc(160ms + var(--vi, 0) * 35ms);
-}
-@keyframes engrave-vline {
-  from { opacity: 0; transform: scaleY(0); }
-  to   { opacity: 0.5; transform: scaleY(1); }
-}
-
-/* Rivet column: simple opacity fade */
-#entrance.engrave .e-rivet {
-  animation: engrave-rivet 180ms ease-out 310ms backwards;
-}
-@keyframes engrave-rivet {
-  from { opacity: 0; }
-  to   { opacity: 1; }
-}
-
-/* Maker's plate: frame then text blocks */
-#entrance.engrave .e-maker-frame { animation: engrave-rivet 120ms ease-out 360ms backwards; }
-#entrance.engrave .e-maker-t1   { animation: engrave-rivet 140ms ease-out 400ms backwards; }
-#entrance.engrave .e-maker-t2   { animation: engrave-rivet 140ms ease-out 440ms backwards; }
-#entrance.engrave .e-maker-t3   { animation: engrave-rivet 140ms ease-out 480ms backwards; }
-
-/* ---- Beat 0: Circle draws + Rays fan in --------------------------------- */
-.e-burst {
-  position: absolute; left: 50%; top: 50%;
-  /* 88vmin, not 64: the burst's viewBox is 800 units, so at 64vmin on a
-     900px-tall viewport one unit rendered at 0.72 screen px and 43 of the
-     114 door parts came out as sub-pixel ghosts. At 88vmin a unit is ~0.99px
-     and the lock anatomy actually reads. */
-  width: min(88vmin, 1000px); height: min(88vmin, 1000px);
-  margin: calc(min(88vmin, 1000px) / -2) 0 0 calc(min(88vmin, 1000px) / -2);
-  /* translate: 480ms (arrives before 280ms fade so circle clicks in then dissolves) */
-  transition: transform 0.48s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.28s;
-  will-change: transform;
-}
-.e-circle {
-  stroke: var(--gold);
-  stroke-dasharray: 578;
-  stroke-dashoffset: 578;
-}
-#entrance.play .e-circle {
-  animation: circle-draw 420ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
-}
-@keyframes circle-draw { to { stroke-dashoffset: 0; } }
-
-.e-rays line {
-  stroke: var(--gold); stroke-width: 1;
-  opacity: 0;
-  transform-origin: 400px 400px;
-  transform: scale(0.3);
-}
-#entrance.play .e-rays line {
-  animation: ray-in 300ms var(--ease-out) backwards;
-  animation-delay: calc(300ms + var(--i, 0) * 12ms);
-}
-@keyframes ray-in {
-  from { opacity: 0; transform: scale(0.3); }
-  60%  { opacity: 0.85; }
-  to   { opacity: 0.66; transform: scale(1); }
-}
-/* Group-level fade as doors part (beats class-level animation) */
-#entrance.open .e-rays { opacity: 0; transition: opacity 0.38s; }
-
-/* ---- Beat 0: Dial ring and marks ---------------------------------------- */
-.e-dial-ring, .e-dial-ring-inner { opacity: 0; }
-#entrance.play .e-dial-ring       { animation: engrave-rivet 200ms ease-out 200ms backwards; }
-#entrance.play .e-dial-ring-inner { animation: engrave-rivet 200ms ease-out 240ms backwards; }
-
-.e-dial-major { opacity: 0; }
-#entrance.play .e-dial-major {
-  animation: engrave-rivet 80ms ease-out backwards;
-  animation-delay: calc(120ms + var(--di, 0) * 15ms);
-}
-
-.e-dial-minor { opacity: 0; }
-#entrance.play .e-dial-minor {
-  animation: engrave-rivet 60ms ease-out backwards;
-  animation-delay: calc(200ms + var(--dmi, 0) * 8ms);
-}
-
-.e-dial-minor-group { opacity: 0; }
-#entrance.play .e-dial-minor-group { animation: engrave-rivet 180ms ease-out 300ms backwards; }
-
-/* ---- Beat 1: Handwheel materialises + lock case ------------------------- */
-/* Lock case appears with play (manufactured before the wheel loads) */
-.e-lock-case, .e-lock-case-lit, .e-relocker, .e-relocker-lit { opacity: 0; }
-#entrance.play .e-lock-case     { opacity: 0.88;  transition: opacity 0.35s 0ms; }
-#entrance.play .e-lock-case-lit { opacity: 0.42; transition: opacity 0.35s 30ms; }
-#entrance.play .e-relocker      { opacity: 0.82;  transition: opacity 0.35s 30ms; }
-#entrance.play .e-relocker-lit  { opacity: 0.62;  transition: opacity 0.35s 60ms; }
-#entrance.open .e-lock-case,
-#entrance.open .e-lock-case-lit,
-#entrance.open .e-relocker,
-#entrance.open .e-relocker-lit  { opacity: 0; transition: opacity 0.38s; }
-
-/* Wheel — appears on Beat 1; rotates on Beat 2. transform-box:view-box
-   so transform-origin 400px 400px references the SVG coordinate space. */
-.e-wheel {
-  opacity: 0;
-  transform-box: view-box;
-  transform-origin: 400px 400px;
-  transition: opacity 0.35s;
-}
-#entrance.doors .e-wheel { opacity: 0.9; }
-/* Beat 2: rotate 60 deg with 3% overshoot (cubic-bezier overshoot) */
-#entrance.wheel .e-wheel {
-  transform: rotate(60deg);
-  transition: transform 0.38s cubic-bezier(0.34, 1.08, 0.64, 1), opacity 0.35s;
-}
-
-/* Drive cams (4 inner groups, each inside a static base-rotation wrapper).
-   The outer wrapper's HTML transform attribute sets the base angle (45/135/225/315).
-   The inner .e-drive-cam group adds the CSS rotate(60deg) on Beat 2,
-   which composes with the outer wrapper's static rotation. */
-.e-drive-cam { transform-box: view-box; transform-origin: 400px 400px; }
-.e-drive-cam ellipse { opacity: 0; }
-#entrance.doors .e-drive-cam ellipse {
-  opacity: 0.78; transition: opacity 0.15s;
-}
-/* Beat 2: cams rotate 60 deg additional (keyed to wheel) */
-#entrance.wheel .e-drive-cam {
-  transform: rotate(60deg);
-  transition: transform 0.38s cubic-bezier(0.34, 1.08, 0.64, 1);
-}
-#entrance.open .e-drive-cam ellipse { opacity: 0; transition: opacity 0.28s; }
-
-/* Spindle: appears with wheel at beat 1 */
-.e-spindle { opacity: 0; }
-#entrance.doors .e-spindle { opacity: 1; transition: opacity 0.35s 0.2s; }
-#entrance.open .e-spindle  { opacity: 0; transition: opacity 0.28s; }
-
-/* ---- Beat 1: Bolt tick-in ----------------------------------------------- */
-/* Bolts are JS-populated lines inside .e-bolts with --bi index.
-   bolt-tick uses explicit opacity:0.75 at every stop to prevent the
-   flash bug (bolt in fill-mode:backwards snapping to opacity:0 when
-   .wheel is added). */
-.e-bolts line {
-  stroke: var(--gold);
-  opacity: 0;
-}
-/* Stagger: bolt-0 fires immediately when 'doors' class applied,
-   bolt-7 fires 84ms later. Last bolt completes at ~184ms after doors. */
-#entrance.doors .e-bolts line {
-  animation: bolt-tick 100ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
-  animation-delay: calc(var(--bi, 0) * 12ms);
-}
-@keyframes bolt-tick {
-  from { opacity: 0; transform: translateY(-6px); }
-  to   { opacity: 0.92; transform: none; }
-}
-
-/* Bolt carrier ring (circular track all bolts ride; translates with carrier tray) */
-.e-bolt-carrier {
-  opacity: 0;
-  transform-box: view-box;
-  transform-origin: 400px 400px;
-}
-#entrance.doors .e-bolt-carrier { opacity: 0.58; transition: opacity 0.28s; }
-/* Carrier moves with bolt tray on Beat 2 (defined in bolt-retract section) */
-#entrance.open  .e-bolt-carrier { opacity: 0;    transition: opacity 0.28s; }
-
-/* Bolt guide channels */
-.e-bolt-guide { opacity: 0; }
-#entrance.doors .e-bolt-guide { opacity: 0.68; transition: opacity 0.12s; }
-#entrance.open  .e-bolt-guide { opacity: 0;    transition: opacity 0.28s; }
-
-/* ---- Beat 2: Bolt retract ----------------------------------------------- */
-/* All opacity:0.75 stops are explicit to prevent flash bug when .wheel fires
-   during an in-progress bolt-tick animation. */
-#entrance.wheel .e-bolts line {
-  animation: bolt-retract 280ms linear forwards;
-}
-@keyframes bolt-retract {
-  0%   { opacity: 0.92; transform: none; }
-  78%  { opacity: 0.92; transform: translateY(32px); }
-  100% { opacity: 0.92; transform: translateY(30px); }
-}
-/* Carrier moves with bolt tray */
-#entrance.wheel .e-bolt-carrier {
-  transform: translateY(4px);
-  transition: transform 0.28s linear;
-}
-/* Group-level fade as doors open */
-#entrance.open .e-bolts { opacity: 0; transition: opacity 0.28s; }
-
-/* ---- Beat 3: Seam descends + threshold appears -------------------------- */
-.e-seam {
-  position: absolute; left: 50%; top: 8vh; bottom: 8vh; width: 1px;
-  background-color: var(--champagne);
-  transform: scaleY(0);
-  transform-origin: top center;
-  transition: transform 80ms linear, opacity 0.38s;
-  z-index: 1; /* paints above .e-panel siblings so the scaleY draw is visible */
-}
-#entrance.seam .e-seam { transform: scaleY(1); }
-#entrance.open .e-seam { opacity: 0; }
-
-/* Threshold plate (visible in the structured 160ms hold after seam) */
-.e-threshold {
-  position: absolute;
-  left: calc(50% - 1px);
-  bottom: 8vh;
-  width: 2px; height: 8px;
-  background: var(--champagne);
-  opacity: 0;
-}
-/* 'both' warranted: threshold must persist through the 160ms hold;
-   #entrance is display:none on all non-playing loads so no leakage risk. */
-#entrance.seam .e-threshold { animation: engrave-rivet 120ms ease-out 0ms both; }
-
-/* ---- Beat 4: Dock transform --------------------------------------------- */
-/* The entire .e-burst (lock face assembly) flies to the masthead rosette.
-   --dock-x, --dock-y, --dock-s are set in JS at 1800ms.
-   The * 0.23 factor: circle r=92 on 800px viewBox = 184/800 = 23% of burst.
-   !! LOAD-BEARING: if masthead rise-in delay changes from 2000ms,
-   recompute the -14px offset in playEntrance() !! */
-#entrance.dock .e-burst {
-  transform: translate(var(--dock-x, 0px), var(--dock-y, 0px)) scale(var(--dock-s, 0.1));
-  opacity: 0;
-}
-#entrance.open .e-void { opacity: 0; transition: opacity 0.28s; }
-
-/* ---- Beat 5: Wordmark stamps down --------------------------------------- */
-/* Per-letter treatment: rotateX(-38deg) with per-letter perspective context.
-   fill-mode: backwards only (holds from-state before delay fires, but
-   returns to natural CSS state after — no fill-mode:both to avoid freeze). */
-.e-wordmark {
-  position: absolute; left: 0; right: 0; top: 50%;
-  transform: translateY(-50%);
-  display: flex; justify-content: center;
-  font-size: clamp(40px, 6vw, 72px);
-  font-weight: 560;
-  color: var(--gold);
-  opacity: 0;
-  /* Local perspective so each letter has its own vanishing point */
-  perspective: 900px;
-}
-.e-wordmark span {
-  display: inline-block;
-  padding: 0 0.11em;
-  opacity: 0;
-}
-#entrance.word .e-wordmark { opacity: 1; transition: opacity 0.3s; }
-/* word-stamp keyframe: per-letter translateX + rotateX press-home motion */
-#entrance.word .e-wordmark span {
-  animation: word-stamp 480ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
-}
-/* --wi index set inline on each span; JS also sets animationDelay inline */
-@keyframes word-stamp {
-  from {
-    opacity: 0;
-    transform: translateX(calc(var(--wx, 0) * 1em))
-               translateY(8px)
-               rotateX(-38deg);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
-/* wx values (0.9 multiplier vs old ±2.5 — tighter range reads as press not drift) */
-.e-wordmark span:nth-child(1) { --wx: -2.25; }
-.e-wordmark span:nth-child(2) { --wx: -1.35; }
-.e-wordmark span:nth-child(3) { --wx: -0.45; }
-.e-wordmark span:nth-child(4) { --wx: 0.45;  }
-.e-wordmark span:nth-child(5) { --wx: 1.35;  }
-.e-wordmark span:nth-child(6) { --wx: 2.25;  }
-
-/* ---- Beat 7: Done-fade -------------------------------------------------- */
-/* done-fade fires at 2200ms — 30ms after last letter settles (2170ms).
-   This gap is load-bearing: the prior done-fade at 2100ms was a timing
-   bug (sixth letter still animating at 2170ms). */
-#entrance.done-fade .e-wordmark,
-#entrance.done-fade .e-void { opacity: 0; transition: opacity 0.36s; }
-#entrance.done-fade .e-panel { visibility: hidden; }
-
-/* ---- Steam nozzle ------------------------------------------------------- */
-.e-nozzle {
-  position: absolute; left: 50%; bottom: 8vh;
-  width: 0; height: 0;
-}
-
-/* Hall assembly (only while the entrance plays) */
-html[data-entered="no"] #masthead { animation: rise-in 0.5s var(--ease-out) both; animation-delay: 2.0s; }
-html[data-entered="no"] #ticker { animation: rise-in 0.45s var(--ease-out) both; animation-delay: 2.05s; }
-html[data-entered="no"] #ticker::before { animation: rule-draw 0.4s var(--ease-out) both; animation-delay: 1.9s; }
-html[data-entered="no"] #ticker::after { animation: rule-draw 0.4s var(--ease-out) both; animation-delay: 2.0s; }
-/* The dial is set into the back wall, so it has to be standing there before
-   the gates rise in front of it: 1.88s puts it one beat ahead of the first
-   gate. It was missing from this list entirely and so arrived fully formed at
-   frame zero, which read as a rendering fault rather than as the centrepiece.
-   Like .gate below, its keyframes must carry the translateX(-50%) that centres
-   it — an animated transform replaces the static one outright, and without it
-   the clock snaps to the left edge for the length of the entrance. */
-html[data-entered="no"] #clock { animation: dial-wake 0.62s var(--ease-out) both; animation-delay: 1.88s; }
-html[data-entered="no"] .gate { animation: gate-rise 0.5s var(--ease-out) both; animation-delay: calc(1.9s + var(--gi, 0) * 80ms); }
-/* #ledger is a fixed drawer — it has no entrance animation; it opens via JS */
-/* The glow and floor light only once the gates have landed; the stage
-   dollies in gently — the camera walks into the hall. */
-html[data-entered="no"] .stage-glow { animation: glow-in 0.45s var(--ease-out) both; animation-delay: 2.2s; }
-html[data-entered="no"] .floor { animation: floor-in 0.6s var(--ease-out) both; animation-delay: 2.15s; }
-html[data-entered="no"] #stage { animation: stage-dolly 0.9s var(--ease-out) both; animation-delay: 1.85s; }
-@keyframes glow-in { from { opacity: 0; } to { opacity: 0.6; } }
-@keyframes floor-in { from { opacity: 0; } to { opacity: 0.85; } }
-@keyframes stage-dolly { from { transform: scale(0.965); } to { transform: none; } }
-@keyframes rise-in {
-  from { opacity: 0; transform: translateY(14px); }
-  to { opacity: 1; transform: none; }
-}
-@keyframes rule-draw { from { transform: scaleX(0); } to { transform: scaleX(1); } }
-/* A clock does not fade in, it comes up to speed. The dial settles from
-   slightly small and slightly low, as though the works had just taken load. */
-@keyframes dial-wake {
-  from { opacity: 0; transform: translateX(-50%) translateY(8px) scale(0.955); }
-  to   { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
-}
-@keyframes gate-rise {
-  from {
-    opacity: 0;
-    transform: translateX(calc(-50% + var(--slot-x, 0px))) translateY(40px)
-               scale(var(--slot-s, 1));
-  }
-  to {
-    opacity: 1;
-    transform: translateX(calc(-50% + var(--slot-x, 0px))) translateY(0)
-               scale(var(--slot-s, 1));
-  }
-}
 
 /* ==========================================================================
    RESPONSIVE
@@ -2903,81 +2997,73 @@ html[data-entered="no"] #stage { animation: stage-dolly 0.9s var(--ease-out) bot
    height for a composition whose stage alone wants 425 of it. */
 @media (max-height: 860px) {
   :root {
-    --gate-w: clamp(164px, min(13.6vw, 25vh),
+    --gate-w: clamp(164px, min(13.6vw, 25vh, var(--gate-vcap, 100vh)),
                     calc(268px * (0.62 + 0.38 * var(--ui))));
+    --gate-free: clamp(164px, min(13.6vw, 25vh), calc(268px * (0.62 + 0.38 * var(--ui))));
   }
-  #hall { padding-top: 12px; }
+  #hall { --hall-pad-top: 12px; }
   #concourse { --floor-min: clamp(62px, 8vh, 210px); }
   /* And the machine comes down with it. It stands ON the stone, so once the
      floor is a band rather than a field the console has to fit inside that
      band — at full height its lever tip cleared the skirting and the thing
      read as standing in the wall. */
-  .assembly { transform: translateX(-50%) scale(0.78); }
+  #signal-desk { --desk-k: 0.78; }
 }
 @media (max-height: 760px) {
-  .assembly { transform: translateX(-50%) scale(0.62); }
+  #signal-desk { --desk-k: 0.62; }
 }
 
 @media (max-width: 899px) {
-  #hall { padding: 16px 18px 40px; }
+  #hall { --hall-pad-top: 16px; padding: var(--hall-pad-top) 18px 40px; }
   :root { --gate-w: clamp(170px, 44vw, 230px); }
   #masthead { grid-template-columns: 36px 1fr auto; }
   .m-title h1 { font-size: calc(22px * var(--ui)); }
   .m-sub { display: none; }
   #dateline { display: none; }
-  .assembly { transform: translateX(-50%) scale(0.85); }
-  #lever { width: 260px; }
-  #lever .hit-arm { width: 190px; height: 96px; }
+  #signal-desk { --desk-k: 0.85; }
 }
 
 /* ==========================================================================
    REDUCED MOTION — setting or OS preference collapses everything
    ========================================================================== */
+/* Transitions are cut to 0s, not to a sliver. Every element's
+   transition-property is `all` unless it says otherwise, so a 0.01ms
+   duration on `*` turned every property change in the hall into a
+   transition, layout included: a new width stayed at its old value until
+   the next frame ticked. The engraving size re-solved the stage against the
+   clock's old width and left the arches crowding the niche (PS-1), and W
+   put focus on an arch whose visibility was still `hidden` (KB-8).
+   Animations keep 0.01ms so their animationend still fires. */
 :root[data-motion="reduced"] *,
 :root[data-motion="reduced"] *::before,
 :root[data-motion="reduced"] *::after {
   animation-duration: 0.01ms !important;
   animation-delay: 0ms !important;
   animation-iteration-count: 1 !important;
-  transition-duration: 0.01ms !important;
+  transition-duration: 0s !important;
   transition-delay: 0ms !important;
 }
 :root[data-motion="reduced"] #ticker.rolling .t-track {
   animation: none; transform: none;
 }
-@media (prefers-reduced-motion: reduce) {
-  :root[data-motion="full"] #ticker.rolling .t-track { animation: none; }
+/* The one motion the band keeps (DESIGN: "at most a slow crossfade
+   rotation"). Without this the kill switch above turns each page into a
+   hard cut. */
+:root[data-motion="reduced"] #ticker.paged .t-page {
+  transition-duration: 0.9s !important;
+}
+/* ...except the quiet boot's fade. It is the whole of what a reduced-motion
+   load gets instead of the entrance, and it is opacity only, so it moves
+   nothing. Under the blanket 0.01ms above the hall cut in on one frame. */
+:root[data-motion="reduced"][data-boot="suppressed"] #hall,
+:root[data-motion="reduced"][data-boot="suppressed"] #signal-desk {
+  animation-duration: 0.3s !important;
 }
 
-/* Ledger drawer: replace slide with fade in reduced-motion contexts.
-   Split into two separate rules: attribute selectors are not valid inside
-   @media query lists (browsers silently drop invalid items). */
-@media (prefers-reduced-motion: reduce) {
-  #ledger {
-    transition: opacity 0.2s linear;
-    transform: none !important;
-  }
-  #ledger:not(.open) { opacity: 0; pointer-events: none; }
-  #ledger.open { opacity: 1; pointer-events: auto; }
-  .plaque.cascading,
-  .daybreak.cascading {
-    animation: none;
-    opacity: 1;
-    transform: none;
-  }
-  #ledger.opening .spine {
-    animation: none;
-    opacity: 0.7;
-    transform: none;
-  }
-  .hatch-disc {
-    transition: none !important;
-  }
-  /* The dwell still has to be legible without motion, or resting on a plaque
-     does something invisible for 420ms and then jumps. Keep the timing, drop
-     the travel: the diamond fades where it stands. */
-  .plaque.new.reading .pl-head::after { animation-name: mark-struck-flat; }
-}
+/* Ledger drawer: a fade instead of the slide. data-motion is the one switch:
+   the pre-paint script and resolveMotion() already fold the OS setting into
+   it, and a raw prefers-reduced-motion query here used to override a reader
+   who had chosen FULL. */
 :root[data-motion="reduced"] {
   #ledger {
     transition: opacity 0.2s linear;
@@ -3003,4 +3089,862 @@ html[data-entered="no"] #stage { animation: stage-dolly 0.9s var(--ease-out) bot
      does something invisible for 420ms and then jumps. Keep the timing, drop
      the travel: the diamond fades where it stands. */
   .plaque.new.reading .pl-head::after { animation-name: mark-struck-flat; }
+}
+
+/* ==========================================================================
+   THE PICTURE PALACE: THE ROOM (direction C)
+   ==========================================================================
+   The concourse re-dressed as a 1930s picture-palace foyer. Night is the
+   house with the lights dimmed before the show; day is the foyer with the
+   doors open to the street. The room does not change between them; the
+   hour does: every lamp here is a layer whose opacity is the theme's, and
+   every lit surface has an unlit twin underneath.
+   ========================================================================== */
+:root[data-theme="onyx"] {
+  --damask: #2a0e0f;
+  --wall-dim: rgba(4, 2, 2, 0.62);
+  --frieze-img: url('/static/assets/tex/relief-frieze-night.webp');
+  --cove-wash: rgba(255, 176, 96, 0.20);
+  --dado-img: url('/static/assets/tex/stone-portoro.webp');
+  --dado-veil: rgba(6, 4, 3, 0.42);
+  --skirt: #0a0807;
+  --channel: #8b8a82;
+  --mirror-glass: #16110d;
+  --mirror-room: rgba(120, 70, 36, 0.35);
+  --mirror-streak: rgba(255, 196, 124, 0.55);
+  --wash: rgba(255, 162, 84, 0.60);
+  --wash-ray: rgba(255, 214, 160, 0.10);
+  --lamp-on: 1;
+  --floor-base: #15120e;
+  --floor-img: url('/static/assets/tex/terrazzo-onyx.webp');
+  --floor-sheen: rgba(255, 196, 120, 0.10);
+  --floor-far: rgba(6, 4, 3, 0.75);
+  --floor-near: rgba(0, 0, 0, 0.45);
+  --strip: rgba(196, 150, 74, 0.34);
+  --strip-lt: rgba(255, 226, 160, 0.20);
+  --rug-veil: rgba(8, 3, 3, 0.42);
+  --rope: #6b1019; --rope-lt: rgba(255, 150, 140, 0.35);
+  --fascia: #080706;
+  /* Backlit milk glass: the brightest and most even field on the masthead,
+     warm white with a hot core. Its ends were a sandy tan, no brighter than
+     the dead glass by day, and on that tan the frost read as grit (AR-14). */
+  --glass-milk: #fdf2dc; --glass-milk-hi: #fffaf0; --glass-milk-lo: #f8e7c6;
+  --marquee-ink: #1b120a; --marquee-new: #8a1a14;
+  --bulb: #ffe7b0; --bulb-core: #fffaf0; --bulb-glow: rgba(255, 196, 110, 0.55);
+  --stone-a: #3b150f; --stone-b: #0c0a08; --stone-c: #5e4524; --stone-d: #6d665a;
+  --rug: #4a0f14; --rug-hi: #a37b34;
+}
+:root[data-theme="ivory"] {
+  --damask: #e4d7bf;
+  --wall-dim: rgba(255, 252, 244, 0);
+  --frieze-img: url('/static/assets/tex/relief-frieze-day.webp');
+  --cove-wash: rgba(62, 45, 20, 0.10);
+  --dado-img: url('/static/assets/tex/stone-travertine.webp');
+  --dado-veil: rgba(244, 238, 226, 0.18);
+  --skirt: #1c1916;
+  --channel: #c9c9c2;
+  --mirror-glass: #a9a79f;
+  --mirror-room: rgba(236, 226, 206, 0.55);
+  --mirror-streak: rgba(255, 255, 255, 0.70);
+  --wash: rgba(255, 162, 84, 0);
+  --wash-ray: rgba(255, 214, 160, 0);
+  --lamp-on: 0;
+  --floor-base: #ddd3bf;
+  --floor-img: url('/static/assets/tex/terrazzo-ivory.webp');
+  --floor-sheen: rgba(255, 255, 255, 0.20);
+  --floor-far: rgba(236, 228, 212, 0.55);
+  --floor-near: rgba(90, 70, 40, 0.10);
+  --strip: rgba(150, 150, 142, 0.45);
+  --strip-lt: rgba(255, 255, 255, 0.55);
+  --rug-veil: rgba(255, 250, 240, 0.04);
+  --rope: #8c1a24; --rope-lt: rgba(255, 200, 190, 0.45);
+  --fascia: #efe7d6;
+  --glass-milk: #ecebe4; --glass-milk-hi: #f8f7f2; --glass-milk-lo: #d2d0c6;
+  --marquee-ink: #17120c; --marquee-new: #8a1a14;
+  --bulb: #f4f1e6; --bulb-core: #ffffff; --bulb-glow: rgba(255, 196, 110, 0);
+  --stone-a: #b88c80; --stone-b: #434b53; --stone-c: #c6a463; --stone-d: #ece6d8;
+  --rug: #6d1820; --rug-hi: #b98d3e;
+}
+.cyl.s0 { stop-color: var(--lead-0); } .cyl.s1 { stop-color: var(--lead-3); }
+.cyl.s2 { stop-color: var(--lead-4); } .cyl.s3 { stop-color: var(--lead-1); }
+.cyl.s4 { stop-color: var(--lead-0); }
+/* The wing's leaf and metal. The Salon's gold stands on :root and the lever
+   never changes it there: an inherited custom property changed on :root
+   restyles every element under it, and the flip restyled 10,400 of them
+   (~90ms at 3440) and laid the floor's 700 terrazzo chips out again for a
+   leaf they do not show (MO-1). The Bureau's nickel is set only on the
+   fixtures that carry the wing's metal, so a throw restyles those. The
+   gates lead their own leaf (.gate), and the marquee, the frieze and the
+   aisle walls ease theirs (palace-room.css). A new fixture that reads
+   --lead-* or --metal outside all of these joins this list. */
+:root { --lead-0: var(--au-0); --lead-1: var(--au-1); --lead-2: var(--au-2);
+        --lead-3: var(--au-3); --lead-4: var(--au-4); --lead-5: var(--au-5); }
+:root[data-wing="bureau"] :where(#clock, .stage-glow, .wall-piers,
+    .fl-border, .fl-inlay, .fl-round, .fl-runner, .fl-rail, .fl-mirror,
+    .cs-top, .cs-door > .cf, .bd-title, #al-sky,
+    .m-crown, .mf-crest, .m-title, .m-underline,
+    .desk-art, .desk-fx, #keyplate, #ledger, .p-sheet, #cyl-lead) {
+  --lead-0: var(--ag-0); --lead-1: var(--ag-1); --lead-2: var(--ag-2);
+  --lead-3: var(--ag-3); --lead-4: var(--ag-4); --lead-5: var(--ag-5);
+  --metal: var(--plat); --metal-hi: var(--plat-hi);
+}
+/* And the fixtures the lever re-leafs are layers of their own. Painted into
+   the layer under them, each one's new leaf had that layer's tiles around it
+   rastered again (the terrazzo plane, the wall, a case door, the canopy),
+   and a flip took 440-490ms of GPU raster at 3440, which held back the
+   lever's first frames and ran into the sink (MO-1). Rastered alone, the
+   same leaf costs about 290ms. */
+:where(.fl-border, .fl-inlay, .fl-round, .wall-piers, .m-title, .m-underline,
+    .mf-crest, .cs-top, .cs-door > .cf, .bd-title, #al-sky, .desk-art .hl-board) {
+  will-change: transform;
+}
+:root[data-theme="onyx"] .alab.s0 { stop-color: #fff6e0; }
+:root[data-theme="onyx"] .alab.s1 { stop-color: #f6c783; }
+:root[data-theme="onyx"] .alab.s2 { stop-color: #8a4e1c; }
+:root[data-theme="ivory"] .alab.s0 { stop-color: #fbf6ea; }
+:root[data-theme="ivory"] .alab.s1 { stop-color: #e6dac2; }
+:root[data-theme="ivory"] .alab.s2 { stop-color: #b3a383; }
+
+/* The reflections hang below the arches into the floor band; the hall's own
+   box is the screen, and nothing under it may make a page to scroll. */
+#hall { overflow-y: clip; }
+
+/* ----- The wall ----------------------------------------------------------
+   Silk damask, fan and fountain woven in satin on a twill ground, so the
+   pattern is only a change of sheen: soft-light over the wall colour. The
+   head of the wall is dim; the lamps find the rest. */
+.wall-field {
+  background-image:
+    linear-gradient(to bottom, var(--wall-dim) 0%, transparent 42%, transparent 70%, color-mix(in srgb, var(--wall-dim) 60%, transparent) 100%),
+    url('/static/assets/tex/fab-damask.webp'),
+    linear-gradient(var(--damask), var(--damask));
+  background-size: 100% 100%, calc(128px * var(--ui)) auto, 100% 100%;
+  background-blend-mode: normal, soft-light, normal;
+}
+/* Cornice: a gilt crown roll, the relief frieze (fans and stepped fountains,
+   baked lit from the cove below at night and from the skylight above by
+   day), then a bed of dentils over the lamp trough. */
+#concourse { --frieze-h: calc(44px * var(--ui)); --cornice-h: calc(var(--frieze-h) + 16px * var(--ui)); }
+.wall-cornice {
+  height: var(--cornice-h);
+  opacity: 1;
+  background:
+    linear-gradient(to bottom, var(--au-0) 0, var(--au-5) 1.5px, var(--au-3) 2.5px, var(--au-2) 4px, var(--au-1) 6px, var(--au-0) 7px, transparent 7px) 0 0 / 100% 100% no-repeat,
+    var(--frieze-img) 0 7px / auto var(--frieze-h) repeat-x,
+    linear-gradient(to bottom, transparent calc(7px + var(--frieze-h)), var(--au-0) 0, var(--au-4) calc(8.5px + var(--frieze-h)), var(--au-1) calc(10px + var(--frieze-h)), transparent 0) 0 0 / 100% 100% no-repeat,
+    repeating-linear-gradient(90deg, var(--au-5) 0 1px, var(--au-2) 1px calc(6px * var(--ui)), var(--au-0) calc(6px * var(--ui)) calc(10px * var(--ui))) 0 100% / 100% calc(6px * var(--ui)) no-repeat;
+  box-shadow: 0 calc(6px * var(--ui)) calc(10px * var(--ui)) rgba(0, 0, 0, 0.55);
+  z-index: 2;
+}
+:root[data-wing="bureau"] .wall-cornice { filter: saturate(0.25) brightness(1.08); }
+/* The trough under the bed mould: at night a warm wash down the damask. */
+.wall-cove {
+  position: absolute; left: 0; right: 0; top: var(--cornice-h);
+  height: calc(160px * var(--ui));
+  background: linear-gradient(to bottom, var(--cove-wash), transparent);
+  pointer-events: none;
+}
+/* Dado: a band of marble (Portoro by night, Siena travertine by day) under
+   a rolled gilt chair rail, over a black skirting set with two channelled
+   nickel strips, the Paramount's "channeled chromium". */
+.wall-dado {
+  opacity: 1;
+  background:
+    linear-gradient(to bottom, var(--au-0) 0, var(--au-5) 1.5px, var(--au-3) 2.5px, var(--au-2) 4px, var(--au-1) 6px, var(--au-0) 7px, rgba(0, 0, 0, 0.55) 7px, transparent 16px) 0 0 / 100% 100% no-repeat,
+    linear-gradient(to top, transparent calc(var(--skirt-h) * 0.30), var(--channel) 0, color-mix(in srgb, var(--channel) 40%, #000) calc(var(--skirt-h) * 0.30 + 2px), transparent 0) 0 0 / 100% 100% no-repeat,
+    linear-gradient(to top, transparent calc(var(--skirt-h) * 0.62), var(--channel) 0, color-mix(in srgb, var(--channel) 40%, #000) calc(var(--skirt-h) * 0.62 + 2px), transparent 0) 0 0 / 100% 100% no-repeat,
+    linear-gradient(to top, var(--skirt) 0 var(--skirt-h), transparent var(--skirt-h)) 0 0 / 100% 100% no-repeat,
+    linear-gradient(var(--dado-veil), var(--dado-veil)),
+    var(--dado-img) 0 0 / calc(420px * var(--ui)) auto;
+}
+
+/* Pilasters: antique mirror between reeded gilt fillets. The mirror is
+   the room seen dark, with the lamps in it. */
+.pilaster { width: calc(34px * var(--ui)); margin-left: calc(-17px * var(--ui)); }
+.pil-cap path, .pil-base path { stroke: none; }
+.pil-cap .pc-abacus { fill: var(--lead-2); }
+.pil-cap .pc-lit { fill: var(--lead-5); }
+.pil-cap .pc-shade { fill: var(--lead-0); }
+.pil-cap .pc-bell { fill: var(--lead-1); }
+.pil-cap .pc-neck { fill: var(--lead-2); }
+.pil-cap .pc-ray { fill: var(--lead-4); }
+.pil-cap .pc-rsh { fill: var(--relief-shadow); }
+.pil-cap .pc-boss { fill: var(--lead-3); }
+.pil-base .pb-nose { fill: var(--lead-2); }
+.pil-base .pb-block { fill: var(--plinth); }
+.pil-base .pc-lit { fill: var(--lead-5); }
+.pil-shaft {
+  margin: 0 calc(3px * var(--ui));
+  position: relative;
+  background:
+    linear-gradient(90deg, var(--lead-0), var(--lead-3) 18%, var(--lead-1) 34%, var(--lead-4) 50%, var(--lead-1) 66%, var(--lead-3) 82%, var(--lead-0)) 0 0 / calc(5px * var(--ui)) 100% no-repeat,
+    linear-gradient(90deg, var(--lead-0), var(--lead-3) 18%, var(--lead-1) 34%, var(--lead-4) 50%, var(--lead-1) 66%, var(--lead-3) 82%, var(--lead-0)) 100% 0 / calc(5px * var(--ui)) 100% no-repeat,
+    var(--lead-1);
+  box-shadow: calc(4px * var(--ui)) 0 calc(8px * var(--ui)) calc(-3px * var(--ui)) var(--shadow-soft);
+  opacity: 1;
+}
+.pil-mirror {
+  position: absolute; top: 0; bottom: 0;
+  left: calc(5px * var(--ui)); right: calc(5px * var(--ui));
+  background:
+    radial-gradient(40% 18% at var(--mx) var(--my), var(--mirror-streak), transparent 70%),
+    linear-gradient(90deg, transparent 20%, var(--mirror-room) 48%, transparent 76%),
+    url('/static/assets/tex/glass-mirror.webp') 0 0 / 180px auto,
+    var(--mirror-glass);
+  background-blend-mode: screen, normal, multiply, normal;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.6), inset 0 0 calc(6px * var(--ui)) rgba(0, 0, 0, 0.5);
+}
+.pil-mirror::after {
+  /* the bevel of the glass: a lit left arris, a dark right one */
+  content: ""; position: absolute; inset: 0;
+  background: linear-gradient(90deg, rgba(255, 245, 225, 0.30) 0 1px, transparent 2px calc(100% - 2px), rgba(0, 0, 0, 0.5) calc(100% - 1px));
+}
+
+/* Torchieres. */
+.sconce {
+  top: calc(var(--cornice-h) + 20%);
+  /* --sc: a narrow bay's smaller lamp (fillSpan). The wash and the pool
+     below scale with it. */
+  --scu: calc(var(--ui) * var(--sc, 1));
+  width: calc(44px * var(--scu)); margin-left: calc(-22px * var(--scu));
+}
+.sc-body { position: relative; z-index: 2; filter: drop-shadow(0 calc(3px * var(--scu)) calc(3px * var(--scu)) rgba(0, 0, 0, 0.55)); }
+.sc-body path { stroke: none; }
+.sc-body .sc-plate { fill: var(--lead-2); }
+.sc-body .sc-lit { fill: var(--lead-5); }
+.sc-body .sc-stem { fill: none; stroke: var(--lead-2); stroke-width: 2.4; }
+.sc-body .sc-bowl { fill: url(#alab); }
+.sc-body .sc-flute { fill: none; stroke: rgba(90, 50, 20, 0.35); stroke-width: 0.8; }
+.sc-body .sc-rim { fill: var(--lead-2); }
+.sc-body .sc-mouth { fill: #ffe9c0; opacity: var(--lamp-on); }
+:root[data-theme="ivory"] .sc-body .sc-mouth { opacity: 1; fill: #d8cdb6; }
+/* The uplight: one soft cone on the damask, brightest just above the rim
+   and dying up the wall. The bowl's fluting scallops it only where the
+   light leaves the rim (::before). Ribs cut hard at 4 on and 5 off ran the
+   full height of the wash, and it read as a sunburst printed on the wall
+   (AR-28). */
+.sc-pool {
+  position: absolute; left: 50%; top: calc(-250px * var(--scu));
+  width: calc(210px * var(--scu)); height: calc(280px * var(--scu));
+  transform: translateX(-50%);
+  background:
+    radial-gradient(46% 100% at 50% 100%, var(--wash) 0%, color-mix(in srgb, var(--wash) 35%, transparent) 38%, transparent 72%);
+  /* The cut edge of an uplight's cone on a wall is a hyperbola: as narrow
+     as the bowl at the rim, opening upward, soft at its penumbra and fading
+     with distance. Two masks intersected: the V of the cone and the fall. */
+  -webkit-mask-image:
+    conic-gradient(from -34deg at 50% 106%, transparent 0deg, #000 12deg, #000 56deg, transparent 68deg),
+    linear-gradient(to top, #000 30%, rgba(0, 0, 0, 0.55) 62%, transparent 100%);
+  -webkit-mask-composite: source-in;
+  mask-image:
+    conic-gradient(from -34deg at 50% 106%, transparent 0deg, #000 12deg, #000 56deg, transparent 68deg),
+    linear-gradient(to top, #000 30%, rgba(0, 0, 0, 0.55) 62%, transparent 100%);
+  mask-composite: intersect;
+  mix-blend-mode: screen;
+  pointer-events: none;
+}
+/* The scallops: a few soft lobes fanning from the rim, gone within a hand's
+   width of it (the lowest quarter of the wash), inside the cone's mask. */
+.sc-pool::before {
+  content: ""; position: absolute; inset: 0;
+  background: repeating-conic-gradient(from -70deg at 50% 100%, transparent 0deg, color-mix(in srgb, var(--wash-ray) 40%, var(--wash)) 6deg, transparent 12deg);
+  -webkit-mask-image: linear-gradient(to top, rgba(0, 0, 0, 0.8) 0%, rgba(0, 0, 0, 0.4) 12%, transparent 25%);
+  mask-image: linear-gradient(to top, rgba(0, 0, 0, 0.8) 0%, rgba(0, 0, 0, 0.4) 12%, transparent 25%);
+  filter: blur(calc(2px * var(--scu)));
+}
+.sc-down {
+  position: absolute; left: 50%; top: calc(26px * var(--scu));
+  width: calc(90px * var(--scu)); height: calc(120px * var(--scu));
+  transform: translateX(-50%);
+  background: radial-gradient(50% 50% at 50% 20%, color-mix(in srgb, var(--wash) 45%, transparent), transparent 75%);
+  mix-blend-mode: screen;
+  pointer-events: none;
+}
+/* Bay numbers: a small gilt plate on the chair rail, letters cut and inked. */
+.bay-plate {
+  bottom: calc(var(--dado-h) - 22px * var(--ui));
+  padding: calc(1px * var(--ui)) calc(7px * var(--ui));
+  /* Lettering has a 10px floor here as on the gates, and the plate is cut
+     from the leaf's lit tones so the dark fill reads on it: on the body and
+     shade tones it measured 2.1 to 3.3:1 by night (LY-18). */
+  font-size: max(10px, calc(9px * var(--ui)));
+  letter-spacing: 0.28em;
+  color: #1a1206;
+  opacity: 1;
+  background: linear-gradient(180deg, var(--lead-5), var(--lead-3) 40%, var(--lead-4));
+  box-shadow: 0 0 0 1px var(--lead-0), 0 2px 3px rgba(0, 0, 0, 0.5);
+}
+/* The Chinese plate's hairline strokes need more body at this size. */
+html[lang="zh"] .bay-plate { font-weight: 700; letter-spacing: 0.16em; }
+/* A narrow bay's plate carries the numeral alone, set closer, with the
+   trailing tracking balanced by the left padding. */
+.aisle-wall .bay-plate.bay-num {
+  letter-spacing: 0.14em;
+  padding-left: calc(4px * var(--ui) + 0.14em); padding-right: calc(4px * var(--ui));
+}
+
+/* ----- The floor ---------------------------------------------------------
+   Polished terrazzo, big slabs, brass (night) or white-metal (day) strips
+   in the joints and nearly invisible, the room standing in it. */
+#floorplane { background-color: var(--floor-base); }
+.fl-plane {
+  background-color: var(--floor-base);
+  background-image:
+    linear-gradient(to bottom, var(--floor-sheen) 0%, transparent 34%, var(--floor-near) 100%),
+    linear-gradient(to top, transparent 64%, var(--floor-far) 100%),
+    repeating-linear-gradient(90deg, var(--strip) 0 1.5px, var(--strip-lt) 1.5px 2.5px, transparent 2.5px 9.8%),
+    repeating-linear-gradient(0deg, var(--strip) 0 1.5px, var(--strip-lt) 1.5px 2.5px, transparent 2.5px 11.6%),
+    var(--floor-img);
+  background-size: 100% 100%, 100% 100%, 100% 100%, 100% 100%,
+    calc(var(--fh, 320px) * 0.9) calc(var(--fh, 320px) * 0.9);
+}
+.fl-key { opacity: 0.55; }
+.fl-border { border-color: var(--stone-b); outline-color: color-mix(in srgb, var(--lead-2) 60%, transparent); }
+.fl-border::after { border-color: color-mix(in srgb, var(--lead-2) 60%, transparent); }
+.fl-chips { opacity: 0.35; }
+.fl-inlay .st-d, .fl-round .st-d { fill: var(--stone-d); }
+.fl-inlay .st-strip, .fl-round .st-strip { stroke: var(--lead-2); }
+.fl-inlay .st-gold, .fl-round .st-gold { fill: var(--lead-2); }
+.fl-inlay .st-bronze { fill: var(--lead-1); }
+/* The runner: a picture-palace wool carpet, fans and stepped streamers,
+   bound in a black-and-gold border. The weave is baked; the pile's lay
+   catches the light along its length. */
+.fl-runner {
+  width: 12.5%;
+  background-color: var(--rug);
+  background-image:
+    /* the border, once down each edge */
+    url('/static/assets/tex/carpet-border.webp'), url('/static/assets/tex/carpet-border.webp'),
+    url('/static/assets/tex/carpet-field.webp');
+  background-size: 11% auto, 11% auto, calc(var(--fh, 320px) * 0.62) calc(var(--fh, 320px) * 0.62);
+  background-position: 0 0, 100% 0, 50% 0;
+  background-repeat: repeat-y, repeat-y, repeat;
+  box-shadow: 0 0 calc(var(--fh, 320px) * 0.03) rgba(0, 0, 0, 0.55);
+}
+.fl-runner::before {
+  background-image:
+    linear-gradient(to top, rgba(0, 0, 0, 0.35) 0%, transparent 30%, rgba(255, 220, 170, 0.10) 100%),
+    linear-gradient(var(--rug-veil), var(--rug-veil));
+}
+.fl-runner::after {
+  background-image: repeating-linear-gradient(90deg, var(--lead-3) 0 0.8%, var(--lead-1) 0.8% 1.6%, transparent 1.6% 2.4%);
+  opacity: 0.85;
+}
+/* Stanchions and velvet rope along the near flanks. */
+.fl-rail {
+  background: none;
+  -webkit-mask-image: none; mask-image: none;
+  bottom: 0; height: calc(64px * var(--ui));
+  left: 0; right: 0;
+}
+.fl-rail svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.fl-rail .st-rope { fill: none; stroke: var(--rope); stroke-width: calc(4.6px * var(--ui)); stroke-linecap: round; }
+.fl-rail .st-rope-sh { fill: none; stroke: rgba(0, 0, 0, 0.45); stroke-width: calc(4px * var(--ui)); stroke-linecap: round; }
+.fl-rail .st-rope-lt { fill: none; stroke: var(--rope-lt); stroke-width: calc(1.2px * var(--ui)); stroke-linecap: round; }
+.fl-rail .st-hook { fill: var(--lead-2); }
+.fl-rail .st-cast { fill: rgba(0, 0, 0, 0.45); }
+.fl-rail .st-base { fill: var(--lead-1); }
+.fl-rail .st-base-top { fill: var(--lead-3); opacity: 0.8; }
+.fl-rail .st-shaft { fill: url(#cyl-lead); }
+.fl-rail .st-ball { fill: url(#cyl-lead); }
+.fl-rail .st-spec { fill: #fff8e6; opacity: 0.7; }
+
+/* ----- The masthead: the building's sign band ----------------------------
+   A black glass fascia by night (cream stone by day) running the width of
+   the building, ATRIUM in gilt letters standing off it. */
+#masthead { z-index: 1; isolation: isolate; }
+#masthead::before {
+  content: ""; position: absolute; z-index: -1;
+  left: calc(50% - 50vw); width: 100vw;
+  top: -20px; bottom: -1px;
+  background:
+    linear-gradient(180deg, rgba(255, 250, 235, 0.05), transparent 40%),
+    url('/static/assets/tex/fab-damask.webp') 0 0 / calc(96px * var(--ui)) auto,
+    linear-gradient(var(--fascia), var(--fascia));
+  background-blend-mode: normal, soft-light, normal;
+}
+.m-title h1 {
+  font-weight: 620;
+  background:
+    url('/static/assets/tex/grain-gilt.webp') 0 0 / 90px,
+    linear-gradient(180deg, var(--leaf-0) 0%, var(--leaf-1) 30%, var(--leaf-2) 54%, var(--leaf-3) 72%, var(--leaf-4) 100%);
+  background-blend-mode: soft-light, normal;
+  -webkit-background-clip: text; background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 1px 0 rgba(255, 245, 210, 0.28)) drop-shadow(0 3px 2px rgba(0, 0, 0, 0.8));
+}
+:root[data-theme="ivory"] .m-title h1 {
+  filter: drop-shadow(0 1px 0 rgba(255, 255, 255, 0.6)) drop-shadow(0 2px 2px rgba(60, 44, 20, 0.45));
+}
+.m-underline {
+  height: 3px;
+  background: linear-gradient(180deg, var(--metal-hi), var(--metal) 45%, color-mix(in srgb, var(--metal) 45%, #000));
+}
+
+/* ----- The ticker: the marquee -------------------------------------------
+   Black letters on milk glass lit from behind, between two rows of bulbs
+   that chase at night. By day the bulbs are clear glass and the glass is
+   unlit, and the letters are just letters. */
+#ticker {
+  margin-top: 12px;
+  padding: calc(13px * var(--ui)) 0 calc(12px * var(--ui));
+  /* One line height for the band however its line moves. The crawl's line
+     box took the body's strut (24px at --ui 1) while the paged view took
+     the track's own 13px x 1.5, so switching motion moved the whole hall
+     5px (VD-11). As a length it is inherited as is, by the track and every
+     page alike. */
+  line-height: calc(24px * var(--ui));
+  border: none;
+  background:
+    url('/static/assets/tex/grain-frost.webp') 0 0 / 160px,
+    radial-gradient(60% 140% at 50% 50%, var(--glass-milk-hi), var(--glass-milk) 55%, var(--glass-milk-lo));
+  background-blend-mode: soft-light, normal;
+  box-shadow: 0 0 0 1px var(--lead-0), 0 0 0 3px var(--lead-2), 0 0 0 4px var(--lead-0),
+              0 6px 14px rgba(0, 0, 0, 0.6), 0 0 38px var(--bulb-glow);
+}
+/* ...and the crawl's inline-block stands on the top of that line, not on
+   its baseline, which added a pixel of the strut's descent under it. */
+#ticker .t-track { vertical-align: top; }
+/* The marquee's own focus ring. At the default 3px the ring lay on the
+   frame's dark outer bead and read as one more moulding line (1.2:1 in
+   Ivory), and under the band there is no wall to set it on, only the
+   cornice. It stands just clear of the frame on a bed of the base colour,
+   as the lever's does. */
+#ticker:focus-visible {
+  outline-offset: 5px;
+  box-shadow: 0 0 0 1px var(--lead-0), 0 0 0 3px var(--lead-2), 0 0 0 4px var(--lead-0),
+              0 0 0 9px var(--base),
+              0 6px 14px rgba(0, 0, 0, 0.6), 0 0 38px var(--bulb-glow);
+}
+#ticker::before, #ticker::after { content: none; }
+.t-bulbs {
+  position: absolute; left: 0; right: 0; height: calc(9px * var(--ui));
+  overflow: hidden;
+  background:
+    radial-gradient(circle, var(--bulb-core) 0 18%, var(--bulb) 30%, color-mix(in srgb, var(--bulb) 30%, transparent) 46%, transparent 52%) 0 50% / calc(13px * var(--ui)) 100% repeat-x,
+    linear-gradient(180deg, var(--lead-1), var(--lead-3) 30%, var(--lead-2) 55%, var(--lead-0));
+  pointer-events: none;
+}
+.t-top { top: 0; }
+.t-bot { bottom: 0; }
+:root[data-theme="ivory"] .t-bulbs {
+  background:
+    radial-gradient(circle, #8c8373 0 10%, #f8f5ec 16%, #d7d0c1 38%, rgba(0, 0, 0, 0.25) 46%, transparent 52%) 0 50% / calc(13px * var(--ui)) 100% repeat-x,
+    linear-gradient(180deg, var(--lead-1), var(--lead-3) 30%, var(--lead-2) 55%, var(--lead-0));
+}
+/* The chase: every third bulb burns brighter, and the pattern steps one
+   bulb at a time. One layer, translated in whole bulb pitches. */
+.t-chase {
+  position: absolute; top: 0; bottom: 0; left: calc(-39px * var(--ui)); right: 0;
+  /* The lit bulb is the same bulb burning brighter: the same 4.1-unit
+     radius and place as the first of every three in the row under it. At
+     the gradient's default size its white core was wider than the channel
+     is tall, and the channel cut it into a flat white bar (VD-3). */
+  background: radial-gradient(circle calc(4.1px * var(--ui)) at calc(6.5px * var(--ui)) 50%,
+    #fff 0 44%, rgba(255, 240, 206, 0.95) 68%, rgba(255, 206, 130, 0.45) 88%, transparent 100%)
+    0 50% / calc(39px * var(--ui)) 100% repeat-x;
+  opacity: var(--lamp-on);
+}
+/* The chase steps one bulb pitch every 300 ms, driven by a timer that sets
+   data-chase on the ticker: three composited frames a second, where an
+   infinite steps() animation would ask for sixty. */
+#ticker[data-chase="1"] .t-top .t-chase { transform: translateX(calc(13px * var(--ui))); }
+#ticker[data-chase="2"] .t-top .t-chase { transform: translateX(calc(26px * var(--ui))); }
+#ticker[data-chase="1"] .t-bot .t-chase { transform: translateX(calc(26px * var(--ui))); }
+#ticker[data-chase="2"] .t-bot .t-chase { transform: translateX(calc(13px * var(--ui))); }
+.t-track {
+  position: relative;
+  color: var(--marquee-ink);
+  font-weight: 620;
+  letter-spacing: 0.16em;
+}
+.t-sep { color: var(--marquee-new); }
+.t-new { color: var(--marquee-new); }
+
+/* ----- The clock niche --------------------------------------------------
+   A proscenium for the clock: three stepped gilt frames, each cut as four
+   mitred facets that take the one light (the frame steps in, so the middle
+   step is a cavetto and takes the light the other way round), round a back
+   of gold smalti. A lamp trough at the head washes the mosaic at night; the
+   case stands on a black marble sill with a gilt nosing. */
+.wall-rule { display: none; }
+#clock { --st: calc(var(--reveal) * 0.34); }
+.niche::before { content: none; }
+.n-mosaic {
+  position: absolute;
+  left: calc(var(--st) * 3); right: calc(var(--st) * 3);
+  top: calc(var(--st) * 3); bottom: var(--sill);
+  background:
+    radial-gradient(52% 44% at 50% 47%, var(--niche-bloom), transparent 72%),
+    linear-gradient(180deg, var(--niche-glaze-top), var(--niche-glaze-bot)),
+    url('/static/assets/tex/mosaic-gold.webp') 0 0 / calc(var(--gh) * 0.30) auto;
+  box-shadow: inset 0 0 calc(var(--reveal) * 1.2) rgba(0, 0, 0, 0.7);
+}
+.n-cove {
+  position: absolute; z-index: 1;
+  left: calc(var(--st) * 3); right: calc(var(--st) * 3);
+  top: calc(var(--st) * 3); height: 40%;
+  background: radial-gradient(70% 90% at 50% 0%, var(--niche-cove), transparent 70%);
+  mix-blend-mode: screen;
+  pointer-events: none;
+}
+.n-step { position: absolute; border-style: solid; pointer-events: none; }
+.n-s1 {
+  inset: 0; border-width: var(--st);
+  border-color: var(--lead-4) var(--lead-1) var(--lead-0) var(--lead-2);
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(0, 0, 0, 0.6),
+              4px 8px 18px rgba(0, 0, 0, 0.55);
+}
+.n-s2 {
+  inset: var(--st); border-width: var(--st);
+  border-color: var(--lead-0) var(--lead-2) var(--lead-4) var(--lead-1);
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.5);
+}
+.n-s3 {
+  inset: calc(var(--st) * 2); bottom: calc(var(--sill) - var(--st));
+  border-width: calc(var(--st) * 0.8);
+  border-color: var(--lead-4) var(--lead-1) var(--lead-0) var(--lead-2);
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.6), inset 0 calc(var(--st) * 1.4) calc(var(--st) * 1.6) rgba(0, 0, 0, 0.55);
+}
+.n-sill {
+  position: absolute; left: 0; right: 0; bottom: 0;
+  height: calc(var(--sill) - var(--st) * 1.4);
+  background:
+    linear-gradient(180deg, var(--lead-5) 0 1px, var(--lead-3) 1px 2px, var(--lead-2) 2px calc(var(--st) * 0.9), var(--lead-0) calc(var(--st) * 0.9 + 1px), rgba(0, 0, 0, 0.6) calc(var(--st) * 0.9 + 1px), transparent calc(var(--st) * 2.4)),
+    linear-gradient(rgba(6, 4, 3, 0.45), rgba(6, 4, 3, 0.45)),
+    url('/static/assets/tex/stone-portoro.webp') 30% 0 / calc(var(--gh) * 0.9) auto;
+  box-shadow: 0 -1px 0 rgba(0, 0, 0, 0.6);
+}
+.n-crest {
+  position: absolute; left: 50%; top: calc(var(--gh) * -0.058);
+  width: calc(var(--gh) * 0.2); height: auto;
+  transform: translateX(-50%);
+  overflow: visible;
+}
+.n-crest .nc-sh { fill: var(--relief-shadow); }
+.n-crest .nc-body { fill: var(--lead-2); }
+.n-crest .nc-lt { fill: none; stroke: var(--lead-3); stroke-width: 1.6; }
+#clock svg.dial { z-index: 2; }
+:root[data-theme="onyx"] #clock {
+  --niche-bloom: rgba(255, 214, 150, 0.28);
+  --niche-glaze-top: rgba(28, 16, 4, 0.30);
+  --niche-glaze-bot: rgba(10, 6, 2, 0.80);
+  --niche-cove: rgba(255, 200, 120, 0.40);
+}
+:root[data-theme="ivory"] #clock {
+  --niche-bloom: rgba(255, 255, 255, 0);
+  --niche-glaze-top: rgba(250, 244, 230, 0.10);
+  --niche-glaze-bot: rgba(120, 90, 40, 0.30);
+  --niche-cove: rgba(255, 255, 255, 0);
+}
+
+/* ----- The clock: case, bezel, opal dial, crystal ------------------------
+   The case is gilt bronze faceted by the key light. The dial is opal glass:
+   at night it is lit from behind and glows cream (the Grand Central clock),
+   by day it is unlit milk. On a light dial the numerals, batons and hands
+   are dark; the hands are blued steel and each casts its own shadow. */
+.ck-case { fill: url(#ck-case-g); stroke: var(--lead-0); }
+.ckc.s0 { stop-color: var(--lead-2); } .ckc.s1 { stop-color: var(--lead-1); } .ckc.s2 { stop-color: var(--lead-0); }
+.ck-facet { stroke: rgba(0, 0, 0, 0.35); stroke-width: 1; vector-effect: non-scaling-stroke; }
+.ck-facet.fc4 { fill: var(--lead-3); }
+.ck-facet.fc3 { fill: var(--lead-4); }
+.ck-facet.fc2 { fill: var(--lead-2); }
+.ck-facet.fc1 { fill: var(--lead-1); }
+.ck-facet.fc0 { fill: var(--lead-0); }
+.ck-caseline2, .ck-caseline { stroke: rgba(0, 0, 0, 0.6); }
+.ck-rivet { fill: var(--lead-3); stroke: var(--lead-0); stroke-width: 1.5; vector-effect: non-scaling-stroke; }
+.ck-case2 { fill: var(--lead-1); stroke: var(--lead-0); }
+.ck-knurl.kn-lt { fill: var(--lead-3); }
+.ck-knurl.kn-md { fill: var(--lead-2); }
+.ck-knurl.kn-dk { fill: var(--lead-0); }
+.ck-well { fill: url(#ck-field); stroke: var(--lead-0); }
+.ck-bezel-sh { fill: none; stroke: rgba(40, 24, 6, 0.30); stroke-width: 10; }
+:root[data-theme="onyx"] .ckf.s0 { stop-color: #fff5de; }
+:root[data-theme="onyx"] .ckf.s1 { stop-color: #f6e2b6; }
+:root[data-theme="onyx"] .ckf.s2 { stop-color: #e2c083; }
+:root[data-theme="onyx"] .ckf.s3 { stop-color: #a97b3a; }
+:root[data-theme="ivory"] .ckf.s0 { stop-color: #f8f8f4; }
+:root[data-theme="ivory"] .ckf.s1 { stop-color: #efeee8; }
+:root[data-theme="ivory"] .ckf.s2 { stop-color: #dedcd3; }
+:root[data-theme="ivory"] .ckf.s3 { stop-color: #b9b5a8; }
+.ck-hair, .ck-hair2 { stroke: rgba(60, 40, 14, 0.38); }
+.ck-guil { stroke: #5a3c14; stroke-opacity: 0.10; }
+.ck-guil2 { stroke: #5a3c14; stroke-opacity: 0.07; }
+.ck-chapter { fill: var(--lead-2); opacity: 0.30; }
+.ck-goldrule { stroke: var(--lead-1); stroke-opacity: 0.9; }
+.ck-baton { fill: #20170c; }
+.ck-minute { fill: #5a4a34; }
+.ck-num { fill: #22180c; }
+.ck-numq { fill: var(--lead-1); }
+/* On the unlit day dial the quarters are the leaf's glaze tone, deepened a
+   quarter of the way to the ink: the body tone read at 2:1 in Ivory and all
+   but vanished in the Bureau's nickel (LY-6). */
+:root[data-theme="ivory"] .ck-numq { fill: color-mix(in srgb, var(--lead-0) 75%, #22180c); }
+/* The quarters are gilt laid in a cut, and the cut's dark wall rings each
+   figure. At 1280 a numeral is 11.6px and its hairlines never fill a pixel,
+   so leaf alone read at 3.6-4.1:1 while the inked figures beside it held 7:1
+   (LY-6, still reproducing). The ring is a hairline in the ink at every
+   size, so the leaf still shows inside it on a large dial. */
+.ck-numq {
+  stroke: color-mix(in srgb, #22180c 85%, transparent); stroke-width: 1.4;
+  vector-effect: non-scaling-stroke; paint-order: stroke; stroke-linejoin: round;
+}
+.ck-subring { stroke: var(--lead-1); }
+.ck-subring2 { stroke: rgba(60, 40, 14, 0.35); }
+.cks.s0 { stop-color: rgba(60, 40, 10, 0); } .cks.s1 { stop-color: rgba(60, 40, 10, 0.34); }
+/* The captions: ink on the white date and seconds dials, the leaf's lit
+   tone on the dark moon and works wells (LY-5). */
+.ck-subcap { fill: #22180c; }
+.ck-subcap.on-well { fill: var(--lead-3); }
+.ck-subboss { fill: var(--lead-2); }
+.ck-moonwell { fill: #1c2b62; }
+.ck-moonshade { fill: #1c2b62; }
+.ck-moondisc { fill: var(--lead-3); }
+.ck-star { fill: var(--lead-3); fill-opacity: 0.9; }
+.ck-datewin { stroke: var(--lead-1); fill: #fbf6ea; }
+.ck-datenum { fill: #22180c; }
+.ck-gearwell, .ck-gearhole { fill: #231a10; }
+.ck-gear { fill: var(--lead-2); }
+.ck-gear2 { fill: var(--lead-4); fill-opacity: 1; }
+.ck-hand, .ck-pomme { fill: #1b2946; stroke: #0a1122; }
+.ck-pommehole { fill: #f2e2bd; }
+:root[data-theme="ivory"] .ck-pommehole { fill: #eeede7; }
+.ck-sec { fill: #8e1b16; }
+.ck-secring { stroke: #8e1b16; }
+.ck-boss { fill: var(--lead-2); stroke: var(--lead-0); }
+.ck-bosshair { stroke: var(--lead-4); }
+.ck-boss-lt { fill: var(--lead-3); opacity: 0.8; }
+.ck-hsh * { fill: rgba(46, 28, 6, 0.26) !important; stroke: none !important; }
+.ck-hsh .ck-pommehole { fill: none !important; }
+.ck-dome { fill: url(#ck-dome); }
+.ckd.s0 { stop-color: #fffaf0; stop-opacity: 0.30; }
+.ckd.s1 { stop-color: #fffaf0; stop-opacity: 0; }
+.ck-glint { fill: #fffdf6; opacity: 0.55; }
+.ck-crys-edge { fill: none; stroke: rgba(255, 252, 240, 0.28); stroke-width: 3; }
+.ck-crys-lo { fill: none; stroke: rgba(255, 240, 210, 0.22); stroke-width: 7; stroke-linecap: round; }
+#clock .ck-hsh { transition: none; }
+.fl-mirror .mir-lit { stop-color: var(--niche-bloom-floor, #ffd9a0); }
+
+/* The niche in the waxed floor. */
+.ck-mirror {
+  position: absolute; left: 0; right: 0; top: 100%; height: var(--gh);
+  pointer-events: none;
+  opacity: var(--mirror-a);
+  --cm-sill: calc(var(--sill) - var(--st) * 1.4);
+  background:
+    linear-gradient(180deg, #0a0807 0, #0a0807 calc(var(--cm-sill) - 3px), var(--lead-3) calc(var(--cm-sill) - 3px), var(--lead-1) var(--cm-sill), transparent var(--cm-sill)),
+    radial-gradient(circle calc(var(--dial) * 0.43) at 50% calc(var(--sill) + var(--reveal) + var(--dial) * 0.5), var(--cm-dial) 0 94%, var(--lead-1) 96%, transparent 100%),
+    linear-gradient(90deg, var(--lead-2) 0 calc(var(--st) * 3), var(--cm-back) calc(var(--st) * 3) calc(100% - var(--st) * 3), var(--lead-2) calc(100% - var(--st) * 3));
+  -webkit-mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.95), rgba(0, 0, 0, 0.6) 20%, rgba(0, 0, 0, 0.3) 50%, transparent 76%);
+  mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.95), rgba(0, 0, 0, 0.6) 20%, rgba(0, 0, 0, 0.3) 50%, transparent 76%);
+  filter: blur(2px);
+}
+:root[data-theme="onyx"] #clock { --cm-dial: #e8cf98; --cm-back: #2a1d0b; }
+:root[data-theme="ivory"] #clock { --cm-dial: #e9e8e2; --cm-back: #7a6433; }
+
+/* ----- The name sign ------------------------------------------------------
+   The masthead is the marquee canopy's fascia: reeded black glass by night,
+   reeded cream stone by day, gilt cresting along its head. ATRIUM stands on
+   the same verre eglomise plate the gates carry their names on, so the
+   building signs itself in the gates' own hand. */
+#masthead::before {
+  background:
+    linear-gradient(180deg, var(--lead-0) 0 1px, var(--lead-3) 1px 2px, var(--lead-2) 2px 4px, var(--lead-0) 4px 5px, transparent 5px) 0 0 / 100% 100% no-repeat,
+    linear-gradient(180deg, rgba(255, 250, 235, 0.05), transparent 40%),
+    repeating-linear-gradient(90deg, var(--reed-lt) 0 1px, transparent 1px 3px, var(--reed-dk) 3px 5px, transparent 5px 6px),
+    url('/static/assets/tex/fab-damask.webp') 0 0 / calc(96px * var(--ui)) auto,
+    linear-gradient(var(--fascia), var(--fascia));
+  background-blend-mode: normal, normal, normal, soft-light, normal;
+}
+:root[data-theme="onyx"] #masthead { --reed-lt: rgba(255, 240, 210, 0.025); --reed-dk: rgba(0, 0, 0, 0.22); }
+:root[data-theme="ivory"] #masthead { --reed-lt: rgba(255, 255, 255, 0.35); --reed-dk: rgba(90, 70, 40, 0.07); }
+.m-title {
+  justify-self: start;
+  position: relative;
+  padding: calc(5px * var(--ui)) calc(20px * var(--ui)) calc(4px * var(--ui)) calc(22px * var(--ui));
+  background:
+    linear-gradient(104deg, transparent 18%, rgba(255, 248, 230, 0.06) 30%, transparent 44%),
+    linear-gradient(180deg, rgba(255, 250, 235, 0.07), transparent 38%),
+    var(--sign-glass);
+  box-shadow:
+    inset 0 0 0 1px var(--lead-1), inset 0 0 0 2px var(--lead-4), inset 0 0 0 3px rgba(0, 0, 0, 0.7),
+    0 1px 0 var(--lead-5), 0 3px 6px rgba(0, 0, 0, 0.5);
+}
+.m-title::before, .m-title::after {
+  content: ""; position: absolute; top: 50%;
+  width: calc(9px * var(--ui)); height: calc(9px * var(--ui)); margin-top: calc(-4.5px * var(--ui));
+  background: linear-gradient(135deg, var(--lead-5), var(--lead-2) 55%, var(--lead-0));
+  transform: rotate(45deg);
+  box-shadow: 0 0 0 0.5px rgba(0, 0, 0, 0.6);
+}
+.m-title::before { left: calc(-4.5px * var(--ui)); }
+.m-title::after { right: calc(-4.5px * var(--ui)); }
+.m-title h1 { filter: drop-shadow(0 1px 0 rgba(0, 0, 0, 0.9)); }
+:root[data-theme="ivory"] .m-title h1 { filter: drop-shadow(0 1px 0 rgba(0, 0, 0, 0.9)); }
+.m-sub { color: var(--apron-ink); }
+
+/* The marquee's returns: a gilt stepped jamb at each end of the attraction
+   board, a column of three bulbs in each, the letters running out behind. */
+#ticker::before, #ticker::after {
+  content: ""; position: absolute; top: 0; bottom: 0; left: auto; right: auto; height: auto;
+  width: calc(16px * var(--ui)); z-index: 2;
+  background:
+    radial-gradient(circle, var(--bulb-core) 0 16%, var(--bulb) 28%, transparent 48%) 50% 50% / 100% 33.4% repeat-y,
+    linear-gradient(90deg, var(--lead-0), var(--lead-3) 22%, var(--lead-2) 48%, var(--lead-1) 78%, var(--lead-0));
+}
+#ticker::before { left: 0; box-shadow: 3px 0 5px rgba(0, 0, 0, 0.45); }
+#ticker::after { right: 0; box-shadow: -3px 0 5px rgba(0, 0, 0, 0.45); }
+#ticker .t-track { padding-left: calc(18px * var(--ui)); }
+
+/* ----- The house by day: the screen shows its title card -----------------
+   With the tabs tied back, the house is a silent-film intertitle: the
+   description set centred on the screen inside a sepia border, the border's
+   corners the gate's own (fans, stepped notches or a lozenge), a rule and a
+   diamond under the words. By night the card is dark and the words are
+   thrown on the closed curtain instead. */
+.g-house { display: flex; flex-direction: column; }
+.g-desc { flex: 0 0 auto; }
+:root[data-theme="ivory"] .gate[data-state="open"] .g-house { padding-top: 13cqw; }
+:root[data-theme="ivory"] .gate[data-state="open"] .g-desc { color: #3a2e1c; letter-spacing: 0.02em; }
+html[lang="zh"] .g-desc { font-size: clamp(10px, 5.2cqw, calc(14px * var(--ui))); line-height: 1.5; }
+.gate { --ci: rgba(84, 64, 34, 0.55); }
+/* The card is the description's own box, so the border always encloses the
+   words and the rule always follows them: nothing drawn here can ever cross
+   a letter, however long the line runs or whichever language it is in. */
+:root[data-theme="ivory"] .gate[data-state="open"] .g-desc {
+  flex: 1 1 auto; min-height: 0;
+  display: flex; flex-direction: column; justify-content: center;
+  margin: 3cqw 12.5cqw 5.5cqw;
+  padding: 3.6cqw 3.4cqw;
+  border: 1px solid var(--ci);
+  outline: 1px solid var(--ci); outline-offset: -0.9cqw;
+}
+:root[data-theme="ivory"] .gate[data-state="open"] .g-desc::after {
+  content: ""; display: block; flex: 0 0 auto;
+  width: 46%; height: 1.4cqw; margin: 2.2cqw auto 0;
+  background:
+    linear-gradient(var(--ci), var(--ci)) 0 50% / calc(50% - 1.5cqw) 1px no-repeat,
+    linear-gradient(var(--ci), var(--ci)) 100% 50% / calc(50% - 1.5cqw) 1px no-repeat,
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'%3E%3Cpath d='M5 0L10 5L5 10L0 5Z' fill='rgb(84,64,34)' fill-opacity='.6'/%3E%3C/svg%3E") 50% 50% / 1cqw 1cqw no-repeat;
+}
+:root[data-theme="ivory"] .gate[data-state="open"][data-card="fans"] .g-desc {
+  background:
+    radial-gradient(circle at 0 0, transparent 0 3cqw, var(--ci) 3cqw calc(3cqw + 1px), transparent calc(3cqw + 1px) 4.2cqw, var(--ci) 4.2cqw calc(4.2cqw + 1px), transparent calc(4.2cqw + 1px)) 0 0 / 5.4cqw 5.4cqw no-repeat,
+    radial-gradient(circle at 100% 0, transparent 0 3cqw, var(--ci) 3cqw calc(3cqw + 1px), transparent calc(3cqw + 1px) 4.2cqw, var(--ci) 4.2cqw calc(4.2cqw + 1px), transparent calc(4.2cqw + 1px)) 100% 0 / 5.4cqw 5.4cqw no-repeat,
+    radial-gradient(circle at 0 100%, transparent 0 3cqw, var(--ci) 3cqw calc(3cqw + 1px), transparent calc(3cqw + 1px) 4.2cqw, var(--ci) 4.2cqw calc(4.2cqw + 1px), transparent calc(4.2cqw + 1px)) 0 100% / 5.4cqw 5.4cqw no-repeat,
+    radial-gradient(circle at 100% 100%, transparent 0 3cqw, var(--ci) 3cqw calc(3cqw + 1px), transparent calc(3cqw + 1px) 4.2cqw, var(--ci) 4.2cqw calc(4.2cqw + 1px), transparent calc(4.2cqw + 1px)) 100% 100% / 5.4cqw 5.4cqw no-repeat;
+}
+:root[data-theme="ivory"] .gate[data-state="open"][data-card="steps"] .g-desc {
+  background:
+    linear-gradient(var(--ci), var(--ci)) 1.5cqw 1.5cqw / 2.8cqw 1px no-repeat,
+    linear-gradient(var(--ci), var(--ci)) 1.5cqw 1.5cqw / 1px 2.8cqw no-repeat,
+    linear-gradient(var(--ci), var(--ci)) calc(100% - 1.5cqw) 1.5cqw / 2.8cqw 1px no-repeat,
+    linear-gradient(var(--ci), var(--ci)) calc(100% - 1.5cqw) 1.5cqw / 1px 2.8cqw no-repeat,
+    linear-gradient(var(--ci), var(--ci)) 1.5cqw calc(100% - 1.5cqw) / 2.8cqw 1px no-repeat,
+    linear-gradient(var(--ci), var(--ci)) 1.5cqw calc(100% - 1.5cqw) / 1px 2.8cqw no-repeat,
+    linear-gradient(var(--ci), var(--ci)) calc(100% - 1.5cqw) calc(100% - 1.5cqw) / 2.8cqw 1px no-repeat,
+    linear-gradient(var(--ci), var(--ci)) calc(100% - 1.5cqw) calc(100% - 1.5cqw) / 1px 2.8cqw no-repeat;
+}
+:root[data-theme="ivory"] .gate[data-state="open"][data-card="lozenge"] .g-desc {
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'%3E%3Cpath d='M5 0L10 5L5 10L0 5Z' fill='rgb(84,64,34)' fill-opacity='.6'/%3E%3C/svg%3E") 50% 0.3cqw / 1.6cqw 1.6cqw no-repeat,
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'%3E%3Cpath d='M5 0L10 5L5 10L0 5Z' fill='rgb(84,64,34)' fill-opacity='.6'/%3E%3C/svg%3E") 0.3cqw 50% / 1.2cqw 1.2cqw no-repeat,
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'%3E%3Cpath d='M5 0L10 5L5 10L0 5Z' fill='rgb(84,64,34)' fill-opacity='.6'/%3E%3C/svg%3E") calc(100% - 0.3cqw) 50% / 1.2cqw 1.2cqw no-repeat;
+}
+
+/* Unlit glass by day keeps its colour: each fanlight is its own glass seen
+   against the room, the hue a step greyer than it burns at night. */
+:root[data-theme="ivory"] .gate[data-glass="amber"]   { --glass-day: #dcc49a; }
+:root[data-theme="ivory"] .gate[data-glass="rose"]    { --glass-day: #ddbcae; }
+:root[data-theme="ivory"] .gate[data-glass="celadon"] { --glass-day: #c1cdb6; }
+:root[data-theme="ivory"] .gate[data-glass="opal"]    { --glass-day: #e4ded0; }
+:root[data-theme="ivory"] .gate[data-glass="honey"]   { --glass-day: #dcc98f; }
+:root[data-theme="ivory"] .gate[data-glass="aqua"]    { --glass-day: #b0d2cd; }
+:root[data-theme="ivory"] .gate.vacant               { --glass-day: #cfcfc8; }
+:root[data-theme="ivory"] .portal .fg-base,
+:root[data-theme="ivory"] .mirror-art .fg-base { fill: var(--glass-day, #d8d8d0); }
+
+/* Leaf over the archivolts; tooth and one reflection on the fanlight. */
+.portal .p-leaf { fill: url(#pt-gilt); mix-blend-mode: soft-light; opacity: var(--leaf-a, 0.7); pointer-events: none; }
+:root[data-theme="ivory"] .portal .p-leaf { --leaf-a: 0.5; }
+.gate.vacant .portal .p-leaf { display: none; }
+.portal .fg-tex { fill: url(#pt-frost); mix-blend-mode: overlay; opacity: 0.42; }
+.portal .fg-spec { fill: url(#fl-spec); }
+.fl-spec-s0 { stop-color: #fffaf0; stop-opacity: 0; }
+.fl-spec-s1 { stop-color: #fffaf0; stop-opacity: 0.16; }
+:root[data-theme="ivory"] .fl-spec-s1 { stop-opacity: 0.4; }
+
+/* The niche frame is leaf too: the same 85 mm squares, soft-lit over the
+   mitred steps only (the mask stops exactly at the dial's own box). */
+.niche::after {
+  content: ""; position: absolute; inset: 0 0 calc(var(--sill) - var(--st) * 1.4); z-index: 3; pointer-events: none;
+  padding: var(--reveal) var(--reveal) calc(var(--st) * 1.4);
+  background: url('/static/assets/tex/grain-gilt.webp') 0 0 / calc(var(--gh) * 0.09);
+  mix-blend-mode: soft-light; opacity: 0.5;
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+}
+
+/* The house's light on the threshold stone. Normal paint (the shell is an
+   isolated group, so a screen blend would have nothing to screen against):
+   a warm, low-alpha ellipse, hottest just past the plinth. */
+.g-spill {
+  position: absolute; left: -6%; right: -6%; top: 100%; height: 26%;
+  pointer-events: none;
+  background:
+    radial-gradient(44% 34% at 50% 8%, rgba(255, 200, 130, 0.26), rgba(255, 170, 90, 0.10) 55%, transparent 100%),
+    radial-gradient(30% 60% at 50% 0%, rgba(255, 214, 160, 0.14), transparent 80%);
+}
+
+/* The moving sheet of the clock, over the still dial: a stack of layers the
+   size of the dial, one per moving part, each turned by the compositor
+   about its arbor (clock.js sets the origin). */
+#clock .dial-hands {
+  position: absolute; left: var(--reveal); top: var(--reveal);
+  width: var(--dial); height: var(--dial);
+  z-index: 4; pointer-events: none;
+}
+.dh-sheet, .dh-rotor { position: absolute; inset: 0; }
+.dh-rotor { will-change: transform; }
+.dh-svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.t-chase { will-change: transform; }
+
+/* A plaque says "unread" to a screen reader only while it is. */
+.plaque:not(.new) .pl-unread { display: none; }
+/* A service's own warning, engraved under its lamp. */
+.g-note {
+  margin-top: 4px;
+  max-width: 100%;
+  font-size: calc(10.5px * var(--ui)); line-height: 1.35;
+  letter-spacing: 0.04em;
+  color: var(--ink-faint);
+  z-index: 3;
+}
+.g-note[hidden] { display: none; }
+
+/* ==========================================================================
+   FORCED COLORS AND CONTRAST PREFERENCES
+   ==========================================================================
+   Under Windows high-contrast themes every state this hall shows with a
+   border hue or a fill disappears into the system palette. Each selected or
+   lit thing gets a Highlight border it cannot lose, and the scenery that is
+   pure ornament keeps its own colours instead of being redrawn as stark
+   system lines. */
+@media (forced-colors: active) {
+  .p-plaque[aria-checked="true"] { border: 3px solid Highlight; }
+  .p-plaque[aria-checked="true"] .p-name::before { content: "\25c6  " / ""; }
+  .swatch { forced-color-adjust: none; }
+  .chip { border-color: Canvas; }
+  .chip[aria-checked="true"] { border: 2px solid Highlight; color: Highlight; }
+  .l-badge { forced-color-adjust: none; background: Highlight; box-shadow: 0 0 0 1px CanvasText; }
+  :root[data-wing="salon"] .l-salon,
+  :root[data-wing="bureau"] .l-bureau { border: 2px solid Highlight; color: Highlight; }
+  .gate[data-state="open"] .g-lamp .lamp-d { background: Highlight; border-color: Highlight; }
+  #floorplane, #backwall { forced-color-adjust: none; }
+}
+/* Asked for more contrast or less transparency: the scrim stops being a
+   veil the hall shows through. */
+@media (prefers-contrast: more), (prefers-reduced-transparency: reduce) {
+  #ledger-scrim { background: var(--base); }
 }

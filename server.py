@@ -13,8 +13,10 @@ Time contract: every dispatch `ts` is epoch **milliseconds**.
 from __future__ import annotations
 
 import asyncio
+import hashlib
 import json
 import logging
+import mimetypes
 import os
 import re
 import subprocess
@@ -34,13 +36,20 @@ except ImportError:                     # pragma: no cover - environment depende
     psutil = None
 import uvicorn
 from fastapi import FastAPI, Request
-from fastapi.responses import FileResponse, JSONResponse, PlainTextResponse
+from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse
 from fastapi.staticfiles import StaticFiles
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 
 ROOT = Path(__file__).resolve().parent
 STATE_DIR = ROOT / "state"
 STATIC_DIR = ROOT / "static"
+
+# StaticFiles guesses types from the platform table, and Python 3.11 on this
+# Windows box has no entry for these, so the faces and the texture tiles went
+# out as text/plain.
+mimetypes.add_type("font/ttf", ".ttf")
+mimetypes.add_type("font/woff2", ".woff2")
+mimetypes.add_type("image/webp", ".webp")
 
 HOST = "127.0.0.1"
 DEFAULT_PORT = 8769
@@ -104,10 +113,20 @@ _setup_logging()
 FAST_TICK_S = 60
 SLOW_EVERY = 5          # slow tick every N fast ticks (5 min)
 HTTP_TIMEOUT_S = 2.0
+# The connect phase gets longer than the rest. Windows reports a refused
+# connection to a closed local port only after about 2 s of SYN retries, so a
+# 2 s budget turned every "nothing is listening" into a ConnectTimeout that
+# could not be told apart from a service that was merely slow. With room to
+# finish, a closed port comes back as ConnectError, which is what DARK means.
+CONNECT_TIMEOUT_S = 5.0
 FEED_WINDOW_MS = 7 * 24 * 3600 * 1000
 EPISODE_WINDOW_MS = 48 * 3600 * 1000
 FEED_CAP = 60
 DAEMON_STALE_S = 15 * 60
+# How long /api/status, /api/feed and /api/stats hold a request while the
+# first round of adapter ticks is still out. Well under the page's own 12 s
+# fetch timeout, and past a round in which every source times out once.
+WARM_WAIT_S = 8.0
 
 AUTOPILOT_URL = "http://127.0.0.1:8767"
 GS_URL = "http://127.0.0.1:8768"
@@ -130,12 +149,14 @@ log = logging.getLogger("atrium")
 # --------------------------------------------------------------------------
 # Service registry — a new web UI is one entry here (adapter + custom sigil
 # are optional: without an adapter the gate is lamp-only, no dispatches).
+# `short` is the name the marquee sets in front of the gate's live figure.
 # --------------------------------------------------------------------------
 
 SERVICES = [
     {
         "id": "autopilot",
         "name": "ANIME AUTOPILOT",
+        "short": "AUTOPILOT",
         "wing": "salon",
         "url": AUTOPILOT_URL + "/",
         "addr": "127.0.0.1:8767",
@@ -147,6 +168,7 @@ SERVICES = [
     {
         "id": "groundstation",
         "name": "GROUND STATION",
+        "short": "GROUND STATION",
         "wing": "salon",
         "url": GS_URL + "/#/updates",
         "addr": "127.0.0.1:8768",
@@ -158,6 +180,7 @@ SERVICES = [
     {
         "id": "outreach",
         "name": "OUTREACH DESK",
+        "short": "OUTREACH",
         "wing": "bureau",
         "url": OUTREACH_URL + "/index.html",
         "addr": "127.0.0.1:8802",
@@ -169,17 +192,19 @@ SERVICES = [
     {
         "id": "pressroom",
         "name": "THE PRESS ROOM",
+        "short": "PRESS ROOM",
         "wing": "bureau",
         "url": PRESSROOM_URL + "/",
         "addr": "127.0.0.1:8765",
         "sigil": "pressroom",
         "desc_key": "pressroom",
-        "launch_hint": r"X:\Github\yorha-news\scripts\run_server.py",
+        "launch_hint": r"X:\Github\yorha-news\scripts\run_server_hidden.vbs",
         "order": 4,
     },
     {
         "id": "arsenal",
         "name": "ARSENAL",
+        "short": "ARSENAL",
         "wing": "salon",
         "url": ARSENAL_URL + "/",
         "addr": "127.0.0.1:8770",
@@ -191,6 +216,7 @@ SERVICES = [
     {
         "id": "bourse",
         "name": "BOURSE",
+        "short": "BOURSE",
         "wing": "bureau",
         "url": BOURSE_URL + "/",
         "addr": "127.0.0.1:8771",
@@ -373,6 +399,37 @@ def anime_health_to_dispatches(overview: dict, now: int) -> dict:
         out[did] = _dispatch(did, "autopilot", "salon", "autopilot.qb_down",
                              {}, now)
     return out
+
+
+WEEK_S = 7 * 24 * 3600
+
+
+def anime_airing_today(shows: list, now: datetime) -> int:
+    """How many watched shows have a broadcast on the reader's calendar day.
+
+    `airing_at` is episode 1's slot, not the next one, so comparing it with
+    today only ever caught a premiere, and the gate read "9 WATCHING" on a
+    Thursday with four Thursday shows. The slot repeats weekly, and Autopilot
+    walks it forward a week at a time (projectSlot in its panel), but only
+    for a show it still calls `airing`: walking a finished show's old slot
+    would invent a broadcast. A premiere still ahead counts on its own day.
+    """
+    today = now.date()
+    midnight = datetime(today.year, today.month, today.day).timestamp()
+    n = 0
+    for s in shows or []:
+        at = s.get("airing_at")
+        if isinstance(at, bool) or not isinstance(at, (int, float)) or at <= 0:
+            continue
+        if at < midnight:
+            if not s.get("airing"):
+                continue
+            # The first broadcast at or after local midnight. Whole weeks on
+            # the epoch keep the Tokyo slot fixed through a local DST change.
+            at += -(-(midnight - at) // WEEK_S) * WEEK_S
+        if datetime.fromtimestamp(at).date() == today:
+            n += 1
+    return n
 
 
 AP_EVENT_KINDS = {
@@ -630,6 +687,20 @@ _gs_games: dict[str, str] = {}
 # unread.
 _warmed: set[str] = set()
 
+# Set once the first round of ticks has come back. Until then every Source is
+# as its constructor left it (lamp 'checking', no groups, no stat), and a
+# page that polled in that window took the empties as truth: the Ledger
+# emptied, then replayed every plaque as a new arrival a poll later.
+_first_round = asyncio.Event()
+
+
+async def _hub_is_warm() -> bool:
+    """Wait (briefly) for the first round, and say whether it arrived."""
+    if not _first_round.is_set():
+        with suppress(asyncio.TimeoutError):
+            await asyncio.wait_for(_first_round.wait(), WARM_WAIT_S)
+    return _first_round.is_set()
+
 
 def load_cursors() -> None:
     global _cursors
@@ -672,6 +743,25 @@ def _note_failure(src: Source, exc: Exception) -> str:
     src.last_error = f"{type(exc).__name__}: {detail}" if detail \
         else type(exc).__name__
     return src.last_error
+
+
+def _poll_failed(src: Source, exc: Exception) -> bool:
+    """Set a gate's lamp after a failed poll, and say whether it went dark.
+
+    A timeout means the service took the connection and did not answer in
+    time: it is running, just busy. Ground Station does this for minutes at a
+    stretch, and a DARK lamp over it told the reader to launch a second copy
+    onto a port that was already taken (19% of one night's first hour). So a
+    timeout keeps the gate OPEN under a "slow" note, the gate still opens the
+    service, and only a refused connection or a broken answer puts it out.
+    """
+    src.latency_ms = None
+    _note_failure(src, exc)
+    if isinstance(exc, httpx.TimeoutException):
+        src.state, src.note = "open", "slow"
+        return False
+    src.state, src.note = "dark", None
+    return True
 
 
 async def _timed_get(client: httpx.AsyncClient, url: str, **kw):
@@ -813,10 +903,7 @@ async def tick_autopilot(client: httpx.AsyncClient) -> None:
             pass  # keep the previous unresolved group
         await _ap_events(client)
     except Exception as exc:
-        src.state = "dark"
-        src.latency_ms = None
-        src.note = None
-        _note_failure(src, exc)
+        _poll_failed(src, exc)
         _ap_offline_fallback()
 
 
@@ -828,12 +915,8 @@ async def tick_autopilot_slow(client: httpx.AsyncClient) -> None:
         overview = resp.json()
         src.groups["grace"] = anime_grace_to_dispatches(overview)
         shows = overview.get("shows") or []
-        today = datetime.now().date()
-        airing = sum(
-            1 for s in shows
-            if s.get("airing_at")
-            and datetime.fromtimestamp(s["airing_at"]).date() == today)
-        src.stat = {"watching": len(shows), "airing": airing}
+        src.stat = {"watching": len(shows),
+                    "airing": anime_airing_today(shows, datetime.now())}
         health = anime_health_to_dispatches(overview, now_ms())
         src.groups["health"] = health
         # The lamp's tooltip still says the same thing, for a reader already
@@ -913,10 +996,7 @@ async def tick_groundstation(client: httpx.AsyncClient) -> None:
             save_cursors()
             _warmed.add("groundstation")
     except Exception as exc:
-        src.state = "dark"
-        src.latency_ms = None
-        src.note = None
-        _note_failure(src, exc)
+        _poll_failed(src, exc)
         _gs_offline_fallback()
 
 
@@ -996,11 +1076,11 @@ async def tick_outreach(client: httpx.AsyncClient) -> None:
         resp, _ = await _timed_get(client, f"{OUTREACH_URL}/api/progress")
         progress = resp.json()
     except Exception as exc:
-        src.state = "dark"
-        src.latency_ms = None
-        _note_failure(src, exc)
         progress = _outreach_offline_progress()
-        src.note = "fallback" if progress else None
+        # A desk that is only slow keeps its "slow" note; "fallback" says the
+        # server is down, which is not true of one that took the connection.
+        if _poll_failed(src, exc) and progress:
+            src.note = "fallback"
 
     drafts_path = OUTREACH_DIR / "data" / "ai_drafts.json"
     try:
@@ -1056,10 +1136,8 @@ async def tick_arsenal(client: httpx.AsyncClient) -> None:
         ready = int(data.get("tools_ready") or 0)
         src.stat = {"tools": ready} if ready else {}
     except Exception as exc:
-        src.state = "dark"
-        src.latency_ms = None
-        src.stat = {}
-        _note_failure(src, exc)
+        if _poll_failed(src, exc):
+            src.stat = {}        # a slow gate keeps its last figure
 
 
 # --------------------------------------------------------------------------
@@ -1081,10 +1159,8 @@ async def tick_bourse(client: httpx.AsyncClient) -> None:
         src.groups["desk"] = bourse_events_to_dispatches(
             (d2.json() or {}).get("dispatches"), now_ms())
     except Exception as exc:
-        src.state = "dark"
-        src.latency_ms = None
-        src.stat = {}
-        _note_failure(src, exc)
+        if _poll_failed(src, exc):
+            src.stat = {}        # a slow gate keeps its last figure
 
 
 async def tick_pressroom(client: httpx.AsyncClient) -> None:
@@ -1109,10 +1185,7 @@ async def tick_pressroom(client: httpx.AsyncClient) -> None:
         src.groups["digest"] = press_status_to_dispatches(data)
         src.note_slow = "digest_stale" if data.get("stale") else None
     except Exception as exc:
-        src.state = "dark"
-        src.latency_ms = None
-        src.note = None
-        _note_failure(src, exc)
+        _poll_failed(src, exc)
 
 
 # --------------------------------------------------------------------------
@@ -1144,8 +1217,11 @@ def pct(part: float | None, whole: float | None) -> float | None:
 def works_payload(cpu, mem, gpu, net, disk, hub_up, host_up) -> dict:
     """Pure shaping — every reading is optional and nulls through cleanly."""
     return {
+        # Cores and threads are separate figures: psutil's default count is
+        # the logical one, and a 16-core part with SMT read "32 cores".
         "cpu": None if cpu is None else {
-            "pct": round(max(0.0, min(100.0, cpu[0])), 1), "cores": cpu[1]},
+            "pct": round(max(0.0, min(100.0, cpu[0])), 1),
+            "cores": cpu[1], "threads": cpu[2]},
         "mem": None if mem is None else {
             "pct": pct(mem[0], mem[1]),
             "used_gb": round(mem[0] / GIB, 1), "total_gb": round(mem[1] / GIB, 1)},
@@ -1172,13 +1248,53 @@ def works_payload(cpu, mem, gpu, net, disk, hub_up, host_up) -> dict:
 _gpu_at = -1e9
 _gpu_last: dict | None = None
 _net_mark: tuple[float, int, int] | None = None
+_cpu_mark: tuple[float, tuple] | None = None
+_cpu_last: float | None = None
 _works_at = -1e9
 _works_last: dict | None = None
 HUB_STARTED = time.time()
+# Windows moves the cpu_times counters in 15.6 ms ticks, so two marks closer
+# than this are a coin toss between 0 and 100, not an average.
+CPU_MIN_WINDOW_S = 0.5
+
+
+def read_cpu() -> float | None:
+    """Busy share of every core since the previous reading, in percent.
+
+    The baseline lives here, not in psutil: cpu_percent(interval=None) keeps
+    one per thread, and /api/works samples on whichever asyncio.to_thread
+    worker is free. A worker's first call had no baseline of its own, diffed
+    two back-to-back reads, and the dial said 0% (or 100%) on a busy machine.
+    """
+    global _cpu_mark, _cpu_last
+    if psutil is None:
+        return None
+    try:
+        times = psutil.cpu_times()
+    except Exception:
+        return None
+    mono = time.monotonic()
+    prev = _cpu_mark
+    if prev is not None and mono - prev[0] < CPU_MIN_WINDOW_S:
+        return _cpu_last                # keep the older mark; its window is real
+    _cpu_mark = (mono, times)
+    if prev is None:
+        return None
+    # psutil's own arithmetic: every field's delta clamped at zero, idle (and
+    # iowait, where there is one) is the only time not busy, and guest time is
+    # already counted inside user on Linux.
+    delta = {f: max(0.0, a - b) for f, a, b in zip(times._fields, times, prev[1])}
+    total = sum(delta.values()) - delta.get("guest", 0.0) - delta.get("guest_nice", 0.0)
+    if total <= 0:
+        return _cpu_last
+    busy = total - delta.get("idle", 0.0) - delta.get("iowait", 0.0)
+    _cpu_last = 100.0 * busy / total
+    return _cpu_last
+
 
 if psutil is not None:                  # lay the deltas' baselines at import,
     with suppress(Exception):           # so the first reading is a reading
-        psutil.cpu_percent(interval=None)
+        read_cpu()
 
 
 def read_gpu() -> dict | None:
@@ -1230,10 +1346,16 @@ def read_works() -> dict:
     _works_at = mono
     cpu = mem = disk = host_up = None
     if psutil is not None:
-        with suppress(Exception):
-            # interval=None reports the load since the previous call, which
-            # the TTL makes a ~3.5s window rather than a meaningless instant.
-            cpu = (psutil.cpu_percent(interval=None), psutil.cpu_count())
+        # The load since the previous reading, which the TTL makes a ~3.5s
+        # window rather than a meaningless instant.
+        busy = read_cpu()
+        if busy is not None:
+            cores = threads = None
+            with suppress(Exception):
+                cores = psutil.cpu_count(logical=False)
+            with suppress(Exception):
+                threads = psutil.cpu_count()
+            cpu = (busy, cores, threads)
         with suppress(Exception):
             vm = psutil.virtual_memory()
             mem = (vm.total - vm.available, vm.total)
@@ -1269,11 +1391,16 @@ def _report_lamps() -> None:
     for sid, src in SOURCES.items():
         if src.state == "checking":
             continue
-        seen = (src.state, src.last_error if src.state == "dark" else None)
+        # A slow gate is still lit, but it is a change worth one line: the
+        # timeouts that used to read as outages now leave their trace here.
+        slow = src.state == "open" and src.note == "slow"
+        seen = (src.state, src.last_error if src.state == "dark" or slow else None)
         if seen == _lamp_logged.get(sid):
             continue
         if src.state == "dark":
             log.warning("%s is dark: %s", sid, src.last_error or "no reason given")
+        elif slow:
+            log.info("%s is slow to answer: %s", sid, src.last_error)
         elif sid in _lamp_logged:
             log.info("%s is back", sid)
         # else: first sighting of a healthy gate. Recorded, not announced —
@@ -1283,7 +1410,8 @@ def _report_lamps() -> None:
 
 
 async def refresher() -> None:
-    async with httpx.AsyncClient(timeout=HTTP_TIMEOUT_S) as client:
+    timeout = httpx.Timeout(HTTP_TIMEOUT_S, connect=CONNECT_TIMEOUT_S)
+    async with httpx.AsyncClient(timeout=timeout) as client:
         tick_no = 0
         while True:
             fast = [tick_autopilot(client), tick_groundstation(client),
@@ -1297,6 +1425,7 @@ async def refresher() -> None:
                 if isinstance(r, Exception):
                     log.warning("tick error: %s", r)
             _report_lamps()
+            _first_round.set()
             tick_no += 1
             await asyncio.sleep(FAST_TICK_S)
 
@@ -1337,13 +1466,55 @@ async def cache_headers(request: Request, call_next):
             return PlainTextResponse("Not Found", status_code=404)
         raise
     if request.url.path.startswith("/static/fonts/"):
-        resp.headers["Cache-Control"] = "public, max-age=31536000, immutable"
+        # A week, not a year-long immutable: the font URLs are never stamped
+        # (the preload must match @font-face byte for byte), so a replaced
+        # face has to be able to reach a browser that already holds the old.
+        resp.headers["Cache-Control"] = "public, max-age=604800"
+    elif request.url.path.startswith("/static/"):
+        # StaticFiles sends an ETag and a Last-Modified but no Cache-Control,
+        # which lets a browser apply heuristic freshness and skip asking at
+        # all. On localhost a revalidation is a free 304, so always ask.
+        resp.headers["Cache-Control"] = "no-cache"
     return resp
 
 
+# Only <link> and <script> are stamped. The SVG <image> tiles in the page's
+# <defs> are the same files the stylesheets ask for by their plain URL, and
+# stamping the page's copy alone made every one of them download twice.
+_ASSET_REF = re.compile(
+    r'(<(?:link|script)\b[^>]*?\b(?:href|src))="(/static/[^"?#]+)"')
+
+
+def _serve_page(page: Path, request: Request) -> HTMLResponse:
+    """Send the page with its stylesheets and scripts stamped by mtime.
+
+    A changed asset becomes a different URL, so a browser holding last
+    week's CSS can never pair it with today's markup, whether or not it
+    decides to revalidate. The page itself goes out no-cache with an ETag
+    over the stamped HTML, so a revisit revalidates into a 304.
+    """
+    def stamp(m: re.Match[str]) -> str:
+        # Fonts are immutable and preloaded: the preload URL has to match
+        # the one @font-face asks for byte for byte, or the face downloads
+        # twice and the preload is thrown away.
+        if m.group(2).startswith("/static/fonts/"):
+            return m.group(0)
+        asset = STATIC_DIR / m.group(2)[len("/static/"):]
+        if not asset.is_file():
+            return m.group(0)
+        return f'{m.group(1)}="{m.group(2)}?v={int(asset.stat().st_mtime)}"'
+
+    html = _ASSET_REF.sub(stamp, page.read_text(encoding="utf-8"))
+    etag = '"%s"' % hashlib.blake2b(html.encode("utf-8"), digest_size=12).hexdigest()
+    headers = {"Cache-Control": "no-cache", "ETag": etag}
+    if request.headers.get("if-none-match") == etag:
+        return HTMLResponse(status_code=304, headers=headers)
+    return HTMLResponse(html, headers=headers)
+
+
 @app.get("/")
-async def index():
-    return FileResponse(STATIC_DIR / "index.html")
+async def index(request: Request):
+    return _serve_page(STATIC_DIR / "index.html", request)
 
 
 @app.get("/api/services")
@@ -1351,28 +1522,37 @@ async def api_services():
     return JSONResponse({"services": sorted(SERVICES, key=lambda s: s["order"])})
 
 
+# The three hall payloads wait out the hub's first round (bounded by
+# WARM_WAIT_S) and then say whether they were taken after it. "warm": false
+# means every empty in the payload is "not asked yet", not "nothing there".
 @app.get("/api/status")
 async def api_status():
+    warm = await _hub_is_warm()
     return JSONResponse({
         "services": {sid: src.status() for sid, src in SOURCES.items()},
         "generated": now_ms(),
+        "warm": warm,
     })
 
 
 @app.get("/api/feed")
 async def api_feed():
+    warm = await _hub_is_warm()
     now = now_ms()
     merged: list[dict] = []
     for src in SOURCES.values():
         merged.extend(d for d in src.dispatches()
                       if now - d["ts"] <= FEED_WINDOW_MS)
     merged.sort(key=lambda d: d["ts"], reverse=True)
-    return JSONResponse({"dispatches": merged[:FEED_CAP], "generated": now})
+    return JSONResponse({"dispatches": merged[:FEED_CAP], "generated": now,
+                         "warm": warm})
 
 
 @app.get("/api/stats")
 async def api_stats():
-    return JSONResponse({"stats": {sid: src.stat for sid, src in SOURCES.items()}})
+    warm = await _hub_is_warm()
+    return JSONResponse({"stats": {sid: src.stat for sid, src in SOURCES.items()},
+                         "warm": warm})
 
 
 @app.get("/api/works")

@@ -38,6 +38,9 @@ import tempfile
 
 from PIL import Image
 
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'scripts'))
+from safe_chrome import profile   # never a bare temp profile: see scripts/safe_chrome.py
+
 CHROME = r'C:\Program Files\Google\Chrome\Application\chrome.exe'
 if not os.path.exists(CHROME):
     CHROME = r'C:\Program Files (x86)\Google\Chrome\Application\chrome.exe'
@@ -79,6 +82,14 @@ APPS = {
 # Autopilot's page is a mahogany room, and the manifest has to match the room,
 # not the badge, or the standalone window shows a seam at the title bar.
 CHROME_BG = {'autopilot': '#1a0e06'}
+
+# The colour an installed app window shows before the page paints. It
+# defaults to the chrome colour, but the hall's chrome is its gilt and its
+# page is never gilt: a launch showed a field of flat gold for the 350-450 ms
+# before either theme's ground came up. The theme cannot be known before the
+# page runs, so the window waits on Onyx's ground, the house the night
+# entrance opens on.
+SPLASH_BG = {'atrium': '#0c0a07'}
 
 
 def reel(R=46, r=9, n=6):
@@ -263,6 +274,7 @@ def render(svg, size):
                     % (size, size, svg))
         r = subprocess.run(
             [CHROME, '--headless=new', '--disable-gpu', '--hide-scrollbars',
+             '--user-data-dir=' + profile('atr-icon-'),
              '--run-all-compositor-stages-before-draw',
              '--default-background-color=00000000',
              '--force-device-scale-factor=1',
@@ -313,7 +325,7 @@ def build(app, outdir):
             'short_name': APPS[app]['short'],
             'start_url': '/',
             'display': 'standalone',
-            'background_color': chrome_bg,
+            'background_color': SPLASH_BG.get(app, chrome_bg),
             'theme_color': chrome_bg,
             'icons': [
                 {'src': 'icon-192.png', 'sizes': '192x192', 'type': 'image/png'},

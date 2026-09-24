@@ -1,0 +1,735 @@
+/* ===========================================================================
+   THE PICTURE PALACE: the house-lights board, the key plate and the
+   entrance.
+
+   Linked after atrium.css. Everything here is material: the drawing lives in
+   static/js/desk.js (the board) and in playEntrance() (the entrance); the
+   hit surfaces, the swing and the keyboard model are atrium.css's and
+   app.js's.
+
+   One light model, as in the rest of the palace. At night the room's lamps
+   stand behind and above the board (the fanlights, the niche, the marquee),
+   so its tops and upper arrises take the light, its faces look back at the
+   dark house, and the slab lies in a veil that the live pilot's pool breaks.
+   By day the skylight is the key and nothing is lit. Only emitters glow: the
+   pilot jewels, the meter's lamp, the flash of the break.
+   =========================================================================== */
+
+/* ----- Tokens ------------------------------------------------------------ */
+/* Statuary bronze. These also set the clock's case, which reads the same
+   names, so they stay as they are. */
+:root[data-theme="onyx"] {
+  --sb-oil: #070402;
+  --sb-0: #120c07; --sb-1: #22170e; --sb-2: #35261a; --sb-3: #4f3a26;
+  --sb-4: #86643f; --sb-5: #d5ad74;
+  --sb-band: #8a6944;
+  --sb-tex: 0.42;
+  --sb-rl-lit: rgba(236, 190, 128, 0.55);
+  --floor-shadow: rgba(0, 0, 0, 0.78);
+}
+:root[data-theme="ivory"] {
+  --sb-oil: #150e08;
+  --sb-0: #251a11; --sb-1: #37281a; --sb-2: #4c3825; --sb-3: #6a5136;
+  --sb-4: #a4865e; --sb-5: #eadabc;
+  --sb-band: #b19a78;
+  --sb-tex: 0.36;
+  --sb-rl-lit: rgba(248, 236, 212, 0.62);
+  --floor-shadow: rgba(24, 6, 4, 0.66);
+}
+/* The board's own materials, scoped to it. */
+:root[data-theme="onyx"] #signal-desk {
+  /* The board's bronze: the statuary ramp taken darker and cooler, an
+     olive-black body under a pale brass crest. At the hall's warmth the
+     frame's rails and stiles read as a varnished walnut picture frame;
+     cast bronze is darker than wood in its body and brighter and paler
+     where it takes the light. */
+  --sb-oil: #030302;
+  --sb-0: #0b0a07; --sb-1: #17140f; --sb-2: #2a2419; --sb-3: #4a3f2b; --sb-4: #8f7a53; --sb-5: #ead8a8;
+  --sb-rl-lit: rgba(232, 214, 168, 0.55);
+  /* copper, 0 in the oil .. 5 the hot arris; its drawn grain; and the
+     board's cast patina, laid lighter than the niche's dressed one */
+  --kc-0: #1c0b04; --kc-1: #43200f; --kc-2: #71381b; --kc-3: #a65b33; --kc-4: #d4875a; --kc-5: #ffc795;
+  --cu-tex: 0.24; --sb-tex: 0.3;
+  /* ebonite: hard rubber, black with a brown bloom where the light lies */
+  --eb-0: #020101; --eb-1: #0d0a08; --eb-2: #251c16; --eb-3: #44342a; --eb-hi: rgba(255, 220, 178, 0.72);
+  /* cast brass: bezels, ferrule, screws, plates (never the wing's leaf) */
+  --bz-0: #3a2708; --bz-1: #6d4f1f; --bz-2: #a7813b; --bz-3: #d7b465; --bz-4: #f3dc9c; --bz-ink: #120b04;
+  --pl-band: color-mix(in srgb, var(--bz-1) 45%, var(--bz-2));
+  /* the light on the Portoro plinth, laid over the stone's own figure */
+  --pt-0: #000; --pt-1: #060504; --pt-2: #2c261d; --pt-3: #6a5a42;
+  /* The panel: Bardiglio facing the dark house. Its face takes little of
+     the lamps behind the board, a little more toward its head, and the
+     marquee lies in its polish as one band. */
+  --slab-top: rgba(26, 22, 20, 0.34); --slab-mid: rgba(10, 10, 14, 0.5); --slab-bot: rgba(4, 4, 6, 0.62);
+  --slab-shade: rgba(0, 0, 0, 0.62); --slab-spec: rgba(255, 234, 204, 0.32);
+  --cast-a: 0.62;
+  /* the meter: an ivory dial with a small lamp behind it at night */
+  --dial-0: #b9ab8e; --dial-1: #d8caa9; --dial-2: #6f634d; --dial-ink: #1b140b;
+  --dial-lamp: rgba(255, 222, 160, 0.42);
+  --needle-ink: #120d08;
+  --glass-band: rgba(255, 240, 215, 0.34);
+  /* the pilots: amber for the Salon, opal for the Bureau */
+  --jw-off-salon: #2a1406; --jw-off-bureau: #151a22;
+  --jw-core-salon: #fffbe8; --jw-mid-salon: #ffbe55; --jw-rim-salon: #b24c08; --jw-bloom-salon: rgba(255, 162, 58, 0.72);
+  --jw-core-bureau: #ffffff; --jw-mid-bureau: #d5e6ff; --jw-rim-bureau: #4d6f9e; --jw-bloom-bureau: rgba(186, 212, 255, 0.62);
+  --pool-salon: rgba(255, 164, 76, 0.5); --pool-bureau: rgba(190, 210, 255, 0.4);
+  /* the flash of the break */
+  --arc-core: #f2f6ff; --arc-mid: rgba(140, 168, 255, 0.95);
+  --rest-shadow: rgba(0, 0, 0, 0.7);
+}
+:root[data-theme="ivory"] #signal-desk {
+  --sb-oil: #0d0b08;
+  --sb-0: #1a1712; --sb-1: #29251c; --sb-2: #3a3427; --sb-3: #564b37; --sb-4: #93805d; --sb-5: #efe2c2;
+  --sb-rl-lit: rgba(246, 238, 216, 0.62);
+  --kc-0: #3a1a0a; --kc-1: #6a321a; --kc-2: #975230; --kc-3: #c47a4c; --kc-4: #e6a476; --kc-5: #ffe2c4;
+  --cu-tex: 0.2; --sb-tex: 0.28;
+  --eb-0: #050404; --eb-1: #171311; --eb-2: #352d27; --eb-3: #564a40; --eb-hi: rgba(255, 255, 255, 0.8);
+  --bz-0: #4d3812; --bz-1: #86672c; --bz-2: #bd9848; --bz-3: #e4c777; --bz-4: #fbeab4; --bz-ink: #120b04;
+  --pl-band: var(--bz-1);
+  --pt-0: #000; --pt-1: #0e0c0a; --pt-2: #4a4136; --pt-3: #a0927c;
+  /* by day the skylight lies evenly on the panel and the open doors
+     behind the reader show in its polish */
+  --slab-top: rgba(255, 255, 255, 0.16); --slab-mid: rgba(255, 255, 255, 0.04); --slab-bot: rgba(20, 24, 30, 0.1);
+  --slab-shade: rgba(20, 16, 12, 0.42); --slab-spec: rgba(255, 255, 255, 0.5);
+  --cast-a: 0.42;
+  --dial-0: #ece3cf; --dial-1: #f8f2e4; --dial-2: #b3a586; --dial-ink: #1b140b;
+  --dial-lamp: transparent;
+  --needle-ink: #120d08;
+  --glass-band: rgba(255, 255, 255, 0.5);
+  /* Nothing is lit by day: both jewels show their coloured glass, dark. */
+  --jw-off-salon: #7a3e0e; --jw-off-bureau: #56657a;
+  --jw-core-salon: #fff0c4; --jw-mid-salon: #f6a531; --jw-rim-salon: #9c4208; --jw-bloom-salon: transparent;
+  --jw-core-bureau: #ffffff; --jw-mid-bureau: #c3d8f6; --jw-rim-bureau: #46628b; --jw-bloom-bureau: transparent;
+  --pool-salon: transparent; --pool-bureau: transparent;
+  --arc-core: #ffffff; --arc-mid: rgba(150, 172, 255, 0.7);
+  --rest-shadow: rgba(40, 30, 20, 0.5);
+}
+
+/* =====================================================================
+   THE HOUSE-LIGHTS BOARD
+   ===================================================================== */
+/* The fittings' shadows on the marble (painted once), and the moving
+   parts' own, drawn with each pose. */
+.hl-board .hb-shadows { fill: #000; opacity: var(--cast-a); }
+.sw-shade path { fill: var(--rest-shadow); }
+/* Only emitters glow, and only at night: by day the pilots, their pools
+   and the meter's lamp are out. */
+:root[data-theme="ivory"] :is(.sw-pool, .sw-lit, .sw-dial-lamp) { display: none; }
+/* The spark's halo is a lamp; by day only the arc itself shows. */
+:root[data-theme="ivory"] .sw-spark .sw-arc-halo { opacity: 0.35; }
+
+/* A hand over the handle: the ebonite and the copper take more of the lamp. */
+@media (hover: hover) {
+  .desk-core:has(.hit-arm:hover) .sw-poses { filter: brightness(1.2) contrast(1.04); }
+}
+
+/* The switch's focus ring: the gates' marquee at the board's scale. */
+:root[data-theme="onyx"] #signal-desk {
+  --focus-bed: rgba(6, 4, 2, 0.82); --focus-core: #ffdf9a; --focus-bulb: #fffbf0;
+  --focus-glow: rgba(255, 196, 110, 0.55);
+}
+:root[data-theme="ivory"] #signal-desk {
+  --focus-bed: rgba(255, 252, 244, 0.95); --focus-core: #7a1a16; --focus-bulb: transparent;
+  --focus-glow: rgba(90, 20, 14, 0.25);
+}
+.hl-board .hb-focus-g { opacity: 0; transition: opacity 0.16s ease; }
+.desk-core:has(#lever:focus-visible) .hb-focus-g { opacity: 1; }
+.hl-board .hb-focus-bed {
+  fill: none; stroke: var(--focus-bed); stroke-width: 8; stroke-linejoin: round;
+  filter: drop-shadow(0 0 2px var(--focus-glow));
+}
+.hl-board .hb-focus { fill: none; stroke: var(--focus-core); stroke-width: 3; stroke-linejoin: round; }
+.hl-board .hb-focus-bulbs {
+  fill: none; stroke: var(--focus-bulb); stroke-width: 3.4;
+  stroke-linecap: round; stroke-dasharray: 0 8;
+}
+@media (forced-colors: active) {
+  .hl-board .hb-focus-bed { stroke: Canvas; filter: none; }
+  .hl-board .hb-focus { stroke: Highlight; }
+  .hl-board .hb-focus-bulbs { display: none; }
+}
+
+/* ----- The name plates ----------------------------------------------------
+   Cast brass, engraved and filled black, each held by two domed screws
+   with their slots turned by hash. They are the only words on the hall's
+   one control, and the board they are screwed to is scaled by --desk-s, so
+   the lettering is set against that scale and is never under 10px on
+   screen. Everything else on the plate is in em. */
+.assembly .l-label {
+  /* The face, top layer first: the lip the lamp runs along; tarnish
+     gathering toward the margins with the middle rubbed bright; horizontal
+     brushing; and the room reflected in the polish, the lit ceiling in the
+     top third and the dark house as a band under the middle. */
+  --pl-face:
+    linear-gradient(180deg, rgba(255, 250, 230, 0.55) 0 1px, transparent 1px),
+    radial-gradient(80% 115% at 44% 40%, rgba(255, 240, 200, 0.2), transparent 52%, rgba(46, 26, 3, 0.42) 100%),
+    url('/static/assets/tex/grain-brushed.webp') 0 0 / 260px 130px,
+    linear-gradient(180deg, color-mix(in srgb, var(--bz-3) 60%, var(--bz-4)) 0%, var(--bz-3) 12%,
+      var(--bz-2) 38%, var(--pl-band) 56%, color-mix(in srgb, var(--pl-band) 70%, var(--bz-2)) 64%,
+      var(--bz-2) 80%, var(--bz-1) 100%);
+  font-size: max(10.6px, calc(10.1px / var(--desk-s)));
+  line-height: 1.05;
+  /* On a short screen the board stands small and the 10px floor makes the
+     lettering large against it: the plate draws its tracking and its ends
+     in, so it stays under its jaws. */
+  --pl-ls: clamp(0.1em, calc(0.2em * var(--desk-s)), 0.2em);
+  --pl-pad: clamp(0.68em, calc(0.9em * var(--desk-s)), 0.9em);
+  letter-spacing: var(--pl-ls);
+  padding: 0.27em calc(var(--pl-pad) - var(--pl-ls)) 0.2em var(--pl-pad);
+  color: var(--bz-ink);
+  font-weight: 640;
+  text-shadow: 0 0.7px 0 color-mix(in srgb, var(--bz-4) 75%, transparent),
+               0 -0.5px 0 rgba(20, 10, 0, 0.35);
+  background: var(--pl-face);
+  background-blend-mode: normal, normal, overlay, normal;
+  border: 1px solid;
+  border-color: var(--bz-4) var(--bz-1) var(--bz-0) var(--bz-3);
+  border-radius: 1px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 246, 214, 0.45),
+    inset 1px 0 0 rgba(255, 238, 196, 0.22),
+    inset 0 -1.5px 0 rgba(44, 26, 4, 0.55),
+    inset -1px 0 0 rgba(44, 26, 4, 0.4),
+    inset 0 0 0.27em rgba(46, 26, 3, 0.35),
+    0 1px 0 rgba(0, 0, 0, 0.55), 1px 2px 3px rgba(0, 0, 0, 0.55);
+}
+/* the two screws, domed and seated in countersinks */
+.assembly .l-label::before,
+.assembly .l-label::after {
+  content: "";
+  position: absolute; top: 50%;
+  width: 0.34em; height: 0.34em;
+  margin-top: -0.17em;
+  border-radius: 50%;
+  background:
+    linear-gradient(var(--slot, 30deg), transparent 42%, rgba(18, 11, 4, 0.9) 42% 58%, transparent 58%),
+    radial-gradient(circle at 36% 30%, var(--bz-4), var(--bz-2) 55%, var(--bz-0));
+  box-shadow:
+    0 0 0 0.6px rgba(24, 13, 2, 0.85),
+    0 0 0 1.4px color-mix(in srgb, var(--bz-1) 70%, transparent),
+    0 0.6px 1.2px 1.2px rgba(30, 16, 2, 0.45);
+}
+.assembly .l-label::before { left: calc(var(--pl-pad) * 0.26); }
+.assembly .l-label::after {
+  right: calc(var(--pl-pad) * 0.26);
+  background:
+    linear-gradient(var(--slot2, 120deg), transparent 42%, rgba(18, 11, 4, 0.9) 42% 58%, transparent 58%),
+    radial-gradient(circle at 36% 30%, var(--bz-4), var(--bz-2) 55%, var(--bz-0));
+}
+@media (hover: hover) {
+  :root[data-wing="salon"] .l-bureau:hover,
+  :root[data-wing="bureau"] .l-salon:hover {
+    border-color: var(--bz-4) var(--bz-2) var(--bz-1) var(--bz-4);
+    box-shadow:
+      inset 0 0 0 1px color-mix(in srgb, var(--bz-4) 60%, transparent),
+      inset 0 -1.5px 0 rgba(44, 26, 4, 0.55),
+      inset 0 0 0.27em rgba(46, 26, 3, 0.35),
+      0 1px 0 rgba(0, 0, 0, 0.55), 1px 2px 3px rgba(0, 0, 0, 0.55);
+  }
+}
+@media (forced-colors: active) {
+  .assembly svg, .desk-fx svg { forced-color-adjust: none; }
+  /* The live plate keeps a Highlight border it cannot lose. Restated here,
+     after the brass and one class heavier than atrium.css's rule. */
+  :root[data-wing="salon"] .assembly .l-salon,
+  :root[data-wing="bureau"] .assembly .l-bureau { border: 2px solid Highlight; color: Highlight; }
+}
+
+/* =====================================================================
+   THE KEY PLATE
+   An instruction plate in the palace's own sign language: black verre
+   eglomise in a gilt moulding, two gilt clips, the title in leaf, and each
+   key set as a typewriter key (a ring in the wing's leaf, a black glass top,
+   an ivory legend). Black glass in both themes, like every sign in the
+   hall, so it reads the same by day. It still lies along the marquee, the
+   one band no arch or clock can reach.
+   ===================================================================== */
+#keyplate {
+  --kp-ink: #e3d5b2;
+  padding: calc(9px * var(--ui)) calc(26px * var(--ui));
+  color: var(--kp-ink);
+  background:
+    linear-gradient(104deg, transparent 0 55%, rgba(255, 248, 230, 0.04) 59%,
+      rgba(255, 248, 230, 0.085) 62.5%, rgba(255, 248, 230, 0.025) 66%, transparent 71%),
+    linear-gradient(180deg, rgba(255, 240, 210, 0.07), transparent 38%),
+    radial-gradient(90% 160% at 50% 110%, rgba(60, 40, 18, 0.25), transparent 70%),
+    var(--sign-glass);
+  border: calc(3px * var(--ui)) solid transparent;
+  border-image: linear-gradient(180deg, var(--lead-5), var(--lead-3) 22%, var(--lead-2) 55%,
+    var(--lead-1) 78%, var(--lead-4)) 1;
+  box-shadow:
+    0 0 0 1px var(--lead-0),
+    inset 0 0 0 1px var(--lead-0),
+    inset 0 1px 0 1px rgba(255, 244, 214, 0.1),
+    0 calc(10px * var(--ui)) calc(26px * var(--ui)) rgba(0, 0, 0, 0.62),
+    0 2px 4px rgba(0, 0, 0, 0.5);
+  /* the gilt line engraved inside the frame */
+  outline: 1px solid color-mix(in srgb, var(--lead-3) 34%, transparent);
+  outline-offset: calc(-6px * var(--ui));
+}
+/* the two gilt clips that hold the glass, one at each end */
+#keyplate::before, #keyplate::after {
+  content: ""; position: absolute; top: 50%;
+  width: calc(11px * var(--ui)); height: calc(11px * var(--ui));
+  margin-top: calc(-5.5px * var(--ui));
+  transform: rotate(45deg);
+  background:
+    radial-gradient(circle at 50% 50%, var(--lead-0) 0 14%, transparent 18%),
+    linear-gradient(135deg, var(--lead-5), var(--lead-3) 38%, var(--lead-2) 62%, var(--lead-1));
+  box-shadow: 0 0 0 1px var(--lead-0), 1px 2px 3px rgba(0, 0, 0, 0.6);
+}
+#keyplate::before { left: calc(-7.5px * var(--ui)); }
+#keyplate::after { right: calc(-7.5px * var(--ui)); }
+.kp-title {
+  align-self: center;
+  font-size: calc(14px * var(--ui)); font-weight: 620; letter-spacing: 0.3em;
+  background:
+    url('/static/assets/tex/grain-gilt.webp') 0 0 / 60px,
+    linear-gradient(180deg, var(--leaf-0) 0%, var(--leaf-1) 32%, var(--leaf-2) 56%, var(--leaf-3) 74%, var(--leaf-4) 100%);
+  background-blend-mode: soft-light, normal;
+  -webkit-background-clip: text; background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 1px 0 rgba(0, 0, 0, 0.9));
+}
+/* Two engraved rows, the keys in columns. Each column is as wide as its
+   longest entry and the glass left over is shared out between them, where
+   a gilt rule with a lozenge stands in the middle of every gutter. The
+   columns used to be equal fifths with the entries set flush left, so each
+   one ended in a slab of bare black. */
+.kp-title {
+  padding-right: calc(22px * var(--ui));
+  border-right: 1px solid color-mix(in srgb, var(--lead-3) 55%, transparent);
+  box-shadow: 1px 0 0 rgba(0, 0, 0, 0.8);
+}
+/* The heading takes focus when the plate is called up (app.js), so a
+   screen reader names it. The caret is shown there too: the gate the plate
+   was called from loses its ring as focus leaves it, and with the heading
+   bare nothing on screen showed where the keys would count from. The plate
+   is black glass in both themes, so the ring is the night's gold in both. */
+.kp-title:focus { outline: none; }
+.kp-title:focus-visible {
+  outline: 2px solid #d4af37;
+  outline-offset: calc(5px * var(--ui));
+}
+.kp-rows {
+  margin: 0;
+  grid-template-columns: none;
+  grid-auto-flow: column;
+  grid-template-rows: repeat(2, auto);
+  grid-auto-columns: auto;
+  justify-content: space-evenly;
+  column-gap: calc(12px * var(--ui)); row-gap: calc(5px * var(--ui));
+  align-items: center;
+}
+.kp-row {
+  grid-template-columns: auto auto;
+  justify-content: start;
+  column-gap: calc(10px * var(--ui));
+  align-items: center;
+  line-height: 1.3;
+}
+.kp-keys {
+  display: flex; align-items: center;
+  gap: calc(5px * var(--ui));
+  margin: 0;
+}
+.kp-dash {
+  color: var(--lead-3);
+  font-size: calc(12px * var(--ui));
+  line-height: 1;
+  filter: drop-shadow(0 1px 0 rgba(0, 0, 0, 0.9));
+}
+/* The gutter's rule: a gilt hairline down the glass with a dark joint
+   beside it, broken by a lozenge in a ring of bare glass, and a gilt bead
+   at each end. */
+.kp-rule {
+  grid-row: 1 / -1;
+  align-self: stretch;
+  position: relative;
+  width: calc(14px * var(--ui));
+  background:
+    radial-gradient(circle, var(--lead-3) 0 1.2px, var(--lead-1) 1.6px, transparent 2.2px) 50% 0 / 6px 6px no-repeat,
+    radial-gradient(circle, var(--lead-3) 0 1.2px, var(--lead-1) 1.6px, transparent 2.2px) 50% 100% / 6px 6px no-repeat,
+    linear-gradient(90deg, transparent calc(50% - 0.5px),
+      color-mix(in srgb, var(--lead-3) 60%, transparent) calc(50% - 0.5px) calc(50% + 0.5px),
+      rgba(0, 0, 0, 0.75) calc(50% + 0.5px) calc(50% + 1.5px), transparent calc(50% + 1.5px))
+      50% 50% / 100% calc(100% - 8px) no-repeat;
+}
+.kp-rule::before {
+  content: ""; position: absolute; left: 50%; top: 50%;
+  width: calc(7px * var(--ui)); height: calc(7px * var(--ui));
+  transform: translate(-50%, -50%) rotate(45deg);
+  background:
+    linear-gradient(135deg, var(--lead-5), var(--lead-3) 40%, var(--lead-2) 62%, var(--lead-1));
+  box-shadow:
+    0 0 0 1px var(--lead-0),
+    0 0 0 calc(3px * var(--ui)) var(--sign-glass);
+}
+.kp-rule::after {
+  /* the lozenge's cut centre, black glass showing through the gilt */
+  content: ""; position: absolute; left: 50%; top: 50%;
+  width: calc(2.4px * var(--ui)); height: calc(2.4px * var(--ui));
+  transform: translate(-50%, -50%) rotate(45deg);
+  background: var(--sign-glass);
+}
+/* The key: a typewriter key. A ring in the wing's leaf, an ivory celluloid
+   top with its dome catching the light, the legend cut and filled black.
+   Always round: two keys are two rings. The tracking is matched by an equal
+   indent, so a single legend sits on the key's centre. */
+.kp-key {
+  box-sizing: border-box;
+  display: inline-flex; align-items: center; justify-content: center;
+  flex: none;
+  width: calc(23px * var(--ui)); height: calc(23px * var(--ui));
+  padding: 0;
+  border-radius: 50%;
+  /* The hall's 10px floor holds on the plate too: at FINE the legends
+     printed at 9.9px and the word keys at 8.55px. */
+  font-size: max(10px, calc(11px * var(--ui))); font-weight: 650;
+  letter-spacing: 0.15em; text-indent: 0.15em;
+  line-height: 1;
+  color: #1b140b;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.45);
+  white-space: nowrap;
+  background:
+    radial-gradient(80% 55% at 42% 18%, rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0) 70%),
+    radial-gradient(140% 120% at 50% 20%, #f7eedb, #e4d5b4 55%, #b6a17a);
+  box-shadow:
+    inset 0 -1.5px 1px rgba(90, 64, 30, 0.55),
+    inset 0 0 0 1px rgba(120, 92, 50, 0.35),
+    0 0 0 1px var(--lead-0),
+    0 0 0 2.3px var(--lead-3),
+    0 0 0 3.1px var(--lead-1),
+    0 2px 0 2.8px rgba(0, 0, 0, 0.6),
+    0 3px 6px 2px rgba(0, 0, 0, 0.55);
+}
+/* The word keys (ENTER, ESC) are a typewriter's function keys: a flat,
+   wider top with square shoulders in a bright chrome bezel, the shape of a
+   shift key, never a capsule. */
+.kp-key.kp-wide {
+  width: auto; min-width: max(42px, calc(40px * var(--ui)));
+  padding: 0 calc(8px * var(--ui));
+  border-radius: calc(3.5px * var(--ui));
+  font-size: max(10px, calc(9.5px * var(--ui)));
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0) 46%),
+    radial-gradient(120% 140% at 50% 10%, #f7eedb, #e4d5b4 60%, #bca880);
+  box-shadow:
+    inset 0 -1.5px 1px rgba(90, 64, 30, 0.55),
+    inset 0 0 0 1px rgba(120, 92, 50, 0.35),
+    0 0 0 1px #16181a,
+    0 0 0 2.3px #e9edf0,
+    0 0 0 3.1px #7d858c,
+    0 -1.2px 0 3.1px rgba(255, 255, 255, 0.3),
+    0 2px 0 2.8px rgba(0, 0, 0, 0.6),
+    0 3px 6px 2px rgba(0, 0, 0, 0.55);
+}
+.kp-do { margin: 0; color: var(--kp-ink); opacity: 0.9; }
+/* The Chinese face has one weight and hairline strokes: 回车 printed at
+   2.5:1 on the ivory key top where ENTER reads at full strength. Its own
+   ink round every stroke, as in the Ledger; the English keys keep theirs. */
+html[lang="zh"] .kp-key:not([lang="en"]) { -webkit-text-stroke: 0.4px currentColor; }
+@media (forced-colors: active) {
+  #keyplate { border: 2px solid CanvasText; }
+  .kp-title { color: CanvasText; background: none; }
+  .kp-key { border: 1px solid CanvasText; }
+  .kp-rule { forced-color-adjust: none; }
+}
+
+/* =====================================================================
+   THE ENTRANCE: the house curtain
+   Night: the hall is dark behind a claret velvet house curtain with a gilt
+   sunburst crest; the footlights come up along its hem, a follow spot
+   opens on the crest, the curtain flies out gathering into swags, the
+   marquee chases once, the fanlights light from the clock outward, and the
+   spot docks on the masthead's rosette. Day: the curtain is already up;
+   the street's light floods in and settles like an exposure, with the
+   sun's shafts in it, while a gilt ring docks. Only transform and opacity
+   move; every texture and shadow is painted once on a layer that holds
+   still inside the one that moves.
+   ===================================================================== */
+#entrance {
+  position: fixed; inset: 0; z-index: 100;
+  overflow: hidden;
+  pointer-events: none;
+}
+html[data-entered="no"] #entrance { pointer-events: auto; cursor: pointer; }
+html[data-entered="yes"] #entrance { display: none; }
+html[data-entered="no"] #entrance.done-fade { pointer-events: none; cursor: auto; }
+:root[data-theme="ivory"] #entrance .e-void,
+:root[data-theme="ivory"] #entrance .e-house,
+:root[data-theme="ivory"] #entrance .e-footlights,
+:root[data-theme="ivory"] #entrance .e-marquee,
+:root[data-theme="ivory"] #entrance .e-spot,
+:root[data-theme="onyx"] #entrance .e-flood,
+:root[data-theme="onyx"] #entrance .e-motes,
+:root[data-theme="onyx"] #entrance .e-ring { display: none; }
+
+/* The dark house the curtain rises on. */
+.e-void {
+  position: absolute; inset: 0;
+  background: radial-gradient(70% 55% at 50% 44%, rgba(12, 6, 3, 0.8), rgba(2, 1, 0, 0.94));
+}
+#entrance.house .e-void { opacity: 0; transition: opacity 0.85s cubic-bezier(0.4, 0, 0.3, 1); }
+
+/* ----- The curtain ------------------------------------------------------- */
+.e-house {
+  position: absolute; left: 0; right: 0; top: -6vh; height: 100vh;
+  will-change: transform;
+}
+/* A fly: slow off the deck, fast through the middle, easing into the grid. */
+#entrance.rise .e-house {
+  transform: translateY(-128vh);
+  transition: transform 0.92s cubic-bezier(0.62, 0.02, 0.3, 1);
+}
+/* One drop, three times as wide as it is tall (desk_materials.py), so no
+   screen up to 3:1 sees a fold twice: pinch pleats under a heading tape,
+   folds of wandering pitch and depth, a few broad bays. It was a 640px
+   tile, and at 1920 the same folds came round every 540px (AR-31). */
+.e-drop {
+  position: absolute; inset: 0;
+  background: url('/static/assets/tex/house-curtain.webp') 50% 0 / auto 100% repeat-x, #3a0a10;
+}
+/* The house lights are down: the drop's head goes dark toward the grid,
+   with its heading and pleats still made out under it, and its two edges
+   fall off into the wings. */
+.e-drop::after {
+  content: ""; position: absolute; inset: 0;
+  background:
+    linear-gradient(180deg, rgba(0, 0, 0, 0.8) 3%, rgba(0, 0, 0, 0.5) 9%, rgba(0, 0, 0, 0.32) 34%, rgba(0, 0, 0, 0.12) 62%, rgba(0, 0, 0, 0.28)),
+    linear-gradient(90deg, rgba(0, 0, 0, 0.55), transparent 14% 86%, rgba(0, 0, 0, 0.55));
+}
+/* The footlights on the tabs: a warm wash up from the hem, each lamp
+   throwing its own tall pool so the folds catch in rows. */
+.e-foot {
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(46px 30vh at 50% 100%, rgba(255, 214, 150, 0.26), transparent 78%) 0 100% / 96px 100% repeat-x,
+    radial-gradient(80% 42% at 50% 104%, rgba(255, 160, 78, 0.34), transparent 72%),
+    linear-gradient(0deg, rgba(255, 150, 70, 0.42), rgba(255, 120, 60, 0.14) 20%, transparent 46%);
+  opacity: 0;
+  transition: opacity 0.55s cubic-bezier(0.3, 0.6, 0.3, 1);
+}
+#entrance.foot .e-foot { opacity: 1; }
+
+/* The crest: a gilt sunburst appliqued on the velvet, a medallion and the
+   rosette in gilt cord, centred where the clock stands behind it
+   (--clock-cy, the dial's centre, written by placeCrest() in app.js). */
+.e-crest {
+  position: absolute; left: 50%; top: calc(6vh + var(--clock-cy, 44vh));
+  width: min(66vmin, 760px); height: min(66vmin, 760px);
+  margin: calc(min(66vmin, 760px) / -2) 0 0 calc(min(66vmin, 760px) / -2);
+  overflow: visible;
+}
+/* Out of sight until they are hung on the dial (placeCrest() in app.js),
+   then they come up out of the dark house. */
+.e-crest, .e-wordmark { transition: opacity 0.3s ease-out; }
+#entrance:not(.placed) :is(.e-crest, .e-wordmark) { opacity: 0; }
+/* The leaf along each ray (buildRays() in app.js shades it across). */
+.e-gilt-0 { stop-color: #f4d68e; }
+.e-gilt-1 { stop-color: #d6a448; }
+.e-gilt-2 { stop-color: #b07b26; }
+.e-gilt-3 { stop-color: #7c5214; }
+/* the crest stands off the pile: a soft shadow down onto the velvet */
+.e-ray-sh, .e-medal-sh { fill: #0a0103; opacity: 0.78; }
+.e-ray { fill: url(#e-gilt); }
+/* the burnish grain in the leaf, laid in soft light on the rays only */
+.e-ray-tex { fill: url(#e-gilt-tex); mix-blend-mode: soft-light; opacity: 0.9; }
+/* the carved arris, in shadow where the ray meets the pile */
+.e-ray-edge { fill: none; stroke: rgba(40, 18, 2, 0.6); stroke-width: 0.8; stroke-linejoin: round; }
+.e-ray-lit { fill: #fff0c8; opacity: 0; }
+#entrance.spot .e-ray-lit {
+  animation: e-glint 0.5s ease-out both;
+  animation-delay: calc(var(--i, 0) * 9ms);
+}
+@keyframes e-glint { 0% { opacity: 0; } 35% { opacity: 0.6; } 100% { opacity: 0.2; } }
+/* The badge is the masthead's (dressMedal() clones it): the same brass,
+   turned and knurled. */
+.e-badge { --tm-hi: var(--brass-hi); --tm-lo: var(--brass-lo); }
+.e-medal-mark { color: #e2bd6a; }
+.e-circle { fill: none; stroke: #f0d48c; stroke-width: 3; }
+/* The gilt rings draw themselves by opacity alone (segmentRing() in
+   app.js): each arc fades in on its own beat, and the whole ring, the same
+   geometry, takes over from the arcs in one frame when they are all in. */
+.e-seg, #entrance .e-crest > .e-circle, .e-ring-whole { opacity: 0; }
+#entrance.play .e-seg { animation: e-in 70ms ease-out var(--d, 0ms) both; }
+#entrance.play .e-segs { animation: e-out 1ms linear 470ms both; }
+#entrance.play .e-crest > .e-circle,
+#entrance.play .e-ring-whole { animation: e-in 1ms linear 470ms both; }
+@keyframes e-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes e-out { from { opacity: 1; } to { opacity: 0; } }
+/* The house's name, in gilt letters appliqued under the crest. */
+.e-wordmark {
+  position: absolute; left: 0; right: 0;
+  top: calc(6vh + var(--clock-cy, 44vh) + min(33vmin, 380px) - 2vmin);
+  text-align: center;
+  font-family: var(--serif); font-weight: 620;
+  font-size: clamp(40px, 5.4vw, 116px);
+  letter-spacing: 0.34em; text-indent: 0.34em;
+  line-height: 1;
+  background:
+    url('/static/assets/tex/grain-gilt.webp') 0 0 / 120px,
+    linear-gradient(180deg, var(--leaf-0) 0%, var(--leaf-1) 30%, var(--leaf-2) 55%, var(--leaf-3) 74%, var(--leaf-4) 100%);
+  background-blend-mode: soft-light, normal;
+  -webkit-background-clip: text; background-clip: text;
+  color: transparent;
+  filter: drop-shadow(2px 3px 1px rgba(10, 1, 3, 0.75));
+}
+/* The festoon: swags that gather under the hem once it is moving. */
+.e-swag {
+  position: absolute; left: 0; top: calc(100% - 2px);
+  width: 100%; height: 20vh;
+  opacity: 0;
+}
+#entrance.rise .e-swag { opacity: 1; transition: opacity 0.26s ease-out; }
+.e-swag-s0 { stop-color: #4b0d15; }
+.e-swag-s1 { stop-color: #5e131c; }
+.e-swag-s2 { stop-color: #2b060b; }
+.e-swag-body { fill: url(#e-swag-g); }
+.e-swag-fold { fill: none; stroke: #140306; stroke-width: 7; opacity: 0.55; }
+.e-swag-lit { fill: none; stroke: #b24b52; stroke-width: 2.4; opacity: 0.4; }
+.e-swag-fringe { fill: none; stroke: #caa04e; stroke-width: 1.6; opacity: 0.9; }
+/* Bullion fringe on the straight hem: a braided heading, then the twisted
+   strands, darker toward their tips. */
+.e-fringe {
+  position: absolute; left: 0; right: 0; bottom: -3.4vh; height: 4vh;
+  background:
+    linear-gradient(180deg, transparent 0 24%, rgba(20, 8, 2, 0.1) 60%, rgba(20, 8, 2, 0.55) 100%),
+    repeating-linear-gradient(90deg, #f3d893 0 1px, #b8893a 1px 2.5px, #6d4a17 2.5px 3.5px, #2a1806 3.5px 4px) 0 100% / 100% 76% no-repeat,
+    repeating-linear-gradient(118deg, #fbe7ad 0 2px, #c99a45 2px 5px, #7a551c 5px 7px) 0 0 / 100% 24% no-repeat;
+  box-shadow: 0 -1px 0 rgba(0, 0, 0, 0.6);
+}
+#entrance.rise .e-fringe { opacity: 0; transition: opacity 0.22s ease-out; }
+
+/* ----- The footlight trough at the foot of the screen -------------------- */
+.e-footlights {
+  position: absolute; left: 0; right: 0; bottom: 0; height: 5.2vh;
+}
+.e-trough {
+  position: absolute; inset: 0;
+  background:
+    linear-gradient(180deg, #f1d68e 0 1px, #9b7332 1px 2.5px, #3a260c 2.5px 3.5px,
+      #1a120a 3.5px, #0e0906 45%, #040302);
+  box-shadow: 0 -6px 12px rgba(0, 0, 0, 0.6);
+}
+/* The lamps: a hood every 96px, each with its bulb and its reflector. */
+.e-lamps {
+  position: absolute; left: 0; right: 0; top: -1.2vh; height: 3.4vh;
+  background:
+    radial-gradient(10px 6px at 50% 58%, #fffaf0 0 30%, #ffd08a 60%, transparent 100%) 0 0 / 96px 100% repeat-x,
+    radial-gradient(30px 16px at 50% 62%, rgba(255, 190, 110, 0.75), transparent 80%) 0 0 / 96px 100% repeat-x;
+  opacity: 0;
+  transition: opacity 0.4s ease-out;
+}
+#entrance.foot .e-lamps { opacity: 1; }
+#entrance.done-fade .e-footlights { opacity: 0; transition: opacity 0.4s ease-in; }
+
+/* ----- The marquee's one chase ------------------------------------------- */
+.e-marquee { position: absolute; overflow-x: clip; overflow-y: visible; }
+/* Sized and moved in whole bulb pitches, from the bulbs' own origin
+   (placeMarquee() in app.js writes the three lengths). */
+.e-chase {
+  position: absolute; left: 0; width: var(--ec-w, 24%);
+  height: calc(21px * var(--ui));
+  background:
+    radial-gradient(circle, #fff 0 24%, rgba(255, 238, 196, 0.95) 38%, rgba(255, 200, 120, 0.45) 56%, transparent 66%) 0 50% / calc(13px * var(--ui)) calc(9px * var(--ui)) repeat-x,
+    radial-gradient(50% 50% at 50% 50%, rgba(255, 196, 110, 0.5), transparent 100%);
+  opacity: 0;
+}
+.e-chase-t { top: calc(-6px * var(--ui)); }
+.e-chase-b { bottom: calc(-6px * var(--ui)); }
+#entrance.house .e-chase-t { animation: e-chase-lr 0.56s steps(28) both; }
+#entrance.house .e-chase-b { animation: e-chase-rl 0.56s steps(28) both; }
+@keyframes e-chase-lr {
+  0% { transform: translateX(var(--ec-from, -100%)); opacity: 1; }
+  92% { opacity: 1; }
+  100% { transform: translateX(var(--ec-to, 420%)); opacity: 0; }
+}
+@keyframes e-chase-rl {
+  0% { transform: translateX(var(--ec-to, 420%)); opacity: 1; }
+  92% { opacity: 1; }
+  100% { transform: translateX(var(--ec-from, -100%)); opacity: 0; }
+}
+
+/* ----- The spot and the ring: the dock ------------------------------------ */
+.e-burst {
+  position: absolute; left: 50%; top: var(--clock-cy, 44vh);
+  width: 60vmin; height: 60vmin;
+  margin: -30vmin 0 0 -30vmin;
+  will-change: transform;
+}
+#entrance.dock .e-burst {
+  transform: translate(var(--dock-x, 0px), var(--dock-y, 0px)) scale(var(--dock-s, 0.1));
+  opacity: 0;
+  transition: transform 0.48s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.2s ease-in 0.3s;
+}
+/* A follow spot: a firm edge, a soft halo, warm. */
+.e-spot {
+  position: absolute; inset: 0; border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 232, 196, 0.17) 0 36%, rgba(255, 226, 186, 0.15) 44%,
+    rgba(255, 214, 160, 0.05) 48.5%, rgba(255, 210, 150, 0.02) 55%, transparent 64%);
+  opacity: 0;
+  transform: scale(0.2);
+  transition: opacity 0.36s ease-out, transform 0.44s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+#entrance.spot .e-spot { opacity: 1; transform: none; }
+/* By day: a gilt ring drawn in the glare. */
+.e-ring { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+/* A fine gilt line with its lit lower lip and a soft shadow under it, drawn
+   as three strokes rather than a filter, since the burst it rides in moves. */
+.e-ring-c { fill: none; stroke: #b08a2c; stroke-width: 1; }
+.e-ring-hi { fill: none; stroke: rgba(255, 250, 230, 0.9); stroke-width: 1; }
+.e-ring-sh { fill: none; stroke: rgba(60, 40, 10, 0.2); stroke-width: 2.2; }
+
+/* ----- Day: the street's light --------------------------------------------- */
+/* A low sun through the open doors behind the reader. It used to be a near
+   solid cream haze with faint wedges in it, and the moment read as a page
+   fading in from white (AR-42). Now the glare is a veil the hall shows
+   through from the first frame, and it eases off as the eye adjusts; the
+   doors' light lies across the floor and up the wall in four warm bands
+   with their bars' shadows, the shade between them cool (lightDoors() in
+   app.js draws them to the room), and dust turns in the beams. All of it
+   fades with the glare. */
+/* The glare is its own layer from the start, so the shafts' blur is
+   rastered once as the entrance opens, well before the fade, and not three
+   times over the fade's first frames when the fade made it a layer. */
+.e-flood {
+  position: absolute; inset: 0;
+  background: radial-gradient(130% 95% at 50% 108%, rgba(255, 254, 249, 0.74), rgba(252, 246, 232, 0.64) 42%, rgba(245, 234, 211, 0.56));
+  will-change: opacity;
+}
+#entrance.expose :is(.e-flood, .e-mote) { opacity: 0; transition: opacity 1.05s cubic-bezier(0.25, 0.7, 0.25, 1); }
+.e-shafts { position: absolute; inset: 0; }
+.e-light { position: absolute; inset: 0; width: 100%; height: 100%; }
+/* the street's sky between the doors, cooler than the sun */
+.e-shade { fill: rgba(146, 164, 194, 0.22); }
+/* the sun on the wall, stronger where it lies on the floor near the doors */
+.e-beam { fill: url(#e-sun); }
+.e-sun-0 { stop-color: #fff3d8; stop-opacity: 0.4; }
+.e-sun-1 { stop-color: #ffeccb; stop-opacity: 0.5; }
+.e-sun-2 { stop-color: #ffe6bc; stop-opacity: 0.62; }
+/* the glazing bars and the transom, in shade inside the light */
+.e-bar { fill: rgba(112, 96, 74, 0.2); }
+/* The dust stands beside the glare, not in it, and fades with it: each
+   speck is a small layer of its own and only their holder moves, so a
+   frame of the drift redraws a few specks, not the screen (lightDoors()). */
+.e-motes { position: absolute; inset: 0; will-change: transform; }
+.e-mote { position: absolute; will-change: opacity; }
+#entrance.play .e-motes { animation: e-drift 2.4s linear both; }
+@keyframes e-drift { to { transform: translate(10px, -24px); } }
+
+/* ----- The hall while the curtain is down -------------------------------
+   The arches' fanlights are out until the house lights come up, then light
+   from the clock outward, the pair in each bay together (--fan-i, written
+   by orderFanlights()). */
+html[data-entered="no"] #entrance.night:not(.house) ~ #hall .gate .lit { opacity: 0; transition: none; }
+html[data-entered="no"] #entrance.night.house ~ #hall .gate.active[data-state="open"] .lit {
+  transition: opacity 0.5s ease calc(140ms + var(--fan-i, 0) * 170ms);
+}
+/* Cut short before the house lights, the lamps land with the hall: the
+   flip's frame only (finishEntrance() lifts the class two frames on).
+   Their streaks on the floor are the same lamps (Law 10) and land with
+   them; they used to keep the throw's timing, 420ms late and over 0.7s,
+   so the fanlights burned over a dry floor for most of a second (MO-18). */
+html.e-landing #hall .gate .lit,
+html.e-landing #hall .st-fan { transition: opacity 0.2s ease; }
