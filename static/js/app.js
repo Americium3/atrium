@@ -120,7 +120,8 @@ var STR = {
     almAge: 'AGE',
     almDaylight: 'DAYLIGHT', almLonger: 'LONGER', almShorter: 'SHORTER',
     almDays: '{n} d', almSrDays: '{n} days', almWindUnit: '{n} km/h',
-    almFahrenheit: '{high} / {low} °F',
+    almFahrenheit: 'Now {now} °F · high {high} · low {low}',
+    almFahrenheitDay: 'High {high} · low {low} °F',
     /* The eight phases, in order from new moon. Sentences, not signage: the
        hall's engraved caps stay English, a moon's name does not. */
     almPhase0: 'New', almPhase1: 'Waxing crescent',
@@ -265,7 +266,8 @@ var STR = {
     almAge: '月龄',
     almDaylight: '昼长', almLonger: '比昨日长', almShorter: '比昨日短',
     almDays: '{n} 日', almSrDays: '{n} 日', almWindUnit: '{n} 公里/时',
-    almFahrenheit: '{high} / {low} °F',
+    almFahrenheit: '现在 {now} °F · 最高 {high} · 最低 {low}',
+    almFahrenheitDay: '最高 {high} · 最低 {low} °F',
     almPhase0: '朔', almPhase1: '蛾眉月',
     almPhase2: '上弦', almPhase3: '盈凸',
     almPhase4: '望', almPhase5: '亏凸',
@@ -3164,12 +3166,22 @@ function buildRead(w) {
     fresh ? (lang === 'zh' ? w.label_zh : w.label) : t('wkNoReading')));
   box.appendChild(now);
   box.appendChild(almVitals(w, fresh));
-  // Fahrenheit lives in the tooltip: this reader is standing in a country
-  // that speaks it, in a hall that does not.
-  box.title = w && w.high_f !== null && w.high_f !== undefined
-              && w.low_f !== null && w.low_f !== undefined
-    ? t('almFahrenheit', { high: Math.round(w.high_f), low: Math.round(w.low_f) })
-    : '';
+  box.title = almFahrenheit(w, fresh);
+}
+
+/* Fahrenheit lives in the tooltip: this reader is standing in a country
+   that speaks it, in a hall that does not. It gives the big figure as well,
+   labelled, which "66 / 50 °F" over a reading of "10°" did not; once the
+   moment has lapsed only the day's pair is given. */
+function almFahrenheit(w, fresh) {
+  var has = function (v) { return v !== null && v !== undefined; };
+  if (!w || !has(w.high_f) || !has(w.low_f)) return '';
+  var f = { high: Math.round(w.high_f), low: Math.round(w.low_f) };
+  if (fresh && has(w.now_f)) {
+    f.now = Math.round(w.now_f);
+    return t('almFahrenheit', f);
+  }
+  return t('almFahrenheitDay', f);
 }
 
 /* `spoken` stands in for the value; with `whole` it stands in for the
