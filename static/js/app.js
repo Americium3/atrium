@@ -155,7 +155,7 @@ var STR = {
     ledgerBtnLabel: 'LEDGER',
     keysTitle: 'KEYS',
     keyGates: 'Walk the gates', keyJump: 'Go to a gate', keyOpen: 'Open it',
-    keyLever: 'Throw the lever', keyLedger: 'The Ledger', keyPrefs: 'Preferences',
+    keyLever: 'Throw the lever', keyLedger: 'Open or close the Ledger', keyPrefs: 'Open Preferences',
     keyWalk: 'Walk the dispatches, in the Ledger', keyPlate: 'Show or hide this plate',
     keyClose: 'Close', keyEnter: 'ENTER',
     unreadCount: '{n} new dispatches', unreadCountOne: '1 new dispatch'
@@ -292,7 +292,7 @@ var STR = {
     ledgerBtnLabel: '消息总台',
     keysTitle: '按键',
     keyGates: '在门廊间移动', keyJump: '直达某扇门', keyOpen: '打开',
-    keyLever: '扳动拉杆', keyLedger: '消息总台', keyPrefs: '偏好设置',
+    keyLever: '扳动拉杆', keyLedger: '开合消息总台', keyPrefs: '打开偏好设置',
     keyWalk: '在消息总台里逐条移动', keyPlate: '显示或收起这块铭牌',
     keyClose: '关闭', keyEnter: '回车',
     unreadCount: '{n} 条新消息', unreadCountOne: '1 条新消息'
