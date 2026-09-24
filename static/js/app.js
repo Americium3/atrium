@@ -155,7 +155,7 @@ var STR = {
     keyGates: 'Walk the gates', keyJump: 'Go to a gate', keyOpen: 'Open it',
     keyLever: 'Throw the lever', keyLedger: 'The Ledger', keyPrefs: 'Preferences',
     keyWalk: 'Walk the dispatches, in the Ledger', keyPlate: 'Show or hide this plate',
-    keyClose: 'Close', keyEnter: 'ENTER',
+    keyClose: 'Close', keyEnter: 'ENTER', keyTo: 'to',
     unreadCount: '{n} new dispatches', unreadCountOne: '1 new dispatch'
   },
   zh: {
@@ -290,7 +290,7 @@ var STR = {
     keyGates: '在门廊间移动', keyJump: '直达某扇门', keyOpen: '打开',
     keyLever: '扳动拉杆', keyLedger: '消息总台', keyPrefs: '偏好设置',
     keyWalk: '在消息总台里逐条移动', keyPlate: '显示或收起这块铭牌',
-    keyClose: '关闭', keyEnter: '回车',
+    keyClose: '关闭', keyEnter: '回车', keyTo: '至',
     unreadCount: '{n} 条新消息', unreadCountOne: '1 条新消息'
   }
 };
@@ -4244,26 +4244,52 @@ function litGates() {
     .sort(function (a, b) { return slotX(a) - slotX(b); });
 }
 
+/* Every key is a typewriter key of its own: a pair is two keys, a range is
+   its first and last key with a gilt dash between (read out as "1 to 3"),
+   and the two word keys, ENTER and ESC, are the wide function keys in a
+   chrome bezel. They used to be drawn as one capsule per legend, which read
+   as web buttons. The plate is a description list, a key and what it does
+   per entry, so a screen reader hears each pair together instead of a run
+   of loose words. The ruled gutters between the columns are gilt rules
+   with a lozenge, reverse-painted on the glass like the rest of the plate. */
 function renderKeyplate() {
   if (!keyplate) return;
   var n = litGates().length;
   var rows = [
-    ['\u2190 \u2192', 'keyGates'],
-    [n > 1 ? '1 \u2013 ' + n : '1', 'keyJump'],
-    [t('keyEnter'), 'keyOpen'],
-    ['W', 'keyLever'],
-    ['L', 'keyLedger'],
-    ['\u2191 \u2193', 'keyWalk'],
-    ['P', 'keyPrefs'],
-    ['?', 'keyPlate'],
-    ['ESC', 'keyClose'],
+    [['\u2190', '\u2192'], 'keyGates'],
+    [n > 1 ? ['1', '-', String(n)] : ['1'], 'keyJump'],
+    [['+' + t('keyEnter')], 'keyOpen'],
+    [['W'], 'keyLever'],
+    [['L'], 'keyLedger'],
+    [['\u2191', '\u2193'], 'keyWalk'],
+    [['P'], 'keyPrefs'],
+    [['?'], 'keyPlate'],
+    [['+ESC'], 'keyClose'],
   ];
   var list = $('.kp-rows', keyplate);
   list.textContent = '';
-  rows.forEach(function (r) {
+  rows.forEach(function (r, i) {
+    if (i && i % 2 === 0) {
+      var rule = el('div', 'kp-rule');
+      rule.setAttribute('aria-hidden', 'true');
+      list.appendChild(rule);
+    }
     var row = el('div', 'kp-row');
-    row.appendChild(el('kbd', 'kp-key display', r[0]));
-    row.appendChild(el('span', 'kp-do', t(r[1])));
+    var dt = el('dt', 'kp-keys');
+    r[0].forEach(function (k) {
+      if (k === '-') {
+        var dash = el('span', 'kp-dash', '\u2013');
+        dash.setAttribute('aria-hidden', 'true');
+        dt.appendChild(dash);
+        dt.appendChild(el('span', 'sr-only', ' ' + t('keyTo') + ' '));
+      } else if (k.charAt(0) === '+') {
+        dt.appendChild(el('kbd', 'kp-key kp-wide display', k.slice(1)));
+      } else {
+        dt.appendChild(el('kbd', 'kp-key display', k));
+      }
+    });
+    row.appendChild(dt);
+    row.appendChild(el('dd', 'kp-do', t(r[1])));
     list.appendChild(row);
   });
   $('.kp-title', keyplate).textContent = t('keysTitle');
@@ -4282,15 +4308,41 @@ function placeKeyplate() {
 /* The plate is a notice, not a dialog. It used to answer only "?" and Esc,
    so a pointer left it standing over the hall. Now any press closes it, on
    the plate or anywhere else, and the press still does what it was for. */
-function keyplatePress() { toggleKeyplate(false); }
+function keyplatePress() { toggleKeyplate(false, true); }
 
-function toggleKeyplate(show) {
+/* The plate arrived without a sound: focus stayed on the gate and nothing
+   was announced, so the key reference existed only for the eye. Showing it
+   now moves focus to its heading, where a screen reader names the plate and
+   can read the keys that follow; closing it by key puts focus back where it
+   was. A press elsewhere is the pointer's own business, so it is left to
+   go where it lands. If the arch focus came from has since gone out with a
+   throw, focus goes to the arch standing in its bay. */
+var kpReturn = null, kpReturnX = null;
+function toggleKeyplate(show, byPointer) {
   if (!keyplate) return;
   var next = show === undefined ? keyplate.hidden : show;
-  if (next) { renderKeyplate(); placeKeyplate(); }
-  keyplate.hidden = !next;
-  if (next) document.addEventListener('pointerdown', keyplatePress, true);
-  else document.removeEventListener('pointerdown', keyplatePress, true);
+  if (next === !keyplate.hidden) return;
+  if (next) {
+    renderKeyplate();
+    placeKeyplate();
+    var ae = document.activeElement;
+    kpReturn = ae && ae !== document.body && !keyplate.contains(ae) ? ae : null;
+    kpReturnX = kpReturn && kpReturn.classList.contains('gate') ? slotX(kpReturn) : null;
+    keyplate.hidden = false;
+    document.addEventListener('pointerdown', keyplatePress, true);
+    $('.kp-title', keyplate).focus({ preventScroll: true });
+    return;
+  }
+  var had = keyplate.contains(document.activeElement);
+  keyplate.hidden = true;
+  document.removeEventListener('pointerdown', keyplatePress, true);
+  var back = kpReturn, x = kpReturnX;
+  kpReturn = kpReturnX = null;
+  if (!had || byPointer) return;
+  var usable = back && back.isConnected && !back.closest('[inert]') &&
+    (!back.checkVisibility || back.checkVisibility());
+  if (!usable) back = x === null ? null : nearestLit(x);
+  if (back) back.focus({ preventScroll: true });
 }
 window.addEventListener('resize', function () {
   if (keyplate && !keyplate.hidden) placeKeyplate();
@@ -4338,6 +4390,9 @@ document.addEventListener('keydown', function (e) {
 
   var gates = litGates();
   var ae = document.activeElement;
+  // On the key plate's heading the keys still work the hall, counted from
+  // wherever the reader called the plate up.
+  if (keyplate && ae && keyplate.contains(ae)) ae = kpReturn && kpReturn.isConnected ? kpReturn : document.body;
   var onGate = gates.indexOf(ae);
   // Mid-throw, focus can still be on the arch sinking out of its bay (it
   // hands over when the other one rises). A key pressed then counts from

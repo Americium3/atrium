@@ -672,42 +672,94 @@
   color: transparent;
   filter: drop-shadow(0 1px 0 rgba(0, 0, 0, 0.9));
 }
-/* Two engraved rows, the keys in columns: each column a cell ruled off
-   from the next with a gilt line, the long descriptions wrapping inside
-   their own cell rather than pushing the plate taller. */
+/* Two engraved rows, the keys in columns. Each column is as wide as its
+   longest entry and the glass left over is shared out between them, where
+   a gilt rule with a lozenge stands in the middle of every gutter. The
+   columns used to be equal fifths with the entries set flush left, so each
+   one ended in a slab of bare black. */
 .kp-title {
   padding-right: calc(22px * var(--ui));
   border-right: 1px solid color-mix(in srgb, var(--lead-3) 55%, transparent);
   box-shadow: 1px 0 0 rgba(0, 0, 0, 0.8);
 }
+/* The heading takes focus when the plate is called up (app.js), so a
+   screen reader names it; the plate arriving is all the eye needs. */
+.kp-title:focus { outline: none; }
 .kp-rows {
+  margin: 0;
   grid-template-columns: none;
   grid-auto-flow: column;
   grid-template-rows: repeat(2, auto);
-  grid-auto-columns: minmax(0, 1fr);
-  column-gap: 0; row-gap: calc(5px * var(--ui));
+  grid-auto-columns: auto;
+  justify-content: space-evenly;
+  column-gap: calc(12px * var(--ui)); row-gap: calc(5px * var(--ui));
   align-items: center;
 }
 .kp-row {
-  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-columns: auto auto;
+  justify-content: start;
   column-gap: calc(10px * var(--ui));
   align-items: center;
-  padding: 0 calc(14px * var(--ui));
   line-height: 1.3;
 }
-.kp-row:nth-child(n+3) {
-  border-left: 1px solid color-mix(in srgb, var(--lead-3) 32%, transparent);
-  box-shadow: inset 1px 0 0 rgba(0, 0, 0, 0.7);
+.kp-keys {
+  display: flex; align-items: center;
+  gap: calc(5px * var(--ui));
+  margin: 0;
+}
+.kp-dash {
+  color: var(--lead-3);
+  font-size: calc(12px * var(--ui));
+  line-height: 1;
+  filter: drop-shadow(0 1px 0 rgba(0, 0, 0, 0.9));
+}
+/* The gutter's rule: a gilt hairline down the glass with a dark joint
+   beside it, broken by a lozenge in a ring of bare glass, and a gilt bead
+   at each end. */
+.kp-rule {
+  grid-row: 1 / -1;
+  align-self: stretch;
+  position: relative;
+  width: calc(14px * var(--ui));
+  background:
+    radial-gradient(circle, var(--lead-3) 0 1.2px, var(--lead-1) 1.6px, transparent 2.2px) 50% 0 / 6px 6px no-repeat,
+    radial-gradient(circle, var(--lead-3) 0 1.2px, var(--lead-1) 1.6px, transparent 2.2px) 50% 100% / 6px 6px no-repeat,
+    linear-gradient(90deg, transparent calc(50% - 0.5px),
+      color-mix(in srgb, var(--lead-3) 60%, transparent) calc(50% - 0.5px) calc(50% + 0.5px),
+      rgba(0, 0, 0, 0.75) calc(50% + 0.5px) calc(50% + 1.5px), transparent calc(50% + 1.5px))
+      50% 50% / 100% calc(100% - 8px) no-repeat;
+}
+.kp-rule::before {
+  content: ""; position: absolute; left: 50%; top: 50%;
+  width: calc(7px * var(--ui)); height: calc(7px * var(--ui));
+  transform: translate(-50%, -50%) rotate(45deg);
+  background:
+    linear-gradient(135deg, var(--lead-5), var(--lead-3) 40%, var(--lead-2) 62%, var(--lead-1));
+  box-shadow:
+    0 0 0 1px var(--lead-0),
+    0 0 0 calc(3px * var(--ui)) var(--sign-glass);
+}
+.kp-rule::after {
+  /* the lozenge's cut centre, black glass showing through the gilt */
+  content: ""; position: absolute; left: 50%; top: 50%;
+  width: calc(2.4px * var(--ui)); height: calc(2.4px * var(--ui));
+  transform: translate(-50%, -50%) rotate(45deg);
+  background: var(--sign-glass);
 }
 /* The key: a typewriter key. A ring in the wing's leaf, an ivory celluloid
-   top with its dome catching the light, the legend cut and filled black. */
+   top with its dome catching the light, the legend cut and filled black.
+   Always round: two keys are two rings. The tracking is matched by an equal
+   indent, so a single legend sits on the key's centre. */
 .kp-key {
-  justify-self: start;
+  box-sizing: border-box;
   display: inline-flex; align-items: center; justify-content: center;
-  min-width: calc(24px * var(--ui)); height: calc(22px * var(--ui));
-  padding: 0 calc(7px * var(--ui));
-  border-radius: calc(11px * var(--ui));
-  font-size: calc(10.5px * var(--ui)); font-weight: 650; letter-spacing: 0.08em;
+  flex: none;
+  width: calc(23px * var(--ui)); height: calc(23px * var(--ui));
+  padding: 0;
+  border-radius: 50%;
+  font-size: calc(11px * var(--ui)); font-weight: 650;
+  letter-spacing: 0.15em; text-indent: 0.15em;
+  line-height: 1;
   color: #1b140b;
   text-shadow: 0 1px 0 rgba(255, 255, 255, 0.45);
   white-space: nowrap;
@@ -723,11 +775,33 @@
     0 2px 0 2.8px rgba(0, 0, 0, 0.6),
     0 3px 6px 2px rgba(0, 0, 0, 0.55);
 }
-.kp-do { color: var(--kp-ink); opacity: 0.9; }
+/* The word keys (ENTER, ESC) are a typewriter's function keys: a flat,
+   wider top with square shoulders in a bright chrome bezel, the shape of a
+   shift key, never a capsule. */
+.kp-key.kp-wide {
+  width: auto; min-width: calc(40px * var(--ui));
+  padding: 0 calc(8px * var(--ui));
+  border-radius: calc(3.5px * var(--ui));
+  font-size: calc(9.5px * var(--ui));
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0) 46%),
+    radial-gradient(120% 140% at 50% 10%, #f7eedb, #e4d5b4 60%, #bca880);
+  box-shadow:
+    inset 0 -1.5px 1px rgba(90, 64, 30, 0.55),
+    inset 0 0 0 1px rgba(120, 92, 50, 0.35),
+    0 0 0 1px #16181a,
+    0 0 0 2.3px #e9edf0,
+    0 0 0 3.1px #7d858c,
+    0 -1.2px 0 3.1px rgba(255, 255, 255, 0.3),
+    0 2px 0 2.8px rgba(0, 0, 0, 0.6),
+    0 3px 6px 2px rgba(0, 0, 0, 0.55);
+}
+.kp-do { margin: 0; color: var(--kp-ink); opacity: 0.9; }
 @media (forced-colors: active) {
   #keyplate { border: 2px solid CanvasText; }
   .kp-title { color: CanvasText; background: none; }
   .kp-key { border: 1px solid CanvasText; }
+  .kp-rule { forced-color-adjust: none; }
 }
 
 /* =====================================================================
