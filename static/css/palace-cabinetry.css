@@ -395,7 +395,18 @@
    The turned brass of the bezel is the svg's own background: a conic
    brushing (two bright wedges facing each other across the ring, the way a
    lathe-turned surface takes a light) over the fine turning lines. */
-.board .wk-dials { gap: 0.8cqw 2.6cqw; padding: 0.8cqw 0 0.4cqw; }
+/* One grid for all four instruments: each cell's dial, caption and reading
+   sit on tracks the pair in its row shares (subgrid). A reading that takes a
+   second line then makes its whole row's reading track taller, instead of
+   taking the height out of its own dial and lifting its caption out of line
+   with its neighbour's; the two dial tracks are equal fractions, so the four
+   dials always match. */
+.board .wk-dials {
+  grid-template-rows: minmax(0, 1fr) auto auto 0.8cqw minmax(0, 1fr) auto auto;
+  gap: 0 2.6cqw; padding: 0.8cqw 0 0.4cqw;
+}
+.board .wk-cell { grid-row: 1 / span 3; grid-template-rows: subgrid; }
+.board .wk-cell:nth-child(n + 3) { grid-row: 5 / span 3; }
 .board .wk-dial { overflow: visible; }
 .board .wk-dial .d-brass {
   width: 100%; height: 100%;
@@ -470,6 +481,8 @@
 }
 .board .wk-read {
   margin-top: 0.5cqw;
+  /* first lines level across a row, whichever reading takes two */
+  align-self: start;
   padding: 0.1em 0.45em 0.05em;
   /* a long reading takes a second line in its window rather than losing
      its tail to an ellipsis */
