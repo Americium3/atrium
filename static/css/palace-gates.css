@@ -520,6 +520,18 @@ html[lang="zh"] .g-lamp { letter-spacing: 0.2em; }
   .portal .p-focus { stroke: Highlight; stroke-width: 4; }
   .portal .p-focus-bulbs { display: none; }
 }
+/* A DARK gate dims its engraving to 35%. Under forced colours, or for a
+   reader who asked for more contrast, that left the words at 2 to 3:1.
+   They get the words at full strength instead, and the gate still reads
+   DARK by its lamp word, its hollow jewel and its unlit house. Under forced
+   colours the words take the system's own grey for text that is out of
+   service. */
+@media (forced-colors: active) {
+  .gate[data-state="dark"] :is(.g-desc, .g-stat, .g-addr, .sigil) { opacity: 1; color: GrayText; }
+}
+@media (prefers-contrast: more) {
+  .gate[data-state="dark"] :is(.g-desc, .g-stat, .g-addr, .sigil) { opacity: 1; }
+}
 /* The niche is scenery (the clock is aria-hidden and says the time in
    text): under forced colours it keeps its own paint rather than being
    redrawn as system lines. */
