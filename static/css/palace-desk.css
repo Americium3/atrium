@@ -483,8 +483,14 @@
    type size are atrium.css's: each plate is a hit surface. */
 /* The plates grow with the engraving size, but the console only follows it
    at a seventh of the slope; past 1.16 a plate outgrew the cornice it sits
-   on and hung over the runner. So the plates stop there (12.7px at 3440,
-   still above the 10px floor). */
+   on and hung over the runner. So the plates stop there.
+   They are the only words on the hall's one control, and the machine they
+   are screwed to is scaled by --desk-s, which took them to 7.7-8.6px on a
+   laptop and 6.6px on a short wide screen (LY-8). So the lettering is set
+   against the machine's scale, never under 10px on screen, up to 12.9
+   units, the largest plate the cornice holds; the vertical budget
+   (app.js) keeps the machine at 0.78 or more, where that is 10px.
+   Everything else on the plate is in em, so it keeps its proportions. */
 .assembly .l-label {
   --pl-u: min(var(--ui), 1.16);
   /* The face, top layer first: the lip the lamp runs along; tarnish
@@ -499,8 +505,14 @@
     linear-gradient(180deg, color-mix(in srgb, var(--bz-3) 60%, var(--bz-4)) 0%, var(--bz-3) 12%,
       var(--bz-2) 38%, var(--bz-1) 56%, color-mix(in srgb, var(--bz-1) 70%, var(--bz-2)) 64%,
       var(--bz-2) 80%, var(--bz-1) 100%);
-  font-size: calc(11px * var(--pl-u));
-  padding: calc(4px * var(--pl-u)) calc(9px * var(--pl-u)) calc(3px * var(--pl-u));
+  font-size: min(12.9px, max(calc(11px * var(--pl-u)), calc(10.1px / var(--desk-s))));
+  /* The word sits centred between its screw and its jewel, 0.2em clear of
+     each. The jewel's collet used to touch the B of BUREAU, and both words
+     were pushed toward their jewels (VD-8). The padding on each side is
+     the fitting's reach plus that clearance, less the tracking the last
+     letter carries after it. */
+  letter-spacing: 0.18em;
+  padding: 0.36em 0.6em 0.27em calc(0.78em + 1.4px);
   color: var(--bz-ink);
   font-weight: 640;
   /* cut into the brass: the lower wall of each stroke catches the light */
@@ -517,9 +529,13 @@
     inset 1px 0 0 rgba(255, 238, 196, 0.22),
     inset 0 -1.5px 0 rgba(44, 26, 4, 0.55),
     inset -1px 0 0 rgba(44, 26, 4, 0.4),
-    inset 0 0 calc(3px * var(--pl-u)) rgba(46, 26, 3, 0.35),
+    inset 0 0 0.27em rgba(46, 26, 3, 0.35),
     0 1px 0 rgba(0, 0, 0, 0.55), 1px 2px 3px rgba(0, 0, 0, 0.55);
 }
+/* screw left, jewel right */
+.assembly .l-salon { padding-right: calc(0.67em + 2.6px); padding-left: calc(0.78em + 1.4px); }
+/* jewel left, screw right */
+.assembly .l-bureau { padding-left: calc(0.87em + 2.6px); padding-right: calc(0.6em + 1.4px); }
 :root[data-wing="salon"] .l-salon,
 :root[data-wing="bureau"] .l-bureau,
 :root[data-theme="ivory"][data-wing="salon"] .l-salon,
@@ -531,8 +547,8 @@
 }
 .assembly .l-label::before,
 .assembly .l-label::after {
-  width: calc(3.4px * var(--pl-u)); height: calc(3.4px * var(--pl-u));
-  margin-top: calc(-1.7px * var(--pl-u));
+  width: 0.31em; height: 0.31em;
+  margin-top: -0.155em;
   background:
     linear-gradient(var(--slot, 30deg), transparent 42%, rgba(18, 11, 4, 0.9) 42% 58%, transparent 58%),
     radial-gradient(circle at 36% 30%, var(--bz-4), var(--bz-2) 55%, var(--bz-0));
@@ -542,13 +558,13 @@
     0 0 0 1.4px color-mix(in srgb, var(--bz-1) 70%, transparent),
     0 0.6px 1.2px 1.2px rgba(30, 16, 2, 0.45);
 }
-.assembly .l-label::before { left: calc(3px * var(--pl-u)); }
-.assembly .l-label::after { right: calc(3px * var(--pl-u)); }
+.assembly .l-label::before { left: 0.27em; }
+.assembly .l-label::after { right: 0.27em; }
 .assembly .l-salon::after, .assembly .l-bureau::before { content: none; }
 .l-jewel {
   position: absolute; top: 50%;
-  width: calc(5.6px * var(--pl-u)); height: calc(5.6px * var(--pl-u));
-  margin-top: calc(-2.8px * var(--pl-u));
+  width: 0.51em; height: 0.51em;
+  margin-top: -0.255em;
   border-radius: 50%;
   pointer-events: none;
   /* the smoked cabochon in its collet */
@@ -564,15 +580,15 @@
     0 0 0 2.6px rgba(26, 14, 2, 0.7),
     0 0.8px 1.6px 2.6px rgba(26, 14, 2, 0.4);
 }
-.l-salon .l-jewel { right: calc(1.6px * var(--pl-u)); }
-.l-bureau .l-jewel { left: calc(1.6px * var(--pl-u)); }
+.l-salon .l-jewel { right: 0.145em; }
+.l-bureau .l-jewel { left: 0.145em; }
 /* The lit glass is its own layer, faded by opacity. */
 .l-jewel::after {
   content: ""; position: absolute; inset: 0; border-radius: 50%;
   background:
     radial-gradient(circle at 38% 32%, #fff 0 10%, transparent 20%),
     radial-gradient(circle at 50% 55%, var(--jw-core) 0 12%, var(--jw-mid) 42%, var(--jw-rim) 88%);
-  box-shadow: 0 0 calc(5px * var(--pl-u)) calc(1.5px * var(--pl-u)) var(--jw-bloom);
+  box-shadow: 0 0 0.45em 0.14em var(--jw-bloom);
   opacity: 0;
   transition: opacity 0.3s ease 0.2s;
 }
@@ -585,7 +601,7 @@
     box-shadow:
       inset 0 0 0 1px color-mix(in srgb, var(--bz-4) 60%, transparent),
       inset 0 -1.5px 0 rgba(44, 26, 4, 0.55),
-      inset 0 0 calc(3px * var(--pl-u)) rgba(46, 26, 3, 0.35),
+      inset 0 0 0.27em rgba(46, 26, 3, 0.35),
       0 1px 0 rgba(0, 0, 0, 0.55), 1px 2px 3px rgba(0, 0, 0, 0.55);
   }
 }
