@@ -873,14 +873,16 @@ html[data-entered="no"] #entrance.night.house ~ #hall .st-fan.on[data-state="ope
   --course-img: url('/static/assets/tex/stone-rouge.webp');
   --course-tint: linear-gradient(rgba(10, 4, 3, 0.42), rgba(10, 4, 3, 0.42));
   --course-blend: normal;
-  --course-strip: color-mix(in srgb, var(--lead-2) 55%, transparent);
 }
 :root[data-theme="ivory"] {
   --course-img: url('/static/assets/tex/terrazzo-ivory.webp');
   --course-tint: linear-gradient(#a57e74, #a57e74);
   --course-blend: multiply;
-  --course-strip: color-mix(in srgb, var(--lead-2) 75%, transparent);
 }
+/* The strips are the wing's leaf, taken on the course itself, where the
+   Bureau's nickel is set (atrium.css), not on :root. */
+:root[data-theme="onyx"] .fl-border { --course-strip: color-mix(in srgb, var(--lead-2) 55%, transparent); }
+:root[data-theme="ivory"] .fl-border { --course-strip: color-mix(in srgb, var(--lead-2) 75%, transparent); }
 /* The runner's wool (the tiles are baked with a cut pile and softened
    motifs, AR-11): down its centre lane the traffic has flattened the pile,
    which then gives back more of the room's light and less of its dye, and

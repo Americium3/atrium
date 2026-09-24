@@ -223,9 +223,10 @@
 .gate[data-velvet="iron"] { --velvet: var(--iron); }
 
 /* Wing metal — carried by exactly three surfaces:
-   lever needle, masthead underline, active gate frames + stage glow. */
-:root[data-wing="salon"]  { --metal: var(--gold); --metal-hi: var(--champagne); }
-:root[data-wing="bureau"] { --metal: var(--plat); --metal-hi: var(--plat-hi); }
+   lever needle, masthead underline, active gate frames + stage glow.
+   The Salon's is set here and never changes on :root; the Bureau's is set
+   on the fixtures that show it, with the leaf (--lead-*, further down). */
+:root { --metal: var(--gold); --metal-hi: var(--champagne); }
 
 :root {
   /* One stack for both languages. The CJK face sits second, so it sets every
@@ -3250,10 +3251,26 @@ html[lang="zh"] .g-name { letter-spacing: 0.17em; }
 .cyl.s0 { stop-color: var(--lead-0); } .cyl.s1 { stop-color: var(--lead-3); }
 .cyl.s2 { stop-color: var(--lead-4); } .cyl.s3 { stop-color: var(--lead-1); }
 .cyl.s4 { stop-color: var(--lead-0); }
+/* The wing's leaf and metal. The Salon's gold stands on :root and the lever
+   never changes it there: an inherited custom property changed on :root
+   restyles every element under it, and the flip restyled 10,400 of them
+   (~90ms at 3440) and laid the floor's 700 terrazzo chips out again for a
+   leaf they do not show (MO-1). The Bureau's nickel is set only on the
+   fixtures that carry the wing's metal, so a throw restyles those. The
+   gates lead their own leaf (.gate), and the marquee, the frieze and the
+   aisle walls ease theirs (palace-room.css). A new fixture that reads
+   --lead-* or --metal outside all of these joins this list. */
 :root { --lead-0: var(--au-0); --lead-1: var(--au-1); --lead-2: var(--au-2);
         --lead-3: var(--au-3); --lead-4: var(--au-4); --lead-5: var(--au-5); }
-:root[data-wing="bureau"] { --lead-0: var(--ag-0); --lead-1: var(--ag-1); --lead-2: var(--ag-2);
-        --lead-3: var(--ag-3); --lead-4: var(--ag-4); --lead-5: var(--ag-5); }
+:root[data-wing="bureau"] :where(#clock, .stage-glow, .wall-piers,
+    .fl-border, .fl-inlay, .fl-round, .fl-runner, .fl-rail, .fl-mirror,
+    .cs-top, .cs-door > .cf, .bd-title, #al-sky,
+    .m-crown, .mf-crest, .m-title, .m-underline,
+    .desk-art, .desk-fx, #keyplate, #ledger, .p-sheet, #cyl-lead) {
+  --lead-0: var(--ag-0); --lead-1: var(--ag-1); --lead-2: var(--ag-2);
+  --lead-3: var(--ag-3); --lead-4: var(--ag-4); --lead-5: var(--ag-5);
+  --metal: var(--plat); --metal-hi: var(--plat-hi);
+}
 :root[data-theme="onyx"] .alab.s0 { stop-color: #fff6e0; }
 :root[data-theme="onyx"] .alab.s1 { stop-color: #f6c783; }
 :root[data-theme="onyx"] .alab.s2 { stop-color: #8a4e1c; }

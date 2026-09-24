@@ -1106,7 +1106,7 @@ html[lang="zh"] #ledger :is(.pl-head, .pl-detail, .pl-time, .chip, .l-close-cap,
    the focus trap and Esc are unchanged underneath it. */
 :root[data-theme="onyx"] {
   --pn: #0b0908; --pn-refl: rgba(255, 244, 222, 0.06);
-  --pn-fillet: var(--lead-3); --pn-string: rgba(236, 226, 200, 0.28);
+  --pn-string: rgba(236, 226, 200, 0.28);
   --well: #2e2b24; --well-tex: 0.9; --well-rim: rgba(0, 0, 0, 0.7);
   --pn-ink: #eadfc4; --pn-faint: #cbbe9e; --pn-label: #dcbf72;
   --pk-0: #4a4640; --pk-1: #1a1816; --pk-2: #060505;
@@ -1124,6 +1124,9 @@ html[lang="zh"] #ledger :is(.pl-head, .pl-detail, .pl-time, .chip, .l-close-cap,
   --pilot-0: #ffe7b0; --pilot-1: #e0a040; --pilot-2: #a4600e; --pilot-3: #4a2a06;
   --pilot-glow: rgba(0, 0, 0, 0);
 }
+/* The night fillet is the wing's leaf, so it is taken on the sheet, where
+   the Bureau's nickel is set (atrium.css), not on :root. */
+:root[data-theme="onyx"] .p-sheet { --pn-fillet: var(--lead-3); }
 .pk-0 { stop-color: var(--pk-0); } .pk-1 { stop-color: var(--pk-1); } .pk-2 { stop-color: var(--pk-2); }
 /* The bat lever's nickel shaft. These were --pl-*, which is the plaster
    ramp's name in atrium.css: set on :root after it, they re-leafed the
