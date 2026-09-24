@@ -308,14 +308,14 @@ stacks single-column (masthead → ticker → lever → active gates → receded
 gates → Ledger). Mobile is out of scope for v1 but must not break.
 
 **The hall stands on one screen.** No vertical scrollbar at any supported
-size. A grand entrance you have to scroll is not an entrance. The vertical
-budget is spent in this order: masthead, ticker, arch module, floor. The
-module is capped by `min(13.6vw, 26.5vh)` and by `296px x (0.62 + 0.38 x
---ui)`, so a short viewport shortens the arches instead of pushing the plinth
-off the bottom, and the floor takes what is left. `--floor-min` is only the
-*reservation* it insists on when the hall is taller than the screen. The
-concourse's grid row is exactly `--stage-h`: a board is never allowed to
-dictate the hall's height.
+size, and no horizontal one either. The vertical budget is spent in this
+order: masthead, ticker, arch module, floor. The module is capped by
+`min(13.6vw, 26.5vh)` and by `296px x (0.62 + 0.38 x --ui)`, so a short
+viewport shortens the arches instead of pushing the plinth off the bottom,
+and the floor takes what is left. `--floor-min` is only the *reservation* it
+insists on when the hall is taller than the screen. The concourse's grid row
+is exactly `--stage-h`: a board is never allowed to dictate the hall's
+height.
 
 **The wall claims its headroom back above 1080px.** The arch is aspect-locked,
 so on a tall screen every pixel the wall does not take goes to the floor, and
@@ -375,8 +375,8 @@ colour. All strokes carry `vector-effect: non-scaling-stroke`, so the 1 /
 - **Complications** on the cardinal axes: 12 the true moon (Meeus: true new
   moons, illumination from the phase angle), its phase and age computed to
   the minute and shared with the Almanac through `window.AtriumMoon`, 3 date
-  on a 31-step ring read through an aperture, 6 small seconds, 9 the works, two wheels geared 14:9 turning
-  against each other off the seconds arbor.
+  on a 31-step ring read through an aperture, 6 small seconds, 9 the works,
+  two wheels geared 14:9 turning against each other off the seconds arbor.
 - **Hands**: pierced Breguet with stepped counterweights; the hour hand
   carries a second, smaller piercing so the two never read alike.
 - **Drive**: the loop reads `new Date()` every frame and never accumulates,
@@ -447,12 +447,12 @@ else.
 
 ## The concourse (v4): the hall gets its aisles, its wall and its floor
 
-**The problem this solves.** The hall was drawn as an object, not a room. At
-1440px the object filled the frame and read as architecture; on a 3440px
-display the 1720px cap left 860px of bare ground either side and the whole
-composition read as a diorama in the middle of a beige desert. A room is
-made by a *continuous* wall and a *continuous* floor, so both now run the
-full width of the screen and the triptych stands on them.
+Before v4 the hall was drawn as an object. At 1440px the object filled the
+frame and read as architecture; on a 3440px display the 1720px cap left
+860px of bare ground either side and the whole composition read as a diorama
+in the middle of a beige desert. A room is made by a *continuous* wall and a
+*continuous* floor, so both now run the full width of the screen and the
+triptych stands on them.
 
 **Grid.** `#concourse` is `aisle-l · stage · aisle-r`, opening at 2800px (v5; it was 2200);
 below that it collapses to the single centre column the hall shipped with
@@ -501,8 +501,8 @@ and lamp, i.e. said the gates' own three facts back at them a second time
 and larger; a board in a hall has to say something the architecture cannot.
 
 The signage reads STATISTICS; the DOM id, the CSS prefix and the route stay
-`works`/`wk-`/`/api/works`. That is not drift. The board's *name* is what
-it shows the reader, and `the works` is what the data IS (the works of the
+`works`/`wk-`/`/api/works`. The board's *name* is what it shows the
+reader, and `the works` is what the data is (the works of the
 machine, read out of the host). `/api/stats` was already taken by the
 services' own status route and a JS `stats` binding already holds it, so
 renaming the internals would have collided with a live name to make two
@@ -542,8 +542,8 @@ butted against each other with brass divider strips in the joints. So the
 whole inlay is now cut from stone (`--stone-a/-b/-c`, per theme), the pattern
 is carried by VALUE because value is the only thing that survives being laid
 flat and foreshortened to a third of its height, and the brass never outlines
-a shape. It only fills a joint. The wordmark went with the line work: the
-masthead already says it, and a floor is not a letterhead.
+a shape. It only fills a joint. The wordmark went with the line work, since
+the masthead already carries it.
 
 What is on the plane, near to far: a **runner** (a rectangle in floor space,
 which the projection turns into the trapezoid a runner actually is), running
@@ -1351,11 +1351,10 @@ panels with hashed motifs, an archivolt round the window, a Portoro plinth).
 The desk stands on the wool runner and has a contact shadow in the pile, no
 floor return. The history below explains the stance that still holds.
 
-**What was wrong.** v4.1 put the machine on the floor but never gave it a
-body. What stood there was three loose parts sharing a patch of terrazzo: a
-lever pivoting at y=212 on nothing, a quadrant arc hanging in mid-air above
-it, and an aperture cut into no surface at all. Two measurements say it
-better than any amount of looking:
+v4.1 put the machine on the floor but never gave it a body. What stood there
+was three loose parts sharing a patch of terrazzo: a lever pivoting at y=212
+on nothing, a quadrant arc hanging in mid-air above it, and an aperture cut
+into no surface at all. Two measurements showed it:
 
 - the housing tone `--bronze-deep` against `--terrazzo` is **1.05:1**. Every
   solid face on the machine was invisible; only the `--bronze` hairlines
@@ -1366,9 +1365,9 @@ better than any amount of looking:
   56-tall slot shows as a shallow band with no centre. The drive train was
   drawn in full (63 nodes) and read as a stray arc.
 
-**The fix is the stance already in this document**: mechanism is sublimated
-by casework, and revealed at exactly one deliberate opening. So the parts
-are housed in a bronze console that *stands* on the stone:
+The fix follows the stance this document already takes: mechanism is
+sublimated by casework and revealed at exactly one deliberate opening. So
+the parts are housed in a bronze console that *stands* on the stone:
 
 - **Body**: stepped plinth (two courses on the gates' own 6px shoulder),
   fluted pilasters (the aisle bays' articulation at furniture scale), a
