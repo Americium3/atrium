@@ -416,8 +416,16 @@ function fitMasthead() {
   // The crown is cast smaller, down to four fifths, before it gives up its
   // place: a tight masthead (1366 with the large engraving) keeps it.
   var room = 2 * Math.min(axis - tRight, rLeft - axis) - 2 * gap * 0.6;
-  var k = Math.min(1, room / (168 * u));
-  var crownFits = k >= 0.8;
+  var kH = Math.min(1, room / (168 * u));
+  // It must also stand under the fascia's crest moulding, and on screen:
+  // sized from the width alone, its spire ran up through the moulding and
+  // off the top of the page at every size (VD-5). Its foot is 1u above the
+  // masthead's, and the spire's needle is the top of its box.
+  var crest = $('.mf-crest', m);
+  var ceiling = Math.max(0, crest ? crest.getBoundingClientRect().bottom : mr.top) + 3 * u;
+  var kV = ((mr.bottom - u) - ceiling) / (88 * u);
+  var k = Math.min(kH, kV);
+  var crownFits = kH >= 0.8 && kV >= 0.6;
   cr.style.setProperty('--ck', crownFits ? k.toFixed(3) : '1');
   cr.classList.toggle('stowed', !crownFits);
   var cw = crownFits ? 168 * u * k : 0;
