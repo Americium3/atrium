@@ -980,6 +980,14 @@ as on a gate.
   plaques; same-id dispatches update in place. A dispatch this page has
   already shown does not play its arrival again after dropping out of one
   poll (a hub restarting).
+- **Out of reach behind it**: while the drawer is open the hall and the desk
+  behind its scrim are inert, as behind Preferences, so a screen reader's
+  cursor stays in the drawer that Tab already keeps it in. The key plate
+  stays in reach over it. A line count that changes meanwhile is said once
+  the hall is back.
+- The main runs the drawer's working height whatever the feed holds and ends
+  in a capped foot, so an empty or unreadable Ledger still shows the whole
+  cabinet.
 
 ## Ticker (status band, not an echo)
 
@@ -1030,11 +1038,15 @@ jewel over each legend, language a double-throw knife switch on slate,
 engraving size an interlocked push-button bank, motion a three-position bat
 toggle, REPLAY ENTRANCE a spring-return key. Roles, roving tabindex, the
 focus trap and Esc are unchanged; focus is a champagne collar round the
-legend's jewel plus a rule under its name (the push keys, which have no
-jewel, take a gold ring laid in ink). The hardware answers the pointer: a
-press on the rotary or the bat toggle turns it to the detent nearest the
-press, a press on its boss steps it one detent, and either half of the
-knife switch throws it to that side. The radios:
+legend's jewel plus a rule under its name (by day both in the rope's
+oxblood over a cream bed; the push keys, which have no jewel, take a gold
+ring laid in ink). The hardware answers the pointer: a press on the rotary
+or the bat toggle turns it to the detent nearest the press, a press on its
+boss (the knob's round cap, which it turns on) steps it one detent, and
+either half of the knife switch throws it to that side. The legend a mouse
+lights over them is the one a press there picks, and a double-click is one
+press. A press made during the theme crossfade cuts it short and lands on
+its control. The radios:
 
 - Appearance: Onyx / Ivory / Follow system (follow-system attaches a
   `matchMedia` change listener and applies the 400 ms crossfade live)
@@ -1293,6 +1305,8 @@ Motion setting collapse all of the above to fades/instant.
   the drawer open W and P still work, and a digit shuts it on the way to its
   gate. A key held down that opens or shuts a layer acts once. Nothing
   fires with a modifier held, over Preferences or during the entrance.
+  On the key plate every key, Enter and Tab included, acts from where the
+  plate was called up, and putting it away hands focus back there.
 - **The Ledger drawer** lives at body level beside its scrim (inside `#hall`
   it painted under the scrim on every quiet boot). Opening it moves focus to
   its heading; while open, Tab cycles the drawer's own controls (the hatch
