@@ -702,3 +702,36 @@ html[lang="zh"] #masthead .p-caption { letter-spacing: 0.3em; }
 .fls.s2 { stop-color: #ffe6bf; stop-opacity: 0; }
 :root[data-theme="ivory"] .fls.s0 { stop-color: #ffffff; stop-opacity: 0.32; }
 :root[data-theme="ivory"] .fls.s1 { stop-color: #ffffff; stop-opacity: 0.08; }
+
+/* ==========================================================================
+   THE MARQUEE
+   ========================================================================== */
+/* With nothing new on the board the chaser stops and every bulb burns
+   evenly; the chase layer only shows while it runs. */
+#ticker:not([data-chase]) .t-chase { opacity: 0; }
+/* By day the bulbs are out: clear glass in a brass socket, a filament
+   inside and the skylight's glint on the envelope, not white discs. */
+:root[data-theme="ivory"] .t-bulbs {
+  background:
+    radial-gradient(circle at 40% 34%, rgba(255, 255, 255, 0.95) 0 7%, transparent 13%) 0 50% / calc(13px * var(--ui)) 100% repeat-x,
+    radial-gradient(circle, #8f8570 0 6%, #f1ece0 12%, #ded6c4 28%, #b4a584 37%, #6a5226 43%, rgba(40, 28, 8, 0.35) 47%, transparent 52%) 0 50% / calc(13px * var(--ui)) 100% repeat-x,
+    linear-gradient(180deg, var(--lead-1), var(--lead-3) 30%, var(--lead-2) 55%, var(--lead-0));
+}
+/* The returns: a stepped gilt jamb at each end, a column of three bulbs
+   set in it, its outer face stepping back in two setbacks. */
+#ticker::before, #ticker::after {
+  width: calc(22px * var(--ui));
+  background:
+    radial-gradient(circle, var(--bulb-core) 0 14%, var(--bulb) 26%, color-mix(in srgb, var(--bulb) 30%, transparent) 40%, transparent 46%) 50% 50% / calc(16px * var(--ui)) 33.4% repeat-y,
+    linear-gradient(180deg, rgba(255, 244, 214, 0.45) 0 1px, transparent 1px calc(100% - 2px), rgba(0, 0, 0, 0.55) calc(100% - 2px)),
+    linear-gradient(90deg, var(--lead-0), var(--lead-5) 12%, var(--lead-3) 26%, var(--lead-2) 52%, var(--lead-1) 80%, var(--lead-0));
+}
+:root[data-theme="ivory"] #ticker::before, :root[data-theme="ivory"] #ticker::after {
+  background:
+    radial-gradient(circle at 44% 40%, #fff 0 9%, transparent 15%) 50% 50% / calc(16px * var(--ui)) 33.4% repeat-y,
+    radial-gradient(circle, #8f8570 0 7%, #f1ece0 13%, #d9d0bc 28%, #a8987a 36%, #5d4620 42%, transparent 48%) 50% 50% / calc(16px * var(--ui)) 33.4% repeat-y,
+    linear-gradient(180deg, rgba(255, 255, 255, 0.6) 0 1px, transparent 1px calc(100% - 2px), rgba(60, 40, 10, 0.45) calc(100% - 2px)),
+    linear-gradient(90deg, var(--lead-0), var(--lead-5) 12%, var(--lead-3) 26%, var(--lead-2) 52%, var(--lead-1) 80%, var(--lead-0));
+}
+#ticker::before { clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%); }
+#ticker .t-track { padding-left: calc(26px * var(--ui)); }

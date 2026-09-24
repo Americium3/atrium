@@ -4787,21 +4787,7 @@ startAlmanac();
 setDrive(root.dataset.wing === 'bureau' ? 1 : 0);
 lever.setAttribute('aria-checked', String(root.dataset.wing === 'bureau'));
 
-/* The marquee's chaser: every third bulb steps one pitch every 300 ms, at
-   night, in full motion, while the page is visible. */
-(function chaser() {
-  var tk = $('#ticker');
-  if (!tk) return;
-  var k = 0;
-  setInterval(function () {
-    if (document.hidden || root.dataset.motion !== 'full' || root.dataset.theme !== 'onyx') {
-      if (tk.dataset.chase !== '0') tk.dataset.chase = '0';
-      return;
-    }
-    k = (k + 1) % 3;
-    tk.dataset.chase = String(k);
-  }, 300);
-})();
+/* The marquee's chaser lives with the marquee's look, in room.js. */
 
 /* ?steam=1 (debug, not persisted): freeze a burst at four life stages so
    headless screenshots can QA the vapor without a pointer. */

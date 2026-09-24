@@ -746,12 +746,51 @@ function layoutFloor() {
   }
 }
 
+/* ==========================================================================
+   THE MARQUEE'S CHASER
+   ==========================================================================
+   Every third bulb burns brighter and the pattern steps one bulb pitch at a
+   time: the chase layer is a strip rasterised once (will-change), moved in
+   whole pitches by a data attribute three times a second, never an
+   animation asking for sixty frames. It runs only when the board has
+   something new to announce: with nothing unread the band stands still and
+   so do its bulbs, all burning evenly. Night and full motion only, and
+   never in a hidden tab. */
+function chaser() {
+  var tk = $('#ticker'), track = $('#ticker-track');
+  if (!tk || !track) return;
+  var timer = null, k = 0;
+  function wanted() {
+    return !document.hidden && root.dataset.motion === 'full' && root.dataset.theme === 'onyx' &&
+      !!track.querySelector('.t-new');
+  }
+  function step() {
+    k = (k + 1) % 3;
+    tk.dataset.chase = String(k);
+  }
+  function sync() {
+    if (wanted()) {
+      if (!timer) { step(); timer = setInterval(step, 300); }
+    } else {
+      if (timer) { clearInterval(timer); timer = null; }
+      if (tk.hasAttribute('data-chase')) tk.removeAttribute('data-chase');
+    }
+  }
+  if (window.MutationObserver) {
+    new MutationObserver(sync).observe(track, { childList: true });
+    new MutationObserver(sync).observe(root, { attributes: true, attributeFilter: ['data-theme', 'data-motion'] });
+  }
+  document.addEventListener('visibilitychange', sync);
+  sync();
+}
+
 window.Room = {
   fnv1a: fnv1a, draw: draw, pick: pick,
   buildMasthead: buildMasthead, fitMasthead: fitMasthead,
   layoutWall: layoutWall, layoutFloor: layoutFloor
 };
 
-if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', buildMasthead);
-else buildMasthead();
+function boot() { buildMasthead(); chaser(); }
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+else boot();
 })();
