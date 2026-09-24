@@ -74,8 +74,11 @@ function rivets() {
 function knurl() {
   var s = '', i;
   for (i = 0; i < 132; i++) {
-    s += '<rect class="ck-knurl" x="497.6" y="8" width="4.8" height="21"' +
-         ' transform="rotate(' + (i * 2.727) + ' 500 500)"/>';
+    // a turned knurl takes the one light: teeth facing up-left are lit
+    var a = i * 2.727, lit = Math.cos((a + 45) * Math.PI / 180);
+    s += '<rect class="ck-knurl ' + (lit > 0.35 ? 'kn-lt' : lit < -0.35 ? 'kn-dk' : 'kn-md') +
+         '" x="497.6" y="8" width="4.8" height="21"' +
+         ' transform="rotate(' + a + ' 500 500)"/>';
   }
   return s;
 }
@@ -127,7 +130,8 @@ function numerals() {
 }
 
 function subframe(cx, cy, r) {
-  return '<circle class="ck-subring" cx="' + cx + '" cy="' + cy + '" r="' + r + '"/>' +
+  return '<circle class="ck-subsink" cx="' + cx + '" cy="' + cy + '" r="' + r + '" fill="url(#ck-sink)"/>' +
+         '<circle class="ck-subring" cx="' + cx + '" cy="' + cy + '" r="' + r + '"/>' +
          '<circle class="ck-subring2" cx="' + cx + '" cy="' + cy + '" r="' + (r - 8) + '"/>';
 }
 
@@ -170,7 +174,7 @@ function dateDial(cx, cy, r) {
 
 /* 6 — small seconds. Taking the seconds off the centre keeps the main dial
    quiet and is the regulator convention. */
-function secondsDial(cx, cy, r) {
+function secondsDial(cx, cy, r, moving) {
   var t = '', i, h;
   for (i = 0; i < 60; i++) {
     h = i % 5 === 0;
@@ -179,7 +183,16 @@ function secondsDial(cx, cy, r) {
          '" width="' + (h ? 4 : 2) + '" height="' + (h ? 15 : 8) +
          '" transform="rotate(' + (i * 6) + ' ' + cx + ' ' + cy + ')"/>';
   }
-  return subframe(cx, cy, r) + t +
+  var secHand = '<polygon points="' +
+      (cx - 1.9) + ',' + cy + ' ' + (cx - 1.2) + ',' + (cy - r + 16) + ' ' +
+      cx + ',' + (cy - r + 6) + ' ' + (cx + 1.2) + ',' + (cy - r + 16) + ' ' +
+      (cx + 1.9) + ',' + cy + ' ' + (cx + 4) + ',' + (cy + 18) + ' ' +
+      (cx - 4) + ',' + (cy + 18) + '"/>';
+  if (!moving) {
+    return subframe(cx, cy, r) + t +
+      '<text class="ck-subcap" x="' + cx + '" y="' + (cy + r - 20) + '" text-anchor="middle">SEC</text>';
+  }
+  return '<g class="ck-hsh ck-sh-s">' + secHand + '</g>' +
     '<g class="ck-ss">' +
     '<polygon class="ck-sec" points="' +
       (cx - 1.9) + ',' + cy + ' ' + (cx - 1.2) + ',' + (cy - r + 16) + ' ' +
@@ -187,13 +200,12 @@ function secondsDial(cx, cy, r) {
       (cx + 1.9) + ',' + cy + ' ' + (cx + 4) + ',' + (cy + 18) + ' ' +
       (cx - 4) + ',' + (cy + 18) + '"/>' +
     '<circle class="ck-secring" cx="' + cx + '" cy="' + (cy + 24) + '" r="8"/></g>' +
-    '<circle class="ck-subboss" cx="' + cx + '" cy="' + cy + '" r="7"/>' +
-    '<text class="ck-subcap" x="' + cx + '" y="' + (cy + r - 20) + '" text-anchor="middle">SEC</text>';
+    '<circle class="ck-subboss" cx="' + cx + '" cy="' + cy + '" r="7"/>';
 }
 
 /* 9 — the works: two meshing wheels, geared 14:9 and turning against each
    other, so the hall's machinery is visibly driven by the clock. */
-function worksDial(cx, cy, r) {
+function worksDial(cx, cy, r, moving) {
   function wheel(R, n, cls, id) {
     var g = '', i;
     for (i = 0; i < n; i++) {
@@ -203,10 +215,12 @@ function worksDial(cx, cy, r) {
     return '<g class="' + id + '"><circle class="' + cls + '" cx="0" cy="0" r="' + R + '"/>' +
            g + '<circle class="ck-gearhole" cx="0" cy="0" r="' + (R * 0.34) + '"/></g>';
   }
+  if (moving) {
+    return '<g transform="translate(' + (cx - 16) + ',' + (cy - 6) + ')">' + wheel(30, 14, 'ck-gear', 'ck-gA') + '</g>' +
+      '<g transform="translate(' + (cx + 26) + ',' + (cy + 20) + ')">' + wheel(19, 9, 'ck-gear2', 'ck-gB') + '</g>';
+  }
   return subframe(cx, cy, r) +
     '<circle class="ck-gearwell" cx="' + cx + '" cy="' + cy + '" r="' + (r - 12) + '"/>' +
-    '<g transform="translate(' + (cx - 16) + ',' + (cy - 6) + ')">' + wheel(30, 14, 'ck-gear', 'ck-gA') + '</g>' +
-    '<g transform="translate(' + (cx + 26) + ',' + (cy + 20) + ')">' + wheel(19, 9, 'ck-gear2', 'ck-gB') + '</g>' +
     '<text class="ck-subcap" x="' + cx + '" y="' + (cy + r - 20) + '" text-anchor="middle">WORKS</text>';
 }
 
@@ -227,28 +241,96 @@ function hand(cls, len, tail, w, pomme, pommeAt, twin) {
   return s + '</g>';
 }
 
+/* Paint for the dial, coloured by CSS classes on the stops. The field is
+   opal glass: lit from behind at night it glows cream at the centre and
+   warms toward the rim; by day it is unlit milk, cool by reflected light. */
+function dialDefs() {
+  return '<defs>' +
+    '<radialGradient id="ck-field" cx="500" cy="470" r="480" gradientUnits="userSpaceOnUse">' +
+      '<stop offset="0" class="ckf s0"/><stop offset=".55" class="ckf s1"/>' +
+      '<stop offset=".9" class="ckf s2"/><stop offset="1" class="ckf s3"/></radialGradient>' +
+    '<radialGradient id="ck-sink" cx=".5" cy=".5" r=".5" fx=".5" fy=".62">' +
+      '<stop offset=".72" class="cks s0"/><stop offset="1" class="cks s1"/></radialGradient>' +
+    '<radialGradient id="ck-case-g" cx="360" cy="300" r="760" gradientUnits="userSpaceOnUse">' +
+      '<stop offset="0" class="ckc s0"/><stop offset=".45" class="ckc s1"/>' +
+      '<stop offset="1" class="ckc s2"/></radialGradient>' +
+    '<radialGradient id="ck-dome" cx="380" cy="300" r="420" gradientUnits="userSpaceOnUse">' +
+      '<stop offset="0" class="ckd s0"/><stop offset="1" class="ckd s1"/></radialGradient>' +
+    '</defs>';
+}
+
+/* Hand shadows: each hand stands higher off the dial than the one below it,
+   so its shadow falls further down along the key light. */
+var SHADOW = { h: [5, 9], m: [8, 14], s: [11, 19] };
+
+/* The dial is two layers: everything that stands still (painted once) and
+   everything that moves (hands, their shadows, the small seconds, the works
+   and the crystal over them), so the per-frame sweep repaints only the thin
+   top sheet, never the guilloche, the chapter ring and the subdials. */
 function dial() {
   return '<circle class="ck-case2" cx="500" cy="500" r="499"/>' + knurl() +
     '<circle class="ck-caseline" cx="500" cy="500" r="472"/>' +
-    '<circle class="ck-well" cx="500" cy="500" r="468"/>' + fret() +
+    '<circle class="ck-well" cx="500" cy="500" r="468" fill="url(#ck-field)"/>' +
+    '<circle class="ck-bezel-sh" cx="500" cy="500" r="462"/>' + fret() +
     '<circle class="ck-hair2" cx="500" cy="500" r="444"/>' + guilloche() +
+    '<path class="ck-chapter" fill-rule="evenodd" d="M500 56 a444 444 0 1 0 0.01 0 Z M500 92 a408 408 0 1 1 -0.01 0 Z"/>' +
     '<circle class="ck-hair2" cx="500" cy="500" r="408"/>' +
     '<circle class="ck-goldrule" cx="500" cy="500" r="400"/>' +
     chapter() + numerals() +
     moonDial(500, 295, 88) + dateDial(705, 500, 88) +
-    secondsDial(500, 705, 88) + worksDial(295, 500, 88) +
+    secondsDial(500, 705, 88, false) + worksDial(295, 500, 88, false);
+}
+function dialMoving() {
+  return secondsDial(500, 705, 88, true) + worksDial(295, 500, 88, true) +
+    '<g class="ck-hsh ck-sh-h">' + hand('', 288, 80, 20, 36, 228, true) + '</g>' +
+    '<g class="ck-hsh ck-sh-m">' + hand('', 396, 96, 11, 24, 338, false) + '</g>' +
     hand('ck-h', 288, 80, 20, 36, 228, true) +
     hand('ck-m', 396, 96, 11, 24, 338, false) +
     '<circle class="ck-boss" cx="500" cy="500" r="31"/>' +
-    '<circle class="ck-bosshair" cx="500" cy="500" r="20"/>';
+    '<circle class="ck-bosshair" cx="500" cy="500" r="20"/>' +
+    '<circle class="ck-boss-lt" cx="492" cy="492" r="9"/>' +
+    // The crystal: a domed glass over all of it. One long soft reflection of
+    // the room's brightest source, one short sharp one, and the lit edge.
+    '<g class="ck-crystal">' +
+      '<ellipse class="ck-dome" cx="400" cy="300" rx="330" ry="210" transform="rotate(-32 400 300)"/>' +
+      '<path class="ck-glint" d="M254 260 A300 300 0 0 1 430 128 A320 320 0 0 0 272 282 Z"/>' +
+      '<circle class="ck-crys-edge" cx="500" cy="500" r="466"/>' +
+      '<path class="ck-crys-lo" d="M150 700 A400 400 0 0 0 850 700"/>' +
+    '</g>';
+}
+
+/* The octagon's bevel is eight flat planes, each lit by its angle to the
+   key light (up and a little left): the top facet brightest, the bottom one
+   in shade. Flat tones, no ramp; the planes are what make it a solid. */
+function octagonPts(inset) {
+  var c = 212 + inset, m = 4 + inset, M = 996 - inset;
+  return [[c, m], [1000 - c, m], [M, c], [M, 1000 - c], [1000 - c, M], [c, M], [m, 1000 - c], [m, c]];
+}
+function facets() {
+  var o = octagonPts(0), inn = octagonPts(24), s = '', i, j;
+  for (i = 0; i < 8; i++) {
+    j = (i + 1) % 8;
+    var mx = (o[i][0] + o[j][0]) / 2 - 500, my = (o[i][1] + o[j][1]) / 2 - 500;
+    var len = Math.sqrt(mx * mx + my * my);
+    var lit = (-mx * 0.35 - my * 0.94) / len;          // facing up-left = 1
+    var k = Math.max(0, Math.min(4, Math.round((lit + 1) * 2)));
+    s += '<path class="ck-facet fc' + k + '" d="M' + o[i].join(' ') + ' L' + o[j].join(' ') +
+         ' L' + inn[j].join(' ') + ' L' + inn[i].join(' ') + ' Z"/>';
+  }
+  return s;
 }
 
 function markup() {
-  return '<path class="ck-case" d="' + octagon(0) + '"/>' +
-    '<path class="ck-caseline2" d="' + octagon(16) + '"/>' +
+  return dialDefs() + '<path class="ck-case" d="' + octagon(0) + '" fill="url(#ck-case-g)"/>' +
+    facets() +
+    '<path class="ck-caseline2" d="' + octagon(24) + '"/>' +
     shoulders() + spandrels() + rivets() +
     '<g transform="translate(500,500) scale(0.855) translate(-500,-500)">' +
     dial() + '</g>';
+}
+function markupHands() {
+  return '<g transform="translate(500,500) scale(0.855) translate(-500,-500)">' +
+    dialMoving() + '</g>';
 }
 
 /* ---- moon phase ----------------------------------------------------------
@@ -326,20 +408,27 @@ window.AtriumMoon = { at: moonAt, darkPath: moonDarkPath };
    overlay (preserveAspectRatio: none) so it tracks the recess at any size —
    only the shoulders and the sill carry meaning, and neither is a circle. */
 function niche() {
-  return '<svg class="n-frame" viewBox="0 0 200 260" preserveAspectRatio="none"' +
-    ' aria-hidden="true" focusable="false">' +
-    // outer reveal + inner hairline
-    '<rect x="0.75" y="0.75" width="198.5" height="258.5" stroke-width="1.5"/>' +
-    '<rect x="7" y="7" width="186" height="246" stroke-width="1"/>' +
-    // three-step shoulders, the gates' language, at both heads
-    '<path d="M0.75 26 h7 v-7 h7 v-7 h7 M199.25 26 h-7 v-7 h-7 v-7 h-7" stroke-width="1"/>' +
-    // sill: a single rule with the plinth diamond, echoing a gate's foot
-    '<path class="nf-metal" d="M12 236 H188" stroke-width="1"/>' +
-    '<rect class="nf-metal" x="95" y="231" width="10" height="10"' +
-    ' transform="rotate(45 100 236)" stroke-width="1"/>' +
-    // head keystone
-    '<path class="nf-metal" d="M84 13 L100 4 L116 13" stroke-width="1.5"/>' +
-    '</svg>';
+  // Three stepped frames, each cut as four mitred facets (top lit, bottom in
+  // shade), round a back of gold smalti; a lamp trough at the head washes the
+  // mosaic at night; a black marble sill with a gilt nosing carries the case.
+  return '<div class="n-mosaic"></div><div class="n-cove"></div>' +
+    '<div class="n-step n-s1"></div><div class="n-step n-s2"></div><div class="n-step n-s3"></div>' +
+    '<div class="n-sill"></div>' +
+    '<svg class="n-crest" viewBox="0 0 120 40" aria-hidden="true" focusable="false">' +
+      '<path class="nc-sh" transform="translate(1 1.4)" d="' + crestFan() + '"/>' +
+      '<path class="nc-body" d="' + crestFan() + '"/>' +
+      '<path class="nc-lt" transform="translate(-.5 -.6)" d="' + crestRays() + '"/></svg>';
+}
+function crestFan() {
+  return 'M16 40 H104 V35 H16 Z M28 35 A32 32 0 0 1 92 35 Z';
+}
+function crestRays() {
+  var d = '', k, a;
+  for (k = 1; k < 9; k++) {
+    a = Math.PI + k * Math.PI / 9;
+    d += 'M60 35 L' + (60 + 30 * Math.cos(a)).toFixed(2) + ' ' + (35 + 30 * Math.sin(a)).toFixed(2) + ' ';
+  }
+  return d;
 }
 
 /* ---- the clock ----------------------------------------------------------- */
@@ -355,7 +444,20 @@ function build(host) {
   svg.setAttribute('focusable', 'false');
   svg.innerHTML = markup();
   wrap.appendChild(svg);
+  var hands = document.createElementNS(NS, 'svg');
+  hands.setAttribute('class', 'dial-hands');
+  hands.setAttribute('viewBox', '0 0 1000 1000');
+  hands.setAttribute('aria-hidden', 'true');
+  hands.setAttribute('focusable', 'false');
+  hands.innerHTML = markupHands();
+  wrap.appendChild(hands);
   host.appendChild(wrap);
+  // The niche in the waxed floor: sill, frame and the dial's light, flipped
+  // about the sill's foot. Static paint; the hands are not worth a
+  // reflection that repaints every second.
+  var mir = document.createElement('div');
+  mir.className = 'ck-mirror';
+  host.appendChild(mir);
 
   /* The dial itself is decorative art, but it is the hall's only clock — so
      the time also exists as text for assistive technology, rewritten only
@@ -365,9 +467,11 @@ function build(host) {
   host.appendChild(reader);
 
   var parts = {
-    h: svg.querySelector('.ck-h'), m: svg.querySelector('.ck-m'),
-    s: svg.querySelector('.ck-ss'), gA: svg.querySelector('.ck-gA'),
-    gB: svg.querySelector('.ck-gB'), date: svg.querySelector('#ck-date'),
+    hs: hands.querySelector('.ck-sh-h'), ms: hands.querySelector('.ck-sh-m'),
+    ss: hands.querySelector('.ck-sh-s'),
+    h: hands.querySelector('.ck-h'), m: hands.querySelector('.ck-m'),
+    s: hands.querySelector('.ck-ss'), gA: hands.querySelector('.ck-gA'),
+    gB: hands.querySelector('.ck-gB'), date: svg.querySelector('#ck-date'),
     shade: svg.querySelector('#ck-shade'),
   };
   var lastDate = -1, lastShade = '', lastMinute = -1, moonMinute = -1;
@@ -382,6 +486,11 @@ function build(host) {
     parts.s.setAttribute('transform', 'rotate(' + sec + ' 500 705)');
     parts.m.setAttribute('transform', 'rotate(' + min + ' 500 500)');
     parts.h.setAttribute('transform', 'rotate(' + hr + ' 500 500)');
+    // translate first in the list = applied last: the offset stays down the
+    // key light whatever angle the hand stands at
+    parts.ms.setAttribute('transform', 'translate(' + SHADOW.m + ') rotate(' + min + ' 500 500)');
+    parts.hs.setAttribute('transform', 'translate(' + SHADOW.h + ') rotate(' + hr + ' 500 500)');
+    parts.ss.setAttribute('transform', 'translate(' + SHADOW.s + ') rotate(' + sec + ' 500 705)');
     /* The works turn off the seconds arbor at 1:4, meshed 14:9 and opposed. */
     parts.gA.setAttribute('transform', 'rotate(' + (sec * 0.25) + ')');
     parts.gB.setAttribute('transform', 'rotate(' + (-sec * 0.25 * 14 / 9) + ')');
@@ -406,9 +515,9 @@ function build(host) {
        (It was a circle slid across the disc, which drew every waning phase
        as its waxing twin and left a crescent lit at new moon.) Computed once
        a minute and written only when the path changes. */
-    var minute = Math.floor(now.getTime() / 60000);
-    if (minute !== moonMinute) {
-      moonMinute = minute;
+    var epochMin = Math.floor(now.getTime() / 60000);
+    if (epochMin !== moonMinute) {
+      moonMinute = epochMin;
       var m = moonAt(now);
       var d = moonDarkPath(Math.round(m.lit * 200) / 200, m.waxing,
         +parts.shade.dataset.cx, +parts.shade.dataset.cy, 26.4);

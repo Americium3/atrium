@@ -345,6 +345,360 @@ def frost(n=512):
     return np.clip((g - g.mean()) * 1.8 + 0.5, 0, 1)
 
 
+# ---------------------------------------------------------------- picture palace
+# Direction C: the hall as a 1930s picture-palace foyer. Velvet house
+# curtains, a silk damask wall, gilt plaster relief on the cornice, mirrored
+# pilasters, a gold mosaic niche and a patterned wool runner. Everything is
+# still periodic FFT noise or wrapped geometry, so every tile repeats cleanly.
+
+def _smooth(t):
+    t = np.clip(t, 0, 1)
+    return t * t * (3 - 2 * t)
+
+
+def velvet_folds(w=512, h=1024, seed=121, folds=9):
+    """House-curtain velvet as a grey relighting map (mean ~0.5, meant for
+    `overlay` over the gate's own velvet colour). Each fold is a cylinder of
+    pile: facing the house it is dark and saturated, turning away it catches
+    the grazing sheen that makes velvet read as velvet, and the valleys sit
+    in their own occlusion. Fold widths are irregular and wander slowly down
+    the drop; the tile wraps across x so a curtain of any width can be hung."""
+    rng = np.random.default_rng(seed)
+    widths = rng.uniform(0.55, 1.45, folds)
+    widths = widths / widths.sum() * w
+    edges = np.concatenate([[0.0], np.cumsum(widths)])
+    y, x = np.mgrid[0:h, 0:w].astype(np.float64)
+    # slow meander of every fold down the drop (periodic in x by construction)
+    mx = fbm(w, seed + 1, 3.0)[0]            # a smooth row, reused per y
+    meander = (np.sin(2 * np.pi * (y / h) * 1.3 + mx[None, :] * 6.0) * 3.5
+               + (fbm(h, seed + 2, 3.2)[:, :1] - 0.5) * 6.0)
+    xs = (x + meander) % w
+    idx = np.clip(np.searchsorted(edges, xs, side="right") - 1, 0, folds - 1)
+    u = (xs - edges[idx]) / widths[idx]
+    amp = 0.75 + 0.5 * rng.uniform(0, 1, folds)[idx]
+    # fold depth grows toward the hem (the drop hangs free) and is gathered
+    # tighter under the heading
+    depth = amp * (0.72 + 0.4 * (y / h))
+    z = -np.cos(2 * np.pi * u) * depth                     # valley 0/1, crest .5
+    k = 2 * np.pi * depth * 1.25
+    slope = np.sin(2 * np.pi * u) * k
+    nz = 1.0 / np.sqrt(1 + slope * slope)
+    nx = -slope * nz
+    light = np.clip(nx * -0.38 + nz * 0.92, 0, 1)          # key from upper left
+    graze = np.power(1 - nz, 1.4)                          # velvet sheen
+    ao = 0.42 + 0.58 * _smooth((z / (depth + 1e-6) + 1) / 2 * 1.2)
+    lum = ao * (0.30 + 0.55 * light) + 0.62 * graze * (0.55 + 0.45 * ao)
+    crush = fbm(w, seed + 3, 1.6) - 0.5                    # crushed-pile mottle
+    crush = np.tile(crush, (h // w + 1, 1))[:h]
+    nap = fbm(w, seed + 4, 0.5, (1.0, 4.0)) - 0.5          # vertical nap
+    nap = np.tile(nap, (h // w + 1, 1))[:h]
+    lum = lum * (1 + crush * 0.22 + nap * 0.10)
+    lum = (lum - lum.mean()) * 1.05 + 0.5
+    return np.clip(lum, 0, 1)
+
+
+def damask(w=256, h=384, seed=131):
+    """Silk damask: the motif is woven in satin, the ground in twill, so the
+    pattern shows only as a change of sheen. Deco fan-and-fountain on a
+    half-drop repeat. Grey, mean ~0.5, for `soft-light` over the wall colour."""
+    from PIL import ImageDraw
+    S = 4
+    img = Image.new("L", (w * S, h * S), 0)
+    d = ImageDraw.Draw(img)
+
+    def fan(cx, cy, r, up=True, rays=9):
+        # a stepped fan: three concentric tiers of rays over a disc
+        for tier, rr in enumerate((r, r * 0.74, r * 0.48)):
+            for i in range(rays - tier * 2):
+                n = rays - tier * 2
+                a0 = np.pi + (i + 0.12) * np.pi / n
+                a1 = np.pi + (i + 0.88) * np.pi / n
+                if not up:
+                    a0, a1 = a0 - np.pi, a1 - np.pi
+                pts = [(cx * S, cy * S)]
+                for a in np.linspace(a0, a1, 6):
+                    pts.append(((cx + rr * np.cos(a)) * S, (cy + rr * np.sin(a)) * S))
+                d.polygon(pts, fill=255 if tier % 2 == 0 else 150)
+        rr = r * 0.2
+        d.ellipse([(cx - rr) * S, (cy - rr) * S, (cx + rr) * S, (cy + rr) * S], fill=255)
+
+    def fountain(cx, cy, s):
+        # the frozen fountain: a stem and three pairs of falling jets
+        d.rectangle([(cx - 1.4) * S, (cy - s) * S, (cx + 1.4) * S, (cy + s * 0.9) * S], fill=255)
+        for k, f in enumerate((0.8, 0.45, 0.1)):
+            yy = cy - s * f
+            for sgn in (-1, 1):
+                pts = []
+                for t in np.linspace(0, 1, 14):
+                    px = cx + sgn * s * 0.55 * np.sin(t * np.pi * 0.62) * (1 - k * 0.18)
+                    py = yy + s * 0.5 * t * t
+                    pts.append((px * S, py * S))
+                d.line(pts, fill=210, width=int(2.2 * S))
+    for (ox, oy) in ((0, 0), (w / 2, h / 2)):
+        for dx in (-w, 0, w):
+            for dy in (-h, 0, h):
+                fan(ox + w / 4 + dx, oy + h * 0.30 + dy, w * 0.21, True)
+                fan(ox + w / 4 + dx, oy + h * 0.30 + dy + 5, w * 0.10, False, 5)
+                # stepped lozenge between the repeats
+                cx, cy = ox + w * 0.75 + dx, oy + h * 0.25 + dy
+                for s, f in ((14, 255), (9, 0), (5, 255)):
+                    d.polygon([(cx * S, (cy - s) * S), ((cx + s) * S, cy * S),
+                               (cx * S, (cy + s) * S), ((cx - s) * S, cy * S)], fill=f)
+    # ogee lattice: the damask's cage, a thin satin line
+    for k in range(-2, 5):
+        pts = []
+        for t in np.linspace(0, 1, 60):
+            yy_ = t * h * 2 - h * 0.5
+            xx_ = w * 0.5 * k + w * 0.23 * np.sin(t * 4 * np.pi)
+            pts.append((xx_ * S, yy_ * S))
+        d.line(pts, fill=190, width=int(1.6 * S))
+        d.line([(w * S - px, py) for px, py in pts], fill=190, width=int(1.6 * S))
+    m = np.asarray(img.resize((w, h), Image.LANCZOS), dtype=np.float64) / 255.0
+    yy, xx = np.mgrid[0:h, 0:w]
+    twill = ((xx + yy) % 4 < 2).astype(np.float64)          # ground weave
+    satin = (xx % 3 == 0).astype(np.float64)                # satin float lines
+    tooth = fbm(max(w, h), seed, 0.7)[:h, :w] - 0.5
+    lum = 0.44 + m * 0.16 + (1 - m) * (twill - 0.5) * 0.05 + m * (satin - 0.5) * 0.025
+    lum += tooth * 0.06
+    return np.clip(lum, 0, 1)
+
+
+def _height_to_rgb(hgt, light, albedo_lo, albedo_hi, glaze, ambient, gain, spec=0.0):
+    """Relight a heightmap: lambert along `light` (x right, y DOWN, z out),
+    occlusion from a blurred copy, gilt glazed dark in the recesses."""
+    from scipy.ndimage import gaussian_filter
+    gy, gx = np.gradient(hgt)
+    nx, ny, nz = -gx * 6, -gy * 6, np.ones_like(hgt)
+    nn = np.sqrt(nx * nx + ny * ny + nz * nz)
+    nx, ny, nz = nx / nn, ny / nn, nz / nn
+    L = np.array(light, dtype=np.float64)
+    L /= np.linalg.norm(L)
+    lam = np.clip(nx * L[0] + ny * L[1] + nz * L[2], 0, 1)
+    occ = np.clip(1 - (gaussian_filter(hgt, 6, mode="wrap") - hgt) * 3.0, 0.35, 1)
+    # half vector with the viewer straight on: a tight highlight on the crests
+    Hh = L + np.array([0, 0, 1.0])
+    Hh /= np.linalg.norm(Hh)
+    sp = np.power(np.clip(nx * Hh[0] + ny * Hh[1] + nz * Hh[2], 0, 1), 28) * spec
+    t = np.clip(hgt, 0, 1)
+    alb = (np.array(albedo_lo)[None, None, :] * (1 - t[..., None])
+           + np.array(albedo_hi)[None, None, :] * t[..., None])
+    gl = np.clip((1 - t) * glaze, 0, 1)[..., None]
+    alb = alb * (1 - gl) + np.array([61, 42, 20])[None, None, :] * gl
+    shade = (ambient + gain * lam) * occ
+    return alb * shade[..., None] + sp[..., None] * 255
+
+
+def frieze_height(w=512, h=128):
+    """Gilt plaster frieze for the cornice: a bead course, then a run of
+    fan palmettes alternating with stepped fountains, then reeds. Periodic in
+    x (two motifs per tile)."""
+    from scipy.ndimage import gaussian_filter
+    y, x = np.mgrid[0:h, 0:w].astype(np.float64)
+    H = np.zeros((h, w))
+    # bead course (top), fillet, reeds (bottom)
+    bead_y, bead_r, pitch = 11.0, 5.2, 16.0
+    bx = (x % pitch) - pitch / 2
+    bd = np.sqrt(bx * bx + (y - bead_y) ** 2)
+    H = np.maximum(H, np.sqrt(np.clip(bead_r ** 2 - bd ** 2, 0, None)) / bead_r * 0.9)
+    H = np.maximum(H, ((y > 19) & (y < 24)) * 0.75)
+    H = np.maximum(H, ((y > 104) & (y < 108)) * 0.75)
+    reed = (y > 110) & (y < 126)
+    H = np.maximum(H, reed * (0.45 + 0.35 * np.abs(np.sin((y - 110) / 16 * np.pi * 3))))
+    # field between y 26..102
+    unit = w / 2
+    for k in range(2):
+        cx = unit * k + unit * 0.5
+        cy = 100.0
+        dx = x - cx
+        dy = y - cy
+        r = np.sqrt(dx * dx + dy * dy)
+        a = np.arctan2(dy, dx)                         # -pi..0 above
+        # fan palmette: 13 rays, each a raised ridge with a rounded profile
+        n = 13
+        ang = (a + np.pi) / np.pi * n                  # 0..n across the top half
+        ridge = 1 - np.abs((ang % 1) - 0.5) * 2
+        ray = (r < 70) & (r > 16) & (dy < 0)
+        prof = np.power(np.clip(ridge, 0, 1), 0.6) * (0.55 + 0.45 * (1 - r / 70))
+        H = np.maximum(H, ray * prof * 0.95)
+        # scalloped rim of the fan
+        rim = (np.abs(r - 72) < 3.2) & (dy < 0)
+        H = np.maximum(H, rim * 0.8)
+        # boss at the fan's hub
+        boss = np.sqrt(np.clip(15 ** 2 - (dx ** 2 + (dy + 2) ** 2), 0, None)) / 15
+        H = np.maximum(H, boss * (dy < 2))
+        # stepped fountain between fans
+        fx = x - (cx + unit / 2)
+        steps = np.zeros_like(H)
+        for s, (hw, top) in enumerate(((42, 94), (30, 76), (19, 58), (9, 40))):
+            steps = np.maximum(steps, ((np.abs(fx) < hw) & (y > top) & (y < 102)) * (0.28 + s * 0.16))
+        H = np.maximum(H, steps)
+        # reeded drops either side of the ziggurat: three flutes that step
+        # down toward the fans, the frieze's quiet beat between two loud ones
+        for sgn in (-1, 1):
+            for j in range(3):
+                off = 52 + j * 7
+                top = 40 + j * 12
+                flute = (np.abs(fx - sgn * off) < 2.6) & (y > top) & (y < 100)
+                prof = 1 - np.abs(fx - sgn * off) / 2.6
+                H = np.maximum(H, flute * (0.35 + 0.35 * np.clip(prof, 0, 1)))
+                cap = np.sqrt(np.clip(3.2 ** 2 - ((fx - sgn * off) ** 2 + (y - top) ** 2), 0, None)) / 3.2
+                H = np.maximum(H, cap * 0.75)
+    H = gaussian_filter(H, 0.9, mode="wrap")
+    return H
+
+
+def frieze(day=False):
+    H = frieze_height()
+    if day:
+        # daylight from above: plaster cream on the ground, gilt on the relief
+        rgb = _height_to_rgb(H, (-0.25, -0.75, 0.62), (206, 190, 160), (214, 176, 98),
+                             0.35, 0.52, 0.62, spec=0.35)
+    else:
+        # the cove is hidden BELOW the cornice: light rakes up the relief
+        rgb = _height_to_rgb(H, (-0.15, 0.8, 0.5), (46, 30, 16), (190, 142, 66),
+                             0.65, 0.16, 0.95, spec=0.55)
+        # the cove's own falloff: bright at the foot, dying toward the soffit
+        yy = np.mgrid[0:H.shape[0], 0:H.shape[1]][0] / H.shape[0]
+        rgb *= (0.35 + 0.8 * np.power(yy, 1.6))[..., None]
+    return rgb
+
+
+def mirror_antique(n=512, seed=141):
+    """Antique mirror: silvering with foxing. Grey, for multiply/overlay over
+    whatever the mirror is reflecting."""
+    base = fbm(n, seed, 1.8)
+    fox = np.clip((fbm(n, seed + 1, 2.4) - 0.58) * 3.2, 0, 1)
+    speck = np.clip((fbm(n, seed + 2, 0.4) - 0.8) * 5, 0, 1)
+    veil = fbm(n, seed + 3, 2.8, (6.0, 1.0))
+    lum = 0.62 + (base - 0.5) * 0.10 - fox * 0.30 - speck * 0.25 + (veil - 0.5) * 0.08
+    return np.clip(lum, 0, 1)
+
+
+def mosaic_gold(n=512, cell=16, seed=151):
+    """Gold smalti: every tessera is set at its own tilt, so each takes the
+    light differently. Colour, glazed dark in the joints."""
+    rng = np.random.default_rng(seed)
+    cols = n // cell
+    y, x = np.mgrid[0:n, 0:n]
+    # rows are laid in courses offset by half a cell, the way mosaicists lay
+    row = y // cell
+    xo = (x + (row % 2) * cell // 2) % n
+    col = xo // cell
+    tid = (row * cols + col) % (cols * cols)
+    tone = rng.uniform(0.55, 1.25, cols * cols)
+    hue = rng.uniform(-1, 1, cols * cols)
+    tilt = rng.uniform(-1, 1, (cols * cols, 2))
+    t = tone[tid]
+    h = hue[tid]
+    lx = (xo % cell) / cell - 0.5
+    ly = (y % cell) / cell - 0.5
+    face = 1 + (lx * tilt[tid, 0] + ly * tilt[tid, 1]) * 0.35
+    gold = np.stack([196 + h * 10, 150 + h * 6, 70 - h * 8], -1)
+    rgb = gold * (t * face)[..., None]
+    # joints
+    gap = (np.minimum(np.abs(lx), np.abs(ly)) < 0) | (np.abs(lx) > 0.42) | (np.abs(ly) > 0.42)
+    rgb = np.where(gap[..., None], np.array([38, 28, 16]), rgb)
+    # a lit arris on the upper-left of every tessera
+    arr = ((lx < -0.30) & (lx > -0.42)) | ((ly < -0.30) & (ly > -0.42))
+    rgb = np.where((arr & ~gap)[..., None], rgb * 1.18, rgb)
+    return rgb
+
+
+def carpet(n=512, seed=161):
+    """The runner: a picture-palace wool carpet, fans and stepped streamers on
+    claret, gold and black, one teal accent. Drawn at 4x, softened, then
+    given pile so it reads as wool rather than print."""
+    from PIL import ImageDraw
+    S = 4
+    CLARET, DEEP, GOLD, OLDG, BLACK, TEAL, CREAM = (
+        (112, 22, 30), (72, 12, 20), (196, 150, 70), (150, 104, 44),
+        (22, 12, 12), (30, 96, 92), (220, 196, 150))
+    img = Image.new("RGB", (n * S, n * S), CLARET)
+    d = ImageDraw.Draw(img)
+
+    def P(pts):
+        return [(px * S, py * S) for px, py in pts]
+
+    def fan(cx, cy, r, rot=0.0):
+        for tier, (rr, col) in enumerate(((r, BLACK), (r * 0.92, GOLD), (r * 0.70, DEEP),
+                                           (r * 0.62, OLDG), (r * 0.38, CLARET))):
+            pts = [(cx, cy)]
+            for a in np.linspace(np.pi, 2 * np.pi, 40):
+                pts.append((cx + rr * np.cos(a + rot), cy + rr * np.sin(a + rot)))
+            d.polygon(P(pts), fill=col)
+        for i in range(9):
+            a = np.pi + (i + 0.5) * np.pi / 9 + rot
+            d.line(P([(cx + r * 0.40 * np.cos(a), cy + r * 0.40 * np.sin(a)),
+                      (cx + r * 0.90 * np.cos(a), cy + r * 0.90 * np.sin(a))]),
+                   fill=BLACK, width=int(2.6 * S))
+        d.ellipse([(cx - r * 0.16) * S, (cy - r * 0.16) * S, (cx + r * 0.16) * S,
+                   (cy + r * 0.16) * S], fill=GOLD)
+
+    for ox in (-n, 0, n):
+        for oy in (-n, 0, n):
+            # two fans per tile on a half-drop, facing the walker
+            fan(ox + n * 0.25, oy + n * 0.46, n * 0.23)
+            fan(ox + n * 0.75, oy + n * 0.96, n * 0.23)
+            # stepped streamers between them
+            for sx in (0.5, 0.0):
+                cx, cy = ox + n * sx, oy + n * (0.18 if sx else 0.68)
+                for k, (hw, col) in enumerate(((34, BLACK), (26, GOLD), (18, CLARET), (8, TEAL))):
+                    d.polygon(P([(cx, cy - hw * 1.3), (cx + hw, cy), (cx, cy + hw * 1.3), (cx - hw, cy)]),
+                              fill=col)
+                for sgn in (-1, 1):
+                    xx = cx + sgn * 40
+                    for j in range(3):
+                        d.rectangle(P([(xx - 3 + sgn * j * 10, cy - 30 + j * 10),
+                                       (xx + 3 + sgn * j * 10, cy + 30 - j * 10)]), fill=OLDG)
+            # dots of cream in the ground
+            for (px, py) in ((0.08, 0.1), (0.42, 0.72), (0.92, 0.36), (0.58, 0.22)):
+                cx, cy = ox + n * px, oy + n * py
+                d.ellipse([(cx - 3.2) * S, (cy - 3.2) * S, (cx + 3.2) * S, (cy + 3.2) * S], fill=CREAM)
+    rgb = np.asarray(img.resize((n, n), Image.LANCZOS), dtype=np.float64)
+    from scipy.ndimage import gaussian_filter
+    rgb = gaussian_filter(rgb, (0.9, 0.9, 0), mode="wrap")
+    tuft = fbm(n, seed, 0.3) - 0.5
+    lay = fbm(n, seed + 1, 1.6) - 0.5
+    return rgb * (1 + tuft * 0.28 + lay * 0.12)[..., None]
+
+
+def carpet_border(w=96, h=384, seed=171):
+    """The runner's border: black, a gold stepped zigzag and a claret guard,
+    running along y (the carpet's length)."""
+    from PIL import ImageDraw
+    S = 4
+    img = Image.new("RGB", (w * S, h * S), (22, 12, 12))
+    d = ImageDraw.Draw(img)
+    GOLD, OLD, CLARET = (196, 150, 70), (140, 98, 42), (112, 22, 30)
+    d.rectangle([0, 0, 10 * S, h * S], fill=CLARET)
+    d.rectangle([(w - 10) * S, 0, w * S, h * S], fill=CLARET)
+    d.rectangle([13 * S, 0, 16 * S, h * S], fill=OLD)
+    d.rectangle([(w - 16) * S, 0, (w - 13) * S, h * S], fill=OLD)
+    step = h / 8
+    for k in range(-1, 9):
+        y0 = k * step
+        pts = []
+        for j in range(5):
+            pts += [(28 + j * 10, y0 + j * step / 5), (28 + j * 10, y0 + (j + 1) * step / 5)]
+        pts += [(w - 28 - j * 10, y0 + step / 2 + (j + 1) * step / 5) for j in range(4, -1, -1)]
+        d.line([(px * S, py * S) for px, py in pts], fill=GOLD, width=int(3.2 * S))
+    rgb = np.asarray(img.resize((w, h), Image.LANCZOS), dtype=np.float64)
+    tuft = fbm(max(w, h), seed, 0.3)[:h, :w] - 0.5
+    return rgb * (1 + tuft * 0.28)[..., None]
+
+
+PALACE = [
+    ("fab-velvet", velvet_folds, "gray"),
+    ("fab-damask", damask, "gray"),
+    ("relief-frieze-night", lambda: frieze(False), "rgb"),
+    ("relief-frieze-day", lambda: frieze(True), "rgb"),
+    ("glass-mirror", mirror_antique, "gray"),
+    ("mosaic-gold", mosaic_gold, "rgb"),
+    ("carpet-field", carpet, "rgb"),
+    ("carpet-border", carpet_border, "rgb"),
+]
+
+
 BAKES = [
     ("stone-portoro", portoro, "rgb"),
     ("stone-calacatta", calacatta, "rgb"),
@@ -366,7 +720,10 @@ BAKES = [
 
 def main():
     written = []
-    for name, fn, kind in BAKES:
+    bakes = BAKES + PALACE
+    if "--palace" in sys.argv:
+        bakes = PALACE
+    for name, fn, kind in bakes:
         data = fn()
         path = save(name, data) if kind == "rgb" else save_gray(name, data)
         written.append(path)
