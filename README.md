@@ -404,7 +404,9 @@ Tests: `python tests/test_feed.py`
 Add one entry to `SERVICES` in `server.py` (id, name, short, wing, url,
 addr, sigil, desc_key, launch_hint, order). `short` is the name the marquee
 sets before the gate's live figure. The gate renders immediately with the
-fallback sigil and a status lamp. Then:
+fallback sigil and a status lamp, and a hall already open picks it up on
+its next poll once the hub has restarted. A service taken out of
+`SERVICES` leaves the open hall the same way. Then:
 
 - Add `desc.<key>` strings to both `STR` tables in `static/js/app.js`.
   Without them the gate shows the generic description.

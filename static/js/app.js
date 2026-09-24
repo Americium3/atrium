@@ -76,6 +76,7 @@ var STR = {
     'k.autopilot.qb_down.head': 'qBittorrent is unreachable',
     'k.autopilot.qb_down': 'Downloads stay paused until it answers again',
     'k.unknown': 'Fresh word from this hall. Refresh the page to read it in full',
+    'k.unknown.head': 'A newly registered hall',
     'k.mods.updated': 'Workshop update · {game}',
     'k.mods.updated.nogame': 'Workshop update',
     'k.mods.removed': 'Delisted from the Workshop',
@@ -223,6 +224,7 @@ var STR = {
     'k.autopilot.qb_down.head': 'qBittorrent 不可达',
     'k.autopilot.qb_down': '下载将保持暂停，直到它恢复响应',
     'k.unknown': '该厅室有新消息。刷新页面即可完整阅读',
+    'k.unknown.head': '新登记的厅室',
     'k.mods.updated': '创意工坊更新 · {game}',
     'k.mods.updated.nogame': '创意工坊更新',
     'k.mods.removed': '已从创意工坊下架',
@@ -3788,11 +3790,14 @@ function headline(d) {
   }
   // A kind this page has never heard of — a hall deployed a new dispatch
   // while this tab sat open. Name the hall instead of leaking the raw kind.
+  // A hall the registry does not list yet is called what a new gate's
+  // fallback description calls it. Its origin is an internal id, and a
+  // card used to be headed "spaceidle".
   var svc = null;
   for (var i = 0; i < services.length; i++) {
     if (services[i].id === d.origin) { svc = services[i]; break; }
   }
-  return { head: (svc ? svc.name : d.origin), detail: t('k.unknown') };
+  return { head: (svc ? svc.name : t('k.unknown.head')), detail: t('k.unknown') };
 }
 
 /* Ages are floored, as a person reads a clock: rounding put "60 min ago" on
@@ -4628,7 +4633,29 @@ function fetchJson(url) {
 var hubLost = false;
 var RETRY_MS = 15000;      // after a miss, ask again well inside the 45 s beat
 var retryT = null;
-var refreshSeq = 0, appliedSeq = 0;
+var refreshSeq = 0, appliedSeq = 0, registrySeq = 0;
+
+/* The registry as last built into gates, verbatim. The hub serves it from
+   memory, and it changes only when the hub comes back with a different
+   SERVICES. The hall is the start page and stays open across that, and it
+   used to read the registry once: a retired service kept a gate on "…" and
+   held LINES OPEN at 5/6 over five open lines, and a new one had no gate
+   and headed its dispatch with its raw id until a reload. */
+var registryBuilt = null;
+function applyRegistry(payload) {
+  var list = payload && Array.isArray(payload.services) ? payload.services : null;
+  if (!list) return;                 // not a registry: the gates standing stay
+  var sig = JSON.stringify(list);
+  if (sig === registryBuilt) return;
+  registryBuilt = sig;
+  // A rebuild replaces every gate, and the one the reader was on with it.
+  var ae = document.activeElement;
+  var on = ae && ae.closest ? ae.closest('#gates .gate') : null;
+  services = list;
+  renderGates();
+  var back = on && document.getElementById(on.id);
+  if (back && back !== on && !back.closest('[inert]')) back.focus({ preventScroll: true });
+}
 
 function refresh() {
   // The dateline was written once at load, so a hall left open overnight
@@ -4637,13 +4664,16 @@ function refresh() {
   clearTimeout(retryT);
   var seq = ++refreshSeq;
   var none = function () { return null; };
-  // Self-heal a failed boot: if the registry never arrived (hub restarting
-  // when the tab loaded), retry it on the regular poll cadence.
-  var reg = services.length ? Promise.resolve(null)
-    : fetchJson('/api/services').then(function (payload) {
-        services = payload.services || [];
-        if (services.length) renderGates();
-      }).catch(none);
+  // The registry is asked for on every poll, beside the rest rather than
+  // ahead of it. Asked first, a hub that took the connection and hung cost
+  // the boot the whole fetch timeout twice (once here, once for the
+  // status behind it) before anything said the hub was gone. It is applied
+  // the moment it lands, so the gates stand before a slow status arrives.
+  var reg = fetchJson('/api/services').then(function (payload) {
+    if (seq < registrySeq) return;   // an older answer never undoes a newer one
+    registrySeq = seq;
+    applyRegistry(payload);
+  }).catch(none);
   return Promise.all([
     reg,
     fetchJson('/api/status').catch(none),
@@ -5459,17 +5489,13 @@ if (new URLSearchParams(location.search).get('steam') === '1' && deskNozzle) {
   });
 }
 
-var hallBuilt = fetchJson('/api/services').then(function (payload) {
-  services = payload.services || [];
-  renderGates();
-  return refresh();
-}).catch(function () {
-  // Hub API unreachable. Ask the rest at once rather than in 15 s: the boot
-  // used to sit silent that long, no gates, a blank band and an empty live
-  // region, before anything said the hub was not answering. refresh()
-  // retries the registry, says NO WORD FROM THE HUB and arms the retry.
-  return refresh();
-});
+// The first poll builds the hall: the registry and the readings are asked
+// for together, the gates go up as soon as the registry lands, and a hub
+// that does not answer is said to be gone when the first round gives up.
+// The boot used to ask for the registry alone and then again with the rest,
+// so a hub that took the connection and hung left the hall silent for two
+// fetch timeouts, no gates, a blank band and an empty live region.
+var hallBuilt = refresh();
 
 if (root.dataset.entered === 'no') {
   playEntrance(Promise.all([hallBuilt].concat(boardsRead)).catch(function () {}));

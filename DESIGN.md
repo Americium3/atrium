@@ -1226,13 +1226,22 @@ then replayed every plaque as an arrival on the next poll.
 
 ## Client polling
 
-`/api/feed` + `/api/status` (+stats) every 45 s, gated on
-`document.visibilityState`, immediate refetch on tab refocus. The dateline
-and the Ledger's TODAY / EARLIER break do not wait for a poll: a timer aimed
-at the next local midnight turns them with the clock's date aperture.
+`/api/services`, `/api/status`, `/api/feed` and `/api/stats`, asked
+together every 45 s, gated on `document.visibilityState`, immediate refetch
+on tab refocus. The dateline and the Ledger's TODAY / EARLIER break do not
+wait for a poll: a timer aimed at the next local midnight turns them with
+the clock's date aperture.
 
 - Every request gives up after 12 s, so a hub that hangs is a failed poll
   rather than one that never ends.
+- The registry is read on every poll. The hub serves it from memory, and
+  the hall is a start page that stays open while the hub restarts with a
+  changed `SERVICES`. A registry that differs from the one standing
+  rebuilds the gates: a retired service leaves, a new one gets its arch,
+  LINES OPEN counts what the hub has, and focus stays on the gate the
+  reader was on. It is applied the moment it lands, so the gates never wait
+  on a slow status. A dispatch from a hall the page's registry does not list
+  is headed "A newly registered hall", never by its internal id.
 - The hall says when it has lost touch. A `/api/status` that is refused,
   errors, or returns a body that is not a status puts every lamp back to
   "…", and the live region and the band say NO WORD FROM THE HUB instead of
@@ -1242,9 +1251,12 @@ at the next local midnight turns them with the clock's date aperture.
 - After a miss the hall asks again 15 s later instead of waiting out the
   beat. A miss is any answer not applied: a failed or unreadable status,
   stats or feed, a cold payload, or a registry that never came.
-- A boot that cannot reach the hub says so at once. The band and the live
-  region say NO WORD FROM THE HUB and the Ledger says it could not be read,
-  where the hall used to stand silent for the first 15 s.
+- A boot that cannot reach the hub says so when its first round fails: at
+  once when the connection is refused, and after the 12 s timeout when the
+  hub takes the connection and hangs. The band and the live region say NO
+  WORD FROM THE HUB and the Ledger says it could not be read. The boot asks
+  for the registry together with the rest; asked ahead of them, a hanging
+  hub cost two timeouts of silence, 24 s with no gates and a blank band.
 - A payload marked `warm: false` comes from a hub still on its first round
   of adapter polls. Its empties mean "not asked yet", so it is not applied,
   the status included: the last lamp reading stands.
