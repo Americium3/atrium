@@ -440,7 +440,10 @@ html[lang="zh"] .display { letter-spacing: 0.26em; }
      as one building rather than a panel floated in a void. */
   max-width: min(3360px, 100%);
   margin: 0 auto;
-  padding: 20px clamp(24px, 2.4vw, 68px) var(--hall-foot);
+  /* The masthead's fascia reaches up through this padding to the top of the
+     screen, so it reads the same figure (VD-13). */
+  --hall-pad-top: 20px;
+  padding: var(--hall-pad-top) clamp(24px, 2.4vw, 68px) var(--hall-foot);
   /* The hall stands the full screen, and the concourse row eats whatever the
      masthead and ticker leave. Content-height alone left ~270px of page
      ground below the floor on a 1235px viewport — a bright dead band under
@@ -3064,7 +3067,7 @@ html[lang="zh"] .g-name { letter-spacing: 0.17em; }
     --gate-w: clamp(164px, min(13.6vw, 25vh, var(--gate-vcap, 100vh)),
                     calc(268px * (0.62 + 0.38 * var(--ui))));
   }
-  #hall { padding-top: 12px; }
+  #hall { --hall-pad-top: 12px; }
   #concourse { --floor-min: clamp(62px, 8vh, 210px); }
   /* And the machine comes down with it. It stands ON the stone, so once the
      floor is a band rather than a field the console has to fit inside that
@@ -3077,7 +3080,7 @@ html[lang="zh"] .g-name { letter-spacing: 0.17em; }
 }
 
 @media (max-width: 899px) {
-  #hall { padding: 16px 18px 40px; }
+  #hall { --hall-pad-top: 16px; padding: var(--hall-pad-top) 18px 40px; }
   :root { --gate-w: clamp(170px, 44vw, 230px); }
   #masthead { grid-template-columns: 36px 1fr auto; }
   .m-title h1 { font-size: calc(22px * var(--ui)); }

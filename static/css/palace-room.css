@@ -71,12 +71,15 @@
 
 /* The fascia: book-matched Portoro by night, Calacatta by day, laid slab by
    slab from the clock's axis by room.js, running down behind the marquee to
-   the cornice. The ::before of the old sign band is retired. */
+   the cornice. The ::before of the old sign band is retired. Its head is the
+   top of the screen: a fixed -20px stood it 8px above the page wherever the
+   short-screen rule takes the hall's padding down to 12px, and the crest
+   moulding never showed (VD-13). */
 #masthead::before { content: none; }
 .m-fascia {
   position: absolute; z-index: -1;
   left: calc(50% - 50vw); width: 100vw;
-  top: -20px; bottom: calc(-1px - var(--mast-drop, 0px));
+  top: calc(-1 * var(--hall-pad-top, 20px)); bottom: calc(-1px - var(--mast-drop, 0px));
   overflow: hidden;
   pointer-events: none;
   background-color: #0b0908;
