@@ -871,20 +871,38 @@ html[lang="zh"] .board .al-arc .a-lab { stroke: var(--cab-gold); stroke-width: c
   padding: calc(3px * var(--ui)) calc(6px * var(--ui));
   color: var(--lq-gold);
 }
-.l-stamp-ico { width: calc(30px * var(--ui)); height: calc(33px * var(--ui)); overflow: visible; }
-.l-stamp-ico .s-cradle-back { fill: var(--br-1); }
-.l-stamp-ico .s-cradle { fill: var(--br-2); stroke: var(--br-0); stroke-width: 0.5; }
-.l-stamp-ico .s-pad { fill: #2a2522; }
-.l-stamp-ico .s-pad-ink { fill: var(--stamp-ink); opacity: 0.8; }
-.l-stamp-ico .s-rule { stroke: var(--br-4); stroke-width: 0.8; opacity: 1; }
+/* The dater is drawn at 1.3 times the size it had as a flat pictogram, so
+   its turned and cast parts hold at a pixel ratio of one. Its fills are
+   gradients in the markup (the brass ones through the cs-b* stops); the
+   lines and the small parts are coloured here. */
+.l-stamp-ico { width: calc(39px * var(--ui)); height: calc(43px * var(--ui)); overflow: visible; }
+.l-stamp-ico .s-cradle-back { stroke: var(--br-0); stroke-width: 0.4; }
+.l-stamp-ico .s-cradle { stroke: var(--br-0); stroke-width: 0.5; }
+.l-stamp-ico .s-rule { stroke: var(--br-5); stroke-width: 0.6; opacity: 0.9; }
+.l-stamp-ico .s-cradle-foot { stroke: rgba(0, 0, 0, 0.55); stroke-width: 0.8; }
+.l-stamp-ico .s-screw { fill: var(--br-3); stroke: var(--br-0); stroke-width: 0.35; }
+.l-stamp-ico .s-slot { stroke: var(--br-0); stroke-width: 0.45; }
+.l-stamp-ico .s-pad { stroke: #0c0616; stroke-width: 0.4; }
+/* the ink standing wet on the pad, one sheen across it */
+.l-stamp-ico .s-pad-wet { fill: rgba(236, 222, 255, 0.34); }
 .l-stamp-ico .s-knob-sh { fill: rgba(0, 0, 0, 0.5); }
-.l-stamp-ico .s-knob { fill: #2b1a10; stroke: #120a05; stroke-width: 0.5; }
-.l-stamp-ico .s-knob-hi { fill: rgba(255, 220, 180, 0.35); }
-.l-stamp-ico .s-neck { fill: var(--br-2); stroke: var(--br-0); stroke-width: 0.4; }
-.l-stamp-ico .s-frame { fill: var(--br-3); stroke: var(--br-0); stroke-width: 0.6; }
-.l-stamp-ico .s-band { fill: #1b1512; }
-.l-stamp-ico .s-band-lines { stroke: var(--br-4); stroke-width: 0.5; }
-.l-stamp-ico .s-base { fill: #18110d; }
+.l-stamp-ico .s-knob { stroke: #0e0703; stroke-width: 0.45; }
+/* lathe rings: a cut in shade and its lit edge just above it */
+.l-stamp-ico .s-lathe { fill: none; stroke: rgba(10, 5, 2, 0.6); stroke-width: 0.4; }
+.l-stamp-ico .s-lathe-lit { fill: none; stroke: rgba(255, 214, 160, 0.22); stroke-width: 0.35; }
+.l-stamp-ico .s-knob-spec { fill: #fffaf0; opacity: 0.9; }
+.l-stamp-ico .s-ferrule, .l-stamp-ico .s-neck, .l-stamp-ico .s-plate { stroke: var(--br-0); stroke-width: 0.35; }
+.l-stamp-ico .s-frame { stroke: var(--br-0); stroke-width: 0.5; }
+.l-stamp-ico .s-frame-arris { stroke: var(--br-5); stroke-width: 0.5; opacity: 0.95; }
+.l-stamp-ico .s-frame-shade { stroke: rgba(0, 0, 0, 0.6); stroke-width: 0.5; }
+.l-stamp-ico .s-window { fill: #0b0806; stroke: var(--br-1); stroke-width: 0.4; }
+.l-stamp-ico .s-band rect { stroke: #030202; stroke-width: 0.3; }
+/* the wheels' figures, raised rubber catching the light on the drum */
+.l-stamp-ico .s-digits { fill: none; stroke: #d9ccb0; stroke-width: 0.45; stroke-linecap: round; stroke-linejoin: round; opacity: 0.88; }
+.l-stamp-ico .s-band-catch { stroke: rgba(255, 240, 214, 0.2); stroke-width: 0.5; }
+.l-stamp-ico .s-pin { fill: var(--br-3); stroke: var(--br-0); stroke-width: 0.3; }
+.l-stamp-ico .s-die { fill: #1d1512; stroke: #070504; stroke-width: 0.3; }
+.l-stamp-ico .s-die-ink { fill: var(--stamp-ink); opacity: 0.85; }
 .l-stamp-ico .s-head, .l-stamp-ico .s-grip, .l-stamp-ico .s-base { transition: transform 0.14s var(--ease-out); }
 .l-stamp:active .l-stamp-ico .s-head,
 .l-stamp:active .l-stamp-ico .s-grip,

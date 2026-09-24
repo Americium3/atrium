@@ -513,27 +513,95 @@
            Ledger has had no word from the hub (app.js syncStale). -->
       <span class="l-stale display" id="ledger-stale" hidden></span>
       <button class="l-stamp inert" id="mark-all" type="button" aria-disabled="true">
-        <!-- A brass rubber dater standing in its cradle: turned knob, the
-             frame and its date bands, the rubber foot over an inked pad.
-             The press drives knob, frame and foot down onto the pad. -->
+        <!-- A brass rubber dater standing in its cradle, lit like the drawer's
+             other fittings: a turned walnut knob with lathe rings and a
+             varnish highlight on a brass ferrule, a cast brass yoke in the
+             six tones of the metal, rubber date wheels with their figures
+             catching the light, the rubber foot over a wet violet pad, and
+             the whole standing on its own shadow in the tray. The press
+             drives knob, yoke and foot down onto the pad. -->
         <svg class="l-stamp-ico" viewBox="0 0 40 44" aria-hidden="true">
-          <path class="s-cradle-back" d="M5 33 h30 l-2 -5 h-26 z"/>
-          <rect class="s-pad" x="7" y="33" width="26" height="4.2" rx="1"/>
-          <rect class="s-pad-ink" x="9" y="33.4" width="22" height="1.6" rx="0.6"/>
-          <path class="s-rule" d="M4 37.4 H36"/>
-          <path class="s-cradle" d="M3 37.2 h34 l-1.6 5 h-30.8 z"/>
+          <defs>
+            <linearGradient id="st-brass-h" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0" class="cs-b0"/><stop offset="0.14" class="cs-b1"/>
+              <stop offset="0.36" class="cs-b2"/><stop offset="0.52" class="cs-b3"/>
+              <stop offset="0.72" class="cs-b4"/><stop offset="0.9" class="cs-b5"/>
+              <stop offset="1" class="cs-b1"/>
+            </linearGradient>
+            <linearGradient id="st-brass-v" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" class="cs-b5"/><stop offset="0.18" class="cs-b3"/>
+              <stop offset="0.42" class="cs-b2"/><stop offset="0.66" class="cs-b4"/>
+              <stop offset="0.86" class="cs-b1"/><stop offset="1" class="cs-b0"/>
+            </linearGradient>
+            <linearGradient id="st-tray" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" class="cs-b0"/><stop offset="0.6" class="cs-b1"/><stop offset="1" class="cs-b2"/>
+            </linearGradient>
+            <radialGradient id="st-wood" cx="0.36" cy="0.3" r="0.78">
+              <stop offset="0" stop-color="#a0683a"/><stop offset="0.32" stop-color="#6b3f20"/>
+              <stop offset="0.7" stop-color="#34200f"/><stop offset="1" stop-color="#140b05"/>
+            </radialGradient>
+            <radialGradient id="st-gloss" cx="0.5" cy="0.5" r="0.5">
+              <stop offset="0" stop-color="#fff6e6" stop-opacity="0.95"/><stop offset="1" stop-color="#fff6e6" stop-opacity="0"/>
+            </radialGradient>
+            <linearGradient id="st-rubber" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="#050403"/><stop offset="0.3" stop-color="#2a231e"/>
+              <stop offset="0.46" stop-color="#4a4038"/><stop offset="0.62" stop-color="#211b17"/>
+              <stop offset="1" stop-color="#050403"/>
+            </linearGradient>
+            <linearGradient id="st-pad" x1="0" y1="0" x2="1" y2="0.6">
+              <stop offset="0" stop-color="#1b0e31"/><stop offset="0.3" stop-color="#3e2169"/>
+              <stop offset="0.44" stop-color="#6a4a9c"/><stop offset="0.52" stop-color="#3a1f63"/>
+              <stop offset="1" stop-color="#190c2c"/>
+            </linearGradient>
+            <radialGradient id="st-shadow" cx="0.5" cy="0.5" r="0.5">
+              <stop offset="0" stop-color="#000" stop-opacity="0.7"/><stop offset="1" stop-color="#000" stop-opacity="0"/>
+            </radialGradient>
+          </defs>
+          <!-- the tray: its back wall in shadow, the inked pad let into it -->
+          <path class="s-cradle-back" d="M5 33 h30 l-2 -5 h-26 z" fill="url(#st-tray)"/>
+          <rect class="s-pad" x="7" y="32.6" width="26" height="4.6" rx="1" fill="url(#st-pad)"/>
+          <path class="s-pad-wet" d="M12 33.2 h9 l-1.6 1.1 h-9 z"/>
+          <ellipse class="s-contact" cx="20" cy="32.9" rx="11.5" ry="1.6" fill="url(#st-shadow)"/>
           <g class="s-head">
-            <ellipse class="s-knob-sh" cx="20.6" cy="7.6" rx="6.4" ry="5.2"/>
-            <ellipse class="s-knob" cx="20" cy="7" rx="6.2" ry="5"/>
-            <ellipse class="s-knob-hi" cx="18" cy="5.2" rx="2.6" ry="1.3"/>
+            <ellipse class="s-knob-sh" cx="20.8" cy="7.2" rx="6.5" ry="5.3"/>
+            <ellipse class="s-knob" cx="20" cy="6.4" rx="6.4" ry="5.2" fill="url(#st-wood)"/>
+            <path class="s-lathe" d="M14.1 7.4 Q20 9.6 25.9 7.4 M14.9 9.1 Q20 11 25.1 9.1"/>
+            <path class="s-lathe-lit" d="M14.2 6.9 Q20 9.1 25.8 6.9 M15 8.6 Q20 10.5 25 8.6"/>
+            <ellipse cx="17.4" cy="4" rx="3.1" ry="1.3" transform="rotate(-20 17.4 4)" fill="url(#st-gloss)"/>
+            <circle class="s-knob-spec" cx="16.6" cy="3.7" r="0.55"/>
+            <rect class="s-ferrule" x="16.4" y="10.7" width="7.2" height="2" rx="0.7" fill="url(#st-brass-h)"/>
           </g>
           <g class="s-grip">
-            <rect class="s-neck" x="18.2" y="11" width="3.6" height="6"/>
-            <path class="s-frame" d="M9 17 h22 v2.6 l-2 1.4 v7 h-18 v-7 l-2 -1.4 z"/>
-            <rect class="s-band" x="12.4" y="21.4" width="15.2" height="5.2" rx="1"/>
-            <path class="s-band-lines" d="M15.2 21.4 v5.2 M18.2 21.4 v5.2 M21.8 21.4 v5.2 M24.8 21.4 v5.2"/>
+            <rect class="s-neck" x="18.3" y="12.5" width="3.4" height="4.7" fill="url(#st-brass-h)"/>
+            <path class="s-frame" d="M9 17 h22 v2.6 l-2 1.4 v7 h-18 v-7 l-2 -1.4 z" fill="url(#st-brass-h)"/>
+            <path class="s-frame-arris" d="M9.4 17.45 H30.6"/>
+            <path class="s-frame-shade" d="M11.2 27.75 H28.8"/>
+            <rect class="s-window" x="11.7" y="20.5" width="16.6" height="7"/>
+            <g class="s-band">
+              <rect x="12.3" y="20.9" width="3.6" height="6.2" rx="0.9" fill="url(#st-rubber)"/>
+              <rect x="16.2" y="20.9" width="3.6" height="6.2" rx="0.9" fill="url(#st-rubber)"/>
+              <rect x="20.2" y="20.9" width="3.6" height="6.2" rx="0.9" fill="url(#st-rubber)"/>
+              <rect x="24.1" y="20.9" width="3.6" height="6.2" rx="0.9" fill="url(#st-rubber)"/>
+            </g>
+            <!-- the figures on the wheels, drawn rather than set: they are the
+                 wheels' raised rubber, not lettering -->
+            <path class="s-digits" d="M13.25 23.2 Q13.25 22.6 14.1 22.6 Q14.95 22.6 14.95 23.3 Q14.95 23.9 13.25 25.4 H15 M18.45 25.4 V22.6 L17.1 24.6 H18.95 M22 22.6 A0.8 1.4 0 1 0 22 25.4 A0.8 1.4 0 1 0 22 22.6 M26.65 23.3 A0.75 0.75 0 1 0 25.15 23.3 A0.75 0.75 0 1 0 26.65 23.3 V24.2 Q26.65 25.4 25.35 25.4"/>
+            <path class="s-band-catch" d="M12.6 23.1 H27.4"/>
+            <circle class="s-pin" cx="11.3" cy="24" r="0.85"/>
+            <circle class="s-pin" cx="28.7" cy="24" r="0.85"/>
           </g>
-          <rect class="s-base" x="10" y="28" width="20" height="3.2" rx="0.6"/>
+          <g class="s-base">
+            <rect class="s-plate" x="10" y="28" width="20" height="1.4" rx="0.4" fill="url(#st-brass-h)"/>
+            <rect class="s-die" x="10.6" y="29.3" width="18.8" height="2.3" rx="0.5"/>
+            <rect class="s-die-ink" x="10.8" y="30.9" width="18.4" height="0.7" rx="0.3"/>
+          </g>
+          <!-- the tray's front lip, turned to the light along its top -->
+          <path class="s-cradle" d="M3 37.2 h34 l-1.6 5 h-30.8 z" fill="url(#st-brass-v)"/>
+          <path class="s-rule" d="M3.4 37.5 H36.6"/>
+          <path class="s-cradle-foot" d="M4.8 42 H35.2"/>
+          <circle class="s-screw" cx="6.3" cy="39.7" r="0.95"/>
+          <circle class="s-screw" cx="33.7" cy="39.7" r="0.95"/>
+          <path class="s-slot" d="M5.7 39.4 L6.9 40 M33.1 40 L34.3 39.4"/>
         </svg>
         <span class="l-stamp-cap display" data-i18n="markAll">MARK ALL READ</span>
       </button>
