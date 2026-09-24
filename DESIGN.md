@@ -779,8 +779,9 @@ the lamp and takes the address line's place while it stands.
   pins a printed card on the curtain with the service's launcher hint (from
   the registry) instead of opening a dead tab; the path breaks only at its
   separators, so a copy is exact, and the card tightens a step at a time to
-  stay inside the house. All-dark hall: one engraved line "The hall is dark.
-  No services are reachable."
+  stay inside the house. All-dark hall: the marquee leads with one line,
+  "The hall is dark. No services are reachable.", where LINES OPEN would
+  stand. On the stage it lay behind the clock.
 - **Reserved**: the same architecture in bare plaster, its bezel holding a
   blank cover plate, behind an iron safety curtain: red oxide primer steel
   in three lapped courses, domed rivets lit on the lamp side, a stencilled

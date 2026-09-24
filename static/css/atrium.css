@@ -1854,12 +1854,6 @@ html[lang="zh"] .al-arc text {
 }
 
 #gates { position: absolute; inset: 26px 0 0 0; }
-#all-dark {
-  position: absolute; left: 50%; top: 46%;
-  transform: translate(-50%, -50%);
-  font-size: calc(15px * var(--ui)); letter-spacing: 0.12em; color: var(--ink-faint);
-  text-transform: uppercase;
-}
 
 /* ==========================================================================
    GATES: THE PROSCENIUM (direction C, the picture palace)

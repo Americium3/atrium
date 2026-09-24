@@ -3065,7 +3065,6 @@ function applyStatuses() {
     if (noteEl) { noteEl.textContent = note; noteEl.hidden = !note; }
   });
   var allDark = known === services.length && known > 0 && openCount === 0;
-  $('#all-dark').hidden = !allDark;
 
   // The hall is a picture; say out loud how many lines are open, so a screen
   // reader learns the same thing the lamps show. Only on change — a live
@@ -3710,8 +3709,12 @@ function tickerModel() {
     if (st && st.state !== 'checking') { known++; if (st.state === 'open') open++; }
   });
   // A hub that stopped answering is the first thing the band says; a count
-  // of open lines it cannot vouch for is not said at all.
+  // of open lines it cannot vouch for is not said at all. A hall with every
+  // line dark says so here, in words, where the count would stand. That
+  // line used to be set on the stage, where the clock stands: it lay behind
+  // the niche, and only a stray letter or two reached the wall (CRB-3).
   if (hubLost) segs.push(t('hubLost'));
+  else if (known && known === services.length && !open) segs.push(t('allDark'));
   else if (known) segs.push(t('linesOpen', { n: open, m: services.length }));
   services.forEach(function (s) {
     var txt = statText(s);
