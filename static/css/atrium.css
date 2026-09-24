@@ -699,51 +699,17 @@ html[data-entered="no"] #signal-desk {
   pointer-events: none;
 }
 /* The console answers the pointer where it is drawn and nowhere else: the
-   shapes hit-test on their own paint. The contact shadow and the waxed-floor
-   return are floor, not machine. */
+   shapes hit-test on their own paint. The contact shadow is floor, not
+   machine. */
 .quadrant { pointer-events: none; }
 .quadrant > * { pointer-events: visiblePainted; cursor: pointer; }
-.quadrant .cw-contact, .quadrant .cw-return { pointer-events: none; }
+.quadrant .dk-floor, .quadrant .dk-floor * { pointer-events: none; }
 .desk-art { position: absolute; inset: 0; contain: layout paint; }
 .quadrant { position: absolute; inset: 0; width: 100%; height: 100%; }
 
-/* ---- Console casework (v4.3) -------------------------------------------
-   The desk used to be three loose parts sharing a patch of floor: a lever
-   pivoting on nothing, a quadrant hanging in mid-air, and an aperture cut
-   into no surface. The stance in DESIGN.md is that mechanism is sublimated
-   by CASEWORK — the machine lives inside architecture and is revealed at
-   one opening — so the parts are now housed in a bronze console that stands
-   on the terrazzo: stepped plinth, fluted pilasters, frieze, cornice cap.
-   Every profile is borrowed from something already in the hall (the gates'
-   3-step shoulders, the aisle pilasters, the dado's chair rail), which is
-   what keeps it furniture in this room rather than a machine parked in it.
-
-   Three flat planes, no gradients: cap (lit top), face (front), deep
-   (recess). See the --bronze-face note in the token block for why the
-   front could not stay --bronze-deep. */
-.quadrant .cw-face     { fill: var(--bronze-face); stroke: none; }
-.quadrant .cw-cap      { fill: var(--bronze-cap); stroke: none; }
-.quadrant .cw-deep     { fill: var(--bronze-deep); stroke: none; }
-.quadrant .cw-recess   { fill: var(--machine-edge); stroke: none; }
-.quadrant .cw-edge     { fill: none; stroke: var(--bronze); stroke-width: 1; }
-.quadrant .cw-lit      { fill: none; stroke: var(--champagne); stroke-width: 1; opacity: 0.30; }
-.quadrant .cw-flute    { fill: none; stroke: var(--bronze-deep); stroke-width: 1.5; }
-.quadrant .cw-knurl    { fill: none; stroke: var(--bronze); stroke-width: 1; opacity: 0.55; }
-.quadrant .cw-rivet    { fill: var(--rivet); stroke: none; }
-/* Contact shadow where the plinth meets stone, and the waxed-floor return.
-   Every other thing standing in this hall comes back up off the terrazzo —
-   the arches, the clock, both aisle cases — and the machine was the one
-   object with no reflection, which is exactly why it read as pasted onto
-   the floor rather than set on it. The return is short and steep, so the
-   parallel-smear error a fixed element cannot avoid stays under a pixel. */
-.quadrant .cw-contact  { fill: var(--shade); stroke: none; }
-.quadrant .cw-return   { fill: var(--bronze-face); stroke: none; }
-.quadrant .q-plate { fill: var(--bronze-deep); stroke: var(--bronze); stroke-width: 1; }
-.quadrant .q-face { fill: none; stroke: var(--bronze); stroke-width: 1; }
-.quadrant .q-teeth { stroke: var(--ink-faint); stroke-width: 1; fill: none; }
-.quadrant .q-notch { fill: var(--machine-edge); stroke: none; }
-.quadrant .q-slot { fill: var(--machine-edge); stroke: var(--line); stroke-width: 1; }
-.quadrant .q-pipe { fill: var(--bronze-deep); stroke: var(--bronze); stroke-width: 1; }
+/* ---- Console casework ---------------------------------------------------
+   Statuary bronze, drawn by static/js/desk.js and dressed in
+   palace-desk.css. The floor under it (.dk-floor) takes no pointer. */
 
 .desk-fx { position: absolute; inset: 0; }
 /* The aperture. It was a 176×56 rectangle — the only bare rectangle in a
@@ -778,92 +744,7 @@ html[data-entered="no"] #signal-desk {
   width: 60px; height: 60px;
   transform: rotate(calc((var(--drive, 0) - 0.5) * -180deg));
 }
-/* Legacy single-path fill — overridden by per-class rules below when the
-   multi-element gear is built. Kept so a fallback single path still renders. */
-.gearA-svg path, .gearB-svg path {
-  fill: var(--bronze); stroke: var(--machine-edge); stroke-width: 1;
-}
-
-/* ---- Gear A per-element classes ----------------------------------------- */
-.gearA-svg .ga-rim        { fill: var(--bronze); stroke: none; }
-.gearA-svg .ga-rim-lit    { fill: none; stroke: var(--champagne); stroke-width: 1.5; }
-.gearA-svg .ga-rim-shd    { fill: none; stroke: var(--bronze-deep); stroke-width: 1; }
-.gearA-svg .ga-fillet     { fill: none; stroke: var(--bronze-deep); stroke-width: 1; }
-.gearA-svg .ga-tip-lit    { fill: none; stroke: var(--champagne); stroke-width: 2; }
-.gearA-svg .ga-tip-shd    { fill: none; stroke: var(--bronze-deep); stroke-width: 1; }
-.gearA-svg .ga-web        { fill: var(--bronze); stroke: none; }
-.gearA-svg .ga-web-shd    { fill: var(--bronze-deep); stroke: none; opacity: 0.45; }
-.gearA-svg .ga-web-lit    { fill: var(--champagne); stroke: none; opacity: 0.18; }
-.gearA-svg .ga-spoke      { fill: var(--bronze-deep); stroke: none; }
-.gearA-svg .ga-spoke-shd  { fill: var(--machine-edge); stroke: none; opacity: 0.7; }
-.gearA-svg .ga-lhole      { fill: var(--machine-edge); stroke: var(--bronze-deep); stroke-width: 0.75; }
-.gearA-svg .ga-boss       { fill: var(--bronze); stroke: var(--bronze-deep); stroke-width: 1; }
-.gearA-svg .ga-boss-lit   { fill: none; stroke: var(--champagne); stroke-width: 2; }
-.gearA-svg .ga-boss-shd   { fill: none; stroke: var(--bronze-deep); stroke-width: 1; }
-.gearA-svg .ga-bore       { fill: var(--machine-edge); stroke: none; }
-.gearA-svg .ga-keyway     { fill: var(--machine-edge); stroke: none; }
-.gearA-svg .ga-key        { fill: var(--bronze); stroke: var(--bronze-deep); stroke-width: 0.5; }
-.gearA-svg .ga-ssboss     { fill: var(--bronze); stroke: var(--machine-edge); stroke-width: 0.75; }
-.gearA-svg .ga-sshex      { fill: var(--machine-edge); stroke: none; }
-.gearA-svg .ga-bhole      { fill: var(--machine-edge); stroke: var(--bronze); stroke-width: 0.75; }
-.gearA-svg .ga-witness    { fill: none; stroke: var(--ink-faint); stroke-width: 0.5; }
-.gearA-svg .ga-index      { fill: none; stroke: var(--champagne); stroke-width: 1; }
-.gearA-svg .ga-pno-bg     { fill: var(--bronze-deep); stroke: none; }
-.gearA-svg .ga-pno-t      { fill: var(--ink-faint); font-family: var(--serif); font-size: 4.5px; }
-
-/* ---- Gear B per-element classes ----------------------------------------- */
-.gearB-svg .gb-rim        { fill: var(--bronze); stroke: none; }
-.gearB-svg .gb-rim-lit    { fill: none; stroke: var(--champagne); stroke-width: 1.5; }
-.gearB-svg .gb-rim-shd    { fill: none; stroke: var(--bronze-deep); stroke-width: 1; }
-.gearB-svg .gb-fillet     { fill: none; stroke: var(--bronze-deep); stroke-width: 1; }
-.gearB-svg .gb-web        { fill: var(--bronze); stroke: none; }
-.gearB-svg .gb-web-shd    { fill: var(--bronze-deep); stroke: none; opacity: 0.45; }
-.gearB-svg .gb-web-lit    { fill: var(--champagne); stroke: none; opacity: 0.18; }
-.gearB-svg .gb-spoke      { fill: var(--bronze-deep); stroke: none; }
-.gearB-svg .gb-flange     { fill: var(--bronze); stroke: var(--bronze-deep); stroke-width: 1; }
-.gearB-svg .gb-fl-lit     { fill: none; stroke: var(--champagne); stroke-width: 1.5; }
-.gearB-svg .gb-fl-shd     { fill: none; stroke: var(--bronze-deep); stroke-width: 1; }
-.gearB-svg .gb-bore       { fill: var(--machine-edge); stroke: none; }
-.gearB-svg .gb-dflat      { fill: var(--bronze); stroke: none; }
-.gearB-svg .gb-tip-lit    { fill: none; stroke: var(--champagne); stroke-width: 2; }
-.gearB-svg .gb-tip-shd    { fill: none; stroke: var(--bronze-deep); stroke-width: 1; }
-.gearB-svg .gb-serial     { fill: none; stroke: var(--ink-faint); stroke-width: 0.5; stroke-dasharray: 1.5 3.5; }
-.gearB-svg .gb-sno        { fill: var(--ink-faint); font-family: var(--serif); font-size: 3.5px; }
-.gearB-svg .gb-index      { fill: none; stroke: var(--champagne); stroke-width: 1; }
-
-/* ---- Lever new per-element classes -------------------------------------- */
-.lever-svg .lv-arm-lit    { fill: var(--champagne); stroke: none; opacity: 0.35; }
-.lever-svg .lv-arm-shd    { fill: var(--bronze-deep); stroke: none; opacity: 0.6; }
-.lever-svg .lv-web        { fill: var(--bronze); stroke: none; opacity: 0.25; }
-.lever-svg .lv-rivet      { fill: var(--bronze-deep); stroke: var(--bronze); stroke-width: 0.75; }
-.lever-svg .lv-pin-boss   { fill: var(--bronze); stroke: var(--bronze-deep); stroke-width: 1; }
-.lever-svg .lv-pin-lit    { fill: none; stroke: var(--champagne); stroke-width: 1.5; }
-.lever-svg .lv-pin-hole   { fill: var(--machine-edge); stroke: none; }
-.lever-svg .lv-cotter     { fill: var(--machine-edge); stroke: none; }
-.lever-svg .lv-pawl-body  { fill: var(--bronze-deep); stroke: var(--bronze); stroke-width: 0.75; }
-.lever-svg .lv-pawl       { fill: var(--bronze); stroke: var(--machine-edge); stroke-width: 0.5; }
-.lever-svg .lv-spring     { fill: none; stroke: var(--bronze); stroke-width: 0.75; }
-.lever-svg .lv-roller     { fill: var(--bronze); stroke: var(--bronze-deep); stroke-width: 0.75; }
-.lever-svg .lv-roller-shd { fill: var(--bronze-deep); stroke: none; opacity: 0.55; }
-.lever-svg .lv-clevis     { fill: var(--bronze); stroke: var(--bronze-deep); stroke-width: 0.75; }
-.lever-svg .lv-clevis-t   { fill: var(--bronze-deep); stroke: var(--bronze); stroke-width: 0.5; }
-.lever-svg .lv-ferrule    { fill: var(--bronze-deep); stroke: var(--bronze); stroke-width: 1; }
-.lever-svg .lv-knurl      { fill: url(#knurl-a); stroke: none; }
-.lever-svg .lv-endcap     { fill: var(--bronze-deep); stroke: none; }
-.lever-svg .lv-endcap-lit { fill: var(--champagne); stroke: none; opacity: 0.7; }
-.lever-svg .lv-plate-ring { fill: none; stroke: var(--champagne); stroke-width: 0.75; stroke-dasharray: 1.2 2.4; }
-.lever-svg .lv-rspring    { fill: none; stroke: var(--bronze); stroke-width: 0.75; }
-/* Dual number texts — wing-state-toggled via data-wing */
-.lever-svg .lv-num-1 { opacity: 1; transition: opacity 0.15s; }
-.lever-svg .lv-num-2 { opacity: 0; transition: opacity 0.15s; }
-:root[data-wing="bureau"] .lever-svg .lv-num-1 { opacity: 0; }
-:root[data-wing="bureau"] .lever-svg .lv-num-2 { opacity: 1; }
-/* Pawl spring compressed tell in bureau mode */
-:root[data-wing="bureau"] .lever-svg .lv-spring { opacity: 0.4; }
-/* Flange + gaiter (on .quadrant, not lever-svg) */
-.quadrant .lv-flange  { fill: var(--bronze-deep); stroke: var(--bronze); stroke-width: 1; }
-.quadrant .lv-fbolt   { fill: var(--machine-edge); stroke: var(--bronze); stroke-width: 0.75; }
-.quadrant .lv-gaiter  { fill: var(--ink-faint); opacity: 0.5; }
+/* The wheels' per-part tones: palace-desk.css. */
 
 /* ---- Gear well riveted-iron texture via pseudo-element ------------------ */
 /* Do NOT add `.gear-well { position: relative }` here to "anchor" this
@@ -878,12 +759,6 @@ html[data-entered="no"] #signal-desk {
   opacity: 0.22;
   pointer-events: none;
   z-index: 0;
-}
-
-/* ---- Engine-turned texture overlay on grip (lever-svg defs) ------------ */
-.lv-tex-et {
-  opacity: 0.18;
-  mix-blend-mode: overlay;
 }
 
 /* The lever is BOLTED TO THE CONSOLE, not standing beside it. Its pivot
@@ -901,13 +776,6 @@ html[data-entered="no"] #signal-desk {
   transform-origin: 70px 202px;
   transform: rotate(calc(-16deg + var(--drive, 0) * 32deg)) scale(0.7);
   will-change: transform;
-}
-.lever-svg .lv-arm { fill: var(--bronze); stroke: var(--bronze-deep); stroke-width: 1; }
-/* The polished grip inherits the old needle's wing-metal slot (1 of 3). */
-.lever-svg .lv-grip { fill: var(--metal); stroke: none; transition: fill 0.4s; }
-.lever-svg .lv-plate { fill: var(--bronze-deep); stroke: var(--champagne); stroke-width: 1; }
-.lever-svg .lv-plate-t {
-  fill: var(--ink-faint); font-family: var(--serif); font-size: 11px;
 }
 
 /* Throw plates.
