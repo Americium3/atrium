@@ -30,6 +30,7 @@ var STR = {
     today: 'TODAY', earlier: 'EARLIER',
     empty: 'No dispatches',
     darkNotice: 'Dark. Launch with: {hint}',
+    darkLaunch: 'Launch with',
     lampOpen: 'Reachable', lampDark: 'Offline', lampChecking: 'Checking',
     justNow: 'just now', minAgo: '{n} min ago', hAgo: '{n} h ago', dAgo: '{n} d ago',
     /* Said, not engraved: a screen reader read "15 H AGO" letter for letter. */
@@ -176,6 +177,7 @@ var STR = {
     today: '今日', earlier: '更早',
     empty: '暂无快讯',
     darkNotice: '未点亮。用此脚本启动：{hint}',
+    darkLaunch: '用此脚本启动',
     lampOpen: '已点亮', lampDark: '离线', lampChecking: '检查中',
     justNow: '刚刚', minAgo: '{n} 分钟前', hAgo: '{n} 小时前', dAgo: '{n} 天前',
     minAgoSr: '{n} 分钟前', hAgoSr: '{n} 小时前', dAgoSr: '{n} 天前',
@@ -1043,14 +1045,13 @@ function renderGates() {
       a.setAttribute('aria-hidden', 'true');
     } else {
       a.href = svc.url;
-      // Named by its engraved name, described by everything else it says,
-      // the lamp first. An aria-label of the bare name used to hide the lamp,
-      // the description and the status line from a screen reader. The lamp
-      // word is not in the name: "OUTREACH DESK 已点亮" was one name in two
-      // languages, and a name is voiced in one.
+      // Named by its engraved name; described by everything else it says,
+      // the lamp first (describeGate, which follows the state). An aria-label
+      // of the bare name used to hide the lamp, the description and the
+      // status line from a screen reader. The lamp word is not in the name:
+      // "OUTREACH DESK 已点亮" was one name in two languages, and a name is
+      // voiced in one.
       a.setAttribute('aria-labelledby', 'gn-' + svc.id);
-      a.setAttribute('aria-describedby', ['gl-', 'gd-', 'gs-', 'gnote-', 'gx-']
-        .map(function (p) { return p + svc.id; }).join(' ') + ' opens-tab');
     }
     a.dataset.service = svc.id;
     a.dataset.state = svc.vacant ? 'vacant' : 'checking';
@@ -1059,10 +1060,14 @@ function renderGates() {
     a.dataset.glass = id.glass || 'amber';
     // The day screen's title card: an intertitle border, the gate's own.
     a.dataset.card = id.card || 'fans';
+    a.dataset.ink = id.ink || 'oxblood';
+    a.dataset.stock = id.stock || 'cream';
     a.style.setProperty('--gi', String(i));
     a.style.setProperty('--folds', String(id.folds || 9));
     a.style.setProperty('--fold-x', (id.foldX || 0) + '%');
     a.style.setProperty('--swag', String(id.swag || 0));
+    // The DARK card is pinned by hand, a little off true, the gate's own way.
+    a.style.setProperty('--card-tilt', (id.cardTilt || 0).toFixed(2) + 'deg');
 
     // 3D chain: pose (static wing tilt) > shell (pointer parallax) > flat
     // children — the intra-gate z-index stack survives inside the shell.
@@ -1121,10 +1126,18 @@ function renderGates() {
     // The launch-hint notice of a DARK gate is a card pinned on the closed
     // curtain, in the description's place while it shows. It used to hang
     // over the apron and cover the gate's own lamp and address.
+    // The card is a picture of its words: its path breaks at every separator
+    // (<wbr>), and each break came out of the gate's description as a
+    // space. A screen reader is given a hidden twin holding the words in
+    // one piece, filled only while the card is pinned.
     var notice = el('div', 'g-notice');
-    notice.id = 'gx-' + svc.id;
+    notice.setAttribute('aria-hidden', 'true');
     notice.hidden = true;
     house.appendChild(notice);
+    var noticeSr = el('span', 'g-notice-sr');
+    noticeSr.id = 'gx-' + svc.id;
+    noticeSr.hidden = true;
+    house.appendChild(noticeSr);
     face.appendChild(house);
     // The apron: the stage front, with the house's live line, its address
     // and the lamp.
@@ -1207,16 +1220,26 @@ function descKey(svc) {
   return STR.en[key] !== undefined ? key : 'desc.fallback';
 }
 
-/* The notice is lettered with a break opportunity after every path
-   separator, so a launcher path wraps at a folder, not mid-name. A <wbr>
-   is not text: a copied path comes out exactly as the registry has it. */
+/* The notice is printed like a house notice: DARK in the display caps
+   between two rules, what to do, then the launcher path in the address
+   face. The path is lettered with a break opportunity after every
+   separator, so it wraps at a folder, not mid-name. A <wbr> is not text:
+   a copied path comes out exactly as the registry has it. */
 function letterNotice(n, svc) {
-  var text = t('darkNotice', { hint: svc.launch_hint || svc.url });
+  var hint = svc.launch_hint || svc.url;
   n.textContent = '';
-  text.split(/(?<=[\\/_])/).forEach(function (part, i) {
-    if (i) n.appendChild(document.createElement('wbr'));
-    n.appendChild(document.createTextNode(part));
+  var head = el('span', 'gx-head display', 'DARK');
+  head.lang = 'en';                  // signage, like the lamp word
+  n.appendChild(head);
+  n.appendChild(el('span', 'gx-say', t('darkLaunch')));
+  var path = el('span', 'gx-path');
+  hint.split(/(?<=[\\/_])/).forEach(function (part, i) {
+    if (i) path.appendChild(document.createElement('wbr'));
+    path.appendChild(document.createTextNode(part));
   });
+  n.appendChild(path);
+  var sr = $('.g-notice-sr', n.parentNode);
+  if (sr) sr.textContent = t('darkNotice', { hint: hint });
   // The card has to stand inside the house whatever the path's length and
   // however small the arch: it is set tighter, a step at a time, until it
   // fits, and set again whenever the house changes size.
@@ -1236,23 +1259,55 @@ function fitNotice(n) {
   for (var k = 1; k <= 3 && n.offsetHeight > house.clientHeight; k++) n.dataset.fit = String(k);
 }
 
-function showNotice(a, svc) {
+/* Pins the card. It is said out loud when it goes up, and again whenever
+   `again` asks (a keyboard press on a card already showing). */
+function showNotice(a, svc, again) {
   var n = $('.g-notice', a);
-  if (!n.hidden) return;
-  letterNotice(n, svc);
-  n.hidden = false;
-  fitNotice(n);
-  // Shown on screen, so said out loud once as well.
-  var hs = $('#hall-status'); if (hs) hs.textContent = n.textContent;
+  if (n.hidden) {
+    letterNotice(n, svc);
+    n.hidden = false;
+    fitNotice(n);
+    describeGate(a);
+  } else if (!again) {
+    return;
+  }
+  sayGate($('.g-notice-sr', a).textContent);
 }
 
-/* Put away, the card is also emptied. The gate's aria-describedby names it
-   directly, and a directly named node is voiced even while hidden: a gate
-   that came back OPEN still described itself as "Dark. Launch with ...".
-   showNotice letters it afresh each time, in the hall's current language. */
-function hideNotice(n) {
+function hideNotice(a) {
+  var n = $('.g-notice', a), sr = $('.g-notice-sr', a);
   n.hidden = true;
+  // Emptied, not just hidden: aria-describedby reads a hidden element it
+  // points at, and a gate back OPEN used to keep its launch path.
+  var said = $('#gate-say');
+  if (said && sr.textContent && said.textContent === sr.textContent) said.textContent = '';
+  sr.textContent = '';
+  describeGate(a);
+}
+
+/* A gate is described by what it says and what it does: its lamp, the description,
+   the live line, the service's note, the launch card only while it is
+   pinned, and "opens in its own tab" only when a press would open one. A
+   DARK gate opens nothing, and it used to say that it did. */
+function describeGate(a) {
+  var id = a.dataset.service;
+  var ids = ['gl-', 'gd-', 'gs-', 'gnote-'].map(function (p) { return p + id; });
+  if (!$('.g-notice', a).hidden) ids.push('gx-' + id);
+  if (a.dataset.state !== 'dark') ids.push('opens-tab');
+  a.setAttribute('aria-describedby', ids.join(' '));
+}
+
+/* The launch card is said in a polite region of its own. It used to borrow
+   #hall-status, and the next poll, finding the card's words there, said an
+   unchanged line count again. The region is emptied and written a beat
+   later, so the same card said twice is still a change a reader hears. */
+var gateSayT = null;
+function sayGate(text) {
+  var n = $('#gate-say');
+  if (!n) return;
+  clearTimeout(gateSayT);
   n.textContent = '';
+  gateSayT = setTimeout(function () { n.textContent = text; }, 80);
 }
 
 /* The browser's new-tab modifier: Cmd on a Mac, Ctrl everywhere else.
@@ -1277,10 +1332,14 @@ function gateClick(e, a, svc) {
     // that began in it (selecting the path), is not asking for it to close.
     // Keyboard clicks carry detail 0 and no press of their own.
     if (n.contains(e.target) || (e.detail > 0 && a._pressInNotice)) return;
+    // A keyboard press pins the card and says it, every time. A second
+    // Enter used to take the card down without a word; a reader pressing
+    // again is asking to hear the path again.
+    if (e.detail === 0) { showNotice(a, svc, true); return; }
     // A double-click is two clicks, and a plain toggle ended it hidden.
     // Only the first click of a run toggles; the rest leave it showing.
     if (e.detail > 1 || n.hidden) showNotice(a, svc);
-    else hideNotice(n);
+    else hideNotice(a);
     return;
   }
   // One gesture, one tab: each click of a double-click used to schedule
@@ -1301,6 +1360,7 @@ function gateClick(e, a, svc) {
 /* Triptych stage: slots computed from the registry so future services
    flank symmetrically. Transform-only (60 fps law). */
 var SWAP_OUT = 200, SWAP_GAP = 20, SWAP_STEP = 60;   // ms, see the throw below
+var SWAP_DIM = 120;   // ms, the house lights going down first (by night only)
 function layoutStage(initial) {
   var wrap = $('#gates');
   var W = wrap.clientWidth;
@@ -1461,9 +1521,13 @@ function layoutStage(initial) {
     var mate = swaps.filter(function (o) { return !o.lit && Math.abs(o.x - s.x) < 0.5; })[0];
     s.wait = !!mate && shown(mate.a) > 0.02;
   });
+  // By night an outgoing arch's lamps go out before it sinks (the CSS holds
+  // its sink back by the same --gate-dim), so its bay is empty that much
+  // later. By day nothing is lit and nothing waits for it.
+  var dim = root.dataset.theme === 'onyx' ? SWAP_DIM : 0;
   swaps.forEach(function (s) {
     var delay = s.rank * SWAP_STEP;
-    if (s.wait) delay += SWAP_OUT + SWAP_GAP;
+    if (s.wait) delay += dim + SWAP_OUT + SWAP_GAP;
     s.a.classList.toggle('arriving', s.lit);
     role(s.a, s.lit, delay);
   });
@@ -3000,7 +3064,8 @@ function applyStatuses() {
     // Stopped, like every part of the gate's description, or speech runs
     // the lamp word straight into the curtain's sentence.
     if (sr) sr.textContent = t(state === 'open' ? 'srOpen' : state === 'dark' ? 'srDark' : 'srChecking') + t('srStop');
-    if (state !== 'dark') hideNotice($('.g-notice', a));
+    if (state !== 'dark' && !$('.g-notice', a).hidden) hideNotice(a);
+    describeGate(a);
     var note = st && st.note && STR.en['note.' + st.note] !== undefined ? t('note.' + st.note) : '';
     $('.g-lamp', a).title = note || lampT.title;
     var noteEl = $('.g-note', a);
@@ -3076,15 +3141,22 @@ function applyStats() {
     // roll on a language switch; the text swaps in place instead.
     var relettered = span._lang !== undefined && span._lang !== lang;
     span._lang = lang;
-    if (span.textContent !== txt) {
-      if (span.textContent && !relettered && root.dataset.motion !== 'reduced') {
-        clearTimeout(span._rollT);      // a stale timer would swap in old text
+    // Compared with the line the gate is rolling to, not the one painted:
+    // for the 240 ms of a roll the span still holds the old words, and a
+    // newer answer equal to them was taken as no change, so the roll went
+    // on and left the older figure standing until the next poll.
+    var target = span._target !== undefined ? span._target : span.textContent;
+    if (target !== txt) {
+      clearTimeout(span._rollT);        // a stale timer would swap in old text
+      span._target = txt;
+      if (span.textContent === txt) {
+        // Back to the words still painted: the roll under way lands on them.
+      } else if (span.textContent && !relettered && root.dataset.motion !== 'reduced') {
         span.classList.remove('roll');
         void span.offsetWidth;          // restart the odometer animation
         span.classList.add('roll');
         span._rollT = setTimeout(function () { span.textContent = txt; }, 240);
       } else {
-        clearTimeout(span._rollT);
         span.textContent = txt;
       }
     }

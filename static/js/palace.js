@@ -15,8 +15,9 @@
      fanlight          glazing pattern, ray count and glass colour
      crest             the small cast ornament riding the crown (unique
                        within a wing)
-     card              the border of the day screen's title card (unique
-                       within a wing)
+     card              the day screen's title card: its border motif, its
+                       ink and its stock (each unique within a wing), and
+                       the tilt a DARK gate's notice is pinned at
      velvet            the house curtain's colour, fold pitch and phase, and
                        which three of the four baked swags its valance hangs
 
@@ -64,13 +65,15 @@ var GLASS = ['amber', 'rose', 'celadon', 'opal', 'honey', 'aqua'];
 var FANS = ['rays', 'fan', 'fountain', 'stepped', 'sunrise', 'chevron'];
 var CRESTS = ['fan', 'ziggurat', 'star', 'palmette'];
 var CARDS = ['fans', 'steps', 'lozenge'];
+var INKS = ['oxblood', 'bottle', 'navy'];          // the day card's printing ink
+var STOCKS = ['cream', 'bone', 'buff'];            // and the card it is printed on
 var LOUD = ['ray', 'chevron', 'dentil', 'step', 'scallop'];
 var QUIET = ['bead', 'reed', 'flute', 'plain'];
 
 /* Walk the registry in order: the (velvet, glass, fanlight) of a gate is its
    own unless a gate ahead of it in the registry already took it. */
 function identities(list) {
-  var out = {}, tv = {}, tg = {}, tf = {}, tn = {}, tc = {}, tk = {}, ts = {};
+  var out = {}, tv = {}, tg = {}, tf = {}, tn = {}, tc = {}, tk = {}, ts = {}, ti = {}, tp = {};
   list.forEach(function (svc) {
     if (svc.vacant) { out[svc.id] = vacant(svc); return; }
     var h = fnv1a(svc.id);
@@ -78,6 +81,8 @@ function identities(list) {
     var wingC = tc[svc.wing] || (tc[svc.wing] = {});
     var wingK = tk[svc.wing] || (tk[svc.wing] = {});
     var wingS = ts[svc.wing] || (ts[svc.wing] = {});
+    var wingI = ti[svc.wing] || (ti[svc.wing] = {});
+    var wingP = tp[svc.wing] || (tp[svc.wing] = {});
     var lead = svc.wing === 'bureau' ? 'ag' : 'au';
     var other = lead === 'au' ? 'ag' : 'au';
     var n = pickUnique([3, 4, 5, 6], h, 4, wingN);
@@ -103,7 +108,10 @@ function identities(list) {
       foldX: Math.round(draw(h, 10) * 100),         // fold phase, %
       tilt: (draw(h, 11) - 0.5) * 0.6,              // cartouche screw slots, deg/10
       rivets: [8, 10, 12][Math.floor(draw(h, 13) * 3)],  // round the bezel
-      swag: pickUnique([0, 1, 2, 3], h, 14, wingS)        // which three swags hang
+      swag: pickUnique([0, 1, 2, 3], h, 14, wingS),       // which three swags hang
+      cardTilt: Math.round((draw(h, 15) - 0.5) * 150) / 100,  // the DARK card, deg (under 0.75)
+      ink: pickUnique(INKS, h, 16, wingI),            // the day card's ink (unique in a wing)
+      stock: pickUnique(STOCKS, h, 17, wingP)         // and its card stock
     };
   });
   return out;

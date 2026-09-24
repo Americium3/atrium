@@ -2309,6 +2309,19 @@ html[lang="zh"] .g-name { letter-spacing: 0.17em; }
   box-shadow: 0 0 0 1.2px var(--lead-2), 0 0 0 2px rgba(0, 0, 0, 0.6),
               0 0 2.4cqw 0.4cqw var(--lamp-bloom);
 }
+/* By day nothing is lit, and an OPEN jewel carried its bloom into the
+   daylit foyer. It is coloured glass by day, as the Ledger's lamp is: an
+   amber cabochon, the skylight's white spot on its crown, the light that
+   passes through it gathered low on the far side, a darker rim where the
+   glass is thickest. Images only, so the forced-colours fill still lands. */
+:root[data-theme="ivory"] .gate[data-state="open"] .g-lamp .lamp-d {
+  background-image:
+    radial-gradient(circle at 36% 30%, rgba(255, 255, 255, 0.95) 0 9%, rgba(255, 255, 255, 0.35) 13%, transparent 17%),
+    radial-gradient(circle at 60% 70%, rgba(255, 232, 170, 0.7) 0 12%, transparent 36%),
+    radial-gradient(circle at 50% 50%, #e8a53e 0 32%, #c27414 60%, #7c420a 84%, #4a2605);
+  box-shadow: 0 0 0 1.2px var(--lead-2), 0 0 0 2px rgba(0, 0, 0, 0.6),
+              inset 0 0 0 0.5px rgba(60, 28, 0, 0.6);
+}
 .gate[data-state="checking"] .g-lamp .lamp-d { animation: ember 1.8s ease-in-out infinite; }
 @keyframes ember {
   50% { background: radial-gradient(circle at 38% 32%, rgba(255, 255, 255, 0.4) 0 10%, transparent 16%),
@@ -2322,20 +2335,26 @@ html[lang="zh"] .g-name { letter-spacing: 0.17em; }
 /* ----- Light states ------------------------------------------------------
    One rule decides whether a gate's house is lit: night, the gate's wing is
    the lit one, and the line behind it is open. The lights come up only
-   after the arch has risen into its bay, and go down before it sinks. */
+   after the arch has risen into its bay, and go down before it sinks: an
+   outgoing arch's lamps go out in the first --gate-dim of its beat, and
+   its sink waits for them (.gate.receded below; app.js waits as long).
+   They used to fade with no delay over 0.35s, so an outer arch was still
+   at 0.7 when it began to sink and an inner one still glowed when it had
+   gone. */
+:root[data-theme="onyx"] .gate { --gate-dim: 120ms; }
 .gate .lit { opacity: 0; transition: opacity 0.35s ease; }
+.gate.receded .lit { transition: opacity var(--gate-dim, 0ms) ease-in var(--slot-delay, 0ms); }
 :root[data-theme="onyx"] .gate.active[data-state="open"] .lit {
   opacity: 1;
   transition: opacity 0.7s ease calc(var(--slot-delay, 0ms) + 420ms);
 }
 :root[data-theme="onyx"] .gate.active[data-state="checking"] .lit { opacity: 0.35; }
 /* A dark line is a house with the lights out: engraving at 35%, the name
-   and the lamp stay (R9). */
+   and the lamp stay (R9). The velvet goes into shadow in palace-gates.css. */
 .gate[data-state="dark"] .g-desc,
 .gate[data-state="dark"] .g-stat,
 .gate[data-state="dark"] .g-addr,
 .gate[data-state="dark"] .sigil { opacity: 0.35; }
-.gate[data-state="dark"] .g-tab { filter: brightness(0.7); }
 
 /* Day: the tabs are drawn back and tied while the line is open; a dark or
    unchecked line keeps its curtain closed. Gathered velvet is compressed
@@ -2349,8 +2368,9 @@ html[lang="zh"] .g-name { letter-spacing: 0.17em; }
    footlit foot of the screen shows under the fringe. The tabs never part:
    a parting drew a thread of light up the meeting line, straight through
    the projected description. By day the card stays. One sheen runs across
-   the gilding only. */
-:root[data-theme="onyx"] .gate:not(.vacant):focus-visible .g-tab { transform: translateY(-8%); }
+   the gilding only. A DARK house keeps its curtain down: its footlights are
+   out, and a lifted hem showed a lit stage under a dead line. */
+:root[data-theme="onyx"] .gate:not(.vacant):not([data-state="dark"]):focus-visible .g-tab { transform: translateY(-8%); }
 .gate:not(.vacant):focus-visible .p-sheen { animation: gilt-sheen 0.8s var(--ease-out) 1; }
 @keyframes gilt-sheen { from { transform: translateX(0); } to { transform: translateX(560px); } }
 /* The rise rides on the pose inside the link (--lift), never on the link
@@ -2360,7 +2380,7 @@ html[lang="zh"] .g-name { letter-spacing: 0.17em; }
    answer a pointer that can rest. Focus keeps all of them. */
 .gate:not(.vacant):focus-visible { --lift: -3px; }
 @media (hover: hover) {
-  :root[data-theme="onyx"] .gate:not(.vacant):hover .g-tab { transform: translateY(-8%); }
+  :root[data-theme="onyx"] .gate:not(.vacant):not([data-state="dark"]):hover .g-tab { transform: translateY(-8%); }
   .gate:not(.vacant):hover .p-sheen { animation: gilt-sheen 0.8s var(--ease-out) 1; }
   .gate:not(.vacant):hover { --lift: -3px; }
 }
@@ -2383,9 +2403,9 @@ html[lang="zh"] .g-name { letter-spacing: 0.17em; }
   opacity: 0; visibility: hidden;
   translate: 0 14px;
   transition: transform 0.6s var(--ease-stage),
-              translate 0.2s ease-in var(--slot-delay, 0ms),
-              opacity 0.2s ease-in var(--slot-delay, 0ms),
-              visibility 0s linear calc(var(--slot-delay, 0ms) + 0.2s);
+              translate 0.2s ease-in calc(var(--slot-delay, 0ms) + var(--gate-dim, 0ms)),
+              opacity 0.2s ease-in calc(var(--slot-delay, 0ms) + var(--gate-dim, 0ms)),
+              visibility 0s linear calc(var(--slot-delay, 0ms) + var(--gate-dim, 0ms) + 0.2s);
 }
 .gate.active {
   opacity: 1; visibility: visible;
@@ -2437,9 +2457,13 @@ html[lang="zh"] .g-name { letter-spacing: 0.17em; }
   transform: translateY(var(--lift, 0px));
   transition: transform 0.6s var(--ease-stage);
 }
-/* A DARK gate's link leads to a dead tab, and while the link can be dragged
-   a press on the notice starts a link drag instead of a text selection. */
-.gate[data-state="dark"] { -webkit-user-drag: none; }
+/* No arch drags as a link. A press that wobbled 6px on the way to a click
+   started a link drag, and the gate never opened; a DARK gate's link leads
+   to a dead tab anyway, and a press on its notice has to select the path.
+   A Ledger plaque is the same kind of target and takes the same rule. */
+.gate, #ledger a.pl-in { -webkit-user-drag: none; }
+/* The RESERVED arch is not a link: no hand over it. */
+.gate.vacant { cursor: default; }
 
 /* ==========================================================================
    THE CONCOURSE CLOCK

@@ -425,7 +425,7 @@
 
     <main id="stage" aria-labelledby="stage-title">
       <h2 id="stage-title" class="sr-only" data-i18n="ariaGates">Gates</h2>
-      <span id="opens-tab" class="sr-only" data-i18n="opensTab">Opens in its own tab.</span>
+      <span id="opens-tab" hidden data-i18n="opensTab">Opens in its own tab.</span>
       <div class="stage-glow" aria-hidden="true"></div>
       <div class="wall-rule" aria-hidden="true"></div>
       <!-- The hall's centrepiece, set into the back wall between the gates.
@@ -436,6 +436,7 @@
       <div id="clock"></div>
       <div id="gates"></div>
       <p id="hall-status" class="sr-only" role="status" aria-live="polite"></p>
+      <p id="gate-say" class="sr-only" role="status" aria-live="polite"></p>
       <div id="all-dark" hidden data-i18n="allDark">The hall is dark. No services are reachable.</div>
     </main>
 
@@ -589,7 +590,7 @@
       <span class="l-label l-salon display" data-i18n-title="salonWing" lang="en">SALON</span>
       <span class="l-label l-bureau display" data-i18n-title="bureauWing" lang="en">BUREAU</span>
     </div>
-    <span id="lever-desc" class="sr-only" data-i18n="leverDesc">Off lights the Salon, the play wing. On lights the Bureau, the work wing.</span>
+    <span id="lever-desc" hidden data-i18n="leverDesc">Off lights the Salon, the play wing. On lights the Bureau, the work wing.</span>
     <div id="lever" role="switch" aria-checked="false" tabindex="0" aria-keyshortcuts="W"
          aria-describedby="lever-desc" data-i18n-aria="ariaLever"
          aria-label="Mode lever: off = Salon, on = Bureau">
