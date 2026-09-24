@@ -802,6 +802,42 @@ html[data-entered="no"] #entrance.night.house ~ #hall .st-fan.on[data-state="ope
 .st-fan[data-glass="honey"] { --sc: rgba(242, 206, 120, 0.6); }
 .st-fan[data-glass="aqua"] { --sc: rgba(150, 224, 212, 0.55); }
 
+/* The border course: a band of cut stone laid in the plane, 1.5% of its
+   width (the plane is a size container, so cqw is its width), with its own
+   aggregate, butted to the field with a thin brass strip in each joint. It
+   was a 3-4px border of flat slate, the darkest mark on the pale floor,
+   and it read as a painted court line (AR-19). By day it is a rouge
+   terrazzo at about half that value contrast; by night the same course in
+   oxblood stone, barely apart from the dark field. */
+.fl-plane { container-type: size; }
+.fl-border,
+:root[data-theme] .fl-border {
+  border: none; outline: none;
+  padding: 1.5cqw;
+  background: var(--course-tint), var(--course-img) 0 0 / calc(var(--fh, 320px) * 0.36) auto;
+  background-blend-mode: var(--course-blend, multiply), normal;
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+  box-shadow: inset 0 0 0 2px var(--course-strip);
+}
+.fl-border::after,
+:root[data-theme] .fl-border::after {
+  inset: 1.5cqw; border: none;
+  box-shadow: 0 0 0 2px var(--course-strip);
+}
+:root[data-theme="onyx"] {
+  --course-img: url('/static/assets/tex/stone-rouge.webp');
+  --course-tint: linear-gradient(rgba(10, 4, 3, 0.42), rgba(10, 4, 3, 0.42));
+  --course-blend: normal;
+  --course-strip: color-mix(in srgb, var(--lead-2) 55%, transparent);
+}
+:root[data-theme="ivory"] {
+  --course-img: url('/static/assets/tex/terrazzo-ivory.webp');
+  --course-tint: linear-gradient(#a57e74, #a57e74);
+  --course-blend: multiply;
+  --course-strip: color-mix(in srgb, var(--lead-2) 75%, transparent);
+}
 /* The inlays: cut stone with its own figure, under the floor's wax. HTML
    layers over the inlay's SVG (the circle is r 474 of 1000 on the
    medallion, 190 of 400 on a roundel), so they raster once and stay. */
