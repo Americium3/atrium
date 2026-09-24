@@ -55,6 +55,18 @@ def test_no_line_is_written_twice_in_a_row():
         assert not doubled, f"{f.name} repeats a line: {doubled[:4]}"
 
 
+def test_no_merge_marker_is_left_in():
+    """A stray `=======` from a hand-resolved merge is valid enough CSS to
+    parse on, and silently drops the next rule: the whole night theme's room
+    tokens went missing that way once. A marker is a line of exactly seven
+    signs, so a long ==== rule inside a comment does not count."""
+    marker = re.compile(r"^(<{7}|={7}|>{7})( |$)")
+    for f in scripts() + sheets() + [PAGE]:
+        hits = [i + 1 for i, line in enumerate(f.read_text(encoding="utf-8").split("\n"))
+                if marker.match(line.rstrip("\r"))]
+        assert not hits, f"{f.name} has merge markers on lines {hits[:4]}"
+
+
 # Ids the scripts create at runtime rather than finding in the markup.
 DYNAMIC_IDS: set[str] = set()
 
