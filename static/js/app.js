@@ -3589,6 +3589,7 @@ lever.addEventListener('keydown', function (e) {
    was last announced: compared against it, an unchanged count was said a
    second time on the next poll after any notice. */
 var hallSaid = '';
+var hallNews = '';   // what it has to say now, heard or not
 
 function applyStatuses() {
   var openCount = 0, known = 0;
@@ -3628,13 +3629,24 @@ function applyStatuses() {
   // "LINES OPEN 0/6" was announced as fact. A hub that stops answering is
   // said out loud, and a hub still asking clears the old count rather than
   // repeating a number it no longer knows.
-  var st = $('#hall-status');
   // (A hub that never answered at all has no registry either, and is said.)
-  if (st && (services.length || hubLost)) {
-    var msg = hubLost ? t('hubLost') : !known ? ''
+  if (services.length || hubLost) {
+    hallNews = hubLost ? t('hubLost') : !known ? ''
       : allDark ? t('allDark') : t('linesOpen', { n: openCount, m: services.length });
-    if (msg !== hallSaid) { hallSaid = msg; st.textContent = msg; }
+    sayLines();
   }
+}
+
+/* Said only where it can be heard. The region lives in the hall, which is
+   inert under Preferences and the open Ledger, and a count written there
+   then was taken as said though no screen reader could hear it: a line
+   that went DARK meanwhile was never announced. It waits instead, and
+   syncBehind() says it when the hall comes back. */
+function sayLines() {
+  var st = $('#hall-status');
+  if (!st || hallNews === hallSaid || st.closest('[inert]')) return;
+  hallSaid = hallNews;
+  st.textContent = hallNews;
 }
 
 function statText(svc) {
@@ -4211,15 +4223,20 @@ function openLedger() {
   var scrimEl = $('#ledger-scrim');
   var ledgerBtnEl = $('#ledger-btn');
   if (!ledgerEl || !scrimEl || !ledgerBtnEl) return;
+  // A notice lying over the drawer's chips and stamp hid them and the focus
+  // ring on them. A pointer press already put the plate away; L does too.
+  // It goes first: L pressed on the plate's heading is L pressed on the gate
+  // the plate was called from, and putting the plate away hands focus back
+  // there. Read before it, the return was the plate's own heading, hidden by
+  // the time the drawer shut, and focus fell through to the hatch.
+  toggleKeyplate(false);
   // Where the reader was, so shutting the drawer can put them back there
   // rather than on the hatch, where the next arrow key did nothing. The bay
   // is kept as well: W can darken that gate while the drawer is open.
   var from = document.activeElement;
-  ledgerReturn = from && from !== document.body && !ledgerEl.contains(from)
+  ledgerReturn = from && from !== document.body && !ledgerEl.contains(from) &&
+    !(keyplate && keyplate.contains(from))
     ? { el: from, bay: litGates().indexOf(from) } : null;
-  // A notice lying over the drawer's chips and stamp hid them and the focus
-  // ring on them. A pointer press already put the plate away; L does too.
-  toggleKeyplate(false);
   layerMoved();
   // The column is about to slide in under wherever the pointer rests; no
   // dwell from before may carry over into it.
@@ -4234,13 +4251,20 @@ function openLedger() {
   ledgerEl.classList.add('open');
   scrimEl.classList.add('visible');
   ledgerBtnEl.setAttribute('aria-expanded', 'true');
+  // A drawer opened again starts at its head. It kept the scroll it was shut
+  // with, and the first Tab parked the knob at the screen's top edge with
+  // the top of its ring cut off.
+  ledgerEl.scrollTop = 0;
   renderLedger();
   ledgerOpening = false;
   // The drawer covers the hatch that opened it, so focus moves in with it:
   // to the drawer's heading, from where the chips, the stamp and the first
-  // plaque are one Tab away. Tab then cycles the drawer and the hatch.
+  // plaque are one Tab away. Tab then cycles the drawer's own stops.
   var head = $('#ledger h2');
   if (head) head.focus({ preventScroll: true });
+  // Only then does the hall go out of reach: made inert while focus was
+  // still on a gate, it would drop the reader's place on the way in.
+  syncBehind();
 }
 
 function closeLedger() {
@@ -4249,18 +4273,34 @@ function closeLedger() {
   var ledgerBtnEl = $('#ledger-btn');
   if (!ledgerEl || !scrimEl || !ledgerBtnEl) return;
   layerMoved();
+  var ae = document.activeElement;
+  // The key plate called up over the drawer returns to a plaque, which is
+  // about to go inert. L pressed there shut the drawer and threw its return
+  // away (focus was on the plate, not in the drawer), and the Esc that put
+  // the plate away then had nowhere to go but <body>.
+  var plateOver = keyplate && !keyplate.hidden && keyplate.contains(ae) &&
+    kpReturn && ledgerEl.contains(kpReturn);
+  // A dwell under way when the drawer shuts was not finished by the reader.
+  cancelDwells();
+  ledgerEl.classList.remove('open');
+  scrimEl.classList.remove('visible');
+  ledgerBtnEl.setAttribute('aria-expanded', 'false');
+  // The hall comes back into reach before focus is handed to it.
+  ['#hall', '#signal-desk'].forEach(function (s) { var n = $(s); if (n) n.inert = false; });
   // A closed drawer is inert: off screen it still sat in the tab order, and
   // because focus marks a dispatch read, one pass of Tab through the page
   // struck the whole Ledger. Focus inside it goes back where it came from
   // first, or making it inert would drop the reader's place onto <body>.
-  if (ledgerEl.contains(document.activeElement)) ledgerHandBack(ledgerBtnEl);
-  else ledgerReturn = null;
-  // A dwell under way when the drawer shuts was not finished by the reader.
-  cancelDwells();
-  ledgerEl.inert = true;
-  ledgerEl.classList.remove('open');
-  scrimEl.classList.remove('visible');
-  ledgerBtnEl.setAttribute('aria-expanded', 'false');
+  if (ledgerEl.contains(ae)) {
+    ledgerHandBack(ledgerBtnEl);
+  } else if (plateOver) {
+    // The plate stays up; it returns where the drawer would have.
+    kpReturn = ledgerReturnTarget() || ledgerBtnEl;
+    kpReturnX = kpReturn.classList.contains('gate') ? slotX(kpReturn) : null;
+  } else {
+    ledgerReturn = null;
+  }
+  syncBehind();
   // Closing marks nothing. Reading is what the pointer did while the drawer
   // was open, and a plaque three screens down was not read by the act of
   // shutting the drawer over it.
@@ -4276,7 +4316,7 @@ function closeLedger() {
    nowhere, or from something that has since gone. A gate darkened by the
    lever while the drawer was open hands over to the gate in its bay. */
 var ledgerReturn = null;
-function ledgerHandBack(hatch) {
+function ledgerReturnTarget() {
   var r = ledgerReturn;
   ledgerReturn = null;
   var to = r && r.el;
@@ -4284,7 +4324,31 @@ function ledgerHandBack(hatch) {
     var gates = r.bay >= 0 ? litGates() : [];
     to = gates.length ? gates[Math.min(r.bay, gates.length - 1)] : null;
   }
-  (to || hatch).focus({ preventScroll: true });
+  return to;
+}
+function ledgerHandBack(hatch) {
+  (ledgerReturnTarget() || hatch).focus({ preventScroll: true });
+}
+
+/* What each open layer puts out of reach behind it. Preferences is a modal
+   dialog over everything. The open drawer keeps Tab in its own ring, so the
+   hall and the desk behind its scrim go inert with it: a screen reader's
+   cursor used to walk out of the drawer into gates hidden behind the scrim,
+   and a Tab pressed there threw it straight back in. The key plate stays in
+   reach, since it is called up over the drawer and takes focus there. A
+   shut drawer is inert. */
+function syncBehind() {
+  var up = !prefs.hidden;
+  var l = $('#ledger');
+  var open = !!l && l.classList.contains('open');
+  ['#hall', '#signal-desk'].forEach(function (s) { var n = $(s); if (n) n.inert = up || open; });
+  ['#ledger-scrim', '#keyplate'].forEach(function (s) { var n = $(s); if (n) n.inert = up; });
+  if (l) l.inert = up || !open;
+  // The hall's live region was out of the tree while it was inert, so a
+  // line count that changed meanwhile was never heard. It is said once the
+  // hall is back, a beat later: the region has to be in the tree with its
+  // old words before new ones count as news.
+  if (!up && !open) setTimeout(sayLines, 150);
 }
 
 function renderGhosts() {
@@ -4774,13 +4838,13 @@ function prefsKeydown(e) {
 }
 
 /* aria-modal promises the rest of the page is out of reach; inert makes
-   it true for a screen reader's virtual cursor as well as for Tab. */
-var PREFS_BEHIND = ['#hall', '#signal-desk', '#ledger', '#ledger-scrim', '#keyplate'];
+   it true for a screen reader's virtual cursor as well as for Tab
+   (syncBehind). */
 function openPrefs() {
   layerMoved();
   lastFocus = document.activeElement;
-  PREFS_BEHIND.forEach(function (s) { var n = $(s); if (n) n.inert = true; });
   prefs.hidden = false;
+  syncBehind();
   syncPrefRadios();
   document.addEventListener('keydown', prefsKeydown);
   var first = prefs.querySelector('[role=radio][aria-checked=true]') ||
@@ -4789,11 +4853,9 @@ function openPrefs() {
 }
 function closePrefs() {
   layerMoved();
-  PREFS_BEHIND.forEach(function (s) { var n = $(s); if (n) n.inert = false; });
-  // The drawer keeps its own rule: inert whenever it is shut.
-  var l = $('#ledger');
-  if (l) l.inert = !l.classList.contains('open');
   prefs.hidden = true;
+  // Everything comes back as it stood, the open drawer's own reach included.
+  syncBehind();
   document.removeEventListener('keydown', prefsKeydown);
   if (lastFocus) lastFocus.focus();
 }
@@ -4874,6 +4936,18 @@ document.addEventListener('keydown', function (e) {
   var open = ledgerEl && ledgerEl.classList.contains('open');
   // Preferences sits above the drawer; one Escape closes one layer.
   if (!prefs.hidden) return;
+  // Tab from the key plate walks on from wherever the reader called it up,
+  // as every other key on it does. The plate sits after the hall in the
+  // page, so Tab went to the lever and Shift+Tab to the last gate. Putting
+  // the plate away hands focus back first; the browser's own Tab (or the
+  // drawer's ring below) then moves on from there. A Tab passing through is
+  // not a layer key, so a held Tab keeps walking.
+  if (e.key === 'Tab' && keyplate && !keyplate.hidden &&
+      keyplate.contains(document.activeElement)) {
+    var held = layerKey;
+    toggleKeyplate(false);
+    layerKey = held;
+  }
   if (e.key === 'Escape' && open) {
     // The key plate lies over the drawer, so it is the top layer. Handled
     // here in full: the keys handler below used to see the drawer already
@@ -4900,10 +4974,15 @@ document.addEventListener('keydown', function (e) {
 
 /* The browser brings a focused element into view only until any part of it
    shows, which left the last card of an arrow walk a few pixels under the
-   screen with its ring cut. The card's scroll margin covers the ring. */
+   screen with its ring cut. The card's scroll margin covers the ring. The
+   knob, the chips and the stamp are the drawer's head, so reaching one of
+   them from below scrolls the drawer back to its top: brought only into
+   view, each was parked on the screen's top edge with the top of its ring
+   cut off and the title plate scrolled away above it. */
 function focusInDrawer(n) {
   n.focus({ preventScroll: true });
-  (n.closest('.plaque') || n).scrollIntoView({ block: 'nearest' });
+  if (n.closest('#ledger .l-head, #ledger .l-tools')) $('#ledger').scrollTop = 0;
+  else (n.closest('.plaque') || n).scrollIntoView({ block: 'nearest' });
 }
 
 function syncPrefRadios() {
@@ -5295,7 +5374,14 @@ function toggleKeyplate(show, byPointer) {
   if (!had || byPointer) return;
   var usable = back && back.isConnected && !back.closest('[inert]') &&
     (!back.checkVisibility || back.checkVisibility());
-  if (!usable) back = x === null ? null : nearestLit(x);
+  // A return that has gone and was no gate (a control now inert or hidden)
+  // falls back to the open drawer's heading, else the hatch. Left on the
+  // plate's heading as it hid, focus fell to <body> and the next arrow
+  // started the walk over from the first gate.
+  if (back && !usable) {
+    var drawerOpen = $('#ledger').classList.contains('open');
+    back = (x !== null && nearestLit(x)) || $(drawerOpen ? '#ledger-title' : '#ledger-btn');
+  }
   if (back) back.focus({ preventScroll: true });
 }
 window.addEventListener('resize', function () {
@@ -5350,6 +5436,18 @@ document.addEventListener('keydown', function (e) {
   if (k === '?') { e.preventDefault(); toggleKeyplate(); return; }
   if (k === 'Escape' && keyplate && !keyplate.hidden && !ledgerOpen) {
     toggleKeyplate(false); return;
+  }
+  // The plate says ENTER opens it, and every other key on it works the
+  // hall from where it was called up; Enter did nothing, since a heading
+  // has no action of its own. The plate goes away, handing focus back, and
+  // the press goes to what it handed focus to. A click from here carries no
+  // pointer detail, so a DARK gate still pins its card and says it.
+  if (k === 'Enter' && keyplate && !keyplate.hidden && tgt && keyplate.contains(tgt)) {
+    e.preventDefault();
+    toggleKeyplate(false);
+    var to = document.activeElement;
+    if (to && to.matches && to.matches('a[href], button, [role=switch]')) to.click();
+    return;
   }
 
   if (ledgerOpen) {
