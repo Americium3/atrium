@@ -4333,11 +4333,11 @@ fetchJson('/api/services').then(function (payload) {
   renderGates();
   return refresh();
 }).catch(function () {
-  // Hub API unreachable — leave ghosts; refresh() retries the registry, and
-  // sooner than the 45 s beat, which left the ghosts up that long before the
-  // Ledger could say it had not been read.
-  clearTimeout(retryT);
-  retryT = setTimeout(poll, RETRY_MS);
+  // Hub API unreachable. Ask the rest at once rather than in 15 s: the boot
+  // used to sit silent that long, no gates, a blank band and an empty live
+  // region, before anything said the hub was not answering. refresh()
+  // retries the registry, says NO WORD FROM THE HUB and arms the retry.
+  return refresh();
 }).then(function () {
   // Deep links run regardless of how the boot fetch fared. ?ledger=1 is the
   // debug-only twin of ?prefs=1 — the drawer is the one surface a headless
