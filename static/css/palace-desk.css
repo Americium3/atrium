@@ -413,7 +413,14 @@
    slot turned by hash; on each plate the inner screw has given its hole to
    a pilot jewel, and the live wing's jewel is lit. The box, padding and
    type size are atrium.css's: each plate is a hit surface. */
+/* The plates grow with the engraving size, but the console only follows it
+   at a seventh of the slope; past 1.16 a plate outgrew the cornice it sits
+   on and hung over the runner. So the plates stop there (12.7px at 3440,
+   still above the 10px floor). */
 .assembly .l-label {
+  --pl-u: min(var(--ui), 1.16);
+  font-size: calc(11px * var(--pl-u));
+  padding: calc(4px * var(--pl-u)) calc(9px * var(--pl-u)) calc(3px * var(--pl-u));
   color: var(--bz-ink);
   font-weight: 640;
   text-shadow: 0 0.6px 0 color-mix(in srgb, var(--bz-4) 70%, transparent);
@@ -440,20 +447,20 @@
 }
 .assembly .l-label::before,
 .assembly .l-label::after {
-  width: calc(3.4px * var(--ui)); height: calc(3.4px * var(--ui));
-  margin-top: calc(-1.7px * var(--ui));
+  width: calc(3.4px * var(--pl-u)); height: calc(3.4px * var(--pl-u));
+  margin-top: calc(-1.7px * var(--pl-u));
   background:
     linear-gradient(var(--slot, 30deg), transparent 42%, rgba(18, 11, 4, 0.9) 42% 58%, transparent 58%),
     radial-gradient(circle at 36% 30%, var(--bz-4), var(--bz-2) 55%, var(--bz-0));
   box-shadow: 0 0.5px 0.5px rgba(0, 0, 0, 0.6);
 }
-.assembly .l-label::before { left: calc(3px * var(--ui)); }
-.assembly .l-label::after { right: calc(3px * var(--ui)); }
+.assembly .l-label::before { left: calc(3px * var(--pl-u)); }
+.assembly .l-label::after { right: calc(3px * var(--pl-u)); }
 .assembly .l-salon::after, .assembly .l-bureau::before { content: none; }
 .l-jewel {
   position: absolute; top: 50%;
-  width: calc(5.6px * var(--ui)); height: calc(5.6px * var(--ui));
-  margin-top: calc(-2.8px * var(--ui));
+  width: calc(5.6px * var(--pl-u)); height: calc(5.6px * var(--pl-u));
+  margin-top: calc(-2.8px * var(--pl-u));
   border-radius: 50%;
   pointer-events: none;
   /* the smoked cabochon in its collet */
@@ -462,15 +469,15 @@
     radial-gradient(circle at 50% 58%, var(--jw-off), #0a0503 72%);
   box-shadow: 0 0 0 0.8px var(--bz-0), 0 0 0 1.6px var(--bz-3), 0 1px 1px 1.2px rgba(0, 0, 0, 0.5);
 }
-.l-salon .l-jewel { right: calc(1.6px * var(--ui)); }
-.l-bureau .l-jewel { left: calc(1.6px * var(--ui)); }
+.l-salon .l-jewel { right: calc(1.6px * var(--pl-u)); }
+.l-bureau .l-jewel { left: calc(1.6px * var(--pl-u)); }
 /* The lit glass is its own layer, faded by opacity. */
 .l-jewel::after {
   content: ""; position: absolute; inset: 0; border-radius: 50%;
   background:
     radial-gradient(circle at 38% 32%, #fff 0 10%, transparent 20%),
     radial-gradient(circle at 50% 55%, var(--jw-core) 0 12%, var(--jw-mid) 42%, var(--jw-rim) 88%);
-  box-shadow: 0 0 calc(5px * var(--ui)) calc(1.5px * var(--ui)) var(--jw-bloom);
+  box-shadow: 0 0 calc(5px * var(--pl-u)) calc(1.5px * var(--pl-u)) var(--jw-bloom);
   opacity: 0;
   transition: opacity 0.3s ease 0.2s;
 }
@@ -780,7 +787,7 @@ html[data-entered="no"] #entrance.done-fade { pointer-events: none; cursor: auto
 #entrance.done-fade .e-footlights { opacity: 0; transition: opacity 0.4s ease-in; }
 
 /* ----- The marquee's one chase ------------------------------------------- */
-.e-marquee { position: absolute; }
+.e-marquee { position: absolute; overflow-x: clip; overflow-y: visible; }
 .e-chase {
   position: absolute; left: 0; width: 24%;
   height: calc(21px * var(--ui));
