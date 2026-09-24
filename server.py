@@ -394,6 +394,37 @@ def anime_health_to_dispatches(overview: dict, now: int) -> dict:
     return out
 
 
+WEEK_S = 7 * 24 * 3600
+
+
+def anime_airing_today(shows: list, now: datetime) -> int:
+    """How many watched shows have a broadcast on the reader's calendar day.
+
+    `airing_at` is episode 1's slot, not the next one, so comparing it with
+    today only ever caught a premiere, and the gate read "9 WATCHING" on a
+    Thursday with four Thursday shows. The slot repeats weekly, and Autopilot
+    walks it forward a week at a time (projectSlot in its panel), but only
+    for a show it still calls `airing`: walking a finished show's old slot
+    would invent a broadcast. A premiere still ahead counts on its own day.
+    """
+    today = now.date()
+    midnight = datetime(today.year, today.month, today.day).timestamp()
+    n = 0
+    for s in shows or []:
+        at = s.get("airing_at")
+        if isinstance(at, bool) or not isinstance(at, (int, float)) or at <= 0:
+            continue
+        if at < midnight:
+            if not s.get("airing"):
+                continue
+            # The first broadcast at or after local midnight. Whole weeks on
+            # the epoch keep the Tokyo slot fixed through a local DST change.
+            at += -(-(midnight - at) // WEEK_S) * WEEK_S
+        if datetime.fromtimestamp(at).date() == today:
+            n += 1
+    return n
+
+
 AP_EVENT_KINDS = {
     "episode.landed": "anime.landed",
     "show.subscribed": "anime.subscribed",
@@ -877,12 +908,8 @@ async def tick_autopilot_slow(client: httpx.AsyncClient) -> None:
         overview = resp.json()
         src.groups["grace"] = anime_grace_to_dispatches(overview)
         shows = overview.get("shows") or []
-        today = datetime.now().date()
-        airing = sum(
-            1 for s in shows
-            if s.get("airing_at")
-            and datetime.fromtimestamp(s["airing_at"]).date() == today)
-        src.stat = {"watching": len(shows), "airing": airing}
+        src.stat = {"watching": len(shows),
+                    "airing": anime_airing_today(shows, datetime.now())}
         health = anime_health_to_dispatches(overview, now_ms())
         src.groups["health"] = health
         # The lamp's tooltip still says the same thing, for a reader already

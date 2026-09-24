@@ -739,6 +739,34 @@ def test_a_dead_qbittorrent_yields_to_a_dead_daemon():
     assert out["autopilot:qb-down"]["kind"] == "autopilot.qb_down"
 
 
+def _show(when: datetime, airing: bool = True) -> dict:
+    return {"airing_at": int(when.timestamp()), "airing": airing}
+
+
+def test_airing_today_walks_each_weekly_slot_forward():
+    """airing_at is episode 1's slot. Comparing it with today only caught
+    premieres: on Thursday 2026-09-24 four Thursday shows read as none."""
+    thu = datetime(2026, 9, 24, 12, 0)
+    shows = [
+        _show(datetime(2026, 7, 2, 11, 30)),          # a Thursday, weeks ago
+        _show(datetime(2025, 10, 2, 9, 0)),           # a Thursday, a year ago
+        _show(datetime(2026, 7, 9, 23, 41)),          # late Thursday slot
+        _show(datetime(2026, 7, 5, 10, 0)),           # a Sunday show
+        _show(datetime(2026, 7, 2, 11, 30), airing=False),   # finished
+        {"airing_at": None, "airing": True},          # dated, not timed
+    ]
+    assert server.anime_airing_today(shows, thu) == 3
+    assert server.anime_airing_today(shows, datetime(2026, 9, 27, 8)) == 1
+    assert server.anime_airing_today(shows, datetime(2026, 9, 25, 8)) == 0
+
+
+def test_a_premiere_counts_only_on_its_own_day():
+    first = datetime(2026, 10, 1, 21, 0)
+    shows = [_show(first, airing=False)]   # not on the air yet
+    assert server.anime_airing_today(shows, datetime(2026, 10, 1, 9)) == 1
+    assert server.anime_airing_today(shows, datetime(2026, 9, 24, 9)) == 0
+
+
 class _FailingClient:
     def __init__(self, exc):
         self.exc = exc
