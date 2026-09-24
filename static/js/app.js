@@ -1601,19 +1601,25 @@ function fillSpan(node, x0, x1, firstBay, edge) {
   var n = Math.max(1, Math.round(w / (300 * u)));
   var bay = w / n;
   for (var i = 0; i <= n; i++) node.appendChild(pilaster(x0 + i * bay, firstBay * 7 + i));
-  // A bay narrower than a torchiere and its wash cannot be lit; anything
-  // wider is. (The old 90u floor left the owner's 3440 wall with no lamps,
-  // and 70u still left 3440 dark once the pilasters stood clear of the
-  // boards.)
-  if (w < 52 * u) return 0;
+  // What a bay holds has to stand clear inside it, between the shafts of
+  // the pilasters at its two ends (28u of shaft, half at each end). A
+  // torchiere is 44u wide; the bay plate is as wide as its lettering. The
+  // old test (a 52u span) hung both across the pilasters in the sliver bays
+  // at the screen's edges, and ran a plate off the screen at 3440 (LY-15,
+  // VD-6). A sliver bay stands unlit and unnumbered; the numbering runs on
+  // over the bays that carry a plate.
+  var clear = bay - 28 * u;
+  var numbered = 0;
   for (var j = 0; j < n; j++) {
     var mid = x0 + (j + 0.5) * bay;
-    node.appendChild(sconce(mid));
-    var plate = el('div', 'bay-plate display', t('bayLabel', { n: roman(firstBay + j) }));
+    if (clear >= 48 * u) node.appendChild(sconce(mid));
+    var plate = el('div', 'bay-plate display', t('bayLabel', { n: roman(firstBay + numbered) }));
     plate.style.left = mid + 'px';
     node.appendChild(plate);
+    if (plate.offsetWidth + 8 * u > clear) node.removeChild(plate);
+    else numbered++;
   }
-  return n;
+  return numbered;
 }
 
 /* Fill one aisle wall, skipping the stretch a board is hung over. Spacing
@@ -1626,8 +1632,10 @@ function fillWall(node, width, hole, firstBay, inner) {
   // A throw of the lever re-solves the stage and lands here with the same
   // wall. Rebuilt, every pilaster was new and took the Bureau's leaf in one
   // frame, so its own fill transition never ran (MO-5); the same wall is
-  // left standing. The bay numbers are lettered, so the language counts.
-  var key = [width, hole ? hole.join(',') : '', firstBay, inner, uiScale(), lang].join('|');
+  // left standing. The bay plates are lettered and measured, so the
+  // language and the face they are set in count.
+  var key = [width, hole ? hole.join(',') : '', firstBay, inner, uiScale(), lang,
+             document.fonts ? document.fonts.status : ''].join('|');
   if (node.dataset.fill === key) return +node.dataset.used;
   node.textContent = '';
   node.style.setProperty('--aw', Math.max(0, width) + 'px');
