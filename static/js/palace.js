@@ -17,7 +17,8 @@
                        within a wing)
      card              the border of the day screen's title card (unique
                        within a wing)
-     velvet            the house curtain's colour, fold pitch and phase
+     velvet            the house curtain's colour, fold pitch and phase, and
+                       which three of the four baked swags its valance hangs
 
    All geometry lives on the gate's 300 x 570 design box. The archivolts are
    stilted arches: boundary k of n sits DJ*k/n in from the jamb but DC*k/n
@@ -69,13 +70,14 @@ var QUIET = ['bead', 'reed', 'flute', 'plain'];
 /* Walk the registry in order: the (velvet, glass, fanlight) of a gate is its
    own unless a gate ahead of it in the registry already took it. */
 function identities(list) {
-  var out = {}, tv = {}, tg = {}, tf = {}, tn = {}, tc = {}, tk = {};
+  var out = {}, tv = {}, tg = {}, tf = {}, tn = {}, tc = {}, tk = {}, ts = {};
   list.forEach(function (svc) {
     if (svc.vacant) { out[svc.id] = vacant(svc); return; }
     var h = fnv1a(svc.id);
     var wingN = tn[svc.wing] || (tn[svc.wing] = {});
     var wingC = tc[svc.wing] || (tc[svc.wing] = {});
     var wingK = tk[svc.wing] || (tk[svc.wing] = {});
+    var wingS = ts[svc.wing] || (ts[svc.wing] = {});
     var lead = svc.wing === 'bureau' ? 'ag' : 'au';
     var other = lead === 'au' ? 'ag' : 'au';
     var n = pickUnique([3, 4, 5, 6], h, 4, wingN);
@@ -100,7 +102,8 @@ function identities(list) {
       folds: 7 + Math.floor(draw(h, 9) * 5),        // folds across the house
       foldX: Math.round(draw(h, 10) * 100),         // fold phase, %
       tilt: (draw(h, 11) - 0.5) * 0.6,              // cartouche screw slots, deg/10
-      rivets: [8, 10, 12][Math.floor(draw(h, 13) * 3)]   // round the bezel
+      rivets: [8, 10, 12][Math.floor(draw(h, 13) * 3)],  // round the bezel
+      swag: pickUnique([0, 1, 2, 3], h, 14, wingS)        // which three swags hang
     };
   });
   return out;
@@ -112,7 +115,7 @@ function identities(list) {
 function vacant(svc) {
   return { h: 0, n: 4, motifs: ['plain', 'bead', 'plain', 'reed'],
            metals: ['pl', 'pl', 'pl', 'pl'], velvet: 'iron', glass: 'void',
-           fan: 'rays', rays: 9, crest: 'none', folds: 1, foldX: 0, tilt: 0, rivets: 8,
+           fan: 'rays', rays: 9, crest: 'none', folds: 1, foldX: 0, tilt: 0, rivets: 8, swag: 0,
            vacant: true };
 }
 

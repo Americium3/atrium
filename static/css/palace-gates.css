@@ -418,14 +418,16 @@ html[lang="zh"] .g-lamp { letter-spacing: 0.2em; }
 .g-tab-r {
   background-position: 0 0, calc(var(--fold-x) + 37%) 0, 0 0;
 }
-/* The swagged valance takes the same cloth, gathered: a finer pitch of the
-   same folds, shaded under each swag. */
+/* The valance is three festoon swags of the same cloth, each gathered into
+   its two top corners with its folds sagging after its own hem (a baked
+   strip of four different swags; the gate hangs three of them, chosen by
+   its hash, so no two valances hang alike and no swag repeats its
+   neighbour). The swag mask and its gilt fringe are atrium.css's. */
 .g-valance {
   background:
-    radial-gradient(60% 120% at 50% -10%, transparent 50%, rgba(0, 0, 0, 0.5) 100%) 0 0 / 33.34% 100%,
-    url('/static/assets/tex/fab-velvet-fold.webp') 0 70% / 11.1% 300%,
+    url('/static/assets/tex/fab-velvet-swag.webp') calc(var(--swag, 0) * 100%) 0 / 133.34% 100% repeat-x,
     var(--velvet);
-  background-blend-mode: normal, multiply, normal;
+  background-blend-mode: multiply, normal;
 }
 /* The footlights warm the hem without bleaching it, and the projector's
    spot no longer floods the tabs: the slide carries the light now. */

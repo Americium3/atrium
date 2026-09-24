@@ -1533,6 +1533,7 @@ function renderGates() {
     a.style.setProperty('--gi', String(i));
     a.style.setProperty('--folds', String(id.folds || 9));
     a.style.setProperty('--fold-x', (id.foldX || 0) + '%');
+    a.style.setProperty('--swag', String(id.swag || 0));
 
     // 3D chain: pose (static wing tilt) > shell (pointer parallax) > flat
     // children — the intra-gate z-index stack survives inside the shell.
