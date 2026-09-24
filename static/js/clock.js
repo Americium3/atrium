@@ -457,7 +457,9 @@ function niche() {
     // a turned boss, the boss's crown the only leaf on it.
     '<i class="n-corner nc-tl"></i><i class="n-corner nc-tr"></i>' +
     '<i class="n-corner nc-bl"></i><i class="n-corner nc-br"></i>' +
-    '<div class="n-sill"><i class="n-nose"></i></div>' +
+    // The sill's two stone halves are its ::before and ::after; the gilt
+    // fillet on the plinth line is its own element over both.
+    '<div class="n-sill"><i class="n-nose"></i><i class="n-fillet"></i></div>' +
     '<svg class="n-crest" viewBox="0 0 120 40" aria-hidden="true" focusable="false">' +
       '<path class="nc-sh" transform="translate(1 1.4)" d="' + crestFan() + '"/>' +
       '<path class="nc-body" d="' + crestFan() + '"/>' +

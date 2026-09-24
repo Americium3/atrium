@@ -126,6 +126,18 @@
     linear-gradient(90deg, transparent calc(50% - 1px), rgba(0, 0, 0, 0.28) calc(50% - 1px) calc(50% + 0.5px), transparent calc(50% + 0.5px));
   box-shadow: inset 0 -2px 3px rgba(0, 0, 0, 0.35);
 }
+/* The gilt fillet on the plinth line: every arch's plinth nosing and the
+   wall's skirting meet at 536 of the gate's 570 units, and this carries that
+   rule across the niche (VD-17). It is its own element, the sill's full
+   width: drawn as the sill's ::after it took the place of the mirrored
+   right half of the slab, and the wall showed through the gap (AR-1). */
+.n-fillet {
+  position: absolute; left: 0; right: 0; z-index: 2; pointer-events: none;
+  bottom: calc(var(--gh) * 34 / 570 - var(--gh) * 2.6 / 570);
+  height: calc(var(--gh) * 2.6 / 570);
+  background: linear-gradient(180deg, var(--lead-5), var(--lead-2) 50%, var(--lead-0));
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.55);
+}
 :root[data-theme="onyx"] .n-sill { --sill-stone: url('/static/assets/tex/stone-portoro.webp'); --sill-y: 5%; }
 :root[data-theme="ivory"] .n-sill {
   --sill-stone: url('/static/assets/tex/stone-calacatta.webp'); --sill-y: 76%;
