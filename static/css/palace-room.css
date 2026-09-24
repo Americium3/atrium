@@ -367,9 +367,11 @@ html[lang="zh"] .m-sub { letter-spacing: 0.4em; }
   width: var(--med); height: var(--med);
   overflow: visible;
 }
+/* The captions are the two controls' only visible labels: never under the
+   10px floor, which 9.5px x --ui put them below on every laptop (LY-16). */
 #masthead .p-caption,
 #ledger-btn .p-caption, #prefs-btn .p-caption {
-  font-size: calc(9.5px * var(--ui)); letter-spacing: 0.24em; line-height: 1.2;
+  font-size: max(10px, calc(9.5px * var(--ui))); letter-spacing: 0.24em; line-height: 1.2;
   font-weight: 560; white-space: nowrap;
 }
 html[lang="zh"] #masthead .p-caption { letter-spacing: 0.3em; }
