@@ -7,15 +7,20 @@ stays one family. All maps are grey and meant for `multiply` over a colour
 token, so the token is the colour of the material at its brightest and the
 map only takes it down: highlights keep the material's own hue.
 
-  fab-velvet-fold   the house curtain. Tiles across x, one drop tall (top =
+  fab-velvet-pile   the house curtain. Tiles across x, one drop tall (top =
                     the heading under the valance, bottom = the hem). Folds
                     of uneven width that wander, gather under the heading and
-                    split low in the drop. Shaded as velvet, not satin: the
-                    face of a fold turned to the house is dark and deep, the
-                    flanks turning away catch the grazing sheen, the valleys
-                    sit in their own occlusion, and the whole drop is lit
+                    split low in the drop. Shaded as velvet, not satin: where
+                    a fold faces the house the pile is seen end-on and
+                    swallows the light, so the crest's core is the darkest
+                    cloth; where it turns away the fibres are seen edge-on
+                    and catch it, so each fold is rimmed in light down its
+                    flanks. The valleys sit in their own occlusion, the pile
+                    is crushed in a fine mottle, and the whole drop is lit
                     from the footlights, so it brightens toward the hem.
-  fab-velvet-swag   the valance: four different festoon swags side by side,
+                    (The first bake lit the crests Lambert-bright with a
+                    gloss down the middle: satin.)
+  fab-velvet-festoon  the valance: four different festoon swags side by side,
                     each gathered at its two top corners, the folds sagging
                     in curves that follow the swag's own hem. A gate shows
                     three of the four, so no two valances hang alike.
@@ -42,10 +47,12 @@ def _periodic_row(n, seed, beta):
     return fbm(n, seed, beta)[0] - 0.5
 
 
-def _shade(z, k, light, sheen_w, sheen_p):
-    """Velvet shading of a height field: Lambert from `light`, plus the
-    grazing sheen of pile seen edge-on (strongest where the surface turns
-    away from the viewer)."""
+def _velvet(z, k, light, ao, rim_w=0.75, rim_p=2.8, core=0.55, body=(0.26, 0.3)):
+    """Velvet shading of a height field under ambient occlusion `ao`. A dim
+    Lambert body from `light`, darkened where the surface faces the viewer
+    squarely (the pile seen end-on: the crest's dark core), plus a broad rim
+    where it turns away (the pile seen edge-on), stronger on the side that
+    faces the light."""
     dzdx = (np.roll(z, -1, 1) - np.roll(z, 1, 1)) * 0.5 * k
     dzdy = (np.roll(z, -1, 0) - np.roll(z, 1, 0)) * 0.5 * k
     dzdy[0] = dzdy[1]
@@ -55,8 +62,13 @@ def _shade(z, k, light, sheen_w, sheen_p):
     L = np.asarray(light, dtype=np.float64)
     L /= np.linalg.norm(L)
     ndl = np.clip((n * L).sum(-1), 0, 1)
-    graze = np.power(np.clip(1 - n[..., 2], 0, 1), sheen_p)
-    return ndl, graze * sheen_w
+    nz = n[..., 2]
+    rim = np.power(np.clip(1 - nz, 0, 1), 1.0 / rim_p)
+    lean = (n[..., 0] * L[0] + n[..., 1] * L[1]) / (np.hypot(n[..., 0], n[..., 1]) + 1e-6)
+    side = np.clip(0.35 + 0.65 * (lean * 0.5 + 0.5), 0, 1)
+    face = np.power(nz, 6)
+    lit = (body[0] + body[1] * ndl) * (1 - core * face)
+    return ao * (lit + rim_w * rim * side * (0.35 + 0.65 * ndl))
 
 
 def velvet_maps(w=512, h=448, seed=311, folds=6):
@@ -101,21 +113,22 @@ def velvet_maps(w=512, h=448, seed=311, folds=6):
     grow = _smooth(np.clip((t - rng.uniform(0.35, 0.65)) / 0.35, 0, 1))
     crease = np.exp(-((us - rng.uniform(0.4, 0.6)) / 0.11) ** 2) * 0.32
     z = z - np.where(split, crease * grow * depth, 0)
-    ndl, sheen = _shade(z, 30.0, (-0.45, 0.25, 0.86), 0.4, 1.6)
     zn = z / (depth + 1e-6)
-    ao = 0.12 + 0.88 * _smooth(np.clip(zn * 1.35, 0, 1))
-    # The face of a fold turned to the house holds the colour deep; the lit
-    # flank carries a band of sheen, the shaded flank a thinner one.
-    lum = ao * (0.12 + 0.62 * np.power(ndl, 1.4)) + sheen * ao * (0.3 + 0.7 * ndl)
+    ao = 0.1 + 0.9 * _smooth(np.clip(zn * 1.5, 0, 1))
+    lum = _velvet(z, 14.0, (-0.45, 0.25, 0.86), ao)
     # footlights: brighter toward the hem, dim under the heading
     lum *= 0.55 + 0.45 * _smooth(t)
-    # pile: crushed mottle and a faint vertical nap, tiled down the drop
+    # pile: crushed mottle at two scales and a faint vertical nap, tiled
+    # down the drop
     crush = fbm(w, seed + 3, 1.7) - 0.5
     crush = np.tile(crush, (h // w + 1, 1))[:h]
+    fine = fbm(w, seed + 5, 0.45) - 0.5
+    fine = np.tile(fine, (h // w + 1, 1))[:h]
     nap = fbm(w, seed + 4, 0.6, (1.0, 5.0)) - 0.5
     nap = np.tile(nap, (h // w + 1, 1))[:h]
-    lum = lum * (1 + crush * 0.14 + nap * 0.08)
-    return np.clip(lum / np.percentile(lum, 99.7), 0, 1)
+    lum = lum * (1 + crush * 0.22 + fine * 0.2 + nap * 0.1)
+    # the rims clip: the body of the cloth is what the token's colour sets
+    return np.clip(lum / np.percentile(lum, 98), 0, 1)
 
 
 def swag_strip(sw=384, sh=160, n=4, seed=331):
@@ -142,16 +155,16 @@ def swag_strip(sw=384, sh=160, n=4, seed=331):
         # the whole swag bellies out toward the hem, deepest at the middle
         belly = np.sin(np.pi * np.clip(s, 0, 1)) * 0.9
         zz = z * (0.35 + 0.65 * s) + belly
-        ndl, sheen = _shade(zz * 4.5, 1.0, (-0.35, 0.45, 0.82), 0.35, 1.5)
         ao = 0.3 + 0.7 * _smooth(np.clip(z * 1.25, 0, 1))
-        lum = ao * (0.2 + 0.6 * np.power(ndl, 1.2)) + sheen * ao * (0.4 + 0.6 * ndl)
+        lum = _velvet(zz * 4.5, 0.7, (-0.35, 0.45, 0.82), ao)
         # the heading board shades the top of the swag; the hem is nearest
         # the footlights
         lum *= 0.45 + 0.55 * _smooth(np.clip(s * 1.2, 0, 1))
         crush = fbm(sw, seed + 40 + k, 1.7)[:sh] - 0.5
-        lum *= 1 + crush * 0.12
+        fine = fbm(sw, seed + 50 + k, 0.45)[:sh] - 0.5
+        lum *= 1 + crush * 0.18 + fine * 0.16
         out[:, k * sw:(k + 1) * sw] = lum
-    return np.clip(out / np.percentile(out, 99.6), 0, 1)
+    return np.clip(out / np.percentile(out, 98.5), 0, 1)
 
 
 def bronze_patina(n=512, seed=351):
@@ -172,7 +185,7 @@ def bronze_patina(n=512, seed=351):
 
 
 def main():
-    maps = [("fab-velvet-fold", velvet_maps()), ("fab-velvet-swag", swag_strip()),
+    maps = [("fab-velvet-pile", velvet_maps()), ("fab-velvet-festoon", swag_strip()),
             ("metal-bronze", bronze_patina())]
     for name, m in maps:
         path = save_gray(name, m)
@@ -182,7 +195,7 @@ def main():
         from PIL import Image
         d = sys.argv[1]
         os.makedirs(d, exist_ok=True)
-        for hexs in ("c42c3c", "2c8a5a", "cf8b2b", "3f5d6e"):
+        for hexs in ("c22b3b", "24754b", "8c4a2c", "3f5d6e"):
             c = np.array([int(hexs[i:i + 2], 16) for i in (0, 2, 4)], dtype=np.float64)
             for name, m in maps[:2]:
                 rgb = m[..., None] * c[None, None, :]

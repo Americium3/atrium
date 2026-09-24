@@ -523,15 +523,20 @@ html[lang="zh"] .g-lamp { letter-spacing: 0.2em; }
 :root[data-theme="ivory"] .gate[data-velvet="plum"]     { --velvet: #9c4660; }
 :root[data-theme="ivory"] .gate[data-velvet="peacock"]  { --velvet: #8e8c4a; }
 :root[data-theme="ivory"] .gate[data-velvet="umber"]    { --velvet: #98563a; }
+/* The fold map is shaded as velvet: the crests' cores dark where the pile
+   is seen end-on, rims of light down the flanks where it turns edge-on.
+   Over it the pile itself, a fine crushed grain in soft light, so the
+   cloth has a nap at arm's length and not the smooth ramp of satin. */
 .g-tab {
   background:
     linear-gradient(180deg, rgba(0, 0, 0, 0.5), transparent 20%, transparent 78%, var(--tab-foot) 100%),
-    url('/static/assets/tex/fab-velvet-fold.webp') var(--fold-x) 0 / calc(1800% / var(--folds)) 100% repeat-x,
+    url('/static/assets/tex/grain-pile.webp') 0 0 / 30cqw auto,
+    url('/static/assets/tex/fab-velvet-pile.webp') var(--fold-x) 0 / calc(1800% / var(--folds)) 100% repeat-x,
     var(--velvet);
-  background-blend-mode: normal, multiply, normal;
+  background-blend-mode: normal, soft-light, multiply, normal;
 }
 .g-tab-r {
-  background-position: 0 0, calc(var(--fold-x) + 37%) 0, 0 0;
+  background-position: 0 0, 11cqw 0, calc(var(--fold-x) + 37%) 0, 0 0;
 }
 /* The valance is three festoon swags of the same cloth, each gathered into
    its two top corners with its folds sagging after its own hem (a baked
@@ -540,9 +545,10 @@ html[lang="zh"] .g-lamp { letter-spacing: 0.2em; }
    neighbour). The swag mask and its gilt fringe are atrium.css's. */
 .g-valance {
   background:
-    url('/static/assets/tex/fab-velvet-swag.webp') calc(var(--swag, 0) * 100%) 0 / 133.34% 100% repeat-x,
+    url('/static/assets/tex/grain-pile.webp') 0 0 / 30cqw auto,
+    url('/static/assets/tex/fab-velvet-festoon.webp') calc(var(--swag, 0) * 100%) 0 / 133.34% 100% repeat-x,
     var(--velvet);
-  background-blend-mode: multiply, normal;
+  background-blend-mode: soft-light, multiply, normal;
 }
 /* The footlights warm the hem without bleaching it, and the projector's
    spot no longer floods the tabs: the slide carries the light now. */
