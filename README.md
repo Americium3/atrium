@@ -120,7 +120,8 @@ Atrium serves `http://127.0.0.1:8769` and currently fronts:
   jewel counts both. Filter chips (ALL / SALON / BUREAU) are session-only
   and never touched by the mode lever. Both wings' news always arrives.
   Escape, the scrim, the close knob and the hatch all close it.
-- **The marquee**: a status band (lines open, per-gate stats) that also
+- **The marquee**: a status band (lines open, then each gate's live figure
+  after its hall's name, `AUTOPILOT · 4 AIRING TODAY`) that also
   scrolls dispatches you haven't read yet, on milk glass between two rows of
   bulbs. When something is new at night the bulbs chase; when nothing is
   new the band stands still and every bulb burns evenly.
@@ -222,8 +223,12 @@ one call that leaves this machine at all, and it carries a pair of
 coordinates and nothing else. All feed timestamps
 are epoch milliseconds; dispatch ids are deterministic, so re-polls and hub
 restarts never duplicate or re-animate entries. Sources degrade
-independently: a dead service turns its gate DARK and, where possible, the
-adapter falls back to reading the service's state files directly.
+independently: a service that refuses the connection turns its gate DARK
+and, where possible, the adapter falls back to reading the service's state
+files directly. A service that takes the connection and then answers late
+is running, so its gate stays OPEN with the note "Running, but slow to
+answer" and still opens it. Ground Station does this for minutes at a time,
+and a DARK lamp there used to send the reader off to launch a second copy.
 
 Adapter notes:
 
@@ -444,11 +449,15 @@ sentinels, as Bourse's does.
 
 ## Debug URL parameters
 
-Not persisted, for testing only: `?theme=onyx|ivory` · `?lang=en|zh` ·
+Not persisted, for testing only: `?theme=onyx|ivory|system` (anything else
+is Follow system) · `?lang=en|zh` ·
 `?wing=salon|bureau` · `?motion=full|reduced|system` · `?ui=s|m|l` (engraving
 size) · `?entrance=0|1` · `?prefs=1` · `?ledger=1` (opens the drawer, which
 a headless screenshot otherwise cannot reach, since it takes a click) ·
-`?steam=1` (freezes a steam burst at four life stages for screenshot QA).
+`?steam=1` (freezes a steam burst at four life stages for screenshot QA) ·
+`?probe=1|2|3` (layout boxes in the page title; 2 adds the desk's hardware
+and the Almanac's registers, 3 also paints the numbers and outlines the
+hardware in the shot).
 
 ## Fonts and textures
 
