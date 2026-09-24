@@ -1426,8 +1426,10 @@ function slots() {
   return out;
 }
 
-/* Gates are absolutely positioned, so DOM order is free — keep it
-   active-wing-first so the tab order is active → receded in both wings. */
+/* Gates are absolutely positioned, so DOM order is free. They are built
+   lit-wing-first so the entrance's rise stagger (--gi) runs across the arches
+   that are actually showing. Tab order does not depend on it: the waiting
+   wing is inert. */
 function gateDomOrder() {
   var wing = root.dataset.wing;
   return slots().sort(function (a, b) {
@@ -2900,8 +2902,6 @@ function startAlmanac() {
 var lever = $('#lever');
 var themeBusy = false;
 
-var wingReorderT;
-
 function setWing(w) {
   wingPending = w;
   var apply = function () {
@@ -2910,23 +2910,12 @@ function setWing(w) {
     store('atrium.wing', w);
     lever.setAttribute('aria-checked', String(w === 'bureau'));
     deskDrive(w === 'bureau' ? 1 : 0);
+    // The gates stay in the order they were built. The waiting wing is
+    // inert, so Tab walks only the lit one, left to right, wherever the two
+    // sit in the DOM. A 750ms re-append used to put the lit wing first, and
+    // moving live nodes replayed the sheen on a hovered arch and bounced
+    // focus off the gate the reader had just landed on.
     layoutStage(false);
-    // After the slide settles, re-append gates active-first so the tab
-    // order matches the new composition (pixels don't move — gates are
-    // transform-placed).
-    clearTimeout(wingReorderT);
-    wingReorderT = setTimeout(function () {
-      var wrap = $('#gates');
-      var had = document.activeElement;
-      gateDomOrder().forEach(function (svc, i) {
-        var a = $('#gate-' + svc.id);
-        if (a && wrap.children[i] !== a) wrap.insertBefore(a, wrap.children[i] || null);
-      });
-      // Moving the focused node drops focus to <body>; put it back.
-      if (had && had !== document.activeElement && had.isConnected && !had.inert) {
-        had.focus({ preventScroll: true });
-      }
-    }, 750);
   };
   // Serialize: the lever re-light queues until a theme crossfade finishes.
   if (themeBusy) setTimeout(apply, 420); else apply();
