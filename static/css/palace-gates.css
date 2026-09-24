@@ -649,7 +649,13 @@ html[lang="zh"] .g-lamp { letter-spacing: 0.2em; }
 .gate { pointer-events: none; }
 .g-pose, .g-shell, .face, svg.portal { pointer-events: none; }
 .g-hit {
-  position: absolute; left: 3.33%; right: 3.33%; top: 3.86%; bottom: 0;
+  position: absolute; left: 3.33%; right: 3.33%; top: 3.86%;
+  /* The hit area lifts with the arch, so it reaches down by the lift to
+     keep its foot on the floor line. Lifted with the art, it left a
+     pointer resting at the foot: the hover dropped, the arch fell back
+     under the pointer, the hover returned, and the arch bobbed while
+     clicks in its bottom 3px landed on the floor. */
+  bottom: var(--lift, 0px);
   border-radius: 50% 50% 0 0 / 25.5% 25.5% 0 0;
   pointer-events: auto;
 }
