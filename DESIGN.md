@@ -9,13 +9,16 @@ finding is folded in below. This document is the implementation contract.
 **Atrium** is a grand Art-Deco entrance hall. Every destination web UI is a
 **Gate**: a tall arched portal opening off the hall. Two wings:
 
-- **Salon** (play): Anime Autopilot, Ground Station
-- **Bureau** (work): Outreach Desk
+- **Salon** (play): Anime Autopilot, Ground Station, Arsenal
+- **Bureau** (work): Outreach Desk, The Press Room, Bourse
 
 A brass **mode lever** re-lights the hall toward one wing. A gilded dispatch
 column, **the Ledger**, collects today's news from *all* services
 regardless of wing. First run: theme = follow system (resolved pre-paint),
 wing = SALON, Ledger filter = ALL.
+
+Since v6 the hall is dressed as the foyer of a 1930s picture palace. Every
+surface follows the material law in "The picture palace (v6)" below.
 
 ## Color tokens (contrast-verified matrix)
 
@@ -38,39 +41,187 @@ re-light reads even in the weakest cell (Bureau × Ivory).
 
 ## Ornament density budget (anti-kitsch law)
 
-- Sunburst rays: **entrance only**, never in resting chrome.
-- Rosette: masthead monogram + settings trigger only.
-- Stepped frame: gates only. Medallions: Ledger only.
-- Double hairline rule: ticker + Ledger day-breaks only.
+Each ornament family is fenced to the surfaces named here. What it is made
+of follows "The picture palace (v6)".
+
+- Sunburst rays: **entrance only**, never in resting chrome. They are the
+  house curtain's gilt sunburst at night and the sun's shafts by day.
+- Rosette: gone from resting chrome. The masthead monogram is an enamelled
+  badge in a knurled turned-brass bezel, and the Preferences trigger is a
+  nickel escutcheon with its keyhole cut through. The `#rosette` defs stay in
+  the markup; nothing at rest draws them.
+- Stepped frame: the gates, and the clock niche's mitred proscenium.
+- Cartouche (a stepped lozenge with a black enamel field holding the service
+  mark): the gates' fanlight hub and the Ledger's cards. On a gate it sits in
+  a machined bezel.
+- Turned-metal medallion (a spun disc drawn in sectors, so it takes the light
+  as a bow tie): the three masthead controls only.
+- Double hairline rule: the printed border of the Ledger's programme cards.
+  The day breaks are a brass collar on the main and one engraved groove.
 - **Clock-only classes (v3.2)**: the octagonal case with its stepped
   shoulders, the four diagonal spandrels, the knurled bezel, the fret band
   and the guilloche field belong to the concourse clock and appear nowhere
   else. The clock is also the one place a fourth wing-metal surface is
   allowed (quarter numerals, spandrel lozenges, subdial rings, the seconds
-  baton). It is the hall's single jewel.
-- **Service marks (v3.2)**: gate keystones and Ledger medallions carry each
+  baton). It is the hall's single jewel. Since v6 the case is statuary bronze
+  with leaf on its bevels only.
+- **Service marks (v3.2)**: gate cartouches and Ledger cards carry each
   service's own coloured mark rather than a monochrome sigil. This is the
   one sanctioned break in the hall's monochrome discipline: the mark shown
   in the hall is byte-identical to the one the service's own favicon,
   taskbar tile and masthead show. Services with no mark fall back to the
   line-drawn keystone sigil, which still tints with `color`.
-- **Concourse vocabulary (v4)**: three new families, each fenced to one
-  surface. *Wall*: dentil cornice, fluted pilaster, dado panel run, sconce;
-  aisle walls only, one sconce per bay, and the sconce's light pool falls on
-  plaster (the ban on outer glows is a ban on glowing **gold**, not on
-  architectural lighting). *Board*: a **chamfered** outline with an inset
-  gilt line and four seating rivets; the gates keep stepped shoulders and
-  the Ledger keeps medallions, so a board is never either. *Floor inlay*:
-  banded medallion and square-in-circle roundel, floor only; a medallion is
-  not a rosette, and the masthead/settings rosettes stay unique. The floor is
-  the one surface where ornament is **cut rather than stroked**: filled stone
-  with brass only in the joints, because a hairline laid flat and
-  foreshortened to a third of its height reads as a decal.
+- **Concourse vocabulary (v4, dressed in v6)**. *Wall*: a dentil cornice
+  broken by console blocks over a relief frieze, damask hung bay by bay,
+  antique-mirror pilasters between reeded fillets, torchieres in the outer
+  bays, onyx pier lights between the portals. *Case*: the aisle boards are
+  wall cases of the foyer (see v6). *Floor inlay*: a foyer medallion and two
+  paired roundels of poured terrazzo, floor only; the compass and roulette
+  language is banned there. The floor is still the one surface where
+  ornament is **cut rather than stroked**.
+- **Palace families (v6)**, each fenced: velvet (gate houses, the entrance
+  curtain, the stanchion rope), bulbs (the marquee and the focus ring),
+  title cards (the day screen), smalti (the clock niche), stanchions (the
+  near flanks of the floor), typewriter keys (the key plate).
 - Hairline tokens: 1px and 1.5px; a double rule = 2×1px with 3px gap.
-- **Ban list**: no multi-stop metallic gradients, no bevel/emboss, no outer
-  glows on gold. The only specular effect is a single masked 30° sheen sweep
-  (600 ms, once per hover). That IS the "shimmer". Gate-open flash = frame
-  strokes jump to champagne for 150 ms, nothing else.
+  Hairlines are for engraving, card borders and rules. Mouldings take real
+  widths from the object they belong to.
+- **Ban list**: no outer glows on gold. Only emitters bloom: lit glass,
+  bulbs, coves, alabaster, onyx, jewel lamps and the opal dial. The v2 bans
+  on multi-stop metallic gradients and bevel/emboss are lifted by the v6
+  material law. The one moving specular effect is a single sheen across a
+  gate's gilding on hover and focus.
+
+## The picture palace (v6): the material law
+
+A bake-off on 2026-09-23 built three directions on the real code (a
+Chrysler lobby, a liner after midnight, a picture palace) and put them to
+three judges. The picture palace won, with grafts from the other two. The
+hall is the foyer of a 1930s cinema. Each gate is a small gilt proscenium:
+archivolts telescoping out of a lit fanlight, a black glass sign on the
+transom, a velvet house over a cinema screen, a lacquer apron carrying the
+live line. The ticker is the marquee, the clock hangs in a bronze niche, and
+the floor is waxed terrazzo with a foyer medallion, a wool runner and velvet
+rope. Onyx is the house before the show, with its lamps lit. Ivory is the
+foyer with the doors open to the street: nothing is lit, the tabs are tied
+back and each screen shows its title card. The room is the same object in
+both themes; only the hour changes.
+
+### The law
+
+1. **Metal** is six tones across a moulding, in this order: the glaze lying
+   in the reveal, shade, body, the crest turned to the light, relief body,
+   the lip. Per theme: `--au-*` gold leaf; `--ag-*` nickel silver, the
+   Bureau's leaf (Onyx `#17140f #463d2f #938670 #f4e8c8 #b9a987 #dccaa2`,
+   Ivory `#6b6456 #9c9382 #cac1ad #fdfbf4 #ddd4bf #f6f2e8`); `--cu-*` warm
+   bronze; `--pl-*` bare plaster, for the reserved gate; `--sb-*` statuary
+   bronze, for the niche, the clock case and the signal desk; `--br-*` a
+   fixed brass for fittings that never follow the wing (bezels, lamps,
+   screws, the dater, the switchgear).
+2. **Relief** is drawn three times along the one key light: a shadow copy
+   down and right, the body, a lit edge up and left. Bevels are drawn facets,
+   each lit by its angle to the key.
+3. **Texture** is baked on the CPU into `static/assets/tex` by
+   `scripts/materials.py` and its siblings (`materials_gates.py`,
+   `materials_room.py`, `cabinetry_tex.py`, `desk_materials.py`): leaf,
+   stone, veneer, velvet, damask, carpet, glass, smalti, card, shagreen,
+   bronze patina. Each is low in contrast and a few KB. Rust, verdigris and
+   grime stay banned.
+4. **One light model per theme.** At night only emitters glow; gold never
+   does, it takes its light from them. Every lamp is its own layer faded by
+   opacity (`.lit`, `--lamp-on`), lit only in Onyx and, on a gate, only while
+   the gate stands in the lit wing and its line is open. By day nothing is lit
+   and the skylight, up and a little left, is the key light.
+5. **The wing's leaf leads every fixture** through `--lead-*`: gold in the
+   Salon, nickel silver in the Bureau, plaster on a reserved gate. The lever
+   re-leafs the hall. The three wing-metal surfaces of v2 still read
+   `--metal`; the wordmark's nickel face and the crown join the throw as a
+   crossfade, not as a fourth surface.
+6. **Nothing crosses lettering.** No line, seam, joint or light ever crosses
+   a line of lettering, including a curtain's meeting line. A plate that
+   carries words is one piece.
+7. **Gate text has a floor**: every gate string (name, description, status,
+   address, lamp word, service note, launch notice) is 10px or more at every
+   size from 1280x800 up, and none clips. The status tightens its tracking
+   (never under 0.05em) and then takes a second line; the house gives up the
+   height.
+8. **Siblings are a family, never twins.** A gate's archivolt count, metal
+   chord, relief programme, fanlight glass and glazing, velvet and its fold
+   pitch, valance swags, crest and day card come from an FNV-1a hash of its
+   service id, walked in registry order so a new service never repaints the
+   ones already standing (`palace.js`). Dials, pier lights, damask bays,
+   dado slabs, console blocks, Ledger cards and desk panels vary the same
+   way. Fixtures do not vary: sign, transom, cartouche, imposts, apron, lamp
+   and plinth are the same on every gate.
+9. **Specular**: one hover sheen crosses a gate's gilding only. Glass,
+   crystal, mirror, lacquer and black glass signs each carry one static
+   reflection band.
+10. **Reflections**: each portal is flipped in the wax with its own paint,
+    and the niche has its own. Every lamp throws a rippled streak on the
+    floor (torchieres, pier lights, lit fanlights in their own glass colour,
+    the marquee's returns); the streaks are lamp layers, never clones. By day
+    the floor gives back only the gilt and the screen, at 1.5 × `--mirror-a`.
+    The desk stands on wool and returns nothing.
+11. **Performance**: only transform and opacity animate. Blurs are static on
+    inner elements, with the moving transform on a parent. The clock is two
+    sheets, a still dial painted once and a thin moving sheet. The floor's
+    SVGs carry no paint servers (patterns or gradients): the clock's hand
+    writes re-lay them every frame, so the inlays' figure and sheen are HTML
+    layers over each inlay.
+
+### Surface by surface
+
+- **The gates**: see Gates (R9) for their states.
+- **The clock niche**: statuary bronze glazed dark, with leaf near a tenth of
+  it (measured 4.8% by night, 7.9% by day, dial excluded): the case's eight
+  bevels, the fillet round the smalti, the crest, the sill nosing's lip and
+  the bosses' crowns. The smalti are glazed and darken toward the foot. The
+  sill is book-matched stone, Portoro by night and Calacatta by day, with a
+  gilt fillet on the plinth line.
+- **The masthead** is the canopy fascia, book-matched Portoro by night and
+  Calacatta by day, laid slab by slab from the clock's axis. ATRIUM is cast
+  gilt standing off the stone, with a nickel face that crossfades over it on
+  the Bureau throw. GRAND CONCOURSE, the date and the captions are cut and
+  gilded. A crown stands over the clock's axis, built as the Chrysler's is:
+  three arched tiers telescoping up and back, pierced with triangular
+  windows, lit at night. Framed relief panels fill the fascia either side of
+  it, sized to the gap and not hung under 110px × `--ui`. The crown is cast
+  up to a fifth smaller on a tight masthead and stowed only when even that
+  would touch the title or the date. The Ledger hatch is a domed brass cap
+  whose unread signal is a jewel lamp; Preferences is a nickel escutcheon
+  that turns 22.5 degrees on hover and focus.
+- **The marquee**: milk glass between two rows of bulbs on a gilt channel,
+  each end a gilt return with three bulbs. The chase steps in whole bulb
+  pitches, three times a second, and runs only while the band carries an
+  unread dispatch, at night, in full motion, in a visible tab; otherwise
+  every bulb burns evenly. By day the bulbs are clear glass in brass
+  sockets.
+- **The wall**: a rolled crown, the dentil course (lit tops, shaded returns,
+  cast shadows), a bed mould, the relief frieze and a fillet over the lamp
+  trough, broken over every pier and pilaster by a cast console block. Onyx
+  pier lights stand in every gap between two portals, and between each case
+  and its nearest portal at 2800 and wider, placed from the solved row and
+  never beside the clock; at night the onyx is a lamp, by day dead stone.
+  The damask is hung bay by bay, each bay its own dye lot. The dado is
+  book-matched stone under a gilt chair rail, over a black skirting with two
+  channelled nickel strips, whose top meets the portals' plinth nosing.
+- **The floor**: polished terrazzo; the medallion and roundels poured into
+  it; a red wool runner; brass stanchions with velvet rope along the near
+  flanks, each rope's sag its own.
+- **The cases** (Statistics, Almanac, 2800px and up): wall cases in
+  book-matched veneer with crossbanding and stringing (macassar ebony for
+  Statistics, figured walnut for the Almanac), a gilt bolection frame round
+  a black glass door, a cast crest on the top rail and a brass picture lamp
+  lit at night. The dials are turned brass bezels over enamel faces with a
+  red lacquer arc from 85; the Almanac's sky plate is enamel in a satin
+  bezel, and its moon a shaded ball under its own crystal.
+- **The Ledger** and **Preferences**: see their sections.
+- **The signal desk**: statuary bronze casework on the runner (see
+  "The signal desk").
+- **The key plate**: black verre eglomise in a gilt moulding, with each key
+  set as a typewriter key (a ring in the wing's leaf, an ivory top, the
+  legend cut and filled). Black glass in both themes, like every sign in the
+  hall.
 
 ## Geometry system
 
@@ -123,27 +274,30 @@ address bar, and under reduced motion a replay is the same quiet fade. The
 entrance overlay is `aria-hidden`; the app is usable underneath once
 assembled.
 
-- 0–450 ms: hairline gold circle draws itself (stroke-dashoffset,
-  `cubic-bezier(0.22,1,0.36,1)`).
-- 300–900 ms: 24 sunburst rays, 18 ms stagger, scaleY from center.
-- 850–950 ms: a 1px seam of gold light splits the center; hold the frame.
-- 950–1600 ms: two engraved panels part outward with ~2% overshoot.
-- 1500–2110 ms: ATRIUM wordmark settles: per-letter `<span>`s animated with
-  `transform: translateX` + opacity (never animate `letter-spacing`: reflow),
-  visual tracking 0.5em → 0.22em. Each letter holds once it lands, and the
-  word fades as one.
-- 1800–2300 ms, **signature moment**: the drawn circle does not vanish. It
-  flies and docks as the masthead monogram rosette (shared-element morph),
-  while two rays flatten into the ticker's double rules. The entrance
-  literally assembles the chrome. The masthead rises with the flight, so the
-  rosette is there to land on, and the circle fades only once it has
-  arrived.
-- 1900–2400 ms: gates rise 40px at 80 ms stagger; Ledger fades in.
-- 2140 ms, done-fade: the wordmark fades in 180 ms and the overlay stops
-  catching the pointer.
-- 2320–2700 ms: the dial wakes in its niche, and the floor's reflections come
-  up with it. The dial waits for the wordmark because the letters are
-  printed across the middle of its face.
+**Night** (v6). The hall stands dark behind a full-screen house curtain:
+claret velvet, a gilt sunburst crest with a medallion, the name ATRIUM in
+gilt letters, a bullion fringe on the hem and a footlight trough across the
+foot of the screen. The hall behind it is already built; nothing in it rises
+or assembles.
+
+- 60 ms: the footlights come up along the hem.
+- 250 ms: a follow spot opens on the crest, and each ray catches it in
+  turn. The gilt ring round the medallion draws itself from 0 ms.
+- 950 ms: the curtain flies out over 920 ms, slow off the deck and easing
+  into the grid, its hem gathering into swags (one per ~300px of screen).
+- 1450 ms: the house lights come up over 850 ms, the marquee's bulbs chase
+  once along both rows, and the fanlights light from the clock outward, the
+  pair in each bay together, 170 ms a bay.
+- 1750 ms, **signature moment**: the spot, left on the clock when the
+  curtain went, flies to the masthead's monogram and goes out on it.
+- 2140 ms, done-fade: the footlights go out and the overlay stops catching
+  the pointer.
+- 2700 ms: finish.
+
+**Day.** The curtain is already up. The street's light floods in from behind
+the reader and settles like an exposure (1.05 s from 280 ms), with the sun's
+shafts in it; a gilt ring draws itself in the glare and docks on the
+monogram at 900 ms. Done-fade at 1400 ms, finish at 1700 ms.
 
 ## Layout & viewport
 
@@ -587,38 +741,66 @@ ten-minute poll.
 
 ## Gates (R9)
 
-Arched portals per the geometry system. Face: keystone sigil (Autopilot =
-winged disc; Ground Station = dish over ringed planet; Outreach = deco
-compass), name caps, one engraved description line, destination address
-(`127.0.0.1:8767` / `:8768 · updates` / `:8802`), status lamp, one live stat
-(odometer roll on change).
+Each gate is a gilt proscenium (v6). Face, top to bottom: the service mark
+in a machined bezel on the fanlight's cartouche, the name on a black glass
+sign, the house (velvet tabs, a valance, footlights, the description), and
+the apron carrying one live stat (odometer roll on change), the address and
+the lamp. A service's own warning is engraved in amber on the apron above
+the lamp and takes the address line's place while it stands.
 
-- Lamp states: `…` (checking, until first /api/status), OPEN, DARK. The lamp
-  always renders its text label. State never depends on luminance alone.
-- DARK gate: engraving at 35% opacity, lamp = hollow diamond (extinguished,
-  not alarmed, no red), hover still lifts; clicking shows an inline engraved
-  notice with the service's launcher hint (from registry) instead of opening
-  a dead tab. All-dark hall: one engraved line "The hall is dark. No
-  services are reachable."
-- OPEN gate click: 150 ms champagne flash, then
-  `window.open(url, 'atrium-<serviceId>')`, a named window so each service
-  reuses one tab.
-- Hover: frame strokes light sequentially, one sheen sweep, 4px lift;
-  focus-visible mirrors hover.
+- **Rest, open**: the fanlight, coves and footlights are lit, and the
+  description is a lantern slide on the closed tabs (a dark field ruled like
+  the day card, carrying the gate's own corner ornament in light). By day the
+  tabs are drawn back and tied, and the screen shows the title card: card
+  stock in front of a matte silver screen, set semibold in `#160f06`, never
+  smaller than its words.
+- **Lamp states**: `…` (checking, until the first /api/status, lights at
+  35%), OPEN, DARK. The lamp always renders its text label. State never
+  depends on luminance alone.
+- **Hover** (a pointer that can rest) **and focus-visible**: at night the
+  curtain lifts 8% off the stage and the footlit foot of the screen shows
+  under the fringe; the tabs never part. The arch rises 3px on the pose
+  inside the link, and one sheen crosses the gilding. By day the card stays.
+  A gate takes the pointer only inside its arch and on its lettering, never
+  on the wall above its shoulders.
+- **Focus** traces the outer arch five units out from the arris as a
+  marquee: a 12-unit dark bed, a 5-unit lit core and, at night, a string of
+  bulbs on the core. By day a cream bed and an oxblood core. Under forced
+  colours a Highlight core on a Canvas bed.
+- **OPEN gate click**: the tabs fly, the screen floods and the lips flash
+  champagne inside 240 ms, then `window.open(url, 'atrium-<serviceId>')`, a
+  named window so each service reuses one tab. A modifier or middle click is
+  left to the browser.
+- **DARK gate**: fanlight and coves off, tabs closed, the engraving at 35%,
+  the lamp a hollow diamond (extinguished, not alarmed, no red). Clicking
+  pins a printed card on the curtain with the service's launcher hint (from
+  the registry) instead of opening a dead tab; the path breaks only at its
+  separators, so a copy is exact, and the card tightens a step at a time to
+  stay inside the house. All-dark hall: one engraved line "The hall is dark.
+  No services are reachable."
+- **Reserved**: the same architecture in bare plaster, its bezel holding a
+  blank cover plate, behind an iron safety curtain: red oxide primer steel
+  in three lapped courses, domed rivets lit on the lamp side, a stencilled
+  border and a cast brass builder's plate carrying the words. The lamp reads
+  SHUT. It is never lit and never lifts.
 
 ## The Ledger (R10)
 
-Gilded spine left; plaques are **never plain rectangles**. Each has a
-stepped deco outline (clip-path) and hangs from the spine via its origin
-medallion (the medallion physically overlaps the spine). Alternating offsets
-capped at 8–12px; every plaque's right edge aligns to one shared hairline so
-the column keeps a hard deco edge. TODAY / EARLIER day-break double rules run
-full column width. Plaque anatomy: medallion (service sigil; gold rim Salon,
-platinum rim Bureau) + localized headline + detail line + relative time.
-Plaques are links opening the dispatch url.
+The drawer (v6) is a black lacquer cabinet drawer (ivory lacquer by day)
+with one wide reflection band and a gilt bead down its leading edge. The
+spine is the pneumatic main, a brass tube with couplings and lit collars at
+the day breaks. Each dispatch is a programme card: cream laid card in a
+small gilt holder that keeps the chamfered outline, with a printed double
+rule inside, hanging from the main by its cartouche (the service mark in
+black enamel; gold leaf for a Salon dispatch, nickel for a Bureau one). A
+card leans up to 0.35 degrees off its dispatch's hash, its time is a violet
+rubber stamp crooked by the same hash, and every card's right edge shares
+one line. The head is a brass card frame holding THE LEDGER, with a close
+knob beside it; the chips are a bank of three push-keys. Cards are links
+opening the dispatch url.
 
-- **Read is what the pointer rested on**: unread dispatches get a champagne
-  rim + small ◆ marker; the Ledger itself always shows the full window. A
+- **Read is what the pointer rested on**: an unread card carries a jewel
+  lamp in its holder's corner (champagne at night, gold glass by day); the Ledger itself always shows the full window. A
   dispatch is marked read when the pointer has rested on its card for
   **420 ms**, when it is focused by keyboard, or when it is followed through
   to its service, or when the reader presses the stamp. Nothing else marks
@@ -629,7 +811,8 @@ Plaques are links opening the dispatch url.
   so it cannot grow forever; `atrium.lastVisit` is now a frozen **floor** left
   by the old close-stamp, kept only so the change of model does not resurface
   a fortnight of dispatches the reader already dismissed.
-- **The stamp (v4.5)**: one control that clears the whole window, docked
+- **The stamp (v4.5)**, a brass rubber dater in a cradle since v6: one
+  control that clears the whole window, docked
   under the head on its own line rather than beside the chips, where a fourth
   control on that baseline would read as a fourth filter. This does not
   reverse the rule above; it completes it. The rule was never *nothing may
@@ -663,8 +846,7 @@ Plaques are links opening the dispatch url.
     window a dispatch at a time serializes a localStorage write and a full
     re-sync per card.
 - **The dwell shows its work**: resting adds `.reading`, which drains the
-  champagne rim back to the ordinary hairline and closes the ◆ over exactly
-  the 420 ms the timer runs. A mechanic with no button to press otherwise does
+  jewel over exactly the 420 ms the timer runs, leaving the empty bezel. A mechanic with no button to press otherwise does
   something invisible and then jumps; leaving early drops the class and the
   rim refills, so an aborted read looks aborted. Reduced motion keeps the
   timing and drops the travel (the diamond fades where it stands).
@@ -684,19 +866,16 @@ Plaques are links opening the dispatch url.
   drops that dispatch is already on its way. The reader rested on a plaque the
   hall was showing, and the hall cannot know the hub has let it go until the
   answer lands.
-- **Unread signal (masthead)**: one 9 px disc seated at 45° on the hatch
-  housing ring, an annunciator on the dispatch cap rather than a badge pinned to
-  the button's bounding box. Carries no numeral: the count is exposed through
-  the button's tooltip and an `.sr-only` span, so the mark stays a mark. On
-  hover and keyboard focus the same count is engraved just outside the
-  housing, beside the disc, since a title tooltip never reaches focus. Flat
-  fill + a single `--machine-edge` seat hairline; the ban on outer glow means
-  value contrast does the work of "lit", which is why the colour is
-  per-theme: champagne on Onyx bronze (13.9:1), `--gold-text` on Ivory's
-  greige housing (4.1:1, where champagne would be 1.9:1 and read as nothing).
-  Motion is arrival-only: a single 260 ms seat when the count *grows*, never
-  on a re-poll that returns the same dispatches, since the hall at rest is
-  silent architecture.
+- **Unread signal (masthead)**: a jewel lamp set at 45° in the Ledger
+  hatch's housing, an annunciator on the dispatch cap rather than a badge
+  pinned to the button's bounding box. It is an emitter, so at night it
+  blooms (6 to 7px); by day it is coloured glass. It carries no numeral: the
+  count is exposed through the button's tooltip and an `.sr-only` span, and
+  on hover and keyboard focus the same count is engraved just outside the
+  housing, clear of the focus ring, since a title tooltip never reaches
+  focus. Motion is arrival-only: a single 260 ms seat when the count
+  *grows*, never on a re-poll that returns the same dispatches, since the
+  hall at rest is silent architecture.
 - Filter chips ALL / SALON / BUREAU: session-only, reset to ALL on every
   load; **no code path ties the lever to the chips** (R11). Chips are a
   radiogroup with arrow keys.
@@ -744,12 +923,21 @@ wing it lights ("Bureau wing"), with the Salon/Bureau explanation as its
 description. Space or Enter toggles, a held key does not repeat, W throws it
 from anywhere in the hall. Throwing it re-lights the three metal surfaces and
 swaps the wings in place; it never touches the Ledger or ticker content.
-Persisted in localStorage.
+Persisted in localStorage. On the desk the live wing is shown by the lit
+pilot jewel in its throw plate.
 
 ## Settings: PREFERENCES (R4/R5)
 
 Full-screen overlay, deco clip-path sweep reveal, focus-trapped, Esc closes,
-close button top-right. Engraved plaque radios:
+close button top-right. The panel (v6) is Dunand black lacquer with a leaf
+fillet and stepped gilt corner brackets, each preference in a shagreen well
+(by day pale shagreen with ebonised fillets). The controls are switchgear
+laid under the unchanged radios: appearance a three-way rotary with a pilot
+jewel over each legend, language a double-throw knife switch on slate,
+engraving size an interlocked push-button bank, motion a three-position bat
+toggle, REPLAY ENTRANCE a spring-return key. Roles, roving tabindex, the
+focus trap and Esc are unchanged; focus is a champagne collar round the
+legend's jewel plus a rule under its name. The radios:
 
 - Appearance: Onyx / Ivory / Follow system (follow-system attaches a
   `matchMedia` change listener and applies the 400 ms crossfade live)
@@ -974,7 +1162,8 @@ Motion setting collapse all of the above to fades/instant.
   the hall put the caret there, not the reader.
 - **Names**: a gate is named by its engraved name and lamp word and described
   by its description, status line, service note and "opens in its own tab".
-  Service warnings are engraved under the lamp, not hidden in a title. The
+  Service warnings are engraved on the apron above the lamp, not hidden in
+  a title. The
   ticker is a `marquee` whose loop copy is `aria-hidden`. Day breaks are
   headings. Plaques say "unread" while they are. The Almanac and Statistics
   speak their readings. English signage carries `lang="en"` in the Chinese
@@ -986,6 +1175,10 @@ Motion setting collapse all of the above to fades/instant.
   matrix.
 
 ## Depth pass (v3, client mandate: keep the motion, kill the flatness)
+
+v6 keeps this section's 3D chain, pose tilt and parallax. Its slab, floor,
+reflection, entrance and ban-list bullets are superseded by "The picture
+palace (v6)" and the Entrance timeline.
 
 Depth comes from GEOMETRY, LIGHT and OCCLUSION, never filter soup. One key
 light, near-vertical (skylight): every shadow offset points down, slight x.
@@ -1046,31 +1239,27 @@ deliberate aperture per region. Mechanism density is a gradient that peaks
 at the machine standing on the floor and dies before the architecture
 above.
 
-### Material law: the oiled-bronze family
+### Material law: statuary bronze (v6)
 
-A third metal tier joins gold and platinum, defined per theme:
-`--bronze-deep` (machine housings), `--bronze` (machined parts/strokes),
-`--steam` (vapor, warm champagne-alpha in Onyx; **ink-derived** in Ivory,
-white steam on paper is the failure mode), `--machine-edge` (wells, slots,
-notches, dark against the housing in BOTH themes; `--edge` is a paper tone
-in Ivory and vanishes). Flat fills + 1/1.5 px hairlines only; patina is a
-tone, never a noise/grunge bitmap. The existing bans (multi-stop metallic
-gradients, bevel/emboss, outer glows) extend to bronze. Wing metal stays on
-exactly three surfaces; the lever's polished grip zone inherits the old
-needle's slot.
-
-**Texture amendment**: exactly two FLUX.2-generated bitmaps are sanctioned
-as material garnish (the engine-turned band overlay and the riveted-iron
-door overlay) and only after flattening to low-contrast mid-gray
-(±8..±24) so they overlay-blend into the housing tone. They must never
-carry color, read as photographic grime, or appear on paper/plaque
-surfaces. Everything else remains stroke-built SVG.
+The v3.1 oiled-bronze family (flat fills and hairlines, no bitmaps) is
+retired on the desk. The console is statuary bronze under the palace's
+material law: six stops, `--sb-oil` and `--sb-0` to `--sb-5` (oil in the
+recess, shade, body, lit body, crest, hot rim), with `--sb-band` (the horizon
+reflected in the faces) and `--sb-top-far` / `--sb-top-near` for the top
+plane. Every coplanar face shares one gradient, so the horizon band runs
+straight across pilasters, panels and field. `patina-statuary.webp` carries
+the brushing, an uneven patina and a few casting pits as signed alpha, so it
+relights any bronze with no blend mode. Leaf sits only on wear points, in
+the wing's leaf: the cornice nosing, the body's arrises at hip height, the
+plinth toe, the pilaster bases and the quadrant's inner lip. The console is
+the dark object in the room in both themes. `--steam` and `--machine-edge`
+keep their v3.1 meaning.
 
 ### New ornament classes (with their own density laws)
 
-- **Rivet line**: 1.5 px filled dots at even pitch, only at plate seams of
-  machine housings (quadrant plate, flanges, maker's-plate corners),
-  never on paper/plaque surfaces, never on gate frames.
+- **Rivet line**: retired from the desk in v6 (its screws have domed heads
+  and hashed slots). Rivets survive on the reserved gate's iron and the
+  cartouche bezels.
 - **Knurl band**: short radial ticks at even pitch, the machined cousin of
   the Greek key; bridges deco and machine. Allowed on the masthead rosette's
   outer ring, dial bezels, grip surfaces. One ring per element.
@@ -1079,10 +1268,10 @@ surfaces. Everything else remains stroke-built SVG.
   partner and rotate only when driven (max 2 gears page-wide, both on the
   desk). No idle motion anywhere: the hall at rest is silent architecture.
 - **Steam puff**: event-only, 4–6 soft sprites per burst from the one vent
-  on lever throw (plus one wisp as the entrance doors part). Never ambient.
+  on lever throw. Never ambient, and no entrance wisp since v6.
 - **Pneumatic main**: the Ledger spine re-read as a brass dispatch tube,
-  edge hairlines + collar rings at day-break junctions; medallions gain one
-  concentric ring (carrier end-caps). Pipes must plumb something.
+  shaded across its width, with lit collars at the day breaks; the cards'
+  cartouches hang from it. Pipes must plumb something.
 
 ### The signal desk (`#signal-desk`)
 
@@ -1106,12 +1295,16 @@ away with them.
   (100). The box is transparent and `pointer-events:none`; only the lever's
   hit surface takes the pointer. `body` reserves no bottom clearance any
   more. The hall owns every pixel down to the edge.
-- **Anatomy** (signal-box pattern): a notched quadrant plate (ratchet teeth,
-  deep end notches, SALON/BUREAU engraved at the arc ends) and the lever,
-  bronze arm, polished `--metal` grip zone, riveted number plate, ±16°
-  throw; behind it a hairline-framed aperture well showing the meshed gear
-  pair, and the steam vent pipe with its collar. The assembly scales with
-  the lettering (`0.72 + 0.28·--ui`).
+- **Anatomy** (signal-box pattern, drawn by `static/js/desk.js` since v6):
+  a notched quadrant plate and a railway points lever (black enamel shaft,
+  polished steel grip with the catch handle behind it, a rod to the catch
+  block on the quadrant, a brass badge reading 1, WINGS; the wing metal is
+  the ferrule where the grip meets the shaft), ±16° throw; behind it a
+  glazed inspection window over the meshed gear pair, with a lamp at the
+  head of the well lit at night; the steam vent pipe with its collar. The
+  SALON and BUREAU throw plates are cast brass, engraved and filled black,
+  each with a pilot jewel. The assembly scales with the lettering
+  (`0.72 + 0.28·--ui`).
 - **Drive**: one scalar `--drive` (0 = salon, 1 = bureau) written by a JS
   rAF driver onto `#signal-desk`. Only the desk reads it, and a custom
   property changed on `:root` restyles the whole page on every frame of the
@@ -1133,10 +1326,16 @@ away with them.
   existing JS bindings survive relocation verbatim). The gear well clips
   via `overflow:hidden` on an inner div, never `clip-path` on the shell.
 - **Boot**: `html[data-boot="suppressed"] #signal-desk` mirrors the hall
-  fade; under a playing entrance the desk rises at ~2.1 s. Tab order is now masthead → ticker → gates → chips →
+  fade; under a played entrance the curtain opens on the desk standing. Tab order is now masthead → ticker → gates → chips →
   plaques → lever (footer-last, re-documented).
 
 ### The console casework (v4.3)
+
+v6 recast this casework in statuary bronze (a foreshortened top plane, a
+dentil course, a frieze of cast fans and ziggurats, fluted pilasters, sunk
+panels with hashed motifs, an archivolt round the window, a Portoro plinth).
+The desk stands on the wool runner and has a contact shadow in the pile, no
+floor return. The history below explains the stance that still holds.
 
 **What was wrong.** v4.1 put the machine on the floor but never gave it a
 body. What stood there was three loose parts sharing a patch of terrazzo: a
@@ -1195,35 +1394,13 @@ are housed in a bronze console that *stands* on the stone:
   from the top they drifted off the cornice as soon as `--ui` changed the
   label's own height.
 
-**Verifying it (and the trap that eats an afternoon).** Headless Chrome
-reports `innerHeight` ~99px SHORTER than the surface it composites the
-screenshot onto. Document-flow layout is unaffected. The masthead lands
-where `getBoundingClientRect` says, but everything `position:fixed` to the
-BOTTOM of the screen, which is this entire desk, is *painted* 99px lower
-than it measures. Crops taken from raw probe numbers therefore land on the
-floor tiles just under the machine, which reads exactly like "the gears
-aren't rendering" and sends you debugging drawing code that was correct all
-along (the parts were in the DOM the whole time: 42 + 21 + 37 nodes).
+**Verifying it.** `scripts/contrast.py "#a" "#b"` checks a machine tone
+against the floor it stands on.
 
-- `scripts/look.py <name> <selector>` is the fix: one Chrome run for both
-  the PNG and the box read-out, with the offset re-applied to the
-  bottom-anchored parts. Use it instead of pairing shot.py with probe.py.
-- `?probe=3` paints the live boxes into the shot and outlines the hardware
-  from inside the page. Numbers and pixels in the same image cannot
-  disagree. That is what settled it.
-- `scripts/contrast.py "#a" "#b"` before trusting any machine tone against
-  the floor it stands on.
-### Entrance beat: the vault unlock
+### Entrance beat
 
-One new beat inside the existing timeline (total unchanged, ≤2.7 s): the
-drawn gold circle grows a 4-spoke handwheel and 8 radial bolts (`.wheel`
-class at ~700 ms). Wheel turns 60°, bolts retract inward in sync (a vault
-throws all bolts at once; the synchrony is the luxury), then the seam
-splits, the doors swing, and one steam wisp rises from the seam foot
-(spawned via the `at()` helper so skip clears it). The wheel docks with the
-burst into the masthead rosette. Its spokes echo the rosette cross-hairs.
-Door panels gain rivet columns along their meeting edges inside the
-engraved group. Reduced motion: entrance never plays (unchanged).
+The v3.1 vault unlock is replaced by the house curtain (see "Entrance
+animation").
 
 ### Ban list (v3.1 additions)
 

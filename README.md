@@ -17,176 +17,143 @@ Atrium serves `http://127.0.0.1:8769` and currently fronts:
 
 ## What's on the page
 
+- **The room.** The hall is the foyer of a 1930s picture palace. The wall is
+  damask hung bay by bay under a relief frieze and a dentil cornice, with
+  antique-mirror pilasters, torchieres in the outer bays and lit onyx pier
+  lights between the arches. The floor is waxed terrazzo in one perspective
+  plane, with a foyer medallion under the clock, a roundel over each aisle, a
+  red wool runner leading in from the near edge and velvet rope on brass
+  posts along the flanks. Every arch and the clock come back up off the wax,
+  and every lamp in the room throws its own streak on it. At night (Onyx)
+  the house lamps are lit; by day (Ivory) nothing is lit and the doors stand
+  open to the street. Surfaces are drawn as the things they are (gilt leaf,
+  book-matched stone, veneer, velvet, lacquer, enamel, lit glass) from
+  textures baked on the CPU, and siblings of one kind vary by a hash of
+  their name, so no two gates, bays or cards are the same. `DESIGN.md` has
+  the full material law.
 - **The concourse.** From 2800px up the hall opens into three bays: an aisle
-  either side of the stage, under one continuous wall and standing on one
-  continuous floor. The wall carries a dentil cornice, fluted pilasters, a
-  panelled dado and a sconce per bay, and the bays are cut against however
-  much wall the arches leave over. The floor is a single perspective plane
-  of terrazzo, hinged on its near edge so the hall recedes toward the wall,
-  and it runs to the bottom edge of the screen. Everything on it is cut from
-  stone rather than drawn in line: a banded medallion under the clock with a
-  bronze star at its centre, a square-in-circle roundel over each aisle, a
-  border course laid in the floor's own units (so it converges the way a real
-  one does), 700 chips of aggregate scattered on a fixed hash, and a woven
-  runner leading in from the near edge with the signal desk standing on it.
-  The stone is waxed, so the arches, the clock and both aisle cases come back
-  up off it, and because the reflections carry the wing metal, the whole
-  floor changes temperature when the lever is thrown. Over all of it: the
-  skylight's pool, the room's shadow across the near ground and a balustrade
-  along the flanks. Below 2800px the grid collapses to the centre column the
-  hall shipped with. Two aisles cost the stage ~680px, and below that width
-  the arches would have to shrink by a quarter to make room for them.
-- **Statistics** (left aisle). An instrument case reading the machine all of
-  this runs on: four needle dials for processor, memory, graphics and
-  traffic, each on a 240° scale with a red sector over the last fifth, plus
-  a tape of hours run and store remaining and the maker's plate at its foot.
-  It replaced a service directory that said the gates' own name, address and
-  lamp back at them a second time. Readings come from `/api/works` on a 4s
-  cadence, and only while the board is actually on screen. Nothing is
-  sampled for a panel nobody can see. (The route and the CSS keep the older
-  name: the board's title is what it shows you, `the works` is what the data
-  is, and `/api/stats` already serves the services' status.)
-- **The Almanac** (right aisle): where the sun is standing over the machine
-  this hall runs on. A horizon dial: the sun travels one ellipse through the
-  whole 24 hours at a constant 15° an hour, with the horizon cutting across
-  it as a chord: solid arc above, dotted below, crossings engraved as
-  sunrise and sunset, elapsed daylight inked in gold as far as the day has
-  got. The chord is what makes it an instrument rather than a decoration:
-  it sits wherever it has to for the lit arc to be daylight's true share of
-  the day, so the dome is fat in June, a shallow cap in December, and cut in
-  half only at an equinox. `scripts/dial.py` measures all of that back out of
-  the drawing. Above it, the reading: temperature,
-  condition, high/low, precipitation and wind; below it, the moon drawn with
-  a real elliptical terminator (so gibbous phases are the right shape), its
-  age, the length of the day and how much it has gained or lost since
-  yesterday. It replaced a Bulletin case that showed four dispatch stubs
-  under a ticker already scrolling them and beside a Ledger already listing
-  them, the hall's third telling of one feed.
+  either side of the stage under one continuous wall and standing on one
+  continuous floor. Below 2800px the aisles fold away, because two of them
+  cost the stage about 680px and the arches would have to shrink by a
+  quarter to make room.
+- **Statistics** (left aisle). A wall case in macassar ebony with a gilt
+  frame round a black glass door, reading the machine all of this runs on:
+  four brass-bezelled needle dials for processor, memory, graphics and
+  traffic, each on a 240° scale with a red lacquer arc over the last fifth,
+  plus hours run, store remaining and a cast maker's plate. A brass picture
+  lamp over it is lit at night. Readings come from `/api/works` on a 4s
+  cadence, and only while the case is actually on screen. (The route and the
+  CSS keep the older name: the case's title is what it shows you, `the works`
+  is what the data is, and `/api/stats` already serves the services' status.)
+- **The Almanac** (right aisle), the same kind of case in figured walnut:
+  where the sun is standing over the machine this hall runs on. An enamel
+  horizon plate: the sun, a gilt bead in a cut slot, travels one ellipse
+  through the whole 24 hours at a constant 15° an hour, with the horizon
+  cutting across it as a chord, so the lit arc is daylight's true share of
+  the day: fat in June, a shallow cap in December, cut in half only at an
+  equinox. `scripts/dial.py` measures that back out of the drawing. Above
+  it, the reading: temperature, condition, high/low, precipitation and wind;
+  below it, the moon as a shaded ball under its own crystal with a real
+  elliptical terminator, its age, the length of the day and how much it has
+  gained or lost since yesterday.
 
   The two halves fail independently on purpose. Sun and moon are arithmetic
   the page runs on one pair of coordinates, so the plate keeps its sky when
   the forecast service is unreachable; the weather comes from
   `/api/almanac`, which the hub fetches from Open-Meteo behind a 15-minute
-  TTL and only when the board is genuinely on screen. An outage prints NO
-  READING and costs nothing else. The hall stands in Pittsburgh unless
+  TTL and only when the case is on screen. An outage prints NO READING and
+  costs nothing else. The hall stands in Pittsburgh unless
   `state/almanac.json` says otherwise (`{"name": "Hangzhou", "name_zh":
   "杭州", "lat": 30.2936, "lon": 120.1614, "timezone": "Asia/Shanghai"}`),
   and a broken override is ignored rather than reported.
 - **The concourse clock**: the hall's centrepiece, showing your machine's
-  local time. A grande-complication regulator in a stepped octagonal deco
-  case: knurled bronze bezel, guilloche field, twelve Roman numerals, and
-  four complications on the cardinal axes: moon phase at 12, date at 3,
-  small seconds at 6, and a pair of meshed wheels at 9 turning off the
-  seconds arbor. Pierced Breguet hands. The drive loop reads the wall clock
-  every frame and never accumulates, so it cannot drift and a DST step or a
-  laptop suspend corrects itself on the next frame; reduced motion swaps the
-  sweep for a boundary-aligned deadbeat tick. It is set
-  into a niche at the centre of the back wall, on the arches' baseline and
-  under their head line, and it is always in view at full size.
-- **Gates.** Each destination is an arched deco portal carrying that
-  service's own mark (the identical artwork its favicon and taskbar tile
-  show), plus a one-line description, the literal address it opens, an
-  OPEN/DARK status lamp (live health checks) and one live stat. A service's
-  own warning (qBittorrent down, the sync daemon stalled) is engraved under
-  its lamp. Clicking an OPEN gate opens the target in a named tab (one tab
-  per service, reused). Clicking a DARK gate shows the launcher hint instead
-  of a dead tab.
+  local time. A grande-complication regulator in a faceted octagonal case of
+  statuary bronze with leaf on its bevels, set in a niche of stepped frames
+  round a back of gold smalti, on a sill of book-matched stone. Opal dial,
+  twelve Roman numerals, blued hands, and four complications on the cardinal
+  axes: the true moon at 12 (the real phase and age, computed to the
+  minute), date at 3, small seconds at 6, and a pair of meshed wheels at 9
+  turning off the seconds arbor. The drive loop reads the wall clock every
+  frame and never accumulates, so it cannot drift and a DST step or a laptop
+  suspend corrects itself on the next frame; reduced motion swaps the sweep
+  for a boundary-aligned deadbeat tick. It is always in view at full size.
+- **Gates.** Each destination is a small gilt proscenium: stepped archivolts
+  round a lit fanlight, the service's own mark (the identical artwork its
+  favicon and taskbar tile show) in a machined bezel at the fanlight's hub,
+  the name on a black glass sign, a velvet house with the description thrown
+  on the closed curtain, and a lacquer apron carrying one live stat, the
+  literal address it opens and an OPEN/DARK lamp (live health checks). By
+  day the curtain is tied back and the description is a title card on the
+  screen. A service's own warning (qBittorrent down, the sync daemon
+  stalled) is engraved on the apron above the lamp. Clicking an OPEN gate
+  opens the target in a named tab (one tab per service, reused); clicking a
+  DARK gate pins its launcher hint on the curtain instead of opening a dead
+  tab. Hover lifts the curtain off the stage; keyboard focus traces the arch
+  in a ring of marquee bulbs.
 - **The row.** The lit wing stands in pairs either side of the clock, two
   arches left and two right. A wing with an odd number of services gets a
-  shuttered RESERVED gate at its right-hand end, which the next service to
-  register in that wing takes over. The other wing waits behind the lever in
-  the same bays, and a throw swaps them in place. Nothing on the stage covers
-  anything else at any size; if the row would not fit, the arches and the
-  clock come down together until it does.
-- **The Ledger.** The message center, kept off the main page behind a hatch
-  button in the masthead. Opening it slides a drawer over the right edge; its
-  spine draws downward and the dispatches cascade after it, staggered and
-  capped so a long feed still lands quickly. It collects today's news from all
-  services: which anime got a new episode, premieres auto-subscribed, shows
-  auto-completed, one-shots imported by hand, which watched workshop mod
-  updated or got pulled, outreach
-  daily-queue readiness and invites sent, the morning edition going to
-  press, and the bourse desk's brief (with its market day and order count)
-  plus any watchtower alarms. Dispatches you have not read carry a champagne rim, and the hatch
-  button wears a single disc on its housing ring while any of them are
-  unread. The count behind it is in the button's tooltip rather than on the
-  disc. **Reading is done by resting on it**: leave the cursor on a card for
-  a moment and the rim drains, the ◆ closes and that one dispatch is marked
-  read. Following a dispatch to its service, or tabbing onto it, does the
-  same. Opening and closing the drawer marks nothing, so the count means what
-  is still outstanding rather than whether you looked in today. When you would
-  rather not rest on twenty of them, the **stamp** under the head clears the
-  whole window in one press: both wings, even while a chip is filtering the
-  column, because the disc on the masthead counts both. It runs the same
-  420 ms drain down the column that a dwell runs on one card, and goes inert
-  (dimmed, still focusable) when there is nothing left to strike.
-  Filter chips (ALL / SALON / BUREAU) are session-only
+  RESERVED gate at its right-hand end, a plaster arch with its iron safety
+  curtain down, which the next service to register in that wing takes over.
+  The other wing waits behind the lever in the same bays, and a throw swaps
+  them in place one bay at a time. Nothing on the stage covers anything else
+  at any size; if the row would not fit, the arches and the clock come down
+  together until it does.
+- **The Ledger.** The message center, kept off the main page behind a domed
+  brass hatch in the masthead. Opening it slides a black lacquer drawer over
+  the right edge, with a brass pneumatic main down its spine and each
+  dispatch a programme card in a small gilt holder. It collects today's news
+  from all services: which anime got a new episode, premieres
+  auto-subscribed, shows auto-completed, one-shots imported by hand, which
+  watched workshop mod updated or got pulled, outreach daily-queue readiness
+  and invites sent, the morning edition going to press, and the bourse
+  desk's brief (with its market day and order count) plus any watchtower
+  alarms. A card you have not read carries a lit jewel in its holder, and
+  the hatch wears one jewel lamp while any card is unread; the count is in
+  the button's tooltip rather than on the jewel. **Reading is done by resting
+  on it**: leave the cursor on a card for a moment and its jewel drains and
+  that dispatch is marked read. Following a dispatch to its service, or
+  tabbing onto it, does the same. Opening and closing the drawer marks
+  nothing, so the count means what is still outstanding rather than whether
+  you looked in today. When you would rather not rest on twenty of them, the
+  brass dater under the head clears the whole window in one press: both
+  wings, even while a chip is filtering the column, because the hatch's
+  jewel counts both. Filter chips (ALL / SALON / BUREAU) are session-only
   and never touched by the mode lever. Both wings' news always arrives.
-  Escape, the scrim and the button all close it.
-- **The ticker**: a status band (lines open, per-gate stats) that also
-  scrolls dispatches you haven't seen yet; static when nothing is new.
-- **The signal desk**: a floor-mounted signal-box lever in a notched
-  quadrant, standing on the runner dead centre, its two throws named on brass
-  plates screwed to the quadrant with the live wing lit. (The names used to
-  float on the terrazzo either side of it: engraved ink on pale stone,
-  foreshortened by the floor's own perspective, and the least legible
-  lettering in the hall, labelling its only control.) Throwing
-  it re-lights the hall (gold ↔ platinum), re-composes the stage, spins the
-  meshed gear pair in the aperture below (trapezoid teeth on ISO
-  proportions, exact center distance and interleave phase), and vents a
-  burst of steam mid-throw. The throw has weight: fast start, slight
-  overshoot, damped clank settle. The lever and both gears are drawn as
-  machined parts rather than silhouettes: knurled grip, ferrule, web
-  relief, rivets, gaiter, pawl and detent on the lever; rim bands, root
-  fillets, tip wear flats, spoke fillets, lightening holes, keyway, bolt
-  circle and witness marks on the gears, with the pinion cast differently
-  from the spur so the pair reads as two parts. It used to sit in a
-  full-bleed bronze rail across the foot of the page; once the hall had a
-  floor, the bar read as a strip of UI taped under the picture, so the
-  housing went and the machine stayed. It never filters the Ledger.
-
-  All of that now lives **inside a bronze console** that stands on the
-  stone: stepped plinth, fluted pilasters, knurl frieze, cornice cap, and
-  one arched aperture with the gear train behind it. Before, the lever
-  pivoted on nothing, the quadrant hung in mid-air and the aperture was cut
-  into no surface: three loose parts sharing a patch of floor, in a housing
-  tone that measured 1.05:1 against the terrazzo, so every solid face was
-  invisible and only the hairlines survived. The lever is bolted to the
-  plinth now, the quadrant is screwed to the console's face, and the case
-  comes back up off the waxed floor like everything else standing in this
-  hall.
-- **Entrance.** A ~2.4 s sequence that assembles the chrome. The lock face
-  is built from a real vault door: case and relocker, a handwheel of rim,
-  fillets, hub and grip knobs, a dial ring whose graduations tick in, bolt
-  guides and a carrier ring, four drive cams, jamb planes and threshold, and
-  a maker's plate. A gold circle draws itself, sunburst rays fan out, the
-  handwheel's quarter-turn drives the cams and retracts eight bolts in sync,
-  the engraved door leaves swing open on their hinges in perspective as a
-  steam wisp rises from the seam, the wordmark settles, the camera dollies
-  in, the wheel docks with the circle as the masthead rosette, and the gear
-  train ticks one tooth so the hall is already in motion. It plays on **every**
-  load. It used to be gated to once per six hours, which made the hall's
-  best moment something you saw once a morning and never again. Any click or
-  keypress cuts it short (browser shortcuts such as F5 still work),
-  `?entrance=0` suppresses it, and reduced motion collapses it to a fade.
-- **Depth.** The hall is dimensional, not flat: a one-point-perspective
-  floor converges behind the stage, gates are slabs with thickness, contact
-  shadows and polished-floor reflections, and the whole stage tilts subtly with the pointer
-  (fine pointers only; fully off under reduced motion, though the static depth
-  stays). One near-vertical key light governs every shadow.
-- **Deco-machine fusion**: the steampunk layer follows the BioShock
-  casework principle: mechanism density peaks at the machine standing on
-  the floor and dies before the architecture above. An oiled-bronze token family joins gold
-  and platinum in both themes; rivets appear only at machine plate seams;
-  the masthead rosette gains one machined knurl ring; the Ledger spine
-  reads as a pneumatic dispatch tube with pipe collars at the day breaks;
-  medallions become carrier end-caps. Nothing idles: gears turn only when
-  the lever drives them, steam exists only as discrete event bursts.
+  Escape, the scrim, the close knob and the hatch all close it.
+- **The marquee**: a status band (lines open, per-gate stats) that also
+  scrolls dispatches you haven't read yet, on milk glass between two rows of
+  bulbs. When something is new at night the bulbs chase; when nothing is
+  new the band stands still and every bulb burns evenly.
+- **The signal desk**: a statuary bronze console standing on the runner dead
+  centre, with a railway points lever in a notched quadrant, two cast brass
+  throw plates (the live wing's pilot jewel lit) and a glazed inspection
+  window over a meshed gear pair (trapezoid teeth on ISO proportions, exact
+  center distance and interleave phase). Throwing it re-leafs the hall (gold
+  for the Salon, nickel silver for the Bureau), swaps the wings, spins the
+  gears and vents a burst of steam mid-throw. The throw has weight: fast
+  start, slight overshoot, damped clank settle. It never filters the Ledger.
+- **Entrance.** At night the hall stands behind a full-screen velvet house
+  curtain with a gilt sunburst crest. The footlights come up, a follow spot
+  finds the crest, the curtain flies out, the house lights rise, the marquee
+  chases once and the fanlights light from the clock outward; the spot then
+  flies to the masthead's monogram and goes out on it. By day the curtain is
+  already up and the street's light floods in and settles. It plays on
+  **every** load and takes about 2.7 s. Any click, tap, wheel or keypress
+  cuts it short (browser shortcuts such as F5 still work), `?entrance=0`
+  suppresses it, and reduced motion collapses it to a fade.
+- **Depth.** A one-point-perspective floor converges behind the stage, the
+  wings tilt inward like an altarpiece, every gate casts its shadow on the
+  wall, and the whole stage tilts subtly with the pointer (fine pointers
+  only; off under reduced motion, though the static depth stays). One key
+  light governs every shadow and every lit edge.
 
 ## Preferences
 
-All modes live in a dedicated settings overlay (the keyhole rosette, top
-right). Nothing is exposed in the main chrome:
+All modes live in one settings panel (the nickel keyhole escutcheon, top
+right), a black lacquer panel of switchgear: a rotary for the appearance, a
+knife switch for the language, a push-button bank for the engraving size, a
+bat toggle for motion and a spring-return key to replay the entrance.
+Nothing is exposed in the main chrome:
 
 - **Appearance**: Onyx (black & gold) / Ivory (platinum & gold) / Follow
   system (reacts live to OS theme changes)
@@ -239,7 +206,13 @@ server.py            FastAPI on 127.0.0.1:8769
 almanac.py           the one call that leaves this machine (Open-Meteo,
                      no key, 15 min TTL, never raises). Sun and moon are
                      NOT in here. The page computes those itself.
-static/              vanilla HTML/CSS/JS frontend, all ornament inline SVG
+static/              vanilla HTML/CSS/JS frontend, no build step
+  css/atrium.css     the hall; palace-gates / -room / -cabinetry / -desk.css
+                     dress each surface in the v6 material law
+  js/app.js          state, polling, layout, keys; palace.js (gates),
+                     room.js (masthead, wall, floor), cabinetry.js (cases),
+                     desk.js (signal desk) and clock.js draw the rest
+  assets/tex/        baked textures (see below)
 state/               runtime state (seq cursors, almanac override), gitignored
 ```
 
@@ -473,7 +446,10 @@ a derived work under that licence. It replaced Noto Serif SC, which was a
 modern Songti reading as a web page beside Garamond, and 25 MB to Heart
 Serif's 11. See `static/fonts/LICENSE.txt`.
 
-The two material textures in `static/assets/tex/` (engine-turned steel,
-riveted iron plate) were generated locally with FLUX.2 [dev] via ComfyUI,
-then flattened to low-contrast mid-gray so they overlay-blend into either
-theme's housing tone.
+The textures in `static/assets/tex/` (leaf, stone, veneer, velvet, damask,
+carpet, glass, smalti, card, bronze patina) are baked on the CPU with numpy
+by `scripts/materials.py`, `materials_gates.py`, `materials_room.py`,
+`cabinetry_tex.py` and `desk_materials.py`; rerun a script to rebake its
+set. Two older ones (engine-turned steel, riveted iron plate) were generated
+locally with FLUX.2 [dev] via ComfyUI and flattened to low-contrast mid-gray
+so they overlay-blend into either theme.
