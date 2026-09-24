@@ -1466,18 +1466,57 @@ function layoutStage(initial) {
   swaps.forEach(function (s) {
     var delay = s.rank * SWAP_STEP;
     if (s.wait) delay += SWAP_OUT + SWAP_GAP;
+    s.delay = delay;
     s.a.classList.toggle('arriving', s.lit);
     role(s.a, s.lit, delay);
   });
 
+  /* Focus rides the throw. When the reader is on an arch that is going out,
+     focus stays on it while it sinks (it keeps its visibility while
+     focused, atrium.css) and moves to the arch rising into the same bay at
+     the moment that arch starts to rise, in the same task that makes the
+     old one inert. The handoff used to run on a timer after the whole wing
+     had gone inert: focus fell to <body> in between, a screen reader
+     announced the page, and the arch it then landed on stood fully
+     transparent for another half second (AT-21, KB-13). */
+  // A handoff still waiting is finished at once by a re-solve (the arch it
+  // would leave focus on is about to go inert), and dropped by a second
+  // throw, which brings that arch straight back.
+  if (handoffT) {
+    clearTimeout(handoffT);
+    handoffT = 0;
+    if (initial && handoffFn) handoffFn();
+  }
+  handoffFn = null;
+  var ae = document.activeElement, leaving = null;
+  swaps.forEach(function (s) { if (!s.lit && s.a === ae) leaving = s; });
   all.forEach(function (svc) {
     var a = gate(svc);
     if (!a) return;
     var waiting = svc.wing !== wing;
+    if (leaving && a === leaving.a) return;   // inert at the handoff
     a.inert = waiting;
     if (waiting) a.setAttribute('aria-hidden', 'true');
     else if (!svc.vacant) a.removeAttribute('aria-hidden');
   });
+  if (leaving) {
+    var into = swaps.filter(function (s) { return s.lit && Math.abs(s.x - leaving.x) < 0.5; })[0];
+    var still = root.dataset.motion === 'reduced' || document.visibilityState === 'hidden';
+    var hand = handoffFn = function () {
+      handoffT = 0;
+      handoffFn = null;
+      var old = leaving.a;
+      if (document.activeElement === old) {
+        var to = into && !into.vacant ? into.a : nearestLit(leaving.x);
+        if (to) to.focus({ preventScroll: true });
+      }
+      old.inert = true;
+      old.setAttribute('aria-hidden', 'true');
+    };
+    if (still) hand();
+    else handoffT = setTimeout(hand, into ? into.delay : leaving.delay + SWAP_OUT - 40);
+  }
+
   // How far the row actually reaches from the axis. The bays are cut against
   // THIS, not against the stage column, which is wider than the row.
   triptychHalf = half + (nSide ? gateW + (nSide - 1) * spacing : 0);
@@ -1492,6 +1531,18 @@ function layoutStage(initial) {
   });
   rowGeom = geom;
   if (initial || !same) buildAisles();
+}
+var handoffT = 0, handoffFn = null;
+
+/* The lit, working arch nearest a bay: where focus goes when the arch
+   rising into its bay is the RESERVED one. */
+function nearestLit(x) {
+  var best = null, d = Infinity;
+  litGates().forEach(function (g) {
+    var dx = Math.abs(slotX(g) - x);
+    if (dx < d) { d = dx; best = g; }
+  });
+  return best;
 }
 function slotX(g) { return parseFloat(g.style.getPropertyValue('--slot-x')) || 0; }
 
@@ -4285,6 +4336,13 @@ document.addEventListener('keydown', function (e) {
   var gates = litGates();
   var ae = document.activeElement;
   var onGate = gates.indexOf(ae);
+  // Mid-throw, focus can still be on the arch sinking out of its bay (it
+  // hands over when the other one rises). A key pressed then counts from
+  // that bay: it used to be dropped, since the arch was not a lit one.
+  if (onGate < 0 && ae && ae.classList && ae.classList.contains('receded')) {
+    var bayArch = nearestLit(slotX(ae));
+    onGate = bayArch ? gates.indexOf(bayArch) : -1;
+  }
   if (k === 'ArrowLeft' || k === 'ArrowRight' || k === 'Home' || k === 'End') {
     // Arrows belong to the gates only when focus is on one, or nowhere in
     // particular; the lever, the chips and the radios keep theirs.
@@ -4300,11 +4358,9 @@ document.addEventListener('keydown', function (e) {
   } else if (k === 'w' || k === 'W') {
     e.preventDefault();
     if (e.repeat) return;
-    var keep = onGate;
+    // Focus on an arch goes with the throw to the arch rising into the
+    // same bay (layoutStage), so nothing is aimed from here.
     toggleWing();
-    // The wing that was lit goes inert, and focus with it. Land on the gate
-    // in the same bay of the wing coming forward.
-    if (keep >= 0) setTimeout(function () { focusGate(keep); }, themeBusy ? 480 : 60);
     if (keyplate && !keyplate.hidden) setTimeout(renderKeyplate, 700);
   } else if (k === 'l' || k === 'L') {
     e.preventDefault();

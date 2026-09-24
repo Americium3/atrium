@@ -2403,6 +2403,11 @@ html[lang="zh"] .g-name { letter-spacing: 0.17em; }
    it runs on the same clock as the fade however late the first frame is. */
 .gate.active.arriving { animation: gate-arrive 0.12s linear var(--slot-delay, 0ms) backwards; }
 @keyframes gate-arrive { from, to { pointer-events: none; } }
+/* The reader's arch keeps focus while it sinks, and hands it to the arch
+   rising into its bay (layoutStage in app.js). Going hidden at the end of
+   the sink would drop focus to the page for the beat in between, so it
+   stays visible, faded out and taking no pointer, until the handoff. */
+.gate.receded:focus { visibility: visible; pointer-events: none; }
 .gate.active { z-index: 2; }
 .gate.receded { z-index: 1; }
 
