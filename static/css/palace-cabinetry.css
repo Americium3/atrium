@@ -1319,7 +1319,14 @@ html[lang="zh"] [data-pref="theme"] .p-desc { font-size: calc(10.5px * 1.06 * va
 [data-pref="lang"] .p-plaque { padding-top: 0; flex-direction: row; gap: calc(7px * var(--ui)); }
 [data-pref="lang"] .p-plaque .p-jewel { margin: 0; }
 [data-pref="lang"] .p-plaque[data-value="zh"] { flex-direction: row-reverse; }
-[data-pref="lang"] .p-plaque { align-items: center; align-self: start; height: auto; justify-content: flex-start; }
+/* Each radio reaches down over its half of the slate, so a press anywhere on
+   the switch throws it to that side; the jewel and the name stay at the top.
+   They stood 23px tall over the legend alone, and the switch itself took no
+   press at all. */
+[data-pref="lang"] .p-plaque {
+  align-self: stretch; height: auto; justify-content: flex-start;
+  flex-wrap: wrap; align-content: flex-start; align-items: center;
+}
 [data-pref="lang"] .p-plaque[data-value="en"] { padding-left: calc(6px * var(--ui)); }
 [data-pref="lang"] .p-plaque[data-value="zh"] { padding-right: calc(6px * var(--ui)); }
 .p-knife {

@@ -4079,10 +4079,53 @@ Array.prototype.forEach.call(prefs.querySelectorAll('[data-pref]'), function (gr
   });
 });
 
+/* The rotary and the bat toggle answer a press where it lands. Their radios
+   are full-height columns laid over the hardware, and the knob sits inside
+   the IVORY column and the lever inside REDUCED, so a press on either chose
+   the middle legend whatever it pointed at: clicking a knob set to ONYX
+   repainted the hall in Ivory. A press on the plate now turns the pointer to
+   the detent nearest the press, as a hand would, and a press on the boss,
+   which has no side, steps one detent on. The radios stay the keyboard's and
+   the screen reader's surface; a keyboard click carries no position. */
+var DETENTS = {
+  theme: { art: '.p-rotary', hub: '.p-knob', angles: [-52, 0, 52], values: ['onyx', 'ivory', 'system'] },
+  motion: { art: '.p-bat', hub: '.pb-nut', angles: [-38, 0, 38], values: ['full', 'reduced', 'system'] }
+};
+function detentUnder(group, e) {
+  var d = DETENTS[group.dataset.pref];
+  if (!d || !e.detail) return null;
+  var art = $(d.art, group), hub = $(d.hub, group);
+  if (!art || !hub) return null;
+  var a = art.getBoundingClientRect(), h = hub.getBoundingClientRect();
+  var cx = h.left + h.width / 2, cy = h.top + h.height / 2;
+  var dx = e.clientX - cx, dy = e.clientY - cy;
+  var reach = a.width * 0.46, boss = 9 * uiScale();   // the plate's radius (46 of 100)
+  if (d.art === '.p-rotary') { if (dx * dx + dy * dy > reach * reach) return null; }
+  else if (e.clientX < a.left || e.clientX > a.right || e.clientY < a.top || e.clientY > a.bottom) return null;
+  if (dx * dx + dy * dy < boss * boss) {
+    var at = d.values.indexOf(group.querySelector('[aria-checked=true]').dataset.value);
+    return d.values[(at + 1) % d.values.length];
+  }
+  // A press below the hub is read as level with it, so the plate's two
+  // ends still mean the two ends of the throw.
+  var deg = Math.atan2(dx, -Math.min(dy, -boss)) * 180 / Math.PI;
+  var best = 0;
+  d.angles.forEach(function (g, i) { if (Math.abs(deg - g) < Math.abs(deg - d.angles[best])) best = i; });
+  return d.values[best];
+}
+
 prefs.addEventListener('click', function (e) {
   var btn = e.target.closest('[role=radio]');
-  if (!btn) return;
-  var pref = btn.parentNode.dataset.pref;
+  // The plate also shows between the columns, where no radio is.
+  var group = btn ? btn.parentNode : e.target.closest('[data-pref]');
+  var turned = group ? detentUnder(group, e) : null;
+  if (!btn && !turned) return;
+  if (turned && (!btn || turned !== btn.dataset.value)) {
+    // Focus follows the choice, not the column the press fell in.
+    btn = group.querySelector('[data-value="' + turned + '"]');
+    btn.focus({ preventScroll: true });
+  }
+  var pref = group.dataset.pref;
   var val = btn.dataset.value;
   if (pref === 'theme') setThemePref(val);
   else if (pref === 'lang') setLang(val);
