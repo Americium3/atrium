@@ -1812,7 +1812,7 @@ html[lang="zh"] .al-arc text {
 .g-pose {
   position: absolute; inset: 0;
   transform-style: preserve-3d;
-  transform: rotateY(calc(var(--side, 0) * 10deg));
+  transform: translateY(var(--lift, 0px)) rotateY(calc(var(--side, 0) * 10deg));
   transition: transform 0.6s var(--ease-stage);
 }
 .g-shell {
@@ -1853,17 +1853,30 @@ html[lang="zh"] .al-arc text {
 .gate .frame .fs3 { transition: stroke 0.25s 180ms; }
 .gate .frame .fs4 { transition: stroke 0.25s 270ms; }
 .gate.active .frame path, .gate.active .frame rect { stroke: var(--metal); }
-.gate.active:hover .frame path, .gate.active:hover .frame rect,
 .gate.active:focus-visible .frame path, .gate.active:focus-visible .frame rect,
-.gate.receded:hover .frame path, .gate.receded:hover .frame rect,
 .gate.receded:focus-visible .frame path, .gate.receded:focus-visible .frame rect {
   stroke: var(--metal-hi);
+}
+/* Hover states only where a pointer can actually rest. A tap is a hover to
+   a touch screen, and it stuck: the tapped arch stayed lifted and lit until
+   something else was tapped. */
+@media (hover: hover) {
+  .gate.active:hover .frame path, .gate.active:hover .frame rect,
+  .gate.receded:hover .frame path, .gate.receded:hover .frame rect {
+    stroke: var(--metal-hi);
+  }
+  .gate:hover { --lift: -4px; }
 }
 .gate.flash .frame path, .gate.flash .frame rect {
   stroke: var(--champagne) !important;
   transition-duration: 0.05s;
 }
-.gate:hover, .gate:focus-visible { --rise: -4px; }
+/* The lift rides on the pose inside the link, never on the link itself.
+   Lifting the <a> moved the box that owns :hover out from under a pointer
+   resting in its bottom 4px, so the arch bobbed, the sheen replayed and
+   clicks landed on nothing. The link's own box stays put and keeps the
+   pointer. */
+.gate:focus-visible { --lift: -4px; }
 
 .face {
   position: absolute; inset: 0;
@@ -1946,7 +1959,7 @@ html[lang="zh"] .al-arc text {
    must read as architecture waiting, not as a service that is down (DARK
    already means that). No lamp colour, no hover, no click. */
 .gate.vacant { cursor: default; }
-.gate.vacant:hover { --rise: 0px; }
+.gate.vacant:hover { --lift: 0px; }
 .gate.vacant .face::before {
   content: ""; position: absolute; left: 12%; right: 12%; top: 40%; bottom: 13%;
   background: repeating-linear-gradient(to bottom,
@@ -2009,8 +2022,11 @@ html[lang="zh"] .al-arc text {
               rgba(255, 252, 240, 0.10), transparent);
   transform: translateX(-160%) rotate(0.001deg);
 }
-.gate:hover .sheen::after, .gate:focus-visible .sheen::after {
+.gate:focus-visible .sheen::after {
   animation: sheen-sweep 0.6s var(--ease-out) 1;
+}
+@media (hover: hover) {
+  .gate:hover .sheen::after { animation: sheen-sweep 0.6s var(--ease-out) 1; }
 }
 @keyframes sheen-sweep {
   from { transform: translateX(-160%); }
