@@ -94,7 +94,7 @@ var STR = {
     worksSub: 'Readings from the engine room',
     wkCpu: 'PROCESSOR', wkMem: 'MEMORY', wkGpu: 'GRAPHICS', wkNet: 'TRAFFIC',
     wkHours: 'HOURS RUN', wkDisk: 'STORE', wkFree: '{n} FREE',
-    runD: 'd', runH: 'h', runM: 'm', wkRate: 'MB/s', join: ': ',
+    runD: 'd', runH: 'h', runM: 'm', wkRate: 'MB/s', join: ': ', list: ', ',
     vacantName: 'Reserved', vacantLamp: 'Not in service',
     wkNoReading: 'NO READING',
     wkCores: '{n} cores', wkOf: '{a} of {b} GB',
@@ -213,7 +213,7 @@ var STR = {
     'k.outreach.error.head': '草稿引擎出错',
     'k.outreach.error': '请到 Outreach Desk 查看',
     'k.press.digest_ready.head': '晨报已出版',
-    'k.press.digest_ready': '{sections} 个版面 · {stories} 条',
+    'k.press.digest_ready': '{stories} 条新闻，分 {sections} 栏',
     'k.bourse.briefing.head': '证券所晨报已付印',
     'k.bourse.briefing': '{date}版：{orders} 条指令候您审阅',
     'k.bourse.briefing.hold': '{date}版：无操作，按兵不动',
@@ -226,7 +226,7 @@ var STR = {
     worksSub: '本机运转实况',
     wkCpu: '处理器', wkMem: '内存', wkGpu: '显卡', wkNet: '网络',
     wkHours: '已运转', wkDisk: '存储', wkFree: '余 {n}',
-    runD: ' 天 ', runH: ' 时 ', runM: ' 分', wkRate: 'MB/s', join: '：',
+    runD: ' 天 ', runH: ' 时 ', runM: ' 分', wkRate: 'MB/s', join: '：', list: '，',
     vacantName: '预留', vacantLamp: '未启用',
     wkNoReading: '无读数',
     wkCores: '{n} 核', wkOf: '{a} / {b} GB',
@@ -274,7 +274,7 @@ var STR = {
     ariaWorks: '运转统计：本机实时读数',
     ariaAlmanac: '天象：本厅上空的日月与天气',
     worksTitle: '运转统计', almTitle: '天象',
-    salonWing: '娱乐翼 · 沙龙', bureauWing: '工作翼 · 事务所',
+    salonWing: '沙龙翼（娱乐）', bureauWing: '事务翼（工作）',
     ledgerBtnLabel: '消息总台',
     keysTitle: '按键',
     keyGates: '在门廊间移动', keyJump: '直达某扇门', keyOpen: '打开',
@@ -2154,8 +2154,8 @@ function syncWorks() {
     if (!sr) { sr = el('span', 'sr-only wk-sr'); cell.appendChild(sr); }
     sr.textContent = t(d.name) + t('join') +
       (r ? (d.key === 'net' ? t('wkDown', { d: works.net.down_mbs, u: works.net.up_mbs }) : r.text) +
-           (r.title && d.key !== 'net' ? ', ' + r.title : '') +
-           (r.pct >= 85 ? ', ' + t('wkHot') : '')
+           (r.title && d.key !== 'net' ? t('list') + r.title : '') +
+           (r.pct >= 85 ? t('list') + t('wkHot') : '')
          : t('wkNoReading'));
   });
   var tape = $('#wk-tape');
