@@ -3673,15 +3673,24 @@ function turnTickerPage() {
   // Crawl or pages is a motion decision, and the pages are cut to the
   // band's width and the engraving: either changing re-sets the band now.
   window.addEventListener('atrium:motionchange', function () { renderTicker(true); });
+  function rebox() {
+    if (tickerKey !== null && ticker.clientWidth + '|' + uiScale() !== tickerBox) renderTicker(true);
+  }
   var resizeT = null;
-  window.addEventListener('resize', function () {
+  function reboxSoon() {
     clearTimeout(resizeT);
-    resizeT = setTimeout(function () {
-      if (tickerKey !== null && ticker.clientWidth + '|' + uiScale() !== tickerBox) {
-        renderTicker(true);
-      }
-    }, 200);
-  });
+    resizeT = setTimeout(rebox, 200);
+  }
+  window.addEventListener('resize', reboxSoon);
+  // The engraving size changes no window size, so the resize above never
+  // saw it, and a band cut for the old size ran on under the end cap (RC-4).
+  // Watched on the root, it re-sets the band from the Preferences radio and
+  // from another tab alike. Not on the next frame: under reduced motion
+  // every property still eases over 0.01ms, so the lettering is measured at
+  // its old size until a frame has passed.
+  if (window.MutationObserver) {
+    new MutationObserver(reboxSoon).observe(root, { attributes: true, attributeFilter: ['data-ui'] });
+  }
 })();
 
 /* ========================================================================
