@@ -56,7 +56,7 @@ var STR = {
     'note.slow': 'Running, but slow to answer',
     'k.anime.premiere': 'Premiered',
     'k.anime.premiere.promoted': 'Premiered and auto-subscribed',
-    'k.anime.completed': 'Finished, all {eps} {eps|episode|episodes} watched',
+    'k.anime.completed': 'Finished, all {eps} episodes watched',
     'k.anime.completed.noeps': 'Finished and marked as watched',
     'k.anime.landed': 'Episode {ep} shelved · {cour}',
     'k.anime.landed.noep': 'New episode shelved · {cour}',
@@ -2963,7 +2963,8 @@ function headline(d) {
     case 'anime.premiere':
       return { head: p.title, detail: t(p.promoted ? 'k.anime.premiere.promoted' : 'k.anime.premiere') };
     case 'anime.completed':
-      return { head: p.title, detail: t(p.eps ? 'k.anime.completed' : 'k.anime.completed.noeps', p) };
+      // A one-episode show was "Finished, all 1 episode watched".
+      return { head: p.title, detail: t(Number(p.eps) > 1 ? 'k.anime.completed' : 'k.anime.completed.noeps', p) };
     case 'anime.landed':
       return { head: p.show, detail: t(p.ep ? 'k.anime.landed' : 'k.anime.landed.noep', p) };
     case 'anime.subscribed':
