@@ -5187,7 +5187,11 @@ window.addEventListener('storage', function (e) {
   } else if (e.key === 'atrium.lang') {
     if ((e.newValue === 'zh' ? 'zh' : 'en') !== lang) setLang(e.newValue);
   } else if (e.key === 'atrium.motion') {
-    root.dataset.motionPref = e.newValue || 'system';
+    // Validated as the pre-paint script validates it. Taken as it came, a
+    // stray value ("fast") ran the hall on a motion no rule knows, and with
+    // no radio checked the Motion group dropped out of the Tab ring.
+    root.dataset.motionPref = (e.newValue === 'full' || e.newValue === 'reduced')
+      ? e.newValue : 'system';
     resolveMotion();
   } else if (e.key === 'atrium.ui') {
     root.dataset.ui = (e.newValue === 's' || e.newValue === 'l') ? e.newValue : 'm';
