@@ -30,7 +30,7 @@ var STR = {
     today: 'TODAY', earlier: 'EARLIER',
     empty: 'No dispatches',
     darkNotice: 'Dark. Launch with: {hint}',
-    darkLaunch: 'Launch with',
+    darkLaunch: 'Launch with', darkHint: 'Launch with: {hint}',
     lampOpen: 'Reachable', lampDark: 'Offline', lampChecking: 'Checking',
     justNow: 'just now', minAgo: '{n} min ago', hAgo: '{n} h ago', dAgo: '{n} d ago',
     /* Said, not engraved: a screen reader read "15 H AGO" letter for letter. */
@@ -179,7 +179,7 @@ var STR = {
     today: '今日', earlier: '更早',
     empty: '暂无快讯',
     darkNotice: '未点亮。用此脚本启动：{hint}',
-    darkLaunch: '用此脚本启动',
+    darkLaunch: '用此脚本启动', darkHint: '用此脚本启动：{hint}',
     lampOpen: '已点亮', lampDark: '离线', lampChecking: '检查中',
     justNow: '刚刚', minAgo: '{n} 分钟前', hAgo: '{n} 小时前', dAgo: '{n} 天前',
     minAgoSr: '{n} 分钟前', hAgoSr: '{n} 小时前', dAgoSr: '{n} 天前',
@@ -1350,8 +1350,10 @@ function letterNotice(n, svc) {
     path.appendChild(document.createTextNode(part));
   });
   n.appendChild(path);
+  // The twin says only what to do. The lamp word opens the gate's
+  // description already, and "dark. ... Dark. Launch with" said it twice.
   var sr = $('.g-notice-sr', n.parentNode);
-  if (sr) sr.textContent = t('darkNotice', { hint: hint });
+  if (sr) sr.textContent = t('darkHint', { hint: hint });
   // The card has to stand inside the house whatever the path's length and
   // however small the arch: it is set tighter, a step at a time, until it
   // fits, and set again whenever the house changes size.
@@ -1372,7 +1374,9 @@ function fitNotice(n) {
 }
 
 /* Pins the card. It is said out loud when it goes up, and again whenever
-   `again` asks (a keyboard press on a card already showing). */
+   `again` asks (a keyboard press on a card already showing). Said whole,
+   DARK and all: the announcement stands on its own, where the gate's
+   description already has its lamp word. */
 function showNotice(a, svc, again) {
   var n = $('.g-notice', a);
   if (n.hidden) {
@@ -1383,7 +1387,7 @@ function showNotice(a, svc, again) {
   } else if (!again) {
     return;
   }
-  sayGate($('.g-notice-sr', a).textContent);
+  sayGate(t('darkNotice', { hint: svc.launch_hint || svc.url }), a);
 }
 
 function hideNotice(a) {
@@ -1391,9 +1395,8 @@ function hideNotice(a) {
   n.hidden = true;
   // Emptied, not just hidden: aria-describedby reads a hidden element it
   // points at, and a gate back OPEN used to keep its launch path.
-  var said = $('#gate-say');
-  if (said && sr.textContent && said.textContent === sr.textContent) said.textContent = '';
   sr.textContent = '';
+  unsayGate(a);
   describeGate(a);
 }
 
@@ -1420,14 +1423,30 @@ function describeGate(a) {
 /* The launch card is said in a polite region of its own. It used to borrow
    #hall-status, and the next poll, finding the card's words there, said an
    unchanged line count again. The region is emptied and written a beat
-   later, so the same card said twice is still a change a reader hears. */
-var gateSayT = null;
-function sayGate(text) {
+   later, so the same card said twice is still a change a reader hears.
+   Once said, it is taken down again: left standing, a reader browsing the
+   hall met the launch path as a loose sentence after the last gate, with
+   no gate attached. The gate's own description keeps the words. */
+var gateSayT = null, gateSayFor = null;
+var GATE_SAY_HOLD = 5000;   // ms: long after the region's change is queued
+function sayGate(text, a) {
   var n = $('#gate-say');
   if (!n) return;
   clearTimeout(gateSayT);
   n.textContent = '';
-  gateSayT = setTimeout(function () { n.textContent = text; }, 80);
+  gateSayFor = a || null;
+  gateSayT = setTimeout(function () {
+    n.textContent = text;
+    gateSayT = setTimeout(function () { unsayGate(); }, GATE_SAY_HOLD);
+  }, 80);
+}
+/* Empties the region: any gate's words with no argument, or only a's. */
+function unsayGate(a) {
+  if (a && gateSayFor !== a) return;
+  clearTimeout(gateSayT);
+  gateSayFor = null;
+  var n = $('#gate-say');
+  if (n) n.textContent = '';
 }
 
 /* The browser's new-tab modifier: Cmd on a Mac, Ctrl everywhere else.

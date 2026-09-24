@@ -1258,7 +1258,11 @@ at the next local midnight turns them with the clock's date aperture.
   (one missed poll) has not come back: the card stays, and the gate stays
   dark to a press until a status says otherwise. The gate's `aria-describedby` names the
   card, and Chrome voices a named node even while it is hidden, so a gate
-  back OPEN kept describing itself as "Dark. Launch with ...".
+  back OPEN kept describing itself as "Dark. Launch with ...". The card
+  that description names holds only "Launch with: ...", since the lamp
+  word already opens it. The whole notice is said once in `#gate-say`,
+  and the region is emptied five seconds later, so a reader browsing the
+  hall does not meet the path again after the last gate.
 - Polls overlap (the beat, a refocus, a retry); their answers apply in
   order, and an older one never overwrites a newer one.
 
