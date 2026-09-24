@@ -892,6 +892,10 @@ html[data-entered="no"] #entrance.done-fade { pointer-events: none; cursor: auto
   margin: calc(min(66vmin, 760px) / -2) 0 0 calc(min(66vmin, 760px) / -2);
   overflow: visible;
 }
+/* Out of sight until they are hung on the dial (placeCrest() in app.js),
+   then they come up out of the dark house. */
+.e-crest, .e-wordmark { transition: opacity 0.3s ease-out; }
+#entrance:not(.placed) :is(.e-crest, .e-wordmark) { opacity: 0; }
 .e-gilt-0 { stop-color: #f6d586; }
 .e-gilt-1 { stop-color: #c68b2c; }
 .e-gilt-2 { stop-color: #7e5210; }

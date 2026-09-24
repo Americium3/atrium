@@ -755,13 +755,20 @@ function afterDrawn(fn) {
    on most screens and 42-53px higher on tall ones, and the pool sat across
    the dial's upper half before it flew to the monogram (VD-18). Measured
    when the curtain is dressed and again whenever the stage is solved while
-   it stands (the gates arriving, a resize). */
-function placeCrest() {
+   it stands (the gates arriving, a resize). The crest and the name stay
+   out of sight until then (.placed): the dial is not drawn when the curtain
+   is dressed, and the row it stands in is solved only once the gates are in,
+   so a crest shown at once jumped to the dial during the hold. */
+function placeCrest(anyway) {
   if (root.dataset.entered !== 'no') return;
   var dial = $('#clock .dial');
   var r = dial && dial.getBoundingClientRect();
-  if (!r || !r.height) return;
-  entrance.style.setProperty('--clock-cy', (r.top + r.height / 2).toFixed(1) + 'px');
+  if (r && r.height) {
+    entrance.style.setProperty('--clock-cy', (r.top + r.height / 2).toFixed(1) + 'px');
+  } else if (!anyway) {
+    return;
+  }
+  entrance.classList.add('placed');
 }
 function playEntrance(built) {
   // Disable ledger button during entrance; re-enabled in finishEntrance()
@@ -810,6 +817,8 @@ function runEntrance(day) {
   var at = function (ms, fn) { entranceTimers.push(setTimeout(fn, ms)); };
   var beat = function (cls) { return function () { entrance.classList.add(cls); }; };
   window.__entranceT0 = performance.now();   // read by the frame-capture scripts
+  // hung before the curtain's clock starts, on the dial if it stands
+  placeCrest(true);
   entrance.classList.add('play');
 
   if (day) {
