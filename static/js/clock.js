@@ -17,9 +17,10 @@
    Every stroke carries vector-effect:non-scaling-stroke, so the hairline law
    holds whether the dial is drawn at 160px or 620px.
 
-   Drive: the loop reads `new Date()` on every frame and never accumulates,
-   so drift is structurally impossible and a DST step or a machine sleep
-   corrects itself on the next frame. Under reduced motion the sweep is
+   Drive: each moving part is its own layer, turned by a compositor
+   animation set in phase from `new Date()` and re-set every ten seconds,
+   so it never accumulates, cannot drift, and a DST step or a machine sleep
+   comes right at the next re-set. Under reduced motion the sweep is
    replaced by a boundary-aligned 1 Hz deadbeat tick.
    =========================================================================== */
 (function () {
@@ -178,7 +179,7 @@ function dateDial(cx, cy, r) {
 
 /* 6 — small seconds. Taking the seconds off the centre keeps the main dial
    quiet and is the regulator convention. */
-function secondsDial(cx, cy, r, moving) {
+function secondsDial(cx, cy, r) {
   var t = '', i, h;
   for (i = 0; i < 60; i++) {
     h = i % 5 === 0;
@@ -187,42 +188,30 @@ function secondsDial(cx, cy, r, moving) {
          '" width="' + (h ? 4 : 2) + '" height="' + (h ? 15 : 8) +
          '" transform="rotate(' + (i * 6) + ' ' + cx + ' ' + cy + ')"/>';
   }
-  var secHand = '<polygon points="' +
-      (cx - 1.9) + ',' + cy + ' ' + (cx - 1.2) + ',' + (cy - r + 16) + ' ' +
-      cx + ',' + (cy - r + 6) + ' ' + (cx + 1.2) + ',' + (cy - r + 16) + ' ' +
-      (cx + 1.9) + ',' + cy + ' ' + (cx + 4) + ',' + (cy + 18) + ' ' +
-      (cx - 4) + ',' + (cy + 18) + '"/>';
-  if (!moving) {
-    return subframe(cx, cy, r) + t +
-      '<text class="ck-subcap" x="' + cx + '" y="' + (cy + r - 20) + '" text-anchor="middle">SEC</text>';
-  }
-  return '<g class="ck-hsh ck-sh-s">' + secHand + '</g>' +
-    '<g class="ck-ss">' +
-    '<polygon class="ck-sec" points="' +
-      (cx - 1.9) + ',' + cy + ' ' + (cx - 1.2) + ',' + (cy - r + 16) + ' ' +
-      cx + ',' + (cy - r + 6) + ' ' + (cx + 1.2) + ',' + (cy - r + 16) + ' ' +
-      (cx + 1.9) + ',' + cy + ' ' + (cx + 4) + ',' + (cy + 18) + ' ' +
-      (cx - 4) + ',' + (cy + 18) + '"/>' +
-    '<circle class="ck-secring" cx="' + cx + '" cy="' + (cy + 24) + '" r="8"/></g>' +
-    '<circle class="ck-subboss" cx="' + cx + '" cy="' + cy + '" r="7"/>';
+  return subframe(cx, cy, r) + t +
+    '<text class="ck-subcap" x="' + cx + '" y="' + (cy + r - 20) + '" text-anchor="middle">SEC</text>';
+}
+/* The small seconds' baton, standing at XII about its arbor. */
+function secPoints(cx, cy, r) {
+  return (cx - 1.9) + ',' + cy + ' ' + (cx - 1.2) + ',' + (cy - r + 16) + ' ' +
+    cx + ',' + (cy - r + 6) + ' ' + (cx + 1.2) + ',' + (cy - r + 16) + ' ' +
+    (cx + 1.9) + ',' + cy + ' ' + (cx + 4) + ',' + (cy + 18) + ' ' +
+    (cx - 4) + ',' + (cy + 18);
 }
 
 /* 9 — the works: two meshing wheels, geared 14:9 and turning against each
-   other, so the hall's machinery is visibly driven by the clock. */
-function worksDial(cx, cy, r, moving) {
-  function wheel(R, n, cls, id) {
-    var g = '', i;
-    for (i = 0; i < n; i++) {
-      g += '<rect class="' + cls + '" x="-3.4" y="' + (-R - 7) +
-           '" width="6.8" height="9" transform="rotate(' + (i * (360 / n)) + ')"/>';
-    }
-    return '<g class="' + id + '"><circle class="' + cls + '" cx="0" cy="0" r="' + R + '"/>' +
-           g + '<circle class="ck-gearhole" cx="0" cy="0" r="' + (R * 0.34) + '"/></g>';
+   other, so the hall's machinery is visibly driven by the clock. A wheel is
+   drawn about its own arbor at (0, 0). */
+function wheel(R, n, cls, id) {
+  var g = '', i;
+  for (i = 0; i < n; i++) {
+    g += '<rect class="' + cls + '" x="-3.4" y="' + (-R - 7) +
+         '" width="6.8" height="9" transform="rotate(' + (i * (360 / n)) + ')"/>';
   }
-  if (moving) {
-    return '<g transform="translate(' + (cx - 16) + ',' + (cy - 6) + ')">' + wheel(30, 14, 'ck-gear', 'ck-gA') + '</g>' +
-      '<g transform="translate(' + (cx + 26) + ',' + (cy + 20) + ')">' + wheel(19, 9, 'ck-gear2', 'ck-gB') + '</g>';
-  }
+  return '<g class="' + id + '"><circle class="' + cls + '" cx="0" cy="0" r="' + R + '"/>' +
+         g + '<circle class="ck-gearhole" cx="0" cy="0" r="' + (R * 0.34) + '"/></g>';
+}
+function worksDial(cx, cy, r) {
   return subframe(cx, cy, r) +
     '<circle class="ck-gearwell" cx="' + cx + '" cy="' + cy + '" r="' + (r - 12) + '"/>' +
     '<text class="ck-subcap" x="' + cx + '" y="' + (cy + r - 20) + '" text-anchor="middle">WORKS</text>';
@@ -296,10 +285,27 @@ function dialDefs() {
    so its shadow falls further down along the key light. */
 var SHADOW = { h: [5, 9], m: [8, 14], s: [11, 19] };
 
-/* The dial is two layers: everything that stands still (painted once) and
+/* Each moving part's period in ms, and where in it the part stands at a
+   given moment. The hands count from local midnight. The works turn off the
+   seconds arbor at 1:4 (one turn in four minutes), meshed 14:9 and opposed;
+   they count from the epoch, so they no longer jump back three and a half
+   teeth at the top of every minute. The deadbeat drops the milliseconds. */
+var PERIOD = { s: 60000, m: 3600000, h: 43200000, gA: 240000, gB: 240000 * 9 / 14 };
+var SENSE = { gB: -1 };
+function phaseAt(key, now, deadbeat) {
+  var ms = deadbeat ? 0 : now.getMilliseconds();
+  var t = key === 'gA' || key === 'gB' ? now.getTime() - now.getMilliseconds() + ms :
+    (((now.getHours() % 12) * 60 + now.getMinutes()) * 60 + now.getSeconds()) * 1000 + ms;
+  return t % PERIOD[key];
+}
+function angleAt(key, now, deadbeat) {
+  return (phaseAt(key, now, deadbeat) / PERIOD[key] * 360 * (SENSE[key] || 1)).toFixed(3);
+}
+
+/* The dial is two sheets: everything that stands still (painted once) and
    everything that moves (hands, their shadows, the small seconds, the works
-   and the crystal over them), so the per-frame sweep repaints only the thin
-   top sheet, never the guilloche, the chapter ring and the subdials. */
+   and the crystal over them), so the sweep never repaints the guilloche,
+   the chapter ring and the subdials. */
 function dial() {
   return '<circle class="ck-case2" cx="500" cy="500" r="499"/>' + knurl() +
     '<circle class="ck-caseline" cx="500" cy="500" r="472"/>' +
@@ -311,15 +317,47 @@ function dial() {
     '<circle class="ck-goldrule" cx="500" cy="500" r="400"/>' +
     chapter() + numerals() +
     moonDial(500, 295, 88) + dateDial(705, 500, 88) +
-    secondsDial(500, 705, 88, false) + worksDial(295, 500, 88, false);
+    secondsDial(500, 705, 88) + worksDial(295, 500, 88);
+}
+
+/* The moving sheet is a stack of thin layers, one per moving part: an HTML
+   box the size of the dial, turned about the part's arbor by a transform
+   animation that the compositor runs. Eight transform writes a frame on
+   SVG nodes re-laid and hit-tested the whole page sixty times a second, at
+   up to a quarter of a CPU core with the hall at rest (MO-9); a layer the
+   compositor turns costs the page no layout, paint or script at all. */
+var DS = 0.855;                                   // the dial's scale in the case
+function dpct(u) { return (50 + (u - 500) * DS / 10).toFixed(4) + '%'; }
+function layer(inner) {
+  return '<svg class="dh-svg" viewBox="0 0 1000 1000" focusable="false">' +
+    '<g transform="translate(500,500) scale(' + DS + ') translate(-500,-500)">' + inner + '</g></svg>';
+}
+function sheet(inner) { return '<div class="dh-sheet">' + layer(inner) + '</div>'; }
+function rotor(key, cx, cy, inner, cast) {
+  var r = '<div class="dh-rotor" data-r="' + key + '" style="transform-origin:' +
+    dpct(cx) + ' ' + dpct(cy) + '">' + layer(inner) + '</div>';
+  if (!cast) return r;
+  // A shadow turns with its hand and then stands off the dial down the key
+  // light, so the offset sits outside the turn, whatever the hand's angle.
+  return '<div class="dh-sheet" style="transform:translate(' + (cast[0] * DS / 10).toFixed(4) + '%,' +
+    (cast[1] * DS / 10).toFixed(4) + '%)">' + r + '</div>';
 }
 function dialMoving() {
-  return secondsDial(500, 705, 88, true) + worksDial(295, 500, 88, true) +
-    '<g class="ck-hsh ck-sh-h">' + hand('', 288, 80, 20, 36, 228, true) + '</g>' +
-    '<g class="ck-hsh ck-sh-m">' + hand('', 396, 96, 11, 24, 338, false) + '</g>' +
-    hand('ck-h', 288, 80, 20, 36, 228, true) +
-    hand('ck-m', 396, 96, 11, 24, 338, false) +
-    '<circle class="ck-boss" cx="500" cy="500" r="31"/>' +
+  var sp = secPoints(500, 705, 88);
+  return rotor('s', 500, 705, '<g class="ck-hsh ck-sh-s"><polygon points="' + sp + '"/></g>', SHADOW.s) +
+    rotor('s', 500, 705, '<g class="ck-ss"><polygon class="ck-sec" points="' + sp + '"/>' +
+      '<circle class="ck-secring" cx="500" cy="729" r="8"/></g>') +
+    sheet('<circle class="ck-subboss" cx="500" cy="705" r="7"/>') +
+    rotor('gA', 279, 494, '<g transform="translate(279,494)">' + wheel(30, 14, 'ck-gear', 'ck-gA') + '</g>') +
+    rotor('gB', 321, 520, '<g transform="translate(321,520)">' + wheel(19, 9, 'ck-gear2', 'ck-gB') + '</g>') +
+    rotor('h', 500, 500, '<g class="ck-hsh ck-sh-h">' + hand('', 288, 80, 20, 36, 228, true) + '</g>', SHADOW.h) +
+    rotor('m', 500, 500, '<g class="ck-hsh ck-sh-m">' + hand('', 396, 96, 11, 24, 338, false) + '</g>', SHADOW.m) +
+    rotor('h', 500, 500, hand('ck-h', 288, 80, 20, 36, 228, true)) +
+    rotor('m', 500, 500, hand('ck-m', 396, 96, 11, 24, 338, false)) +
+    sheet(bossAndCrystal());
+}
+function bossAndCrystal() {
+  return '<circle class="ck-boss" cx="500" cy="500" r="31"/>' +
     '<circle class="ck-bosshair" cx="500" cy="500" r="20"/>' +
     '<circle class="ck-boss-lt" cx="492" cy="492" r="9"/>' +
     // The crystal: a domed glass over all of it. One long soft reflection of
@@ -367,10 +405,6 @@ function markup() {
     shoulders() + spandrels() + rivets() +
     '<g transform="translate(500,500) scale(0.855) translate(-500,-500)">' +
     dial() + '</g>';
-}
-function markupHands() {
-  return '<g transform="translate(500,500) scale(0.855) translate(-500,-500)">' +
-    dialMoving() + '</g>';
 }
 
 /* ---- moon phase ----------------------------------------------------------
@@ -493,12 +527,9 @@ function build(host) {
   svg.setAttribute('focusable', 'false');
   svg.innerHTML = markup();
   wrap.appendChild(svg);
-  var hands = document.createElementNS(NS, 'svg');
-  hands.setAttribute('class', 'dial-hands');
-  hands.setAttribute('viewBox', '0 0 1000 1000');
-  hands.setAttribute('aria-hidden', 'true');
-  hands.setAttribute('focusable', 'false');
-  hands.innerHTML = markupHands();
+  var hands = document.createElement('div');
+  hands.className = 'dial-hands';
+  hands.innerHTML = dialMoving();
   wrap.appendChild(hands);
   host.appendChild(wrap);
   // The niche in the waxed floor: sill, frame and the dial's light, flipped
@@ -516,35 +547,39 @@ function build(host) {
   reader.className = 'sr-only';
   host.appendChild(reader);
 
-  var parts = {
-    hs: hands.querySelector('.ck-sh-h'), ms: hands.querySelector('.ck-sh-m'),
-    ss: hands.querySelector('.ck-sh-s'),
-    h: hands.querySelector('.ck-h'), m: hands.querySelector('.ck-m'),
-    s: hands.querySelector('.ck-ss'), gA: hands.querySelector('.ck-gA'),
-    gB: hands.querySelector('.ck-gB'), date: svg.querySelector('#ck-date'),
-    shade: svg.querySelector('#ck-shade'),
-  };
+  var rotors = Array.prototype.map.call(hands.querySelectorAll('.dh-rotor'), function (el) {
+    return { el: el, key: el.dataset.r, anim: null };
+  });
+  var parts = { date: svg.querySelector('#ck-date'), shade: svg.querySelector('#ck-shade') };
   var lastDate = -1, lastShade = '', lastMinute = -1, moonMinute = -1;
 
-  function paint(now, deadbeat) {
-    var ms = deadbeat ? 0 : now.getMilliseconds();
-    var t = now.getSeconds() + ms / 1000;
-    var sec = t * 6;
-    var min = now.getMinutes() * 6 + t * 0.1;
-    var hr = (now.getHours() % 12) * 30 + now.getMinutes() * 0.5;
+  /* Full motion: each rotor turns once a period under the compositor, set
+     in phase with the wall clock. Re-set every few seconds, so a DST step,
+     a suspend or a throttled tab comes right again at the next one. */
+  function sweep(now) {
+    rotors.forEach(function (r) {
+      if (!r.el.animate) { r.el.style.transform = 'rotate(' + angleAt(r.key, now, false) + 'deg)'; return; }
+      r.el.style.transform = '';
+      if (!r.anim) {
+        r.anim = r.el.animate([{ transform: 'rotate(0deg)' },
+          { transform: 'rotate(' + 360 * (SENSE[r.key] || 1) + 'deg)' }],
+          { duration: PERIOD[r.key], iterations: Infinity });
+      }
+      r.anim.currentTime = phaseAt(r.key, now, false);
+    });
+  }
+  /* Reduced motion: the deadbeat. Each rotor is set once a second, at the
+     second, and stands still between. */
+  function tick(now) {
+    rotors.forEach(function (r) {
+      if (r.anim) { r.anim.cancel(); r.anim = null; }
+      r.el.style.transform = 'rotate(' + angleAt(r.key, now, true) + 'deg)';
+    });
+  }
 
-    parts.s.setAttribute('transform', 'rotate(' + sec + ' 500 705)');
-    parts.m.setAttribute('transform', 'rotate(' + min + ' 500 500)');
-    parts.h.setAttribute('transform', 'rotate(' + hr + ' 500 500)');
-    // translate first in the list = applied last: the offset stays down the
-    // key light whatever angle the hand stands at
-    parts.ms.setAttribute('transform', 'translate(' + SHADOW.m + ') rotate(' + min + ' 500 500)');
-    parts.hs.setAttribute('transform', 'translate(' + SHADOW.h + ') rotate(' + hr + ' 500 500)');
-    parts.ss.setAttribute('transform', 'translate(' + SHADOW.s + ') rotate(' + sec + ' 500 705)');
-    /* The works turn off the seconds arbor at 1:4, meshed 14:9 and opposed. */
-    parts.gA.setAttribute('transform', 'rotate(' + (sec * 0.25) + ')');
-    parts.gB.setAttribute('transform', 'rotate(' + (-sec * 0.25 * 14 / 9) + ')');
-
+  /* What changes by the minute or the day: the spoken time, the date and
+     the moon. Each is written only when it changes. */
+  function slow(now) {
     var minute = now.getHours() * 60 + now.getMinutes();
     if (minute !== lastMinute) {
       lastMinute = minute;
@@ -575,16 +610,18 @@ function build(host) {
     }
   }
 
-  return paint;
+  return { sweep: sweep, tick: tick, slow: slow };
 }
 
-/* Reading the wall clock every frame means the loop cannot drift, and a DST
-   step, a suspend/resume, or a throttled background tab all self-correct on
-   the next frame. Reduced motion swaps the sweep for a boundary-aligned
-   deadbeat tick — the mechanism a real regulator actually has. */
-function start(paint) {
+/* The sweep is set from the wall clock, never accumulated, so it cannot
+   drift, and a DST step, a suspend/resume or a throttled background tab all
+   come right at the next re-set, every ten seconds on the boundary. Reduced
+   motion swaps the sweep for a boundary-aligned deadbeat tick, the
+   mechanism a real regulator actually has. */
+var RESYNC_MS = 10000;
+function start(clock) {
   var root = document.documentElement;
-  var timer = null, raf = null;
+  var timer = null;
 
   // data-motion is resolved from the reader's choice and the OS setting in
   // one place (the pre-paint script, then resolveMotion in app.js). Reading
@@ -595,29 +632,25 @@ function start(paint) {
 
   function stop() {
     if (timer) { clearTimeout(timer); timer = null; }
-    if (raf) { cancelAnimationFrame(raf); raf = null; }
   }
 
   function run() {
     stop();
-    if (reduced()) {
-      (function tick() {
-        paint(new Date(), true);
-        timer = setTimeout(tick, 1000 - (Date.now() % 1000));
-      })();
-    } else {
-      (function frame() {
-        paint(new Date(), false);
-        raf = requestAnimationFrame(frame);
-      })();
-    }
+    var deadbeat = reduced(), step = deadbeat ? 1000 : RESYNC_MS;
+    (function beat() {
+      var now = new Date();
+      if (deadbeat) clock.tick(now); else clock.sweep(now);
+      clock.slow(now);
+      // a hair past the boundary, so the new minute is read on the minute
+      timer = setTimeout(beat, step - (Date.now() % step) + (deadbeat ? 0 : 5));
+    })();
   }
 
   document.addEventListener('visibilitychange', function () {
     if (document.hidden) { stop(); } else { run(); }
   });
   // A motion flip in a hidden tab (another tab's Preferences, the OS
-  // setting) only chooses the loop; visibilitychange starts it on the way
+  // setting) only chooses the drive; visibilitychange starts it on the way
   // back. Running it here restarted the deadbeat tick in the background.
   window.addEventListener('atrium:motionchange', function () {
     if (!document.hidden) run();

@@ -3803,13 +3803,17 @@ html[lang="zh"] .g-desc { font-size: clamp(10px, 5.2cqw, calc(14px * var(--ui)))
     radial-gradient(30% 60% at 50% 0%, rgba(255, 214, 160, 0.14), transparent 80%);
 }
 
-/* The moving sheet of the clock, over the still dial, in its own layer. */
-#clock svg.dial-hands {
+/* The moving sheet of the clock, over the still dial: a stack of layers the
+   size of the dial, one per moving part, each turned by the compositor
+   about its arbor (clock.js sets the origin). */
+#clock .dial-hands {
   position: absolute; left: var(--reveal); top: var(--reveal);
   width: var(--dial); height: var(--dial);
   z-index: 4; pointer-events: none;
-  will-change: transform;
 }
+.dh-sheet, .dh-rotor { position: absolute; inset: 0; }
+.dh-rotor { will-change: transform; }
+.dh-svg { display: block; width: 100%; height: 100%; overflow: visible; }
 .t-chase { will-change: transform; }
 
 /* A plaque says "unread" to a screen reader only while it is. */
