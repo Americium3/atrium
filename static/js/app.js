@@ -3949,6 +3949,9 @@ function renderLedger() {
     if (!ol.querySelector('.ghost')) renderGhosts();
     var saying = ol.querySelector('li.sr-only.ghost');
     if (saying) saying.textContent = t('ledgerLoading');   // a language switch meanwhile
+    // The idle stamp says why it is idle. Only the full render below synced
+    // it, so a drawer opened before the first feed showed no tooltip at all.
+    syncStamp();
     return;
   }
   var shown = feed.filter(function (d) {
@@ -5692,7 +5695,7 @@ document.addEventListener('keydown', function (e) {
 applyI18nStatic();
 renderDateline();
 armMidnight();
-renderGhosts();
+renderLedger();       // the ghosts, and a stamp that says the Ledger is being read
 buildRosetteKnurl();
 buildDesk();
 buildFloorInlay();
