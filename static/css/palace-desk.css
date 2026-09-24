@@ -43,7 +43,7 @@
   --kc-0: #1c0b04; --kc-1: #43200f; --kc-2: #71381b; --kc-3: #a65b33; --kc-4: #d4875a; --kc-5: #ffc795;
   --cu-tex: 0.24; --sb-tex: 0.32;
   /* ebonite: hard rubber, black with a brown bloom where the light lies */
-  --eb-0: #020101; --eb-1: #0d0a08; --eb-2: #211914; --eb-3: #3a2c22; --eb-hi: rgba(255, 216, 170, 0.62);
+  --eb-0: #020101; --eb-1: #0d0a08; --eb-2: #251c16; --eb-3: #44342a; --eb-hi: rgba(255, 220, 178, 0.72);
   /* cast brass: bezels, ferrule, screws, plates (never the wing's leaf) */
   --bz-0: #3a2708; --bz-1: #6d4f1f; --bz-2: #a7813b; --bz-3: #d7b465; --bz-4: #f3dc9c; --bz-ink: #120b04;
   --pl-band: color-mix(in srgb, var(--bz-1) 45%, var(--bz-2));
@@ -158,8 +158,13 @@
       var(--bz-2) 80%, var(--bz-1) 100%);
   font-size: max(10.6px, calc(10.1px / var(--desk-s)));
   line-height: 1.05;
-  letter-spacing: 0.2em;
-  padding: 0.27em calc(0.9em - 0.2em) 0.2em 0.9em;
+  /* On a short screen the board stands small and the 10px floor makes the
+     lettering large against it: the plate draws its tracking and its ends
+     in, so it stays under its jaws. */
+  --pl-ls: clamp(0.1em, calc(0.2em * var(--desk-s)), 0.2em);
+  --pl-pad: clamp(0.68em, calc(0.9em * var(--desk-s)), 0.9em);
+  letter-spacing: var(--pl-ls);
+  padding: 0.27em calc(var(--pl-pad) - var(--pl-ls)) 0.2em var(--pl-pad);
   color: var(--bz-ink);
   font-weight: 640;
   text-shadow: 0 0.7px 0 color-mix(in srgb, var(--bz-4) 75%, transparent),
@@ -193,9 +198,9 @@
     0 0 0 1.4px color-mix(in srgb, var(--bz-1) 70%, transparent),
     0 0.6px 1.2px 1.2px rgba(30, 16, 2, 0.45);
 }
-.assembly .l-label::before { left: 0.3em; }
+.assembly .l-label::before { left: calc(var(--pl-pad) * 0.26); }
 .assembly .l-label::after {
-  right: 0.3em;
+  right: calc(var(--pl-pad) * 0.26);
   background:
     linear-gradient(var(--slot2, 120deg), transparent 42%, rgba(18, 11, 4, 0.9) 42% 58%, transparent 58%),
     radial-gradient(circle at 36% 30%, var(--bz-4), var(--bz-2) 55%, var(--bz-0));
