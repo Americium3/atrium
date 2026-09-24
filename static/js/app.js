@@ -3523,13 +3523,14 @@ function renderTicker(now) {
 }
 
 /* Is somebody reading the band right now? A rolling band always is, until
-   its loop comes round; a still one is while the pointer or the focus is on
-   it; a paged one is between page turns. */
+   its loop comes round; a still one is while the pointer or the keyboard's
+   focus is on it (a click's focus is not a reader, PT-6); a paged one is
+   between page turns. */
 function tickerHeld(ticker) {
   var track = $('#ticker-track');
   if (ticker.classList.contains('rolling') && track.getAnimations &&
       track.getAnimations().some(function (a) { return a.playState !== 'finished'; })) return true;
-  if (ticker.matches(':hover, :focus-within')) return true;
+  if (ticker.matches(':hover, :focus-visible')) return true;
   return !!tickerPageT;
 }
 
@@ -3642,7 +3643,7 @@ function turnTickerPage() {
     var ticker = $('#ticker');
     tickerPageT = null;
     // Pauses on hover and focus, like the crawl, and never turns unseen.
-    if (document.hidden || ticker.matches(':hover, :focus-within')) { turnTickerPage(); return; }
+    if (document.hidden || ticker.matches(':hover, :focus-visible')) { turnTickerPage(); return; }
     // A newer band comes in on a page turn, the paged band's loop boundary.
     if (tickerPending) { applyTicker(tickerPending); return; }
     var pages = Array.prototype.slice.call(document.querySelectorAll('#ticker-track .t-page'));

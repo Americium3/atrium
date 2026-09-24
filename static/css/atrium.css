@@ -614,8 +614,11 @@ html[data-boot="suppressed"] #hall { animation: hall-fade 0.3s var(--ease-out) b
   animation: marquee var(--t-dur, 40s) linear infinite;
   will-change: transform;
 }
+/* The hold for focus is for a keyboard reader. A mouse click also parks
+   focus on the band, and :focus-within kept it frozen, with no ring to say
+   why, until the reader clicked somewhere else (PT-6). */
 #ticker.rolling:hover .t-track,
-#ticker.rolling:focus-within .t-track { animation-play-state: paused; }
+#ticker.rolling:focus-visible .t-track { animation-play-state: paused; }
 #ticker.static { text-align: center; }
 @keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 /* Reduced motion: the band is set in pages stacked in one cell, and turns
