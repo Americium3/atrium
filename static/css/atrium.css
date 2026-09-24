@@ -3328,13 +3328,18 @@ html[lang="zh"] .g-name { letter-spacing: 0.17em; }
 .bay-plate {
   bottom: calc(var(--dado-h) - 22px * var(--ui));
   padding: calc(1px * var(--ui)) calc(7px * var(--ui));
-  font-size: calc(9px * var(--ui));
+  /* Lettering has a 10px floor here as on the gates, and the plate is cut
+     from the leaf's lit tones so the dark fill reads on it: on the body and
+     shade tones it measured 2.1 to 3.3:1 by night (LY-18). */
+  font-size: max(10px, calc(9px * var(--ui)));
   letter-spacing: 0.28em;
   color: #1a1206;
   opacity: 1;
-  background: linear-gradient(180deg, var(--lead-3), var(--lead-2) 45%, var(--lead-1));
+  background: linear-gradient(180deg, var(--lead-5), var(--lead-3) 40%, var(--lead-4));
   box-shadow: 0 0 0 1px var(--lead-0), 0 2px 3px rgba(0, 0, 0, 0.5);
 }
+/* The Chinese plate's hairline strokes need more body at this size. */
+html[lang="zh"] .bay-plate { font-weight: 700; letter-spacing: 0.16em; }
 
 /* ----- The floor ---------------------------------------------------------
    Polished terrazzo, big slabs, brass (night) or white-metal (day) strips
