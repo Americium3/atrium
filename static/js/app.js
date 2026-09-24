@@ -69,21 +69,24 @@ var STR = {
     'k.autopilot.qb_down': 'Downloads stay paused until it answers again',
     'k.unknown': 'Fresh word from this hall. Refresh the page to read it in full',
     'k.mods.updated': 'Workshop update · {game}',
+    'k.mods.updated.nogame': 'Workshop update',
     'k.mods.removed': 'Delisted from the Workshop',
     'k.mods.banned': 'Banned on the Workshop',
     'k.outreach.queue_ready.head': 'Daily queue ready',
     'k.outreach.queue_ready': '{n} {n|introduction|introductions} briefed',
     'k.outreach.progress.head': 'Drafting the queue',
     'k.outreach.progress': '{done} of {total} briefed',
-    'k.outreach.invites.head': 'Invitations today',
+    'k.outreach.invites.head': "The day's invitations",
     'k.outreach.invites': '{n} of {target} sent',
     'k.outreach.error.head': 'Drafter hit an error',
     'k.outreach.error': 'Check the Outreach Desk',
     'k.press.digest_ready.head': 'The edition is out',
     'k.press.digest_ready': '{stories} {stories|story|stories} across {sections} {sections|section|sections}',
     'k.bourse.briefing.head': 'The morning brief is out',
-    'k.bourse.briefing': '{orders} {orders|order awaits|orders await} your review',
-    'k.bourse.briefing.hold': 'No action today. The desk holds',
+    'k.bourse.briefing': 'Brief of {date}: {orders} {orders|order awaits|orders await} your review',
+    'k.bourse.briefing.hold': 'Brief of {date}: no action. The desk holds',
+    'k.bourse.briefing.nodate': '{orders} {orders|order awaits|orders await} your review',
+    'k.bourse.briefing.hold.nodate': 'No action. The desk holds',
     'k.bourse.canary.head': 'Watchtower alarm',
     'k.bourse.canary': '{sym} momentum turned negative, sheltering part of the book',
     'k.bourse.allclear.head': 'Watchtower all clear',
@@ -198,21 +201,24 @@ var STR = {
     'k.autopilot.qb_down': '下载将保持暂停，直到它恢复响应',
     'k.unknown': '该厅室有新消息。刷新页面即可完整阅读',
     'k.mods.updated': '创意工坊更新 · {game}',
+    'k.mods.updated.nogame': '创意工坊更新',
     'k.mods.removed': '已从创意工坊下架',
     'k.mods.banned': '已被创意工坊封禁',
-    'k.outreach.queue_ready.head': '今日邀约队列已就绪',
+    'k.outreach.queue_ready.head': '每日邀约队列已就绪',
     'k.outreach.queue_ready': '{n} 位候选已备好草稿',
     'k.outreach.progress.head': '草稿撰写中',
     'k.outreach.progress': '已完成 {done}/{total}',
-    'k.outreach.invites.head': '今日邀请',
+    'k.outreach.invites.head': '当日邀请',
     'k.outreach.invites': '已发出 {n}/{target}',
     'k.outreach.error.head': '草稿引擎出错',
     'k.outreach.error': '请到 Outreach Desk 查看',
     'k.press.digest_ready.head': '晨报已出版',
     'k.press.digest_ready': '{sections} 个版面 · {stories} 条',
     'k.bourse.briefing.head': '证券所晨报已付印',
-    'k.bourse.briefing': '{orders} 条指令候您审阅',
-    'k.bourse.briefing.hold': '今日无操作，按兵不动',
+    'k.bourse.briefing': '{date}版：{orders} 条指令候您审阅',
+    'k.bourse.briefing.hold': '{date}版：无操作，按兵不动',
+    'k.bourse.briefing.nodate': '{orders} 条指令候您审阅',
+    'k.bourse.briefing.hold.nodate': '无操作，按兵不动',
     'k.bourse.canary.head': '瞭望塔报警',
     'k.bourse.canary': '{sym} 动量转负，部分仓位转入避险',
     'k.bourse.allclear.head': '瞭望塔解除警报',
@@ -2905,6 +2911,18 @@ function applyStats() {
 /* ========================================================================
    Ledger
    ======================================================================== */
+/* "2026-09-21" on the wire, "Sep 21" / "9月21日" on the wall. Parsed as a
+   local calendar day: new Date('2026-09-21') is UTC midnight, which is still
+   the 20th anywhere west of Greenwich. */
+function briefDay(iso) {
+  var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso || '');
+  if (!m) return '';
+  return new Intl.DateTimeFormat(lang === 'zh' ? 'zh-CN' : 'en-US',
+    { month: 'short', day: 'numeric' }).format(new Date(+m[1], m[2] - 1, +m[3]));
+}
+
+/* Every line here must stay true after its day ends: a plaque filed under
+   EARLIER is read tomorrow, so no string says "today". */
 function headline(d) {
   var k = d.kind, p = d.params || {};
   switch (k) {
@@ -2929,7 +2947,11 @@ function headline(d) {
     case 'autopilot.qb_down':
       return { head: t('k.autopilot.qb_down.head'), detail: t('k.autopilot.qb_down'), warn: true };
     case 'mods.updated':
-      return { head: p.title, detail: t('k.mods.updated', p) + (p.note ? ' · ' + p.note : '') };
+      // An appId the hub cannot map arrives with game '' and used to leave a
+      // bare separator behind: "Workshop update ·  · Fixed things".
+      return { head: p.title,
+               detail: t(p.game ? 'k.mods.updated' : 'k.mods.updated.nogame', p) +
+                       (p.note ? ' · ' + p.note : '') };
     case 'mods.removed':
       return { head: p.title, detail: t('k.mods.removed'), warn: true };
     case 'mods.banned':
@@ -2945,8 +2967,12 @@ function headline(d) {
     case 'press.digest_ready':
       return { head: t('k.press.digest_ready.head'), detail: t('k.press.digest_ready', p) };
     case 'bourse.briefing':
+      // Named by the market day it covers. Without it a week of holds read
+      // as one line repeated, and "No action today" stood under EARLIER.
+      var day = briefDay(p.date);
       return { head: t('k.bourse.briefing.head'),
-               detail: p.orders > 0 ? t('k.bourse.briefing', p) : t('k.bourse.briefing.hold') };
+               detail: t((p.orders > 0 ? 'k.bourse.briefing' : 'k.bourse.briefing.hold') +
+                         (day ? '' : '.nodate'), { orders: p.orders, date: day }) };
     case 'bourse.canary':
       return { head: t('k.bourse.canary.head'), detail: t('k.bourse.canary', p), warn: true };
     case 'bourse.allclear':
