@@ -771,8 +771,12 @@ ten-minute poll. A request that fails outright re-arms the same retry.
 A forecast is for one local day at the place. Past the place's midnight the
 one on the board is yesterday's, so the board takes it as no forecast (the
 plate falls back on its own arithmetic, the reading on NO READING) and asks
-for the new day's at that midnight. The hub fetches again as well: a cached
-forecast dated for another day is stale whatever its TTL says.
+for the new day's at that midnight. The ask is set for that midnight once and
+stays set: the minute tick redraws the plate without moving it, and a machine
+that slept through midnight asks as it wakes. If the ten-minute poll is still
+out at that moment, the ask waits for it to come back and then goes. The hub
+fetches again as well: a cached forecast dated for another day is stale
+whatever its TTL says.
 
 ## Gates (R9)
 

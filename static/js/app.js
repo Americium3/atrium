@@ -2730,7 +2730,32 @@ function almWeather() {
   return day === here.year + '-' + pad2(here.month + 1) + '-' + pad2(here.day) ? w : null;
 }
 
+/* The new day's forecast is read at the place's own midnight rather than
+   whenever the ten-minute poll next comes round. The ask is pinned to that
+   midnight once armed. Every render used to re-arm it from its own clock,
+   and the sky tick renders once a minute: a tick in the seconds between the
+   midnight and its ask (or on waking a machine that slept through both)
+   measured the NEXT midnight from a day that had just turned, and put the
+   ask off by a whole day. */
 var almMidnightT = null;
+var almMidnightAt = 0;   // when the pending ask is due; 0 once it has run
+
+function almArmMidnight(due) {
+  // An ask still to come stands against any later one. An earlier due (the
+  // day of a clock change, a place further east) takes its place.
+  if (almMidnightAt && almMidnightAt <= due) return;
+  clearTimeout(almMidnightT);
+  almMidnightAt = due;
+  almMidnightT = setTimeout(almAskAtMidnight, Math.max(0, due - Date.now()));
+}
+
+function almAskAtMidnight() {
+  almMidnightAt = 0;
+  // A poll still out from before midnight comes back with yesterday's, and
+  // pollAlmanac() declines while one is out: ask again once it is back.
+  if (almBusy) { almArmMidnight(Date.now() + 2000); return; }
+  pollAlmanac();
+}
 
 function renderAlmanac() {
   var sub = $('#al-sub');
@@ -2754,10 +2779,7 @@ function renderAlmanac() {
   $('#al-station').textContent = where ? almStation(where) : '—';
   buildRead(wx);
   buildTape(sky, where);
-  // The new day's forecast is read at the place's own midnight rather than
-  // whenever the ten-minute poll next comes round.
-  clearTimeout(almMidnightT);
-  if (sky.here) almMidnightT = setTimeout(pollAlmanac, (24 - sky.here.hours) * 3600000 + 2000);
+  if (sky.here) almArmMidnight(sky.at.getTime() + (24 - sky.here.hours) * 3600000 + 2000);
 }
 
 /* On screen only: the board is display:none below 2800px (and when the case
