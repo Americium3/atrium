@@ -848,6 +848,28 @@ html[data-entered="no"] #signal-desk {
   pointer-events: auto;
   cursor: pointer;
 }
+/* The switch answers the pointer the way the gates do: the grip lights to
+   the wing's bright metal, and the arm takes up its slack towards the other
+   throw, a little more while pressed. Only the drawn lever moves; the hit
+   strip holds still under the pointer. */
+.lever-svg { transition: rotate 0.2s var(--ease-out); }
+@media (hover: hover) {
+  .desk-core:has(.hit-arm:hover, .desk-art:hover, .gear-well:hover) .lv-grip {
+    fill: var(--metal-hi);
+  }
+  .desk-core:has(.hit-arm:hover, .desk-art:hover, .gear-well:hover) .lever-svg {
+    rotate: 1.5deg;
+  }
+  :root[data-wing="bureau"] .desk-core:has(.hit-arm:hover, .desk-art:hover, .gear-well:hover) .lever-svg {
+    rotate: -1.5deg;
+  }
+}
+.desk-core:has(.hit-arm:active, .desk-art:active, .gear-well:active) .lever-svg {
+  rotate: 3deg;
+}
+:root[data-wing="bureau"] .desk-core:has(.hit-arm:active, .desk-art:active, .gear-well:active) .lever-svg {
+  rotate: -3deg;
+}
 
 /* ----- Steam ------------------------------------------------------------- */
 /* Tracks the vent stack's mouth — moved with it onto the cornice. */
