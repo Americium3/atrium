@@ -805,7 +805,17 @@ while the case was hidden and the 60 s tick used to leave a blank plate for
 up to a minute; the tick stays as the fallback. A payload with no weather
 is the hub reporting a miss, and the board asks again 121 s later, just past
 the hub's own 120 s retry, rather than keeping NO READING up for the whole
-ten-minute poll. A request that fails outright re-arms the same retry.
+ten-minute poll. A request that fails outright re-arms the same retry,
+with a forecast still on the board as well.
+
+The reading holds two kinds of figure. HIGH, LOW and PRECIP are the day's
+and stand for the day. The temperature, the condition and the wind are one
+moment's, and they lapse to a dash and NO READING once that moment is half
+an hour old (the hub's `age_s` when it was read, plus the time since). A
+healthy board never shows one older than 25 minutes, the hub's 15 minute
+cache plus the 10 minute poll. Without the lapse a silent hub left "10°
+Clear" standing as the current weather for hours, beside dials that had
+long since dropped to NO READING.
 
 A forecast is for one local day at the place. Past the place's midnight the
 one on the board is yesterday's, so the board takes it as no forecast (the
@@ -1310,6 +1320,13 @@ Motion setting collapse all of the above to fades/instant.
   wing's gates, left to right > lever. The waiting wing and the shut Ledger
   are `inert`: the drawer used to sit in the tab order off screen, and since
   focus marks a dispatch read, one pass of Tab struck the whole Ledger.
+  Where the aisle cases hang, the four dials come before the gates and the
+  Almanac's reading after them, in the order they stand. Each is a tab stop
+  because its tooltip says more than its face (the core and thread count,
+  the card's load and name, the reading in °F), and a tooltip is out of
+  reach without a mouse. Focus (Tab or a tap) lays that line on an ivorine
+  slip inside the case: a dial's over the head of the tape, the reading's
+  across the top of the sky plate. The °F line is also said.
 - Keys: arrows walk the lit gates, digits jump to one, Enter opens it, W
   throws the lever (focus lands on the gate in the same bay of the other
   wing), L opens and closes the Ledger (arrows then walk its dispatches), P

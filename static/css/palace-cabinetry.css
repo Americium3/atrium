@@ -133,8 +133,12 @@
 /* An aisle too short to hang the pair: fitCases() in app.js measured a dial
    under its smallest legible face, or a sky plate under its smallest, and
    the wall's bays take the aisle instead of a case with its instruments
-   squeezed out of it. */
-.board[data-fold="away"] { display: none; }
+   squeezed out of it. The rule that opens the aisles (atrium.css,
+   `#concourse:not([data-aisles="shut"]) .board`, 1-2-0) outweighed a bare
+   `.board[data-fold]` (0-2-0), so a folded case stood on with 0px dials and
+   no sky plate. This one outweighs it (1-3-0) whatever order the sheets
+   load in. */
+#concourse:not([data-aisles="shut"]) .board[data-fold="away"] { display: none; }
 
 /* The case's own shadow on the wall. The carcass is chamfered with a
    clip-path, which would eat a shadow, so the shadow is a filter on this
@@ -387,7 +391,11 @@
   filter: drop-shadow(0 0.6px 0 rgba(0, 0, 0, 0.9));
 }
 .board .bd-title::before, .board .bd-title::after { color: var(--leaf-2); -webkit-text-fill-color: var(--leaf-2); opacity: 0.9; }
-.board .bd-sub { color: var(--cab-faint); font-style: italic; letter-spacing: 0.04em; }
+/* Set roman, as every sentence in the hall is. It was italic, and with no
+   italic face loaded the browser slanted the roman ones: an oblique
+   Garamond, and in the Chinese hall a sheared Mincho. The line keeps apart
+   from the title by size, ink and case. */
+.board .bd-sub { color: var(--cab-faint); letter-spacing: 0.04em; }
 
 /* ----- The dials ------------------------------------------------------------
    The turned brass of the bezel is the svg's own background: a conic
@@ -545,6 +553,40 @@
 html[lang="zh"] .board .wk-slabel, html[lang="zh"] .board .al-strips .al-slabel { -webkit-text-stroke: 0.6px currentColor; }
 .board .wk-sval, .board .al-sval { color: var(--ivorine-ink); font-weight: 600; }
 
+/* The long line: what a dial's or the reading's tooltip says, for a reader
+   with no mouse to hover with. A focused instrument (Tab, or a tap) lays
+   it on a slip of the windows' ivorine, a dial's over the head of the tape
+   and the reading's under the reading, across the top of the sky plate.
+   The mouse keeps its tooltip. The slip stays inside the door, behind its
+   glass, and covers only the case's own furniture while it is up. */
+.board .cs-tip {
+  display: none;
+  position: absolute; z-index: 3;
+  left: 0.4cqw; right: 0.4cqw; top: calc(100% + 0.6cqw);
+  padding: 0.28em 0.8em 0.22em;
+  font-size: calc(12px * var(--ui));
+  line-height: 1.3;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-align: center; text-wrap: balance;
+  white-space: normal;
+  color: var(--ivorine-ink);
+  background:
+    linear-gradient(180deg, rgba(0, 0, 0, 0.16), transparent 30%),
+    url('/static/assets/tex/grain-card.webp') 0 0 / 120px,
+    var(--ivorine);
+  background-blend-mode: normal, soft-light, normal;
+  box-shadow:
+    0 0 0 1px var(--br-1), 0 0 0 2px var(--br-3), 0 0 0 3px var(--br-1),
+    0 4px 7px 3px rgba(0, 0, 0, 0.55);
+  border-radius: 1px;
+  pointer-events: none;
+}
+.board .wk-cell:focus .cs-tip, .board .al-read:focus .cs-tip { display: block; }
+/* Over the next register down, which otherwise paints later at the same
+   level. */
+.board .wk-dials:focus-within, .board .al-read:focus { z-index: 2; }
+
 /* ----- The apron and the maker's plate ------------------------------------ */
 .board .bd-foot {
   position: relative; z-index: 2;
@@ -612,6 +654,8 @@ html[lang="zh"] .board .wk-slabel, html[lang="zh"] .board .al-strips .al-slabel 
   filter: drop-shadow(0 0.8px 0 rgba(0, 0, 0, 0.9));
 }
 .board .al-read[data-blank="yes"] .al-temp { background: none; color: var(--cab-faint); }
+/* The moment has lapsed and the day's figures stand: only the dash drains. */
+.board .al-read[data-blank="now"] .al-temp { background: none; color: var(--cab-faint); }
 .board .al-vlabel { color: var(--cab-gold); opacity: 0.85; }
 .board .al-sky { padding: 0.8cqw 0 0.4cqw; }
 .board .al-tape { margin-top: 0.4cqw; }
@@ -631,8 +675,15 @@ html[lang="zh"] .board .wk-slabel, html[lang="zh"] .board .al-strips .al-slabel 
 .board .al-arc .sk-bezel-lip { fill: none; stroke: rgba(255, 244, 214, 0.35); stroke-width: 0.5; }
 .board .al-arc .sk-stars { fill: var(--leaf-1); opacity: 0.85; }
 :root[data-theme="ivory"] .board .al-arc .sk-stars { opacity: 0; }
-.board .al-arc .sk-gloss { fill: rgba(255, 255, 255, 0.05); }
-:root[data-theme="ivory"] .board .al-arc .sk-gloss { fill: rgba(255, 255, 255, 0.28); }
+/* The enamel under its bezel: orange peel laid soft over both colours, the
+   bezel's shade at the rim, and one hairline of light where the glaze rolls
+   up to the bezel. */
+.board .al-arc .sk-peel { mix-blend-mode: soft-light; opacity: 0.45; }
+:root[data-theme="ivory"] .board .al-arc .sk-peel { opacity: 0.35; }
+.sk-sh { stop-color: #000; }
+:root[data-theme="ivory"] .board .al-arc .sk-shade { opacity: 0.55; }
+.board .al-arc .sk-shine { fill: #fff6e0; opacity: 0.14; }
+:root[data-theme="ivory"] .board .al-arc .sk-shine { fill: #ffffff; opacity: 0.6; }
 .board .al-arc .sk-groove { fill: none; stroke: #0b0703; stroke-width: 2.8; }
 .board .al-arc .sk-lip { fill: none; stroke: rgba(255, 236, 190, 0.32); stroke-width: 0.55; }
 .board .al-arc .a-track { stroke: none; }

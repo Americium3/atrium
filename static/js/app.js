@@ -122,7 +122,8 @@ var STR = {
     almAge: 'AGE',
     almDaylight: 'DAYLIGHT', almLonger: 'LONGER', almShorter: 'SHORTER',
     almDays: '{n} d', almSrDays: '{n} days', almWindUnit: '{n} km/h',
-    almFahrenheit: '{high} / {low} °F',
+    almFahrenheit: 'Now {now} °F · high {high} · low {low}',
+    almFahrenheitDay: 'High {high} · low {low} °F',
     /* The eight phases, in order from new moon. Sentences, not signage: the
        hall's engraved caps stay English, a moon's name does not. */
     almPhase0: 'New', almPhase1: 'Waxing crescent',
@@ -157,6 +158,10 @@ var STR = {
     almSrHours: '{h} {h|hour|hours} {m} {m|minute|minutes}',
     almSrLonger: 'Longer than yesterday by {m} {m|minute|minutes} {s} {s|second|seconds}',
     almSrShorter: 'Shorter than yesterday by {m} {m|minute|minutes} {s} {s|second|seconds}',
+    almSrLongerSec: 'Longer than yesterday by {s} {s|second|seconds}',
+    almSrShorterSec: 'Shorter than yesterday by {s} {s|second|seconds}',
+    almSrLongerHair: 'Longer than yesterday by less than a second',
+    almSrShorterHair: 'Shorter than yesterday by less than a second',
     leverDesc: 'Off lights the Salon, the play wing. On lights the Bureau, the work wing.',
     ariaFilter: 'Filter dispatches', ariaClose: 'Close',
     ariaLedgerClose: 'Close the Ledger',
@@ -269,11 +274,15 @@ var STR = {
     almAge: '月龄',
     almDaylight: '昼长', almLonger: '比昨日长', almShorter: '比昨日短',
     almDays: '{n} 日', almSrDays: '{n} 日', almWindUnit: '{n} 公里/时',
-    almFahrenheit: '{high} / {low} °F',
-    almPhase0: '朔', almPhase1: '蛾眉月',
-    almPhase2: '上弦', almPhase3: '盈凸',
-    almPhase4: '望', almPhase5: '亏凸',
-    almPhase6: '下弦', almPhase7: '残月',
+    almFahrenheit: '现在 {now} °F · 最高 {high} · 最低 {low}',
+    almFahrenheitDay: '最高 {high} · 最低 {low} °F',
+    /* The standard eight, each a whole name: 盈凸 and 亏凸 are not said on
+       their own, and 朔 and 望 stood beside 蛾眉月 and 残月 in another
+       register. */
+    almPhase0: '新月', almPhase1: '蛾眉月',
+    almPhase2: '上弦月', almPhase3: '盈凸月',
+    almPhase4: '满月', almPhase5: '亏凸月',
+    almPhase6: '下弦月', almPhase7: '残月',
     bayLabel: '第 {n} 间',
     floorMotto: '万厅一门',
     appearance: '外观', language: '语言', motion: '动效',
@@ -302,6 +311,10 @@ var STR = {
     almSrHours: '{h} 小时 {m} 分',
     almSrLonger: '比昨日长 {m} 分 {s} 秒',
     almSrShorter: '比昨日短 {m} 分 {s} 秒',
+    almSrLongerSec: '比昨日长 {s} 秒',
+    almSrShorterSec: '比昨日短 {s} 秒',
+    almSrLongerHair: '比昨日长不到一秒',
+    almSrShorterHair: '比昨日短不到一秒',
     leverDesc: '关：点亮沙龙翼（娱乐）。开：点亮事务翼（工作）。',
     ariaFilter: '筛选消息', ariaClose: '关闭',
     ariaLedgerClose: '合上消息总台',
@@ -2498,6 +2511,11 @@ function renderWorks() {
   WK_DIALS.forEach(function (d) {
     var cell = el('div', 'wk-cell');
     cell.dataset.dial = d.key;
+    // A tab stop, so what the tooltip adds (the core count, the card's load
+    // and its name) is in reach of a keyboard or a finger as well as a
+    // mouse: a focused dial lays its whole line over the tape (.cs-tip).
+    // It was hover-only on a case with no tab stop in it.
+    cell.tabIndex = 0;
     cell.appendChild(buildDial(d.key));
     // The engraved name is for the eye; the cell's spoken line (syncWorks)
     // starts with the same name, and a reader heard it twice.
@@ -2505,6 +2523,10 @@ function renderWorks() {
     name.setAttribute('aria-hidden', 'true');
     cell.appendChild(name);
     cell.appendChild(el('span', 'wk-read num', '—'));
+    // Said already, by the cell's own spoken line (.wk-sr).
+    var tip = el('span', 'cs-tip zh-sentence');
+    tip.setAttribute('aria-hidden', 'true');
+    cell.appendChild(tip);
     box.appendChild(cell);
   });
   ['hours', 'disk'].forEach(function (k) {
@@ -2570,7 +2592,11 @@ function dialRead(key, w) {
              title: count };
   }
   if (key === 'mem' || key === 'gpu') {
-    var of = t('wkOf', { a: d.used_gb.toFixed(1), b: d.total_gb.toFixed(1) });
+    // Rounded once, for the window and the spoken line alike: the window
+    // printed "5.7 / 32 GB" while the tooltip and the reader said "5.7 of
+    // 31.8 GB", two figures for one instrument.
+    var used = d.used_gb.toFixed(1), total = Math.round(d.total_gb);
+    var of = t('wkOf', { a: used, b: total });
     // The VRAM needle is the card's memory. How hard the card is working is
     // a different figure, and it is said beside it rather than dropped.
     var more = key === 'gpu'
@@ -2579,15 +2605,18 @@ function dialRead(key, w) {
         (d.name ? t('list') + d.name : '')
       : '';
     return { pct: d.pct,
-             text: d.used_gb.toFixed(1) + ' / ' + Math.round(d.total_gb) + ' GB',
+             text: used + ' / ' + total + ' GB',
              said: of + more, title: of + more };
   }
-  var rate = t('wkDown', { d: d.down_mbs, u: d.up_mbs });
+  // The same tenths the window prints; the spoken line used to read the
+  // hub's raw floats ("0.43 up" under a window of "0.4").
+  var down = d.down_mbs.toFixed(1), up = d.up_mbs.toFixed(1);
+  var rate = t('wkDown', { d: down, u: up });
   return { pct: d.pct,
            // The unit is engraved on the face (MB/s), which keeps the window
            // to one line in a 300px aisle. No-break spaces hold each figure
            // to its arrow if a narrow window still takes two.
-           text: d.down_mbs.toFixed(1) + ' ↓  ' + d.up_mbs.toFixed(1) + ' ↑',
+           text: down + ' ↓  ' + up + ' ↑',
            said: rate, title: rate };
 }
 
@@ -2606,6 +2635,7 @@ function syncWorks() {
     read.textContent = r ? r.text : t('wkNoReading');
     read.setAttribute('aria-hidden', 'true');
     cell.title = t(d.name) + (r && r.title ? t('join') + r.title : '');
+    $('.cs-tip', cell).textContent = cell.title;
     // The caption's arrows and the red sector say nothing aloud; this does.
     var sr = $('.wk-sr', cell);
     if (!sr) { sr = el('span', 'sr-only wk-sr'); cell.appendChild(sr); }
@@ -2669,30 +2699,39 @@ var worksOkAt = 0;
    It kept its last needle through any number of failed polls and looked
    live the whole time. Two and a half beats: one miss is a hiccup. */
 var WORKS_STALE_MS = 10000;
+/* The stale mark is a timer of its own, armed by every reading that lands.
+   Checked only on the beat, it waited behind a request that was still out:
+   a hanging hub held the last figure up for 16 s (the ticks at 8 and 12 s
+   were skipped as busy) and plain failures for 12 s (the next beat). */
+var worksStaleT = null;
+
+function worksLapse() {
+  worksStaleT = null;
+  if (!works) return;
+  works = null;
+  syncWorks();
+}
 
 function pollWorks() {
   if (!worksVisible() || worksBusy) return Promise.resolve();
   // A reading that sat on the dials past the stale mark while the board could
   // not poll (a background tab, a narrow window, a folded case) is not live.
   // It comes down before the next one is asked for; it used to stand as the
-  // current figure until the next beat landed.
-  if (works && Date.now() - worksOkAt > WORKS_STALE_MS) {
-    works = null;
-    syncWorks();
-  }
+  // current figure until the next beat landed. A hidden tab's timers are
+  // throttled, so the lapse may not have run yet.
+  if (works && Date.now() - worksOkAt > WORKS_STALE_MS) worksLapse();
   worksBusy = true;
   return fetchJson('/api/works').then(function (w) {
     // An older reading never replaces a newer one.
     if (works && w && w.generated < works.generated) return;
     works = w;
     worksOkAt = Date.now();
+    clearTimeout(worksStaleT);
+    worksStaleT = setTimeout(worksLapse, WORKS_STALE_MS);
     syncWorks();
   }).catch(function () {
-    // A restarting hub is not a reading, and neither is the last one kept.
-    if (works && Date.now() - worksOkAt > WORKS_STALE_MS) {
-      works = null;
-      syncWorks();
-    }
+    // A restarting hub is not a reading, and neither is the last one kept:
+    // worksLapse() takes it down at the stale mark.
   }).then(function () { worksBusy = false; });
 }
 
@@ -3040,8 +3079,11 @@ function buildSky(where, host, weather) {
 
   // Inked as far as the day has got, which after sunset is all of it: the
   // plate reports how much daylight has been SPENT, not merely where the sun
-  // is standing.
-  var inkTo = up ? phi : half;
+  // is standing. Below the horizon the wrapped angle cannot say which side
+  // of the day this is, and it sent every hour from midnight to sunrise to
+  // "all of it" too. The place's clock can: before noon the day has not
+  // begun, after it the day is done.
+  var inkTo = up ? phi : here.hours < noon ? -half : half;
   if (inkTo > -half) {
     svg.appendChild(svgEl('path', {
       d: ringArc(g, -half, inkTo), fill: 'none', 'stroke-width': 1.5
@@ -3106,13 +3148,28 @@ function almDeg(v) {
   return (v === null || v === undefined) ? '—' : Math.round(v) + '°';
 }
 
-function almVitals(w) {
+/* The high, the low and the chance of rain are the day's and stand for the
+   day. The temperature, the condition and the wind are one moment's, and a
+   hub that stopped answering kept that moment up as "now" for hours, beside
+   dials that had long since dropped to NO READING. The moment lapses at half
+   an hour: the hub's 15 min cache plus the 10 min poll (25 min) is the
+   oldest a healthy board ever shows. Its age is the hub's age_s when it was
+   read plus the time since; the minute sky tick redraws the reading. */
+var ALM_NOW_MS = 1800000;
+
+function almFresh(w) {
+  if (!w || !almReadAt) return false;
+  var held = almanac && typeof almanac.age_s === 'number' ? almanac.age_s * 1000 : 0;
+  return Date.now() - almReadAt + held <= ALM_NOW_MS;
+}
+
+function almVitals(w, fresh) {
   var rows = [
     ['almHigh', w ? almDeg(w.high_c) : '—'],
     ['almLow', w ? almDeg(w.low_c) : '—'],
     ['almPrecip', w && w.precip_prob !== null && w.precip_prob !== undefined
                   ? w.precip_prob + '%' : '—'],
-    ['almWind', w && w.wind_kmh !== null && w.wind_kmh !== undefined
+    ['almWind', fresh && w.wind_kmh !== null && w.wind_kmh !== undefined
                 ? t('almWindUnit', { n: Math.round(w.wind_kmh) }) : '—']
   ];
   var box = el('div', 'al-vitals');
@@ -3128,19 +3185,44 @@ function almVitals(w) {
 function buildRead(w) {
   var box = $('#al-read');
   box.textContent = '';
-  box.dataset.blank = w ? 'no' : 'yes';
+  var fresh = almFresh(w);
+  // "now": the day's figures stand, the moment's have lapsed.
+  box.dataset.blank = !w ? 'yes' : fresh ? 'no' : 'now';
   var now = el('div', 'al-now');
-  now.appendChild(el('span', 'al-temp num', w ? almDeg(w.now_c) : '—'));
+  now.appendChild(el('span', 'al-temp num', fresh ? almDeg(w.now_c) : '—'));
   now.appendChild(el('span', 'al-cond zh-sentence',
-    w ? (lang === 'zh' ? w.label_zh : w.label) : t('wkNoReading')));
+    fresh ? (lang === 'zh' ? w.label_zh : w.label) : t('wkNoReading')));
   box.appendChild(now);
-  box.appendChild(almVitals(w));
-  // Fahrenheit lives in the tooltip: this reader is standing in a country
-  // that speaks it, in a hall that does not.
-  box.title = w && w.high_f !== null && w.high_f !== undefined
-              && w.low_f !== null && w.low_f !== undefined
-    ? t('almFahrenheit', { high: Math.round(w.high_f), low: Math.round(w.low_f) })
-    : '';
+  box.appendChild(almVitals(w, fresh));
+  var fahr = almFahrenheit(w, fresh);
+  box.title = fahr;
+  // The same line in reach of a keyboard or a finger (a focused reading
+  // lays it under itself, .cs-tip) and said aloud. It was a mouse tooltip
+  // only, and the °F figures were in no text on the page at all.
+  if (fahr) {
+    box.tabIndex = 0;
+    box.appendChild(el('span', 'sr-only', fahr));
+    var tip = el('span', 'cs-tip zh-sentence', fahr);
+    tip.setAttribute('aria-hidden', 'true');
+    box.appendChild(tip);
+  } else {
+    box.removeAttribute('tabindex');
+  }
+}
+
+/* Fahrenheit lives in the tooltip: this reader is standing in a country
+   that speaks it, in a hall that does not. It gives the big figure as well,
+   labelled, which "66 / 50 °F" over a reading of "10°" did not; once the
+   moment has lapsed only the day's pair is given. */
+function almFahrenheit(w, fresh) {
+  var has = function (v) { return v !== null && v !== undefined; };
+  if (!w || !has(w.high_f) || !has(w.low_f)) return '';
+  var f = { high: Math.round(w.high_f), low: Math.round(w.low_f) };
+  if (fresh && has(w.now_f)) {
+    f.now = Math.round(w.now_f);
+    return t('almFahrenheit', f);
+  }
+  return t('almFahrenheitDay', f);
 }
 
 /* `spoken` stands in for the value; with `whole` it stands in for the
@@ -3171,8 +3253,11 @@ function buildTape(sky, where) {
   var moon = el('div', 'al-moon');
   moon.appendChild(moonDisc(phase, 15));
   var text = el('div', 'al-mtext');
+  // No-break spaces hold the figure to the name's last word. A narrow column
+  // (SIGNBOARD at 3100) broke the line after the separator and left "95%"
+  // alone on a line of its own; now it can only break inside the name.
   text.appendChild(el('span', 'al-mname zh-sentence',
-    t('almPhase' + phase.idx) + '  ·  ' + Math.round(phase.lit * 100) + '%'));
+    t('almPhase' + phase.idx) + ' · ' + Math.round(phase.lit * 100) + '%'));
   text.appendChild(almStrip(t('almAge'), t('almDays', { n: phase.age.toFixed(1) }),
     t('almSrDays', { n: phase.age.toFixed(1) })));
   moon.appendChild(text);
@@ -3197,14 +3282,20 @@ function buildTape(sky, where) {
     // Seconds, because across one day the difference is under two minutes and
     // rounding to minutes would print a flat zero for half the year. The
     // LABEL carries the direction — this hall does not signal with colour.
-    var ds = Math.round((sun.hours - yest.hours) * 3600);
-    var abs = Math.abs(ds);
+    var raw = (sun.hours - yest.hours) * 3600;
+    var abs = Math.round(Math.abs(raw)), m = Math.floor(abs / 60), sec = abs % 60;
+    // The direction is the unrounded difference's. Rounded first, the 0.4 s
+    // the day lost on 2026-12-22 came out as -0, which `>= 0` engraved as
+    // LONGER.
+    var longer = raw >= 0;
     // The engraved English label is SHORTER on its own, as an almanac sets
     // it; spoken, it carries its comparison ("than yesterday"), as the
-    // Chinese label does on the strip.
-    strips.appendChild(almStrip(t(ds >= 0 ? 'almLonger' : 'almShorter'),
-      Math.floor(abs / 60) + '\u2032' + pad2(abs % 60) + '\u2033',
-      t(ds >= 0 ? 'almSrLonger' : 'almSrShorter', { m: Math.floor(abs / 60), s: abs % 60 }),
+    // Chinese label does on the strip. A spoken line with no minutes says
+    // none: "by 0 minutes 39 seconds" was the engraving read aloud.
+    strips.appendChild(almStrip(t(longer ? 'almLonger' : 'almShorter'),
+      m + '\u2032' + pad2(sec) + '\u2033',
+      t((longer ? 'almSrLonger' : 'almSrShorter') + (m ? '' : sec ? 'Sec' : 'Hair'),
+        { m: m, s: sec }),
       true));
   }
   box.appendChild(strips);
@@ -3301,18 +3392,21 @@ function pollAlmanac() {
   if (!almanacVisible()) return Promise.resolve();
   if (almBusy) return Promise.resolve();
   almBusy = true;
+  var failed = false;
   return fetchJson('/api/almanac').then(function (a) {
     almanac = a;
     almReadAt = Date.now();
     renderAlmanac();
-  }).catch(function () { /* a restarting hub is not a forecast */ })
+  }).catch(function () { failed = true; /* a restarting hub is not a forecast */ })
     .then(function () {
       // Re-armed after a failed request as well as after a miss: armed only
       // on a reply, one retry that met a hub restart left NO READING up for
-      // the rest of the ten minutes.
+      // the rest of the ten minutes. A failure re-arms it with a forecast
+      // still on the board too, whose moment lapses (almFresh) and would
+      // otherwise wait out the ten minutes after the hub came back.
       almBusy = false;
       clearTimeout(almRetryT);
-      if (!almWeather()) almRetryT = setTimeout(pollAlmanac, ALM_RETRY_MS);
+      if (failed || !almWeather()) almRetryT = setTimeout(pollAlmanac, ALM_RETRY_MS);
     });
 }
 
