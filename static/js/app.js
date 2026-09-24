@@ -531,7 +531,7 @@ function playEntrance() {
 
   // Beat 5 — wordmark stamps down (1500ms).
   // Door is 40% open by 1500ms — the sign is readable in the widening aperture.
-  // Per-letter stagger: 38ms × 5 = 190ms total; last letter at 1500+190+480=2170ms.
+  // Per-letter stagger: 38ms × 5 = 190ms total; last letter at 1500+190+420=2110ms.
   at(1500, function () {
     entrance.classList.add('word');
     // Set per-letter animation delays inline so each span has its own timing.
@@ -565,12 +565,22 @@ function playEntrance() {
     entrance.classList.add('dock');
   });
 
-  // Beat 7 — done-fade (2200ms).
-  // 30ms gap after last letter (2170ms): load-bearing. Prior code fired at
-  // 2100ms while the sixth letter was still animating — this closes that bug.
-  at(2200, function () { entrance.classList.add('done-fade'); });
+  // Beat 7 — done-fade (2140ms).
+  // 30ms gap after last letter (2110ms): load-bearing. A done-fade that
+  // fires while the sixth letter is still animating cuts it off mid-stamp.
+  // From here the panels are hidden and the void is clear, so the overlay
+  // stops catching the pointer (CSS): the hall is visible, and a click on
+  // it lands the entrance and then does what it says (see entranceSkip).
+  at(2140, function () { entrance.classList.add('done-fade'); });
 
-  // Beat 8 — finish (2700ms).
+  // Beat 8 — the dial wakes (2320ms).
+  // Only once the wordmark has faded (2140 + 180ms). The letters print
+  // across the middle of the dial, and a dial waking behind them read as
+  // ATRIUM stencilled over the clock face. The floor's reflections come up
+  // with it, so the stone never reflects an empty niche.
+  at(2320, function () { entrance.classList.add('dial'); });
+
+  // Beat 9 — finish (2700ms).
   at(2700, finishEntrance);
 
   // Any input cuts the entrance short. Until done-fade the overlay has

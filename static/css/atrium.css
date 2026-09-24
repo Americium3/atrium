@@ -2577,7 +2577,8 @@ html[lang="zh"] .al-arc text {
    ENTRANCE — vault-door sequence per DESIGN.md spec v1.
    Beat ladder: 0=circle+engrave(0ms) 1=wheel+bolts(500ms)
    2=wheel-turn+bolt-retract(700ms) 3=seam(870ms) 4=doors-open(1030ms)
-   5=wordmark(1500ms) 6=dock(1800ms) 7=done-fade(2200ms) 8=finish(2700ms)
+   5=wordmark(1500ms) 6=dock(1800ms) 7=done-fade(2140ms) 8=dial(2320ms)
+   9=finish(2700ms)
    Performance: transform/opacity only. Static shadows on static layers.
    ========================================================================== */
 #entrance {
@@ -2880,8 +2881,10 @@ html[data-entered="no"] #entrance.done-fade { pointer-events: none; cursor: auto
 
 /* ---- Beat 5: Wordmark stamps down --------------------------------------- */
 /* Per-letter treatment: rotateX(-38deg) with per-letter perspective context.
-   fill-mode: backwards only (holds from-state before delay fires, but
-   returns to natural CSS state after — no fill-mode:both to avoid freeze). */
+   fill-mode: both. A letter's natural state is opacity 0, so 'backwards'
+   handed each one back to invisible the moment its stamp ended: the word
+   came apart A, T, R, I, U, M before done-fade ever ran. The fade-out sits
+   on the parent .e-wordmark, so holding the letters freezes nothing. */
 .e-wordmark {
   position: absolute; left: 0; right: 0; top: 50%;
   transform: translateY(-50%);
@@ -2901,7 +2904,7 @@ html[data-entered="no"] #entrance.done-fade { pointer-events: none; cursor: auto
 #entrance.word .e-wordmark { opacity: 1; transition: opacity 0.3s; }
 /* word-stamp keyframe: per-letter translateX + rotateX press-home motion */
 #entrance.word .e-wordmark span {
-  animation: word-stamp 480ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
+  animation: word-stamp 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 /* --wi index set inline on each span; JS also sets animationDelay inline */
 @keyframes word-stamp {
@@ -2925,10 +2928,11 @@ html[data-entered="no"] #entrance.done-fade { pointer-events: none; cursor: auto
 .e-wordmark span:nth-child(6) { --wx: 2.25;  }
 
 /* ---- Beat 7: Done-fade -------------------------------------------------- */
-/* done-fade fires at 2200ms — 30ms after last letter settles (2170ms).
-   This gap is load-bearing: the prior done-fade at 2100ms was a timing
-   bug (sixth letter still animating at 2170ms). */
-#entrance.done-fade .e-wordmark,
+/* done-fade fires at 2140ms, 30ms after the last letter settles (2110ms).
+   This gap is load-bearing: a done-fade that lands while the sixth letter is
+   still stamping cuts it off. The word fades in 180ms, because the dial
+   wakes behind it at 2320ms (beat 8) and must not wake under the letters. */
+#entrance.done-fade .e-wordmark { opacity: 0; transition: opacity 0.18s ease-in; }
 #entrance.done-fade .e-void { opacity: 0; transition: opacity 0.36s; }
 #entrance.done-fade .e-panel { visibility: hidden; }
 
@@ -2943,20 +2947,30 @@ html[data-entered="no"] #masthead { animation: rise-in 0.5s var(--ease-out) both
 html[data-entered="no"] #ticker { animation: rise-in 0.45s var(--ease-out) both; animation-delay: 2.05s; }
 html[data-entered="no"] #ticker::before { animation: rule-draw 0.4s var(--ease-out) both; animation-delay: 1.9s; }
 html[data-entered="no"] #ticker::after { animation: rule-draw 0.4s var(--ease-out) both; animation-delay: 2.0s; }
-/* The dial is set into the back wall, so it has to be standing there before
-   the gates rise in front of it: 1.88s puts it one beat ahead of the first
-   gate. It was missing from this list entirely and so arrived fully formed at
-   frame zero, which read as a rendering fault rather than as the centrepiece.
-   Like .gate below, its keyframes must carry the translateX(-50%) that centres
-   it — an animated transform replaces the static one outright, and without it
-   the clock snaps to the left edge for the length of the entrance. */
-html[data-entered="no"] #clock { animation: dial-wake 0.62s var(--ease-out) both; animation-delay: 1.88s; }
+/* The dial wakes last, on its own beat (.dial, 2320ms), once the wordmark
+   has gone. The letters are printed across the middle of the dial, and when
+   it woke at 1.88s the fading word sat over the numerals and the hands. The
+   beat is a class, not a CSS delay, because the wordmark runs on the JS
+   timers and a CSS delay counts from first style, which is earlier by
+   however long the scripts took. Paused until then, the animation holds its
+   from-state. It was once missing from this list entirely and arrived fully
+   formed at frame zero, which read as a rendering fault rather than as the
+   centrepiece. Like .gate below, its keyframes must carry the
+   translateX(-50%) that centres it — an animated transform replaces the
+   static one outright, and without it the clock snaps to the left edge for
+   the length of the entrance. */
+html[data-entered="no"] #clock { animation: dial-wake 0.36s var(--ease-out) both paused; }
+html[data-entered="no"] #entrance.dial ~ #hall #clock { animation-play-state: running; }
 html[data-entered="no"] .gate { animation: gate-rise 0.5s var(--ease-out) both; animation-delay: calc(1.9s + var(--gi, 0) * 80ms); }
 /* #ledger is a fixed drawer — it has no entrance animation; it opens via JS */
 /* The glow and floor light only once the gates have landed; the stage
-   dollies in gently — the camera walks into the hall. */
+   dollies in gently — the camera walks into the hall. The floor's
+   reflections come up with the dial (beat 8). This rule used to name
+   `.floor`, which no element carries, so the stone showed four arches and a
+   clock from the moment the doors parted, over an empty wall. */
 html[data-entered="no"] .stage-glow { animation: glow-in 0.45s var(--ease-out) both; animation-delay: 2.2s; }
-html[data-entered="no"] .floor { animation: floor-in 0.6s var(--ease-out) both; animation-delay: 2.15s; }
+html[data-entered="no"] #floorplane .fl-mirror { animation: floor-in 0.36s var(--ease-out) both paused; }
+html[data-entered="no"] #entrance.dial ~ #hall .fl-mirror { animation-play-state: running; }
 html[data-entered="no"] #stage { animation: stage-dolly 0.9s var(--ease-out) both; animation-delay: 1.85s; }
 @keyframes glow-in { from { opacity: 0; } to { opacity: 0.6; } }
 @keyframes floor-in { from { opacity: 0; } to { opacity: 0.85; } }
