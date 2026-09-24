@@ -233,3 +233,155 @@
 .g-crystal .cr-edge { fill: none; stroke: rgba(255, 250, 235, 0.2); stroke-width: 0.6; }
 /* A reserved gate's bezel holds a blank cover plate: no mark, no crystal. */
 .gate.vacant .sigil, .gate.vacant .g-crystal { visibility: hidden; }
+
+/* ==========================================================================
+   THE FACE: THE APRON'S TYPE BUDGET, THE NOTE, THE LANTERN SLIDE
+   ========================================================================== */
+
+/* ----- The apron ----------------------------------------------------------
+   Every string on the apron stands at 10px or more at every size. The type
+   does not shrink to fit: at the laptop sizes the status line tightens its
+   tracking first and, where it still does not fit, takes a second line, and
+   the house above gives up the height. The address and lamp word are set in
+   a brighter ink on the black lacquer (the old ink measured about 2.2:1 at
+   9px once anti-aliased). */
+:root[data-theme="onyx"], :root[data-theme="ivory"] { --apron-ink: #d6c7a2; --apron-lamp: #c9b995; --note-ink: #f2c47e; }
+.g-apron { padding: 2.1cqw 0.6cqw 2cqw; }
+.g-stat {
+  font-size: clamp(10px, 4.7cqw, calc(13px * var(--ui)));
+  letter-spacing: clamp(0.05em, calc((100cqw - 190px) * 0.02), 0.12em);
+  line-height: 1.24;
+  font-weight: 530;
+  text-wrap: balance;
+}
+.g-addr {
+  margin-top: 0.4cqw;
+  font-size: clamp(10px, 4.1cqw, calc(12px * var(--ui)));
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  color: var(--apron-ink);
+}
+.g-lamp {
+  order: 3;
+  margin-top: 0.8cqw;
+  font-size: clamp(10px, 3.9cqw, calc(11px * var(--ui)));
+  letter-spacing: 0.2em;
+  font-weight: 560;
+  color: var(--apron-lamp);
+}
+.g-lamp .lamp-d { min-width: 9px; min-height: 9px; }
+html[lang="zh"] .g-lamp { letter-spacing: 0.2em; }
+
+/* ----- The service note ----------------------------------------------------
+   A service's own warning (a stale edition, the downloader down) engraved on
+   the apron in amber. While it stands it takes the address line's place, so
+   the apron grows by at most one line, and it sits above the lamp: nothing
+   on the apron ever overlaps the lamp. */
+.g-apron .g-note {
+  order: 2;
+  margin: 0.6cqw 0 0;
+  max-width: 100%;
+  font-size: clamp(10px, 4cqw, calc(11px * var(--ui)));
+  line-height: 1.3;
+  letter-spacing: 0.02em;
+  font-weight: 500;
+  color: var(--note-ink);
+  text-wrap: balance;
+}
+.g-apron:has(.g-note:not([hidden])) .g-addr { display: none; }
+
+/* ----- The house's budget -------------------------------------------------
+   A shallower valance and a tighter sign give the house back the height the
+   apron now spends on 10px type. */
+.g-sign { padding: 2.9cqw 2.4cqw 2.6cqw; }
+.g-valance { height: 11.5cqw; }
+.g-desc { margin-top: 15.5cqw; }
+
+/* ----- The lantern slide ----------------------------------------------------
+   At night the description is a lantern slide thrown on the closed tabs: a
+   black slide with the words clear, so they land on the velvet as light
+   inside a dark field, framed by the slide's own ruled border and the
+   gate's corner ornament (the same fans, steps or lozenge its day card
+   carries, here in light). The field is what keeps the words legible over
+   lit folds (over 10:1), and the curtain's meeting line runs behind it,
+   never through a letter. The field is the description's own box pushed
+   out by a margin, so it moves and grows with the words.
+   By day a closed curtain (a dark or unchecked line) keeps the black field
+   with no light in it; an open line shows its title card instead. */
+.gate { --slide-field: rgba(9, 6, 4, 0.9); --slide-ink: rgba(255, 226, 170, 0.5); --slide-ink2: rgba(255, 226, 170, 0.26); }
+:root[data-theme="ivory"] .gate { --slide-field: rgba(12, 9, 7, 0.9); --slide-ink: transparent; --slide-ink2: transparent; }
+.g-desc::before {
+  content: ""; position: absolute; z-index: -1; pointer-events: none;
+  inset: -2.4cqw -3.2cqw;
+  background-color: var(--slide-field);
+  box-shadow:
+    inset 0 0 0 1px var(--slide-ink),
+    inset 0 0 0 0.9cqw var(--slide-field),
+    inset 0 0 0 calc(0.9cqw + 1px) var(--slide-ink2),
+    inset 0 0 1.4cqw rgba(255, 214, 150, 0.05),
+    0 0 2.4cqw 1.6cqw rgba(9, 6, 4, 0.55);
+  opacity: 0;
+  transition: opacity 0.35s ease;
+}
+:root[data-theme="onyx"] .gate.active[data-state="open"] .g-desc::before {
+  opacity: 1;
+  transition: opacity 0.7s ease calc(var(--slot-delay, 0ms) + 420ms);
+}
+:root[data-theme="onyx"] .gate[data-state="checking"] .g-desc::before { opacity: 0.8; }
+:root[data-theme="ivory"] .gate:not([data-state="open"]) .g-desc::before { opacity: 0.9; }
+.gate.vacant .g-desc::before { display: none; }
+/* The slide's corner ornament: the gate's own card, in projected light. */
+:root[data-theme="onyx"] .gate[data-card="fans"] .g-desc::before {
+  background:
+    radial-gradient(circle at 0 0, transparent 0 2.2cqw, var(--slide-ink) 2.2cqw calc(2.2cqw + 1px), transparent calc(2.2cqw + 1px) 3.2cqw, var(--slide-ink2) 3.2cqw calc(3.2cqw + 1px), transparent calc(3.2cqw + 1px)) 0.9cqw 0.9cqw / 4.2cqw 4.2cqw no-repeat,
+    radial-gradient(circle at 100% 0, transparent 0 2.2cqw, var(--slide-ink) 2.2cqw calc(2.2cqw + 1px), transparent calc(2.2cqw + 1px) 3.2cqw, var(--slide-ink2) 3.2cqw calc(3.2cqw + 1px), transparent calc(3.2cqw + 1px)) calc(100% - 0.9cqw) 0.9cqw / 4.2cqw 4.2cqw no-repeat,
+    radial-gradient(circle at 0 100%, transparent 0 2.2cqw, var(--slide-ink) 2.2cqw calc(2.2cqw + 1px), transparent calc(2.2cqw + 1px) 3.2cqw, var(--slide-ink2) 3.2cqw calc(3.2cqw + 1px), transparent calc(3.2cqw + 1px)) 0.9cqw calc(100% - 0.9cqw) / 4.2cqw 4.2cqw no-repeat,
+    radial-gradient(circle at 100% 100%, transparent 0 2.2cqw, var(--slide-ink) 2.2cqw calc(2.2cqw + 1px), transparent calc(2.2cqw + 1px) 3.2cqw, var(--slide-ink2) 3.2cqw calc(3.2cqw + 1px), transparent calc(3.2cqw + 1px)) calc(100% - 0.9cqw) calc(100% - 0.9cqw) / 4.2cqw 4.2cqw no-repeat,
+    var(--slide-field);
+}
+:root[data-theme="onyx"] .gate[data-card="steps"] .g-desc::before {
+  background:
+    linear-gradient(var(--slide-ink), var(--slide-ink)) 1.9cqw 1.9cqw / 2.4cqw 1px no-repeat,
+    linear-gradient(var(--slide-ink), var(--slide-ink)) 1.9cqw 1.9cqw / 1px 2.4cqw no-repeat,
+    linear-gradient(var(--slide-ink), var(--slide-ink)) calc(100% - 1.9cqw) 1.9cqw / 2.4cqw 1px no-repeat,
+    linear-gradient(var(--slide-ink), var(--slide-ink)) calc(100% - 1.9cqw) 1.9cqw / 1px 2.4cqw no-repeat,
+    linear-gradient(var(--slide-ink), var(--slide-ink)) 1.9cqw calc(100% - 1.9cqw) / 2.4cqw 1px no-repeat,
+    linear-gradient(var(--slide-ink), var(--slide-ink)) 1.9cqw calc(100% - 1.9cqw) / 1px 2.4cqw no-repeat,
+    linear-gradient(var(--slide-ink), var(--slide-ink)) calc(100% - 1.9cqw) calc(100% - 1.9cqw) / 2.4cqw 1px no-repeat,
+    linear-gradient(var(--slide-ink), var(--slide-ink)) calc(100% - 1.9cqw) calc(100% - 1.9cqw) / 1px 2.4cqw no-repeat,
+    var(--slide-field);
+}
+:root[data-theme="onyx"] .gate[data-card="lozenge"] .g-desc::before {
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'%3E%3Cpath d='M5 0L10 5L5 10L0 5Z' fill='rgb(255,226,170)' fill-opacity='.55'/%3E%3C/svg%3E") 50% 0.35cqw / 1.5cqw 1.5cqw no-repeat,
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'%3E%3Cpath d='M5 0L10 5L5 10L0 5Z' fill='rgb(255,226,170)' fill-opacity='.55'/%3E%3C/svg%3E") 50% calc(100% - 0.35cqw) / 1.5cqw 1.5cqw no-repeat,
+    var(--slide-field);
+}
+
+/* Balanced lines: no description ends on one orphaned word, and no Chinese
+   description ends on a single character that splits a two-character word. */
+.g-desc { text-wrap: balance; }
+
+/* ----- The day card's budget ------------------------------------------------
+   The card is the description's own box. It never shrinks below its words
+   (a squeezed card let the first line ride up over its own top ornament at
+   1280), so its margins and padding are what give way: the tie-backs take
+   a tenth of the house each side, and the card stands just inside them. */
+:root[data-theme="ivory"] .gate[data-state="open"] .g-house { padding-top: 10.5cqw; }
+:root[data-theme="ivory"] .gate[data-state="open"] .g-desc {
+  min-height: auto;
+  margin: 2cqw 10.5cqw 2cqw;
+  padding: 2.4cqw 2.6cqw 2.2cqw;
+}
+:root[data-theme="ivory"] .gate[data-state="open"] .g-desc::after { margin-top: 1.3cqw; }
+
+/* ----- The screen by night ---------------------------------------------------
+   Before the show the screen is not lit. What shows under the lifted
+   curtain is its foot, warmed by the footlights, not a bright white bar. */
+:root[data-theme="onyx"] .gate { --screen: #2e2822; --screen-hi: #6a5a44; }
+:root[data-theme="onyx"] .gate:not(.opening) .g-screen {
+  background:
+    radial-gradient(70% 38% at 50% 100%, rgba(255, 196, 120, 0.85), rgba(190, 120, 60, 0.5) 45%, transparent 100%),
+    linear-gradient(180deg, #1c1814, #2e2822 70%, #4a3a2a);
+}
+

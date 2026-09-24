@@ -2474,11 +2474,13 @@ html[lang="zh"] .g-name { letter-spacing: 0.17em; }
 :root[data-theme="ivory"] .gate[data-state="open"] .g-tab { transform: scaleX(0.2); }
 :root[data-theme="ivory"] .gate[data-state="open"] .g-desc { color: var(--ink); text-shadow: none; }
 
-/* Hover and focus: at night the tabs part a hand's breadth and the screen
-   behind shows a thread of light; by day the screen comes up a shade. One
-   sheen runs across the gilding only. */
-:root[data-theme="onyx"] .gate:not(.vacant):focus-visible .g-tab-l { transform: translateX(-5%); }
-:root[data-theme="onyx"] .gate:not(.vacant):focus-visible .g-tab-r { transform: translateX(5%); }
+/* Hover and focus: at night the house curtain lifts a hand's breadth off
+   the stage, like a contour curtain taking its first swag, and the
+   footlit foot of the screen shows under the fringe. The tabs never part:
+   a parting drew a thread of light up the meeting line, straight through
+   the projected description. By day the card stays. One sheen runs across
+   the gilding only. */
+:root[data-theme="onyx"] .gate:not(.vacant):focus-visible .g-tab { transform: translateY(-8%); }
 .gate:not(.vacant):focus-visible .p-sheen { animation: gilt-sheen 0.8s var(--ease-out) 1; }
 @keyframes gilt-sheen { from { transform: translateX(0); } to { transform: translateX(560px); } }
 /* The rise rides on the pose inside the link (--lift), never on the link
@@ -2488,8 +2490,7 @@ html[lang="zh"] .g-name { letter-spacing: 0.17em; }
    answer a pointer that can rest. Focus keeps all of them. */
 .gate:not(.vacant):focus-visible { --lift: -3px; }
 @media (hover: hover) {
-  :root[data-theme="onyx"] .gate:not(.vacant):hover .g-tab-l { transform: translateX(-5%); }
-  :root[data-theme="onyx"] .gate:not(.vacant):hover .g-tab-r { transform: translateX(5%); }
+  :root[data-theme="onyx"] .gate:not(.vacant):hover .g-tab { transform: translateY(-8%); }
   .gate:not(.vacant):hover .p-sheen { animation: gilt-sheen 0.8s var(--ease-out) 1; }
   .gate:not(.vacant):hover { --lift: -3px; }
 }
@@ -2498,8 +2499,8 @@ html[lang="zh"] .g-name { letter-spacing: 0.17em; }
 .gate.opening .g-screen { background: var(--screen-flood); transition: background 0.1s; }
 .gate.flash .b-lip, .gate.flash .rim-lt { stroke: var(--champagne); transition: stroke 0.05s; }
 
-/* The waiting wing: same bays, out of the room. Opacity sits on .gate, the
 .g-veil { display: none; }
+/* The waiting wing: same bays, out of the room. Opacity sits on .gate, the
    PARENT of the preserve-3d pose, never on the pose itself: on the pose it
    would flatten the tilt. Visibility follows the fade so a hidden arch can
    never take a pointer or a hover.
