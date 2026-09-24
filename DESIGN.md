@@ -343,7 +343,12 @@ third of its face.
 read live or they are decoration, but only while the board is genuinely on
 screen. Below 2800px it is `display:none`, and a hidden panel must never
 keep the host sampling: `worksVisible()` gates every tick, and the hub's own
-TTL means an unopened panel spawns no `nvidia-smi` at all.
+TTL means an unopened panel spawns no `nvidia-smi` at all. One request is out
+at a time (a tick is skipped while one is), and a reading whose `generated`
+is older than the one on the dials is dropped: overlapping replies used to
+land out of order and swing a needle back. A board that has heard nothing
+for 10 s drops every needle to NO READING instead of holding the last figure
+as if it were live.
 
 **Floor (v4.2), cut rather than drawn.** One plane hinged on its NEAR edge,
 `transform-origin: bottom center` with `rotateX(58deg)`, so the hall recedes

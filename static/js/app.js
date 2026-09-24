@@ -2239,12 +2239,32 @@ function worksVisible() {
          document.visibilityState === 'visible';
 }
 
+/* One request at a time. The 4 s beat used to fire whether or not the last
+   request had come back, and a slow reply landing after a quick one swung
+   the needle back to the older reading. */
+var worksBusy = false;
+var worksOkAt = 0;
+/* A dial that has heard nothing for this long stops pointing at a number.
+   It kept its last needle through any number of failed polls and looked
+   live the whole time. Two and a half beats: one miss is a hiccup. */
+var WORKS_STALE_MS = 10000;
+
 function pollWorks() {
-  if (!worksVisible()) return Promise.resolve();
+  if (!worksVisible() || worksBusy) return Promise.resolve();
+  worksBusy = true;
   return fetchJson('/api/works').then(function (w) {
+    // An older reading never replaces a newer one.
+    if (works && w && w.generated < works.generated) return;
     works = w;
+    worksOkAt = Date.now();
     syncWorks();
-  }).catch(function () { /* a restarting hub is not a reading */ });
+  }).catch(function () {
+    // A restarting hub is not a reading, and neither is the last one kept.
+    if (works && Date.now() - worksOkAt > WORKS_STALE_MS) {
+      works = null;
+      syncWorks();
+    }
+  }).then(function () { worksBusy = false; });
 }
 
 /* Instruments read live or they are decoration, so the cadence is the
