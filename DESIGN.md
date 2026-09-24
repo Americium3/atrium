@@ -432,8 +432,9 @@ else.
   so the solve never chases its own output. Checked at twelve sizes from
   1280x800 to 3440x1440 in both wings with a Playwright overlap audit.
 - **A throw goes bay by bay**, out from the clock on both sides, 60 ms a
-  step. The lit arch sinks 14px and fades in 200 ms, the bay stands empty
-  for 20 ms, and then the other wing's arch rises into it. Two faces never
+  step. By night the lit arch's lamps go out first, in 120 ms. Then it
+  sinks 14px and fades in 200 ms, the bay stands empty for 20 ms, and the
+  other wing's arch rises into it. Two faces never
   share a bay, and an incoming arch takes no pointer until its fade is under
   way. Where both wings end in a RESERVED arch, that bay stays put. Lever
   re-light queues until any in-flight theme crossfade finishes.

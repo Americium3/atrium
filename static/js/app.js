@@ -1318,6 +1318,7 @@ function gateClick(e, a, svc) {
 /* Triptych stage: slots computed from the registry so future services
    flank symmetrically. Transform-only (60 fps law). */
 var SWAP_OUT = 200, SWAP_GAP = 20, SWAP_STEP = 60;   // ms, see the throw below
+var SWAP_DIM = 120;   // ms, the house lights going down first (by night only)
 function layoutStage(initial) {
   var wrap = $('#gates');
   var W = wrap.clientWidth;
@@ -1478,9 +1479,13 @@ function layoutStage(initial) {
     var mate = swaps.filter(function (o) { return !o.lit && Math.abs(o.x - s.x) < 0.5; })[0];
     s.wait = !!mate && shown(mate.a) > 0.02;
   });
+  // By night an outgoing arch's lamps go out before it sinks (the CSS holds
+  // its sink back by the same --gate-dim), so its bay is empty that much
+  // later. By day nothing is lit and nothing waits for it.
+  var dim = root.dataset.theme === 'onyx' ? SWAP_DIM : 0;
   swaps.forEach(function (s) {
     var delay = s.rank * SWAP_STEP;
-    if (s.wait) delay += SWAP_OUT + SWAP_GAP;
+    if (s.wait) delay += dim + SWAP_OUT + SWAP_GAP;
     s.a.classList.toggle('arriving', s.lit);
     role(s.a, s.lit, delay);
   });

@@ -2315,8 +2315,15 @@ html[lang="zh"] .g-name { letter-spacing: 0.17em; }
 /* ----- Light states ------------------------------------------------------
    One rule decides whether a gate's house is lit: night, the gate's wing is
    the lit one, and the line behind it is open. The lights come up only
-   after the arch has risen into its bay, and go down before it sinks. */
+   after the arch has risen into its bay, and go down before it sinks: an
+   outgoing arch's lamps go out in the first --gate-dim of its beat, and
+   its sink waits for them (.gate.receded below; app.js waits as long).
+   They used to fade with no delay over 0.35s, so an outer arch was still
+   at 0.7 when it began to sink and an inner one still glowed when it had
+   gone. */
+:root[data-theme="onyx"] .gate { --gate-dim: 120ms; }
 .gate .lit { opacity: 0; transition: opacity 0.35s ease; }
+.gate.receded .lit { transition: opacity var(--gate-dim, 0ms) ease-in var(--slot-delay, 0ms); }
 :root[data-theme="onyx"] .gate.active[data-state="open"] .lit {
   opacity: 1;
   transition: opacity 0.7s ease calc(var(--slot-delay, 0ms) + 420ms);
@@ -2376,9 +2383,9 @@ html[lang="zh"] .g-name { letter-spacing: 0.17em; }
   opacity: 0; visibility: hidden;
   translate: 0 14px;
   transition: transform 0.6s var(--ease-stage),
-              translate 0.2s ease-in var(--slot-delay, 0ms),
-              opacity 0.2s ease-in var(--slot-delay, 0ms),
-              visibility 0s linear calc(var(--slot-delay, 0ms) + 0.2s);
+              translate 0.2s ease-in calc(var(--slot-delay, 0ms) + var(--gate-dim, 0ms)),
+              opacity 0.2s ease-in calc(var(--slot-delay, 0ms) + var(--gate-dim, 0ms)),
+              visibility 0s linear calc(var(--slot-delay, 0ms) + var(--gate-dim, 0ms) + 0.2s);
 }
 .gate.active {
   opacity: 1; visibility: visible;
