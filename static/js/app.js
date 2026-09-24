@@ -1500,12 +1500,21 @@ function showNotice(a, svc) {
   var hs = $('#hall-status'); if (hs) hs.textContent = n.textContent;
 }
 
+/* The browser's new-tab modifier: Cmd on a Mac, Ctrl everywhere else.
+   Elsewhere, Meta is the Windows or Super key, and the browser treats a
+   click holding it as a plain same-tab navigation. Letting that through
+   would replace the hall with the service. */
+var NEW_TAB_KEY = /mac|iphone|ipad|ipod/i.test(
+  (navigator.userAgentData && navigator.userAgentData.platform) ||
+  navigator.platform || '') ? 'metaKey' : 'ctrlKey';
+
 function gateClick(e, a, svc) {
   var dark = a.dataset.state === 'dark';
-  // Ctrl, Cmd and Shift are the browser's own new-tab and new-window
-  // gestures, and middle-click already gets them. A DARK gate keeps its
-  // notice instead: its address would only open a dead tab.
-  if (!dark && (e.ctrlKey || e.metaKey || e.shiftKey)) return;
+  // The new-tab modifier and Shift are the browser's own new-tab and
+  // new-window gestures, and middle-click already gets them. Any other
+  // modifier falls through to the named window below. A DARK gate keeps
+  // its notice instead: its address would only open a dead tab.
+  if (!dark && (e[NEW_TAB_KEY] || e.shiftKey)) return;
   e.preventDefault();
   if (dark) {
     var n = $('.g-notice', a);
