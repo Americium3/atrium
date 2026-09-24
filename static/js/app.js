@@ -99,7 +99,9 @@ var STR = {
     wkCpu: 'PROCESSOR', wkMem: 'MEMORY', wkGpu: 'GRAPHICS', wkNet: 'TRAFFIC',
     wkHours: 'HOURS RUN', wkDisk: 'STORE', wkFree: '{n} FREE',
     runD: 'd', runH: 'h', runM: 'm', wkRate: 'MB/s', join: ': ', list: ', ',
-    vacantName: 'Reserved', vacantLamp: 'Not in service',
+    /* No English tooltip where it would only repeat the engraving above it
+       (RESERVED, STATISTICS, ALMANAC). The Chinese one is the translation. */
+    vacantName: '', vacantLamp: 'Not in service',
     wkNoReading: 'NO READING',
     wkCores: '{n} cores', wkOf: '{a} of {b} GB',
     wkDown: '{d} down · {u} up MB/s',
@@ -150,7 +152,7 @@ var STR = {
     ariaGates: 'Gates', ariaLedger: 'Ledger: dispatch timeline',
     ariaWorks: 'Statistics: live readings from this machine',
     ariaAlmanac: 'Almanac: sun, moon and weather over this hall',
-    worksTitle: 'Statistics', almTitle: 'Almanac',
+    worksTitle: '', almTitle: '',
     salonWing: 'Play wing', bureauWing: 'Work wing',
     ledgerBtnLabel: 'LEDGER',
     keysTitle: 'KEYS',
@@ -4086,7 +4088,9 @@ function applyI18nStatic() {
     n.setAttribute('aria-label', t(n.dataset.i18nAria));
   });
   Array.prototype.forEach.call(document.querySelectorAll('[data-i18n-title]'), function (n) {
-    n.title = t(n.dataset.i18nTitle);
+    // An empty string means no tooltip in this language (see vacantName).
+    var tip = t(n.dataset.i18nTitle);
+    if (tip) n.title = tip; else n.removeAttribute('title');
   });
 }
 
