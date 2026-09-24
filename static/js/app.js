@@ -143,6 +143,7 @@ var STR = {
     almSrMinutes: '{m} {m|minute|minutes} {s} {s|second|seconds}',
     leverDesc: 'Off lights the Salon, the play wing. On lights the Bureau, the work wing.',
     ariaFilter: 'Filter dispatches', ariaClose: 'Close',
+    ariaLedgerClose: 'Close the Ledger',
     ariaGates: 'Gates', ariaLedger: 'Ledger: dispatch timeline',
     ariaWorks: 'Statistics: live readings from this machine',
     ariaAlmanac: 'Almanac: sun, moon and weather over this hall',
@@ -276,6 +277,7 @@ var STR = {
     almSrMinutes: '{m} 分 {s} 秒',
     leverDesc: '关：点亮沙龙翼（娱乐）。开：点亮事务翼（工作）。',
     ariaFilter: '筛选快讯', ariaClose: '关闭',
+    ariaLedgerClose: '合上消息总台',
     ariaGates: '门廊', ariaLedger: '消息总台：快讯时间轴',
     ariaWorks: '运转统计：本机实时读数',
     ariaAlmanac: '天象：本厅上空的日月与天气',
@@ -3446,10 +3448,9 @@ function buildPlaque(d) {
   var svg = document.createElementNS(ns, 'svg');
   svg.setAttribute('viewBox', '0 0 40 40');
   svg.setAttribute('aria-hidden', 'true');
-  var rim = document.createElementNS(ns, 'use');
-  rim.setAttribute('href', '#medallion');
-  rim.setAttribute('class', 'rim');
-  svg.appendChild(rim);
+  // The card's fittings (lean, stamp, jewel) and the cartouche the mark
+  // sits in are cabinetry's, off the dispatch's own hash.
+  window.Cabinet.cartouche(svg, window.Cabinet.card(li, d.id, shadowWrap));
   var sig = document.createElementNS(ns, 'use');
   var known = KNOWN_SIGILS[d.origin];
   sig.setAttribute('href', known ? '#mark-' + d.origin : '#sig-fallback');
@@ -4276,6 +4277,9 @@ if (ledgerScrimEl) {
     closeLedger();
   });
 }
+/* The drawer's own knob. closeLedger() hands focus back to the hatch. */
+var ledgerCloseEl = $('#ledger-close');
+if (ledgerCloseEl) ledgerCloseEl.addEventListener('click', closeLedger);
 
 /* The medallion hangs outside the plaque's link, over the spine where the
    clipped frame cannot reach, so a click on it used to do nothing. It reads

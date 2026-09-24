@@ -640,3 +640,365 @@
 #almanac .al-disc .m-dark { fill: url(#mn-dark); }
 #almanac .al-disc .m-lit { fill: url(#mn-lit); }
 
+/* ==========================================================================
+   THE LEDGER: a black lacquer cabinet drawer
+   ==========================================================================
+   It slides out over the hall with the room behind it softened (the one
+   place a room really is behind a pane). Black lacquer by night, ivory
+   lacquer by day, one wide reflection band, a lit leading edge. Down it
+   runs the pneumatic main, a brass tube with lit collars, and on the main
+   hang the dispatches: programme cards in small gilt holders. */
+:root[data-theme="onyx"] {
+  --lq: #0b0908; --lq-2: #14100c; --lq-refl: rgba(255, 244, 222, 0.085); --lq-edge: rgba(255, 226, 170, 0.55);
+  --lq-ink: #e7dcc2; --lq-faint: #9a8b6c; --lq-gold: #d8b96c;
+  --card: #cdbd96; --card-2: #c2b087; --card-ink: #20170c; --card-faint: #5b4b33; --card-rule: rgba(80, 58, 28, 0.42);
+  --stamp-ink: #4d2f78;
+  --jewel-0: #fffbe8; --jewel-1: #ffd98a; --jewel-2: #e0922e; --jewel-3: #6e3208;
+  --jewel-glow: rgba(255, 200, 110, 0.75);
+  --scrim-blur: 3px;
+}
+:root[data-theme="ivory"] {
+  --lq: #e8e0cc; --lq-2: #ddd3bb; --lq-refl: rgba(255, 255, 255, 0.45); --lq-edge: rgba(255, 255, 255, 0.9);
+  --lq-ink: #221a10; --lq-faint: #6a5c44; --lq-gold: #7a5f1e;
+  --card: #f3e7c4; --card-2: #eadbb2; --card-ink: #1f170c; --card-faint: #5e4e36; --card-rule: rgba(90, 66, 30, 0.40);
+  --stamp-ink: #4a2c74;
+  --jewel-0: #f6e3a8; --jewel-1: #d8b25a; --jewel-2: #a07a2a; --jewel-3: #5a420e;
+  --jewel-glow: rgba(0, 0, 0, 0);
+  --scrim-blur: 3px;
+}
+
+#ledger {
+  width: min(calc(372px * var(--ui)), 100vw);
+  padding: calc(22px * var(--ui)) calc(18px * var(--ui)) calc(72px * var(--ui)) calc(22px * var(--ui));
+  border-left: 0;
+  color: var(--lq-ink);
+  background:
+    linear-gradient(100deg, transparent 18%, var(--lq-refl) 30%, transparent 44%) 0 0 / 100% 100% no-repeat,
+    linear-gradient(100deg, transparent 52%, color-mix(in srgb, var(--lq-refl) 40%, transparent) 58%, transparent 63%) 0 0 / 100% 100% no-repeat,
+    linear-gradient(180deg, rgba(255, 255, 255, 0.035), transparent 18%, transparent 82%, rgba(0, 0, 0, 0.18)),
+    var(--lq);
+  box-shadow:
+    inset 1px 0 0 var(--lq-edge),
+    inset 3px 0 0 var(--lead-2),
+    inset 4px 0 0 var(--lead-4),
+    inset 6px 0 0 var(--lead-1),
+    inset 7px 0 0 rgba(0, 0, 0, 0.6),
+    -14px 0 40px var(--shadow-drop), -3px 0 8px var(--shadow-soft);
+  scrollbar-width: thin;
+  scrollbar-color: var(--lead-2) transparent;
+}
+/* The riveted strip retired: the drawer's leading edge is the gilt bead in
+   the inset shadows above, lit where the room's light catches it. */
+#ledger::before { content: none; }
+@media (max-width: 1279px) { #ledger { width: 100%; padding-top: calc(22px * var(--ui)); } }
+/* The hall behind is softened, not just dimmed. A static blur on a layer
+   that only fades. */
+#ledger-scrim { -webkit-backdrop-filter: blur(var(--scrim-blur)); backdrop-filter: blur(var(--scrim-blur)); }
+
+/* ----- The head: a label holder, a knob, three push-keys ---------------- */
+#ledger .l-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas: "title close" "chips chips";
+  align-items: center;
+  row-gap: calc(14px * var(--ui));
+  column-gap: calc(12px * var(--ui));
+  padding: calc(4px * var(--ui)) 0 calc(14px * var(--ui)) calc(8px * var(--ui));
+  margin-bottom: calc(10px * var(--ui));
+  position: relative;
+}
+#ledger .l-head::after {
+  content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 2px;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.55), rgba(255, 236, 190, 0.12));
+}
+/* The title in a brass card frame, the kind screwed to a cabinet drawer:
+   a pressed brass surround with a card slid in behind a lip. */
+#ledger .l-head h2 {
+  grid-area: title;
+  justify-self: start;
+  position: relative;
+  white-space: nowrap;
+  font-size: calc(14px * var(--ui));
+  letter-spacing: 0.26em;
+  padding: calc(6px * var(--ui)) calc(14px * var(--ui)) calc(5px * var(--ui)) calc(18px * var(--ui));
+  color: var(--card-ink);
+  background:
+    url('/static/assets/tex/grain-card.webp') 0 0 / 140px,
+    var(--card);
+  background-blend-mode: soft-light, normal;
+  box-shadow:
+    inset 0 2px 3px rgba(0, 0, 0, 0.35),
+    0 0 0 1px var(--br-0), 0 0 0 3px var(--br-2), 0 0 0 4px var(--br-4), 0 0 0 5px var(--br-0),
+    0 3px 6px 4px rgba(0, 0, 0, 0.45);
+  border-radius: 1px;
+  margin-left: calc(10px * var(--ui));
+}
+#ledger .l-head h2::before, #ledger .l-head h2::after {
+  content: ""; position: absolute; top: 50%;
+  width: 7px; height: 7px; margin-top: -3.5px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 36% 32%, var(--br-5), var(--br-2) 50%, var(--br-0));
+  box-shadow: 0.5px 0.8px 1px rgba(0, 0, 0, 0.6);
+}
+#ledger .l-head h2::before { left: -12px; }
+#ledger .l-head h2::after { right: -12px; }
+#ledger h2:focus-visible { outline: 2px solid var(--focus); outline-offset: 9px; }
+
+.l-close {
+  grid-area: close;
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  padding: 2px 4px;
+  color: var(--lq-faint);
+}
+.l-close-knob { width: calc(30px * var(--ui)); height: calc(30px * var(--ui)); overflow: visible; }
+.l-close-knob .k-sh { fill: rgba(0, 0, 0, 0.55); }
+.l-close-knob .k-rose { fill: var(--br-2); stroke: var(--br-0); stroke-width: 0.6; }
+.l-close-knob .k-rose-lip { fill: none; stroke: var(--br-4); stroke-width: 1.2; }
+.l-close-knob .k-cap { fill: var(--br-3); stroke: var(--br-0); stroke-width: 0.6; }
+.l-close-knob .k-ring { fill: none; stroke: var(--br-1); stroke-width: 0.8; }
+.l-close-knob .k-glint { fill: #fffbea; opacity: 0.7; }
+.l-close-cap { font-size: calc(9.5px * var(--ui)); letter-spacing: 0.22em; margin-right: -0.22em; text-transform: uppercase; white-space: nowrap; }
+.l-close:hover { color: var(--lq-gold); }
+.l-close:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.l-close svg { transition: transform 0.14s var(--ease-out); }
+.l-close:active svg { transform: translateY(1px) scale(0.97); }
+
+/* Chips as a bank of three push-keys with ivorine caps in brass collars.
+   The key that is in stands pressed down; the others stand up. */
+#ledger .chips {
+  grid-area: chips;
+  display: flex; gap: calc(10px * var(--ui));
+  justify-content: flex-start;
+  padding-left: calc(8px * var(--ui));
+}
+#ledger .chip {
+  position: relative;
+  font-size: calc(10px * var(--ui));
+  letter-spacing: 0.2em;
+  white-space: nowrap;
+  padding: calc(5px * var(--ui)) calc(12px * var(--ui)) calc(4px * var(--ui));
+  color: var(--card-faint);
+  border: 0;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.5), transparent 40%, rgba(0, 0, 0, 0.12)),
+    var(--card);
+  box-shadow:
+    0 0 0 1px var(--br-0), 0 0 0 2px var(--br-3), 0 0 0 3px var(--br-1),
+    0 3px 0 1px var(--br-0), 0 4px 5px 2px rgba(0, 0, 0, 0.45);
+  border-radius: 2px;
+  transition: transform 0.12s var(--ease-out), box-shadow 0.12s, color 0.2s;
+}
+#ledger .chip:hover { color: var(--card-ink); }
+#ledger .chip[aria-checked="true"] {
+  color: var(--card-ink);
+  transform: translateY(2px);
+  background:
+    linear-gradient(180deg, rgba(0, 0, 0, 0.12), transparent 40%),
+    var(--card-2);
+  box-shadow:
+    0 0 0 1px var(--br-0), 0 0 0 2px var(--br-2), 0 0 0 3px var(--br-0),
+    0 1px 0 1px var(--br-0), 0 1px 2px 1px rgba(0, 0, 0, 0.5),
+    inset 0 2px 3px rgba(0, 0, 0, 0.3);
+}
+#ledger .chip:focus-visible { outline: 2px solid var(--focus); outline-offset: 5px; }
+
+/* ----- The dater ---------------------------------------------------------- */
+#ledger .l-tools { justify-content: flex-end; margin: 0 0 calc(10px * var(--ui)); }
+.l-stamp {
+  gap: calc(9px * var(--ui));
+  padding: calc(3px * var(--ui)) calc(6px * var(--ui));
+  color: var(--lq-gold);
+}
+.l-stamp-ico { width: calc(30px * var(--ui)); height: calc(33px * var(--ui)); overflow: visible; }
+.l-stamp-ico .s-cradle-back { fill: var(--br-1); }
+.l-stamp-ico .s-cradle { fill: var(--br-2); stroke: var(--br-0); stroke-width: 0.5; }
+.l-stamp-ico .s-pad { fill: #2a2522; }
+.l-stamp-ico .s-pad-ink { fill: var(--stamp-ink); opacity: 0.8; }
+.l-stamp-ico .s-rule { stroke: var(--br-4); stroke-width: 0.8; opacity: 1; }
+.l-stamp-ico .s-knob-sh { fill: rgba(0, 0, 0, 0.5); }
+.l-stamp-ico .s-knob { fill: #2b1a10; stroke: #120a05; stroke-width: 0.5; }
+.l-stamp-ico .s-knob-hi { fill: rgba(255, 220, 180, 0.35); }
+.l-stamp-ico .s-neck { fill: var(--br-2); stroke: var(--br-0); stroke-width: 0.4; }
+.l-stamp-ico .s-frame { fill: var(--br-3); stroke: var(--br-0); stroke-width: 0.6; }
+.l-stamp-ico .s-band { fill: #1b1512; }
+.l-stamp-ico .s-band-lines { stroke: var(--br-4); stroke-width: 0.5; }
+.l-stamp-ico .s-base { fill: #18110d; }
+.l-stamp-ico .s-head, .l-stamp-ico .s-grip, .l-stamp-ico .s-base { transition: transform 0.14s var(--ease-out); }
+.l-stamp:active .l-stamp-ico .s-head,
+.l-stamp:active .l-stamp-ico .s-grip,
+.l-stamp:active .l-stamp-ico .s-base { transform: translateY(3.2px); }
+.l-stamp-cap { font-size: calc(10px * var(--ui)); letter-spacing: 0.2em; white-space: nowrap; }
+.l-stamp:hover, .l-stamp:focus-visible { color: var(--lq-ink); border-color: transparent; }
+.l-stamp:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.l-stamp.inert:hover { color: var(--lq-gold); }
+.l-stamp-scope { border-left-color: var(--lq-faint); }
+
+/* ----- The main --------------------------------------------------------- */
+#ledger .l-col { padding-left: calc(56px * var(--ui)); }
+#ledger .spine {
+  left: calc(20px * var(--ui)); width: calc(9px * var(--ui));
+  border: 0;
+  opacity: 1;
+  background:
+    repeating-linear-gradient(180deg, transparent 0 calc(118px * var(--ui)),
+      rgba(0, 0, 0, 0.55) calc(118px * var(--ui)) calc(119px * var(--ui)),
+      rgba(255, 240, 200, 0.35) calc(119px * var(--ui)) calc(120px * var(--ui))),
+    linear-gradient(90deg, var(--br-0), var(--br-1) 12%, var(--br-4) 30%, var(--br-5) 40%, var(--br-2) 62%, var(--br-1) 84%, var(--br-0));
+  box-shadow: 2px 0 3px rgba(0, 0, 0, 0.5);
+}
+/* the terminal at the head of the main: a flared brass mouth */
+#ledger .spine::before {
+  top: calc(-6px * var(--ui)); left: calc(-5px * var(--ui)); right: calc(-5px * var(--ui));
+  height: calc(10px * var(--ui));
+  border: 0; border-radius: 2px 2px 1px 1px;
+  background: linear-gradient(90deg, var(--br-0), var(--br-2) 16%, var(--br-5) 36%, var(--br-3) 48%, var(--br-2) 70%, var(--br-0));
+  box-shadow: inset 0 1.5px 0 rgba(255, 244, 214, 0.5), 0 2px 3px rgba(0, 0, 0, 0.6);
+}
+#ledger.opening .spine { animation-name: spine-draw-cab; }
+@keyframes spine-draw-cab { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+
+/* Day breaks: a collar girdling the main, lit on its top, and the day
+   engraved on the lacquer beside it. */
+#ledger .daybreak { margin: calc(18px * var(--ui)) 0 calc(14px * var(--ui)) calc(-56px * var(--ui)); color: var(--lq-gold); }
+#ledger .daybreak::before {
+  flex: 0 0 calc(17px * var(--ui)); max-width: calc(17px * var(--ui));
+  height: calc(12px * var(--ui));
+  margin-left: calc(16px * var(--ui));
+  border: 0; border-radius: 2px;
+  background: linear-gradient(90deg, var(--br-0), var(--br-2) 16%, var(--br-5) 36%, var(--br-3) 48%, var(--br-2) 70%, var(--br-0));
+  box-shadow: inset 0 1.5px 0 rgba(255, 244, 214, 0.55), inset 0 -1.5px 0 rgba(0, 0, 0, 0.5), 0 2px 3px rgba(0, 0, 0, 0.55);
+}
+#ledger .daybreak::after {
+  height: 2px;
+  border: 0;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.5) 50%, rgba(255, 236, 190, 0.14) 50%);
+}
+
+/* ----- The programme cards ----------------------------------------------- */
+#ledger .plaque { margin: 0 0 calc(14px * var(--ui)); --pl-off: 0px; --n: calc(7px * var(--ui)); }
+#ledger .plaque:nth-child(even) { --pl-off: 0px; }
+#ledger .plaque .pl-shadow-wrap { position: relative; }
+#ledger .plaque:not(.ghost) .pl-shadow-wrap {
+  transform: rotate(var(--lean, 0deg));
+  filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.55)) drop-shadow(0 9px 12px rgba(0, 0, 0, 0.4));
+}
+@media (hover: hover) {
+  #ledger .plaque:not(.ghost):hover .pl-shadow-wrap { transform: translateY(-2px) rotate(var(--lean, 0deg)); }
+}
+/* The holder: a thin gilt frame the card slides into. */
+#ledger .pl-frame,
+#ledger .plaque.new .pl-frame, #ledger .plaque.new.reading .pl-frame {
+  padding: calc(3px * var(--ui));
+  background:
+    url('/static/assets/tex/grain-gilt.webp') 0 0 / 50px,
+    linear-gradient(170deg, var(--lead-5), var(--lead-3) 18%, var(--lead-2) 46%, var(--lead-4) 70%, var(--lead-1));
+  background-blend-mode: soft-light, normal;
+}
+#ledger .pl-frame > a, #ledger .pl-frame > .pl-in {
+  color: var(--card-ink);
+  padding: calc(11px * var(--ui)) calc(38px * var(--ui)) calc(10px * var(--ui)) calc(20px * var(--ui));
+  background:
+    linear-gradient(180deg, rgba(0, 0, 0, 0.16), transparent 12%),
+    url('/static/assets/tex/grain-card.webp') calc(var(--stock, 0) * 300px) 0 / 160px,
+    linear-gradient(90deg, var(--card), var(--card-2));
+  background-blend-mode: normal, soft-light, normal;
+}
+/* the programme's printed border: a double rule in brown ink */
+#ledger .pl-frame > a::before {
+  content: ""; position: absolute; pointer-events: none;
+  inset: calc(4px * var(--ui));
+  border: 3px double var(--card-rule);
+}
+#ledger .pl-frame > a:hover {
+  background:
+    linear-gradient(180deg, rgba(0, 0, 0, 0.16), transparent 12%),
+    url('/static/assets/tex/grain-card.webp') calc(var(--stock, 0) * 300px) 0 / 160px,
+    linear-gradient(90deg, #fffaf0 -40%, var(--card), var(--card-2));
+  background-blend-mode: normal, soft-light, normal;
+}
+#ledger .pl-head { color: var(--card-ink); font-weight: 600; }
+#ledger .plaque.warn .pl-head { color: #7a1a10; }
+#ledger .pl-detail { color: var(--card-faint); }
+#ledger .plaque.new .pl-head::after { content: none; }
+/* The time, struck with a violet rubber stamp: ink in a rounded border,
+   a little crooked, heavier on one side. */
+#ledger .pl-time {
+  display: inline-block;
+  margin-top: calc(6px * var(--ui));
+  margin-left: var(--stamp-x, 0);
+  padding: 0.05em 0.55em 0;
+  font-size: calc(10.5px * var(--ui));
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--stamp-ink);
+  border: 1.5px solid var(--stamp-ink);
+  border-radius: 3px;
+  transform: rotate(var(--stamp-rot, 0deg));
+  opacity: var(--ink-a, 0.85);
+  border-color: color-mix(in srgb, var(--stamp-ink) 85%, transparent);
+  background:
+    url('/static/assets/tex/grain-frost.webp') calc(var(--stock, 0) * 200px) 0 / 70px,
+    linear-gradient(100deg, var(--stamp-ink) 30%, color-mix(in srgb, var(--stamp-ink) 70%, var(--card)) 100%);
+  background-blend-mode: soft-light, normal;
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* The cartouche on the main. */
+#ledger .medal {
+  width: calc(46px * var(--ui)); height: calc(46px * var(--ui));
+  left: calc(24.5px * var(--ui) - 56px * var(--ui) - 23px * var(--ui) - var(--pl-off, 0px));
+  top: calc(8px * var(--ui));
+  background: none; border-radius: 0;
+  filter: drop-shadow(1px 2px 1.5px rgba(0, 0, 0, 0.7));
+}
+#ledger .medal svg { width: 100%; height: 100%; }
+#ledger .medal .c-outer.fa-tl, #ledger .medal .c-mid.fa-br { fill: var(--lead-5); }
+#ledger .medal .c-outer.fa-tr, #ledger .medal .c-mid.fa-bl { fill: var(--lead-3); }
+#ledger .medal .c-outer.fa-bl, #ledger .medal .c-mid.fa-tr { fill: var(--lead-2); }
+#ledger .medal .c-outer.fa-br, #ledger .medal .c-mid.fa-tl { fill: var(--lead-1); }
+#ledger .medal .c-field { fill: #0c0a08; stroke: var(--lead-0); stroke-width: 0.4; }
+#ledger .medal .c-screw { fill: var(--br-3); stroke: var(--br-0); stroke-width: 0.25; }
+#ledger .medal .c-slot { stroke: var(--br-0); stroke-width: 0.35; }
+#ledger .medal .m-mark { transform: translate(10.4px, 10.4px) scale(0.2); }
+#ledger .medal .m-sig:not(.m-mark) { color: var(--lead-3); transform: translate(10.4px, 10.4px) scale(0.2); }
+
+/* The unread jewel: a cabochon set in the holder's corner. Lit champagne at
+   night (it is a lamp), gold glass by day. A dwell drains it over the 420ms
+   the read takes; a read card keeps only the empty bezel. */
+.pl-jewel {
+  position: absolute; z-index: 2;
+  right: calc(12px * var(--ui)); top: calc(10px * var(--ui));
+  width: calc(14px * var(--ui)); height: calc(14px * var(--ui));
+  border-radius: 50%;
+  background: radial-gradient(circle at 40% 36%, #3a342c, #0e0c0a 70%);
+  box-shadow: 0 0 0 1.5px var(--br-1), 0 0 0 3px var(--br-3), 0 0 0 3.8px var(--br-0), 1px 2px 3px 2px rgba(0, 0, 0, 0.45);
+  pointer-events: none;
+}
+.pl-jewel-lit {
+  position: absolute; inset: 0; border-radius: 50%;
+  background:
+    radial-gradient(circle at 36% 30%, #ffffff 0 10%, transparent 24%),
+    radial-gradient(circle at 50% 55%, var(--jewel-0), var(--jewel-1) 32%, var(--jewel-2) 64%, var(--jewel-3));
+  box-shadow: 0 0 6px 1px var(--jewel-glow);
+  opacity: 0;
+}
+#ledger .plaque.new .pl-jewel-lit { opacity: 1; }
+#ledger .plaque.new.reading .pl-jewel-lit { animation: jewel-drain 420ms linear both; }
+@keyframes jewel-drain { from { opacity: 1; } to { opacity: 0; } }
+#ledger .plaque.ghost .pl-jewel { display: none; }
+
+/* Loading: blank cards in their holders, breathing. */
+#ledger .plaque.ghost { animation: ghost-card 1.4s ease-in-out infinite; }
+@keyframes ghost-card { 50% { opacity: 0.55; } }
+#ledger .plaque.ghost .pl-in {
+  height: calc(62px * var(--ui));
+  background: url('/static/assets/tex/grain-card.webp') 0 0 / 160px, var(--card);
+  background-blend-mode: soft-light, normal;
+  box-shadow: 0 0 0 calc(3px * var(--ui)) var(--lead-2), 0 3px 8px rgba(0, 0, 0, 0.4);
+  opacity: 0.7;
+}
+#ledger .l-empty { color: var(--lq-faint); }
+#ledger .l-empty svg { color: var(--lead-2); }
+

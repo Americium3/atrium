@@ -522,9 +522,54 @@ function moon(litPath, waxing, r) {
   return s;
 }
 
+/* ---------------------------------------------------------------- the Ledger
+   A programme card's fittings. The service mark sits in a cartouche like
+   the gates': a stepped lozenge, the outer step convex and the middle step
+   a cavetto, each step four flat facets taking the one light, over black
+   enamel, held by four screws turned by the dispatch's hash. The card
+   leans a hair in its holder and its time was stamped by hand, so no two
+   hang or read quite alike. */
+function cartouche(svgEl, seed) {
+  var C = 20;
+  [[19.4, 'c-outer'], [16.2, 'c-mid'], [13.6, 'c-field']].forEach(function (st, idx) {
+    var R = st[0], r = idx < 2 ? R - 2.6 : 0;
+    var T = [C, C - R], Rt = [C + R, C], B = [C, C + R], L = [C - R, C];
+    if (idx === 2) {
+      svgEl.appendChild(sv('path', { d: 'M' + [T, Rt, B, L].map(P).join(' L') + ' Z' }, st[1]));
+      return;
+    }
+    var t = [C, C - r], rt = [C + r, C], bb = [C, C + r], l = [C - r, C];
+    [['fa-tl', [L, T, t, l]], ['fa-tr', [T, Rt, rt, t]], ['fa-br', [Rt, B, bb, rt]], ['fa-bl', [B, L, l, bb]]]
+      .forEach(function (f) {
+        svgEl.appendChild(sv('path', { d: 'M' + f[1].map(P).join(' L') + ' Z' }, st[1] + ' ' + f[0]));
+      });
+  });
+  [[0, -17.8], [17.8, 0], [0, 17.8], [-17.8, 0]].forEach(function (p, k) {
+    var x = C + p[0], y = C + p[1], a = draw(seed, 20 + k) * 180;
+    svgEl.appendChild(sv('circle', { cx: f2(x), cy: f2(y), r: 1.15 }, 'c-screw'));
+    var q0 = polar(x, y, 0.9, a), q1 = polar(x, y, 0.9, a + 180);
+    svgEl.appendChild(sv('path', { d: 'M' + P(q0) + ' L' + P(q1) }, 'c-slot'));
+  });
+}
+function card(li, id, host) {
+  var seed = fnv1a('dispatch:' + id);
+  li.style.setProperty('--lean', f2((draw(seed, 1) - 0.5) * 0.7) + 'deg');
+  li.style.setProperty('--stamp-rot', f2((draw(seed, 2) - 0.5) * 7) + 'deg');
+  li.style.setProperty('--stamp-x', f2(draw(seed, 3) * 1.4) + 'em');
+  li.style.setProperty('--ink-a', f2(0.74 + draw(seed, 4) * 0.22));
+  li.style.setProperty('--stock', f2(draw(seed, 5)));
+  li.style.setProperty('--clip-y', f2(18 + draw(seed, 6) * 24) + '%');
+  var jewel = hx('span', 'pl-jewel');
+  jewel.setAttribute('aria-hidden', 'true');
+  jewel.appendChild(hx('i', 'pl-jewel-lit'));
+  (host || li).appendChild(jewel);
+  return seed;
+}
+
 window.Cabinet = {
   fnv1a: fnv1a, draw: draw, f2: f2, sv: sv, hx: hx, grad: grad,
   polar: polar, sector: sector, arc: arc, screw: screw, frame: frame,
-  dressCase: dressCase, dial: dial, moon: moon, skyPlate: skyPlate, sunBead: sunBead
+  dressCase: dressCase, dial: dial, moon: moon, skyPlate: skyPlate, sunBead: sunBead,
+  cartouche: cartouche, card: card
 };
 })();
