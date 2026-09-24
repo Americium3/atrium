@@ -113,8 +113,11 @@ both themes; only the hour changes.
    in the reveal, shade, body, the crest turned to the light, relief body,
    the lip. Per theme: `--au-*` gold leaf; `--ag-*` nickel silver, the
    Bureau's leaf (Onyx `#17140f #463d2f #938670 #f4e8c8 #b9a987 #dccaa2`,
-   Ivory `#6b6456 #9c9382 #cac1ad #fdfbf4 #ddd4bf #f6f2e8`); `--cu-*` warm
-   bronze; `--pl-*` bare plaster, for the reserved gate; `--sb-*` statuary
+   Ivory `#3c4046 #6e747b #aab0b6 #f6f8fa #c6cbd0 #e4e8ec`: cool and
+   polished by day, a dark reflection band beside a white crest, so it never
+   reads as plaster or as pale gold); `--cu-*` warm bronze; `--pl-*` bare
+   plaster, for the reserved gate, chalky and matte (by day a narrow ramp
+   with no specular crest); `--sb-*` statuary
    bronze, for the niche, the clock case and the signal desk; `--br-*` a
    fixed brass for fittings that never follow the wing (bezels, lamps,
    screws, the dater, the switchgear).
@@ -352,6 +355,12 @@ their product, registered with `@property` as a `<number>` so scripts read
 the computed value instead of the raw `calc()` token. The arch module takes
 only part of the rise (`0.62 + 0.38 × --ui`): the lettering was the
 complaint, and a module scaled 1:1 with it costs the floor its depth.
+The gates' lettering is set in `cqw` so it rides the arch, and below about
+2400px the arch's width, not `--ui`, sets it; so the gate multiplies its
+own `cqw` sizes by `--ui-user`, and its 10px floors too on the way up
+(SIGNBOARD lifts them, FINE never goes under them). The house gives up
+the height, and on a laptop arch at SIGNBOARD the day card stands a little
+wider and tighter so it keeps to three lines.
 SVG-internal font sizes (gear plates, lever plate, gauge, clock numerals)
 are user units inside a viewBox and are deliberately **not** scaled.
 
@@ -874,11 +883,14 @@ the lamp and takes the address line's place while it stands.
 - DARK gate: fanlight and coves off, tabs closed, and the velvet in
   shadow below every open house's velvet, by day as by night and whatever
   the two dyes. The engraving sits at 35% (full strength under forced
-  colours or more contrast), and the lamp is a hollow diamond
-  (extinguished, not alarmed, no red).
+  colours or more contrast), on the slide's black field with no light in
+  it, so the tabs' meeting line never runs through the words. The lamp is
+  a hollow diamond (extinguished, not alarmed, no red).
   Clicking pins a printed card on the curtain, a house notice headed DARK,
   with the service's launcher hint (from the registry) instead of opening a
-  dead tab; a keyboard press pins it and says it every time. The path
+  dead tab; a keyboard press pins it and says it every time, and Esc on
+  the gate takes it down again (the key plate, when it shows, closes
+  first). The path
   breaks only at its separators, so a copy is exact, and the card tightens
   a step at a time to stay inside the house. All-dark hall: the marquee leads with one line,
   "The hall is dark. No services are reachable.", where LINES OPEN would
@@ -886,8 +898,10 @@ the lamp and takes the address line's place while it stands.
 - Reserved: the same architecture in bare plaster, its bezel holding a
   blank cover plate, behind an iron safety curtain: red oxide primer steel
   in three lapped courses, domed rivets lit on the lamp side, a stencilled
-  border and a cast brass builder's plate carrying the words. The lamp reads
-  SHUT. It is never lit and never lifts.
+  border and a cast brass builder's plate carrying the words: a sand-cast
+  field inside a raised bead, four slotted screws, and the letters in
+  relief, polished on their faces. The lamp reads SHUT. It is never lit and
+  never lifts.
 
 ## The Ledger (R10)
 
@@ -1306,9 +1320,15 @@ the clock's date aperture.
   to borrow `#hall-status`, and the next poll then said an unchanged count
   again.
 - A DARK gate's notice is emptied when it is put away, whether the reader
-  closes it or the lamp comes back. The gate's `aria-describedby` names the
+  closes it or the lamp comes back OPEN. A lamp that is only asking again
+  (one missed poll) has not come back: the card stays, and the gate stays
+  dark to a press until a status says otherwise. The gate's `aria-describedby` names the
   card, and Chrome voices a named node even while it is hidden, so a gate
-  back OPEN kept describing itself as "Dark. Launch with ...".
+  back OPEN kept describing itself as "Dark. Launch with ...". The card
+  that description names holds only "Launch with: ...", since the lamp
+  word already opens it. The whole notice is said once in `#gate-say`,
+  and the region is emptied five seconds later, so a reader browsing the
+  hall does not meet the path again after the last gate.
 - Polls overlap (the beat, a refocus, a retry); their answers apply in
   order, and an older one never overwrites a newer one.
 

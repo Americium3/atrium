@@ -389,7 +389,7 @@
   filter: drop-shadow(0.3cqw 0.4cqw 0.3cqw rgba(0, 0, 0, 0.6));
 }
 .g-stat {
-  font-size: clamp(10px, 4.7cqw, calc(13px * var(--ui)));
+  font-size: clamp(calc(10px * var(--gf)), calc(4.7cqw * var(--gu)), calc(13px * var(--ui)));
   letter-spacing: clamp(0.05em, calc((100cqw - 190px) * 0.02), 0.12em);
   line-height: 1.24;
   font-weight: 530;
@@ -397,7 +397,7 @@
 }
 .g-addr {
   margin-top: 0.4cqw;
-  font-size: clamp(10px, 4.1cqw, calc(12px * var(--ui)));
+  font-size: clamp(calc(10px * var(--gf)), calc(4.1cqw * var(--gu)), calc(12px * var(--ui)));
   font-weight: 500;
   letter-spacing: 0.06em;
   color: var(--apron-ink);
@@ -405,7 +405,7 @@
 .g-lamp {
   order: 3;
   margin-top: 0.8cqw;
-  font-size: clamp(10px, 3.9cqw, calc(11px * var(--ui)));
+  font-size: clamp(calc(10px * var(--gf)), calc(3.9cqw * var(--gu)), calc(11px * var(--ui)));
   letter-spacing: 0.2em;
   font-weight: 560;
   color: var(--apron-lamp);
@@ -422,7 +422,7 @@ html[lang="zh"] .g-lamp { letter-spacing: 0.2em; }
   order: 2;
   margin: 0.6cqw 0 0;
   max-width: 100%;
-  font-size: clamp(10px, 4cqw, calc(11px * var(--ui)));
+  font-size: clamp(calc(10px * var(--gf)), calc(4cqw * var(--gu)), calc(11px * var(--ui)));
   line-height: 1.3;
   letter-spacing: 0.02em;
   font-weight: 500;
@@ -487,6 +487,23 @@ html[lang="zh"] .g-lamp { letter-spacing: 0.2em; }
 /* The slide is projected light: it goes out with the lamps, ahead of the sink. */
 .gate.receded .g-desc::before { transition: opacity var(--gate-dim, 0ms) ease-in var(--slot-delay, 0ms); }
 :root[data-theme="ivory"] .gate:not([data-state="open"]) .g-desc::before { opacity: 0.9; }
+/* A DARK house keeps its slide too, unlit: the black field with no ruled
+   border, no ornament and no light in it, by night as by day. With the
+   field gone at night the curtain's meeting line ran down through the
+   middle of both lines of the description (law 6), and by day the field
+   was there but faded with the words to a third, so the seam still read
+   through it. The words are dimmed by their own ink now, not by the
+   element's opacity, which took the field down with them. */
+.gate[data-state="dark"] .g-desc {
+  opacity: 1;
+  color: color-mix(in srgb, var(--desc-night) 35%, transparent);
+  text-shadow: none;
+}
+:root[data-theme] .gate[data-state="dark"]:not(.vacant) .g-desc::before {
+  opacity: 0.92;
+  background: var(--slide-field);
+  box-shadow: 0 0 2.4cqw 1.6cqw rgba(9, 6, 4, 0.55);
+}
 .gate.vacant .g-desc::before { display: none; }
 /* The slide's corner ornament: the gate's own card, in projected light. */
 :root[data-theme="onyx"] .gate[data-card="fans"] .g-desc::before {
@@ -535,6 +552,16 @@ html[lang="zh"] .g-lamp { letter-spacing: 0.2em; }
   padding: 2.4cqw 2.6cqw 2.2cqw;
 }
 :root[data-theme="ivory"] .gate[data-state="open"] .g-desc::after { margin-top: 1.3cqw; }
+/* SIGNBOARD on a laptop arch: the lettering is 15% larger in the same
+   house, and The Press Room's card took four lines under a name on two
+   and ran out of the house at 1280 and 1366. The card stands a little
+   wider, still inside the gathered tabs (8.2cqw), and its leading tightens,
+   so every card keeps to three lines. */
+@container (max-width: 200px) {
+  :root[data-ui="l"][data-theme="ivory"] .gate[data-state="open"] .g-desc {
+    margin-left: 8.8cqw; margin-right: 8.8cqw; line-height: 1.32;
+  }
+}
 
 /* ----- The screen by night ---------------------------------------------------
    Before the show the screen is not lit. What shows under the lifted
@@ -680,6 +707,7 @@ html[lang="zh"] .g-lamp { letter-spacing: 0.2em; }
 }
 @media (prefers-contrast: more) {
   .gate[data-state="dark"] :is(.g-desc, .g-stat, .g-addr, .sigil) { opacity: 1; }
+  .gate[data-state="dark"] .g-desc { color: var(--desc-night); }
 }
 /* The niche is scenery (its drawing is aria-hidden and the clock says the
    time in text): under forced colours it keeps its own paint rather than
@@ -715,7 +743,6 @@ html[lang="zh"] .g-lamp { letter-spacing: 0.2em; }
   --iron-overspray: rgba(222, 204, 166, 0.15);
   --iron-veil: rgba(69, 36, 26, 0.7); --iron-satin: rgba(255, 214, 190, 0.05);
   --iron-edge: rgba(255, 216, 170, 0.16);
-  --plate-hi: #b99a5e; --plate: #8f743f; --plate-lo: #5f4a24; --plate-ink: #1e150a;
 }
 :root[data-theme="ivory"] .gate.vacant {
   --iron: #86412f; --iron-hi: #954d39; --iron-lo: #6b3325;
@@ -726,7 +753,6 @@ html[lang="zh"] .g-lamp { letter-spacing: 0.2em; }
   --iron-overspray: rgba(246, 236, 212, 0.2);
   --iron-veil: rgba(134, 65, 47, 0.7); --iron-satin: rgba(255, 236, 222, 0.12);
   --iron-edge: rgba(255, 248, 236, 0.35);
-  --plate-hi: #e2c98e; --plate: #c1a262; --plate-lo: #8d7036; --plate-ink: #22180b;
 }
 .g-iron {
   background:
@@ -788,24 +814,62 @@ html[lang="zh"] .g-lamp { letter-spacing: 0.2em; }
     linear-gradient(var(--iron-stencil), var(--iron-stencil)) 0 100% / 1.6cqw 1.6cqw no-repeat,
     linear-gradient(var(--iron-stencil), var(--iron-stencil)) 100% 100% / 1.6cqw 1.6cqw no-repeat;
 }
-/* The builder's plate: cast brass, bolted at the corners, the words
-   engraved and filled black. It stands in the middle of the iron. */
-.gate.vacant .g-desc { margin: auto 12cqw; color: var(--plate-ink); font-weight: 560; text-shadow: 0 1px 0 rgba(255, 240, 200, 0.28); }
+/* The builder's plate: sand-cast brass screwed to the iron, carrying the
+   words, so no seam ever runs through them. It read as a pale wooden rule:
+   a blond plate under long brushed streaks, no bead, its screws cut off at
+   the corners and its words printed flat. It is a casting now. The field
+   keeps the sand's tooth and is the deeper, browner brass of a casting
+   left as it came from the mould; a raised bead runs round it; four
+   slotted screws hold it inside the bead; the letters stand in relief,
+   filed and polished on their faces, each lit along its top edge with its
+   lower wall in shade. The same object by day and by night. */
+.gate.vacant {
+  --plate-hi: #8c6c2b; --plate: #775a22; --plate-lo: #5f4518;
+  --plate-face: #f3dfa2; --plate-lit: rgba(255, 249, 226, 0.8); --plate-wall: #2a1904;
+  --bead-lt: #edd28a; --bead-dk: #4e3710;
+  --screw: radial-gradient(circle closest-side at 46% 42%, #f8e8b8 0 14%, #cfa95a 38%, #86652a 70%, #3a2808 88%, rgba(20, 12, 2, 0.5) 94%, transparent 100%);
+}
+.gate.vacant .g-desc {
+  margin: auto 12cqw;
+  color: var(--plate-face); font-weight: 620;
+  text-shadow: -0.04em -0.05em 0 var(--plate-lit), 0.05em 0.07em 0 var(--plate-wall),
+               0.07em 0.12em 0.08em rgba(20, 12, 2, 0.55);
+}
 :root[data-theme] .gate.vacant[data-card] .g-desc::before {
   display: block; opacity: 1;
-  inset: -2.2cqw -3cqw;
+  inset: -2.4cqw -4.6cqw;
+  border-radius: 0.5cqw;
   background:
-    radial-gradient(circle at 40% 36%, #f3dfae 0 14%, var(--plate-lo) 38%, rgba(0, 0, 0, 0.7) 52%, transparent 58%) 0.5cqw 0.5cqw / 1.9cqw 1.9cqw no-repeat,
-    radial-gradient(circle at 40% 36%, #f3dfae 0 14%, var(--plate-lo) 38%, rgba(0, 0, 0, 0.7) 52%, transparent 58%) calc(100% - 0.5cqw) 0.5cqw / 1.9cqw 1.9cqw no-repeat,
-    radial-gradient(circle at 40% 36%, #f3dfae 0 14%, var(--plate-lo) 38%, rgba(0, 0, 0, 0.7) 52%, transparent 58%) 0.5cqw calc(100% - 0.5cqw) / 1.9cqw 1.9cqw no-repeat,
-    radial-gradient(circle at 40% 36%, #f3dfae 0 14%, var(--plate-lo) 38%, rgba(0, 0, 0, 0.7) 52%, transparent 58%) calc(100% - 0.5cqw) calc(100% - 0.5cqw) / 1.9cqw 1.9cqw no-repeat,
-    url('/static/assets/tex/grain-brushed.webp') 0 0 / 80cqw auto,
-    linear-gradient(170deg, var(--plate-hi), var(--plate) 45%, var(--plate-lo));
-  background-blend-mode: normal, normal, normal, normal, soft-light, normal;
+    /* the four screws, each slot turned its own way */
+    linear-gradient(28deg, transparent 41%, rgba(24, 14, 2, 0.85) 41% 59%, transparent 59%) 2.05cqw 2.05cqw / 1.1cqw 1.1cqw no-repeat,
+    linear-gradient(-61deg, transparent 41%, rgba(24, 14, 2, 0.85) 41% 59%, transparent 59%) calc(100% - 2.05cqw) 2.05cqw / 1.1cqw 1.1cqw no-repeat,
+    linear-gradient(83deg, transparent 41%, rgba(24, 14, 2, 0.85) 41% 59%, transparent 59%) 2.05cqw calc(100% - 2.05cqw) / 1.1cqw 1.1cqw no-repeat,
+    linear-gradient(-17deg, transparent 41%, rgba(24, 14, 2, 0.85) 41% 59%, transparent 59%) calc(100% - 2.05cqw) calc(100% - 2.05cqw) / 1.1cqw 1.1cqw no-repeat,
+    var(--screw) 1.5cqw 1.5cqw / 2.2cqw 2.2cqw no-repeat,
+    var(--screw) calc(100% - 1.5cqw) 1.5cqw / 2.2cqw 2.2cqw no-repeat,
+    var(--screw) 1.5cqw calc(100% - 1.5cqw) / 2.2cqw 2.2cqw no-repeat,
+    var(--screw) calc(100% - 1.5cqw) calc(100% - 1.5cqw) / 2.2cqw 2.2cqw no-repeat,
+    /* the sand's fine tooth, and the casting's cloud where it cooled */
+    url('/static/assets/tex/grain-frost.webp') 0 0 / 7cqw auto,
+    url('/static/assets/tex/metal-bronze.webp') 30% 40% / 46cqw auto,
+    linear-gradient(172deg, var(--plate-hi), var(--plate) 50%, var(--plate-lo));
+  background-blend-mode: normal, normal, normal, normal, normal, normal, normal, normal, overlay, soft-light, normal;
+  /* the plate's edge, chamfered to the light, and its shadow on the iron */
   box-shadow:
-    inset 0 1px 0 rgba(255, 244, 214, 0.55), inset 0 -1px 0 rgba(0, 0, 0, 0.45),
-    inset 0 0 0 0.45cqw rgba(0, 0, 0, 0.06),
-    1px 2px 3px rgba(0, 0, 0, 0.55);
+    inset 0.15cqw 0.2cqw 0 rgba(255, 238, 190, 0.4), inset -0.15cqw -0.2cqw 0 rgba(30, 18, 2, 0.55),
+    0.3cqw 0.5cqw 0.6cqw rgba(20, 8, 2, 0.6), 0 0 0 0.5px rgba(20, 10, 2, 0.6);
+}
+/* The bead: a ridge cast round the plate's field, lit on its upper and
+   left runs, in shade on the others, throwing its own shadow down and to
+   the right, inside the ring on the lit runs and outside on the others. */
+:root[data-theme] .gate.vacant[data-card] .g-desc::after {
+  content: ""; position: absolute; z-index: -1; pointer-events: none;
+  inset: -1.75cqw -3.95cqw;
+  border: max(1px, 0.42cqw) solid;
+  border-color: var(--bead-lt) var(--bead-dk) var(--bead-dk) var(--bead-lt);
+  border-radius: 0.35cqw;
+  box-shadow: 0.12cqw 0.18cqw 0.05cqw rgba(24, 12, 2, 0.55),
+              inset 0.12cqw 0.18cqw 0.05cqw rgba(24, 12, 2, 0.45);
 }
 
 /* ==========================================================================
@@ -820,6 +884,11 @@ html[lang="zh"] .g-lamp { letter-spacing: 0.2em; }
 :root[data-theme="ivory"] .mirror-art .mr-apron,
 :root[data-theme="ivory"] .mirror-art .mr-sign,
 :root[data-theme="ivory"] .mirror-art .p-reveal { display: none; }
+/* The house comes back only as an open screen. A closed or reserved house
+   is not lit by the skylight, and its shadowed velvet or its iron laid a
+   dark, square-sided block in the wax under a DARK gate and the reserved
+   one (12 and 8 levels under the floor round it at 1920). */
+:root[data-theme="ivory"] .gate:not([data-state="open"]) .mirror-art .mr-house { display: none; }
 :root[data-theme="ivory"] .g-mirror .mirror-art { filter: blur(2.4px); }
 /* With the smear gone the gilt and the screen may come back a little
    stronger: half again the day's own strength, still well under the
@@ -876,14 +945,31 @@ html[lang="zh"] .g-lamp { letter-spacing: 0.2em; }
    printer's red between two rules, then what to do, then the path in
    the address face. The ink is a near-black in a bold cut, heavier than
    the day card's: the tilted bay resamples the raster, and the regular cut
-   in a brown ink painted at 2.2 to 3.6:1 (10px at 1280 needs the weight). */
+   in a brown ink painted at 2.2 to 3.6:1 (10px at 1280 needs the weight).
+   By night the card is paper in a house with its lights out. It was the
+   day's cream, relative luminance 0.78, as bright as the marquee's milk
+   glass and brighter than the clock's dial: the one light box in a dark
+   gate. At night the stock is a warm grey that takes only a faint cold
+   bounce at its head, near half that luminance, the tacks' brass is
+   dulled with it and the red is deepened; the ink still stands at 7:1
+   or more on the darkest of the stock. */
+.g-notice {
+  --nc-0: #f8f0dc; --nc-1: #eee2c6; --nc-2: #e3d4b2; --nc-bounce: transparent;
+  --tack-0: #fff6d4; --tack-1: #e6c36e; --tack-2: #a57c34; --tack-3: #5e4216;
+  --nc-red: #6e1712;
+}
+:root[data-theme="onyx"] .g-notice {
+  --nc-0: #b3aa98; --nc-1: #aba18c; --nc-2: #a59c86; --nc-bounce: rgba(206, 216, 232, 0.10);
+  --tack-0: #d9cca2; --tack-1: #a8894a; --tack-2: #6e5222; --tack-3: #36260c;
+  --nc-red: #5a110d;
+}
 .g-notice {
   position: absolute; left: 7cqw; right: 7cqw; top: 50%; bottom: auto;
   z-index: 5;
   display: flex; flex-direction: column; align-items: center;
   transform: translateY(-50%) rotate(var(--card-tilt, 0deg));
   transition: none;
-  font-size: clamp(10px, 4.6cqw, calc(11.5px * var(--ui)));
+  font-size: clamp(calc(10px * var(--gf)), calc(4.6cqw * var(--gu)), calc(11.5px * var(--ui)));
   line-height: 1.36;
   letter-spacing: 0.02em;
   text-align: center;
@@ -894,13 +980,14 @@ html[lang="zh"] .g-lamp { letter-spacing: 0.2em; }
   border: 1px solid rgba(84, 64, 34, 0.55);
   outline: 1px solid rgba(84, 64, 34, 0.35); outline-offset: -0.9cqw;
   background:
-    radial-gradient(circle at 2.3cqw 2cqw, #fff6d4 0 0.3cqw, #e6c36e 0.6cqw, #a57c34 0.92cqw, #5e4216 1.1cqw, transparent 1.18cqw),
-    radial-gradient(circle at calc(100% - 2.3cqw) 2cqw, #fff6d4 0 0.3cqw, #e6c36e 0.6cqw, #a57c34 0.92cqw, #5e4216 1.1cqw, transparent 1.18cqw),
+    radial-gradient(circle at 2.3cqw 2cqw, var(--tack-0) 0 0.3cqw, var(--tack-1) 0.6cqw, var(--tack-2) 0.92cqw, var(--tack-3) 1.1cqw, transparent 1.18cqw),
+    radial-gradient(circle at calc(100% - 2.3cqw) 2cqw, var(--tack-0) 0 0.3cqw, var(--tack-1) 0.6cqw, var(--tack-2) 0.92cqw, var(--tack-3) 1.1cqw, transparent 1.18cqw),
     radial-gradient(circle at 2.8cqw 2.6cqw, rgba(40, 24, 6, 0.45) 0 1cqw, transparent 1.5cqw),
     radial-gradient(circle at calc(100% - 1.8cqw) 2.6cqw, rgba(40, 24, 6, 0.45) 0 1cqw, transparent 1.5cqw),
+    radial-gradient(120% 70% at 0 0, var(--nc-bounce), transparent 70%),
     url('/static/assets/tex/grain-card.webp') 0 0 / 26cqw auto,
-    linear-gradient(172deg, #f8f0dc, #eee2c6 55%, #e3d4b2);
-  background-blend-mode: normal, normal, normal, normal, soft-light, normal;
+    linear-gradient(172deg, var(--nc-0), var(--nc-1) 55%, var(--nc-2));
+  background-blend-mode: normal, normal, normal, normal, normal, soft-light, normal;
   box-shadow: 0.5cqw 1cqw 1.6cqw rgba(8, 4, 2, 0.55), 0.15cqw 0.35cqw 0.25cqw rgba(8, 4, 2, 0.45);
 }
 .g-notice[hidden] { display: none; }
@@ -908,7 +995,7 @@ html[lang="zh"] .g-lamp { letter-spacing: 0.2em; }
   display: flex; align-items: center; gap: 1.6cqw; align-self: stretch;
   margin: 0 0 0.9cqw;
   font-weight: 700; letter-spacing: 0.3em;
-  color: #6e1712;
+  color: var(--nc-red);
 }
 .g-notice .gx-head::before, .g-notice .gx-head::after {
   content: ""; flex: 1 1 0; height: 3px;
@@ -917,6 +1004,10 @@ html[lang="zh"] .g-lamp { letter-spacing: 0.2em; }
 /* the tracking hangs off the last letter, so the word sits on the axis */
 .g-notice .gx-head::after { margin-left: -0.3em; }
 .g-notice .gx-path { font-variant-numeric: tabular-nums; letter-spacing: 0.03em; }
+/* Each folder of the path is one box, so the line breaks only between
+   folders (app.js letterNotice). A box too long for the card still wraps
+   inside itself rather than run out of the card. */
+.g-notice .gx-run { display: inline-block; }
 html[lang="zh"] .g-notice .gx-say { -webkit-text-stroke: 0.45px currentColor; letter-spacing: 0.04em; }
 .g-house:has(> .g-notice:not([hidden])) > .g-desc { visibility: hidden; }
 /* A long launcher path on a small arch: app.js sets the card tighter a step
@@ -931,7 +1022,7 @@ html[lang="zh"] .g-notice .gx-say { -webkit-text-stroke: 0.45px currentColor; le
 .g-notice[data-fit="3"] {
   left: 1.2cqw; right: 1.2cqw; line-height: 1.16; letter-spacing: 0;
   padding: 1cqw 1cqw 0.9cqw; outline: none;
-  background: url('/static/assets/tex/grain-card.webp') 0 0 / 26cqw auto, linear-gradient(172deg, #f8f0dc, #eee2c6 55%, #e3d4b2);
+  background: url('/static/assets/tex/grain-card.webp') 0 0 / 26cqw auto, linear-gradient(172deg, var(--nc-0), var(--nc-1) 55%, var(--nc-2));
   background-blend-mode: soft-light, normal;
 }
 .g-notice[data-fit="3"] .gx-head { display: none; }
@@ -949,12 +1040,16 @@ html[lang="zh"] .g-notice .gx-say { -webkit-text-stroke: 0.45px currentColor; le
    further half pixel, so the regular cut in a brown ink measured 3.5 to
    4.3:1 over the whole card at 1920 even where its lines alone passed. */
 :root[data-theme="ivory"] .gate[data-state="open"] .g-desc { color: #160f06; font-weight: 620; }
-html[lang="zh"] .g-desc { font-size: clamp(11px, 5.4cqw, calc(14.5px * var(--ui))); }
+html[lang="zh"] .g-desc { font-size: clamp(calc(11px * var(--gf)), calc(5.4cqw * var(--gu)), calc(14.5px * var(--ui))); }
+/* A Chinese description breaks between words, never inside one. Left to
+   itself the browser broke between any two characters (世|界, 轨|道, 小|工具)
+   and passed over the comma. Keep-all takes every break away, and the
+   strings put back the good ones as zero-width spaces (app.js STR). */
+html[lang="zh"] .g-desc { word-break: keep-all; }
 :root[data-theme="onyx"], :root[data-theme="ivory"] { --apron-gilt: #e8c677; }
-:root[data-theme="onyx"] .gate.vacant, :root[data-theme="ivory"] .gate.vacant { --plate-hi: #e6cf97; --plate: #cdb074; --plate-lo: #9d7f45; --plate-ink: #140d05; }
-/* The Chinese face has one weight and hairline strokes; where it is set
-   dark on a light ground (the day card, the builder's plate) a quarter
-   pixel of its own ink round every stroke brings it up to strength. */
+/* The Chinese face has one weight and hairline strokes; on the day card
+   and the builder's plate a quarter pixel of its own ink round every
+   stroke brings it up to strength. */
 :root[lang="zh"][data-theme="ivory"] .gate[data-state="open"] .g-desc { -webkit-text-stroke: 0.45px currentColor; }
 html[lang="zh"] .gate.vacant .g-desc { -webkit-text-stroke: 0.45px currentColor; }
 

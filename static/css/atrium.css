@@ -155,7 +155,7 @@
   --glaze: rgba(8, 5, 2, 0.8);
   --portal-well: #0a0705;
   --portal-arris: rgba(0, 0, 0, 0.85);
-  --portal-shadow: #030202;
+  --portal-shadow: rgba(2, 1, 1, 0.5);
   --cove: #ffd08e;
   --glass-unlit: #18120b;
   --etch-a: 0.10;
@@ -178,14 +178,18 @@
 }
 :root[data-theme="ivory"] {
   --au-0: #6a5220; --au-1: #94763a; --au-2: #c4a45e; --au-3: #fdf0c8; --au-4: #d6b772; --au-5: #f1dea4;
-  --ag-0: #6b6456; --ag-1: #9c9382; --ag-2: #cac1ad; --ag-3: #fdfbf4; --ag-4: #ddd4bf; --ag-5: #f6f2e8;
+  --ag-0: #3c4046; --ag-1: #6e747b; --ag-2: #aab0b6; --ag-3: #f6f8fa; --ag-4: #c6cbd0; --ag-5: #e4e8ec;
   --cu-0: #4a3620; --cu-1: #6c5133; --cu-2: #92714a; --cu-3: #e6c79c; --cu-4: #aa895e; --cu-5: #caa77b;
-  --pl-0: #aea593; --pl-1: #c7bfae; --pl-2: #dad3c4; --pl-3: #f8f5ee; --pl-4: #e5dfd3; --pl-5: #efeae1;
+  --pl-0: #bdb6a8; --pl-1: #cec8bb; --pl-2: #dbd5c9; --pl-3: #e8e3d8; --pl-4: #e0dbcf; --pl-5: #e5e0d5;
+  /* Nickel by day is cool and polished, a dark reflection band beside a
+     white crest; plaster is chalky, a narrow ramp with no specular crest.
+     The two used to be the same warm cream, and a lit Bureau arch read as
+     the reserved gate's bare stock. */
   --relief-shadow: rgba(62, 45, 20, 0.46);
   --glaze: rgba(58, 40, 16, 0.55);
   --portal-well: #3b3024;
   --portal-arris: rgba(62, 45, 20, 0.55);
-  --portal-shadow: rgba(62, 45, 20, 0.30);
+  --portal-shadow: rgba(52, 38, 18, 0.34);
   --cove: #fff1d6;
   --glass-unlit: url(#fl-day);
   --etch-a: 0.26;
@@ -1927,6 +1931,16 @@ html[data-boot="suppressed"] #signal-desk {
      plinth nosing, glazing hub) reads these, so the lever re-leafs the hall. */
   --lead-0: var(--au-0); --lead-1: var(--au-1); --lead-2: var(--au-2);
   --lead-3: var(--au-3); --lead-4: var(--au-4); --lead-5: var(--au-5);
+  /* The reader's engraving size (PREFERENCES), for the gate's lettering.
+     The face is set in cqw so it rides the arch, and --ui reached it only
+     as each size's cap, which the arch's own width never met below about
+     2400px: FINE and SIGNBOARD set every gate identically from 1280 to
+     1920 while the masthead grew 28%. The cqw size now takes the reader's
+     factor, and so does the floor on the way up, never on the way down:
+     SIGNBOARD lifts the 10px floor, FINE never goes under it. The house
+     gives up the height. */
+  --gu: var(--ui-user, 1);
+  --gf: max(1, var(--ui-user, 1));
 }
 .gate[data-wing="bureau"] {
   --lead-0: var(--ag-0); --lead-1: var(--ag-1); --lead-2: var(--ag-2);
@@ -1955,16 +1969,32 @@ html[data-boot="suppressed"] #signal-desk {
   position: absolute; inset: 0;
   /* transform is written per frame by the parallax loop in app.js */
 }
-/* The portal's depth in the wall: its cast shadow along the key light,
-   arch-shaped so box-shadow works. */
+/* The portal's depth in the wall: its cast shadow along the key light.
+   It was a box with elliptical corners in near-black, and the box did not
+   follow the stilted arch: it stood out past the arris all round, on the
+   lit side too, a die-cut halo that made every portal a sticker on the
+   wall. The shadow is the portal's own outline now (the outer arch and
+   the plinth, the same path palace.js draws), moved down and to the right
+   along the key light and feathered, so it falls on the far side only and
+   the wall meets the arris cleanly on the lamp side. The blur is static
+   on this layer; the parallax moves the shell above it. The soft ground
+   shadow stays at the foot, where the portal stands on the floor. */
 .g-back {
-  position: absolute; inset: 1% 0.5% 0;
-  border-radius: 50% 50% 0 0 / 26% 26% 0 0;
+  position: absolute; inset: 0;
+  pointer-events: none;
+  filter: blur(1.1cqw);
+}
+.g-back::before {
+  content: ""; position: absolute; inset: 0;
   background-color: var(--portal-shadow);
-  transform: translate(3px, 6px);
-  box-shadow: 0 3px 6px var(--shadow-drop),
-              0 34px 70px -16px var(--shadow-soft);
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 570' preserveAspectRatio='none'%3E%3Cpath d='M4 560V536H10V162A140 140 0 0 1 290 162V536H296V560Z'/%3E%3C/svg%3E") 0 0 / 100% 100% no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 570' preserveAspectRatio='none'%3E%3Cpath d='M4 560V536H10V162A140 140 0 0 1 290 162V536H296V560Z'/%3E%3C/svg%3E") 0 0 / 100% 100% no-repeat;
+  transform: translate(1.5%, 1.15%);
   transition: background-color 0.4s;
+}
+.g-back::after {
+  content: ""; position: absolute; left: 4%; right: 4%; top: 62%; bottom: 0;
+  box-shadow: 0 34px 70px -16px var(--shadow-soft);
 }
 svg.portal {
   position: absolute; inset: 0; width: 100%; height: 100%;
@@ -2130,7 +2160,7 @@ svg.portal {
 .g-sign::before { left: -1.1cqw; }
 .g-sign::after { right: -1.1cqw; }
 .g-name {
-  font-size: clamp(11px, 6.4cqw, 26px);
+  font-size: clamp(calc(11px * var(--gf)), calc(6.4cqw * var(--gu)), 26px);
   font-weight: 600;
   letter-spacing: 0.17em;
   margin-right: -0.17em;           /* tracking hangs off the last letter */
@@ -2247,7 +2277,7 @@ html[lang="zh"] .g-name { letter-spacing: 0.17em; }
      the reveal's shade): by day the text stands on the screen between the
      tie-backs and no fold of velvet may cross a letter. */
   margin: 17cqw 11cqw 0;
-  font-size: clamp(10.5px, 5.2cqw, calc(14px * var(--ui)));
+  font-size: clamp(calc(10.5px * var(--gf)), calc(5.2cqw * var(--gu)), calc(14px * var(--ui)));
   line-height: 1.45;
   letter-spacing: 0.035em;
   color: var(--desc-night);

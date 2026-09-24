@@ -30,7 +30,7 @@ var STR = {
     today: 'TODAY', earlier: 'EARLIER',
     empty: 'No dispatches',
     darkNotice: 'Dark. Launch with: {hint}',
-    darkLaunch: 'Launch with',
+    darkLaunch: 'Launch with', darkHint: 'Launch with: {hint}',
     lampOpen: 'Reachable', lampDark: 'Offline', lampChecking: 'Checking',
     justNow: 'just now', minAgo: '{n} min ago', hAgo: '{n} h ago', dAgo: '{n} d ago',
     /* Said, not engraved: a screen reader read "15 H AGO" letter for letter. */
@@ -53,7 +53,7 @@ var STR = {
     'stat.airing': '{n} AIRING TODAY', 'stat.watching': '{n} WATCHING',
     'stat.pending': '{n} {n|UPDATE|UPDATES} PENDING', 'stat.mods': '{n} {n|MOD|MODS} TRACKED',
     'stat.queue': 'QUEUE {done}/{total}', 'stat.invited': 'SENT {n}/{target}',
-    'stat.stories': '{n} {n|STORY|STORIES} · {m} {m|SECTION|SECTIONS}',
+    'stat.stories': '{n} {n|STORY|STORIES}\u00a0· {m} {m|SECTION|SECTIONS}',
     'stat.tools': '{n} {n|TOOL|TOOLS} ON THE RACK',
     'stat.orders_await': '{n} {n|ORDER AWAITS|ORDERS AWAIT} REVIEW', 'stat.brief_of': 'BRIEF OF {date}',
     'note.qb_down': 'qBittorrent unreachable, downloads paused',
@@ -188,8 +188,8 @@ var STR = {
     today: '今日', earlier: '更早',
     empty: '暂无消息',
     darkNotice: '未点亮。用此脚本启动：{hint}',
-    darkLaunch: '用此脚本启动',
-    lampOpen: '已点亮', lampDark: '离线', lampChecking: '检查中',
+    darkLaunch: '用此脚本启动', darkHint: '用此脚本启动：{hint}',
+    lampOpen: '已点亮', lampDark: '未点亮', lampChecking: '检查中',
     justNow: '刚刚', minAgo: '{n} 分钟前', hAgo: '{n} 小时前', dAgo: '{n} 天前',
     minAgoSr: '{n} 分钟前', hAgoSr: '{n} 小时前', dAgoSr: '{n} 天前',
     linesOpen: '线路畅通 {n}/{m}',
@@ -198,18 +198,21 @@ var STR = {
     ledgerUnreadable: '消息总台暂时读不出来',
     ledgerLoading: '正在读取消息总台',
     ledgerStale: '{t} 之后没有回音',
-    'desc.autopilot': '当季新番，睡着也替你追完入库。',
-    'desc.groundstation': '工坊 Mod 追踪，更新在轨截获。',
-    'desc.outreach': '今日的引荐名单，已备好草稿待发。',
-    'desc.pressroom': '昨夜的世界，天亮前已排版付印。',
-    'desc.arsenal': '一张游戏实用小工具的工作台。',
-    'desc.bourse': '每日行情简报，排好名次候审。',
-    'desc.fallback': '新登记的厅室。',
-    'desc.vacant': '留给下一间厅。',
+    /* A description may break only where a zero-width space stands (the
+       card sets Chinese keep-all): between words and after the comma. Left
+       to itself the browser broke 世|界 and 轨|道. */
+    'desc.autopilot': '当季\u200b新番，\u200b睡着也\u200b替你\u200b追完\u200b入库。',
+    'desc.groundstation': '工坊 Mod 追踪，\u200b更新\u200b在轨\u200b截获。',
+    'desc.outreach': '今日的\u200b引荐\u200b名单，\u200b已备好\u200b草稿\u200b待发。',
+    'desc.pressroom': '昨夜的\u200b世界，\u200b天亮前\u200b已排版\u200b付印。',
+    'desc.arsenal': '一张\u200b游戏\u200b实用\u200b小工具的\u200b工作台。',
+    'desc.bourse': '每日\u200b行情\u200b简报，\u200b排好\u200b名次\u200b候审。',
+    'desc.fallback': '新登记的\u200b厅室。',
+    'desc.vacant': '留给\u200b下一间厅。',
     'stat.airing': '今日 {n} 部放送', 'stat.watching': '在看 {n} 部',
     'stat.pending': '{n} 个更新待装', 'stat.mods': '追踪 {n} 个 MOD',
     'stat.queue': '队列 {done}/{total}', 'stat.invited': '已发 {n}/{target}',
-    'stat.stories': '{n} 条 · {m} 栏',
+    'stat.stories': '{n} 条\u00a0· {m} 栏',
     'stat.tools': '架上 {n} 件工具',
     'stat.orders_await': '{n} 条指令候审', 'stat.brief_of': '{date}简报',
     'note.qb_down': 'qBittorrent 不可达，下载已暂停',
@@ -1436,6 +1439,12 @@ function renderGates() {
     stat.id = 'gs-' + svc.id;
     stat.appendChild(el('span', 'num-roll num', ''));
     apron.appendChild(stat);
+    // What the description reads for the live line and the note: each one
+    // whole, its stop in the same run of text (describeGate).
+    var statSaid = el('span', 'g-said-stat');
+    statSaid.id = 'gss-' + svc.id;
+    statSaid.hidden = true;
+    apron.appendChild(statSaid);
     apron.appendChild(el('div', 'g-addr addr', svc.vacant ? '' : svc.addr));
     var lamp = el('div', 'g-lamp');
     lamp.appendChild(el('span', 'lamp-d'));
@@ -1456,6 +1465,10 @@ function renderGates() {
     note.id = 'gnote-' + svc.id;
     note.hidden = true;
     apron.appendChild(note);
+    var noteSaid = el('span', 'g-said-note');
+    noteSaid.id = 'gns-' + svc.id;
+    noteSaid.hidden = true;
+    apron.appendChild(noteSaid);
     face.appendChild(apron);
     shell.appendChild(face);
 
@@ -1490,9 +1503,23 @@ function renderGates() {
       // Middle-click never fires 'click', so the browser used to open a DARK
       // gate's dead address in a new tab. It gets the launch notice instead.
       a.addEventListener('auxclick', function (e) {
-        if (e.button !== 1 || a.dataset.state !== 'dark') return;
+        if (e.button !== 1 || !actsDark(a)) return;
         e.preventDefault();
         showNotice(a, svc);
+      });
+      // Esc (the key plate's Close) takes a pinned card down from the gate
+      // that has focus, as a click on the arch does for the pointer. The
+      // keyboard could pin the card and never take it down again, and it
+      // hid the gate's own description for the rest of the visit. The key
+      // plate lies over the hall, so while it shows, its Esc comes first;
+      // with no card pinned, Esc keeps its meaning.
+      a.addEventListener('keydown', function (e) {
+        if (e.key !== 'Escape' || e.ctrlKey || e.metaKey || e.altKey) return;
+        if (notice.hidden || (keyplate && !keyplate.hidden)) return;
+        e.preventDefault();
+        e.stopPropagation();
+        hideNotice(a);
+        layerMoved();
       });
     }
     wrap.appendChild(a);
@@ -1512,9 +1539,14 @@ function descKey(svc) {
 
 /* The notice is printed like a house notice: DARK in the display caps
    between two rules, what to do, then the launcher path in the address
-   face. The path is lettered with a break opportunity after every
-   separator, so it wraps at a folder, not mid-name. A <wbr> is not text:
-   a copied path comes out exactly as the registry has it. */
+   face. The path is lettered one folder at a time: each run from one
+   separator to the next is a box of its own, so the line can only break
+   between them. A <wbr> after each separator was not enough, since the
+   browser still broke after a hyphen inside a name ('pdx-mod-' / 'hub'),
+   which reads as hyphenation. A run too long for the card still wraps
+   inside its box rather than run out of it, and fitNotice tightens the
+   card first. The boxes are not text: a copied path comes out exactly as
+   the registry has it. */
 function letterNotice(n, svc) {
   var hint = svc.launch_hint || svc.url;
   n.textContent = '';
@@ -1525,11 +1557,13 @@ function letterNotice(n, svc) {
   var path = el('span', 'gx-path');
   hint.split(/(?<=[\\/_])/).forEach(function (part, i) {
     if (i) path.appendChild(document.createElement('wbr'));
-    path.appendChild(document.createTextNode(part));
+    path.appendChild(el('span', 'gx-run', part));
   });
   n.appendChild(path);
+  // The twin says only what to do. The lamp word opens the gate's
+  // description already, and "dark. ... Dark. Launch with" said it twice.
   var sr = $('.g-notice-sr', n.parentNode);
-  if (sr) sr.textContent = t('darkNotice', { hint: hint });
+  if (sr) sr.textContent = t('darkHint', { hint: hint });
   // The card has to stand inside the house whatever the path's length and
   // however small the arch: it is set tighter, a step at a time, until it
   // fits, and set again whenever the house changes size.
@@ -1542,15 +1576,27 @@ function letterNotice(n, svc) {
   fitNotice(n);
 }
 var noticeRO = null;
+/* A run of the path that takes two lines has broken inside a name. */
+function runBroken(n) {
+  return Array.prototype.some.call(n.querySelectorAll('.gx-run'), function (r) {
+    var rg = document.createRange();
+    rg.selectNodeContents(r);
+    return rg.getClientRects().length > 1;
+  });
+}
 function fitNotice(n) {
   var house = n.parentNode;
   if (n.hidden || !house) return;
   n.removeAttribute('data-fit');
-  for (var k = 1; k <= 3 && n.offsetHeight > house.clientHeight; k++) n.dataset.fit = String(k);
+  for (var k = 1; k <= 3 && (n.offsetHeight > house.clientHeight || runBroken(n)); k++) {
+    n.dataset.fit = String(k);
+  }
 }
 
 /* Pins the card. It is said out loud when it goes up, and again whenever
-   `again` asks (a keyboard press on a card already showing). */
+   `again` asks (a keyboard press on a card already showing). Said whole,
+   DARK and all: the announcement stands on its own, where the gate's
+   description already has its lamp word. */
 function showNotice(a, svc, again) {
   var n = $('.g-notice', a);
   if (n.hidden) {
@@ -1561,7 +1607,7 @@ function showNotice(a, svc, again) {
   } else if (!again) {
     return;
   }
-  sayGate($('.g-notice-sr', a).textContent);
+  sayGate(t('darkNotice', { hint: svc.launch_hint || svc.url }), a);
 }
 
 function hideNotice(a) {
@@ -1569,35 +1615,61 @@ function hideNotice(a) {
   n.hidden = true;
   // Emptied, not just hidden: aria-describedby reads a hidden element it
   // points at, and a gate back OPEN used to keep its launch path.
-  var said = $('#gate-say');
-  if (said && sr.textContent && said.textContent === sr.textContent) said.textContent = '';
   sr.textContent = '';
+  unsayGate(a);
   describeGate(a);
+}
+
+/* A gate last known DARK stays dark to the reader's hand while its lamp only
+   asks again: one missed poll used to take down the card being read, and
+   a press in that moment opened the dead address. Only a lamp known OPEN
+   opens the gate again. */
+function actsDark(a) {
+  return a.dataset.state === 'dark' || (a.dataset.state === 'checking' && a._known === 'dark');
 }
 
 /* A gate is described by what it says and what it does: its lamp, the description,
    the live line, the service's note, the launch card only while it is
    pinned, and "opens in its own tab" only when a press would open one. A
-   DARK gate opens nothing, and it used to say that it did. */
+   DARK gate opens nothing, and it used to say that it did. The live line
+   and the note are read from twins that carry each part and its stop in
+   one run of text: a stop in a box of its own came out detached, as in
+   "4 AIRING TODAY . Opens in its own tab.", on a braille line as well. */
 function describeGate(a) {
   var id = a.dataset.service;
-  var ids = ['gl-', 'gd-', 'gs-', 'gnote-'].map(function (p) { return p + id; });
+  var ids = ['gl-', 'gd-', 'gss-', 'gns-'].map(function (p) { return p + id; });
   if (!$('.g-notice', a).hidden) ids.push('gx-' + id);
-  if (a.dataset.state !== 'dark') ids.push('opens-tab');
+  if (!actsDark(a)) ids.push('opens-tab');
   a.setAttribute('aria-describedby', ids.join(' '));
 }
 
 /* The launch card is said in a polite region of its own. It used to borrow
    #hall-status, and the next poll, finding the card's words there, said an
    unchanged line count again. The region is emptied and written a beat
-   later, so the same card said twice is still a change a reader hears. */
-var gateSayT = null;
-function sayGate(text) {
+   later, so the same card said twice is still a change a reader hears.
+   Once said, it is taken down again: left standing, a reader browsing the
+   hall met the launch path as a loose sentence after the last gate, with
+   no gate attached. The gate's own description keeps the words. */
+var gateSayT = null, gateSayFor = null;
+var GATE_SAY_HOLD = 5000;   // ms: long after the region's change is queued
+function sayGate(text, a) {
   var n = $('#gate-say');
   if (!n) return;
   clearTimeout(gateSayT);
   n.textContent = '';
-  gateSayT = setTimeout(function () { n.textContent = text; }, 80);
+  gateSayFor = a || null;
+  gateSayT = setTimeout(function () {
+    n.textContent = text;
+    gateSayT = setTimeout(function () { unsayGate(); }, GATE_SAY_HOLD);
+  }, 80);
+}
+/* Empties the region: any gate's words with no argument, or only a's. */
+function unsayGate(a) {
+  if (a && gateSayFor !== a) return;
+  clearTimeout(gateSayT);
+  gateSayFor = null;
+  var n = $('#gate-say');
+  if (n) n.textContent = '';
 }
 
 /* The browser's new-tab modifier: Cmd on a Mac, Ctrl everywhere else.
@@ -1609,7 +1681,7 @@ var NEW_TAB_KEY = /mac|iphone|ipad|ipod/i.test(
   navigator.platform || '') ? 'metaKey' : 'ctrlKey';
 
 function gateClick(e, a, svc) {
-  var dark = a.dataset.state === 'dark';
+  var dark = actsDark(a);
   // The new-tab modifier and Shift are the browser's own new-tab and
   // new-window gestures, and middle-click already gets them. Any other
   // modifier falls through to the named window below. A DARK gate keeps
@@ -3975,6 +4047,7 @@ function applyStatuses() {
     if (!a) return;
     var state = st ? st.state : 'checking';
     a.dataset.state = state;
+    if (state !== 'checking') a._known = state;   // see actsDark
     var lampT = $('.lamp-t', a);
     if (state === 'open') { lampT.textContent = 'OPEN'; openCount++; known++; }
     else if (state === 'dark') { lampT.textContent = 'DARK'; known++; }
@@ -3985,16 +4058,20 @@ function applyStatuses() {
     // Stopped, like every part of the gate's description, or speech runs
     // the lamp word straight into the curtain's sentence.
     if (sr) sr.textContent = t(state === 'open' ? 'srOpen' : state === 'dark' ? 'srDark' : 'srChecking') + t('srStop');
-    if (state !== 'dark' && !$('.g-notice', a).hidden) hideNotice(a);
+    // The card comes down when the lamp comes back, and only then: a lamp
+    // that is only asking (one missed poll, a hub restarting) has not come
+    // back, and the card went with it, the path half read or half copied.
+    if (state === 'open' && !$('.g-notice', a).hidden) hideNotice(a);
     describeGate(a);
     var note = st && st.note && STR.en['note.' + st.note] !== undefined ? t('note.' + st.note) : '';
     $('.g-lamp', a).title = note || lampT.title;
     var noteEl = $('.g-note', a);
     if (noteEl) {
       noteEl.textContent = note;
-      if (note) noteEl.appendChild(el('span', 'sr-only', t('srStop')));
       noteEl.hidden = !note;
     }
+    var noteSaid = $('.g-said-note', a);
+    if (noteSaid) noteSaid.textContent = note ? note + t('srStop') : '';
   });
   var allDark = known === services.length && known > 0 && openCount === 0;
 
@@ -4053,7 +4130,9 @@ function statText(svc) {
     if (s.total > 0) parts.push(t('stat.queue', { done: s.ready || 0, total: s.total }));
     if (s.invited !== undefined && s.invited > 0)
       parts.push(t('stat.invited', { n: s.invited, target: s.target || 20 }));
-    return parts.join(' · ');
+    // A no-break space before the dot: a line that wraps breaks after the
+    // separator, and never opens its second line with a lone '·'.
+    return parts.join('\u00a0· ');
   }
   return '';
 }
@@ -4064,9 +4143,9 @@ function applyStats() {
     if (!a) return;
     var span = $('.num-roll', a);
     var txt = statText(svc);
-    var stop = $('.g-stat > .sr-only', a);
-    if (!stop) { stop = el('span', 'sr-only'); span.parentNode.appendChild(stop); }
-    stop.textContent = txt ? t('srStop') : '';
+    // Said at once, whole: the odometer's words land 240 ms later.
+    var said = $('.g-said-stat', a);
+    if (said) said.textContent = txt ? txt + t('srStop') : '';
     // The odometer is for a reading that changed. A line re-lettered into
     // the other language holds the same numbers, and every gate used to
     // roll on a language switch; the text swaps in place instead.
@@ -4249,15 +4328,23 @@ function buildPlaque(d) {
   li.appendChild(medal);   // outside the clipped layers — overhangs the spine
   // The card's name is read as one line, so its parts are parted for
   // speech: title, unread, detail and age used to run together unbroken.
-  a.appendChild(el('div', 'pl-head'));
-  a.appendChild(el('span', 'sr-only pl-unread'));
-  a.appendChild(el('span', 'sr-only pl-sep'));
-  a.appendChild(el('div', 'pl-detail'));
-  a.appendChild(el('span', 'sr-only pl-sep'));
+  // They are said from one hidden line of inline text. Each separator in
+  // a box of its own came out detached from the words before it ("The
+  // edition is out , unread , ..."), in speech and on a braille display.
+  var head = el('div', 'pl-head');
+  head.setAttribute('aria-hidden', 'true');
+  a.appendChild(head);
+  var detail = el('div', 'pl-detail');
+  detail.setAttribute('aria-hidden', 'true');
+  a.appendChild(detail);
   var when = el('div', 'pl-time num');
   when.setAttribute('aria-hidden', 'true');
   a.appendChild(when);
-  a.appendChild(el('span', 'sr-only pl-said'));
+  var said = el('span', 'sr-only pl-name');
+  ['pl-said-head', 'pl-unread', 'pl-sep', 'pl-said-detail', 'pl-sep', 'pl-said'].forEach(function (c) {
+    said.appendChild(el('span', c));
+  });
+  a.appendChild(said);
   frame.appendChild(a);
   shadowWrap.appendChild(frame);
   li.appendChild(shadowWrap);
@@ -4273,11 +4360,16 @@ function updatePlaque(li, d) {
   var cjk = /[\u3040-\u30ff\u3400-\u9fff]/.test(h.head || '');
   if (cjk !== (lang === 'zh')) head.lang = cjk ? 'zh' : 'en';
   else head.removeAttribute('lang');
+  var headSaid = $('.pl-said-head', li);
+  headSaid.textContent = h.head || '';
+  if (head.lang) headSaid.lang = head.lang; else headSaid.removeAttribute('lang');
   $('.pl-unread', li).textContent = t('list') + t('unread');
-  Array.prototype.forEach.call(li.querySelectorAll('.pl-sep'), function (n) {
-    n.textContent = t('list');
-  });
+  // No detail, no separator for it: "title, , age" otherwise.
+  var seps = li.querySelectorAll('.pl-sep');
+  seps[0].textContent = h.detail ? t('list') : '';
+  seps[1].textContent = t('list');
   $('.pl-detail', li).textContent = h.detail || '';
+  $('.pl-said-detail', li).textContent = h.detail || '';
   ageCard(li, d);
 }
 
