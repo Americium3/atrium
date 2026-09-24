@@ -1361,6 +1361,7 @@ html[lang="zh"] .p-name { letter-spacing: 0.1em; }
    stroke, or the group labels printed at 1.9:1 by day. */
 html[lang="zh"] #prefs :is(.p-label, .p-name, .p-desc):not([lang="en"]),
 html[lang="zh"] #prefs-close::after { -webkit-text-stroke: 0.4px currentColor; }
+#prefs .p-name [lang="en"] { -webkit-text-stroke-width: 0; }
 html[lang="zh"]:root[data-theme="ivory"] .p-head h2 { -webkit-text-stroke: 0.45px currentColor; }
 
 /* Pilot jewels. The live one is lit; the others are smoked glass. */
