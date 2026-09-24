@@ -573,27 +573,62 @@ function playEntrance() {
   // Beat 8 — finish (2700ms).
   at(2700, finishEntrance);
 
-  // The overlay has pointer-events:auto while playing, so the skip gesture
-  // is swallowed here and never reaches the invisible hall underneath.
+  // Any input cuts the entrance short. Until done-fade the overlay has
+  // pointer-events:auto, so a pointerdown lands on the overlay; it is
+  // swallowed there, and so is the click it turns into (swallowNextClick),
+  // because by the time that click is hit-tested the overlay has gone and
+  // it would land on whatever gate, lever or hatch was under the finger.
+  // After done-fade a pointerdown reaches the hall itself: the entrance
+  // lands and the click goes on to the thing that was clicked.
   entranceSkip = function (e) {
-    // Any input cuts the entrance short, but only the keys the hall itself
-    // would act on are swallowed: F5, Ctrl+R and the like keep working.
-    var own = !e || e.type !== 'keydown' ||
-      (!e.ctrlKey && !e.metaKey && !e.altKey && !/^F\d+$/.test(e.key));
-    if (own && e && e.preventDefault) e.preventDefault();
+    var type = e ? e.type : '';
+    if (type === 'keydown') {
+      // Only the keys the hall itself would act on are swallowed: F5,
+      // Ctrl+R and the like keep working.
+      if (!e.ctrlKey && !e.metaKey && !e.altKey && !/^F\d+$/.test(e.key)) e.preventDefault();
+    } else if (type === 'pointerdown' && entrance.contains(e.target)) {
+      e.preventDefault();
+      swallowNextClick();
+    }
+    // A wheel turn only lands the hall. It is passive: the hall never
+    // scrolls, so there is nothing to cancel.
     finishEntrance();
   };
-  entrance.addEventListener('pointerdown', entranceSkip);
+  window.addEventListener('pointerdown', entranceSkip, true);
   window.addEventListener('keydown', entranceSkip);
+  window.addEventListener('wheel', entranceSkip, { passive: true });
 }
 
 var entranceSkip = null;
 
+/* preventDefault on pointerdown stops a mouse's compatibility events but
+   not the click a touchscreen synthesizes from a tap. That click is eaten
+   here, in the capture phase, before anything in the hall sees it. The
+   trap disarms itself shortly after the pointer comes up, so a skip that
+   never turns into a click (a drag, a cancelled touch) cannot eat a later,
+   deliberate one. */
+function swallowNextClick() {
+  var armed = true;
+  function eat(e) { e.preventDefault(); e.stopPropagation(); disarm(); }
+  function disarm() {
+    if (!armed) return;
+    armed = false;
+    window.removeEventListener('click', eat, true);
+    window.removeEventListener('pointerup', soon, true);
+    window.removeEventListener('pointercancel', soon, true);
+  }
+  function soon() { setTimeout(disarm, 400); }
+  window.addEventListener('click', eat, true);
+  window.addEventListener('pointerup', soon, true);
+  window.addEventListener('pointercancel', soon, true);
+}
+
 function finishEntrance() {
   entranceTimers.forEach(clearTimeout);
   if (entranceSkip) {
-    entrance.removeEventListener('pointerdown', entranceSkip);
+    window.removeEventListener('pointerdown', entranceSkip, true);
     window.removeEventListener('keydown', entranceSkip);
+    window.removeEventListener('wheel', entranceSkip);
     entranceSkip = null;
   }
   entrance.style.display = 'none';

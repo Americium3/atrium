@@ -2587,6 +2587,10 @@ html[lang="zh"] .al-arc text {
 }
 html[data-entered="no"] #entrance { pointer-events: auto; cursor: pointer; }
 html[data-entered="yes"] #entrance { display: none; }
+/* From done-fade the panels are hidden and the void is clear: the hall is
+   what the reader sees, so it is what the pointer reaches. The last half
+   second used to spend a click on the skip, with the gate right there. */
+html[data-entered="no"] #entrance.done-fade { pointer-events: none; cursor: auto; }
 
 #entrance .e-void {
   position: absolute; inset: 0;
