@@ -143,7 +143,7 @@ var STR = {
     markAllDone: 'Nothing left to strike',
     markAllStruck: '{n} {n|dispatch|dispatches} struck',
     markAllScope: 'BOTH WINGS',
-    srOpen: 'open', srDark: 'dark', srChecking: 'checking',
+    srOpen: 'open', srDark: 'dark', srChecking: 'checking', srStop: '.',
     opensTab: 'Opens in its own tab.',
     unread: 'unread',
     wkHot: 'in the red',
@@ -282,7 +282,7 @@ var STR = {
     markAllDone: '没有未读了',
     markAllStruck: '已划去 {n} 条',
     markAllScope: '两翼一并',
-    srOpen: '已点亮', srDark: '未点亮', srChecking: '检查中',
+    srOpen: '已点亮', srDark: '未点亮', srChecking: '检查中', srStop: '。',
     opensTab: '在单独的标签页中打开。',
     unread: '未读',
     wkHot: '已入红区',
@@ -2876,12 +2876,18 @@ function applyStatuses() {
     lampT.title = t(state === 'open' ? 'lampOpen' :
                     state === 'dark' ? 'lampDark' : 'lampChecking');
     var sr = $('.lamp-sr', a);
-    if (sr) sr.textContent = t(state === 'open' ? 'srOpen' : state === 'dark' ? 'srDark' : 'srChecking');
+    // Stopped, like every part of the gate's description, or speech runs
+    // the lamp word straight into the curtain's sentence.
+    if (sr) sr.textContent = t(state === 'open' ? 'srOpen' : state === 'dark' ? 'srDark' : 'srChecking') + t('srStop');
     if (state !== 'dark') $('.g-notice', a).hidden = true;
     var note = st && st.note && STR.en['note.' + st.note] !== undefined ? t('note.' + st.note) : '';
     $('.g-lamp', a).title = note || lampT.title;
     var noteEl = $('.g-note', a);
-    if (noteEl) { noteEl.textContent = note; noteEl.hidden = !note; }
+    if (noteEl) {
+      noteEl.textContent = note;
+      if (note) noteEl.appendChild(el('span', 'sr-only', t('srStop')));
+      noteEl.hidden = !note;
+    }
   });
   var allDark = known === services.length && known > 0 && openCount === 0;
   $('#all-dark').hidden = !allDark;
@@ -2941,6 +2947,9 @@ function applyStats() {
     if (!a) return;
     var span = $('.num-roll', a);
     var txt = statText(svc);
+    var stop = $('.g-stat > .sr-only', a);
+    if (!stop) { stop = el('span', 'sr-only'); span.parentNode.appendChild(stop); }
+    stop.textContent = txt ? t('srStop') : '';
     // The odometer is for a reading that changed. A line re-lettered into
     // the other language holds the same numbers, and every gate used to
     // roll on a language switch; the text swaps in place instead.
@@ -3101,9 +3110,13 @@ function buildPlaque(d) {
   svg.appendChild(sig);
   medal.appendChild(svg);
   li.appendChild(medal);   // outside the clipped layers — overhangs the spine
+  // The card's name is read as one line, so its parts are parted for
+  // speech: title, unread, detail and age used to run together unbroken.
   a.appendChild(el('div', 'pl-head'));
-  a.appendChild(el('span', 'sr-only pl-unread', t('unread')));
+  a.appendChild(el('span', 'sr-only pl-unread'));
+  a.appendChild(el('span', 'sr-only pl-sep'));
   a.appendChild(el('div', 'pl-detail'));
+  a.appendChild(el('span', 'sr-only pl-sep'));
   var when = el('div', 'pl-time num');
   when.setAttribute('aria-hidden', 'true');
   a.appendChild(when);
@@ -3123,7 +3136,10 @@ function updatePlaque(li, d) {
   var cjk = /[\u3040-\u30ff\u3400-\u9fff]/.test(h.head || '');
   if (cjk !== (lang === 'zh')) head.lang = cjk ? 'zh' : 'en';
   else head.removeAttribute('lang');
-  $('.pl-unread', li).textContent = t('unread');
+  $('.pl-unread', li).textContent = t('list') + t('unread');
+  Array.prototype.forEach.call(li.querySelectorAll('.pl-sep'), function (n) {
+    n.textContent = t('list');
+  });
   $('.pl-detail', li).textContent = h.detail || '';
   $('.pl-time', li).textContent = relTime(d.ts);
   $('.pl-said', li).textContent = relTime(d.ts, true);
