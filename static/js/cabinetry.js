@@ -410,35 +410,52 @@ function dial(key) {
   s.appendChild(sv('path', { d: 'M' + P(z0) + ' L' + P(z1) }, 'd-slot'));
   s.appendChild(sv('circle', { cx: 50, cy: 50, r: 44.2, fill: 'url(#' + id + '-lip)' }, 'd-lip'));
 
-  // The needle: a lacquered pointer with a counterweight tail, drawn twice.
-  // The shadow's offset is on an outer group that never turns, so it always
-  // falls down and to the right, whatever the reading; the inner group
-  // turns with the needle (a CSS transform, so never on the offset group).
+  // The needle: a lacquered pointer with a counterweight tail, drawn twice,
+  // and the hub and crystal over it. They are not part of the dial's
+  // drawing. A CSS transform turning a group inside the dial re-laid the
+  // SVG and re-rastered the case on every frame of the 0.9s swing, after
+  // every 4s reading, and the hall at rest fell to 20-28fps for a second
+  // each time (MO-16). Each is a sheet the size of the dial, laid over it in
+  // the same grid cell (.wk-hands), and the needle's two sheets are layers
+  // the compositor turns, as the clock's hands are. The shadow's offset is
+  // in its sheet's transform ahead of the turn, so it always falls down and
+  // to the right, whatever the reading.
   var needle = 'M50 12.2 L51.25 47.6 L51.6 50 L50.9 57.2 L49.1 57.2 L48.4 50 L48.75 47.6 Z';
   var tail = { cx: 50, cy: 59.4, r: 3.5 };
-  var shadow = sv('g', { transform: 'translate(1.3 2.1)' }, 'nd-shadow');
+  var hands = hx('div', 'wk-hands');
+  var sheet = function (cls) {
+    return sv('svg', { viewBox: '0 0 100 100', 'aria-hidden': 'true', focusable: 'false' }, cls);
+  };
+  var shadow = sheet('wk-rotor nd-shadow');
   var sh = sv('g', null, 'g-needle');
   sh.appendChild(sv('path', { d: needle }));
   sh.appendChild(sv('circle', tail));
   shadow.appendChild(sh);
-  s.appendChild(shadow);
+  hands.appendChild(shadow);
+  var turn = sheet('wk-rotor');
   var body = sv('g', null, 'g-needle nd-body');
   body.appendChild(sv('path', { d: needle }, 'nd-lacq'));
   body.appendChild(sv('path', { d: 'M50 12.2 L50.95 38 L49.05 38 Z' }, 'nd-tip'));
   body.appendChild(sv('circle', tail, 'nd-weight'));
   body.appendChild(sv('circle', { cx: 50, cy: 59.4, r: 1.3 }, 'nd-rivet'));
   body.appendChild(sv('path', { d: 'M49.55 20 L49.35 47' }, 'nd-hi'));
-  s.appendChild(body);
-  s.appendChild(sv('circle', { cx: 50, cy: 50, r: 4.4, fill: 'url(#' + id + '-hub)' }, 'd-hub'));
-  s.appendChild(sv('circle', { cx: 48.7, cy: 48.6, r: 1.1 }, 'd-hubglint'));
+  turn.appendChild(body);
+  hands.appendChild(turn);
+  var cap = sheet('wk-cap');
+  cap.appendChild(sv('circle', { cx: 50, cy: 50, r: 4.4, fill: 'url(#' + id + '-hub)' }, 'd-hub'));
+  cap.appendChild(sv('circle', { cx: 48.7, cy: 48.6, r: 1.1 }, 'd-hubglint'));
 
   // The crystal: one broad soft reflection across the upper left, a short
   // sharp glint, and the lower edge catching the room.
-  s.appendChild(sv('path', { d: 'M13.5 44 A37 37 0 0 1 56 8.6 A44 44 0 0 0 19 32 Z',
+  cap.appendChild(sv('path', { d: 'M13.5 44 A37 37 0 0 1 56 8.6 A44 44 0 0 0 19 32 Z',
     fill: 'url(#' + id + '-xtal)' }, 'd-xtal'));
-  s.appendChild(sv('path', { d: arc(50, 50, 42.6, 118, 160), fill: 'none' }, 'd-xtal-edge'));
-  s.appendChild(sv('ellipse', { cx: 70.5, cy: 22.5, rx: 3.2, ry: 1.1, transform: 'rotate(38 70.5 22.5)' }, 'd-glint'));
-  return s;
+  cap.appendChild(sv('path', { d: arc(50, 50, 42.6, 118, 160), fill: 'none' }, 'd-xtal-edge'));
+  cap.appendChild(sv('ellipse', { cx: 70.5, cy: 22.5, rx: 3.2, ry: 1.1, transform: 'rotate(38 70.5 22.5)' }, 'd-glint'));
+  hands.appendChild(cap);
+  var f = document.createDocumentFragment();
+  f.appendChild(s);
+  f.appendChild(hands);
+  return f;
 }
 
 /* ---------------------------------------------------------------- the sky

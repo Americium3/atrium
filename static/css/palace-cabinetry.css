@@ -448,20 +448,20 @@
 .board .wk-dial .d-serial path { stroke: var(--scale-ink); stroke-width: 0.45; stroke-linecap: round; }
 .board .wk-dial .d-zero { stroke: rgba(0, 0, 0, 0.5); stroke-width: 0.3; }
 .board .wk-dial .d-lip { pointer-events: none; }
-/* The needle. Both groups carry .g-needle, which the base sheet turns on
-   the spring settle; the shadow's group sits in a translated parent. */
-.board .wk-dial .g-needle { stroke: none; }
-.board .wk-dial .nd-shadow .g-needle { fill: var(--needle-sh); }
-.board .wk-dial .nd-lacq { fill: var(--needle); stroke: var(--needle-edge); stroke-width: 0.3; }
-.board .wk-dial .nd-tip { fill: var(--needle); }
-.board .wk-dial .nd-weight { fill: var(--br-2); stroke: var(--br-0); stroke-width: 0.35; }
-.board .wk-dial .nd-rivet { fill: var(--br-4); }
-.board .wk-dial .nd-hi { stroke: rgba(255, 255, 255, 0.5); stroke-width: 0.35; fill: none; }
-.board .wk-dial .d-hub { stroke: rgba(0, 0, 0, 0.6); stroke-width: 0.35; }
-.board .wk-dial .d-hubglint { fill: #fffbe8; opacity: 0.7; }
-.board .wk-dial .d-xtal { pointer-events: none; }
-.board .wk-dial .d-xtal-edge { stroke: rgba(255, 252, 240, 0.28); stroke-width: 0.6; }
-.board .wk-dial .d-glint { fill: #ffffff; opacity: 0.55; }
+/* The needle. Both of its sheets turn on the spring settle the base sheet
+   gives .wk-rotor; the shadow's sheet stands off ahead of the turn. */
+.board .wk-hands .g-needle { stroke: none; }
+.board .wk-hands .nd-shadow .g-needle { fill: var(--needle-sh); }
+.board .wk-hands .nd-lacq { fill: var(--needle); stroke: var(--needle-edge); stroke-width: 0.3; }
+.board .wk-hands .nd-tip { fill: var(--needle); }
+.board .wk-hands .nd-weight { fill: var(--br-2); stroke: var(--br-0); stroke-width: 0.35; }
+.board .wk-hands .nd-rivet { fill: var(--br-4); }
+.board .wk-hands .nd-hi { stroke: rgba(255, 255, 255, 0.5); stroke-width: 0.35; fill: none; }
+.board .wk-hands .d-hub { stroke: rgba(0, 0, 0, 0.6); stroke-width: 0.35; }
+.board .wk-hands .d-hubglint { fill: #fffbe8; opacity: 0.7; }
+.board .wk-hands .d-xtal { pointer-events: none; }
+.board .wk-hands .d-xtal-edge { stroke: rgba(255, 252, 240, 0.28); stroke-width: 0.6; }
+.board .wk-hands .d-glint { fill: #ffffff; opacity: 0.55; }
 /* In the red: the needle's tip takes the lacquer of the arc it has
    reached. One signal, no flashing. */
 .board .wk-cell[data-hot="yes"] .nd-tip { fill: var(--lacquer-red-hi); }

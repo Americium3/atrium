@@ -2483,7 +2483,7 @@ var worksTimer = null;
 
 /* One instrument per reading. The drawing lives in cabinetry.js (bezel,
    enamel, scale, red arc, needle and crystal); the needle still turns on the
-   spring settle the CSS gives .g-needle, from the --gauge set below. */
+   spring settle the CSS gives .wk-rotor, from the --gauge set below. */
 function buildDial(key) {
   return window.Cabinet.dial(key);
 }
@@ -2595,7 +2595,13 @@ function syncWorks() {
     if (!cell) return;
     var r = dialRead(d.key, works);
     // A needle with no reading rests at zero rather than lying at a number.
-    cell.style.setProperty('--gauge', (-120 + (r ? r.pct : 0) * 2.4).toFixed(1));
+    // The angle goes on the needle's two sheets only: a custom property is
+    // inherited, and written on the cell it restyled the whole instrument,
+    // some 290 nodes, on every reading.
+    var gauge = (-120 + (r ? r.pct : 0) * 2.4).toFixed(1);
+    cell.querySelectorAll('.wk-rotor').forEach(function (n) {
+      n.style.setProperty('--gauge', gauge);
+    });
     cell.dataset.hot = r && r.pct >= 85 ? 'yes' : 'no';
     cell.dataset.blank = r ? 'no' : 'yes';
     var read = $('.wk-read', cell);

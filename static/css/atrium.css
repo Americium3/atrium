@@ -407,6 +407,7 @@ html[lang="zh"] .display { letter-spacing: 0.26em; }
 .sigil, #monogram, #prefs-btn svg,
 .medal, .medal .rim, .medal .m-sig, .chip,
 .wk-dial path, .wk-dial circle, .wk-dial line, .wk-dial text,
+.wk-hands path, .wk-hands circle,
 .wk-plate rect, .wk-plate circle, .wk-plate text,
 .lever-svg path, .lever-svg circle, .lever-svg rect, .lever-svg text,
 .lever-svg polygon, .lever-svg ellipse,
@@ -1634,13 +1635,31 @@ html[data-boot="suppressed"] #signal-desk {
   font-size: 9px;
   font-variant-numeric: tabular-nums;
 }
-.wk-dial .g-needle {
-  stroke: var(--gold);
-  transform: rotate(calc(var(--gauge, -120) * 1deg));
-  transform-box: view-box;
-  transform-origin: 50px 50px;
-  transition: transform 0.9s var(--ease-spring), stroke 0.4s;
+/* The needle and what lies over it (hub, crystal) are sheets the size of
+   the dial, laid over it in its grid cell (cabinetry.js). The needle's two
+   sheets are layers the compositor turns: turning a group inside the dial
+   re-laid and re-rastered the case on every frame of the swing (MO-16).
+   The shadow's sheet stands off down the key light ahead of the turn. */
+.wk-cell > .wk-dial, .wk-cell > .wk-hands { grid-area: 1 / 1; }
+.wk-hands {
+  position: relative;
+  height: 100%; width: auto; max-width: 100%;
+  aspect-ratio: 1;
+  pointer-events: none;
 }
+.wk-hands > svg {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  overflow: visible;
+}
+.wk-hands .g-needle { stroke: var(--gold); transition: stroke 0.4s; }
+.wk-rotor {
+  transform: rotate(calc(var(--gauge, -120) * 1deg));
+  transform-origin: 50% 50%;
+  transition: transform 0.9s var(--ease-spring);
+  will-change: transform;
+}
+.wk-rotor.nd-shadow { transform: translate(1.3%, 2.1%) rotate(calc(var(--gauge, -120) * 1deg)); }
 .wk-dial .g-hub { fill: var(--bronze); stroke: none; }
 /* Past the red sector the needle takes the alarm tone. One signal, no
    flashing: a hall does not blink at its reader. */
