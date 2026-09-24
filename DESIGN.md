@@ -614,7 +614,9 @@ Plaques are links opening the dispatch url.
   * It clears **both wings** even while a chip is filtering the column,
     because the annunciator on the masthead counts both: a control labelled
     "mark all read" that leaves the disc lit has not done what it says. The
-    tooltip states this rather than leaving it to be found.
+    tooltip states this rather than leaving it to be found, and while a chip
+    is filtering, the stamp engraves BOTH WINGS beside its label, because a
+    tooltip never shows for keyboard focus.
   * It runs the **dwell's own 420 ms drain**, staggered down the column from
     the top, so the confirmation is the same mechanic the reader already
     knows, shown at scale, rather than a new one. The stagger is capped in
@@ -655,7 +657,9 @@ Plaques are links opening the dispatch url.
 - **Unread signal (masthead)**: one 9 px disc seated at 45° on the hatch
   housing ring, an annunciator on the dispatch cap rather than a badge pinned to
   the button's bounding box. Carries no numeral: the count is exposed through
-  the button's tooltip and an `.sr-only` span, so the mark stays a mark. Flat
+  the button's tooltip and an `.sr-only` span, so the mark stays a mark. On
+  hover and keyboard focus the same count is engraved just outside the
+  housing, beside the disc, since a title tooltip never reaches focus. Flat
   fill + a single `--machine-edge` seat hairline; the ban on outer glow means
   value contrast does the work of "lit", which is why the colour is
   per-theme: champagne on Onyx bronze (13.9:1), `--gold-text` on Ivory's

@@ -442,6 +442,23 @@ html[data-boot="suppressed"] #hall { animation: hall-fade 0.3s var(--ease-out) b
 }
 :root[data-theme="ivory"] .l-badge { background: var(--gold-text); }
 .l-badge[hidden] { display: none; }
+/* The count the disc stands for, engraved just outside the housing beside
+   it, in the gap before PREFERENCES. Hover and keyboard focus only: at rest
+   the disc carries no numeral, and a title tooltip never reaches focus. */
+.l-count {
+  position: absolute;
+  top: 0; left: calc(100% + 7px);   /* clear of the 5px focus ring */
+  font-size: calc(10px * var(--ui));
+  line-height: 1;
+  letter-spacing: 0.04em;
+  color: var(--gold-text);
+  opacity: 0;
+  transition: opacity 0.2s;
+  pointer-events: none;
+}
+.l-count[hidden] { display: none; }
+#ledger-btn:hover .l-count,
+#ledger-btn:focus-visible .l-count { opacity: 1; }
 /* Arrival: the carrier seats itself, once. Event-driven, never idle — the
    hall at rest is silent architecture. As a CSS animation this also collapses
    under REDUCED motion, which the inline transform it replaces did not. */
@@ -2302,6 +2319,15 @@ html[lang="zh"] .al-arc text {
   transition: color 0.25s, border-color 0.25s, opacity 0.25s;
 }
 .l-stamp-cap { font-size: calc(10px * var(--ui)); letter-spacing: 0.18em; }
+/* Engraved beside the label only while a chip narrows the column: the stamp
+   clears both wings regardless, and the tooltip was the only place that
+   said so. */
+.l-stamp-scope {
+  font-size: calc(9px * var(--ui)); letter-spacing: 0.18em;
+  padding-left: calc(7px * var(--ui));
+  border-left: 1px solid var(--line);
+}
+.l-stamp-scope[hidden] { display: none; }
 .l-stamp-ico { width: calc(15px * var(--ui)); height: calc(15px * var(--ui)); }
 .l-stamp-ico .s-head, .l-stamp-ico .s-grip { fill: var(--bronze); }
 .l-stamp-ico .s-base { fill: var(--bronze-cap); }

@@ -130,6 +130,7 @@ var STR = {
     markAllHint: 'Strike every dispatch in the window, both wings',
     markAllDone: 'Nothing left to strike',
     markAllStruck: '{n} {n|dispatch|dispatches} struck',
+    markAllScope: 'BOTH WINGS',
     srOpen: 'open', srDark: 'dark', srChecking: 'checking',
     opensTab: 'Opens in its own tab.',
     unread: 'unread',
@@ -259,6 +260,7 @@ var STR = {
     markAllHint: '把窗口内两翼的消息一次全部盖章',
     markAllDone: '没有未读了',
     markAllStruck: '已划去 {n} 条',
+    markAllScope: '两翼一并',
     srOpen: '已点亮', srDark: '未点亮', srChecking: '检查中',
     opensTab: '在单独的标签页中打开。',
     unread: '未读',
@@ -3198,6 +3200,7 @@ function renderLedger() {
     ol.appendChild(empty);
     feed.forEach(function (d) { seenIds[d.id] = 1; });
     refocus();
+    syncStamp();
     return;
   }
   var midnight = new Date(); midnight.setHours(0, 0, 0, 0);
@@ -3292,6 +3295,7 @@ function renderLedger() {
   });
   feed.forEach(function (d) { seenIds[d.id] = 1; });
   refocus();
+  syncStamp();      // a chip change moves what the stamp's scope line says
 }
 
 var badgeCount = 0;
@@ -3314,6 +3318,17 @@ function updateLedgerBadge() {
   if (btn) {
     if (count > 0) btn.title = label;
     else btn.removeAttribute('title');
+    // A browser never shows a title to keyboard focus, so the count was the
+    // pointer's alone. The same number is engraved beside the disc, shown
+    // only on hover and focus-visible (CSS): at rest the mark stays a mark.
+    var num = btn.querySelector('.l-count');
+    if (!num) {
+      num = el('span', 'l-count num');
+      num.setAttribute('aria-hidden', 'true');   // the sr-only line says it
+      btn.appendChild(num);
+    }
+    num.textContent = count > 0 ? String(count) : '';
+    num.hidden = count <= 0;
   }
 
   // Seat the disc only when the count actually grows. Re-polls return the
@@ -3347,6 +3362,16 @@ function syncStamp() {
   btn.setAttribute('aria-disabled', String(idle));
   btn.classList.toggle('inert', idle);
   btn.title = idle ? t('markAllDone') : t('markAllHint');
+  // While a chip narrows the column, the stamp still clears both wings, and
+  // only the tooltip said so: engraved on the stamp itself, keyboard and
+  // pointer both see it before they press.
+  var scope = btn.querySelector('.l-stamp-scope');
+  if (!scope) {
+    scope = el('span', 'l-stamp-scope display');
+    btn.appendChild(scope);
+  }
+  scope.textContent = t('markAllScope');
+  scope.hidden = idle || chipFilter === 'all';
   // Re-arm the live region while there is something to strike, so the next
   // run announces itself instead of writing a message that is already there.
   var say = $('#mark-all-status');
