@@ -3448,7 +3448,7 @@ html[lang="zh"] .bay-plate { font-weight: 700; letter-spacing: 0.16em; }
     repeating-linear-gradient(0deg, var(--strip) 0 1.5px, var(--strip-lt) 1.5px 2.5px, transparent 2.5px 11.6%),
     var(--floor-img);
   background-size: 100% 100%, 100% 100%, 100% 100%, 100% 100%,
-    calc(var(--fh, 320px) * 0.36) calc(var(--fh, 320px) * 0.36);
+    calc(var(--fh, 320px) * 0.9) calc(var(--fh, 320px) * 0.9);
 }
 .fl-key { opacity: 0.55; }
 .fl-border { border-color: var(--stone-b); outline-color: color-mix(in srgb, var(--lead-2) 60%, transparent); }

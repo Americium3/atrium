@@ -879,7 +879,7 @@ html[data-entered="no"] #entrance.night.house ~ #hall .st-fan.on[data-state="ope
 :root[data-theme] .fl-border {
   border: none; outline: none;
   padding: 1.5cqw;
-  background: var(--course-tint), var(--course-img) 0 0 / calc(var(--fh, 320px) * 0.36) auto;
+  background: var(--course-tint), var(--course-img) 0 0 / calc(var(--fh, 320px) * 0.9) auto;
   background-blend-mode: var(--course-blend, multiply), normal;
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   -webkit-mask-composite: xor;
