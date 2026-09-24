@@ -580,7 +580,7 @@
 .board .al-mtext .al-slabel { color: var(--cab-gold); opacity: 0.85; }
 .board .al-mtext .al-sval { color: var(--cab-ink); font-weight: 400; }
 .board .al-strips { border-top: 0; padding-top: 0; }
-.board .al-disc { width: calc(46px * var(--ui)); height: calc(46px * var(--ui)); overflow: visible; }
+.board .al-disc { width: calc(56px * var(--ui)); height: calc(56px * var(--ui)); overflow: visible; }
 
 /* The sky plate. */
 .board .al-arc .sk-cast { fill: rgba(0, 0, 0, 0.55); }
