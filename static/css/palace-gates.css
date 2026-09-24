@@ -220,20 +220,42 @@
    and the dial's light, whose centre stands the sill and half the dial
    above the floor line. Its sides fade into the wax the way a reflection's
    do; cut square, they ran two hard vertical edges across the medallion,
-   like a strip of paper laid on the floor (AR-8). */
+   like a strip of paper laid on the floor (AR-8).
+   It lies in the floor, so it is foreshortened as the portals' smears are
+   (--cm-k), its dial an ellipse with a soft rim broken by the wax's
+   ripple, and it stops where the runner begins (--cm-runner, the runner's
+   far end below the mirror's head, from room.js): wool gives back nothing.
+   Drawn upright it was a hard-rimmed cream disc 430px across on the red
+   runner behind the desk, a spotlight on the carpet (AR-23). The mask is
+   in the layer's own units, so the cut is divided by the squash. */
 .ck-mirror {
+  --cm-k: 0.36;
+  transform: scaleY(var(--cm-k)); transform-origin: 50% 0;
+  filter: blur(3px);
   background:
     linear-gradient(180deg, var(--cm-sill-c) 0, var(--cm-sill-c) calc(var(--cm-sill) - 3px), var(--sb-3) calc(var(--cm-sill) - 3px), var(--sb-1) var(--cm-sill), transparent var(--cm-sill)),
-    radial-gradient(circle calc(var(--dial) * 0.43) at 50% calc(var(--sill) + var(--dial) * 0.5), var(--cm-dial) 0 94%, var(--sb-2) 96%, transparent 100%),
+    radial-gradient(circle calc(var(--dial) * 0.43) at 50% calc(var(--sill) + var(--dial) * 0.5), var(--cm-dial) 0 84%, color-mix(in srgb, var(--cm-dial) 45%, var(--sb-2)) 92%, transparent 99%),
     linear-gradient(90deg, var(--nf-l) 0 calc(var(--st) * 3), var(--cm-back) calc(var(--st) * 3) calc(100% - var(--st) * 3), var(--nf-r) calc(100% - var(--st) * 3));
   -webkit-mask-image:
     linear-gradient(180deg, rgba(0, 0, 0, 0.95), rgba(0, 0, 0, 0.6) 20%, rgba(0, 0, 0, 0.3) 50%, transparent 76%),
-    linear-gradient(90deg, transparent, #000 16%, #000 84%, transparent);
+    linear-gradient(90deg, transparent, #000 16%, #000 84%, transparent),
+    repeating-linear-gradient(180deg, #000 0 calc(15px * var(--ui)), rgba(0, 0, 0, 0.5) calc(21px * var(--ui)), #000 calc(27px * var(--ui))),
+    linear-gradient(180deg, #000 calc(var(--cm-runner, 100vh) / var(--cm-k) - 30px), transparent calc(var(--cm-runner, 100vh) / var(--cm-k)));
   -webkit-mask-composite: source-in;
   mask-image:
     linear-gradient(180deg, rgba(0, 0, 0, 0.95), rgba(0, 0, 0, 0.6) 20%, rgba(0, 0, 0, 0.3) 50%, transparent 76%),
-    linear-gradient(90deg, transparent, #000 16%, #000 84%, transparent);
+    linear-gradient(90deg, transparent, #000 16%, #000 84%, transparent),
+    repeating-linear-gradient(180deg, #000 0 calc(15px * var(--ui)), rgba(0, 0, 0, 0.5) calc(21px * var(--ui)), #000 calc(27px * var(--ui))),
+    linear-gradient(180deg, #000 calc(var(--cm-runner, 100vh) / var(--cm-k) - 30px), transparent calc(var(--cm-runner, 100vh) / var(--cm-k)));
   mask-composite: intersect;
+}
+/* The marker room.js reads the runner's far end from: the head of its
+   fringe, laid in the runner's own plane so the floor's projection places
+   it. */
+.rn-far {
+  position: absolute; left: 50%; top: calc(var(--fh, 320px) * -0.085);
+  width: 1px; height: 1px;
+  visibility: hidden; pointer-events: none;
 }
 :root[data-theme="onyx"] #clock { --cm-back: #120b05; --cm-sill-c: #0a0807; }
 /* By day the floor gives back only the gilt and the screen (law 10), as
@@ -244,7 +266,7 @@
   opacity: calc(var(--mirror-a) * 1.5);
   background:
     linear-gradient(180deg, transparent calc(var(--cm-sill) - 3px), var(--lead-3) calc(var(--cm-sill) - 3px), var(--lead-1) var(--cm-sill), transparent var(--cm-sill)),
-    radial-gradient(circle calc(var(--dial) * 0.43) at 50% calc(var(--sill) + var(--dial) * 0.5), var(--cm-dial) 0 94%, var(--lead-2) 96%, transparent 100%),
+    radial-gradient(circle calc(var(--dial) * 0.43) at 50% calc(var(--sill) + var(--dial) * 0.5), var(--cm-dial) 0 84%, color-mix(in srgb, var(--cm-dial) 45%, var(--lead-2)) 92%, transparent 99%),
     linear-gradient(90deg, transparent calc(var(--st) * 2.2), var(--lead-2) calc(var(--st) * 2.2) calc(var(--st) * 2.65), transparent calc(var(--st) * 2.65) calc(100% - var(--st) * 2.65), var(--lead-2) calc(100% - var(--st) * 2.65) calc(100% - var(--st) * 2.2), transparent calc(100% - var(--st) * 2.2));
 }
 
