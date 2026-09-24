@@ -1595,7 +1595,7 @@ which wing, and its gears and steam were the last of the steampunk layer.
   needle takes the raw value and swings past. A pilot goes out as its jaws
   open and the other lights as the blade lands, flickering with the bounce.
   The flash of the break is a spark at the jaws the blade leaves and a
-  smaller one where it lands (Web Animations, opacity only). Reduced
+  smaller one where it lands (Web Animations, opacity only, 150 ms each). Reduced
   motion snaps and shows no spark.
 - Hit surfaces: the board's drawn shapes toggle the switch; each side's
   plate, pilot and jaws light that side and never the other; the hit strip

@@ -1181,15 +1181,15 @@ function buildRosetteKnurl() {
    smaller one when it lands in the other. Event-only, opacity only, run on
    the compositor; never under reduced motion. */
 var SPARK_BREAK = [
-  { opacity: 0 }, { opacity: 1, offset: 0.08 }, { opacity: 0.3, offset: 0.2 },
-  { opacity: 0.95, offset: 0.32 }, { opacity: 0.15, offset: 0.55 }, { opacity: 0.5, offset: 0.7 }, { opacity: 0 }
+  { opacity: 0 }, { opacity: 1, offset: 0.1 }, { opacity: 0.35, offset: 0.25 },
+  { opacity: 0.8, offset: 0.38 }, { opacity: 0.1, offset: 0.6 }, { opacity: 0 }
 ];
 var SPARK_MAKE = [{ opacity: 0 }, { opacity: 0.8, offset: 0.12 }, { opacity: 0.2, offset: 0.4 }, { opacity: 0 }];
 function sparkAt(side, make) {
   if (!desk || root.dataset.motion === 'reduced') return;
   var sp = desk.querySelector('.sw-spark-' + side);
   if (!sp || !sp.animate) return;
-  sp.animate(make ? SPARK_MAKE : SPARK_BREAK, { duration: make ? 150 : 230, easing: 'linear' });
+  sp.animate(make ? SPARK_MAKE : SPARK_BREAK, { duration: 150, easing: 'linear' });
 }
 
 /* Weighty throw: fast start → ~4.5% overshoot → damped clank settle.
