@@ -40,7 +40,7 @@ Atrium serves `http://127.0.0.1:8769` and currently fronts:
 - **Statistics** (left aisle). A wall case in macassar ebony with a gilt
   frame round a black glass door, reading the machine all of this runs on:
   four brass-bezelled needle dials for processor, memory, the card's VRAM
-  and traffic, each on a 240° scale with a red lacquer arc over the last fifth,
+  and traffic, each on a 240° scale with a red lacquer arc from 85% to 100%,
   plus hours run, store remaining and a cast maker's plate. A brass picture
   lamp over it is lit at night. Readings come from `/api/works` on a 4s
   cadence, and only while the case is actually on screen. (The route and the
@@ -75,10 +75,12 @@ Atrium serves `http://127.0.0.1:8769` and currently fronts:
   twelve Roman numerals, blued hands, and four complications on the cardinal
   axes: the true moon at 12 (the real phase and age, computed to the
   minute), date at 3, small seconds at 6, and a pair of meshed wheels at 9
-  turning off the seconds arbor. The drive loop reads the wall clock every
-  frame and never accumulates, so it cannot drift and a DST step or a laptop
-  suspend corrects itself on the next frame; reduced motion swaps the sweep
-  for a boundary-aligned deadbeat tick. It is always in view at full size.
+  turning off the seconds arbor. Each hand is a compositor animation set in
+  phase from the wall clock and set again every ten seconds on the boundary,
+  so it never accumulates and cannot drift, and a DST step or a laptop
+  suspend comes right at the next re-set. Reduced motion swaps the sweep for
+  a boundary-aligned deadbeat tick, re-set every second. It is always in
+  view at full size.
 - **Gates.** Each destination is a small gilt proscenium: stepped archivolts
   round a lit fanlight, the service's own mark (the identical artwork its
   favicon and taskbar tile show) in a machined bezel at the fanlight's hub,
@@ -398,7 +400,13 @@ characters of every line (`setlocal` runs as `ocal`, `python server.py` as
 `server.py`), and the hall then fails to start with an empty log, because the
 redirect that was supposed to capture the error never parsed either.
 
-Tests: `python tests/test_feed.py`
+Tests, all three of which must stay green:
+
+```
+python tests/test_feed.py         # adapters, dispatch ids, the Outreach privacy rule
+python tests/test_almanac.py      # the forecast, its cache and the place override
+python tests/test_web_assets.py   # scripts parse; every id, file and texture exists
+```
 
 ## Adding a future web UI
 
