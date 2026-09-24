@@ -607,12 +607,21 @@ function buildGears(desk) {
   // Both wheels' shading is radial about their own axis, so it survives the
   // turn; the lamp's direction lives on static layers over the well.
   var dA = add(gA, 'defs');
-  grad(dA, 'dk-gA', true, { gradientUnits: 'userSpaceOnUse', cx: 0, cy: 0, r: 41 }, [0, 0.3, 0.7, 0.84, 0.93, 1]);
+  // The rim, turned and cut: a lit chamfer where the rim leaves the web, the
+  // band going back into shade, oil in the tooth roots, the flanks catching
+  // the lamp toward the pitch line, a bright machined land on every tip and
+  // a dark arris at its edge. Radial about the axle, so it survives the turn.
+  grad(dA, 'dk-gA', true, { gradientUnits: 'userSpaceOnUse', cx: 0, cy: 0, r: 44 },
+       [0, 0.62, 0.645, 0.69, 0.745, 0.775, 0.83, 0.885, 0.935, 0.972, 1]);
   var dB = add(gB, 'defs');
-  grad(dB, 'dk-gB', true, { gradientUnits: 'userSpaceOnUse', cx: 0, cy: 0, r: 23 }, [0, 0.35, 0.72, 0.9, 1]);
+  grad(dB, 'dk-gB', true, { gradientUnits: 'userSpaceOnUse', cx: 0, cy: 0, r: 24.2 },
+       [0, 0.54, 0.59, 0.7, 0.82, 0.92, 0.965, 1]);
 
   var wA = E('g');
-  add(wA, 'path', { d: gearPath(GEAR_NA, GEAR_M, {}), 'fill-rule': 'evenodd' }, 'ga-rim');
+  var gdA = gearPath(GEAR_NA, GEAR_M, {});
+  add(wA, 'path', { d: gdA, 'fill-rule': 'evenodd' }, 'ga-rim');
+  // every tooth's outline, so each reads as its own cut
+  add(wA, 'path', { d: gdA, 'fill-rule': 'evenodd' }, 'ga-cut');
   add(wA, 'circle', { cx: 0, cy: 0, r: 32.9 }, 'ga-fillet');
   add(wA, 'circle', { cx: 0, cy: 0, r: 28 }, 'ga-web');
   for (var s = 0; s < 5; s++) {
@@ -626,6 +635,8 @@ function buildGears(desk) {
     add(wA, 'circle', { cx: (19 * Math.cos(lh)).toFixed(2), cy: (19 * Math.sin(lh)).toFixed(2), r: lholeRad[s] }, 'ga-lhole');
   }
   add(wA, 'circle', { cx: 0, cy: 0, r: 24.5 }, 'ga-witness');
+  // the lathe's rings on the web's face
+  [13, 16.2, 21.4, 26.3].forEach(function (r) { add(wA, 'circle', { cx: 0, cy: 0, r: r }, 'ga-lathe'); });
   add(wA, 'circle', { cx: 0, cy: 0, r: 9.5 }, 'ga-boss');
   add(wA, 'circle', { cx: 0, cy: 0, r: 3.2 }, 'ga-bore');
   add(wA, 'rect', { x: -1.6, y: -9.5, width: 3.2, height: 6.3 }, 'ga-keyway');
@@ -637,7 +648,9 @@ function buildGears(desk) {
   gA.appendChild(wA);
 
   var wB = E('g', { transform: 'rotate(' + phaseB.toFixed(2) + ')' });
-  add(wB, 'path', { d: gearPath(GEAR_NB, GEAR_M, {}), 'fill-rule': 'evenodd' }, 'gb-rim');
+  var gdB = gearPath(GEAR_NB, GEAR_M, {});
+  add(wB, 'path', { d: gdB, 'fill-rule': 'evenodd' }, 'gb-rim');
+  add(wB, 'path', { d: gdB, 'fill-rule': 'evenodd' }, 'gb-cut');
   add(wB, 'circle', { cx: 0, cy: 0, r: 13.5 }, 'gb-web');
   for (s = 0; s < 3; s++) {
     var b0 = s * 2 * Math.PI / 3 + 0.18, b1 = (s + 1) * 2 * Math.PI / 3 - 0.18;

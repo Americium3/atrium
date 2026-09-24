@@ -354,23 +354,31 @@
 }
 
 /* ----- The gear train ------------------------------------------------------ */
-.dk-gA-0 { stop-color: var(--ga-1); }
-.dk-gA-1 { stop-color: var(--ga-2); }
-.dk-gA-2 { stop-color: var(--ga-1); }
-.dk-gA-3 { stop-color: var(--ga-3); }
-.dk-gA-4 { stop-color: var(--ga-2); }
+.dk-gA-0, .dk-gA-1 { stop-color: var(--ga-1); }
+.dk-gA-2 { stop-color: var(--ga-3); }
+.dk-gA-3 { stop-color: var(--ga-2); }
+.dk-gA-4 { stop-color: var(--ga-1); }
 .dk-gA-5 { stop-color: var(--ga-0); }
-.dk-gB-0 { stop-color: var(--gb-2); }
-.dk-gB-1 { stop-color: var(--gb-3); }
-.dk-gB-2 { stop-color: var(--gb-1); }
-.dk-gB-3 { stop-color: var(--gb-3); }
-.dk-gB-4 { stop-color: var(--gb-0); }
+.dk-gA-6 { stop-color: var(--ga-2); }
+.dk-gA-7 { stop-color: var(--ga-3); }
+.dk-gA-8 { stop-color: var(--ga-2); }
+.dk-gA-9 { stop-color: var(--ga-4); }
+.dk-gA-10 { stop-color: var(--ga-1); }
+.dk-gB-0, .dk-gB-1 { stop-color: var(--gb-1); }
+.dk-gB-2 { stop-color: var(--gb-0); }
+.dk-gB-3 { stop-color: var(--gb-2); }
+.dk-gB-4 { stop-color: var(--gb-3); }
+.dk-gB-5 { stop-color: var(--gb-2); }
+.dk-gB-6 { stop-color: color-mix(in srgb, var(--gb-3) 45%, var(--ga-3)); }
+.dk-gB-7 { stop-color: var(--gb-0); }
 .gearA-svg .ga-rim { fill: url(#dk-gA); }
 .gearA-svg .ga-fillet { fill: none; stroke: var(--ga-0); stroke-width: 1; }
 .gearA-svg .ga-web { fill: var(--ga-1); }
 .gearA-svg .ga-spoke { fill: var(--ga-0); }
 .gearA-svg .ga-lhole { fill: var(--sb-oil); stroke: var(--ga-0); stroke-width: 0.6; }
 .gearA-svg .ga-witness { fill: none; stroke: var(--ga-3); stroke-width: 0.4; opacity: 0.45; }
+.gearA-svg .ga-cut { fill: none; stroke: var(--ga-0); stroke-width: 0.55; opacity: 0.75; }
+.gearA-svg .ga-lathe { fill: none; stroke: var(--ga-3); stroke-width: 0.3; opacity: 0.16; }
 .gearA-svg .ga-boss { fill: var(--ga-2); stroke: var(--ga-0); stroke-width: 1; }
 .gearA-svg .ga-bore { fill: var(--sb-oil); }
 .gearA-svg .ga-keyway { fill: var(--sb-oil); }
@@ -379,6 +387,7 @@
 .gearA-svg .ga-pno-bg { fill: var(--ga-0); }
 .gearA-svg .ga-pno-t { fill: var(--ga-3); font-family: var(--serif); font-size: 4.5px; }
 .gearB-svg .gb-rim { fill: url(#dk-gB); }
+.gearB-svg .gb-cut { fill: none; stroke: #000; stroke-width: 0.5; opacity: 0.6; }
 .gearB-svg .gb-web { fill: var(--gb-1); }
 .gearB-svg .gb-spoke { fill: var(--gb-0); }
 .gearB-svg .gb-flange { fill: var(--gb-2); stroke: var(--gb-0); stroke-width: 1; }
@@ -408,6 +417,11 @@
 .gw-shade {
   background:
     radial-gradient(60% 70% at 30% 18%, color-mix(in srgb, var(--well-lamp) 55%, transparent), transparent 70%),
+    /* the front wheel's own shadow on the back wheel and the plate behind:
+       a ring just outside its tips (the axle is at 38, 56 in the well),
+       thrown down and right, away from the lamp */
+    radial-gradient(circle at 39.5px 57.5px, transparent 43.2px, rgba(0, 0, 0, 0.62) 44.4px,
+      rgba(0, 0, 0, 0.3) 48px, transparent 55px),
     linear-gradient(to left, rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0.2) 30%, transparent 48%),
     linear-gradient(to top, rgba(0, 0, 0, 0.6), transparent 42%);
 }
