@@ -986,7 +986,10 @@ as on a gate.
 The band under the masthead carries **status segments** (LINES OPEN n/m,
 counted over every registered service in both wings, then each gate's live
 figure after its hall's short name: `AUTOPILOT · 4 AIRING TODAY`) plus only
-dispatches **still unread**. The short name is signage and stays English,
+dispatches **still unread**, the six newest of them. Past six the band
+closes on one more segment that counts the rest into the Ledger
+(`2 MORE IN THE LEDGER`), so the band never drops a dispatch the hatch's
+count includes. The short name is signage and stays English,
 tagged `lang="en"` in the Chinese hall. When nothing is
 new: a static line, no scroll. Pauses on hover and on keyboard focus (a
 click's focus is not a reader, so it does not hold the band). The crawl runs at

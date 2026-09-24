@@ -37,6 +37,7 @@ var STR = {
     minAgoSr: '{n} {n|minute|minutes} ago', hAgoSr: '{n} {n|hour|hours} ago',
     dAgoSr: '{n} {n|day|days} ago',
     linesOpen: 'LINES OPEN {n}/{m}',
+    tickerMore: '{n} MORE IN THE LEDGER',
     hubLost: 'NO WORD FROM THE HUB',
     ledgerUnreadable: 'The Ledger could not be read',
     ledgerStale: 'NO WORD SINCE {t}',
@@ -185,6 +186,7 @@ var STR = {
     justNow: '刚刚', minAgo: '{n} 分钟前', hAgo: '{n} 小时前', dAgo: '{n} 天前',
     minAgoSr: '{n} 分钟前', hAgoSr: '{n} 小时前', dAgoSr: '{n} 天前',
     linesOpen: '线路畅通 {n}/{m}',
+    tickerMore: '消息总台另有 {n} 条',
     hubLost: '中枢没有回音',
     ledgerUnreadable: '消息总台暂时读不出来',
     ledgerStale: '{t} 之后没有回音',
@@ -4362,6 +4364,10 @@ function selectChip(chip) {
 var TICKER_PX_S = 50;
 /* Reduced motion: the band stands still and turns a page this often. */
 var TICKER_PAGE_MS = 6000;
+/* The band carries this many unread dispatches and counts the rest into the
+   Ledger. A week's window can hold sixty, and at the crawl's pace a band
+   carrying them all would take minutes to come round. */
+var TICKER_NEW_MAX = 6;
 var tickerKey = null;      // what the band on screen says
 var tickerLang = null;     // ...and in which language
 var tickerBox = '';        // the band width and engraving it was laid out for
@@ -4391,16 +4397,22 @@ function tickerModel() {
   });
   // A dispatch keeps its title and its detail apart: they are often in two
   // scripts, and each is tagged for its own voice (AT-11).
-  var fresh = feed.filter(isNew).slice(0, 6).map(function (d) {
+  var unread = feed.filter(isNew);
+  var fresh = unread.slice(0, TICKER_NEW_MAX).map(function (d) {
     var h = headline(d);
     return [h.head, h.detail];
   });
+  // The rest are counted, not dropped: the band used to stop at the sixth
+  // while the hatch's tooltip counted seven, and nothing said where the
+  // seventh had gone.
+  var more = unread.length - fresh.length;
   var paged = root.dataset.motion === 'reduced';
   var said = segs.map(function (g) { return g.hall ? g.hall + '\u0003' + g.text : g; });
   return {
-    segs: segs, fresh: fresh, paged: paged,
+    segs: segs, fresh: fresh, more: more, paged: paged,
     key: [lang, paged ? 'r' : 'f', said.join('\u0001'),
-          fresh.map(function (f) { return f.join(' · '); }).join('\u0001')].join('\u0002')
+          fresh.map(function (f) { return f.join(' · '); }).join('\u0001'),
+          more].join('\u0002')
   };
 }
 
@@ -4483,6 +4495,7 @@ function applyTicker(m) {
   }
   var items = m.segs.map(function (s) { return seg(s); })
     .concat(m.fresh.map(dispatchSeg));
+  if (m.more > 0) items.push(seg(t('tickerMore', { n: m.more })));
   if (!items.length) items = [seg('—')];
   items.forEach(function (n) {
     if (track.childNodes.length) track.appendChild(sep());

@@ -124,8 +124,9 @@ Atrium serves `http://127.0.0.1:8769` and currently fronts:
   Escape, the scrim, the close knob and the hatch all close it.
 - **The marquee**: a status band (lines open, then each gate's live figure
   after its hall's name, `AUTOPILOT · 4 AIRING TODAY`) that also
-  scrolls dispatches you haven't read yet, on milk glass between two rows of
-  bulbs. When something is new at night the bulbs chase; when nothing is
+  scrolls the six newest dispatches you haven't read yet, then says how
+  many more wait in the Ledger (`2 MORE IN THE LEDGER`), on milk glass
+  between two rows of bulbs. When something is new at night the bulbs chase; when nothing is
   new the band stands still and every bulb burns evenly.
 - **The signal desk**: a statuary bronze console standing on the runner dead
   centre, with a railway points lever in a notched quadrant, two cast brass
