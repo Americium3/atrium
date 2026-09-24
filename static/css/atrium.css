@@ -631,8 +631,10 @@ html[data-boot="suppressed"] #hall { animation: hall-fade 0.3s var(--ease-out) b
 }
 /* The hold for focus is for a keyboard reader. A mouse click also parks
    focus on the band, and :focus-within kept it frozen, with no ring to say
-   why, until the reader clicked somewhere else (PT-6). */
-#ticker.rolling:hover .t-track,
+   why, until the reader clicked somewhere else (PT-6). The hold for the
+   pointer is a mouse or a pen resting on the band (data-reader, app.js),
+   not :hover, which a tap leaves stuck on the band (PT-12). */
+#ticker.rolling[data-reader] .t-track,
 #ticker.rolling:focus-visible .t-track { animation-play-state: paused; }
 #ticker.static { text-align: center; }
 @keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }

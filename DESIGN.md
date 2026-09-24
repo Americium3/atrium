@@ -988,8 +988,10 @@ counted over every registered service in both wings, then each gate's live
 figure after its hall's short name: `AUTOPILOT · 4 AIRING TODAY`) plus only
 dispatches **still unread**. The short name is signage and stays English,
 tagged `lang="en"` in the Chinese hall. When nothing is
-new: a static line, no scroll. Pauses on hover and on keyboard focus (a
-click's focus is not a reader, so it does not hold the band). The crawl runs at
+new: a static line, no scroll. Pauses while a mouse or a pen rests on it and
+on keyboard focus. A tap is not a reader and neither is a click: a press on
+the band takes no focus, and the hover a tap leaves behind holds nothing.
+The crawl runs at
 50 px/s times `--ui`, measured on one copy of the loop (the old per-character
 rate counted the `aria-hidden` twin as well and ran at half speed). Reduced
 motion = static line with at most a slow crossfade rotation: an overflowing

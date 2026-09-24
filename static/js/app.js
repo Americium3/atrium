@@ -4412,15 +4412,23 @@ function renderTicker(now) {
 }
 
 /* Is somebody reading the band right now? A rolling band always is, until
-   its loop comes round; a still one is while the pointer or the keyboard's
-   focus is on it (a click's focus is not a reader, PT-6); a paged one is
-   between page turns. */
+   its loop comes round; a still one is while a reader is on it; a paged one
+   is between page turns. */
 function tickerHeld(ticker) {
   var track = $('#ticker-track');
   if (ticker.classList.contains('rolling') && track.getAnimations &&
       track.getAnimations().some(function (a) { return a.playState !== 'finished'; })) return true;
-  if (ticker.matches(':hover, :focus-visible')) return true;
+  if (tickerReader(ticker)) return true;
   return !!tickerPageT;
+}
+/* A reader is a mouse or a pen resting on the band (data-reader, set below)
+   or the keyboard's focus. A tap is neither: it leaves :hover stuck on the
+   band until the next tap somewhere else, and that froze the crawl and held
+   every new band (PT-12). A click's focus is not one either (PT-6), and a
+   press no longer takes focus at all: any key after it made that focus
+   :focus-visible and froze the band until the next click (PT-13). */
+function tickerReader(ticker) {
+  return ticker.hasAttribute('data-reader') || ticker.matches(':focus-visible');
 }
 
 function applyTicker(m) {
@@ -4555,8 +4563,8 @@ function turnTickerPage() {
   tickerPageT = setTimeout(function () {
     var ticker = $('#ticker');
     tickerPageT = null;
-    // Pauses on hover and focus, like the crawl, and never turns unseen.
-    if (document.hidden || ticker.matches(':hover, :focus-visible')) { turnTickerPage(); return; }
+    // Pauses for a reader, like the crawl, and never turns unseen.
+    if (document.hidden || tickerReader(ticker)) { turnTickerPage(); return; }
     // A newer band comes in on a page turn, the paged band's loop boundary.
     if (tickerPending) { applyTicker(tickerPending); return; }
     var pages = Array.prototype.slice.call(document.querySelectorAll('#ticker-track .t-page'));
@@ -4581,8 +4589,15 @@ function turnTickerPage() {
       if (tickerPending && !tickerHeld(ticker)) applyTicker(tickerPending);
     }, 0);
   }
-  ticker.addEventListener('pointerleave', released);
+  ticker.addEventListener('pointerenter', function (e) {
+    if (e.pointerType !== 'touch') ticker.setAttribute('data-reader', '');
+  });
+  ticker.addEventListener('pointerleave', function () {
+    ticker.removeAttribute('data-reader');
+    released();
+  });
   ticker.addEventListener('focusout', released);
+  ticker.addEventListener('mousedown', function (e) { e.preventDefault(); });
   // Crawl or pages is a motion decision, and the pages are cut to the
   // band's width and the engraving: either changing re-sets the band now.
   window.addEventListener('atrium:motionchange', function () { renderTicker(true); });
