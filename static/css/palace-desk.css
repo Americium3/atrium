@@ -1,0 +1,933 @@
+/* ===========================================================================
+   THE PICTURE PALACE: the signal desk, the key plate and the entrance.
+
+   Linked after atrium.css. Everything here is material: the drawing lives in
+   static/js/desk.js (the desk) and in playEntrance() (the entrance); the hit
+   surfaces, the throw and the keyboard model are atrium.css's and app.js's
+   and are not touched.
+
+   One light model, as in the rest of the palace. At night the room's lamps
+   stand behind and above the desk (the fanlights, the niche, the marquee),
+   so its tops and upper arrises take the light and its faces, which look
+   back at the dark house, stay low. By day the skylight is the key and the
+   tops go pale. Only emitters bloom: the jewel lamps, the inspection lamp
+   and the entrance's footlights. Bronze, steel and brass never glow.
+   =========================================================================== */
+
+/* ----- Tokens ------------------------------------------------------------ */
+:root[data-theme="onyx"] {
+  /* statuary bronze: 0 oil in the recess .. 5 the hot rim */
+  --sb-oil: #070402;
+  --sb-0: #120c07; --sb-1: #22170e; --sb-2: #35261a; --sb-3: #4f3a26;
+  --sb-4: #86643f; --sb-5: #d5ad74;
+  --sb-band: #8a6944;          /* the horizon, reflected in the faces */
+  --sb-top-far: #8a6a45;       /* the lit wall, reflected in the top */
+  --sb-top-near: #2a1d12;
+  --sb-spec: rgba(255, 206, 140, 0.42);
+  --sb-tex: 0.42;
+  --sb-rl-lit: rgba(236, 190, 128, 0.55);
+  /* the lever */
+  --en-0: #040404; --en-1: #121110; --en-hi: #7a6248;
+  --st-0: #141517; --st-1: #3a3b3d; --st-2: #7b7a76; --st-3: #d6cbb6; --st-hot: #fff3da;
+  /* cast brass: the badge and the throw plates */
+  --bz-0: #3a2708; --bz-1: #6d4f1f; --bz-2: #a7813b; --bz-3: #d7b465; --bz-4: #f3dc9c;
+  --bz-ink: #120b04;
+  /* the pilot jewel */
+  --jw-core: #fffbe8; --jw-mid: #ffc35e; --jw-rim: #b54f0a;
+  --jw-bloom: rgba(255, 164, 60, 0.62);
+  --jw-off: #2a160b;
+  /* the gear train */
+  --ga-0: #45321a; --ga-1: #6c5029; --ga-2: #a07a42; --ga-3: #dcb06a; --ga-4: #f6dca4;
+  --gb-0: #140d07; --gb-1: #241910; --gb-2: #3b2b1a; --gb-3: #5a4328;
+  --well-lamp: rgba(255, 190, 110, 0.62);
+  --glass-tint: rgba(18, 12, 6, 0.30);
+  --glass-band: rgba(255, 238, 212, 0.24);
+  --floor-shadow: rgba(0, 0, 0, 0.78);
+}
+:root[data-theme="ivory"] {
+  --sb-oil: #150e08;
+  --sb-0: #251a11; --sb-1: #37281a; --sb-2: #4c3825; --sb-3: #6a5136;
+  --sb-4: #a4865e; --sb-5: #eadabc;
+  --sb-band: #b19a78;
+  --sb-top-far: #d7c7a8;
+  --sb-top-near: #8d7556;
+  --sb-spec: rgba(255, 252, 240, 0.55);
+  --sb-tex: 0.36;
+  --sb-rl-lit: rgba(248, 236, 212, 0.62);
+  --en-0: #080808; --en-1: #1b1a19; --en-hi: #a9acae;
+  --st-0: #2a2d31; --st-1: #5d6368; --st-2: #9ea4a9; --st-3: #eceff1; --st-hot: #ffffff;
+  --bz-0: #4d3812; --bz-1: #86672c; --bz-2: #bd9848; --bz-3: #e4c777; --bz-4: #fbeab4;
+  --bz-ink: #120b04;
+  --jw-core: #ffe6a8; --jw-mid: #f09a2e; --jw-rim: #9c4208;
+  --jw-bloom: transparent;
+  --jw-off: #3b2618;
+  --ga-0: #3c2c18; --ga-1: #604828; --ga-2: #8f6e40; --ga-3: #c6a068; --ga-4: #ead0a0;
+  --gb-0: #1d140c; --gb-1: #2d2115; --gb-2: #463421; --gb-3: #654d31;
+  --well-lamp: transparent;
+  --glass-tint: rgba(214, 208, 196, 0.16);
+  --glass-band: rgba(255, 255, 255, 0.34);
+  --floor-shadow: rgba(24, 6, 4, 0.66);
+}
+
+/* =====================================================================
+   THE SIGNAL DESK
+   ===================================================================== */
+
+/* Gradient stops (desk.js names them <gradient id>-<n>). */
+.dk-top-0 { stop-color: var(--sb-top-far); }
+.dk-top-1 { stop-color: color-mix(in srgb, var(--sb-top-far) 55%, var(--sb-top-near)); }
+.dk-top-2 { stop-color: var(--sb-top-near); }
+.dk-top-3 { stop-color: var(--sb-1); }
+.dk-topspec-0 { stop-color: var(--sb-spec); }
+.dk-topspec-1 { stop-color: var(--sb-spec); stop-opacity: 0.35; }
+.dk-topspec-2 { stop-color: var(--sb-spec); stop-opacity: 0; }
+.dk-cap-0 { stop-color: var(--sb-5); }
+.dk-cap-1 { stop-color: var(--sb-3); }
+.dk-cap-2 { stop-color: var(--sb-2); }
+.dk-cap-3 { stop-color: var(--sb-0); }
+.dk-dentil-0 { stop-color: var(--sb-4); }
+.dk-dentil-1 { stop-color: var(--sb-2); }
+.dk-dentil-2 { stop-color: var(--sb-0); }
+.dk-frieze-0 { stop-color: var(--sb-oil); }
+.dk-frieze-1 { stop-color: var(--sb-1); }
+.dk-rl-0 { stop-color: var(--sb-4); }
+.dk-rl-1 { stop-color: var(--sb-3); }
+.dk-rl-2 { stop-color: var(--sb-1); }
+.dk-face-0 { stop-color: var(--sb-3); }
+.dk-face-1 { stop-color: var(--sb-2); }
+.dk-face-2 { stop-color: var(--sb-2); }
+.dk-face-3 { stop-color: var(--sb-band); }
+.dk-face-4 { stop-color: var(--sb-2); }
+.dk-face-5 { stop-color: var(--sb-1); }
+.dk-face-6 { stop-color: var(--sb-0); }
+.dk-recess-0 { stop-color: var(--sb-oil); }
+.dk-recess-1 { stop-color: var(--sb-0); }
+.dk-panel-0 { stop-color: var(--sb-3); }
+.dk-panel-1 { stop-color: var(--sb-2); }
+.dk-panel-2 { stop-color: var(--sb-2); }
+.dk-panel-3 { stop-color: var(--sb-band); }
+.dk-panel-4 { stop-color: var(--sb-2); }
+.dk-panel-5 { stop-color: var(--sb-0); }
+.dk-pmotif-0 { stop-color: var(--sb-3); }
+.dk-pmotif-1 { stop-color: var(--sb-1); }
+.dk-flute-0 { stop-color: var(--sb-oil); }
+.dk-flute-1 { stop-color: var(--sb-1); }
+.dk-flute-2 { stop-color: var(--sb-3); }
+.dk-flute-3 { stop-color: var(--sb-2); }
+.dk-ring-0 { stop-color: var(--sb-0); }
+.dk-ring-1 { stop-color: var(--sb-2); }
+.dk-ring-2 { stop-color: var(--sb-4); }
+.dk-ring-3 { stop-color: var(--sb-2); }
+.dk-ring-4 { stop-color: var(--sb-0); }
+.dk-ringlight-0 { stop-color: var(--sb-spec); stop-opacity: 0.8; }
+.dk-ringlight-1 { stop-color: var(--sb-spec); stop-opacity: 0.1; }
+.dk-ringlight-2 { stop-color: #000; stop-opacity: 0.35; }
+.dk-key-0 { stop-color: var(--sb-5); }
+.dk-key-1 { stop-color: var(--sb-3); }
+.dk-key-2 { stop-color: var(--sb-1); }
+.dk-btop-0 { stop-color: var(--sb-3); }
+.dk-btop-1 { stop-color: var(--sb-4); }
+.dk-torus-0 { stop-color: var(--sb-4); }
+.dk-torus-1 { stop-color: var(--sb-3); }
+.dk-torus-2 { stop-color: var(--sb-1); }
+.dk-torus-3 { stop-color: var(--sb-oil); }
+.dk-mtop-0 { stop-color: #6f6150; }
+.dk-mtop-1 { stop-color: #1a1612; }
+:root[data-theme="ivory"] .dk-mtop-0 { stop-color: #cfc6b6; }
+:root[data-theme="ivory"] .dk-mtop-1 { stop-color: #3a342c; }
+.dk-mface-0 { stop-color: #000; stop-opacity: 0; }
+.dk-mface-1 { stop-color: #000; stop-opacity: 0.55; }
+/* Leaf only where the desk is touched: the stop opacity is the wear. */
+.dk-leafh-0, .dk-leafh-6 { stop-color: var(--lead-3); stop-opacity: 0; }
+.dk-leafh-1, .dk-leafh-5 { stop-color: var(--lead-4); stop-opacity: 0.18; }
+.dk-leafh-2, .dk-leafh-4 { stop-color: var(--lead-5); stop-opacity: 0.85; }
+.dk-leafh-3 { stop-color: var(--lead-3); stop-opacity: 1; }
+.dk-leafv-0 { stop-color: var(--lead-4); stop-opacity: 0; }
+.dk-leafv-1 { stop-color: var(--lead-4); stop-opacity: 0.2; }
+.dk-leafv-2 { stop-color: var(--lead-3); stop-opacity: 0.95; }
+.dk-leafv-3 { stop-color: var(--lead-5); stop-opacity: 0.6; }
+.dk-leafv-4 { stop-color: var(--lead-4); stop-opacity: 0.12; }
+.dk-leaftoe-0, .dk-leaftoe-4 { stop-color: var(--lead-4); stop-opacity: 0; }
+.dk-leaftoe-1, .dk-leaftoe-3 { stop-color: var(--lead-5); stop-opacity: 0.5; }
+.dk-leaftoe-2 { stop-color: var(--lead-3); stop-opacity: 0.9; }
+.dk-cyl-0 { stop-color: var(--sb-oil); }
+.dk-cyl-1 { stop-color: var(--sb-2); }
+.dk-cyl-2 { stop-color: var(--sb-5); }
+.dk-cyl-3 { stop-color: var(--sb-3); }
+.dk-cyl-4 { stop-color: var(--sb-1); }
+.dk-cyl-5 { stop-color: var(--sb-oil); }
+.dk-quad-0 { stop-color: var(--sb-4); }
+.dk-quad-1 { stop-color: var(--sb-3); }
+.dk-quad-2 { stop-color: var(--sb-1); }
+.dk-cshadow-0 { stop-color: var(--floor-shadow); }
+.dk-cshadow-1 { stop-color: var(--floor-shadow); stop-opacity: 0.45; }
+.dk-cshadow-2 { stop-color: var(--floor-shadow); stop-opacity: 0; }
+.dk-occl-0 { stop-color: #000; stop-opacity: 0; }
+.dk-occl-1 { stop-color: #000; stop-opacity: 0.9; }
+.dk-occl-2 { stop-color: #000; stop-opacity: 0; }
+.dk-screw-0 { stop-color: var(--sb-5); }
+.dk-screw-1 { stop-color: var(--sb-3); }
+.dk-screw-2 { stop-color: var(--sb-0); }
+.dk-flange-0 { stop-color: var(--sb-4); }
+.dk-flange-1 { stop-color: var(--sb-3); }
+.dk-flange-2 { stop-color: var(--sb-0); }
+.dk-gaiter-0 { stop-color: #050403; }
+.dk-gaiter-1 { stop-color: #2c2622; }
+.dk-gaiter-2 { stop-color: #120f0d; }
+.dk-gaiter-3 { stop-color: #030303; }
+
+/* ----- The console --------------------------------------------------------- */
+.quadrant .dk-floor, .quadrant .dk-floor *,
+.quadrant .dk-noptr, .quadrant .dk-noptr * { pointer-events: none; }
+.quadrant .dk-hit { fill: transparent; }
+.quadrant .dk-cshadow { fill: url(#dk-cshadow); }
+.quadrant .dk-occl { fill: url(#dk-occl); }
+.quadrant .dk-top { fill: url(#dk-top); }
+.quadrant .dk-top-tex { fill: url(#dk-patina-top); opacity: calc(var(--sb-tex) * 0.8); }
+.quadrant .dk-topspec { fill: url(#dk-topspec); }
+.quadrant .dk-arris-back { fill: none; stroke: var(--sb-5); stroke-width: 0.7; opacity: 0.55; }
+.quadrant .dk-arris-side { fill: none; stroke: var(--sb-4); stroke-width: 0.6; opacity: 0.5; }
+.quadrant .dk-tex { fill: url(#dk-patina); opacity: var(--sb-tex); }
+.quadrant .dk-tex-a { fill: url(#dk-patina-a); }
+.quadrant .dk-tex-b { fill: url(#dk-patina-b); }
+.quadrant .dk-tex-c { fill: url(#dk-patina-c); }
+.quadrant .dk-tex-d { fill: url(#dk-patina-d); }
+.quadrant .dk-cap { fill: url(#dk-cap); }
+.quadrant .dk-leaf-nose { fill: url(#dk-leafh); }
+.quadrant .dk-leaf-hip { fill: url(#dk-leafv); }
+.quadrant .dk-leaf-toe { fill: url(#dk-leaftoe); }
+.quadrant .dk-leaf-base { fill: var(--lead-3); opacity: 0.45; }
+.quadrant .dk-leaf-stroke { fill: none; stroke: var(--lead-3); stroke-width: 1; opacity: 0.9; }
+.quadrant .dk-under { fill: var(--sb-oil); opacity: 0.8; }
+.quadrant .dk-oil { fill: var(--sb-oil); }
+.quadrant .dk-dentil { fill: url(#dk-dentil); }
+.quadrant .dk-dentil-top { fill: var(--sb-5); opacity: 0.6; }
+.quadrant .dk-fillet { fill: var(--sb-oil); opacity: 0.85; }
+.quadrant .dk-frieze { fill: url(#dk-frieze); }
+/* The cast-relief filter's colours (desk.js castFilter): the lamp on the
+   near shoulders, a broad sheen over each form's top, shade on the far
+   shoulders, pits, and the shadow on the ground. */
+.dk-cast-lit { flood-color: var(--sb-rl-lit); flood-opacity: 1; }
+.dk-cast-sheen { flood-color: var(--sb-4); flood-opacity: 0.42; }
+.dk-cast-shade { flood-color: var(--sb-oil); flood-opacity: 0.8; }
+.dk-cast-pit { flood-color: var(--sb-oil); flood-opacity: 0.4; }
+.dk-cast-oil { flood-color: var(--sb-oil); flood-opacity: 0.9; }
+.quadrant .dk-rl-body { fill: url(#dk-rl); }
+.quadrant .dk-rl-panel { fill: url(#dk-pmotif); }
+.quadrant .dk-face { fill: url(#dk-face); }
+.quadrant .dk-turn { fill: #000; opacity: 0.28; }
+.quadrant .dk-recess { fill: url(#dk-recess); }
+.quadrant .dk-panel { fill: url(#dk-panel); }
+.quadrant .dk-bead-lit { fill: none; stroke: var(--sb-4); stroke-width: 1.1; }
+.quadrant .dk-bead-sh { fill: none; stroke: var(--sb-oil); stroke-width: 1.1; }
+.quadrant .dk-cast-sh { fill: var(--sb-oil); opacity: 0.75; }
+.quadrant .dk-edge-lit { fill: none; stroke: var(--sb-5); stroke-width: 0.7; opacity: 0.7; }
+.quadrant .dk-flute { fill: url(#dk-flute); }
+.quadrant .dk-course { fill: url(#dk-cap); }
+.quadrant .dk-course-2 { opacity: 0.85; }
+.quadrant .dk-course-top { fill: var(--sb-5); opacity: 0.55; }
+.quadrant .dk-ring { fill: url(#dk-ring); }
+.quadrant .dk-ringlight { fill: url(#dk-ringlight); }
+.quadrant .dk-key { fill: url(#dk-key); }
+.quadrant .dk-key-step { opacity: 0.9; }
+.quadrant .dk-screw { fill: url(#dk-screw); }
+.quadrant .dk-screw-sh { fill: var(--sb-oil); opacity: 0.8; }
+.quadrant .dk-slot { fill: none; stroke: var(--sb-oil); stroke-width: 0.55; stroke-linecap: round; }
+.quadrant .dk-slot-lit { fill: none; stroke: var(--sb-5); stroke-width: 0.3; opacity: 0.5; }
+.quadrant .dk-btop { fill: url(#dk-btop); }
+.quadrant .dk-torus { fill: url(#dk-torus); }
+.quadrant .dk-mtop { fill: url(#dk-mtop); }
+.quadrant .dk-marble { fill: url(#dk-marble); }
+.quadrant .dk-mface { fill: url(#dk-mface); }
+.quadrant .dk-mlip { fill: #fff; opacity: 0.12; }
+.quadrant .dk-quad { fill: url(#dk-quad); }
+.quadrant .dk-engrave { fill: none; stroke: var(--sb-oil); stroke-width: 0.55; opacity: 0.9; }
+.quadrant .dk-teeth { fill: none; stroke: var(--sb-oil); stroke-width: 1; }
+.quadrant .dk-notch { fill: var(--sb-oil); }
+.quadrant .dk-cyl { fill: url(#dk-cyl); }
+.quadrant .dk-collar-top { fill: var(--sb-5); opacity: 0.6; stroke: none; }
+.quadrant path.dk-collar-top { fill: none; stroke: var(--sb-5); stroke-width: 0.6; }
+.quadrant .dk-vent-mouth { fill: var(--sb-oil); }
+.quadrant .dk-vent-flange { fill: var(--sb-3); }
+.quadrant .dk-vent-sh { opacity: 0.7; }
+.quadrant .dk-flange { fill: url(#dk-flange); }
+.quadrant .dk-gaiter { fill: url(#dk-gaiter); }
+.quadrant .dk-ao { pointer-events: none; }
+.quadrant .dk-ao-d { fill: url(#dk-ao-down); }
+.quadrant .dk-ao-r { fill: url(#dk-ao-right); }
+.dk-ao-down-0, .dk-ao-right-0 { stop-color: #000; stop-opacity: 0.62; }
+.dk-ao-down-1, .dk-ao-right-1 { stop-color: #000; stop-opacity: 0; }
+.quadrant .dk-glint { fill: url(#dk-glint); pointer-events: none; }
+.dk-glint-0 { stop-color: var(--sb-5); stop-opacity: 0.95; }
+.dk-glint-1 { stop-color: var(--sb-5); stop-opacity: 0.4; }
+.dk-glint-2 { stop-color: var(--sb-5); stop-opacity: 0; }
+.quadrant .dk-pleat { fill: none; stroke: #000; stroke-width: 0.7; opacity: 0.6; }
+
+/* ----- The lever ----------------------------------------------------------- */
+.dk-enamel-0 { stop-color: var(--en-1); }
+.dk-enamel-1 { stop-color: var(--en-hi); }
+.dk-enamel-2 { stop-color: var(--en-1); }
+.dk-enamel-3 { stop-color: var(--en-0); }
+.dk-enamel-4 { stop-color: var(--en-0); }
+.dk-enamel-edge-0 { stop-color: var(--st-3); stop-opacity: 0.8; }
+.dk-enamel-edge-1 { stop-color: var(--st-2); stop-opacity: 0.35; }
+.dk-enamel-edge-2 { stop-color: var(--st-2); stop-opacity: 0.1; }
+.dk-steel-0 { stop-color: var(--st-0); }
+.dk-steel-1 { stop-color: var(--st-1); }
+.dk-steel-2 { stop-color: var(--st-3); }
+.dk-steel-3 { stop-color: var(--st-hot); }
+.dk-steel-4 { stop-color: var(--st-2); }
+.dk-steel-5 { stop-color: var(--st-1); }
+.dk-steel-6 { stop-color: var(--st-0); }
+.dk-steel-flat-0 { stop-color: var(--st-3); }
+.dk-steel-flat-1 { stop-color: var(--st-1); }
+.dk-steel-flat-2 { stop-color: var(--st-0); }
+.dk-dome-0 { stop-color: var(--st-hot); }
+.dk-dome-1 { stop-color: var(--st-2); }
+.dk-dome-2 { stop-color: var(--st-0); }
+/* The ferrule is the lever's share of the wing metal (1 of the 3). */
+.dk-wing-0 { stop-color: color-mix(in srgb, var(--metal) 40%, #000); }
+.dk-wing-1 { stop-color: var(--metal); }
+.dk-wing-2 { stop-color: var(--metal-hi); }
+.dk-wing-3 { stop-color: var(--metal); }
+.dk-wing-4 { stop-color: color-mix(in srgb, var(--metal) 35%, #000); }
+.dk-wing-hi-0 { stop-color: var(--metal); }
+.dk-wing-hi-1 { stop-color: var(--metal-hi); }
+.dk-wing-hi-2 { stop-color: #fffaf0; }
+.dk-wing-hi-3 { stop-color: var(--metal-hi); }
+.dk-wing-hi-4 { stop-color: color-mix(in srgb, var(--metal) 55%, #000); }
+.dk-brass-0 { stop-color: var(--bz-4); }
+.dk-brass-1 { stop-color: var(--bz-3); }
+.dk-brass-2 { stop-color: var(--bz-2); }
+.dk-brass-3 { stop-color: var(--bz-1); }
+.dk-grip-wear-0 { stop-color: #000; stop-opacity: 0.3; }
+.dk-grip-wear-1 { stop-color: #fff; stop-opacity: 0.1; }
+.dk-grip-wear-2 { stop-color: #fff; stop-opacity: 0.1; }
+.dk-grip-wear-3 { stop-color: #000; stop-opacity: 0.35; }
+
+.lever-svg .lv-arm { fill: url(#dk-enamel); stroke: none; }
+.lever-svg .lv-arm-lit { fill: none; stroke: url(#dk-enamel-edge); stroke-width: 0.8; }
+.lever-svg .lv-arm-shd { fill: none; stroke: #000; stroke-width: 0.8; opacity: 0.7; }
+.lever-svg .lv-catch { fill: none; stroke: var(--st-1); stroke-width: 2.6; stroke-linecap: round; }
+.lever-svg .lv-catch-lit { fill: none; stroke: var(--st-3); stroke-width: 0.8; stroke-linecap: round; opacity: 0.85; }
+.lever-svg .lv-rod { fill: none; stroke: var(--st-2); stroke-width: 1.5; stroke-linecap: round; }
+.lever-svg .lv-block { fill: url(#dk-steel-flat); }
+.lever-svg .lv-block-top { fill: var(--st-hot); opacity: 0.55; }
+.lever-svg .lv-block-sh { fill: #000; opacity: 0.55; }
+.lever-svg .lv-bolt { fill: url(#dk-dome); }
+.lever-svg .dk-slot { fill: none; stroke: #000; stroke-width: 0.5; stroke-linecap: round; }
+.lever-svg .lv-grip { fill: url(#dk-wing); stroke: none; }
+.lever-svg .lv-ferrule-top { fill: #fff; opacity: 0.35; }
+.lever-svg .lv-steel { fill: url(#dk-steel); }
+.lever-svg .lv-wear { fill: url(#dk-grip-wear); }
+/* The hot line fades out toward both ends and dips a little in the worn
+   middle, where the hand has dulled the polish. */
+.dk-hot-0, .dk-hot-5 { stop-color: var(--st-hot); stop-opacity: 0; }
+.dk-hot-1, .dk-hot-4 { stop-color: var(--st-hot); stop-opacity: 0.95; }
+.dk-hot-2, .dk-hot-3 { stop-color: var(--st-hot); stop-opacity: 0.7; }
+.dk-hot2-0, .dk-hot2-3 { stop-color: var(--st-3); stop-opacity: 0; }
+.dk-hot2-1, .dk-hot2-2 { stop-color: var(--st-3); stop-opacity: 1; }
+.lever-svg .lv-hot { fill: url(#dk-hot); opacity: 0.7; }
+.lever-svg .lv-hot2 { fill: url(#dk-hot2); opacity: 0.2; }
+.lever-svg .lv-rim { fill: url(#dk-hot2); opacity: 0.45; }
+.lever-svg .lv-cap { fill: url(#dk-dome); }
+.lever-svg .lv-badge-sh { fill: #000; opacity: 0.6; }
+.lever-svg .lv-badge { fill: url(#dk-brass); }
+.lever-svg .lv-badge-line { fill: none; stroke: var(--bz-ink); stroke-width: 0.45; opacity: 0.55; }
+.lever-svg .lv-badge-n, .lever-svg .lv-badge-w {
+  fill: var(--bz-ink); font-family: var(--serif); font-weight: 600;
+  paint-order: stroke; stroke: var(--bz-4); stroke-width: 0.3px; stroke-opacity: 0.45;
+}
+.lever-svg .lv-badge-n { font-size: 15px; }
+.lever-svg .lv-badge-w { font-size: 4.3px; letter-spacing: 0.35px; }
+.lever-svg .lv-badge-dot { fill: var(--bz-ink); }
+.lever-svg .lv-rivet { fill: url(#dk-dome); }
+.lever-svg .lv-pin { fill: url(#dk-steel-flat); stroke: #000; stroke-width: 0.5; }
+.lever-svg .lv-cotter { fill: var(--st-2); }
+.lever-svg .lv-boss { fill: var(--sb-3); stroke: var(--sb-oil); stroke-width: 0.8; }
+
+/* Hover and press: the grip's highlight comes up and the ferrule lights to
+   the wing's bright metal. Same selectors as atrium.css, so these win. */
+@media (hover: hover) {
+  .desk-core:has(.hit-arm:hover, .desk-art:hover, .gear-well:hover) .lv-grip { fill: url(#dk-wing-hi); }
+  .desk-core:has(.hit-arm:hover, .desk-art:hover, .gear-well:hover) .lever-svg .lv-hot { opacity: 0.95; }
+}
+
+/* ----- The gear train ------------------------------------------------------ */
+.dk-gA-0, .dk-gA-1 { stop-color: var(--ga-1); }
+.dk-gA-2 { stop-color: var(--ga-3); }
+.dk-gA-3 { stop-color: var(--ga-2); }
+.dk-gA-4 { stop-color: var(--ga-1); }
+.dk-gA-5 { stop-color: var(--ga-0); }
+.dk-gA-6 { stop-color: var(--ga-2); }
+.dk-gA-7 { stop-color: var(--ga-3); }
+.dk-gA-8 { stop-color: var(--ga-2); }
+.dk-gA-9 { stop-color: var(--ga-4); }
+.dk-gA-10 { stop-color: var(--ga-1); }
+.dk-gB-0, .dk-gB-1 { stop-color: var(--gb-1); }
+.dk-gB-2 { stop-color: var(--gb-0); }
+.dk-gB-3 { stop-color: var(--gb-2); }
+.dk-gB-4 { stop-color: var(--gb-3); }
+.dk-gB-5 { stop-color: var(--gb-2); }
+.dk-gB-6 { stop-color: color-mix(in srgb, var(--gb-3) 45%, var(--ga-3)); }
+.dk-gB-7 { stop-color: var(--gb-0); }
+.gearA-svg .ga-rim { fill: url(#dk-gA); }
+.gearA-svg .ga-fillet { fill: none; stroke: var(--ga-0); stroke-width: 1; }
+.gearA-svg .ga-web { fill: var(--ga-1); }
+.gearA-svg .ga-spoke { fill: var(--ga-0); }
+.gearA-svg .ga-lhole { fill: var(--sb-oil); stroke: var(--ga-0); stroke-width: 0.6; }
+.gearA-svg .ga-witness { fill: none; stroke: var(--ga-3); stroke-width: 0.4; opacity: 0.45; }
+.gearA-svg .ga-cut { fill: none; stroke: var(--ga-0); stroke-width: 0.55; opacity: 0.75; }
+.gearA-svg .ga-lathe { fill: none; stroke: var(--ga-3); stroke-width: 0.3; opacity: 0.16; }
+.gearA-svg .ga-boss { fill: var(--ga-2); stroke: var(--ga-0); stroke-width: 1; }
+.gearA-svg .ga-bore { fill: var(--sb-oil); }
+.gearA-svg .ga-keyway { fill: var(--sb-oil); }
+.gearA-svg .ga-key { fill: var(--ga-3); }
+.gearA-svg .ga-index { fill: none; stroke: var(--ga-4); stroke-width: 1; }
+.gearA-svg .ga-pno-bg { fill: var(--ga-0); }
+.gearA-svg .ga-pno-t { fill: var(--ga-3); font-family: var(--serif); font-size: 4.5px; }
+.gearB-svg .gb-rim { fill: url(#dk-gB); }
+.gearB-svg .gb-cut { fill: none; stroke: #000; stroke-width: 0.5; opacity: 0.6; }
+.gearB-svg .gb-web { fill: var(--gb-1); }
+.gearB-svg .gb-spoke { fill: var(--gb-0); }
+.gearB-svg .gb-flange { fill: var(--gb-2); stroke: var(--gb-0); stroke-width: 1; }
+.gearB-svg .gb-bore { fill: var(--sb-oil); }
+.gearB-svg .gb-dflat { fill: var(--gb-2); }
+.gearB-svg .gb-serial { fill: none; stroke: var(--gb-3); stroke-width: 0.5; stroke-dasharray: 1.5 3.5; }
+.gearB-svg .gb-index { fill: none; stroke: var(--gb-3); stroke-width: 1; }
+
+/* The inspection window. The well keeps its box (it is a hit surface); the
+   archivolt is drawn on the console, so the well's own border is only the
+   dark joint between glass and bronze. */
+.gear-well {
+  border-color: var(--sb-oil);
+  background-color: var(--sb-oil);
+}
+.gear-well::before { opacity: 0.12; }
+.gw-lamp, .gw-shade, .gw-glass {
+  position: absolute; inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+}
+/* A small lamp at the head of the well, lit at night: it finds the front
+   wheel's teeth and leaves the back wheel in the oil. */
+.gw-lamp {
+  background: radial-gradient(70% 90% at 36% 0%, var(--well-lamp), transparent 70%);
+}
+.gw-shade {
+  background:
+    radial-gradient(60% 70% at 30% 18%, color-mix(in srgb, var(--well-lamp) 55%, transparent), transparent 70%),
+    /* the front wheel's own shadow on the back wheel and the plate behind:
+       a ring just outside its tips (the axle is at 38, 56 in the well),
+       thrown down and right, away from the lamp */
+    radial-gradient(circle at 39.5px 57.5px, transparent 43.2px, rgba(0, 0, 0, 0.62) 44.4px,
+      rgba(0, 0, 0, 0.3) 48px, transparent 55px),
+    linear-gradient(to left, rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0.2) 30%, transparent 48%),
+    linear-gradient(to top, rgba(0, 0, 0, 0.6), transparent 42%);
+}
+/* The glazing: a tint, one reflection band, a putty bead and the glass's
+   own depth in its rebate. */
+.gw-glass {
+  background:
+    linear-gradient(116deg, transparent 0 28%, var(--glass-band) 35%,
+      color-mix(in srgb, var(--glass-band) 40%, transparent) 41%, transparent 47%,
+      transparent 70%, color-mix(in srgb, var(--glass-band) 35%, transparent) 74%, transparent 77%),
+    radial-gradient(7% 9% at 24% 22%, color-mix(in srgb, var(--glass-band) 90%, #fff 10%), transparent),
+    radial-gradient(120% 110% at 50% 0%, transparent 40%, var(--glass-tint));
+  box-shadow:
+    inset 0 0 0 1.2px color-mix(in srgb, var(--sb-4) 70%, transparent),
+    inset 0 0 0 2.2px var(--sb-oil),
+    inset 0 3px 4px rgba(0, 0, 0, 0.55);
+}
+
+/* ----- The throw plates ---------------------------------------------------
+   Cast brass, engraved and filled black. The two screws are domed with a
+   slot turned by hash; on each plate the inner screw has given its hole to
+   a pilot jewel, and the live wing's jewel is lit. The box, padding and
+   type size are atrium.css's: each plate is a hit surface. */
+/* The plates grow with the engraving size, but the console only follows it
+   at a seventh of the slope; past 1.16 a plate outgrew the cornice it sits
+   on and hung over the runner. So the plates stop there (12.7px at 3440,
+   still above the 10px floor). */
+.assembly .l-label {
+  --pl-u: min(var(--ui), 1.16);
+  /* The face, top layer first: the lip the lamp runs along; tarnish
+     gathering toward the margins with the middle rubbed bright by hands;
+     horizontal brushing (overlay, so it cuts both ways); and the room
+     reflected in polished brass, the lit ceiling in the top third and the
+     dark house as a band just under the middle. */
+  --pl-face:
+    linear-gradient(180deg, rgba(255, 250, 230, 0.55) 0 1px, transparent 1px),
+    radial-gradient(80% 115% at 44% 40%, rgba(255, 240, 200, 0.2), transparent 52%, rgba(46, 26, 3, 0.42) 100%),
+    url('/static/assets/tex/grain-brushed.webp') 0 0 / 260px 130px,
+    linear-gradient(180deg, color-mix(in srgb, var(--bz-3) 60%, var(--bz-4)) 0%, var(--bz-3) 12%,
+      var(--bz-2) 38%, var(--bz-1) 56%, color-mix(in srgb, var(--bz-1) 70%, var(--bz-2)) 64%,
+      var(--bz-2) 80%, var(--bz-1) 100%);
+  font-size: calc(11px * var(--pl-u));
+  padding: calc(4px * var(--pl-u)) calc(9px * var(--pl-u)) calc(3px * var(--pl-u));
+  color: var(--bz-ink);
+  font-weight: 640;
+  /* cut into the brass: the lower wall of each stroke catches the light */
+  text-shadow: 0 0.7px 0 color-mix(in srgb, var(--bz-4) 75%, transparent),
+               0 -0.5px 0 rgba(20, 10, 0, 0.35);
+  background: var(--pl-face);
+  background-blend-mode: normal, normal, overlay, normal;
+  border: 1px solid;
+  border-color: var(--bz-4) var(--bz-1) var(--bz-0) var(--bz-3);
+  /* a chamfer all round (lit top and left, shaded bottom and right), then
+     the plate's own shadow on the cornice */
+  box-shadow:
+    inset 0 1px 0 rgba(255, 246, 214, 0.45),
+    inset 1px 0 0 rgba(255, 238, 196, 0.22),
+    inset 0 -1.5px 0 rgba(44, 26, 4, 0.55),
+    inset -1px 0 0 rgba(44, 26, 4, 0.4),
+    inset 0 0 calc(3px * var(--pl-u)) rgba(46, 26, 3, 0.35),
+    0 1px 0 rgba(0, 0, 0, 0.55), 1px 2px 3px rgba(0, 0, 0, 0.55);
+}
+:root[data-wing="salon"] .l-salon,
+:root[data-wing="bureau"] .l-bureau,
+:root[data-theme="ivory"][data-wing="salon"] .l-salon,
+:root[data-theme="ivory"][data-wing="bureau"] .l-bureau {
+  color: var(--bz-ink);
+  border-color: var(--bz-4) var(--bz-1) var(--bz-0) var(--bz-3);
+  background: var(--pl-face);
+  background-blend-mode: normal, normal, overlay, normal;
+}
+.assembly .l-label::before,
+.assembly .l-label::after {
+  width: calc(3.4px * var(--pl-u)); height: calc(3.4px * var(--pl-u));
+  margin-top: calc(-1.7px * var(--pl-u));
+  background:
+    linear-gradient(var(--slot, 30deg), transparent 42%, rgba(18, 11, 4, 0.9) 42% 58%, transparent 58%),
+    radial-gradient(circle at 36% 30%, var(--bz-4), var(--bz-2) 55%, var(--bz-0));
+  /* seated in a countersink, with the oil of years in the gap */
+  box-shadow:
+    0 0 0 0.6px rgba(24, 13, 2, 0.85),
+    0 0 0 1.4px color-mix(in srgb, var(--bz-1) 70%, transparent),
+    0 0.6px 1.2px 1.2px rgba(30, 16, 2, 0.45);
+}
+.assembly .l-label::before { left: calc(3px * var(--pl-u)); }
+.assembly .l-label::after { right: calc(3px * var(--pl-u)); }
+.assembly .l-salon::after, .assembly .l-bureau::before { content: none; }
+.l-jewel {
+  position: absolute; top: 50%;
+  width: calc(5.6px * var(--pl-u)); height: calc(5.6px * var(--pl-u));
+  margin-top: calc(-2.8px * var(--pl-u));
+  border-radius: 50%;
+  pointer-events: none;
+  /* the smoked cabochon in its collet */
+  background:
+    radial-gradient(circle at 36% 30%, rgba(255, 255, 255, 0.5) 0 11%, transparent 22%),
+    radial-gradient(circle at 50% 58%, var(--jw-off), #0a0503 72%);
+  /* the collet: a dark seat, a bright bezel, then the oil-dark countersink
+     the bezel sits in */
+  box-shadow:
+    0 0 0 0.8px var(--bz-0),
+    0 0 0 1.6px var(--bz-3),
+    0 -0.4px 0 1.8px color-mix(in srgb, var(--bz-4) 60%, transparent),
+    0 0 0 2.6px rgba(26, 14, 2, 0.7),
+    0 0.8px 1.6px 2.6px rgba(26, 14, 2, 0.4);
+}
+.l-salon .l-jewel { right: calc(1.6px * var(--pl-u)); }
+.l-bureau .l-jewel { left: calc(1.6px * var(--pl-u)); }
+/* The lit glass is its own layer, faded by opacity. */
+.l-jewel::after {
+  content: ""; position: absolute; inset: 0; border-radius: 50%;
+  background:
+    radial-gradient(circle at 38% 32%, #fff 0 10%, transparent 20%),
+    radial-gradient(circle at 50% 55%, var(--jw-core) 0 12%, var(--jw-mid) 42%, var(--jw-rim) 88%);
+  box-shadow: 0 0 calc(5px * var(--pl-u)) calc(1.5px * var(--pl-u)) var(--jw-bloom);
+  opacity: 0;
+  transition: opacity 0.3s ease 0.2s;
+}
+:root[data-wing="salon"] .l-salon .l-jewel::after,
+:root[data-wing="bureau"] .l-bureau .l-jewel::after { opacity: 1; }
+@media (hover: hover) {
+  :root[data-wing="salon"] .l-bureau:hover,
+  :root[data-wing="bureau"] .l-salon:hover {
+    border-color: var(--bz-4) var(--bz-2) var(--bz-1) var(--bz-4);
+    box-shadow:
+      inset 0 0 0 1px color-mix(in srgb, var(--bz-4) 60%, transparent),
+      inset 0 -1.5px 0 rgba(44, 26, 4, 0.55),
+      inset 0 0 calc(3px * var(--pl-u)) rgba(46, 26, 3, 0.35),
+      0 1px 0 rgba(0, 0, 0, 0.55), 1px 2px 3px rgba(0, 0, 0, 0.55);
+  }
+}
+
+@media (forced-colors: active) {
+  .assembly svg, .gear-well, .l-jewel { forced-color-adjust: none; }
+}
+
+/* =====================================================================
+   THE KEY PLATE
+   An instruction plate in the palace's own sign language: black verre
+   eglomise in a gilt moulding, two gilt clips, the title in leaf, and each
+   key set as a typewriter key (a ring in the wing's leaf, a black glass top,
+   an ivory legend). Black glass in both themes, like every sign in the
+   hall, so it reads the same by day. It still lies along the marquee, the
+   one band no arch or clock can reach.
+   ===================================================================== */
+#keyplate {
+  --kp-ink: #e3d5b2;
+  padding: calc(9px * var(--ui)) calc(26px * var(--ui));
+  color: var(--kp-ink);
+  background:
+    linear-gradient(104deg, transparent 0 55%, rgba(255, 248, 230, 0.04) 59%,
+      rgba(255, 248, 230, 0.085) 62.5%, rgba(255, 248, 230, 0.025) 66%, transparent 71%),
+    linear-gradient(180deg, rgba(255, 240, 210, 0.07), transparent 38%),
+    radial-gradient(90% 160% at 50% 110%, rgba(60, 40, 18, 0.25), transparent 70%),
+    var(--sign-glass);
+  border: calc(3px * var(--ui)) solid transparent;
+  border-image: linear-gradient(180deg, var(--lead-5), var(--lead-3) 22%, var(--lead-2) 55%,
+    var(--lead-1) 78%, var(--lead-4)) 1;
+  box-shadow:
+    0 0 0 1px var(--lead-0),
+    inset 0 0 0 1px var(--lead-0),
+    inset 0 1px 0 1px rgba(255, 244, 214, 0.1),
+    0 calc(10px * var(--ui)) calc(26px * var(--ui)) rgba(0, 0, 0, 0.62),
+    0 2px 4px rgba(0, 0, 0, 0.5);
+  /* the gilt line engraved inside the frame */
+  outline: 1px solid color-mix(in srgb, var(--lead-3) 34%, transparent);
+  outline-offset: calc(-6px * var(--ui));
+}
+/* the two gilt clips that hold the glass, one at each end */
+#keyplate::before, #keyplate::after {
+  content: ""; position: absolute; top: 50%;
+  width: calc(11px * var(--ui)); height: calc(11px * var(--ui));
+  margin-top: calc(-5.5px * var(--ui));
+  transform: rotate(45deg);
+  background:
+    radial-gradient(circle at 50% 50%, var(--lead-0) 0 14%, transparent 18%),
+    linear-gradient(135deg, var(--lead-5), var(--lead-3) 38%, var(--lead-2) 62%, var(--lead-1));
+  box-shadow: 0 0 0 1px var(--lead-0), 1px 2px 3px rgba(0, 0, 0, 0.6);
+}
+#keyplate::before { left: calc(-7.5px * var(--ui)); }
+#keyplate::after { right: calc(-7.5px * var(--ui)); }
+.kp-title {
+  align-self: center;
+  font-size: calc(14px * var(--ui)); font-weight: 620; letter-spacing: 0.3em;
+  background:
+    url('/static/assets/tex/grain-gilt.webp') 0 0 / 60px,
+    linear-gradient(180deg, var(--leaf-0) 0%, var(--leaf-1) 32%, var(--leaf-2) 56%, var(--leaf-3) 74%, var(--leaf-4) 100%);
+  background-blend-mode: soft-light, normal;
+  -webkit-background-clip: text; background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 1px 0 rgba(0, 0, 0, 0.9));
+}
+/* Two engraved rows, the keys in columns: each column a cell ruled off
+   from the next with a gilt line, the long descriptions wrapping inside
+   their own cell rather than pushing the plate taller. */
+.kp-title {
+  padding-right: calc(22px * var(--ui));
+  border-right: 1px solid color-mix(in srgb, var(--lead-3) 55%, transparent);
+  box-shadow: 1px 0 0 rgba(0, 0, 0, 0.8);
+}
+.kp-rows {
+  grid-template-columns: none;
+  grid-auto-flow: column;
+  grid-template-rows: repeat(2, auto);
+  grid-auto-columns: minmax(0, 1fr);
+  column-gap: 0; row-gap: calc(5px * var(--ui));
+  align-items: center;
+}
+.kp-row {
+  grid-template-columns: auto minmax(0, 1fr);
+  column-gap: calc(10px * var(--ui));
+  align-items: center;
+  padding: 0 calc(14px * var(--ui));
+  line-height: 1.3;
+}
+.kp-row:nth-child(n+3) {
+  border-left: 1px solid color-mix(in srgb, var(--lead-3) 32%, transparent);
+  box-shadow: inset 1px 0 0 rgba(0, 0, 0, 0.7);
+}
+/* The key: a typewriter key. A ring in the wing's leaf, an ivory celluloid
+   top with its dome catching the light, the legend cut and filled black. */
+.kp-key {
+  justify-self: start;
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: calc(24px * var(--ui)); height: calc(22px * var(--ui));
+  padding: 0 calc(7px * var(--ui));
+  border-radius: calc(11px * var(--ui));
+  font-size: calc(10.5px * var(--ui)); font-weight: 650; letter-spacing: 0.08em;
+  color: #1b140b;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.45);
+  white-space: nowrap;
+  background:
+    radial-gradient(80% 55% at 42% 18%, rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0) 70%),
+    radial-gradient(140% 120% at 50% 20%, #f7eedb, #e4d5b4 55%, #b6a17a);
+  box-shadow:
+    inset 0 -1.5px 1px rgba(90, 64, 30, 0.55),
+    inset 0 0 0 1px rgba(120, 92, 50, 0.35),
+    0 0 0 1px var(--lead-0),
+    0 0 0 2.3px var(--lead-3),
+    0 0 0 3.1px var(--lead-1),
+    0 2px 0 2.8px rgba(0, 0, 0, 0.6),
+    0 3px 6px 2px rgba(0, 0, 0, 0.55);
+}
+.kp-do { color: var(--kp-ink); opacity: 0.9; }
+@media (forced-colors: active) {
+  #keyplate { border: 2px solid CanvasText; }
+  .kp-title { color: CanvasText; background: none; }
+  .kp-key { border: 1px solid CanvasText; }
+}
+
+/* =====================================================================
+   THE ENTRANCE: the house curtain
+   Night: the hall is dark behind a claret velvet house curtain with a gilt
+   sunburst crest; the footlights come up along its hem, a follow spot
+   opens on the crest, the curtain flies out gathering into swags, the
+   marquee chases once, the fanlights light from the clock outward, and the
+   spot docks on the masthead's rosette. Day: the curtain is already up;
+   the street's light floods in and settles like an exposure, with the
+   sun's shafts in it, while a gilt ring docks. Only transform and opacity
+   move; every texture and shadow is painted once on a layer that holds
+   still inside the one that moves.
+   ===================================================================== */
+#entrance {
+  position: fixed; inset: 0; z-index: 100;
+  overflow: hidden;
+  pointer-events: none;
+}
+html[data-entered="no"] #entrance { pointer-events: auto; cursor: pointer; }
+html[data-entered="yes"] #entrance { display: none; }
+html[data-entered="no"] #entrance.done-fade { pointer-events: none; cursor: auto; }
+:root[data-theme="ivory"] #entrance .e-void,
+:root[data-theme="ivory"] #entrance .e-house,
+:root[data-theme="ivory"] #entrance .e-footlights,
+:root[data-theme="ivory"] #entrance .e-marquee,
+:root[data-theme="ivory"] #entrance .e-spot,
+:root[data-theme="onyx"] #entrance .e-flood,
+:root[data-theme="onyx"] #entrance .e-ring { display: none; }
+
+/* The dark house the curtain rises on. */
+.e-void {
+  position: absolute; inset: 0;
+  background: radial-gradient(70% 55% at 50% 44%, rgba(12, 6, 3, 0.8), rgba(2, 1, 0, 0.94));
+}
+#entrance.house .e-void { opacity: 0; transition: opacity 0.85s cubic-bezier(0.4, 0, 0.3, 1); }
+
+/* ----- The curtain ------------------------------------------------------- */
+.e-house {
+  position: absolute; left: 0; right: 0; top: -6vh; height: 100vh;
+  will-change: transform;
+}
+/* A fly: slow off the deck, fast through the middle, easing into the grid. */
+#entrance.rise .e-house {
+  transform: translateY(-128vh);
+  transition: transform 0.92s cubic-bezier(0.62, 0.02, 0.3, 1);
+}
+.e-drop {
+  position: absolute; inset: 0;
+  background-color: #3a0a10;
+  background-image: url('/static/assets/tex/house-curtain.webp');
+  background-size: auto 100%;
+  background-repeat: repeat-x;
+  background-position: 50% 0;
+}
+/* The house lights are down: the drop's head is lost in the dark and its
+   two edges fall off into the wings. */
+.e-drop::after {
+  content: ""; position: absolute; inset: 0;
+  background:
+    linear-gradient(180deg, rgba(0, 0, 0, 0.78), rgba(0, 0, 0, 0.35) 34%, rgba(0, 0, 0, 0.12) 62%, rgba(0, 0, 0, 0.28)),
+    linear-gradient(90deg, rgba(0, 0, 0, 0.55), transparent 14% 86%, rgba(0, 0, 0, 0.55));
+}
+/* The footlights on the tabs: a warm wash up from the hem, each lamp
+   throwing its own tall pool so the folds catch in rows. */
+.e-foot {
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(46px 30vh at 50% 100%, rgba(255, 214, 150, 0.26), transparent 78%) 0 100% / 96px 100% repeat-x,
+    radial-gradient(80% 42% at 50% 104%, rgba(255, 160, 78, 0.34), transparent 72%),
+    linear-gradient(0deg, rgba(255, 150, 70, 0.42), rgba(255, 120, 60, 0.14) 20%, transparent 46%);
+  opacity: 0;
+  transition: opacity 0.55s cubic-bezier(0.3, 0.6, 0.3, 1);
+}
+#entrance.foot .e-foot { opacity: 1; }
+
+/* The crest: a gilt sunburst appliqued on the velvet, a medallion and the
+   rosette in gilt cord, centred where the clock stands behind it. */
+.e-crest {
+  position: absolute; left: 50%; top: calc(6vh + 44vh);
+  width: min(66vmin, 760px); height: min(66vmin, 760px);
+  margin: calc(min(66vmin, 760px) / -2) 0 0 calc(min(66vmin, 760px) / -2);
+  overflow: visible;
+}
+.e-gilt-0 { stop-color: #f6d586; }
+.e-gilt-1 { stop-color: #c68b2c; }
+.e-gilt-2 { stop-color: #7e5210; }
+.e-gilt-3 { stop-color: #ab7620; }
+.e-gilt-4 { stop-color: #4a2e06; }
+.e-ray-sh { fill: #0c0204; opacity: 0.62; }
+.e-ray { fill: url(#e-gilt); }
+.e-ray-tex, .e-medal-tex { display: none; }
+.e-ray-shade { fill: #2e1a04; opacity: 0.58; }
+.e-ray-hi { fill: #ffd98c; }
+.e-medal-lip { fill: none; stroke: #fff0c4; stroke-width: 1.4; opacity: 0.55; }
+.e-bead { fill: #f0cf82; stroke: #4a2f08; stroke-width: 0.8; }
+.e-ray-lit { fill: #ffe7a8; opacity: 0; }
+#entrance.spot .e-ray-lit {
+  animation: e-glint 0.5s ease-out both;
+  animation-delay: calc(var(--i, 0) * 9ms);
+}
+@keyframes e-glint { 0% { opacity: 0; } 35% { opacity: 0.6; } 100% { opacity: 0.2; } }
+.e-medal-sh { fill: #0c0204; opacity: 0.6; }
+.e-medal-ring { fill: url(#e-gilt); }
+.e-medal-field { fill: #2a060b; stroke: #0c0204; stroke-width: 2; }
+.e-medal-mark { color: #e2bd6a; }
+.e-circle { fill: none; stroke: #f0d48c; stroke-width: 3; }
+/* The gilt rings draw themselves by opacity alone (segmentRing() in
+   app.js): each arc fades in on its own beat, and the whole ring, the same
+   geometry, takes over from the arcs in one frame when they are all in. */
+.e-seg, #entrance .e-crest > .e-circle, .e-ring-whole { opacity: 0; }
+#entrance.play .e-seg { animation: e-in 70ms ease-out var(--d, 0ms) both; }
+#entrance.play .e-segs { animation: e-out 1ms linear 470ms both; }
+#entrance.play .e-crest > .e-circle,
+#entrance.play .e-ring-whole { animation: e-in 1ms linear 470ms both; }
+@keyframes e-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes e-out { from { opacity: 1; } to { opacity: 0; } }
+/* The house's name, in gilt letters appliqued under the crest. */
+.e-wordmark {
+  position: absolute; left: 0; right: 0;
+  top: calc(6vh + 44vh + min(33vmin, 380px) - 2vmin);
+  text-align: center;
+  font-family: var(--serif); font-weight: 620;
+  font-size: clamp(40px, 5.4vw, 116px);
+  letter-spacing: 0.34em; text-indent: 0.34em;
+  line-height: 1;
+  background:
+    url('/static/assets/tex/grain-gilt.webp') 0 0 / 120px,
+    linear-gradient(180deg, var(--leaf-0) 0%, var(--leaf-1) 30%, var(--leaf-2) 55%, var(--leaf-3) 74%, var(--leaf-4) 100%);
+  background-blend-mode: soft-light, normal;
+  -webkit-background-clip: text; background-clip: text;
+  color: transparent;
+  filter: drop-shadow(2px 3px 1px rgba(10, 1, 3, 0.75));
+}
+/* The festoon: swags that gather under the hem once it is moving. */
+.e-swag {
+  position: absolute; left: 0; top: calc(100% - 2px);
+  width: 100%; height: 20vh;
+  opacity: 0;
+}
+#entrance.rise .e-swag { opacity: 1; transition: opacity 0.26s ease-out; }
+.e-swag-s0 { stop-color: #4b0d15; }
+.e-swag-s1 { stop-color: #5e131c; }
+.e-swag-s2 { stop-color: #2b060b; }
+.e-swag-body { fill: url(#e-swag-g); }
+.e-swag-fold { fill: none; stroke: #140306; stroke-width: 7; opacity: 0.55; }
+.e-swag-lit { fill: none; stroke: #b24b52; stroke-width: 2.4; opacity: 0.4; }
+.e-swag-fringe { fill: none; stroke: #caa04e; stroke-width: 1.6; opacity: 0.9; }
+/* Bullion fringe on the straight hem: a braided heading, then the twisted
+   strands, darker toward their tips. */
+.e-fringe {
+  position: absolute; left: 0; right: 0; bottom: -3.4vh; height: 4vh;
+  background:
+    linear-gradient(180deg, transparent 0 24%, rgba(20, 8, 2, 0.1) 60%, rgba(20, 8, 2, 0.55) 100%),
+    repeating-linear-gradient(90deg, #f3d893 0 1px, #b8893a 1px 2.5px, #6d4a17 2.5px 3.5px, #2a1806 3.5px 4px) 0 100% / 100% 76% no-repeat,
+    repeating-linear-gradient(118deg, #fbe7ad 0 2px, #c99a45 2px 5px, #7a551c 5px 7px) 0 0 / 100% 24% no-repeat;
+  box-shadow: 0 -1px 0 rgba(0, 0, 0, 0.6);
+}
+#entrance.rise .e-fringe { opacity: 0; transition: opacity 0.22s ease-out; }
+
+/* ----- The footlight trough at the foot of the screen -------------------- */
+.e-footlights {
+  position: absolute; left: 0; right: 0; bottom: 0; height: 5.2vh;
+}
+.e-trough {
+  position: absolute; inset: 0;
+  background:
+    linear-gradient(180deg, #f1d68e 0 1px, #9b7332 1px 2.5px, #3a260c 2.5px 3.5px,
+      #1a120a 3.5px, #0e0906 45%, #040302);
+  box-shadow: 0 -6px 12px rgba(0, 0, 0, 0.6);
+}
+/* The lamps: a hood every 96px, each with its bulb and its reflector. */
+.e-lamps {
+  position: absolute; left: 0; right: 0; top: -1.2vh; height: 3.4vh;
+  background:
+    radial-gradient(10px 6px at 50% 58%, #fffaf0 0 30%, #ffd08a 60%, transparent 100%) 0 0 / 96px 100% repeat-x,
+    radial-gradient(30px 16px at 50% 62%, rgba(255, 190, 110, 0.75), transparent 80%) 0 0 / 96px 100% repeat-x;
+  opacity: 0;
+  transition: opacity 0.4s ease-out;
+}
+#entrance.foot .e-lamps { opacity: 1; }
+#entrance.done-fade .e-footlights { opacity: 0; transition: opacity 0.4s ease-in; }
+
+/* ----- The marquee's one chase ------------------------------------------- */
+.e-marquee { position: absolute; overflow-x: clip; overflow-y: visible; }
+.e-chase {
+  position: absolute; left: 0; width: 24%;
+  height: calc(21px * var(--ui));
+  background:
+    radial-gradient(circle, #fff 0 24%, rgba(255, 238, 196, 0.95) 38%, rgba(255, 200, 120, 0.45) 56%, transparent 66%) 0 50% / calc(13px * var(--ui)) calc(9px * var(--ui)) repeat-x,
+    radial-gradient(50% 50% at 50% 50%, rgba(255, 196, 110, 0.5), transparent 100%);
+  opacity: 0;
+}
+.e-chase-t { top: calc(-6px * var(--ui)); }
+.e-chase-b { bottom: calc(-6px * var(--ui)); }
+#entrance.house .e-chase-t { animation: e-chase-lr 0.56s steps(28) both; }
+#entrance.house .e-chase-b { animation: e-chase-rl 0.56s steps(28) both; }
+@keyframes e-chase-lr {
+  0% { transform: translateX(-100%); opacity: 1; }
+  92% { opacity: 1; }
+  100% { transform: translateX(420%); opacity: 0; }
+}
+@keyframes e-chase-rl {
+  0% { transform: translateX(420%); opacity: 1; }
+  92% { opacity: 1; }
+  100% { transform: translateX(-100%); opacity: 0; }
+}
+
+/* ----- The spot and the ring: the dock ------------------------------------ */
+.e-burst {
+  position: absolute; left: 50%; top: 44vh;
+  width: 60vmin; height: 60vmin;
+  margin: -30vmin 0 0 -30vmin;
+  will-change: transform;
+}
+#entrance.dock .e-burst {
+  transform: translate(var(--dock-x, 0px), var(--dock-y, 0px)) scale(var(--dock-s, 0.1));
+  opacity: 0;
+  transition: transform 0.48s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.2s ease-in 0.3s;
+}
+/* A follow spot: a firm edge, a soft halo, warm. */
+.e-spot {
+  position: absolute; inset: 0; border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 232, 196, 0.17) 0 36%, rgba(255, 226, 186, 0.15) 44%,
+    rgba(255, 214, 160, 0.05) 48.5%, rgba(255, 210, 150, 0.02) 55%, transparent 64%);
+  opacity: 0;
+  transform: scale(0.2);
+  transition: opacity 0.36s ease-out, transform 0.44s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+#entrance.spot .e-spot { opacity: 1; transform: none; }
+/* By day: a gilt ring drawn in the glare. */
+.e-ring { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+/* A fine gilt line with its lit lower lip and a soft shadow under it, drawn
+   as three strokes rather than a filter, since the burst it rides in moves. */
+.e-ring-c { fill: none; stroke: #b08a2c; stroke-width: 1; }
+.e-ring-hi { fill: none; stroke: rgba(255, 250, 230, 0.9); stroke-width: 1; }
+.e-ring-sh { fill: none; stroke: rgba(60, 40, 10, 0.2); stroke-width: 2.2; }
+
+/* ----- Day: the street's light --------------------------------------------- */
+.e-flood {
+  position: absolute; inset: 0;
+  background: radial-gradient(130% 95% at 50% 108%, #fffef9, #fcf6e8 42%, #f5ead3);
+  opacity: 0.96;
+}
+#entrance.expose .e-flood { opacity: 0; transition: opacity 1.05s cubic-bezier(0.25, 0.7, 0.25, 1); }
+/* The sun's shafts through the open doors behind the reader: the rays of
+   the day, and like the night's they exist only here. */
+.e-shafts {
+  position: absolute; inset: -10% -10% 0;
+  background: repeating-conic-gradient(from 150deg at 50% 118%,
+    transparent 0deg 3deg, rgba(255, 244, 214, 0.5) 4deg 6deg, transparent 7.5deg 11deg);
+}
+
+/* ----- The hall while the curtain is down -------------------------------
+   The arches' fanlights are out until the house lights come up, then light
+   from the clock outward, the pair in each bay together (--fan-i, written
+   by orderFanlights()). */
+html[data-entered="no"] #entrance.night:not(.house) ~ #hall .gate .lit { opacity: 0; transition: none; }
+html[data-entered="no"] #entrance.night.house ~ #hall .gate.active[data-state="open"] .lit {
+  transition: opacity 0.5s ease calc(140ms + var(--fan-i, 0) * 170ms);
+}
