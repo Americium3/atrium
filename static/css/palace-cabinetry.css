@@ -133,8 +133,12 @@
 /* An aisle too short to hang the pair: fitCases() in app.js measured a dial
    under its smallest legible face, or a sky plate under its smallest, and
    the wall's bays take the aisle instead of a case with its instruments
-   squeezed out of it. */
-.board[data-fold="away"] { display: none; }
+   squeezed out of it. The rule that opens the aisles (atrium.css,
+   `#concourse:not([data-aisles="shut"]) .board`, 1-2-0) outweighed a bare
+   `.board[data-fold]` (0-2-0), so a folded case stood on with 0px dials and
+   no sky plate. This one outweighs it (1-3-0) whatever order the sheets
+   load in. */
+#concourse:not([data-aisles="shut"]) .board[data-fold="away"] { display: none; }
 
 /* The case's own shadow on the wall. The carcass is chamfered with a
    clip-path, which would eat a shadow, so the shadow is a filter on this
