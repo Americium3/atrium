@@ -3050,13 +3050,21 @@ html[lang="zh"] .g-name { letter-spacing: 0.17em; }
 /* ==========================================================================
    REDUCED MOTION — setting or OS preference collapses everything
    ========================================================================== */
+/* Transitions are cut to 0s, not to a sliver. Every element's
+   transition-property is `all` unless it says otherwise, so a 0.01ms
+   duration on `*` turned every property change in the hall into a
+   transition, layout included: a new width stayed at its old value until
+   the next frame ticked. The engraving size re-solved the stage against the
+   clock's old width and left the arches crowding the niche (PS-1), and W
+   put focus on an arch whose visibility was still `hidden` (KB-8).
+   Animations keep 0.01ms so their animationend still fires. */
 :root[data-motion="reduced"] *,
 :root[data-motion="reduced"] *::before,
 :root[data-motion="reduced"] *::after {
   animation-duration: 0.01ms !important;
   animation-delay: 0ms !important;
   animation-iteration-count: 1 !important;
-  transition-duration: 0.01ms !important;
+  transition-duration: 0s !important;
   transition-delay: 0ms !important;
 }
 :root[data-motion="reduced"] #ticker.rolling .t-track {

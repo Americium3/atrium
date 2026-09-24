@@ -1321,7 +1321,10 @@ function layoutStage(initial) {
   var nSide = Math.ceil(active.length / 2);
   var rowG = 2 * CLEAR + 2 * (nSide ? 1 + (nSide - 1) * PITCH : 0);
   var fit = Math.min(1, (W * 0.985) / (c0 + g0 * rowG));
-  if (Math.abs(fit - fitNow) > 0.002) stage.style.setProperty('--fit', fit.toFixed(4));
+  // Inside the dead band of full size the row stands at full size, so the
+  // band cannot leave a live re-solve a hair off the load's (PS-1).
+  if (fit > 0.998) fit = 1;
+  if (Math.abs(fit - fitNow) > 0.002 || (fit === 1 && fitNow !== 1)) stage.style.setProperty('--fit', fit.toFixed(4));
   var gateW = g0 * fit;
   var spacing = gateW * PITCH;
 
