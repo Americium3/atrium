@@ -2982,8 +2982,13 @@ function applyStats() {
     if (!a) return;
     var span = $('.num-roll', a);
     var txt = statText(svc);
+    // The odometer is for a reading that changed. A line re-lettered into
+    // the other language holds the same numbers, and every gate used to
+    // roll on a language switch; the text swaps in place instead.
+    var relettered = span._lang !== undefined && span._lang !== lang;
+    span._lang = lang;
     if (span.textContent !== txt) {
-      if (span.textContent && root.dataset.motion !== 'reduced') {
+      if (span.textContent && !relettered && root.dataset.motion !== 'reduced') {
         clearTimeout(span._rollT);      // a stale timer would swap in old text
         span.classList.remove('roll');
         void span.offsetWidth;          // restart the odometer animation
