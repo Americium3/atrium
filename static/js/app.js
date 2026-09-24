@@ -1707,10 +1707,24 @@ function layoutStage(initial) {
      way (.arriving, timed in CSS off the same delay): visibility has to
      switch at once so W can put focus on it, and for its whole delay it was
      an invisible target that took the clicks meant for the arch still
-     fading out above it. */
+     fading out above it.
+     The wait is for the arch leaving the same bay, so where there is none
+     showing (a throw reversed before the other arch began to rise, or a bay
+     only one wing fills) the incoming arch goes on its own beat. Without
+     this, a change of mind left the arch that was leaving frozen half faded
+     for the length of the wait before it came back. */
+  function shown(a) {
+    var cs = getComputedStyle(a);
+    return cs.visibility === 'visible' ? parseFloat(cs.opacity) : 0;
+  }
+  swaps.forEach(function (s) {
+    if (!s.lit) return;
+    var mate = swaps.filter(function (o) { return !o.lit && Math.abs(o.x - s.x) < 0.5; })[0];
+    s.wait = !!mate && shown(mate.a) > 0.02;
+  });
   swaps.forEach(function (s) {
     var delay = s.rank * SWAP_STEP;
-    if (s.lit) delay += SWAP_OUT + SWAP_GAP;
+    if (s.wait) delay += SWAP_OUT + SWAP_GAP;
     s.a.classList.toggle('arriving', s.lit);
     role(s.a, s.lit, delay);
   });
