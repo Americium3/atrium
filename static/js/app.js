@@ -1461,7 +1461,16 @@ function renderGates() {
     notice.hidden = true;
     a.appendChild(notice);
 
-    if (!svc.vacant) a.addEventListener('click', function (e) { gateClick(e, a, svc); });
+    if (!svc.vacant) {
+      a.addEventListener('click', function (e) { gateClick(e, a, svc); });
+      // Middle-click never fires 'click', so the browser used to open a DARK
+      // gate's dead address in a new tab. It gets the launch notice instead.
+      a.addEventListener('auxclick', function (e) {
+        if (e.button !== 1 || a.dataset.state !== 'dark') return;
+        e.preventDefault();
+        showNotice(a, svc);
+      });
+    }
     wrap.appendChild(a);
   });
   layoutStage(true);
@@ -1477,16 +1486,33 @@ function descKey(svc) {
   return STR.en[key] !== undefined ? key : 'desc.fallback';
 }
 
+function showNotice(a, svc) {
+  var n = $('.g-notice', a);
+  if (!n.hidden) return;
+  n.textContent = t('darkNotice', { hint: svc.launch_hint || svc.url });
+  n.hidden = false;
+  // Shown on screen, so said out loud once as well.
+  var hs = $('#hall-status'); if (hs) hs.textContent = n.textContent;
+}
+
 function gateClick(e, a, svc) {
+  var dark = a.dataset.state === 'dark';
+  // Ctrl, Cmd and Shift are the browser's own new-tab and new-window
+  // gestures, and middle-click already gets them. A DARK gate keeps its
+  // notice instead: its address would only open a dead tab.
+  if (!dark && (e.ctrlKey || e.metaKey || e.shiftKey)) return;
   e.preventDefault();
-  if (a.dataset.state === 'dark') {
+  if (dark) {
     var n = $('.g-notice', a);
-    n.textContent = t('darkNotice', { hint: svc.launch_hint || svc.url });
-    n.hidden = !n.hidden;
-    // Shown on screen, so said out loud once as well.
-    if (!n.hidden) { var hs = $('#hall-status'); if (hs) hs.textContent = n.textContent; }
+    // A double-click is two clicks, and a plain toggle ended it hidden.
+    // Only the first click of a run toggles; the rest leave it showing.
+    if (e.detail > 1 || n.hidden) showNotice(a, svc);
+    else n.hidden = true;
     return;
   }
+  // One gesture, one tab: each click of a double-click used to schedule
+  // its own window.open.
+  if (e.detail > 1) return;
   a.classList.add('flash');
   setTimeout(function () { a.classList.remove('flash'); }, 180);
   setTimeout(function () {
