@@ -1570,7 +1570,21 @@ function renderGates() {
     notice.hidden = true;
     a.appendChild(notice);
 
-    if (!svc.vacant) a.addEventListener('click', function (e) { gateClick(e, a, svc); });
+    if (!svc.vacant) {
+      // Where the press began, for gateClick: a drag that selects the
+      // notice's text and is released on the arch still ends in a click.
+      a.addEventListener('pointerdown', function (e) {
+        a._pressInNotice = notice.contains(e.target);
+      });
+      a.addEventListener('click', function (e) { gateClick(e, a, svc); });
+      // Middle-click never fires 'click', so the browser used to open a DARK
+      // gate's dead address in a new tab. It gets the launch notice instead.
+      a.addEventListener('auxclick', function (e) {
+        if (e.button !== 1 || a.dataset.state !== 'dark') return;
+        e.preventDefault();
+        showNotice(a, svc);
+      });
+    }
     wrap.appendChild(a);
   });
   layoutStage(true);
@@ -1586,16 +1600,46 @@ function descKey(svc) {
   return STR.en[key] !== undefined ? key : 'desc.fallback';
 }
 
+function showNotice(a, svc) {
+  var n = $('.g-notice', a);
+  if (!n.hidden) return;
+  n.textContent = t('darkNotice', { hint: svc.launch_hint || svc.url });
+  n.hidden = false;
+  // Shown on screen, so said out loud once as well.
+  var hs = $('#hall-status'); if (hs) hs.textContent = n.textContent;
+}
+
+/* The browser's new-tab modifier: Cmd on a Mac, Ctrl everywhere else.
+   Elsewhere, Meta is the Windows or Super key, and the browser treats a
+   click holding it as a plain same-tab navigation. Letting that through
+   would replace the hall with the service. */
+var NEW_TAB_KEY = /mac|iphone|ipad|ipod/i.test(
+  (navigator.userAgentData && navigator.userAgentData.platform) ||
+  navigator.platform || '') ? 'metaKey' : 'ctrlKey';
+
 function gateClick(e, a, svc) {
+  var dark = a.dataset.state === 'dark';
+  // The new-tab modifier and Shift are the browser's own new-tab and
+  // new-window gestures, and middle-click already gets them. Any other
+  // modifier falls through to the named window below. A DARK gate keeps
+  // its notice instead: its address would only open a dead tab.
+  if (!dark && (e[NEW_TAB_KEY] || e.shiftKey)) return;
   e.preventDefault();
-  if (a.dataset.state === 'dark') {
+  if (dark) {
     var n = $('.g-notice', a);
-    n.textContent = t('darkNotice', { hint: svc.launch_hint || svc.url });
-    n.hidden = !n.hidden;
-    // Shown on screen, so said out loud once as well.
-    if (!n.hidden) { var hs = $('#hall-status'); if (hs) hs.textContent = n.textContent; }
+    // The notice is there to be read and copied. A click on it, or a drag
+    // that began in it (selecting the path), is not asking for it to close.
+    // Keyboard clicks carry detail 0 and no press of their own.
+    if (n.contains(e.target) || (e.detail > 0 && a._pressInNotice)) return;
+    // A double-click is two clicks, and a plain toggle ended it hidden.
+    // Only the first click of a run toggles; the rest leave it showing.
+    if (e.detail > 1 || n.hidden) showNotice(a, svc);
+    else n.hidden = true;
     return;
   }
+  // One gesture, one tab: each click of a double-click used to schedule
+  // its own window.open.
+  if (e.detail > 1) return;
   a.classList.add('flash');
   a.classList.add('opening');
   setTimeout(function () { a.classList.remove('flash'); }, 180);
@@ -3048,6 +3092,54 @@ function toggleWing() {
   setWing(cur === 'salon' ? 'bureau' : 'salon');
 }
 lever.addEventListener('click', toggleWing);
+/* The pointer reaches the switch through the machine itself: the arm strip
+   is inside #lever and arrives above, the console's drawn shapes and the
+   gear well throw it from here, and each throw plate lights its own wing
+   (a click on SALON never leaves the Salon). */
+var deskCore = $('#signal-desk .desk-core');
+deskCore.addEventListener('click', function (e) {
+  var tgt = e.target;
+  if (!tgt.closest) return;
+  var plate = tgt.closest('.l-label');
+  if (plate) {
+    var want = plate.classList.contains('l-bureau') ? 'bureau' : 'salon';
+    if ((wingPending || root.dataset.wing) !== want) setWing(want);
+  } else if (tgt.closest('.desk-art, .gear-well')) {
+    toggleWing();
+  }
+});
+
+/* The desk is fixed to the foot of the screen, but the stage's baseline
+   moves with whatever stands above it: a Chinese masthead that wraps pushes
+   the whole row down. Where the floor under the stage is shorter than the
+   machine, the vent stack rose over the clock's sill. --desk-room caps the
+   machine's scale to the floor it actually has. It is the stage's LAYOUT
+   bottom (offsetTop), not its painted one: the entrance dollies the stage
+   with a transform, and a reading taken mid-dolly would stick. */
+var DESK_GAP = 8;         // clear stone between the sill and the vent cap
+var DESK_MIN = 0.5;       // below this the lever is too small to take
+var deskArtTop = null;    // highest drawn point, in assembly units
+function fitDesk() {
+  var stage = $('#stage'), desk = $('#signal-desk');
+  if (!stage || !desk) return;
+  if (deskArtTop === null) {
+    // The quadrant draws 1:1 in the assembly's 360x220 units, and its vent
+    // cap is the machine's highest point (the lever tip peaks 30 below it).
+    try { deskArtTop = $('.quadrant', desk).getBBox().y; } catch (err) { return; }
+  }
+  var base = stage.offsetHeight;
+  for (var n = stage; n; n = n.offsetParent) base += n.offsetTop;
+  var foot = parseFloat(getComputedStyle(desk).bottom) || 0;
+  var room = (window.innerHeight - foot - base - DESK_GAP) / (220 - deskArtTop);
+  desk.style.setProperty('--desk-room', Math.max(DESK_MIN, room).toFixed(3));
+}
+if (window.ResizeObserver) {
+  // The concourse resizes when the masthead above it grows or the window
+  // does; the stage resizes with the arch module (--ui).
+  var deskRO = new ResizeObserver(function () { fitDesk(); });
+  ['#concourse', '#stage'].forEach(function (s) { var n = $(s); if (n) deskRO.observe(n); });
+}
+
 lever.addEventListener('keydown', function (e) {
   if (e.key === ' ' || e.key === 'Enter') {
     e.preventDefault();
@@ -4072,8 +4164,16 @@ function closePrefs() {
 }
 prefsBtn.addEventListener('click', openPrefs);
 $('#prefs-close').addEventListener('click', closePrefs);
+/* Only a click that starts and ends on the backdrop closes the sheet. A
+   press in the sheet released on the backdrop (or the other way round) is
+   dispatched to #prefs, their common ancestor, and used to close it. */
+var prefsPress = { down: null, up: null };
+prefs.addEventListener('pointerdown', function (e) { prefsPress.down = e.target; });
+prefs.addEventListener('pointerup', function (e) { prefsPress.up = e.target; });
 prefs.addEventListener('click', function (e) {
-  if (e.target === prefs) closePrefs();
+  if (e.target === prefs && prefsPress.down === prefs && prefsPress.up === prefs) {
+    closePrefs();
+  }
 });
 
 /* ========================================================================
@@ -4096,6 +4196,18 @@ if (ledgerBtnEl) {
 if (ledgerScrimEl) {
   ledgerScrimEl.addEventListener('click', function () {
     closeLedger();
+  });
+}
+
+/* The medallion hangs outside the plaque's link, over the spine where the
+   clipped frame cannot reach, so a click on it used to do nothing. It reads
+   as part of the plaque, so it opens the dispatch like the rest of it. */
+var plaquesEl = $('#plaques');
+if (plaquesEl) {
+  plaquesEl.addEventListener('click', function (e) {
+    var medal = e.target.closest && e.target.closest('.medal');
+    var link = medal && medal.parentNode.querySelector('a.pl-in');
+    if (link) link.click();
   });
 }
 
@@ -4353,12 +4465,32 @@ function renderKeyplate() {
   $('.kp-title', keyplate).textContent = t('keysTitle');
 }
 
+/* Laid on the ticker band's box (see #keyplate in atrium.css): the band
+   moves with the masthead above it, which wraps in Chinese. */
+function placeKeyplate() {
+  var band = $('#ticker');
+  if (!band) return;
+  var r = band.getBoundingClientRect();
+  keyplate.style.top = Math.round(r.top) + 'px';
+  keyplate.style.left = Math.round(r.left) + 'px';
+  keyplate.style.right = Math.round(window.innerWidth - r.right) + 'px';
+}
+/* The plate is a notice, not a dialog. It used to answer only "?" and Esc,
+   so a pointer left it standing over the hall. Now any press closes it, on
+   the plate or anywhere else, and the press still does what it was for. */
+function keyplatePress() { toggleKeyplate(false); }
+
 function toggleKeyplate(show) {
   if (!keyplate) return;
   var next = show === undefined ? keyplate.hidden : show;
-  if (next) renderKeyplate();
+  if (next) { renderKeyplate(); placeKeyplate(); }
   keyplate.hidden = !next;
+  if (next) document.addEventListener('pointerdown', keyplatePress, true);
+  else document.removeEventListener('pointerdown', keyplatePress, true);
 }
+window.addEventListener('resize', function () {
+  if (keyplate && !keyplate.hidden) placeKeyplate();
+});
 
 function focusGate(i) {
   var gates = litGates();

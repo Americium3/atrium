@@ -300,6 +300,10 @@ button {
   font: inherit; color: inherit; background: none; border: none; cursor: pointer;
 }
 svg { display: block; }
+/* The hall is signage and scenery. A stray drag across it painted the
+   browser's blue selection boxes over the engraved gate faces. Text worth
+   copying (a DARK gate's launcher path) opts back in where it is drawn. */
+#masthead, #ticker, #concourse, #signal-desk { user-select: none; }
 /* Wing-neutral (the wing metal is reserved for exactly three surfaces). */
 :focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; }
 /* The lever's ring sits on bronze, which on ivory is a dark mid-tone the
@@ -308,12 +312,20 @@ svg { display: block; }
 #lever:focus-visible { box-shadow: 0 0 0 5px var(--base); }
 
 /* The key plate. Dressed with the rest of the hall's plates in the
-   materials pass; here it only has to be legible and out of the way. */
+   materials pass; here it only has to be legible and out of the way.
+   Out of the way means over the ticker band, not in a corner: standing in
+   the bottom-left corner it covered the first arch's lamp, address and
+   plinth at 1280 and 1366 wide. The band is the one strip of the hall no
+   arch or clock can reach, since the wall's headroom stands between it and
+   the arch heads at every size. So the plate lies along the band, as wide
+   as it, its rows side by side; placeKeyplate() in app.js lays it on the
+   band's box. */
 #keyplate {
-  position: fixed; left: calc(24px * var(--ui)); bottom: calc(24px * var(--ui));
+  position: fixed; left: 24px; right: 24px; top: 0;
   z-index: 57;
-  min-width: calc(250px * var(--ui));
-  padding: calc(14px * var(--ui)) calc(18px * var(--ui));
+  display: grid; grid-template-columns: auto 1fr;
+  align-items: baseline; column-gap: calc(22px * var(--ui));
+  padding: calc(8px * var(--ui)) calc(18px * var(--ui));
   background-color: var(--surface);
   border: 1px solid var(--line);
   box-shadow: 0 10px 30px var(--shadow-drop);
@@ -322,12 +334,17 @@ svg { display: block; }
 #keyplate[hidden] { display: none; }
 .kp-title {
   font-size: calc(12px * var(--ui)); letter-spacing: 0.28em;
-  color: var(--gold-text); margin-bottom: calc(10px * var(--ui));
+  color: var(--gold-text);
+}
+.kp-rows {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(calc(200px * var(--ui)), 1fr));
+  column-gap: calc(18px * var(--ui));
 }
 .kp-row {
-  display: grid; grid-template-columns: calc(64px * var(--ui)) 1fr;
+  display: grid; grid-template-columns: calc(52px * var(--ui)) 1fr;
   align-items: baseline; gap: 10px;
-  font-size: calc(12.5px * var(--ui)); line-height: 1.9;
+  font-size: calc(12.5px * var(--ui)); line-height: 1.8;
 }
 .kp-key {
   font-size: calc(11px * var(--ui)); letter-spacing: 0.14em;
@@ -622,7 +639,15 @@ html[data-boot="suppressed"] #hall { animation: hall-fade 0.3s var(--ease-out) b
   height: var(--desk-h);
   z-index: 50;
   isolation: isolate;
-  pointer-events: none;   /* only the lever hit surface takes the pointer */
+  pointer-events: none;   /* only the machine's own parts take the pointer */
+  /* One scale for the machine and everything that hit-tests on it. The hit
+     surfaces used to be fixed 300x108 and 220x112 boxes that ignored the
+     assembly's scale, so on a short screen the arm zone stood 75px over
+     bare floor and the clock's sill, and a click on the clock threw the
+     lever. --desk-k is what the viewport allows; --desk-room is what the
+     floor under the stage allows, written by fitDesk() in app.js. */
+  --desk-k: calc(0.80 + 0.14 * var(--ui));
+  --desk-s: min(var(--desk-k), var(--desk-room, 9));
 }
 /* Boot parity with the hall: suppressed loads fade, played entrances rise
    in the old lever-row slot. Transform/opacity only — the entrance dock
@@ -652,11 +677,18 @@ html[data-entered="no"] #signal-desk {
   /* Tracks the lettering, but at a third of its slope. On a 3440 screen the
      old coefficient stood the machine 275px tall — taller than the stone it
      stands on once the wall took its headroom back, so the lever tip came up
-     level with the skirting and the hall lost its floor to its furniture. */
-  transform: translateX(-50%) scale(calc(0.80 + 0.14 * var(--ui)));
+     level with the skirting and the hall lost its floor to its furniture.
+     The factor itself is --desk-s on #signal-desk. */
+  transform: translateX(-50%) scale(var(--desk-s));
   transform-origin: center bottom;
   pointer-events: none;
 }
+/* The console answers the pointer where it is drawn and nowhere else: the
+   shapes hit-test on their own paint. The contact shadow and the waxed-floor
+   return are floor, not machine. */
+.quadrant { pointer-events: none; }
+.quadrant > * { pointer-events: visiblePainted; cursor: pointer; }
+.quadrant .cw-contact, .quadrant .cw-return { pointer-events: none; }
 .desk-art { position: absolute; inset: 0; contain: layout paint; }
 .quadrant { position: absolute; inset: 0; width: 100%; height: 100%; }
 
@@ -716,6 +748,7 @@ html[data-entered="no"] #signal-desk {
   background-color: var(--machine-edge);
   border: 1px solid var(--bronze);
   transition: background-color 0.4s, border-color 0.4s;
+  pointer-events: auto; cursor: pointer;   /* part of the console's face */
 }
 .gearA-svg, .gearB-svg {
   position: absolute;
@@ -909,25 +942,63 @@ html[data-entered="no"] #signal-desk {
 }
 :root[data-theme="ivory"][data-wing="salon"] .l-salon,
 :root[data-theme="ivory"][data-wing="bureau"] .l-bureau { color: var(--gold-text); }
+/* Each plate names a throw, so a click on it lights that wing and never the
+   other one. They straddled the lever's old hit boxes, and the inner half of
+   the lit SALON plate threw the hall into the Bureau while the outer half
+   did nothing. As targets they also show their zh titles on hover. */
+.assembly .l-label { pointer-events: auto; cursor: pointer; }
+:root[data-wing="salon"] .l-salon,
+:root[data-wing="bureau"] .l-bureau { cursor: default; }
+@media (hover: hover) {
+  :root[data-wing="salon"] .l-bureau:hover,
+  :root[data-wing="bureau"] .l-salon:hover { border-color: var(--gold); }
+}
 
-/* Hit surface = the machine base box; the arm zone is a child riding above
-   it, so clicks land only where hardware is drawn (never a floating
-   rectangle over hall content) and the focus ring hugs the base. */
+/* #lever is the switch a keyboard and a screen reader use. Its box hugs the
+   base at the machine's own scale, which is where the focus ring draws, and
+   it takes no pointer itself: the console's shapes and the arm strip below
+   do, so nothing but drawn hardware throws the lever. */
 #lever {
   position: absolute; left: 50%; bottom: 0;
-  width: 300px; height: 108px;
+  width: calc(300px * var(--desk-s)); height: calc(108px * var(--desk-s));
   transform: translateX(-50%);
-  pointer-events: auto;
-  cursor: pointer; user-select: none;
+  pointer-events: none;
   z-index: 2;
 }
+/* The arm's hit strip pivots with the drawn lever (same --drive, same pivot
+   34 units up the machine) and scales with it, a few pixels wider than the
+   grip so the thin arm is not a hard target. Clicks on it reach #lever. */
 #lever .hit-arm {
-  position: absolute; left: 50%; bottom: 100%;
-  width: 220px; height: 112px;
-  transform: translateX(-50%);
+  position: absolute; left: 50%; bottom: calc(34px * var(--desk-s));
+  width: 24px; height: 142px; margin-left: -12px;
+  border-radius: 12px 12px 0 0;
+  transform-origin: 50% 100%;
+  transform: scale(var(--desk-s)) rotate(calc(-16deg + var(--drive, 0) * 32deg));
   display: block;
   pointer-events: auto;
   cursor: pointer;
+}
+/* The switch answers the pointer the way the gates do: the grip lights to
+   the wing's bright metal, and the arm takes up its slack towards the other
+   throw, a little more while pressed. Only the drawn lever moves; the hit
+   strip holds still under the pointer. */
+.lever-svg { transition: rotate 0.2s var(--ease-out); }
+@media (hover: hover) {
+  .desk-core:has(.hit-arm:hover, .desk-art:hover, .gear-well:hover) .lv-grip {
+    fill: var(--metal-hi);
+  }
+  .desk-core:has(.hit-arm:hover, .desk-art:hover, .gear-well:hover) .lever-svg {
+    rotate: 1.5deg;
+  }
+  :root[data-wing="bureau"] .desk-core:has(.hit-arm:hover, .desk-art:hover, .gear-well:hover) .lever-svg {
+    rotate: -1.5deg;
+  }
+}
+.desk-core:has(.hit-arm:active, .desk-art:active, .gear-well:active) .lever-svg {
+  rotate: 3deg;
+}
+:root[data-wing="bureau"] .desk-core:has(.hit-arm:active, .desk-art:active, .gear-well:active) .lever-svg {
+  rotate: -3deg;
 }
 
 /* ----- Steam ------------------------------------------------------------- */
@@ -1959,7 +2030,7 @@ html[lang="zh"] .al-arc text {
 .g-pose {
   position: absolute; inset: 0;
   transform-style: preserve-3d;
-  transform: rotateY(calc(var(--side, 0) * 10deg));
+  transform: translateY(var(--lift, 0px)) rotateY(calc(var(--side, 0) * 10deg));
   transition: transform 0.6s var(--ease-stage);
 }
 .g-shell {
@@ -2378,12 +2449,22 @@ html[lang="zh"] .g-name { letter-spacing: 0.17em; }
 /* Hover and focus: at night the tabs part a hand's breadth and the screen
    behind shows a thread of light; by day the screen comes up a shade. One
    sheen runs across the gilding only. */
-:root[data-theme="onyx"] .gate:not(.vacant):is(:hover, :focus-visible) .g-tab-l { transform: translateX(-5%); }
-:root[data-theme="onyx"] .gate:not(.vacant):is(:hover, :focus-visible) .g-tab-r { transform: translateX(5%); }
-.gate:not(.vacant):is(:hover, :focus-visible) .p-sheen { animation: gilt-sheen 0.8s var(--ease-out) 1; }
+:root[data-theme="onyx"] .gate:not(.vacant):focus-visible .g-tab-l { transform: translateX(-5%); }
+:root[data-theme="onyx"] .gate:not(.vacant):focus-visible .g-tab-r { transform: translateX(5%); }
+.gate:not(.vacant):focus-visible .p-sheen { animation: gilt-sheen 0.8s var(--ease-out) 1; }
 @keyframes gilt-sheen { from { transform: translateX(0); } to { transform: translateX(560px); } }
-.gate:hover, .gate:focus-visible { --rise: -3px; }
-.gate.vacant:hover { --rise: 0px; }
+/* The rise rides on the pose inside the link (--lift), never on the link
+   itself: lifting the <a> moved the box that owns :hover out from under a
+   pointer resting at its foot, so the arch bobbed and clicks missed. And a
+   tap is a hover to a touch screen, where it stuck; hover effects only
+   answer a pointer that can rest. Focus keeps all of them. */
+.gate:not(.vacant):focus-visible { --lift: -3px; }
+@media (hover: hover) {
+  :root[data-theme="onyx"] .gate:not(.vacant):hover .g-tab-l { transform: translateX(-5%); }
+  :root[data-theme="onyx"] .gate:not(.vacant):hover .g-tab-r { transform: translateX(5%); }
+  .gate:not(.vacant):hover .p-sheen { animation: gilt-sheen 0.8s var(--ease-out) 1; }
+  .gate:not(.vacant):hover { --lift: -3px; }
+}
 /* Opening: the curtain flies, the house floods and the portal flashes. */
 .gate.opening .g-tab { transform: scaleX(0.14) !important; transition-duration: 0.24s; }
 .gate.opening .g-screen { background: var(--screen-flood); transition: background 0.1s; }
@@ -2435,7 +2516,16 @@ html[lang="zh"] .g-name { letter-spacing: 0.17em; }
   padding: 8px 10px;
   letter-spacing: 0.03em;
   word-break: break-all;
+  /* The launcher path is the one line here worth copying, so the notice is
+     the one thing on a gate a drag can select. It rides the arch's lift. */
+  user-select: text;
+  cursor: text;
+  transform: translateY(var(--lift, 0px));
+  transition: transform 0.6s var(--ease-stage);
 }
+/* A DARK gate's link leads to a dead tab, and while the link can be dragged
+   a press on the notice starts a link drag instead of a text selection. */
+.gate[data-state="dark"] { -webkit-user-drag: none; }
 
 /* ==========================================================================
    THE CONCOURSE CLOCK
@@ -2773,18 +2863,28 @@ html[lang="zh"] .g-name { letter-spacing: 0.17em; }
 }
 /* box-shadow dies under clip-path, and drop-shadow on the clipped element
    itself gets clipped too — so the shadow lives on pl-shadow-wrap, which is
-   an unclipped wrapper around pl-frame. The li itself only carries transition
-   and animations (arrive/cascading) so the browser can promote those to
+   an unclipped wrapper around pl-frame. The li itself only carries the
+   arrive/cascading animations so the browser can promote those to
    compositor layers without re-rasterizing the filter every frame.
    Ghosts excluded (they re-raster on their own pulse). */
 .plaque:not(.ghost) .pl-shadow-wrap {
   filter: drop-shadow(0 3px 4px var(--shadow-drop))
           drop-shadow(0 12px 18px var(--shadow-soft));
 }
-.plaque:not(.ghost) {
+/* The hover lift moves the card, never the li. The li owns :hover and the
+   420ms dwell, and lifting it slid its box out from under a pointer resting
+   on its bottom edge: the rim drained and refilled over and over and the
+   plaque was never read. The medallion stays put on the spine it hangs
+   from; lifted, its overhang past the li would bob the same way. */
+.plaque:not(.ghost) .pl-shadow-wrap {
   transition: transform 0.25s var(--ease-out);
 }
-.plaque:not(.ghost):hover { transform: translateY(-2px); }
+@media (hover: hover) {
+  .plaque:not(.ghost):hover .pl-shadow-wrap { transform: translateY(-2px); }
+}
+/* The medallion is part of the plaque, and opens it like the rest of the
+   card (the click is forwarded from #plaques). */
+.plaque:not(.ghost) .medal { cursor: pointer; }
 .plaque.new .pl-frame { background-color: var(--champagne); }
 .pl-frame > a, .pl-frame > .pl-in {
   display: block;
@@ -3412,10 +3512,10 @@ html[data-entered="no"] #stage { animation: stage-dolly 0.9s var(--ease-out) bot
      floor is a band rather than a field the console has to fit inside that
      band — at full height its lever tip cleared the skirting and the thing
      read as standing in the wall. */
-  .assembly { transform: translateX(-50%) scale(0.78); }
+  #signal-desk { --desk-k: 0.78; }
 }
 @media (max-height: 760px) {
-  .assembly { transform: translateX(-50%) scale(0.62); }
+  #signal-desk { --desk-k: 0.62; }
 }
 
 @media (max-width: 899px) {
@@ -3425,9 +3525,7 @@ html[data-entered="no"] #stage { animation: stage-dolly 0.9s var(--ease-out) bot
   .m-title h1 { font-size: calc(22px * var(--ui)); }
   .m-sub { display: none; }
   #dateline { display: none; }
-  .assembly { transform: translateX(-50%) scale(0.85); }
-  #lever { width: 260px; }
-  #lever .hit-arm { width: 190px; height: 96px; }
+  #signal-desk { --desk-k: 0.85; }
 }
 
 /* ==========================================================================
