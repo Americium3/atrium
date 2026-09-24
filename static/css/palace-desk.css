@@ -41,74 +41,72 @@
   /* copper, 0 in the oil .. 5 the hot arris */
   --kc-0: #1c0b04; --kc-1: #43200f; --kc-2: #71381b; --kc-3: #a65b33; --kc-4: #d4875a; --kc-5: #ffc795;
   /* ebonite: hard rubber, black with a brown bloom where the light lies */
-  --eb-0: #020101; --eb-1: #0d0a08; --eb-2: #211914; --eb-3: #3a2c22; --eb-hi: rgba(255, 216, 170, 0.5);
-  /* red vulcanised fibre, the fuse barrels */
-  --fb-0: #200604; --fb-1: #4a100a; --fb-2: #6c1d12; --fb-3: #97392a; --fuse-label: #a39574;
-  /* cast brass: bezels, ferrules, screws, plates (never the wing's leaf) */
+  --eb-0: #020101; --eb-1: #0d0a08; --eb-2: #211914; --eb-3: #3a2c22; --eb-hi: rgba(255, 216, 170, 0.62);
+  /* cast brass: bezels, ferrule, screws, plates (never the wing's leaf) */
   --bz-0: #3a2708; --bz-1: #6d4f1f; --bz-2: #a7813b; --bz-3: #d7b465; --bz-4: #f3dc9c; --bz-ink: #120b04;
   --pl-band: color-mix(in srgb, var(--bz-1) 45%, var(--bz-2));
-  /* the Portoro plinth's treads, the room's light on the far edge */
-  --pt-far: #3a3024; --pt-near: #0b0907; --pt-lip: rgba(255, 220, 160, 0.3);
-  /* the slab: Bardiglio under a night veil that lifts toward the far rail,
-     and the marquee as one reflection in the polish */
-  --slab-far: rgba(30, 26, 24, 0.26); --slab-mid: rgba(12, 12, 16, 0.4); --slab-near: rgba(6, 6, 8, 0.54);
-  --slab-edge: rgba(0, 0, 0, 0.42); --slab-spec: rgba(255, 224, 176, 0.3);
+  /* the light on the Portoro plinth, laid over the stone's own figure */
+  --pt-0: #000; --pt-1: #060504; --pt-2: #2c261d; --pt-3: #6a5a42;
+  /* The panel: Bardiglio facing the dark house. Its face takes little of
+     the lamps behind the board, a little more toward its head, and the
+     marquee lies in its polish as one band. */
+  --slab-top: rgba(26, 22, 20, 0.34); --slab-mid: rgba(10, 10, 14, 0.5); --slab-bot: rgba(4, 4, 6, 0.62);
+  --slab-shade: rgba(0, 0, 0, 0.62); --slab-spec: rgba(255, 226, 184, 0.26);
+  --cast-a: 0.62;
   /* the meter: an ivory dial with a small lamp behind it at night */
   --dial-0: #b9ab8e; --dial-1: #d8caa9; --dial-2: #6f634d; --dial-ink: #1b140b;
   --dial-lamp: rgba(255, 222, 160, 0.42);
   --needle-ink: #120d08;
   --glass-band: rgba(255, 240, 215, 0.34);
   /* the pilots: amber for the Salon, opal for the Bureau */
-  --jw-off: #1d120b;
+  --jw-off-salon: #2a1406; --jw-off-bureau: #151a22;
   --jw-core-salon: #fffbe8; --jw-mid-salon: #ffbe55; --jw-rim-salon: #b24c08; --jw-bloom-salon: rgba(255, 162, 58, 0.72);
   --jw-core-bureau: #ffffff; --jw-mid-bureau: #d5e6ff; --jw-rim-bureau: #4d6f9e; --jw-bloom-bureau: rgba(186, 212, 255, 0.62);
-  --pool-salon: rgba(255, 170, 84, 0.46); --pool-bureau: rgba(196, 214, 255, 0.36);
-  --jw-refl-salon: rgba(255, 196, 110, 0.75); --jw-refl-bureau: rgba(220, 232, 255, 0.7);
+  --pool-salon: rgba(255, 164, 76, 0.5); --pool-bureau: rgba(190, 210, 255, 0.4);
   /* the flash of the break */
   --arc-core: #f2f6ff; --arc-mid: rgba(140, 168, 255, 0.95);
-  --rest-shadow: rgba(0, 0, 0, 0.62);
+  --rest-shadow: rgba(0, 0, 0, 0.7);
 }
 :root[data-theme="ivory"] #signal-desk {
   --kc-0: #3a1a0a; --kc-1: #6a321a; --kc-2: #975230; --kc-3: #c47a4c; --kc-4: #e6a476; --kc-5: #ffe2c4;
-  --eb-0: #050404; --eb-1: #171311; --eb-2: #352d27; --eb-3: #564a40; --eb-hi: rgba(255, 255, 255, 0.72);
-  --fb-0: #3c0c07; --fb-1: #6c1a11; --fb-2: #922c1d; --fb-3: #bf5238; --fuse-label: #e6dabd;
+  --eb-0: #050404; --eb-1: #171311; --eb-2: #352d27; --eb-3: #564a40; --eb-hi: rgba(255, 255, 255, 0.8);
   --bz-0: #4d3812; --bz-1: #86672c; --bz-2: #bd9848; --bz-3: #e4c777; --bz-4: #fbeab4; --bz-ink: #120b04;
   --pl-band: var(--bz-1);
-  --pt-far: #5e5447; --pt-near: #14110e; --pt-lip: rgba(255, 255, 255, 0.35);
-  /* by day the skylight lies on the far half of the slab */
-  --slab-far: rgba(255, 255, 255, 0.2); --slab-mid: rgba(255, 255, 255, 0.04); --slab-near: rgba(20, 24, 30, 0.12);
-  --slab-edge: rgba(20, 24, 30, 0.22); --slab-spec: rgba(255, 255, 255, 0.42);
+  --pt-0: #000; --pt-1: #0e0c0a; --pt-2: #4a4136; --pt-3: #a0927c;
+  /* by day the skylight lies evenly on the panel and the open doors
+     behind the reader show in its polish */
+  --slab-top: rgba(255, 255, 255, 0.16); --slab-mid: rgba(255, 255, 255, 0.04); --slab-bot: rgba(20, 24, 30, 0.1);
+  --slab-shade: rgba(20, 16, 12, 0.42); --slab-spec: rgba(255, 255, 255, 0.4);
+  --cast-a: 0.42;
   --dial-0: #ece3cf; --dial-1: #f8f2e4; --dial-2: #b3a586; --dial-ink: #1b140b;
   --dial-lamp: transparent;
   --needle-ink: #120d08;
   --glass-band: rgba(255, 255, 255, 0.5);
-  /* A pilot is still a lamp by day: its glass shows lit, but it throws
-     nothing on the stone. */
-  --jw-off: #3b2618;
+  /* Nothing is lit by day: both jewels show their coloured glass, dark. */
+  --jw-off-salon: #7a3e0e; --jw-off-bureau: #56657a;
   --jw-core-salon: #fff0c4; --jw-mid-salon: #f6a531; --jw-rim-salon: #9c4208; --jw-bloom-salon: transparent;
   --jw-core-bureau: #ffffff; --jw-mid-bureau: #c3d8f6; --jw-rim-bureau: #46628b; --jw-bloom-bureau: transparent;
   --pool-salon: transparent; --pool-bureau: transparent;
-  --jw-refl-salon: rgba(255, 190, 90, 0.3); --jw-refl-bureau: rgba(200, 220, 250, 0.3);
   --arc-core: #ffffff; --arc-mid: rgba(150, 172, 255, 0.7);
-  --rest-shadow: rgba(30, 24, 18, 0.42);
+  --rest-shadow: rgba(40, 30, 20, 0.5);
 }
 
 /* =====================================================================
    THE HOUSE-LIGHTS BOARD
    ===================================================================== */
-/* The resting shadow of the blade and handle on the marble. The blur is
-   static on the inner group; only the layer's opacity moves. */
-.sw-rest g { fill: var(--rest-shadow); filter: blur(1.6px); }
-/* The pools of light a lit pilot throws on the slab: night only. */
-:root[data-theme="ivory"] .sw-pool { display: none; }
-:root[data-theme="ivory"] .sw-dial-lamp { display: none; }
-:root[data-theme="ivory"] .sw-lit .sw-bloom { display: none; }
+/* The fittings' shadows on the marble (painted once), and the moving
+   parts' own, drawn with each pose. */
+.hl-board .hb-shadows { fill: #000; opacity: var(--cast-a); }
+.sw-shade path { fill: var(--rest-shadow); }
+/* Only emitters glow, and only at night: by day the pilots, their pools
+   and the meter's lamp are out. */
+:root[data-theme="ivory"] :is(.sw-pool, .sw-lit, .sw-dial-lamp) { display: none; }
 /* The spark's halo is a lamp; by day only the arc itself shows. */
 :root[data-theme="ivory"] .sw-spark .sw-arc-halo { opacity: 0.35; }
 
-/* A hand over the handle: the ebonite takes more of the lamp. */
+/* A hand over the handle: the ebonite and the copper take more of the lamp. */
 @media (hover: hover) {
-  .desk-core:has(.hit-arm:hover) .sw-handle { filter: brightness(1.35) contrast(1.05); }
+  .desk-core:has(.hit-arm:hover) .sw-poses { filter: brightness(1.2) contrast(1.04); }
 }
 
 /* The switch's focus ring: the gates' marquee at the board's scale. */

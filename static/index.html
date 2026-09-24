@@ -630,14 +630,16 @@
      the runner. Fixed and body-level (never inside #stage: parallax vars are
      scoped there, and a transformed ancestor would trap the fixed box).
 
-     A theatre's front-of-house switchboard cut down to one circuit pair: a
-     Bardiglio slab in a bronze frame on a fluted pedestal, carrying one
-     double-throw knife switch. The blade lies in the SALON jaws or the
-     BUREAU jaws; the pilot lamp over the live jaws is lit and the meter's
-     needle stands on that side. Drawn by static/js/desk.js.
-     Layers: .desk-art (the static board, contained) / .desk-fx (the moving
-     parts, each its own layer, and the lamps) / #lever (the switch a
-     keyboard reaches, with the blade's hit strip).
+     A theatre's front-of-house switchboard cut down to one circuit pair: an
+     upright Bardiglio panel in a bronze frame on a reeded bronze standard,
+     carrying one double-throw knife switch. The blades lie in the SALON
+     jaws or the BUREAU jaws with the handle out past them; the pilot over
+     the live jaws is lit at night and the meter's needle stands on that
+     side. Drawn by static/js/desk.js.
+     Layers: .desk-art (the static board, contained) / the two name plates /
+     .desk-fx (the lamps, the needle, the swing's poses and the sparks, each
+     its own layer) / #lever (the switch a keyboard reaches, with the
+     handle's hit strip).
      A named region, not a <footer>: at body level a footer is the page's
      contentinfo landmark, which filed the hall's one wing control under
      the page's small print.
@@ -646,11 +648,11 @@
   <div class="desk-core">
     <div class="assembly" aria-hidden="true">
       <div class="desk-art">
-        <svg class="hl-board" viewBox="0 0 440 300"></svg>
+        <svg class="hl-board" viewBox="0 0 460 296"></svg>
       </div>
-      <div class="desk-fx"></div>
       <span class="l-label l-salon display" data-side="salon" data-i18n-title="salonWing" lang="en">SALON</span>
       <span class="l-label l-bureau display" data-side="bureau" data-i18n-title="bureauWing" lang="en">BUREAU</span>
+      <div class="desk-fx"></div>
     </div>
     <span id="lever-desc" hidden data-i18n="leverDesc">Off lights the Salon, the play wing. On lights the Bureau, the work wing.</span>
     <div id="lever" role="switch" aria-checked="false" tabindex="0" aria-keyshortcuts="W"

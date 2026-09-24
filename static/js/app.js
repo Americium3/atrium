@@ -1241,6 +1241,8 @@ function setDrive(v) {
   var b = bounced(v).toFixed(4), r = v.toFixed(4);
   driveEls.forEach(function (e) { e.style.setProperty('--sw', b); });
   rawEls.forEach(function (e) { e.style.setProperty('--sw', r); });
+  // the blades, the crossbar and the handle: a pose drawn at each angle
+  if (window.Desk && window.Desk.drive) window.Desk.drive(bounced(v));
 }
 function getDrive() { return driveNow; }
 

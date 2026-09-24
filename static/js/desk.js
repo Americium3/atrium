@@ -1,36 +1,45 @@
 /* ===========================================================================
    THE HOUSE-LIGHTS BOARD: the hall's one control.
 
-   A picture palace threw its house lights on a switchboard: a slab of
-   insulating marble in a frame, carrying knife switches with copper blades
-   and ebonite handles, cartridge fuses, pilot jewels and an ammeter. This is
-   that board cut down to one circuit pair and stood on a pedestal at the
-   foot of the runner, where an usher would find it: a Bardiglio slab laid
-   as a lectern's sloped top in a statuary bronze frame, a fluted stem, a
-   Portoro plinth on the wool, and a fan-shaped ammeter standing on the far
-   rail like a sunrise.
+   A picture palace threw its house lights on a live-front switchboard: an
+   upright slab of marble bolted to a frame, carrying knife switches with
+   copper blades and ebonite handles, pilot jewels and a round ammeter at the
+   head of the panel. This is that board cut down to one circuit pair and
+   stood on its own bronze standard at the foot of the runner, facing the
+   reader: a Bardiglio panel in a bolection frame, a stepped tablet over it
+   for the meter, a fan on the tablet, two reeded legs and a Portoro plinth
+   on the wool.
 
-   The switch is one double-pole, double-throw knife switch. Its hinge is in
-   the middle of the slab and its jaws are to either side: SALON on the left,
-   BUREAU on the right. The blade lies in one pair of jaws with its handle
-   out over the frame. A throw lifts it out of them (the flash of the
-   break), swings it up off the marble and over the hinge toward the reader,
-   and drops it into the other pair, where it bounces once on the springs
-   and settles. The pilot jewel over the live jaws is lit and the meter's
-   needle stands on that side.
+   The switch is one double-pole, double-throw knife switch, mounted to
+   throw sideways as the wiring rules asked of a double-throw switch (thrown
+   up and down, one could fall shut). Its hinge pin stands upright in the
+   middle of the panel, the SALON jaws are to the left and the BUREAU jaws to
+   the right. The two blades lie flat along the marble in the live wing's
+   jaws, their tips joined by an ebonite crossbar, and the handle stands out
+   along the blades past the jaws. A throw pulls the blades out of their
+   jaws (the flash of the break), swings them out toward the reader until
+   the handle points straight at the room, carries them over and seats them
+   in the other pair, where they bounce once and settle.
 
-   The swing is drawn as the real one would be seen. The hinge pin runs up
-   the slope, so the blade turns in a plane that faces the reader and leans
-   back: each blade is its own layer, turned about its own hinge and
-   flattened by K (the plane's foreshortening); the crossbar that joins the
-   two blade tips only travels; the handle travels with it, turns to the
-   blade's projected angle and grows a little as it comes toward the reader.
-   All of it is transform and opacity, derived in CSS from one number, --sw,
-   which app.js writes on the parts that read it (atrium.css).
+   Everything is drawn as a solid in one camera: the floor's own. The hall's
+   terrazzo is a plane tilted 58 degrees from the screen under an eye 3.2
+   floor-heights away (atrium.css, .fl-plane), so the board is seen from 32
+   degrees above, from a little further off than the floor's eye so that its
+   uprights converge by a few percent and not by fifteen. Each part is a
+   prism, a box or a turned solid in board units (x right, y up from the
+   wool, z out of the panel toward the reader), projected through that
+   camera and shaded by its facets' normals against the room: the key up
+   and a little left, a bright band where the lit wall behind is mirrored,
+   the dark house and the floor below it. Tones are the palace's custom
+   properties, mixed with color-mix in style attributes (var() does not
+   resolve in presentation attributes), so one drawing serves both themes.
 
-   Every tone is a CSS custom property, set through style attributes (var()
-   does not resolve in presentation attributes). Siblings that repeat
-   (screws, flutes, fuses, sparks) vary off fnv1a of a stable id.
+   The static board is painted once. The swing is a stack of poses of the
+   moving parts (blades, crossbar, handle, their shadows on the marble),
+   each drawn at its own angle; the drive shows the two poses either side
+   of the blade's angle, by opacity. The needle turns in the dial's own
+   foreshortened plane; the pilots, the meter's lamp and the flash of the
+   break are opacity layers.
    =========================================================================== */
 (function () {
 'use strict';
@@ -79,10 +88,7 @@ function grad(defs, id, radial, attrs, stops) {
   return g;
 }
 function lin(defs, id, x1, y1, x2, y2, stops) {
-  return grad(defs, id, false, { gradientUnits: 'userSpaceOnUse', x1: x1, y1: y1, x2: x2, y2: y2 }, stops);
-}
-function box(defs, id, vertical, stops) {
-  return grad(defs, id, false, vertical ? { x1: 0, y1: 0, x2: 0, y2: 1 } : { x1: 0, y1: 0, x2: 1, y2: 0 }, stops);
+  return grad(defs, id, false, { gradientUnits: 'userSpaceOnUse', x1: n2(x1), y1: n2(y1), x2: n2(x2), y2: n2(y2) }, stops);
 }
 function pattern(defs, id, href, size, xf) {
   var p = add(defs, 'pattern', { id: id, patternUnits: 'userSpaceOnUse', width: size, height: size });
@@ -93,36 +99,193 @@ function pattern(defs, id, href, size, xf) {
 function U(id) { return 'url(#' + id + ')'; }
 function F(v) { return 'fill:' + v; }
 function S(v, w, extra) { return 'fill:none;stroke:' + v + ';stroke-width:' + w + (extra ? ';' + extra : ''); }
+function clamp01(t) { return t < 0 ? 0 : t > 1 ? 1 : t; }
 
-/* ------------------------------------------------------------ geometry */
-/* The assembly box is 440 x 300 units. Everything the board draws sits
-   between ART_TOP and the floor: the top of the handle's arc, which rises
-   just over the focus ring on the finial. */
-var BOX_W = 440, BOX_H = 300, ART_TOP = 2;
-var CX = 220, FLOOR = 292;
-var VP_Y = FLOOR - 720;                       // the floor's vanishing point
-/* the switch: two poles, one hinge line, jaws JAW_R either side */
-var HINGE_Y = 118, POLE_FAR = 103, POLE_NEAR = 133;
-var JAW_R = 88, BLADE_L = 122, GRIP_L = 84, K = 0.5;
-/* the slab and its frame: the far rail is thin and high, the lip thick and
-   low, and the far edge narrower, because the top slopes away */
-var FAR_Y = 70, FAR_IN = 76, NEAR_IN = 167, NEAR_Y = 181, APRON_B = 197;
-var OUT_FAR = 52, OUT_NEAR = 18, IN_FAR = 62, IN_NEAR = 32;
-var MET_Y = 76, MET_R = 38;
-var JEWEL_Y = 90, JEWEL_DX = 148, JR = 10.4;   // the pilot's glass
-var PLATE_B = 165;
-
-function outerX(y) { return OUT_NEAR + (OUT_FAR - OUT_NEAR) * (NEAR_Y - y) / (NEAR_Y - FAR_Y); }
-function innerX(y) { return IN_NEAR + (IN_FAR - IN_NEAR) * (NEAR_IN - y) / (NEAR_IN - FAR_IN); }
-function mirror(x) { return 2 * CX - x; }
-/* Where a point on a horizontal plane's front edge lands on its back edge. */
-function recede(x, yFront, yBack) { return CX + (x - CX) * (VP_Y - yBack) / (VP_Y - yFront); }
-function quad(x0, y0, x1, y1, x2, y2, x3, y3) {
-  return 'M' + n2(x0) + ' ' + n2(y0) + 'L' + n2(x1) + ' ' + n2(y1) + 'L' + n2(x2) + ' ' + n2(y2) + 'L' + n2(x3) + ' ' + n2(y3) + 'Z';
+/* ------------------------------------------------------------ vectors */
+function vadd(a, b) { return [a[0] + b[0], a[1] + b[1], a[2] + b[2]]; }
+function vsub(a, b) { return [a[0] - b[0], a[1] - b[1], a[2] - b[2]]; }
+function vmul(a, k) { return [a[0] * k, a[1] * k, a[2] * k]; }
+function vdot(a, b) { return a[0] * b[0] + a[1] * b[1] + a[2] * b[2]; }
+function vcross(a, b) { return [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]]; }
+function vnorm(a) { var l = Math.hypot(a[0], a[1], a[2]) || 1; return [a[0] / l, a[1] / l, a[2] / l]; }
+/* A point given in a part's own frame: o + a*i + b*j + c*k. */
+function at(F3, i, j, k) {
+  return [F3.o[0] + F3.a[0] * i + F3.b[0] * j + F3.c[0] * k,
+          F3.o[1] + F3.a[1] * i + F3.b[1] * j + F3.c[1] * k,
+          F3.o[2] + F3.a[2] * i + F3.b[2] * j + F3.c[2] * k];
 }
-function rect(x, y, w, h) { return quad(x, y, x + w, y, x + w, y + h, x, y + h); }
-function fieldPath() {
-  return quad(innerX(FAR_IN), FAR_IN, mirror(innerX(FAR_IN)), FAR_IN, mirror(IN_NEAR), NEAR_IN, IN_NEAR, NEAR_IN);
+var X3 = [1, 0, 0], Y3 = [0, 1, 0], Z3 = [0, 0, 1], DN = [0, -1, 0];
+
+/* ------------------------------------------------------------ camera */
+/* The floor's eye, 32 degrees above the board's foot. The assembly box is
+   BOX_W x BOX_H units and the board's foot on the wool is (CX, FLOOR). u
+   runs up the screen, w toward the eye. */
+var PITCH = 32 * DEG, SP = Math.sin(PITCH), CP = Math.cos(PITCH), EYE = 1500;
+var BOX_W = 460, BOX_H = 296, CX = 230, FLOOR = 268;
+var EYE_P = [0, EYE * SP, EYE * CP];
+function proj(p) {
+  var u = p[1] * CP - p[2] * SP, w = p[1] * SP + p[2] * CP, s = EYE / (EYE - w);
+  return [CX + p[0] * s, FLOOR - u * s, w];
+}
+function viewAt(p) { return vnorm(vsub(EYE_P, p)); }
+function pathOf(pts) {
+  var d = '';
+  for (var i = 0; i < pts.length; i++) d += (i ? 'L' : 'M') + n2(pts[i][0]) + ' ' + n2(pts[i][1]);
+  return d + 'Z';
+}
+function path3(pts3) { return pathOf(pts3.map(proj)); }
+/* The affine that carries a small plane figure (drawn in its own units, y
+   down) to the screen about p0, with axes ex and ey: exact at p0 and good
+   to a fraction of a unit across a dial or a jewel. */
+function planeXf(p0, ex, ey) {
+  var o = proj(p0), a = proj(vadd(p0, ex)), b = proj(vadd(p0, ey));
+  return 'matrix(' + [a[0] - o[0], a[1] - o[1], b[0] - o[0], b[1] - o[1], o[0], o[1]].map(n2).join(' ') + ')';
+}
+
+/* ------------------------------------------------------------ light */
+/* One key, up and a little left and in front: the skylight by day, the
+   room's lamps by night. A polished part mirrors the room by the height of
+   the ray it sends back: the floor and the dark house low down, the lit
+   wall and its arches as a band a little above the horizon, the ceiling. */
+var LIGHT = vnorm([-0.45, 0.72, 0.62]);
+var ENV = [[-1, 0.05], [-0.4, 0.12], [-0.05, 0.16], [0.08, 0.3], [0.2, 0.62], [0.34, 0.66], [0.5, 0.5], [0.75, 0.66], [1, 0.8]];
+function interp(tab, x) {
+  if (x <= tab[0][0]) return tab[0][1];
+  for (var i = 1; i < tab.length; i++) {
+    if (x <= tab[i][0]) {
+      var f = (x - tab[i - 1][0]) / (tab[i][0] - tab[i - 1][0]);
+      return tab[i - 1][1] + (tab[i][1] - tab[i - 1][1]) * f;
+    }
+  }
+  return tab[tab.length - 1][1];
+}
+/* Tone ramps, dark to light. The leaf's six tones are ordered by the law
+   (glaze, shade, body, crest, relief, lip), so by brightness the crest
+   comes last. */
+var MAT = {
+  cu:   { ramp: ['--kc-0', '--kc-1', '--kc-2', '--kc-3', '--kc-4', '--kc-5'], env: 0.66, diff: 0.3, spec: 0.6, pow: 40 },
+  sb:   { ramp: ['--sb-oil', '--sb-0', '--sb-1', '--sb-2', '--sb-3', '--sb-4', '--sb-5'], env: 0.36, diff: 0.62, spec: 0.3, pow: 16, tex: 'hb-patina' },
+  bz:   { ramp: ['--bz-0', '--bz-1', '--bz-2', '--bz-3', '--bz-4'], env: 0.62, diff: 0.34, spec: 0.5, pow: 30 },
+  lead: { ramp: ['--lead-0', '--lead-1', '--lead-2', '--lead-4', '--lead-5', '--lead-3'], env: 0.6, diff: 0.36, spec: 0.45, pow: 24 },
+  eb:   { ramp: ['--eb-0', '--eb-1', '--eb-2', '--eb-3'], env: 0.4, diff: 0.3, spec: 0, pow: 1 },
+  pt:   { ramp: ['--pt-0', '--pt-1', '--pt-2', '--pt-3'], env: 0.3, diff: 0.7, spec: 0.1, pow: 8 }
+};
+function shadeT(n, p, m) {
+  var v = viewAt(p), nv = vdot(n, v);
+  var r = vsub(vmul(n, 2 * nv), v);
+  var d = Math.max(0, vdot(n, LIGHT)), s = Math.max(0, vdot(r, LIGHT));
+  return clamp01(m.env * interp(ENV, r[1]) + m.diff * (0.08 + 0.72 * d) + m.spec * Math.pow(s, m.pow));
+}
+function tone(m, t) {
+  var n = m.ramp.length - 1, x = clamp01(t) * n, i = Math.min(n - 1, Math.floor(x)), f = x - i;
+  if (f < 0.06) return 'var(' + m.ramp[i] + ')';
+  if (f > 0.94) return 'var(' + m.ramp[i + 1] + ')';
+  return 'color-mix(in srgb, var(' + m.ramp[i + 1] + ') ' + Math.round(f * 100) + '%, var(' + m.ramp[i] + '))';
+}
+
+/* Faces are gathered per part, culled against the eye, and laid far to
+   near. */
+function Faces() { this.list = []; }
+Faces.prototype.push = function (pts, n, m, o) {
+  var c = [0, 0, 0];
+  pts.forEach(function (p) { c = vadd(c, p); });
+  c = vmul(c, 1 / pts.length);
+  if (vdot(n, viewAt(c)) <= 1e-3) return null;
+  var t = shadeT(n, c, m) + ((o && o.bias) || 0);
+  var f = { d: path3(pts), w: proj(c)[2], fill: tone(m, t), tex: o && o.tex !== undefined ? o.tex : m.tex };
+  this.list.push(f);
+  return f;
+};
+Faces.prototype.flush = function (g) {
+  this.list.sort(function (a, b) { return a.w - b.w; }).forEach(function (f) {
+    add(g, 'path', { d: f.d, style: F(f.fill) });
+    if (f.tex) add(g, 'path', { d: f.d, fill: U(f.tex), style: 'opacity:var(--sb-tex)' });
+  });
+  this.list = [];
+};
+
+/* Inset a counter-clockwise outline by d, along each corner's bisector. */
+function inN(a, b) { var ex = b[0] - a[0], ey = b[1] - a[1], l = Math.hypot(ex, ey) || 1; return [-ey / l, ex / l]; }
+function inset(poly, d) {
+  var n = poly.length, out = [];
+  for (var k = 0; k < n; k++) {
+    var a = poly[(k + n - 1) % n], b = poly[k], c = poly[(k + 1) % n];
+    var m1 = inN(a, b), m2 = inN(b, c);
+    var mx = m1[0] + m2[0], my = m1[1] + m2[1], ml = Math.hypot(mx, my) || 1;
+    mx /= ml; my /= ml;
+    var cs = Math.max(0.35, mx * m1[0] + my * m1[1]);
+    out.push([b[0] + mx * d / cs, b[1] + my * d / cs]);
+  }
+  return out;
+}
+/* An extrusion: a counter-clockwise outline in the (a, b) plane of frame
+   F3, swept along c from v0 to v1, its top arris chamfered by ch (the
+   worked edge that takes the light). */
+function prism(fc, F3, outline, v0, v1, ch, m, o) {
+  var n = outline.length, ins = ch ? inset(outline, ch) : outline, top = v1 - (ch || 0);
+  for (var k = 0; k < n; k++) {
+    var p0 = outline[k], p1 = outline[(k + 1) % n];
+    var ex = p1[0] - p0[0], ey = p1[1] - p0[1], l = Math.hypot(ex, ey);
+    if (l < 1e-6) continue;
+    var nw = vnorm(vadd(vmul(F3.a, ey / l), vmul(F3.b, -ex / l)));
+    fc.push([at(F3, p0[0], p0[1], v0), at(F3, p1[0], p1[1], v0), at(F3, p1[0], p1[1], top), at(F3, p0[0], p0[1], top)], nw, m, o);
+    if (ch) {
+      var i0 = ins[k], i1 = ins[(k + 1) % n];
+      fc.push([at(F3, p0[0], p0[1], top), at(F3, p1[0], p1[1], top), at(F3, i1[0], i1[1], v1), at(F3, i0[0], i0[1], v1)],
+              vnorm(vadd(nw, F3.c)), m, o);
+    }
+  }
+  fc.push(ins.map(function (p) { return at(F3, p[0], p[1], v1); }), F3.c, m, o);
+  fc.push(outline.slice().reverse().map(function (p) { return at(F3, p[0], p[1], v0); }), vmul(F3.c, -1), m, o);
+}
+function rectO(a0, a1, b0, b1) { return [[a0, b0], [a1, b0], [a1, b1], [a0, b1]]; }
+/* A box whose front (+z) arrises are chamfered. */
+var FZ = { o: [0, 0, 0], a: X3, b: Y3, c: Z3 };
+function boxZ(fc, x0, x1, y0, y1, z0, z1, ch, m, o) { prism(fc, FZ, rectO(x0, x1, y0, y1), z0, z1, ch, m, o); }
+/* A box whose top (+y) arrises are chamfered: its outline in (x, -z). */
+var FY = { o: [0, 0, 0], a: X3, b: [0, 0, -1], c: Y3 };
+function boxY(fc, x0, x1, y0, y1, z0, z1, ch, m, o) { prism(fc, FY, rectO(x0, x1, -z1, -z0), y0, y1, ch, m, o); }
+
+/* A turned part, flat-shaded in K sectors: the profile [[t, r], ...] swept
+   about the axis from o along ax; u and v span the plane across it. */
+function turned(fc, o, ax, u, v, prof, K, m, opt) {
+  function P(a, r, t) { return vadd(vadd(o, vmul(ax, t)), vadd(vmul(u, Math.cos(a) * r), vmul(v, Math.sin(a) * r))); }
+  for (var j = 0; j < prof.length - 1; j++) {
+    var t0 = prof[j][0], r0 = prof[j][1], t1 = prof[j + 1][0], r1 = prof[j + 1][1];
+    if (r0 < 1e-6 && r1 < 1e-6) continue;
+    for (var k = 0; k < K; k++) {
+      var a0 = k / K * 2 * Math.PI, a1 = (k + 1) / K * 2 * Math.PI, am = (a0 + a1) / 2;
+      var rad = vadd(vmul(u, Math.cos(am)), vmul(v, Math.sin(am)));
+      var nrm = vnorm(vsub(vmul(rad, t1 - t0), vmul(ax, r1 - r0)));
+      var q = r0 < 1e-6 ? [P(a0, 0, t0), P(a1, r1, t1), P(a0, r1, t1)]
+            : r1 < 1e-6 ? [P(a0, r0, t0), P(a1, r0, t0), P(a0, 0, t1)]
+            : [P(a0, r0, t0), P(a1, r0, t0), P(a1, r1, t1), P(a0, r1, t1)];
+      fc.push(q, nrm, m, opt);
+    }
+  }
+}
+/* A hexagon nut on a stud along ax. */
+function hexNut(fc, o, ax, u, v, r, h, m) {
+  var ol = [];
+  for (var i = 0; i < 6; i++) { var a = (i * 60 + 30) * DEG; ol.push([Math.cos(a) * r, Math.sin(a) * r]); }
+  prism(fc, { o: o, a: u, b: v, c: ax }, ol, 0, h, r * 0.14, m);
+}
+
+/* Convex hull (monotone chain) of projected points. */
+function hull(pts) {
+  pts = pts.slice().sort(function (a, b) { return a[0] - b[0] || a[1] - b[1]; });
+  function cr(o, a, b) { return (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]); }
+  var lo = [], up = [], i;
+  for (i = 0; i < pts.length; i++) {
+    while (lo.length >= 2 && cr(lo[lo.length - 2], lo[lo.length - 1], pts[i]) <= 0) lo.pop();
+    lo.push(pts[i]);
+  }
+  for (i = pts.length - 1; i >= 0; i--) {
+    while (up.length >= 2 && cr(up[up.length - 2], up[up.length - 1], pts[i]) <= 0) up.pop();
+    up.push(pts[i]);
+  }
+  up.pop(); lo.pop();
+  return lo.concat(up);
 }
 
 /* Stamped legends, cut as strokes: texture at a glance, letters under a
@@ -158,32 +321,11 @@ function stamp(parent, text, cx, top, h, style) {
   return g;
 }
 
-/* A slotted screw head, domed, its slot turned by hash. */
-function screw(g, cx, cy, r, id, metal) {
-  add(g, 'circle', { cx: n2(cx + 0.35), cy: n2(cy + 0.5), r: n2(r), style: F('var(--sb-oil)') + ';opacity:.7' });
-  add(g, 'circle', { cx: n2(cx), cy: n2(cy), r: n2(r), fill: U(metal === 'cu' ? 'hb-cu-dome' : 'hb-br-dome') });
-  var a = rnd(id) * 180 * DEG, dx = Math.cos(a) * r * 0.8, dy = Math.sin(a) * r * 0.8;
-  add(g, 'path', { d: 'M' + n2(cx - dx) + ' ' + n2(cy - dy) + 'L' + n2(cx + dx) + ' ' + n2(cy + dy),
-                   style: S('var(--sb-oil)', n2(r * 0.36), 'stroke-linecap:round') });
-}
-/* A hex nut on a stud, seen from the front and a little above. */
-function nut(g, cx, cy, r) {
-  var d = '';
-  for (var i = 0; i < 6; i++) {
-    var a = (i * 60 + 30) * DEG;
-    d += (i ? 'L' : 'M') + n2(cx + r * Math.cos(a)) + ' ' + n2(cy + r * 0.8 * Math.sin(a));
-  }
-  add(g, 'path', { d: d + 'Z', transform: 'translate(.4 .6)', style: F('var(--sb-oil)') + ';opacity:.75' });
-  add(g, 'path', { d: d + 'Z', fill: U('hb-cu-nut') });
-  add(g, 'circle', { cx: n2(cx), cy: n2(cy), r: n2(r * 0.42), style: F('var(--kc-1)') });
-  add(g, 'circle', { cx: n2(cx - r * 0.1), cy: n2(cy - r * 0.12), r: n2(r * 0.22), style: F('var(--kc-4)') + ';opacity:.8' });
-}
-
-/* Cast relief (the apron's frieze, the bosses' fans): drawn flat, turned to
-   metal by the filter: a worn silhouette, a lit shoulder toward the room's
-   light, a sheen over each form, the far shoulder in shade and the shadow
-   the form throws on its ground. The board never moves, so the filter is
-   painted once. */
+/* Cast relief (the fans on the bosses, the stretcher's sunburst, the
+   finial): drawn flat, turned to metal by the filter: a worn silhouette, a
+   lit shoulder toward the key, the far shoulder in shade and the shadow
+   the form throws on its ground. The board never moves, so it is painted
+   once. */
 function castFilter(defs) {
   var f = add(defs, 'filter', { id: 'hb-cast', x: '-8%', y: '-14%', width: '120%', height: '134%',
                                 'color-interpolation-filters': 'sRGB' });
@@ -192,22 +334,12 @@ function castFilter(defs) {
   add(ct, 'feFuncA', { type: 'linear', slope: 3.4, intercept: -1.2 });
   add(f, 'feComposite', { in: 'm0', in2: 'SourceAlpha', operator: 'in', result: 'm' });
   add(f, 'feComposite', { in: 'SourceGraphic', in2: 'm', operator: 'in', result: 'body' });
-  add(f, 'feTurbulence', { type: 'fractalNoise', baseFrequency: '0.32 0.5', numOctaves: 2, seed: 11, result: 'n' });
-  add(f, 'feColorMatrix', { in: 'n', type: 'matrix', result: 'wear',
-    values: '0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  2.2 0 0 0 -0.3' });
   add(f, 'feOffset', { in: 'm', dx: 0.55, dy: 0.8, result: 'mo' });
   add(f, 'feComposite', { in: 'm', in2: 'mo', operator: 'out', result: 'ul' });
   add(f, 'feGaussianBlur', { in: 'ul', stdDeviation: 0.28, result: 'ulb' });
   add(f, 'feFlood', { result: 'lc', style: 'flood-color:var(--sb-rl-lit)' });
   add(f, 'feComposite', { in: 'lc', in2: 'ulb', operator: 'in', result: 'l0' });
-  add(f, 'feComposite', { in: 'l0', in2: 'wear', operator: 'in', result: 'l1' });
-  add(f, 'feComposite', { in: 'l1', in2: 'm', operator: 'in', result: 'lit' });
-  add(f, 'feOffset', { in: 'm', dx: 1.6, dy: 2.2, result: 'mo2' });
-  add(f, 'feComposite', { in: 'm', in2: 'mo2', operator: 'out', result: 'ul2' });
-  add(f, 'feGaussianBlur', { in: 'ul2', stdDeviation: 0.9, result: 'ul2b' });
-  add(f, 'feFlood', { result: 'sc', style: 'flood-color:var(--sb-4);flood-opacity:.42' });
-  add(f, 'feComposite', { in: 'sc', in2: 'ul2b', operator: 'in', result: 's0' });
-  add(f, 'feComposite', { in: 's0', in2: 'm', operator: 'in', result: 'sheen' });
+  add(f, 'feComposite', { in: 'l0', in2: 'm', operator: 'in', result: 'lit' });
   add(f, 'feOffset', { in: 'm', dx: -0.6, dy: -0.85, result: 'mo3' });
   add(f, 'feComposite', { in: 'm', in2: 'mo3', operator: 'out', result: 'lr' });
   add(f, 'feGaussianBlur', { in: 'lr', stdDeviation: 0.4, result: 'lrb' });
@@ -219,353 +351,371 @@ function castFilter(defs) {
   add(f, 'feFlood', { result: 'oc', style: 'flood-color:var(--sb-oil);flood-opacity:.9' });
   add(f, 'feComposite', { in: 'oc', in2: 'sob', operator: 'in', result: 'drop' });
   var mg = add(f, 'feMerge');
-  ['drop', 'body', 'sheen', 'shade', 'lit'].forEach(function (r) { add(mg, 'feMergeNode', { in: r }); });
+  ['drop', 'body', 'shade', 'lit'].forEach(function (r) { add(mg, 'feMergeNode', { in: r }); });
 }
-function fanPath(cx, by, r, rays) {
-  var d = '';
+function fanPath(cx, by, r, rays, a0, a1) {
+  var d = '', span = (a1 - a0) / rays;
   for (var i = 0; i < rays; i++) {
-    var a0 = Math.PI + (i + 0.14) * Math.PI / rays, a1 = Math.PI + (i + 0.86) * Math.PI / rays;
-    d += 'M' + n2(cx) + ' ' + n2(by) + 'L' + n2(cx + r * Math.cos(a0)) + ' ' + n2(by + r * Math.sin(a0)) +
-         'A' + r + ' ' + r + ' 0 0 1 ' + n2(cx + r * Math.cos(a1)) + ' ' + n2(by + r * Math.sin(a1)) + 'Z';
+    var b0 = a0 + (i + 0.14) * span, b1 = a0 + (i + 0.86) * span;
+    d += 'M' + n2(cx) + ' ' + n2(by) + 'L' + n2(cx + r * Math.cos(b0)) + ' ' + n2(by + r * Math.sin(b0)) +
+         'A' + n2(r) + ' ' + n2(r) + ' 0 0 1 ' + n2(cx + r * Math.cos(b1)) + ' ' + n2(by + r * Math.sin(b1)) + 'Z';
   }
-  var rb = r * 0.26;
-  d += 'M' + n2(cx - rb) + ' ' + n2(by) + 'A' + n2(rb) + ' ' + n2(rb) + ' 0 0 1 ' + n2(cx + rb) + ' ' + n2(by) + 'Z';
   return d;
 }
-function chevronPath(cx, by, w, h) {
-  // a lightning chevron: the house's electric sign, cast
-  var t = h * 0.3;
-  return 'M' + n2(cx - w / 2) + ' ' + n2(by) + 'L' + n2(cx) + ' ' + n2(by - h) + 'L' + n2(cx + w / 2) + ' ' + n2(by) +
-         'L' + n2(cx + w / 2 - t) + ' ' + n2(by) + 'L' + n2(cx) + ' ' + n2(by - h + t * 1.3) + 'L' + n2(cx - w / 2 + t) + ' ' + n2(by) + 'Z';
-}
+
+/* ------------------------------------------------------------ the object */
+/* Board units. The marble panel's face is the plane z = 0. The slab is
+   cut in setbacks, the picture palace's own skyline: a broad body for the
+   switch, a step for the two pilots and a head for the meter. */
+var PX = 200, PY0 = 60, PY1 = 178, PT = 10;          // the body of the panel
+var SX1 = 126, SY1 = 206;                            // the pilots' step
+var SX2 = 62, SY2 = 250;                             // the meter's head
+var FW = 9;                                          // the frame, outside the marble
+var SLAB = [[-PX, PY0], [PX, PY0], [PX, PY1], [SX1, PY1], [SX1, SY1], [SX2, SY1], [SX2, SY2],
+            [-SX2, SY2], [-SX2, SY1], [-SX1, SY1], [-SX1, PY1], [-PX, PY1]];
+/* The bolection moulding, as (outward from the marble's edge, out of the
+   panel): it laps the stone, rises to a rounded crest and falls to a
+   square outer edge that runs back past the slab. */
+var FPROF = [[-2.6, 0.4], [-1.2, 2.2], [0.8, 4.1], [3.2, 5.3], [5.4, 5.1], [7.3, 3.8], [8.6, 2], [9, 0.8], [9, -PT - 1.5]];
+var FANR = 15, FANY = SY2 + FW;                      // the finial
+var MY = 227, MR = 16;                               // the ammeter
+var JWX = 95, JWY = 192, JR = 6.3;                   // the pilots
+/* the switch */
+var PL = 108, PU = 146, HY = (PL + PU) / 2;          // the two poles and the handle's axis
+var BL = 118, WB = 22, TB = 8, ZB = 22;              // blade length, width, thickness, stand-off
+var JX = 100, PLATE_T = 79;                          // the jaws' centres, the plates' top edge
+var LEAF = 2.8, LEAF_Z = ZB + WB / 2 + 2, JAW_W = 8.5; // the jaws' spring leaves
+var XB0 = BL - 6, XB1 = BL + 3, XBQ = 8, XBY = 5;    // the crossbar: along, across, past the blades
+var HANDLE = [                                       // the handle, turned: [t, r]
+  [0, 8.6], [2.4, 8.6], [2.4, 6.9], [11, 6.9], [11.8, 7.8], [13.4, 7.8], [13.4, 6.3], [15, 6.5]
+];
+(function () {
+  // the grip swells to its widest two thirds of the way out, then the end
+  // is turned round
+  for (var t = 17; t <= 76.01; t += 3.7) {
+    var u = (t - 15) / 49;
+    var r = t <= 64 ? 6.5 + 6 * Math.pow(Math.sin(Math.min(1, u) * Math.PI / 2), 0.8) : 12.5 - (t - 64) / 12 * 1;
+    HANDLE.push([t, r]);
+  }
+  for (var k = 1; k <= 8; k++) {
+    var a = k / 8 * Math.PI / 2;
+    HANDLE.push([76 + 10.2 * Math.sin(a), 11.5 * Math.cos(a)]);
+  }
+})();
+var H_FER = 5;                                       // HANDLE[0..H_FER] is the brass ferrule
+var H_END = HANDLE[HANDLE.length - 1][0];
+var LEG_X = 138;
+var PLX = 172, PLY = 8, PLZ0 = -30, PLZ1 = 24;       // the plinth
+var ART_TOP = Math.floor(proj([0, FANY + FANR + 8, 3])[1]);
 
 /* ------------------------------------------------------------ defs */
 function buildDefs(svg) {
   var defs = add(svg, 'defs');
-  // Statuary bronze faces: the room's light on the top third, the dark
-  // house as a band, the oil pooling toward the foot.
-  box(defs, 'hb-face', true, [[0, 'var(--sb-3)'], [0.14, 'var(--sb-2)'], [0.38, 'var(--sb-band)'],
-                              [0.52, 'var(--sb-2)'], [0.8, 'var(--sb-1)'], [1, 'var(--sb-0)']]);
-  box(defs, 'hb-course', true, [[0, 'var(--sb-5)'], [0.12, 'var(--sb-4)'], [0.5, 'var(--sb-2)'], [1, 'var(--sb-0)']]);
-  box(defs, 'hb-cyl', false, [[0, 'var(--sb-oil)'], [0.14, 'var(--sb-1)'], [0.28, 'var(--sb-3)'], [0.38, 'var(--sb-4)'],
-                              [0.48, 'var(--sb-3)'], [0.78, 'var(--sb-1)'], [1, 'var(--sb-oil)']]);
-  box(defs, 'hb-pier', true, [[0, 'var(--sb-2)'], [0.3, 'var(--sb-band)'], [0.5, 'var(--sb-2)'], [0.85, 'var(--sb-1)'], [1, 'var(--sb-0)']]);
-  box(defs, 'hb-reed', false, [[0, 'var(--sb-4)'], [0.3, 'var(--sb-3)'], [0.7, 'var(--sb-1)'], [1, 'var(--sb-oil)']]);
-  box(defs, 'hb-flute', false, [[0, 'var(--sb-oil)'], [0.4, 'var(--sb-1)'], [0.82, 'var(--sb-3)'], [1, 'var(--sb-2)']]);
-  // The lip is a rounded bolection turned to the light: a hot line along
-  // its crown, falling into shade as it rolls under toward the apron.
-  lin(defs, 'hb-lip', 0, NEAR_IN, 0, NEAR_Y, [[0, 'var(--sb-1)'], [0.12, 'var(--sb-3)'], [0.3, 'var(--sb-5)'], [0.42, 'var(--sb-4)'],
-                                             [0.66, 'var(--sb-2)'], [0.9, 'var(--sb-0)'], [1, 'var(--sb-oil)']]);
-  // The lip is where the hands rest: the patina is rubbed back to the leaf
-  // across the middle, fading toward the corners no one leans on.
-  lin(defs, 'hb-lipwear', OUT_NEAR, 0, BOX_W - OUT_NEAR, 0, [[0, 'var(--lead-3)', 0], [0.2, 'var(--lead-4)', 0.3],
-      [0.36, 'var(--lead-5)', 0.85], [0.5, 'var(--lead-3)', 1], [0.64, 'var(--lead-5)', 0.85], [0.8, 'var(--lead-4)', 0.3], [1, 'var(--lead-3)', 0]]);
-  lin(defs, 'hb-rail-far', 0, FAR_Y, 0, FAR_IN, [[0, 'var(--sb-5)'], [0.3, 'var(--sb-4)'], [0.7, 'var(--sb-2)'], [1, 'var(--sb-0)']]);
-  box(defs, 'hb-rail-side', false, [[0, 'var(--sb-4)'], [0.3, 'var(--sb-3)'], [0.75, 'var(--sb-1)'], [1, 'var(--sb-0)']]);
-  lin(defs, 'hb-apron', 0, NEAR_Y, 0, APRON_B, [[0, 'var(--sb-oil)'], [0.12, 'var(--sb-1)'], [0.3, 'var(--sb-2)'],
-                                               [0.46, 'var(--sb-band)'], [0.62, 'var(--sb-2)'], [1, 'var(--sb-0)']]);
-  lin(defs, 'hb-rl', 0, NEAR_Y + 2, 0, APRON_B - 2, [[0, 'var(--sb-4)'], [0.5, 'var(--sb-3)'], [1, 'var(--sb-1)']]);
-  // The slab's light: a veil by night that the room lifts toward the far
-  // rail, the skylight by day; the frame's shade along the side rails; and
-  // one reflection band in the polish.
-  lin(defs, 'hb-slab-light', 0, FAR_IN, 0, NEAR_IN, [[0, 'var(--slab-far)'], [0.5, 'var(--slab-mid)'], [1, 'var(--slab-near)']]);
-  lin(defs, 'hb-slab-side', IN_NEAR, 0, BOX_W - IN_NEAR, 0, [[0, 'var(--slab-edge)'], [0.1, 'var(--slab-edge)', 0], [0.9, 'var(--slab-edge)', 0], [1, 'var(--slab-edge)']]);
-  lin(defs, 'hb-slab-band', 70, FAR_IN, 170, NEAR_IN, [[0, 'var(--slab-spec)', 0], [0.36, 'var(--slab-spec)', 0], [0.43, 'var(--slab-spec)', 1],
-                                                     [0.47, 'var(--slab-spec)', 0.5], [0.55, 'var(--slab-spec)', 0], [1, 'var(--slab-spec)', 0]]);
-  // Copper: rolled bar, bright on its lit arris, dark where it turns under.
-  box(defs, 'hb-cu-v', true, [[0, 'var(--kc-5)'], [0.16, 'var(--kc-4)'], [0.5, 'var(--kc-3)'], [0.85, 'var(--kc-1)'], [1, 'var(--kc-0)']]);
-  box(defs, 'hb-cu-leaf', true, [[0, 'var(--kc-5)'], [0.14, 'var(--kc-4)'], [0.32, 'var(--kc-3)'], [0.8, 'var(--kc-2)'], [1, 'var(--kc-1)']]);
-  grad(defs, 'hb-cu-dome', true, { cx: 0.36, cy: 0.3, r: 0.8 }, [[0, 'var(--kc-5)'], [0.45, 'var(--kc-3)'], [1, 'var(--kc-0)']]);
-  grad(defs, 'hb-cu-nut', true, { cx: 0.35, cy: 0.25, r: 0.9 }, [[0, 'var(--kc-4)'], [0.5, 'var(--kc-2)'], [1, 'var(--kc-0)']]);
-  grad(defs, 'hb-br-dome', true, { cx: 0.36, cy: 0.3, r: 0.8 }, [[0, 'var(--bz-4)'], [0.45, 'var(--bz-2)'], [1, 'var(--bz-0)']]);
-  // Brass, turned: the meter's bezel and the pilots' knurled rings.
-  grad(defs, 'hb-bezel-ring', true, { gradientUnits: 'userSpaceOnUse', cx: CX, cy: MET_Y, r: MET_R + 6 },
-       [[0.84, 'var(--bz-0)'], [0.87, 'var(--bz-2)'], [0.92, 'var(--bz-4)'], [0.96, 'var(--bz-1)'], [1, 'var(--bz-0)']]);
-  lin(defs, 'hb-bezel-light', 0, MET_Y - MET_R - 6, 0, MET_Y, [[0, '#fff', 0.3], [0.6, '#fff', 0], [1, '#000', 0.3]]);
-  box(defs, 'hb-bz-h', true, [[0, 'var(--bz-4)'], [0.4, 'var(--bz-2)'], [1, 'var(--bz-0)']]);
-  grad(defs, 'hb-knurl', true, { cx: 0.42, cy: 0.36, r: 0.7 }, [[0, 'var(--bz-4)'], [0.55, 'var(--bz-2)'], [1, 'var(--bz-0)']]);
-  grad(defs, 'hb-bezel-lip', true, { cx: 0.5, cy: 0.5, r: 0.5 }, [[0.7, 'var(--bz-0)'], [0.8, 'var(--bz-3)'], [0.9, 'var(--bz-4)'], [1, 'var(--bz-1)']]);
-  grad(defs, 'hb-jewel-dark', true, { cx: 0.5, cy: 0.58, r: 0.55 }, [[0, 'var(--jw-off)'], [1, '#040201']]);
-  grad(defs, 'hb-facet-dark', true, { cx: 0.4, cy: 0.35, r: 0.8 }, [[0, '#fff', 0.16], [1, '#fff', 0.03]]);
-  // Red vulcanised fibre, the fuses' barrels, and their brass ferrules.
-  box(defs, 'hb-fibre', true, [[0, 'var(--fb-2)'], [0.22, 'var(--fb-3)'], [0.4, 'var(--fb-2)'], [0.75, 'var(--fb-1)'], [1, 'var(--fb-0)']]);
-  box(defs, 'hb-ferrule', true, [[0, 'var(--bz-2)'], [0.22, 'var(--bz-4)'], [0.45, 'var(--bz-2)'], [0.8, 'var(--bz-1)'], [1, 'var(--bz-0)']]);
-  // Portoro plinth faces and treads.
-  box(defs, 'hb-pface', true, [[0, '#000', 0], [1, '#000', 0.55]]);
-  box(defs, 'hb-ptop', true, [[0, 'var(--pt-far)'], [1, 'var(--pt-near)']]);
-  // The meter: an ivory enamel dial.
-  grad(defs, 'hb-dial', true, { gradientUnits: 'userSpaceOnUse', cx: CX, cy: MET_Y, r: MET_R },
-       [[0, 'var(--dial-1)'], [0.7, 'var(--dial-0)'], [1, 'var(--dial-2)']]);
-  // Floor under the plinth, and soft occlusion where masses meet.
-  grad(defs, 'hb-cshadow', true, { cx: 0.5, cy: 0.42, r: 0.5 }, [[0, 'var(--floor-shadow)'], [0.55, 'var(--floor-shadow)', 0.45], [1, 'var(--floor-shadow)', 0]]);
-  box(defs, 'hb-ao-d', true, [[0, '#000', 0.6], [1, '#000', 0]]);
-  pattern(defs, 'hb-patina', '/static/assets/tex/patina-statuary.webp', 272);
-  pattern(defs, 'hb-patina-b', '/static/assets/tex/patina-statuary.webp', 272, 'translate(97 41) scale(1 -1)');
-  pattern(defs, 'hb-patina-v', '/static/assets/tex/patina-statuary.webp', 272, 'translate(30 0) rotate(90)');
-  pattern(defs, 'hb-bardiglio', '/static/assets/tex/stone-bardiglio.webp', 300,
-          'translate(' + Math.round(rnd('board-slab', 1) * 300) + ' 0) scale(1 .6)');
+  // the patina's brushing runs along each member: down a stile, along a rail
+  pattern(defs, 'hb-patina', '/static/assets/tex/patina-board.webp', 150);
+  pattern(defs, 'hb-patina-h', '/static/assets/tex/patina-board.webp', 150, 'rotate(90) translate(41 97)');
+  pattern(defs, 'hb-marble', '/static/assets/tex/stone-bardiglio.webp', 300,
+          'translate(' + Math.round(rnd('board-slab', 1) * 300) + ' ' + Math.round(rnd('board-slab', 2) * 300) + ')');
   pattern(defs, 'hb-portoro', '/static/assets/tex/stone-portoro.webp', 190);
   castFilter(defs);
+  add(add(defs, 'filter', { id: 'hb-soft', x: '-20%', y: '-40%', width: '140%', height: '180%' }),
+      'feGaussianBlur', { stdDeviation: 1.6 });
+  add(add(defs, 'filter', { id: 'hb-soft2', x: '-20%', y: '-40%', width: '140%', height: '180%' }),
+      'feGaussianBlur', { stdDeviation: 2.6 });
+  grad(defs, 'hb-cshadow', true, { cx: 0.5, cy: 0.45, r: 0.5 },
+       [[0, 'var(--floor-shadow)'], [0.55, 'var(--floor-shadow)', 0.5], [1, 'var(--floor-shadow)', 0]]);
+  // The marble's light: its veil by the hour and one band of polish.
+  var t0 = proj([0, SY2, 0]), t1 = proj([0, PY0, 0]);
+  lin(defs, 'hb-veil', 0, t0[1], 0, t1[1], [[0, 'var(--slab-top)'], [0.45, 'var(--slab-mid)'], [1, 'var(--slab-bot)']]);
+  var b0 = proj([-PX, SY2, 0]), b1 = proj([PX * 0.6, PY0, 0]);
+  lin(defs, 'hb-polish', b0[0], b0[1], b1[0], b1[1], [[0, 'var(--slab-spec)', 0], [0.34, 'var(--slab-spec)', 0], [0.4, 'var(--slab-spec)', 0.9],
+      [0.43, 'var(--slab-spec)', 0.35], [0.5, 'var(--slab-spec)', 0.6], [0.56, 'var(--slab-spec)', 0], [1, 'var(--slab-spec)', 0]]);
+  grad(defs, 'hb-cu-dome', true, { cx: 0.36, cy: 0.3, r: 0.8 }, [[0, 'var(--kc-5)'], [0.45, 'var(--kc-3)'], [1, 'var(--kc-0)']]);
+  grad(defs, 'hb-br-dome', true, { cx: 0.36, cy: 0.3, r: 0.8 }, [[0, 'var(--bz-4)'], [0.45, 'var(--bz-2)'], [1, 'var(--bz-0)']]);
+  grad(defs, 'hb-sb-dome', true, { cx: 0.36, cy: 0.3, r: 0.8 }, [[0, 'var(--sb-5)'], [0.4, 'var(--sb-3)'], [1, 'var(--sb-0)']]);
+  grad(defs, 'hb-facet-dark', true, { cx: 0.4, cy: 0.35, r: 0.8 }, [[0, '#fff', 0.2], [1, '#fff', 0.04]]);
+  grad(defs, 'hb-bz-h', false, { x1: 0, y1: 0, x2: 0, y2: 1 }, [[0, 'var(--bz-4)'], [0.4, 'var(--bz-2)'], [1, 'var(--bz-0)']]);
   return defs;
 }
 
-/* ------------------------------------------------------------ the pedestal */
-function buildPedestal(q) {
+/* ------------------------------------------------------------ floor, plinth, stand */
+function buildFloor(q) {
+  var g = add(q, 'g', null, 'hb-floor');
   // The wool under it: a contact shadow, no return (wool does not reflect).
-  var floor = add(q, 'g', null, 'hb-floor');
-  add(floor, 'ellipse', { cx: CX + 4, cy: FLOOR + 1, rx: 150, ry: 10, fill: U('hb-cshadow') });
-  add(floor, 'ellipse', { cx: CX + 2, cy: FLOOR - 0.5, rx: 122, ry: 3.4, style: F('#000') + ';opacity:.55' });
-
-  var ped = add(q, 'g', null, 'hb-ped');
-  // Portoro plinth, two courses, each with its tread seen from above.
-  [[FLOOR - 12, FLOOR, 120, 5], [FLOOR - 24, FLOOR - 16, 98, 4]].forEach(function (c, i) {
-    var y0 = c[0], y1 = c[1], hw = c[2], tread = c[3];
-    var tb = y0 - tread, xl = recede(CX - hw, y0, tb), xr = recede(CX + hw, y0, tb);
-    add(ped, 'path', { d: quad(CX - hw, y0, CX + hw, y0, xr, tb, xl, tb), fill: U('hb-portoro') });
-    add(ped, 'path', { d: quad(CX - hw, y0, CX + hw, y0, xr, tb, xl, tb), fill: U('hb-ptop'), style: 'opacity:.8' });
-    add(ped, 'path', { d: 'M' + n2(CX - hw) + ' ' + y0 + 'H' + (CX + hw), style: S('var(--pt-lip)', 0.8) });
-    add(ped, 'path', { d: rect(CX - hw, y0, hw * 2, y1 - y0), fill: U('hb-portoro') });
-    add(ped, 'path', { d: rect(CX - hw, y0, hw * 2, y1 - y0), fill: U('hb-pface') });
-    if (i === 0) {
-      // the bronze toe strip on the lower course, rubbed by shoes
-      add(ped, 'path', { d: rect(CX - hw, y1 - 3, hw * 2, 3), fill: U('hb-course') });
-      add(ped, 'path', { d: rect(CX - hw * 0.7, y1 - 2.6, hw * 1.4, 1), style: F('var(--lead-3)') + ';opacity:.5' });
+  var a = proj([-PLX - 14, 0, PLZ0 - 6]), b = proj([PLX + 14, 0, PLZ1 + 10]);
+  var c = proj([8, 0, (PLZ0 + PLZ1) / 2 + 2]);
+  add(g, 'ellipse', { cx: n2(c[0]), cy: n2(c[1]), rx: n2((b[0] - a[0]) / 2), ry: n2((b[1] - a[1]) / 2), fill: U('hb-cshadow') });
+  var f0 = proj([-PLX, 0, PLZ1]), f1 = proj([PLX, 0, PLZ1]);
+  add(g, 'path', { d: 'M' + n2(f0[0]) + ' ' + n2(f0[1] + 0.6) + 'H' + n2(f1[0] + 3), style: S('#000', 3, 'opacity:.62;stroke-linecap:round'), filter: U('hb-soft') });
+}
+function buildPlinth(q) {
+  var g = add(q, 'g', null, 'hb-ped');
+  var fc = new Faces();
+  boxY(fc, -PLX, PLX, 0, PLY, PLZ0, PLZ1, 2.4, MAT.pt, { tex: null });
+  // Portoro: the stone's own figure, then the light on each face
+  fc.list.sort(function (a, b) { return a.w - b.w; }).forEach(function (f) {
+    add(g, 'path', { d: f.d, fill: U('hb-portoro') });
+    add(g, 'path', { d: f.d, style: F(f.fill) + ';opacity:.6' });
+  });
+  fc.list = [];
+  // the bronze toe strip along its foot, rubbed to the wing's leaf by shoes
+  boxZ(fc, -PLX, PLX, 0, 3.4, PLZ1, PLZ1 + 1.4, 0.6, MAT.sb);
+  fc.flush(g);
+  var t0 = proj([-PLX * 0.72, 1.9, PLZ1 + 1.4]), t1 = proj([PLX * 0.72, 1.9, PLZ1 + 1.4]);
+  lin(q.querySelector('defs'), 'hb-toe', t0[0], 0, t1[0], 0, [[0, 'var(--lead-3)', 0], [0.3, 'var(--lead-5)', 0.8], [0.5, 'var(--lead-3)', 1], [0.7, 'var(--lead-5)', 0.8], [1, 'var(--lead-3)', 0]]);
+  add(g, 'path', { d: 'M' + n2(t0[0]) + ' ' + n2(t0[1]) + 'H' + n2(t1[0]), style: 'fill:none;stroke:url(#hb-toe);stroke-width:1.1' });
+}
+function buildStand(q) {
+  var g = add(q, 'g', null, 'hb-ped');
+  var fc = new Faces();
+  var capTop = PY0 - FW + 0.5;
+  // The stretcher first: the legs' inner faces stand in front of its ends.
+  boxZ(fc, -LEG_X + 12, LEG_X - 12, 26, 33, -14, -2, 1.2, MAT.sb);
+  fc.flush(g);
+  // its sunburst, cast on a bronze disc
+  turned(fc, [0, 36, -1], Z3, X3, Y3, [[-1, 11], [0.6, 11], [1.6, 10], [2, 0]], 36, MAT.sb);
+  fc.flush(g);
+  var ray = add(g, 'g', { transform: planeXf([0, 36, 1.2], X3, DN), filter: U('hb-cast') });
+  add(ray, 'path', { d: fanPath(0, 3.4, 8.8, 11, Math.PI, 2 * Math.PI) + 'M-2.9 3.4A2.9 2.9 0 0 1 2.9 3.4Z', style: F('var(--sb-3)') });
+  [-1, 1].forEach(function (sg) {
+    var x = sg * LEG_X;
+    // the foot: a stepped block, its toe rubbed to the leaf
+    boxY(fc, x - 24, x + 24, PLY, PLY + 8, -30, 16, 1.6, MAT.sb);
+    boxY(fc, x - 19, x + 19, PLY + 8, PLY + 12, -24, 11, 1.2, MAT.sb);
+    fc.flush(g);
+    var t0 = proj([x - 18, PLY + 8, 16]), t1 = proj([x + 18, PLY + 8, 16]);
+    add(g, 'path', { d: 'M' + n2(t0[0]) + ' ' + n2(t0[1]) + 'H' + n2(t1[0]), style: S('var(--lead-5)', 0.9, 'opacity:.8') });
+    // the shaft: reeded on its face, a half round per reed
+    var y0 = PLY + 12, y1 = capTop - 6;
+    boxZ(fc, x - 14, x + 14, y0, y1, -18, 4, 0, MAT.sb);
+    fc.flush(g);
+    for (var r = 0; r < 5; r++) {
+      var rx = x - 14 + 2.8 * (2 * r + 1);
+      turned(fc, [rx, y0, 4], Y3, X3, Z3, [[0, 0], [0.01, 2.5], [y1 - y0 - 0.01, 2.5], [y1 - y0, 0]], 12, MAT.sb, { tex: null });
+      fc.flush(g);
     }
+    // the capital under the frame
+    boxY(fc, x - 19, x + 19, y1, y1 + 3, -22, 8, 1, MAT.sb);
+    boxY(fc, x - 16, x + 16, y1 + 3, capTop, -20, 6, 1, MAT.sb);
+    fc.flush(g);
   });
-  // The base block the pier stands on, with the wing's leaf on its toe.
-  var bb0 = FLOOR - 36, bb1 = FLOOR - 25;
-  add(ped, 'path', { d: rect(CX - 94, bb0, 188, bb1 - bb0), fill: U('hb-course') });
-  add(ped, 'path', { d: rect(CX - 94, bb0, 188, bb1 - bb0), fill: U('hb-patina'), style: 'opacity:var(--sb-tex)' });
-  add(ped, 'path', { d: rect(CX - 94, bb0 + 0.2, 188, 1), style: F('var(--lead-3)') + ';opacity:.6' });
-  add(ped, 'path', { d: rect(CX - 94, bb1 - 2.4, 188, 1), style: F('var(--lead-5)') + ';opacity:.35' });
-  // The pier: a reeded bronze body that widens as it rises to carry the
-  // desk, the way the house's pulpits and ticket kiosks were cut.
-  var p0 = APRON_B + 7, p1 = bb0, hwT = 106, hwB = 82;
-  var pier = quad(CX - hwT, p0, CX + hwT, p0, CX + hwB, p1, CX - hwB, p1);
-  add(ped, 'path', { d: pier, fill: U('hb-pier') });
-  add(ped, 'path', { d: pier, fill: U('hb-patina-v'), style: 'opacity:var(--sb-tex)' });
-  var nr = 15;
-  for (var i = 0; i < nr; i++) {
-    var u0 = (i + 0.14) / nr, u1 = (i + 0.86) / nr;
-    var yt = p0 + 17, yb = p1 - 5;
-    var wt = hwT - (hwT - hwB) * (yt - p0) / (p1 - p0), wb = hwT - (hwT - hwB) * (yb - p0) / (p1 - p0);
-    var xt0 = CX - wt + 2 * wt * u0, xt1 = CX - wt + 2 * wt * u1, xb0 = CX - wb + 2 * wb * u0, xb1 = CX - wb + 2 * wb * u1;
-    var rd = 'M' + n2(xt0) + ' ' + (yt + 2) + 'Q' + n2((xt0 + xt1) / 2) + ' ' + (yt - 1) + ' ' + n2(xt1) + ' ' + (yt + 2) +
-             'L' + n2(xb1) + ' ' + yb + 'L' + n2(xb0) + ' ' + yb + 'Z';
-    // each reed is a half round: lit on the side toward the room's lamps,
-    // its shadow on the pier to the right
-    add(ped, 'path', { d: rd, transform: 'translate(1.1 0)', style: F('var(--sb-oil)') + ';opacity:.45' });
-    add(ped, 'path', { d: rd, fill: U('hb-reed') });
-  }
-  // speed bands under the capital: two fillets in the wing's leaf
-  [p0 + 5, p0 + 10].forEach(function (y, k) {
-    var w = hwT - (hwT - hwB) * (y - p0) / (p1 - p0);
-    add(ped, 'path', { d: rect(CX - w, y, 2 * w, 2.4), fill: U('hb-course') });
-    add(ped, 'path', { d: rect(CX - w, y + 0.3, 2 * w, 0.9), style: F('var(--lead-3)') + ';opacity:' + (0.8 - k * 0.2) });
-  });
-  add(ped, 'path', { d: rect(CX - hwT, p0, 2 * hwT, 4), fill: U('hb-ao-d') });
-  // the pier's two arrises, the left one catching the light
-  add(ped, 'path', { d: 'M' + (CX - hwT + 0.6) + ' ' + p0 + 'L' + (CX - hwB + 0.6) + ' ' + p1, style: S('var(--sb-5)', 0.9, 'opacity:.55') });
-  add(ped, 'path', { d: 'M' + (CX + hwT - 0.6) + ' ' + p0 + 'L' + (CX + hwB - 0.6) + ' ' + p1, style: S('var(--sb-oil)', 1.2, 'opacity:.8') });
-  // a cast fan at the head of the reeding, on the pier's axis
-  var cf = add(ped, 'g', { filter: U('hb-cast') });
-  add(cf, 'path', { d: fanPath(CX, p0 + 30, 15, 9), fill: U('hb-rl') });
-  // the oil where the pier meets its base
-  add(ped, 'path', { d: rect(CX - hwB, p1 - 3, 2 * hwB, 3), style: F('var(--sb-oil)') + ';opacity:.55' });
-
-  // The capital: one course under the apron, shading the pier's head.
-  add(ped, 'path', { d: rect(CX - 178, APRON_B, 356, 7), fill: U('hb-course') });
-  add(ped, 'path', { d: rect(CX - 178, APRON_B, 356, 7), fill: U('hb-patina-b'), style: 'opacity:var(--sb-tex)' });
-  add(ped, 'path', { d: 'M' + (CX - 178) + ' ' + (APRON_B + 0.4) + 'H' + (CX + 178), style: S('var(--sb-5)', 0.6, 'opacity:.6') });
-  add(ped, 'path', { d: rect(CX - 170, APRON_B + 7, 340, 3.4), fill: U('hb-ao-d') });
 }
 
-/* ------------------------------------------------------------ the desk */
-function buildDesk(q) {
-  var g = add(q, 'g', null, 'hb-desk');
-  // The apron: the desk's front, a band of cast relief between two fillets.
-  var aw = BOX_W - 2 * OUT_NEAR;
-  add(g, 'path', { d: rect(OUT_NEAR, NEAR_Y, aw, APRON_B - NEAR_Y), fill: U('hb-apron') });
-  add(g, 'path', { d: rect(OUT_NEAR, NEAR_Y, aw, APRON_B - NEAR_Y), fill: U('hb-patina'), style: 'opacity:var(--sb-tex)' });
-  var fr = add(g, 'g', { filter: U('hb-cast') });
-  var dFan = '', dChev = '';
-  var n = 15, pitch = (aw - 40) / (n - 1);
-  for (var i = 0; i < n; i++) {
-    var x = OUT_NEAR + 20 + i * pitch;
-    if (i % 2 === 0) dFan += fanPath(x, APRON_B - 3, 9.4, 7);
-    else dChev += chevronPath(x, APRON_B - 3.4, 12, 9.6);
+/* ------------------------------------------------------------ the panel */
+function facePts(x0, x1, y0, y1, z) { return [[x0, y0, z], [x1, y0, z], [x1, y1, z], [x0, y1, z]]; }
+function slabPath(inset0) {
+  var pts = inset0 ? insetCW(SLAB, inset0) : SLAB;
+  return path3(pts.map(function (p) { return [p[0], p[1], 0]; }));
+}
+/* SLAB runs counter-clockwise (x right, y up); inset() takes that. */
+function insetCW(poly, d) { return inset(poly, d); }
+function buildPanel(q) {
+  var g = add(q, 'g', null, 'hb-panel');
+  var face = slabPath(0);
+  add(g, 'path', { d: face, fill: U('hb-marble') });
+  add(g, 'path', { d: face, fill: U('hb-veil') });
+  add(g, 'path', { d: face, fill: U('hb-polish') });
+  // The frame's crest shades the stone under every rail that faces down
+  // onto it and inside every stile on the lamp's side; each inner edge
+  // has its line of occlusion.
+  var sh = add(g, 'g', { filter: U('hb-soft'), style: F('var(--slab-shade)') });
+  for (var i = 0; i < SLAB.length; i++) {
+    var p0 = SLAB[i], p1 = SLAB[(i + 1) % SLAB.length];
+    var nx = p1[1] - p0[1], ny = -(p1[0] - p0[0]), l = Math.hypot(nx, ny);
+    nx /= l; ny /= l;                       // outward
+    var w = ny > 0.5 ? 5 : nx < -0.5 ? 4 : 1.4;
+    add(sh, 'path', { d: path3([[p0[0], p0[1], 0], [p1[0], p1[1], 0], [p1[0] - nx * w, p1[1] - ny * w, 0], [p0[0] - nx * w, p0[1] - ny * w, 0]]) });
   }
-  add(fr, 'path', { d: dFan, fill: U('hb-rl') });
-  add(fr, 'path', { d: dChev, fill: U('hb-rl') });
-  add(g, 'path', { d: rect(OUT_NEAR, APRON_B - 1.4, aw, 1.4), style: F('var(--sb-oil)') + ';opacity:.9' });
-  add(g, 'path', { d: rect(OUT_NEAR, NEAR_Y, aw, 3.4), fill: U('hb-ao-d') });
-  // The apron's two ends turn away from the room.
-  add(g, 'path', { d: rect(OUT_NEAR, NEAR_Y, 6, APRON_B - NEAR_Y), style: F('#000') + ';opacity:.3' });
-  add(g, 'path', { d: rect(BOX_W - OUT_NEAR - 6, NEAR_Y, 6, APRON_B - NEAR_Y), style: F('#000') + ';opacity:.3' });
+  // a brass stringing line let into the stone, a hair's shadow under it
+  var sl = slabPath(11);
+  add(g, 'path', { d: sl, style: S('#000', 0.9, 'opacity:.35'), transform: 'translate(.4 .6)' });
+  add(g, 'path', { d: sl, style: S('var(--bz-2)', 0.8) });
+}
 
-  // The slab: Bardiglio, polished, under the room's light.
-  var field = fieldPath();
-  add(g, 'path', { d: field, fill: U('hb-bardiglio') });
-  add(g, 'path', { d: field, fill: U('hb-slab-light') });
-  add(g, 'path', { d: field, fill: U('hb-slab-side') });
-  add(g, 'path', { d: field, fill: U('hb-slab-band') });
-  // a brass stringing line let into the stone, inset from the frame
-  var ins = 6;
-  add(g, 'path', { d: quad(innerX(FAR_IN + ins) + ins, FAR_IN + ins, mirror(innerX(FAR_IN + ins) + ins), FAR_IN + ins,
-                           mirror(innerX(NEAR_IN - ins) + ins), NEAR_IN - ins, innerX(NEAR_IN - ins) + ins, NEAR_IN - ins),
-                   style: S('var(--bz-2)', 0.9, 'opacity:.75') });
-  add(g, 'path', { d: quad(innerX(FAR_IN + ins) + ins + 0.6, FAR_IN + ins + 0.7, mirror(innerX(FAR_IN + ins) + ins) - 0.6, FAR_IN + ins + 0.7,
-                           mirror(innerX(NEAR_IN - ins) + ins) - 0.6, NEAR_IN - ins + 0.7, innerX(NEAR_IN - ins) + ins + 0.6, NEAR_IN - ins + 0.7),
-                   style: S('#000', 0.5, 'opacity:.35') });
-  // the far rail's shadow on the stone
-  add(g, 'path', { d: quad(innerX(FAR_IN), FAR_IN, mirror(innerX(FAR_IN)), FAR_IN, mirror(innerX(FAR_IN + 6)), FAR_IN + 6, innerX(FAR_IN + 6), FAR_IN + 6), fill: U('hb-ao-d') });
-
-  // The frame. Side rails first, each a sloped moulding lit on its left.
-  [0, 1].forEach(function (s) {
-    var m = s ? mirror : function (x) { return x; };
-    var d = quad(m(outerX(FAR_Y)), FAR_Y, m(innerX(FAR_IN)), FAR_IN, m(IN_NEAR), NEAR_IN, m(OUT_NEAR), NEAR_Y);
-    add(g, 'path', { d: d, fill: U('hb-rail-side') });
-    add(g, 'path', { d: d, fill: U('hb-patina-b'), style: 'opacity:var(--sb-tex)' });
-    add(g, 'path', { d: 'M' + n2(m(outerX(FAR_Y + 2) + 0.8)) + ' ' + (FAR_Y + 2) + 'L' + n2(m(OUT_NEAR + 0.8)) + ' ' + (NEAR_Y - 1),
-                     style: S('var(--sb-5)', 0.8, 'opacity:' + (s ? 0.25 : 0.7)) });
-    add(g, 'path', { d: 'M' + n2(m(innerX(FAR_IN))) + ' ' + FAR_IN + 'L' + n2(m(IN_NEAR)) + ' ' + NEAR_IN,
-                     style: S('var(--sb-oil)', 1, 'opacity:.8') });
+/* The bolection frame, swept round the slab's outline. Every corner is
+   square, so each end of a run is mitred along the sum of the two sides'
+   outward normals, for a setback's inside corners as for its outside ones.
+   A facet (dout, dz) of the profile faces (-dz along the side's normal,
+   dout out of the panel). The patina's brushing runs along each member. */
+function framePoly(fc, poly, prof, m, closed) {
+  var n = poly.length, norms = [];
+  for (var i = 0; i < n; i++) {
+    var p0 = poly[i], p1 = poly[(i + 1) % n], l = Math.hypot(p1[0] - p0[0], p1[1] - p0[1]);
+    norms.push([(p1[1] - p0[1]) / l, -(p1[0] - p0[0]) / l]);
+  }
+  var last = closed ? n : n - 1;
+  for (i = 0; i < last; i++) {
+    var c0 = poly[i], c1 = poly[(i + 1) % n], nr = norms[i];
+    var s0 = closed || i > 0 ? [nr[0] + norms[(i + n - 1) % n][0], nr[1] + norms[(i + n - 1) % n][1]] : nr;
+    var s1 = closed || i < n - 2 ? [nr[0] + norms[(i + 1) % n][0], nr[1] + norms[(i + 1) % n][1]] : nr;
+    var tex = Math.abs(nr[1]) > 0.5 ? 'hb-patina-h' : 'hb-patina';
+    for (var j = 0; j < prof.length - 1; j++) {
+      var p = prof[j], r = prof[j + 1];
+      var A = [c0[0] + s0[0] * p[0], c0[1] + s0[1] * p[0], p[1]], B = [c1[0] + s1[0] * p[0], c1[1] + s1[1] * p[0], p[1]];
+      var C = [c1[0] + s1[0] * r[0], c1[1] + s1[1] * r[0], r[1]], D = [c0[0] + s0[0] * r[0], c0[1] + s0[1] * r[0], r[1]];
+      var dout = r[0] - p[0], dz = r[1] - p[1];
+      fc.push([A, B, C, D], vnorm([-nr[0] * dz, -nr[1] * dz, dout]), m, { tex: tex });
+    }
+  }
+}
+function boss(g, fc, cx, cy, h, lead) {
+  boxZ(fc, cx - h, cx + h, cy - h, cy + h, -2, 7.2, 1.5, MAT.sb);
+  fc.flush(g);
+  var fg = add(g, 'g', { transform: planeXf([cx, cy, 7.2], X3, DN), filter: U('hb-cast') });
+  add(fg, 'path', { d: fanPath(0, h * 0.42, h * 0.6, 5, Math.PI, 2 * Math.PI) + 'M' + n2(-h * 0.2) + ' ' + n2(h * 0.42) + 'A' + n2(h * 0.2) + ' ' + n2(h * 0.2) + ' 0 0 1 ' + n2(h * 0.2) + ' ' + n2(h * 0.42) + 'Z',
+                   style: F('var(--sb-3)') });
+  var a = proj([cx - h + 1.5, cy + h - 0.2, 5.7]), b = proj([cx + h - 1.5, cy + h - 0.2, 5.7]);
+  add(g, 'path', { d: 'M' + n2(a[0]) + ' ' + n2(a[1]) + 'H' + n2(b[0]), style: S('var(--lead-5)', 0.9, 'opacity:' + lead) });
+}
+function buildFrame(q) {
+  var g = add(q, 'g', null, 'hb-frame');
+  var fc = new Faces(), defs = q.querySelector('defs');
+  framePoly(fc, SLAB, FPROF, MAT.sb, true);
+  fc.flush(g);
+  // The wing's leaf where knuckles pass: the crest of each stile beside
+  // the handle's rest, rubbed bright.
+  [-1, 1].forEach(function (sg) {
+    var x = sg * (PX + 4.3), y0 = HY - 40, y1 = HY + 40;
+    var top = proj([x, y1, 5.3]), bot = proj([x, y0, 5.3]);
+    var id = 'hb-wear-' + (sg < 0 ? 'l' : 'r');
+    lin(defs, id, 0, top[1], 0, bot[1], [[0, 'var(--lead-3)', 0], [0.25, 'var(--lead-5)', 0.85], [0.5, 'var(--lead-3)', 1], [0.75, 'var(--lead-5)', 0.85], [1, 'var(--lead-3)', 0]]);
+    add(g, 'path', { d: path3([[x - 1.5, y0, 5.3], [x + 1.5, y0, 5.3], [x + 1.5, y1, 5.3], [x - 1.5, y1, 5.3]]), fill: U(id) });
   });
-  // Far rail: thin, because it is seen nearly edge-on, and lit along its top.
-  var far = quad(outerX(FAR_Y), FAR_Y, mirror(outerX(FAR_Y)), FAR_Y, mirror(innerX(FAR_IN)), FAR_IN, innerX(FAR_IN), FAR_IN);
-  add(g, 'path', { d: far, fill: U('hb-rail-far') });
-  add(g, 'path', { d: far, fill: U('hb-patina'), style: 'opacity:var(--sb-tex)' });
-  add(g, 'path', { d: 'M' + n2(outerX(FAR_Y)) + ' ' + (FAR_Y + 0.5) + 'H' + n2(mirror(outerX(FAR_Y))), style: S('var(--lead-3)', 1, 'opacity:.75') });
-  // Near rail: the lip the hands rest on.
-  var lip = quad(IN_NEAR, NEAR_IN, mirror(IN_NEAR), NEAR_IN, mirror(OUT_NEAR), NEAR_Y, OUT_NEAR, NEAR_Y);
-  add(g, 'path', { d: lip, fill: U('hb-lip') });
-  add(g, 'path', { d: lip, fill: U('hb-patina'), style: 'opacity:var(--sb-tex)' });
-  add(g, 'path', { d: rect(OUT_NEAR + 6, NEAR_IN + 3.4, BOX_W - 2 * OUT_NEAR - 12, 2.6), fill: U('hb-lipwear') });
-  add(g, 'path', { d: 'M' + IN_NEAR + ' ' + (NEAR_IN + 0.3) + 'H' + mirror(IN_NEAR), style: S('var(--sb-oil)', 0.9) });
-  // Corner bosses: square, stepped, each cast with a small fan.
-  [[outerX(FAR_Y) - 3, FAR_Y - 3, 14, 10], [OUT_NEAR - 2, NEAR_IN - 2, 17, 16]].forEach(function (c) {
-    [0, 1].forEach(function (s) {
-      var x = s ? mirror(c[0]) - c[2] : c[0], y = c[1], w = c[2], h = c[3];
-      add(g, 'path', { d: rect(x + 0.8, y + 1, w, h), style: F('var(--sb-oil)') + ';opacity:.7' });
-      add(g, 'path', { d: rect(x, y, w, h), fill: U('hb-course') });
-      add(g, 'path', { d: rect(x + 2, y + 2, w - 4, h - 4), fill: U('hb-face') });
-      add(g, 'path', { d: 'M' + x + ' ' + (y + h) + 'V' + y + 'H' + (x + w), style: S('var(--lead-5)', 0.8, 'opacity:.75') });
-      var fg = add(g, 'g', { filter: U('hb-cast') });
-      add(fg, 'path', { d: fanPath(x + w / 2, y + h - 2.6, Math.min(w, h) * 0.34, 5), fill: U('hb-rl') });
-    });
+  // a boss on every outside corner of the setbacks, a cast fan on each, the
+  // wing's leaf on the crowns of the upper ones, where they are handled
+  [[PX, PY0, 0.45], [PX, PY1, 0.9], [SX1, SY1, 0.9], [SX2, SY2, 0.9]].forEach(function (c) {
+    [-1, 1].forEach(function (sg) { boss(g, fc, sg * (c[0] + 3.2), c[1] + (c[1] === PY0 ? -3.2 : 3.2), 7, c[2]); });
   });
 }
 
 /* ------------------------------------------------------------ the crest */
 function buildCrest(q) {
   var g = add(q, 'g', null, 'hb-crest');
-  // The shoulders the dial stands on: a ziggurat in three steps.
-  [[FAR_Y + 2, FAR_Y - 10, 78], [FAR_Y - 10, FAR_Y - 20, 64], [FAR_Y - 20, FAR_Y - 30, 52]].forEach(function (s, i) {
-    var d = rect(CX - s[2], s[1], s[2] * 2, s[0] - s[1]);
-    add(g, 'path', { d: d, transform: 'translate(.9 1.2)', style: F('var(--sb-oil)') + ';opacity:.6' });
-    add(g, 'path', { d: d, fill: U('hb-course') });
-    add(g, 'path', { d: d, fill: U('hb-patina-b'), style: 'opacity:var(--sb-tex)' });
-    add(g, 'path', { d: 'M' + (CX - s[2]) + ' ' + (s[1] + 0.45) + 'H' + (CX + s[2]), style: S('var(--lead-3)', 0.9, 'opacity:' + (0.5 + i * 0.15)) });
-    // Each step is reeded where the dial's bezel leaves it showing, in the
-    // pier's own language.
-    var y0 = s[1] + 2.4, y1 = s[0] - 1.4;
-    [-1, 1].forEach(function (sg) {
-      for (var x = MET_R + 9; x < s[2] - 4; x += 5.2) {
-        var rd = rect(sg > 0 ? CX + x : CX - x - 3, y0, 3, y1 - y0);
-        add(g, 'path', { d: rd, transform: 'translate(.9 0)', style: F('var(--sb-oil)') + ';opacity:.5' });
-        add(g, 'path', { d: rd, fill: U('hb-reed') });
-      }
-    });
-  });
-  // the finial: a small stepped cap
-  add(g, 'path', { d: rect(CX - 14, FAR_Y - 46, 28, 8), fill: U('hb-course') });
-  add(g, 'path', { d: rect(CX - 8, FAR_Y - 52, 16, 6), fill: U('hb-course') });
-  add(g, 'path', { d: 'M' + (CX - 14) + ' ' + (FAR_Y - 45.6) + 'H' + (CX + 14) + 'M' + (CX - 8) + ' ' + (FAR_Y - 51.6) + 'H' + (CX + 8),
-                   style: S('var(--lead-3)', 0.9, 'opacity:.85') });
-  // The bezel: a turned brass ring round a semicircular dial.
-  var R0 = MET_R, R1 = MET_R + 6;
-  var ring = 'M' + (CX - R1) + ' ' + MET_Y + 'A' + R1 + ' ' + R1 + ' 0 0 1 ' + (CX + R1) + ' ' + MET_Y +
-             'H' + (CX + R0) + 'A' + R0 + ' ' + R0 + ' 0 0 0 ' + (CX - R0) + ' ' + MET_Y + 'Z';
-  add(g, 'path', { d: ring, transform: 'translate(.9 1.2)', style: F('var(--sb-oil)') + ';opacity:.8' });
-  add(g, 'path', { d: ring, fill: U('hb-bezel-ring') });
-  add(g, 'path', { d: ring, fill: U('hb-bezel-light') });
-  // the dial's foot: a brass sill the fan springs from
-  add(g, 'path', { d: rect(CX - R1 - 2, MET_Y, 2 * R1 + 4, 4.5), fill: U('hb-bz-h') });
-  // The dial: ivory enamel, a scale each side of a centre zero, the Salon's
-  // arc in gold leaf and the Bureau's in nickel.
-  var dial = 'M' + (CX - R0) + ' ' + MET_Y + 'A' + R0 + ' ' + R0 + ' 0 0 1 ' + (CX + R0) + ' ' + MET_Y + 'Z';
-  add(g, 'path', { d: dial, fill: U('hb-dial') });
-  function P(r, deg) { var a = deg * DEG; return n2(CX + r * Math.sin(a)) + ' ' + n2(MET_Y - 2 - r * Math.cos(a)); }
+  var fc = new Faces();
+  // the finial: a fan, cast, standing on the head's rail
+  var ol = [];
+  for (var i = 0; i <= 16; i++) { var a2 = i / 16 * Math.PI; ol.push([Math.cos(a2) * FANR, Math.sin(a2) * FANR]); }
+  prism(fc, { o: [0, FANY, -4], a: X3, b: Y3, c: Z3 }, ol, 0, 7.5, 1.4, MAT.sb);
+  fc.flush(g);
+  var rg = add(g, 'g', { transform: planeXf([0, FANY, 3.5], X3, DN), filter: U('hb-cast') });
+  add(rg, 'path', { d: fanPath(0, 0, FANR - 2.8, 9, Math.PI, 2 * Math.PI) + 'M-4 0A4 4 0 0 1 4 0Z', style: F('var(--sb-3)') });
+  // its rim in the wing's leaf: the crest of the board, turned to the light
+  var rim = '';
+  for (i = 0; i <= 24; i++) {
+    var a3 = Math.PI - i / 24 * Math.PI, p = proj([Math.cos(a3) * (FANR - 0.8), FANY + Math.sin(a3) * (FANR - 0.8), 3.4]);
+    rim += (i ? 'L' : 'M') + n2(p[0]) + ' ' + n2(p[1]);
+  }
+  add(g, 'path', { d: rim, style: S('var(--lead-3)', 1, 'opacity:.9;stroke-linecap:round') });
+}
+
+/* ------------------------------------------------------------ the meter */
+function buildMeter(q) {
+  var g = add(q, 'g', null, 'hb-meter');
+  var fc = new Faces(), defs = q.querySelector('defs');
+  // the drawn brass case and its bezel, turned
+  turned(fc, [0, MY, 0], Z3, X3, Y3, [[0, MR + 5], [1.2, MR + 5], [2.7, MR + 4.5], [4, MR + 3.5], [5, MR + 2.2], [5.8, MR + 1], [5.9, MR]], 48, MAT.bz);
+  fc.flush(g);
+  // the dial: ivory enamel, drawn in its own plane (at a 17.5 radius)
+  var d = add(add(g, 'g', { transform: planeXf([0, MY, 5.2], X3, DN) }), 'g', { transform: 'scale(' + n2(MR / 17.5) + ')' });
+  grad(defs, 'hb-dial', true, { cx: 0.42, cy: 0.38, r: 0.7 }, [[0, 'var(--dial-1)'], [0.7, 'var(--dial-0)'], [1, 'var(--dial-2)']]);
+  add(d, 'circle', { cx: 0, cy: 0, r: 17.5, fill: U('hb-dial') });
+  function P(r, deg) { var a = deg * DEG; return n2(r * Math.sin(a)) + ' ' + n2(3.5 - r * Math.cos(a)); }
   function arc(r0, r1, a0, a1) {
     return 'M' + P(r1, a0) + 'A' + r1 + ' ' + r1 + ' 0 0 1 ' + P(r1, a1) + 'L' + P(r0, a1) + 'A' + r0 + ' ' + r0 + ' 0 0 0 ' + P(r0, a0) + 'Z';
   }
-  add(g, 'path', { d: arc(22, 26.5, -74, -9), style: F('var(--au-3)') });
-  add(g, 'path', { d: arc(22, 26.5, -74, -9), style: S('var(--au-1)', 0.5) });
-  add(g, 'path', { d: arc(22, 26.5, 9, 74), style: F('var(--ag-2)') });
-  add(g, 'path', { d: arc(22, 26.5, 9, 74), style: S('var(--ag-1)', 0.5) });
+  // the Salon's arc in gold leaf, the Bureau's in nickel, zero between
+  add(d, 'path', { d: arc(10.2, 12.2, -56, -8), style: F('var(--au-3)') + ';stroke:var(--au-1);stroke-width:.3' });
+  add(d, 'path', { d: arc(10.2, 12.2, 8, 56), style: F('var(--ag-2)') + ';stroke:var(--ag-1);stroke-width:.3' });
   var ticks = '', major = '';
-  for (var t = -75; t <= 75; t += 7.5) {
+  for (var t = -56; t <= 56; t += 7) {
     if (t === 0) continue;
-    if (Math.abs(t) % 15 === 0) major += 'M' + P(27.5, t) + 'L' + P(34.5, t);
-    else ticks += 'M' + P(27.5, t) + 'L' + P(31.5, t);
+    if (t % 14 === 0) major += 'M' + P(12.8, t) + 'L' + P(15.6, t);
+    else ticks += 'M' + P(12.8, t) + 'L' + P(14.4, t);
   }
-  add(g, 'path', { d: 'M' + P(21, 0) + 'L' + P(35, 0), style: S('var(--dial-ink)', 1.4) });
-  add(g, 'path', { d: major, style: S('var(--dial-ink)', 0.95) });
-  add(g, 'path', { d: ticks, style: S('var(--dial-ink)', 0.5) });
-  add(g, 'path', { d: 'M' + P(27.5, -75) + 'A27.5 27.5 0 0 1 ' + P(27.5, 75), style: S('var(--dial-ink)', 0.45) });
-  stamp(g, 'AMPERES', CX, MET_Y - 16, 2.7, S('var(--dial-ink)', 0.32, 'stroke-linecap:round;stroke-linejoin:round;opacity:.8'));
-  // the fan's rays behind the scale: the crest is a sunrise
+  add(d, 'path', { d: 'M' + P(9.6, 0) + 'L' + P(15.8, 0), style: S('var(--dial-ink)', 0.9) });
+  add(d, 'path', { d: major, style: S('var(--dial-ink)', 0.6) });
+  add(d, 'path', { d: ticks, style: S('var(--dial-ink)', 0.34) });
+  add(d, 'path', { d: 'M' + P(12.8, -57) + 'A12.8 12.8 0 0 1 ' + P(12.8, 57), style: S('var(--dial-ink)', 0.3) });
+  stamp(d, 'AMPERES', 0, 5.6, 1.9, S('var(--dial-ink)', 0.3, 'stroke-linecap:round;stroke-linejoin:round;opacity:.8'));
   var rays = '';
-  for (var r = -80; r <= 80; r += 10) rays += 'M' + P(7, r) + 'L' + P(20.5, r);
-  add(g, 'path', { d: rays, style: S('var(--dial-ink)', 0.35, 'opacity:.28') });
-  [-62, 62].forEach(function (a, i) {
-    var aa = a * DEG, rr = (R0 + R1) / 2;
-    screw(g, CX + rr * Math.sin(aa), MET_Y - rr * Math.cos(aa), 1.4, 'board-meter-screw-' + i);
-  });
+  for (var r = -60; r <= 60; r += 12) rays += 'M' + P(3, r) + 'L' + P(9, r);
+  add(d, 'path', { d: rays, style: S('var(--dial-ink)', 0.25, 'opacity:.3') });
+  // the bezel's shadow on the enamel, heaviest under its upper lip
+  add(d, 'circle', { cx: 0.5, cy: 0.8, r: 16.9, style: S('#000', 1.6, 'opacity:.28'), filter: U('hb-soft') });
+  // the case's shadow on the stone
+  var c = proj(onStone([0, MY, 6]));
+  add(q.querySelector('.hb-shadows'), 'ellipse', { cx: n2(c[0]), cy: n2(c[1]), rx: n2(MR + 6), ry: n2(MR + 3.5) });
 }
 
 /* ------------------------------------------------------------ switchgear */
-/* A jaw, seen from the front and a little above: a copper base bolted to
-   the marble, the far spring leaf standing behind the blade's path (drawn
-   here) and the near one in front of it (drawn on the front layer). */
-var JW = 9;            // half the leaves' width
-function jawBack(g, x, y, id) {
-  add(g, 'path', { d: rect(x - 14, y - 1, 28, 11), transform: 'translate(1 1.4)', style: F('var(--sb-oil)') + ';opacity:.6' });
-  add(g, 'path', { d: rect(x - 14, y - 1, 28, 11), fill: U('hb-cu-v') });
-  add(g, 'path', { d: 'M' + (x - 14) + ' ' + (y - 0.6) + 'H' + (x + 14), style: S('var(--kc-5)', 0.6, 'opacity:.85') });
-  screw(g, x - 10.5, y + 5, 1.7, id + '-s0', 'cu');
-  screw(g, x + 10.5, y + 5, 1.7, id + '-s1', 'cu');
-  // the far leaf: a copper plate standing up, its mouth flared
-  add(g, 'path', { d: 'M' + (x - JW) + ' ' + (y - 1) + 'V' + (y - 9) + 'L' + (x - JW - 2) + ' ' + (y - 12) + 'H' + (x + JW + 2) + 'L' + (x + JW) + ' ' + (y - 9) + 'V' + (y - 1) + 'Z', fill: U('hb-cu-leaf') });
-  add(g, 'path', { d: 'M' + (x - JW - 2) + ' ' + (y - 11.7) + 'H' + (x + JW + 2), style: S('var(--kc-5)', 0.9) });
+/* A domed screw head on a face, its slot turned by hash. */
+function screw(g, p, r, id, dome) {
+  var sg = add(g, 'g', { transform: planeXf(p, X3, DN) });
+  add(sg, 'circle', { cx: 0.35, cy: 0.5, r: n2(r), style: F('var(--sb-oil)') + ';opacity:.7' });
+  add(sg, 'circle', { cx: 0, cy: 0, r: n2(r), fill: U(dome) });
+  var a = rnd(id) * 180 * DEG, dx = Math.cos(a) * r * 0.8, dy = Math.sin(a) * r * 0.8;
+  add(sg, 'path', { d: 'M' + n2(-dx) + ' ' + n2(-dy) + 'L' + n2(dx) + ' ' + n2(dy), style: S('var(--sb-oil)', n2(r * 0.34), 'stroke-linecap:round') });
+}
+/* A spring leaf of a jaw: a copper plate standing out of the jaw over (or
+   under) the blade's path, its mouth turned away, and on the upper one the
+   nut that sets the spring. The upper leaf is drawn on the board, and
+   again over the blade by each pose that has the blade in the jaws. */
+function jawLeaf(fc, jx, yp, upper) {
+  var s = upper ? 1 : -1, yA = yp + s * TB / 2, yB = yA + s * LEAF, w = JAW_W;
+  var y0 = Math.min(yA, yB), y1 = Math.max(yA, yB);
+  boxY(fc, jx - w, jx + w, y0, y1, 5, LEAF_Z, 0.5, MAT.cu);
+  var m = [[jx - w, yB, LEAF_Z], [jx + w, yB, LEAF_Z], [jx + w, yB + s * 2.4, LEAF_Z + 2.6], [jx - w, yB + s * 2.4, LEAF_Z + 2.6]];
+  fc.push(m, vnorm([0, s, 1]), MAT.cu, { bias: 0.08 });
+  if (upper) hexNut(fc, [jx, y1, 10.5], Y3, X3, Z3, 3.4, 2, MAT.cu);
+}
+function jaw(g, jx, yp, id) {
+  var fc = new Faces(), w = JAW_W;
+  boxZ(fc, jx - 15, jx + 15, yp - 13, yp + 13, 0, 5.5, 1.1, MAT.cu);
+  fc.flush(g);
+  screw(g, [jx - 11.8, yp - 7.5, 5.5], 2, id + '-s0', 'hb-cu-dome');
+  screw(g, [jx + 11.8, yp + 7.5, 5.5], 2, id + '-s1', 'hb-cu-dome');
+  jawLeaf(fc, jx, yp, false);
+  fc.flush(g);
   // the slot between the leaves, dark where no blade sits
-  add(g, 'path', { d: rect(x - JW, y - 3.2, JW * 2, 3.2), style: F('var(--sb-oil)') + ';opacity:.9' });
+  add(g, 'path', { d: path3([[jx - w, yp - TB / 2, 5.6], [jx + w, yp - TB / 2, 5.6], [jx + w, yp + TB / 2, 5.6], [jx - w, yp + TB / 2, 5.6]]),
+                   style: F('var(--sb-oil)') + ';opacity:.95' });
+  add(g, 'path', { d: path3([[jx - w, yp - TB / 2, 5.6], [jx + w, yp - TB / 2, 5.6], [jx + w, yp - TB / 2, LEAF_Z], [jx - w, yp - TB / 2, LEAF_Z]]),
+                   style: F('var(--sb-oil)') + ';opacity:.6' });
+  jawLeaf(fc, jx, yp, true);
+  fc.flush(g);
 }
-function jawFront(g, x, y) {
-  var d = 'M' + (x - JW) + ' ' + (y + 5.5) + 'V' + (y - 5.4) + 'L' + (x - JW - 2.2) + ' ' + (y - 8.6) + 'H' + (x + JW + 2.2) + 'L' + (x + JW) + ' ' + (y - 5.4) + 'V' + (y + 5.5) + 'Z';
-  add(g, 'path', { d: d, transform: 'translate(.9 1.2)', style: F('var(--sb-oil)') + ';opacity:.55' });
-  add(g, 'path', { d: d, fill: U('hb-cu-leaf') });
-  add(g, 'path', { d: 'M' + (x - JW - 2.2) + ' ' + (y - 8.3) + 'H' + (x + JW + 2.2), style: S('var(--kc-5)', 1) });
-  // the bolt that holds the leaves' spring, through both leaves
-  add(g, 'circle', { cx: x, cy: y + 1, r: 2, fill: U('hb-cu-dome') });
+/* The hinge: a copper block and a clevis whose two cheeks hold the blade's
+   heel, an upright pin through them and a nut on the pin. A cheek's
+   outline is taken in (x, -z) and swept up the pin. */
+var CHEEK_OL = (function () {
+  var r = 9, ol = [[-r, -5.5], [r, -5.5]];
+  for (var i = 0; i <= 10; i++) { var a = i / 10 * Math.PI; ol.push([r * Math.cos(a), -ZB - r * Math.sin(a)]); }
+  return ol.reverse();
+})();
+function cheek(fc, yp, upper) {
+  var s = upper ? 1 : -1, yA = yp + s * TB / 2, yB = yA + s * (LEAF + 0.6);
+  prism(fc, FY, CHEEK_OL, Math.min(yA, yB), Math.max(yA, yB), 0.6, MAT.cu);
+  if (upper) {
+    turned(fc, [0, Math.max(yA, yB), ZB], Y3, X3, Z3, [[0, 5.2], [0.7, 5.2], [0.7, 0]], 18, MAT.cu);
+    hexNut(fc, [0, Math.max(yA, yB) + 0.7, ZB], Y3, X3, Z3, 4.4, 2.6, MAT.cu);
+    turned(fc, [0, Math.max(yA, yB) + 3.3, ZB], Y3, X3, Z3, [[0, 2.2], [1.2, 2.2], [1.8, 0]], 12, MAT.cu);
+  }
 }
-function hingeBack(g, x, y, id) {
-  add(g, 'path', { d: rect(x - 15, y - 1, 30, 12), transform: 'translate(1 1.4)', style: F('var(--sb-oil)') + ';opacity:.6' });
-  add(g, 'path', { d: rect(x - 15, y - 1, 30, 12), fill: U('hb-cu-v') });
-  screw(g, x - 11.5, y + 5.2, 1.7, id + '-s0', 'cu');
-  screw(g, x + 11.5, y + 5.2, 1.7, id + '-s1', 'cu');
-  add(g, 'path', { d: 'M' + (x - 7) + ' ' + (y - 1) + 'V' + (y - 11) + 'A7 7 0 0 1 ' + (x + 7) + ' ' + (y - 11) + 'V' + (y - 1) + 'Z', fill: U('hb-cu-leaf') });
+function hinge(g, yp, id) {
+  var fc = new Faces();
+  boxZ(fc, -17, 17, yp - 13.5, yp + 13.5, 0, 5.5, 1.1, MAT.cu);
+  fc.flush(g);
+  screw(g, [-13.2, yp - 7, 5.5], 2, id + '-s0', 'hb-cu-dome');
+  screw(g, [13.2, yp + 7, 5.5], 2, id + '-s1', 'hb-cu-dome');
+  screw(g, [-13.2, yp + 7, 5.5], 2, id + '-s2', 'hb-cu-dome');
+  screw(g, [13.2, yp - 7, 5.5], 2, id + '-s3', 'hb-cu-dome');
+  cheek(fc, yp, false);
+  fc.flush(g);
+  cheek(fc, yp, true);
+  fc.flush(g);
 }
-function hingeFront(g, x, y) {
-  var d = 'M' + (x - 7.5) + ' ' + (y + 6) + 'V' + (y - 5) + 'A7.5 7.5 0 0 1 ' + (x + 7.5) + ' ' + (y - 5) + 'V' + (y + 6) + 'Z';
-  add(g, 'path', { d: d, transform: 'translate(.9 1.2)', style: F('var(--sb-oil)') + ';opacity:.55' });
-  add(g, 'path', { d: d, fill: U('hb-cu-leaf') });
-  // the pin's nut, the pivot the whole throw turns on
-  nut(g, x, y - 4.6, 4.2);
-}
-/* A bullseye jewel's facets: a ring of triangles round a flat table. */
 function facets(g, cx, cy, r, gradId) {
-  var d = '', n = 10;
+  var d = '', n = 12;
   for (var i = 0; i < n; i += 2) {
     var a0 = i * 2 * Math.PI / n, a1 = (i + 1) * 2 * Math.PI / n, am = (i + 0.5) * 2 * Math.PI / n;
     d += 'M' + n2(cx + r * 0.45 * Math.cos(am)) + ' ' + n2(cy + r * 0.45 * Math.sin(am)) +
@@ -577,48 +727,92 @@ function facets(g, cx, cy, r, gradId) {
   add(g, 'ellipse', { cx: n2(cx - r * 0.34), cy: n2(cy - r * 0.4), rx: n2(r * 0.26), ry: n2(r * 0.16), style: F('#fff') + ';opacity:.55',
                       transform: 'rotate(-30 ' + n2(cx - r * 0.34) + ' ' + n2(cy - r * 0.4) + ')' });
 }
-function buildSwitchBack(q) {
-  var g = add(q, 'g', null, 'hb-gear');
-  ['salon', 'bureau'].forEach(function (side, s) {
-    var sg = add(g, 'g', { 'data-side': side }, 'hb-side');
-    var jx = s ? CX + JAW_R : CX - JAW_R;
-    // the jaws, both poles
-    jawBack(sg, jx, POLE_FAR, 'board-jaw-' + side + '-f');
-    jawBack(sg, jx, POLE_NEAR, 'board-jaw-' + side + '-n');
-    // the pilot lamp: a faceted jewel in a knurled brass bezel
-    var lx = s ? CX + JEWEL_DX : CX - JEWEL_DX;
-    add(sg, 'circle', { cx: lx + 1.2, cy: JEWEL_Y + 1.6, r: JR * 1.52, style: F('var(--sb-oil)') + ';opacity:.7' });
-    add(sg, 'circle', { cx: lx, cy: JEWEL_Y, r: JR * 1.52, fill: U('hb-knurl') });
-    var kn = '';
-    for (var k = 0; k < 40; k++) {
-      var a = k * 9 * DEG;
-      kn += 'M' + n2(lx + JR * 1.34 * Math.cos(a)) + ' ' + n2(JEWEL_Y + JR * 1.34 * Math.sin(a)) + 'L' + n2(lx + JR * 1.52 * Math.cos(a)) + ' ' + n2(JEWEL_Y + JR * 1.52 * Math.sin(a));
-    }
-    add(sg, 'path', { d: kn, style: S('var(--bz-0)', 0.7, 'opacity:.55') });
-    add(sg, 'circle', { cx: lx, cy: JEWEL_Y, r: JR * 1.25, fill: U('hb-bezel-lip') });
-    add(sg, 'circle', { cx: lx, cy: JEWEL_Y, r: JR, fill: U('hb-jewel-dark') });
-    facets(sg, lx, JEWEL_Y, JR, 'hb-facet-dark');
+/* A pilot: a jewel lamp in a knurled brass bezel. */
+function buildPilot(g, x, side) {
+  var fc = new Faces();
+  turned(fc, [x, JWY, 0], Z3, X3, Y3, [[0, 10.5], [1.4, 10.5], [1.4, 9.3], [4.2, 9.3], [5.2, 8.4], [5.8, 7], [5.9, JR]], 36, MAT.bz);
+  fc.flush(g);
+  // the knurl round the bezel's drum
+  var kn = '';
+  for (var k = 0; k < 36; k++) {
+    var a = k * 10 * DEG;
+    if (Math.sin(a) < -0.2) continue;
+    var p0 = proj([x + Math.cos(a) * 9.3, JWY + Math.sin(a) * 9.3, 1.8]), p1 = proj([x + Math.cos(a) * 9.3, JWY + Math.sin(a) * 9.3, 4]);
+    kn += 'M' + n2(p0[0]) + ' ' + n2(p0[1]) + 'L' + n2(p1[0]) + ' ' + n2(p1[1]);
+  }
+  add(g, 'path', { d: kn, style: S('var(--bz-0)', 0.5, 'opacity:.55') });
+  // the jewel, dark: facets round a table
+  var j = add(g, 'g', { transform: planeXf([x, JWY, 6.4], X3, DN) });
+  add(j, 'circle', { cx: 0, cy: 0, r: JR, style: F('var(--jw-off-' + side + ')') });
+  facets(j, 0, 0, JR, 'hb-facet-dark');
+}
+/* Shadows the fittings throw on the stone: each footprint carried down the
+   key onto the marble and softened. */
+function onStone(p) { return vsub(p, vmul(LIGHT, p[2] / LIGHT[2])); }
+function castBox(g, x0, x1, y0, y1, z) {
+  var pts = [];
+  [[x0, y0], [x1, y0], [x1, y1], [x0, y1]].forEach(function (c) {
+    pts.push(proj([c[0], c[1], 0]));
+    pts.push(proj(onStone([c[0], c[1], z])));
   });
-  // The hinges, both poles, and the maker's plate under them.
-  hingeBack(g, CX, POLE_FAR, 'board-hinge-f');
-  hingeBack(g, CX, POLE_NEAR, 'board-hinge-n');
-  var mp = add(g, 'g', null, 'hb-maker');
-  add(mp, 'ellipse', { cx: CX + 0.8, cy: 156.1, rx: 21, ry: 7.4, style: F('var(--sb-oil)') + ';opacity:.55' });
-  add(mp, 'ellipse', { cx: CX, cy: 155, rx: 21, ry: 7.4, fill: U('hb-bz-h') });
-  add(mp, 'ellipse', { cx: CX, cy: 155, rx: 18.6, ry: 5.6, style: S('var(--bz-ink)', 0.4, 'opacity:.6') });
-  stamp(mp, 'ATRIUM', CX, 150.6, 3.4, S('var(--bz-ink)', 0.42, 'stroke-linecap:round;stroke-linejoin:round;opacity:.85'));
-  stamp(mp, '250 V', CX, 155.6, 2.4, S('var(--bz-ink)', 0.36, 'stroke-linecap:round;stroke-linejoin:round;opacity:.7'));
+  add(g, 'path', { d: pathOf(hull(pts)) });
+}
+function buildSwitch(q) {
+  var sh = q.querySelector('.hb-shadows');
+  var gear = add(q, 'g', null, 'hb-gear');
+  ['salon', 'bureau'].forEach(function (side, s) {
+    var sg = add(gear, 'g', { 'data-side': side }, 'hb-side');
+    var jx = s ? JX : -JX;
+    [PL, PU].forEach(function (yp, k) {
+      castBox(sh, jx - 15, jx + 15, yp - 13, yp + 13, 5.5);
+      castBox(sh, jx - JAW_W, jx + JAW_W, yp - TB / 2 - LEAF, yp + TB / 2 + LEAF, LEAF_Z);
+      jaw(sg, jx, yp, 'board-jaw-' + side + '-' + k);
+    });
+    castBox(sh, (s ? JWX : -JWX) - 10, (s ? JWX : -JWX) + 10, JWY - 10, JWY + 10, 6);
+    buildPilot(sg, s ? JWX : -JWX, side);
+  });
+  [PL, PU].forEach(function (yp, k) {
+    castBox(sh, -17, 17, yp - 13.5, yp + 13.5, 5.5);
+    castBox(sh, -9, 9, yp - TB / 2 - LEAF, yp + TB / 2 + LEAF, ZB + 9);
+    hinge(gear, yp, 'board-hinge-' + k);
+  });
+  // the maker's plate under the hinge
+  var mp = add(gear, 'g', { transform: planeXf([0, 74, 0.8], X3, DN) }, 'hb-maker');
+  add(mp, 'ellipse', { cx: 0.8, cy: 1.1, rx: 17, ry: 7.6, style: F('var(--sb-oil)') + ';opacity:.55' });
+  add(mp, 'ellipse', { cx: 0, cy: 0, rx: 17, ry: 7.6, fill: U('hb-bz-h') });
+  add(mp, 'ellipse', { cx: 0, cy: 0, rx: 15, ry: 5.9, style: S('var(--bz-ink)', 0.4, 'opacity:.6') });
+  stamp(mp, 'ATRIUM', 0, -4.4, 3.3, S('var(--bz-ink)', 0.42, 'stroke-linecap:round;stroke-linejoin:round;opacity:.85'));
+  stamp(mp, '250 V', 0, 0.8, 2.3, S('var(--bz-ink)', 0.36, 'stroke-linecap:round;stroke-linejoin:round;opacity:.7'));
+  // the panel's four bolts, bronze, domed
+  [[-1, 1], [1, 1], [-1, -1], [1, -1]].forEach(function (c) {
+    var bg = add(gear, 'g', { transform: planeXf([c[0] * (PX - 12), c[1] > 0 ? PY1 - 12 : PY0 + 12, 1], X3, DN) });
+    add(bg, 'circle', { cx: 0.6, cy: 0.9, r: 3.6, style: F('var(--sb-oil)') + ';opacity:.6' });
+    add(bg, 'circle', { cx: 0, cy: 0, r: 3.6, fill: U('hb-sb-dome') });
+    add(bg, 'circle', { cx: 0, cy: 0, r: 3.6, style: S('var(--sb-oil)', 0.4, 'opacity:.6') });
+  });
 }
 
 /* The focus ring: the gates' marquee at the board's scale, a stepped
-   outline round the crest, the slab and the pedestal, clear of every
-   plate. It is laid first, so everything stands in front of it. */
+   outline round the silhouette, clear of both plates. Laid first, so
+   everything stands in front of it. */
 function buildFocus(q) {
-  var y0 = FAR_Y - 58, xl = 8, xr = BOX_W - 8;
-  var d = 'M' + (CX - 22) + ' ' + y0 + 'H' + (CX + 22) + 'V' + (FAR_Y - 38) + 'H' + (CX + 88) + 'V' + (FAR_Y - 10) +
-          'H' + xr + 'V' + (APRON_B + 16) + 'H' + (CX + 114) + 'V' + (FLOOR - 40) + 'H' + (CX + 128) + 'V' + (FLOOR + 4) +
-          'H' + (CX - 128) + 'V' + (FLOOR - 40) + 'H' + (CX - 114) + 'V' + (APRON_B + 16) + 'H' + xl + 'V' + (FAR_Y - 10) +
-          'H' + (CX - 88) + 'V' + (FAR_Y - 38) + 'H' + (CX - 22) + 'Z';
+  var m = 7, z = 6;
+  var pts = [[-FANR - 6, FANY + FANR, z], [FANR + 6, FANY + FANR, z]];
+  // the slab's setbacks, right side down, outside the frame
+  [[SX2 + FW, SY2 + FW], [SX2 + FW, SY1 + FW], [SX1 + FW, SY1 + FW], [SX1 + FW, PY1 + FW], [PX + FW, PY1 + FW], [PX + FW, PY0 - FW]].forEach(function (p) {
+    pts.push([p[0], p[1], z]);
+  });
+  pts.push([LEG_X + 24, PY0 - FW, z], [LEG_X + 24, PLY, 16], [PLX, PLY, PLZ1], [PLX, 0, PLZ1]);
+  for (var i = pts.length - 1; i >= 2; i--) pts.push([-pts[i][0], pts[i][1], pts[i][2]]);
+  pts.push([-FANR - 6, FANY + FANR, z]);
+  pts = pts.slice(0, -1).map(proj);
+  // the list runs clockwise on screen: each edge's left normal points in
+  var out = pts.map(function (p, k) {
+    var a = pts[(k + pts.length - 1) % pts.length], c = pts[(k + 1) % pts.length];
+    var n1 = inN(a, p), n2v = inN(p, c);
+    return [p[0] - (n1[0] + n2v[0]) * m, p[1] - (n1[1] + n2v[1]) * m];
+  });
+  var d = pathOf(out);
   var fg = add(q, 'g', null, 'hb-focus-g hb-noptr');
   add(fg, 'path', { d: d }, 'hb-focus-bed');
   add(fg, 'path', { d: d }, 'hb-focus');
@@ -629,180 +823,272 @@ function buildBoard(q) {
   q.setAttribute('viewBox', '0 0 ' + BOX_W + ' ' + BOX_H);
   buildDefs(q);
   buildFocus(q);
-  buildPedestal(q);
-  buildDesk(q);
+  buildFloor(q);
+  buildPlinth(q);
+  buildStand(q);
+  buildPanel(q);
+  add(q, 'g', { filter: U('hb-soft2') }, 'hb-shadows hb-noptr');
+  buildFrame(q);
   buildCrest(q);
-  buildSwitchBack(q);
+  buildMeter(q);
+  buildSwitch(q);
 }
 
-/* ------------------------------------------------------------ moving parts */
+/* ------------------------------------------------------------ the swing */
+/* The moving parts at blade angle phi (0 = in the Salon's jaws, 180 = in
+   the Bureau's). A blade's frame: a along the blade, b across its broad
+   face (out of the panel at rest), c up the pin. */
+function bladeFrame(phi, y) {
+  var a = phi * DEG;
+  return { o: [0, y, ZB], a: [-Math.cos(a), 0, Math.sin(a)], b: [Math.sin(a), 0, Math.cos(a)], c: Y3 };
+}
+/* A blade's broad face: the heel rounded about the pin, the tip squared
+   with its corners eased; counter-clockwise. */
+var BLADE_OL = (function () {
+  var r = WB / 2, out = [[0, -r], [BL - 2, -r], [BL, -r + 2], [BL, r - 2], [BL - 2, r], [0, r]];
+  for (var i = 1; i < 8; i++) { var b = Math.PI / 2 + i / 8 * Math.PI; out.push([Math.cos(b) * r, Math.sin(b) * r]); }
+  return out;
+})();
+
+/* A turned part in a pose: its silhouette as one path and its shading as a
+   gradient across it, sampled from the surface's normals, so the grip
+   reads as round at every angle. */
+function turnedShape(g, defs, id, o, ax, up, prof, i0, i1, m, eb) {
+  var e = vnorm(vcross(ax, up)), pts = [], j, k, R = 0;
+  for (j = i0; j <= i1; j++) {
+    var t = prof[j][0], r = prof[j][1];
+    R = Math.max(R, r);
+    for (k = 0; k < 24; k++) {
+      var a = k / 24 * 2 * Math.PI;
+      pts.push(proj(vadd(vadd(o, vmul(ax, t)), vadd(vmul(up, Math.cos(a) * r), vmul(e, Math.sin(a) * r)))));
+    }
+  }
+  var mid = vadd(o, vmul(ax, (prof[i0][0] + prof[i1][0]) / 2)), v = viewAt(mid);
+  var across = vcross(ax, v), al = Math.hypot(across[0], across[1], across[2]);
+  across = al < 0.08 ? X3 : vmul(across, 1 / al);
+  var vp = vnorm(vsub(v, vmul(ax, vdot(v, ax))));
+  var p0 = proj(vsub(mid, vmul(across, R))), p1 = proj(vadd(mid, vmul(across, R)));
+  var stops = [];
+  for (k = 0; k <= 16; k++) {
+    var b = Math.asin(Math.max(-1, Math.min(1, -1 + k / 8)));
+    var n = vnorm(vadd(vmul(across, Math.sin(b)), vmul(vp, Math.cos(b))));
+    var col;
+    if (eb) {
+      // ebonite: black, a warm bloom where it faces the key, and the lamp
+      // and the lit wall mirrored in its polish
+      var rr = vsub(vmul(n, 2 * vdot(n, v)), v);
+      var sp = Math.pow(Math.max(0, vdot(rr, LIGHT)), 60), band = Math.max(0, 1 - Math.abs(rr[1] - 0.24) / 0.13);
+      var base = tone(m, clamp01(0.1 + 0.34 * Math.max(0, vdot(n, LIGHT)) + 0.2 * interp(ENV, rr[1])));
+      var hi = Math.min(1, sp * 1.5 + band * 0.3);
+      col = hi > 0.02 ? 'color-mix(in srgb, var(--eb-hi) ' + Math.round(hi * 100) + '%, ' + base + ')' : base;
+    } else col = tone(m, shadeT(n, mid, m));
+    stops.push([n2(k / 16), col]);
+  }
+  lin(defs, id, p0[0], p0[1], p1[0], p1[1], stops);
+  add(g, 'path', { d: pathOf(hull(pts)), fill: U(id) });
+}
+
+var POSE_A = (function () {
+  var h = [0, 1.5, 3, 4.5, 6, 8, 10, 12.5, 15, 18, 22, 26, 31, 36, 42, 48, 54, 60, 67, 74, 82, 90];
+  return h.concat(h.slice(0, -1).reverse().map(function (a) { return 180 - a; }));
+})();
+var poseLayer = null, poses = [], shown = [];
+
+function buildPose(i) {
+  if (poses[i]) return poses[i];
+  var phi = POSE_A[i], sn = Math.sin(phi * DEG);
+  var g = E('g', { style: 'opacity:0;visibility:hidden' }, 'sw-pose');
+  // keep the stack in angle order
+  var next = null;
+  for (var k = i + 1; k < poses.length; k++) if (poses[k]) { next = poses[k]; break; }
+  poseLayer.insertBefore(g, next);
+  poses[i] = g;
+  var defs = add(g, 'defs'), id = 'sp' + i;
+  var FL = bladeFrame(phi, PL), FU = bladeFrame(phi, PU), d = FL.a, e = FL.b;
+  // Their shadows on the marble, while they are near it.
+  var shade = add(g, 'g', { filter: U('sw-soft') }, 'sw-shade');
+  function shadowOf(pts3, zc) {
+    var op = clamp01(1.5 - (zc - ZB) / 26);
+    if (op <= 0.02) return;
+    add(shade, 'path', { d: pathOf(hull(pts3.map(function (p) { return proj(onStone(p)); }))), style: 'opacity:' + n2(op) });
+  }
+  // the heel is under the cheeks: only the run out of the clevis casts
+  [FL, FU].forEach(function (F3) {
+    shadowOf(BLADE_OL.filter(function (p) { return p[0] > 6; }).map(function (p) { return at(F3, p[0], p[1], 0); }), ZB + sn * BL / 2);
+  });
+  var bar = [];
+  [PL - XBY, PU + XBY].forEach(function (y) {
+    [[XB0, -XBQ], [XB1, -XBQ], [XB1, XBQ], [XB0, XBQ]].forEach(function (c) { bar.push(at(FL, c[0], c[1], y - PL)); });
+  });
+  shadowOf(bar, ZB + sn * BL);
+  var ho = [0, HY, ZB], hpts = [];
+  HANDLE.forEach(function (p, j) {
+    if (j % 2) return;
+    for (var k2 = 0; k2 < 12; k2++) {
+      var a2 = k2 / 12 * 2 * Math.PI;
+      hpts.push(vadd(vadd(ho, vmul(d, XB1 + p[0])), vadd(vmul(Y3, Math.cos(a2) * p[1]), vmul(e, Math.sin(a2) * p[1]))));
+    }
+  });
+  shadowOf(hpts, ZB + sn * (XB1 + H_END * 0.6));
+
+  var fc = new Faces();
+  var inJaws = phi < 16 ? -1 : phi > 164 ? 1 : 0;
+  // the lower blade and what stands over it, then the upper
+  [[FL, PL], [FU, PU]].forEach(function (pair) {
+    prism(fc, pair[0], BLADE_OL, -TB / 2, TB / 2, 1.4, MAT.cu);
+    fc.flush(g);
+    // the run the jaws have burnished on the broad face, a thousand throws
+    var F3 = pair[0], h0 = proj(at(F3, 0, 0, TB / 2)), h1 = proj(at(F3, BL, 0, TB / 2));
+    var bid = id + '-b' + pair[1];
+    lin(defs, bid, h0[0], h0[1], h1[0], h1[1], [[0, 'var(--kc-5)', 0], [0.5, 'var(--kc-5)', 0.04], [0.74, 'var(--kc-5)', 0.34],
+        [0.86, 'var(--kc-5)', 0.42], [0.95, 'var(--kc-5)', 0.12], [1, 'var(--kc-5)', 0]]);
+    add(g, 'path', { d: pathOf(inset(BLADE_OL, 1.4).map(function (p) { return proj(at(F3, p[0], p[1], TB / 2)); })), fill: U(bid) });
+    if (inJaws) { jawLeaf(fc, inJaws * JX, pair[1], true); fc.flush(g); }
+    cheek(fc, pair[1], true);
+    fc.flush(g);
+  });
+  // the crossbar joins the tips, riveted through
+  prism(fc, { o: [0, 0, ZB], a: d, b: e, c: Y3 }, rectO(XB0, XB1, -XBQ, XBQ), PL - XBY, PU + XBY, 1.2, MAT.eb);
+  fc.flush(g);
+  [PL, PU].forEach(function (yp) {
+    var rp = at(FL, BL - 1.5, XBQ + 0.1, yp - PL);
+    if (vdot(e, viewAt(rp)) > 0.05) {
+      add(add(g, 'g', { transform: planeXf(rp, vmul(d, -1), DN) }), 'circle', { cx: 0, cy: 0, r: 2.4, fill: U('sw-rivet') });
+    }
+  });
+  // the handle: the ferrule, then the grip and its end
+  var hbase = vadd(ho, vmul(d, XB1));
+  turnedShape(g, defs, id + '-f', hbase, d, Y3, HANDLE, 0, H_FER, MAT.bz, false);
+  turnedShape(g, defs, id + '-g', hbase, d, Y3, HANDLE, H_FER + 1, HANDLE.length - 1, MAT.eb, true);
+  // the domed end catches the lamp as it comes round toward the room
+  var DOME = HANDLE[HANDLE.length - 9], dc = vadd(hbase, vmul(d, DOME[0])), face = vdot(d, viewAt(dc));
+  if (face > 0.12) {
+    // the point of the dome whose normal halves the key and the eye
+    var hv = vnorm(vadd(LIGHT, viewAt(dc)));
+    var hd = vdot(hv, d), hr = vnorm(vsub(hv, vmul(d, hd)));
+    var ang = Math.acos(Math.max(0, Math.min(1, hd)));
+    var spot = vadd(dc, vadd(vmul(d, (H_END - DOME[0]) * Math.cos(ang)), vmul(hr, DOME[1] * Math.sin(ang))));
+    var pp = proj(spot), k = clamp01((face - 0.12) / 0.5);
+    grad(defs, id + '-d', true, { gradientUnits: 'userSpaceOnUse', cx: n2(pp[0]), cy: n2(pp[1]), r: 6.5 },
+         [[0, 'var(--eb-hi)', n2(k)], [0.18, 'var(--eb-hi)', n2(0.6 * k)], [0.45, 'var(--eb-hi)', n2(0.12 * k)], [1, 'var(--eb-hi)', 0]]);
+    add(g, 'circle', { cx: n2(pp[0]), cy: n2(pp[1]), r: 6.5, fill: U(id + '-d') });
+  }
+  return g;
+}
 function layer(fx, cls) {
   var s = E('svg', { viewBox: '0 0 ' + BOX_W + ' ' + BOX_H, 'aria-hidden': 'true', focusable: 'false' }, cls);
   fx.appendChild(s);
   return s;
 }
-/* One blade: a copper bar drawn standing on its hinge, pointing up. At rest
-   it is turned a quarter each way and flattened by K, so it lies along the
-   marble; each of its long arrises is the top one on one side, so each
-   carries its own light, crossfaded by --sw. */
-function bladeLayer(fx, y, cls, id) {
-  var s = layer(fx, 'sw-blade sw-drive ' + cls);
+function buildPoseLayer(fx) {
+  var s = layer(fx, 'sw-poses');
   var d = add(s, 'defs');
-  box(d, id + '-cu', false, [[0, 'var(--kc-1)'], [0.18, 'var(--kc-3)'], [0.5, 'var(--kc-4)'], [0.82, 'var(--kc-3)'], [1, 'var(--kc-1)']]);
-  var w = 16, top = y - BLADE_L - 5;
-  var body = 'M' + (CX - w / 2) + ' ' + (y + 5) + 'V' + top + 'H' + (CX + w / 2) + 'V' + (y + 5) + 'A' + (w / 2) + ' ' + (w / 2) + ' 0 0 1 ' + (CX - w / 2) + ' ' + (y + 5) + 'Z';
-  add(s, 'path', { d: body, fill: U(id + '-cu') });
-  // the two arrises, one lit at each rest, and the one away from the light
-  add(s, 'path', { d: rect(CX - w / 2, top, 2.8, y - top), style: F('var(--kc-5)') }, 'sw-lit-l');
-  add(s, 'path', { d: rect(CX + w / 2 - 2.8, top, 2.8, y - top), style: F('var(--kc-5)') }, 'sw-lit-r');
-  add(s, 'path', { d: rect(CX + w / 2 - 2, top, 2, y - top), style: F('var(--kc-0)') }, 'sw-lit-l');
-  add(s, 'path', { d: rect(CX - w / 2, top, 2, y - top), style: F('var(--kc-0)') }, 'sw-lit-r');
-  // where the blade has run in its jaws a thousand times: a bright band
-  add(s, 'path', { d: rect(CX - w / 2, y - JAW_R - 9, w, 18), style: F('var(--kc-5)') + ';opacity:.26' });
-  // the pivot eye
-  add(s, 'circle', { cx: CX, cy: y + 1.5, r: 2.8, style: F('var(--kc-0)') });
+  add(add(d, 'filter', { id: 'sw-soft', x: '-20%', y: '-40%', width: '140%', height: '180%' }), 'feGaussianBlur', { stdDeviation: 1.5 });
+  grad(d, 'sw-rivet', true, { cx: 0.36, cy: 0.3, r: 0.8 }, [[0, 'var(--kc-5)'], [0.45, 'var(--kc-3)'], [1, 'var(--kc-0)']]);
+  poseLayer = add(s, 'g', null, 'sw-pose-stack');
+  poses = new Array(POSE_A.length);
 }
+function showPose(i, op) {
+  var g = buildPose(i);
+  g.style.opacity = op > 0.995 ? '1' : n2(op);
+  g.style.visibility = op > 0.004 ? 'visible' : 'hidden';
+}
+/* The drive: 0 = the blades in the Salon's jaws, 1 = in the Bureau's. The
+   two poses either side of the angle share it, each solid until the blade
+   is halfway to the other, so the stone never shows through a blade. */
+function drivePoses(v) {
+  if (!poseLayer) return;
+  var phi = clamp01(v) * 180, i = 0;
+  while (i < POSE_A.length - 2 && POSE_A[i + 1] <= phi) i++;
+  var f = (phi - POSE_A[i]) / (POSE_A[i + 1] - POSE_A[i]);
+  if (f < 0.004) f = 0;
+  if (f > 0.996) f = 1;
+  var want = {};
+  want[i] = Math.min(1, 2 * (1 - f));
+  want[i + 1] = Math.min(1, 2 * f);
+  shown.forEach(function (k) { if (!(k in want)) showPose(k, 0); });
+  shown = [];
+  Object.keys(want).forEach(function (k) {
+    if (want[k] > 0.004) { showPose(+k, want[k]); shown.push(+k); }
+    else if (poses[+k]) showPose(+k, 0);
+  });
+}
+/* The rest of the poses are drawn while the hall is idle, so a throw only
+   shows them. */
+function prebuild() {
+  var later = window.requestIdleCallback || function (f) { return setTimeout(f, 40); };
+  var i = 0;
+  later(function step(dl) {
+    do { if (!poses[i]) buildPose(i); i++; } while (i < POSE_A.length && dl && dl.timeRemaining && dl.timeRemaining() > 3);
+    if (i < POSE_A.length) later(step);
+  });
+}
+
+/* ------------------------------------------------------------ lamps and meter */
 function buildFx(fx) {
-  // Night: each lit pilot throws a warm pool on its side of the slab.
+  var face = path3(facePts(-PX, PX, PY0, PY1, 0));
+  // Night: each lit pilot throws its light on its half of the panel.
   ['salon', 'bureau'].forEach(function (side, s) {
     var p = layer(fx, 'sw-pool sw-drive sw-pool-' + side);
-    var d = add(p, 'defs');
-    var lx = s ? CX + JEWEL_DX : CX - JEWEL_DX, ly = JEWEL_Y + 14;
-    grad(d, 'sw-pool-g-' + side, true, { gradientUnits: 'userSpaceOnUse', cx: lx, cy: ly, r: 130,
-         gradientTransform: 'translate(' + lx + ' ' + ly + ') scale(1 .6) translate(' + -lx + ' ' + -ly + ')' },
-         [[0, 'var(--pool-' + side + ')'], [0.35, 'var(--pool-' + side + ')', 0.45], [1, 'var(--pool-' + side + ')', 0]]);
-    add(p, 'path', { d: fieldPath(), fill: U('sw-pool-g-' + side) });
+    var c = proj([s ? JWX : -JWX, JWY - 6, 0]);
+    grad(add(p, 'defs'), 'sw-pool-g-' + side, true, { gradientUnits: 'userSpaceOnUse', cx: n2(c[0]), cy: n2(c[1]), r: 150,
+         gradientTransform: 'translate(' + n2(c[0]) + ' ' + n2(c[1]) + ') scale(1 .72) translate(' + n2(-c[0]) + ' ' + n2(-c[1]) + ')' },
+         [[0, 'var(--pool-' + side + ')'], [0.3, 'var(--pool-' + side + ')', 0.5], [1, 'var(--pool-' + side + ')', 0]]);
+    add(p, 'path', { d: face, fill: U('sw-pool-g-' + side) });
   });
-  // The shadow of the lying blades and handle on the marble, one per rest,
-  // gone as soon as the blade lifts.
-  ['salon', 'bureau'].forEach(function (side, s) {
-    var p = layer(fx, 'sw-rest sw-drive sw-rest-' + side);
-    var sg = s ? 1 : -1, g = add(p, 'g', { transform: 'translate(2.4 5)' });
-    [POLE_FAR, POLE_NEAR].forEach(function (y) {
-      add(g, 'path', { d: rect(Math.min(CX, CX + sg * (BLADE_L + 2)), y - 2.4, BLADE_L + 2, 6.6) });
-    });
-    add(g, 'path', { d: rect(CX + sg * BLADE_L - 5, POLE_FAR - 6, 10, POLE_NEAR - POLE_FAR + 12) });
-    var hx0 = CX + sg * BLADE_L, hx1 = CX + sg * (BLADE_L + GRIP_L);
-    add(g, 'ellipse', { cx: n2((hx0 + hx1) / 2 + sg * 8), cy: HINGE_Y + 1, rx: n2(GRIP_L / 2 - 4), ry: 11.5 });
-  });
-  // The meter's lamp (night) and its needle, under the glass.
-  var dialD = 'M' + (CX - MET_R) + ' ' + MET_Y + 'A' + MET_R + ' ' + MET_R + ' 0 0 1 ' + (CX + MET_R) + ' ' + MET_Y + 'Z';
-  var ml = layer(fx, 'sw-dial-lamp');
-  grad(add(ml, 'defs'), 'sw-dial-lamp-g', true, { gradientUnits: 'userSpaceOnUse', cx: CX, cy: MET_Y, r: MET_R },
-       [[0, 'var(--dial-lamp)'], [0.75, 'var(--dial-lamp)', 0.55], [1, 'var(--dial-lamp)', 0.15]]);
-  add(ml, 'path', { d: dialD, fill: U('sw-dial-lamp-g') });
-  var nd = layer(fx, 'sw-needle sw-drive sw-raw');
-  grad(add(nd, 'defs'), 'sw-cap', true, { cx: 0.36, cy: 0.3, r: 0.8 }, [[0, 'var(--bz-4)'], [0.5, 'var(--bz-2)'], [1, 'var(--bz-0)']]);
-  var py = MET_Y - 2;
-  var needle = 'M' + (CX - 1.1) + ' ' + py + 'L' + (CX - 0.4) + ' ' + (py - 33) + 'L' + CX + ' ' + (py - 35) + 'L' + (CX + 0.4) + ' ' + (py - 33) + 'L' + (CX + 1.1) + ' ' + py + 'Z';
-  add(nd, 'path', { d: needle, transform: 'translate(.9 1.2)', style: F('#000') + ';opacity:.28' });
-  add(nd, 'path', { d: needle, style: F('var(--needle-ink)') });
-  add(nd, 'path', { d: 'M' + (CX - 2) + ' ' + (py - 23) + 'L' + CX + ' ' + (py - 29.5) + 'L' + (CX + 2) + ' ' + (py - 23) + 'Z', style: F('var(--needle-ink)') });
-  add(nd, 'circle', { cx: CX, cy: py + 6, r: 2.8, style: F('var(--needle-ink)') });
-  add(nd, 'circle', { cx: CX, cy: py, r: 3.6, fill: U('sw-cap') });
-  // the glass over the dial: one reflection band
-  var gl = layer(fx, 'sw-glass');
-  lin(add(gl, 'defs'), 'sw-glass-g', CX - 30, MET_Y - 38, CX + 10, MET_Y, [[0, '#fff', 0], [0.34, '#fff', 0], [0.42, 'var(--glass-band)'], [0.5, '#fff', 0.05], [0.58, '#fff', 0], [1, '#fff', 0]]);
-  add(gl, 'path', { d: dialD, fill: U('sw-glass-g') });
-  add(gl, 'path', { d: 'M' + (CX - MET_R + 1.5) + ' ' + MET_Y + 'A' + (MET_R - 1.5) + ' ' + (MET_R - 1.5) + ' 0 0 1 ' + (CX + MET_R - 1.5) + ' ' + MET_Y,
-                    style: S('#000', 2, 'opacity:.25') });
-
   // The pilots, lit: each its own layer, faded by opacity.
   ['salon', 'bureau'].forEach(function (side, s) {
     var p = layer(fx, 'sw-lit sw-drive sw-lit-' + side);
     var d = add(p, 'defs');
-    var lx = s ? CX + JEWEL_DX : CX - JEWEL_DX;
+    var x = s ? JWX : -JWX, c = proj([x, JWY, 6.4]);
     grad(d, 'sw-jw-' + side, true, { cx: 0.5, cy: 0.55, r: 0.55 }, [[0, 'var(--jw-core-' + side + ')'], [0.35, 'var(--jw-mid-' + side + ')'], [1, 'var(--jw-rim-' + side + ')']]);
     grad(d, 'sw-bloom-' + side, true, { cx: 0.5, cy: 0.5, r: 0.5 }, [[0, 'var(--jw-bloom-' + side + ')'], [0.4, 'var(--jw-bloom-' + side + ')', 0.35], [1, 'var(--jw-bloom-' + side + ')', 0]]);
-    grad(d, 'sw-facet-' + side, true, { cx: 0.4, cy: 0.35, r: 0.8 }, [[0, '#fff', 0.5], [1, '#fff', 0.08]]);
-    // its reflection in the polished marble, drawn down the slope
-    grad(d, 'sw-refl-' + side, true, { cx: 0.5, cy: 0.5, r: 0.5 }, [[0, 'var(--jw-refl-' + side + ')'], [0.5, 'var(--jw-refl-' + side + ')', 0.35], [1, 'var(--jw-refl-' + side + ')', 0]]);
-    add(p, 'ellipse', { cx: lx, cy: JEWEL_Y + 24, rx: 9, ry: 14, fill: U('sw-refl-' + side) });
-    add(p, 'circle', { cx: lx, cy: JEWEL_Y, r: JR * 4.6, fill: U('sw-bloom-' + side) }, 'sw-bloom');
-    add(p, 'circle', { cx: lx, cy: JEWEL_Y, r: JR, fill: U('sw-jw-' + side) });
-    facets(p, lx, JEWEL_Y, JR, 'sw-facet-' + side);
+    grad(d, 'sw-facet-' + side, true, { cx: 0.4, cy: 0.35, r: 0.8 }, [[0, '#fff', 0.55], [1, '#fff', 0.1]]);
+    add(p, 'circle', { cx: n2(c[0]), cy: n2(c[1]), r: 34, fill: U('sw-bloom-' + side) }, 'sw-bloom');
+    var j = add(p, 'g', { transform: planeXf([x, JWY, 6.4], X3, DN) });
+    add(j, 'circle', { cx: 0, cy: 0, r: JR, fill: U('sw-jw-' + side) });
+    facets(j, 0, 0, JR, 'sw-facet-' + side);
   });
+  // The meter's lamp (night), its needle and its glass.
+  var dialXf = planeXf([0, MY, 5.4], X3, DN);
+  var ml = layer(fx, 'sw-dial-lamp');
+  grad(add(ml, 'defs'), 'sw-dial-lamp-g', true, { cx: 0.5, cy: 0.6, r: 0.55 },
+       [[0, 'var(--dial-lamp)'], [0.7, 'var(--dial-lamp)', 0.55], [1, 'var(--dial-lamp)', 0.1]]);
+  add(add(ml, 'g', { transform: dialXf }), 'circle', { cx: 0, cy: 0, r: MR, fill: U('sw-dial-lamp-g') });
+  var nd = layer(fx, 'sw-needle sw-drive sw-raw');
+  grad(add(nd, 'defs'), 'sw-cap', true, { cx: 0.36, cy: 0.3, r: 0.8 }, [[0, 'var(--bz-4)'], [0.5, 'var(--bz-2)'], [1, 'var(--bz-0)']]);
+  var ng = add(nd, 'g', { transform: dialXf });
+  var needle = 'M-0.75 3.5L-0.3 -11.2L0 -12.4L0.3 -11.2L0.75 3.5Z';
+  add(ng, 'path', { d: needle, transform: 'translate(.7 1)', style: F('#000') + ';opacity:.3' });
+  add(ng, 'path', { d: needle, style: F('var(--needle-ink)') });
+  add(ng, 'path', { d: 'M-1.4 -5.2L0 -9.6L1.4 -5.2Z', style: F('var(--needle-ink)') });
+  add(ng, 'circle', { cx: 0, cy: 7.4, r: 1.9, style: F('var(--needle-ink)') });
+  add(ng, 'circle', { cx: 0, cy: 3.5, r: 2.6, fill: U('sw-cap') });
+  var gl = layer(fx, 'sw-glass');
+  grad(add(gl, 'defs'), 'sw-glass-g', false, { x1: 0.1, y1: 0, x2: 0.7, y2: 1 },
+       [[0, '#fff', 0], [0.3, '#fff', 0], [0.38, 'var(--glass-band)'], [0.45, '#fff', 0.06], [0.52, '#fff', 0], [1, '#fff', 0]]);
+  var gg = add(gl, 'g', { transform: planeXf([0, MY, 6.2], X3, DN) });
+  add(gg, 'circle', { cx: 0, cy: 0, r: MR + 0.4, fill: U('sw-glass-g') });
+  add(gg, 'ellipse', { cx: -5.5, cy: -8.5, rx: 5, ry: 2.2, transform: 'rotate(-28 -5.5 -8.5)', style: F('#fff') + ';opacity:.22' });
 
-  // The blades and, over each, its pole's near leaves and hinge cheek.
-  bladeLayer(fx, POLE_FAR, 'sw-blade-far', 'sw-bf');
-  var ff = layer(fx, 'sw-front sw-front-far');
-  ['salon', 'bureau'].forEach(function (side, s) {
-    jawFront(add(ff, 'g', { 'data-side': side }, 'hb-side'), s ? CX + JAW_R : CX - JAW_R, POLE_FAR);
-  });
-  hingeFront(ff, CX, POLE_FAR);
-  bladeLayer(fx, POLE_NEAR, 'sw-blade-near', 'sw-bn');
-  var fn = layer(fx, 'sw-front sw-front-near');
-  ['salon', 'bureau'].forEach(function (side, s) {
-    jawFront(add(fn, 'g', { 'data-side': side }, 'hb-side'), s ? CX + JAW_R : CX - JAW_R, POLE_NEAR);
-  });
-  hingeFront(fn, CX, POLE_NEAR);
+  buildPoseLayer(fx);
 
-  // The crossbar: ebonite, riveted to both blade tips. It lies along the
-  // hinge pin, so it only travels.
-  var bar = layer(fx, 'sw-bar sw-drive');
-  var bd = add(bar, 'defs');
-  box(bd, 'sw-eb-bar', false, [[0, 'var(--eb-0)'], [0.3, 'var(--eb-2)'], [0.45, 'var(--eb-3)'], [0.7, 'var(--eb-1)'], [1, 'var(--eb-0)']]);
-  grad(bd, 'sw-rivet', true, { cx: 0.36, cy: 0.3, r: 0.8 }, [[0, 'var(--kc-5)'], [0.45, 'var(--kc-3)'], [1, 'var(--kc-0)']]);
-  var bw = 7.5, b0 = POLE_FAR - 9, b1 = POLE_NEAR + 9;
-  var barD = 'M' + (CX - bw) + ' ' + (b0 + 3) + 'Q' + (CX - bw) + ' ' + b0 + ' ' + CX + ' ' + b0 + 'Q' + (CX + bw) + ' ' + b0 + ' ' + (CX + bw) + ' ' + (b0 + 3) +
-             'V' + (b1 - 3) + 'Q' + (CX + bw) + ' ' + b1 + ' ' + CX + ' ' + b1 + 'Q' + (CX - bw) + ' ' + b1 + ' ' + (CX - bw) + ' ' + (b1 - 3) + 'Z';
-  add(bar, 'path', { d: barD, transform: 'translate(1 1.4)', style: F('#000') + ';opacity:.5' });
-  add(bar, 'path', { d: barD, fill: U('sw-eb-bar') });
-  [POLE_FAR, POLE_NEAR].forEach(function (y) { add(bar, 'circle', { cx: CX, cy: y, r: 2.6, fill: U('sw-rivet') }); });
-
-  // The handle: turned ebonite on a brass ferrule, drawn standing on the
-  // crossbar and swung into place by CSS.
-  var hd = layer(fx, 'sw-handle sw-drive');
-  var hdd = add(hd, 'defs');
-  box(hdd, 'sw-eb', false, [[0, 'var(--eb-0)'], [0.2, 'var(--eb-1)'], [0.5, 'var(--eb-2)'], [0.8, 'var(--eb-1)'], [1, 'var(--eb-0)']]);
-  box(hdd, 'sw-fer', false, [[0, 'var(--bz-0)'], [0.3, 'var(--bz-2)'], [0.5, 'var(--bz-4)'], [0.75, 'var(--bz-1)'], [1, 'var(--bz-0)']]);
-  var b = HINGE_Y, L = GRIP_L;
-  function hw(t) {
-    // the turned profile: ferrule, neck, a long swelling grip, a domed end
-    if (t < 0.17) return 4.4;
-    if (t < 0.23) return 4.4 + (t - 0.17) / 0.06 * 2.6;
-    var u = (t - 0.23) / 0.77;
-    return 7 + 6.2 * Math.sin(Math.min(1, u * 1.1) * Math.PI * 0.6);
-  }
-  var pts = [], N = 28;
-  for (var i = 0; i <= N; i++) { var t = 0.12 + (0.93 - 0.12) * i / N; pts.push([hw(t), b - t * L]); }
-  var endR = pts[pts.length - 1][0], endY = pts[pts.length - 1][1];
-  var dH = 'M' + n2(CX - pts[0][0]) + ' ' + n2(pts[0][1]);
-  pts.forEach(function (p) { dH += 'L' + n2(CX - p[0]) + ' ' + n2(p[1]); });
-  dH += 'C' + n2(CX - endR) + ' ' + n2(endY - endR * 0.95) + ' ' + n2(CX + endR) + ' ' + n2(endY - endR * 0.95) + ' ' + n2(CX + endR) + ' ' + n2(endY);
-  for (i = pts.length - 1; i >= 0; i--) dH += 'L' + n2(CX + pts[i][0]) + ' ' + n2(pts[i][1]);
-  dH += 'Z';
-  add(hd, 'path', { d: dH, fill: U('sw-eb') });
-  // the lamp's line along whichever side of the grip is on top at rest,
-  // and a broad soft sheen down the middle that stays wherever it points
-  var hi = function (f) {
-    var d = '';
-    pts.forEach(function (p, k) { if (k < 6) return; d += (d ? 'L' : 'M') + n2(CX + f * p[0]) + ' ' + n2(p[1]); });
-    return d;
-  };
-  add(hd, 'path', { d: hi(-0.6), style: S('var(--eb-hi)', 1.8, 'stroke-linecap:round') }, 'sw-lit-l');
-  add(hd, 'path', { d: hi(0.6), style: S('var(--eb-hi)', 1.8, 'stroke-linecap:round') }, 'sw-lit-r');
-  add(hd, 'path', { d: hi(0), style: S('var(--eb-hi)', 3.4, 'stroke-linecap:round;opacity:.22') });
-  // the ferrule and its collar
-  add(hd, 'path', { d: rect(CX - 5, b - 0.17 * L, 10, 0.17 * L - 6), fill: U('sw-fer') });
-  add(hd, 'path', { d: rect(CX - 5.8, b - 0.17 * L - 1, 11.6, 2.6), fill: U('sw-fer') });
-
-  // The flash of the break: a spark at each pair of jaws.
+  // The flash of the break: a spark at the mouth of each pair of jaws.
   ['salon', 'bureau'].forEach(function (side, s) {
     var sp = layer(fx, 'sw-spark sw-spark-' + side);
-    var jx = s ? CX + JAW_R : CX - JAW_R;
+    var jx = s ? JX : -JX;
     grad(add(sp, 'defs'), 'sw-arc-' + side, true, { cx: 0.5, cy: 0.5, r: 0.5 }, [[0, 'var(--arc-core)'], [0.25, 'var(--arc-mid)', 0.8], [1, 'var(--arc-mid)', 0]]);
-    [POLE_FAR, POLE_NEAR].forEach(function (y, k) {
-      var cy = y - 9, id = 'board-spark-' + side + '-' + k;
-      add(sp, 'ellipse', { cx: jx, cy: cy, rx: 20, ry: 13, fill: U('sw-arc-' + side) }, 'sw-arc-halo');
+    [PL, PU].forEach(function (y, k) {
+      var c = proj([jx + (s ? -9 : 9), y, LEAF_Z + 1]), sid = 'board-spark-' + side + '-' + k;
+      add(sp, 'ellipse', { cx: n2(c[0]), cy: n2(c[1]), rx: 22, ry: 14, fill: U('sw-arc-' + side) }, 'sw-arc-halo');
       var d2 = '';
       for (var r = 0; r < 9; r++) {
-        var a = (r / 9) * 2 * Math.PI + rnd(id, r) * 0.5, len = 5 + rnd(id, r + 20) * 8;
-        var mx = jx + Math.cos(a) * len * 0.5 + (rnd(id, r + 40) - 0.5) * 2.4, my = cy + Math.sin(a) * len * 0.35;
-        d2 += 'M' + jx + ' ' + cy + 'L' + n2(mx) + ' ' + n2(my) + 'L' + n2(jx + Math.cos(a) * len) + ' ' + n2(cy + Math.sin(a) * len * 0.7);
+        var a = (r / 9) * 2 * Math.PI + rnd(sid, r) * 0.5, len = 5 + rnd(sid, r + 20) * 9;
+        var mx = c[0] + Math.cos(a) * len * 0.5 + (rnd(sid, r + 40) - 0.5) * 2.4, my = c[1] + Math.sin(a) * len * 0.35;
+        d2 += 'M' + n2(c[0]) + ' ' + n2(c[1]) + 'L' + n2(mx) + ' ' + n2(my) + 'L' + n2(c[0] + Math.cos(a) * len) + ' ' + n2(c[1] + Math.sin(a) * len * 0.7);
       }
       add(sp, 'path', { d: d2, style: S('var(--arc-core)', 0.8, 'stroke-linecap:round;stroke-linejoin:round') });
-      add(sp, 'circle', { cx: jx, cy: cy, r: 2.8, style: F('var(--arc-core)') });
+      add(sp, 'circle', { cx: n2(c[0]), cy: n2(c[1]), r: 2.8, style: F('var(--arc-core)') });
     });
   });
 }
@@ -823,21 +1109,26 @@ window.Desk = {
     if (!desk) return;
     var q = desk.querySelector('.hl-board'), fx = desk.querySelector('.desk-fx');
     if (q && !q.firstChild) buildBoard(q);
-    if (fx && !fx.firstChild) buildFx(fx);
+    if (fx && !fx.firstChild) { buildFx(fx); prebuild(); }
     dressPlates(desk);
-    // The swing's geometry, for the transforms in atrium.css.
+    // Where the parts CSS moves and places stand, in board units.
     var st = desk.style;
-    st.setProperty('--sw-cx', CX + 'px');
-    st.setProperty('--sw-hy', HINGE_Y + 'px');
-    st.setProperty('--sw-far', POLE_FAR + 'px');
-    st.setProperty('--sw-near', POLE_NEAR + 'px');
-    st.setProperty('--sw-bl', BLADE_L + 'px');
-    st.setProperty('--sw-k', String(K));
-    st.setProperty('--sw-met', (MET_Y - 2) + 'px');
-    st.setProperty('--sw-plate-b', (BOX_H - PLATE_B) + 'px');
-    st.setProperty('--sw-plate-l', (CX - JAW_R) + 'px');
-    st.setProperty('--sw-plate-r', (CX + JAW_R) + 'px');
-    st.setProperty('--sw-arm', (BLADE_L + GRIP_L + 8) + 'px');
-  }
+    var hp = proj([0, HY, ZB]), mc = proj([0, MY, 5.4]);
+    var mk = (proj([0, MY + 1, 5.4])[1] - mc[1]) / (proj([1, MY, 5.4])[0] - mc[0]);
+    st.setProperty('--hb-w', BOX_W + 'px');
+    st.setProperty('--hb-h', BOX_H + 'px');
+    st.setProperty('--sw-hx', n2(hp[0]) + 'px');
+    st.setProperty('--sw-hy', n2(hp[1]) + 'px');
+    st.setProperty('--sw-arm', n2((XB1 + H_END + 4) * 1.06) + 'px');
+    st.setProperty('--sw-k', n2(SP));
+    st.setProperty('--sw-mx', n2(mc[0]) + 'px');
+    st.setProperty('--sw-my', n2(mc[1]) + 'px');
+    st.setProperty('--sw-mk', n2(Math.abs(mk)));
+    var pl = proj([-JX, PLATE_T, 1]), pr = proj([JX, PLATE_T, 1]);
+    st.setProperty('--sw-plate-t', n2(pl[1]) + 'px');
+    st.setProperty('--sw-plate-l', n2(pl[0]) + 'px');
+    st.setProperty('--sw-plate-r', n2(pr[0]) + 'px');
+  },
+  drive: drivePoses
 };
 })();

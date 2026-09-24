@@ -682,21 +682,19 @@ html[data-boot="suppressed"] #hall { animation: hall-fade 0.3s var(--ease-out) b
 
 /* ==========================================================================
    THE HOUSE-LIGHTS BOARD: the hall's one control (DESIGN.md "The
-   house-lights board"). A switchboard on a pedestal standing on the runner,
-   drawn by static/js/desk.js and dressed in palace-desk.css. z ladder:
-   desk 50 < prefs 60 < grain 95 < entrance 100.
-   One number, --sw (0 = the blade in the Salon's jaws, 1 = in the
-   Bureau's), is written by app.js onto the few parts that read it: the two
-   blades, the crossbar, the handle, the needle, the lamps, the resting
-   shadows and the hit strip. Each part derives its own transform or
-   opacity from it here. It inherits, because each of those parts is a
-   small drawing whose children read it too (the arris that faces the light
-   changes with the side the blade lies on), but it is never written on the
-   board or the desk, so nothing larger is restyled by a throw.
+   house-lights board"). An upright switchboard on a bronze standard at the
+   foot of the runner, drawn by static/js/desk.js and dressed in
+   palace-desk.css. z ladder: desk 50 < prefs 60 < grain 95 < entrance 100.
+   One number, --sw (0 = the blades in the Salon's jaws, 1 = in the
+   Bureau's), is written by app.js onto the few parts CSS moves: the
+   needle, the lamps and their pools, and the hit strip. The blades, the
+   crossbar and the handle are a stack of drawn poses that desk.js shows by
+   opacity from the same number. --sw is never written on the board or the
+   desk, so nothing larger is restyled by a throw.
    ========================================================================== */
 @property --sw { syntax: "<number>"; inherits: true; initial-value: 0; }
 #signal-desk {
-  position: fixed; left: 0; right: 0; bottom: calc(12px * var(--ui));
+  position: fixed; left: 0; right: 0; bottom: calc(10px * var(--ui));
   height: var(--desk-h);
   z-index: 50;
   isolation: isolate;
@@ -722,9 +720,10 @@ html[data-boot="suppressed"] #signal-desk {
   margin: 0 auto;
   padding: 0 44px;
 }
+/* The board's box, in its own units (desk.js writes --hb-w and --hb-h). */
 .assembly {
   position: absolute; left: 50%; bottom: 0;
-  width: 440px; height: 300px;
+  width: var(--hb-w, 460px); height: var(--hb-h, 296px);
   transform: translateX(-50%) scale(var(--desk-s));
   transform-origin: center bottom;
   pointer-events: none;
@@ -737,67 +736,39 @@ html[data-boot="suppressed"] #signal-desk {
 .hl-board > g, .hl-board > g * { pointer-events: visiblePainted; cursor: pointer; }
 .hl-board .hb-floor, .hl-board .hb-floor *, .hl-board .hb-noptr, .hl-board .hb-noptr * { pointer-events: none; }
 
-.desk-fx { position: absolute; inset: 0; }
+.desk-fx { position: absolute; inset: 0; pointer-events: none; }
 .desk-fx > svg {
   position: absolute; inset: 0; width: 100%; height: 100%;
   overflow: visible;
   pointer-events: none;
 }
-/* The near leaves of the jaws belong to their side, like the jaws. */
-.desk-fx .sw-front .hb-side, .desk-fx .sw-front .hb-side * { pointer-events: visiblePainted; cursor: pointer; }
-
-/* The swing. The hinge pin runs up the slope, so the blade turns in a
-   plane that faces the reader and leans back: seen from the hall, a point
-   on the blade r from the hinge travels (r sin a, -K r cos a), K = 0.6.
-   A blade is drawn standing on its hinge; turned by a and flattened by K
-   it lies along the marble at either rest. */
-.sw-blade, .sw-bar, .sw-handle, #lever .hit-arm {
-  --a: calc((var(--sw) - 0.5) * 180deg);
-  /* the blade tip's travel off the hinge, and the handle's closeness */
-  --tip-x: calc(sin(var(--a)) * var(--sw-bl));
-  --tip-y: calc(cos(var(--a)) * var(--sw-bl) * var(--sw-k) * -1);
-  --near: calc(1 + 0.1 * cos(var(--a)));
-  --turn: atan2(sin(var(--a)), calc(cos(var(--a)) * var(--sw-k)));
-  --reach: hypot(sin(var(--a)), calc(cos(var(--a)) * var(--sw-k)));
-  will-change: transform;
-}
-.sw-blade { transform: scaleY(var(--sw-k)) rotate(var(--a)); }
-.sw-blade-far { transform-origin: var(--sw-cx) var(--sw-far); }
-.sw-blade-near { transform-origin: var(--sw-cx) var(--sw-near); }
-/* The crossbar joins the blade tips along the pin, so it only travels. */
-.sw-bar { transform: translate(var(--tip-x), var(--tip-y)); }
-/* The handle rides the crossbar, turns to the blade's projected angle,
-   shortens as it points toward the reader and grows as it comes closer. */
-.sw-handle {
-  transform-origin: var(--sw-cx) var(--sw-hy);
-  transform: translate(var(--tip-x), var(--tip-y)) rotate(var(--turn))
-             scale(var(--near), calc(var(--near) * var(--reach)));
-}
-/* The arris lit at each rest (the blade's and the grip's long edges). */
-.sw-lit-l { opacity: var(--sw); }
-.sw-lit-r { opacity: calc(1 - var(--sw)); }
-/* The needle falls to zero as the blade breaks one circuit, waits while it
-   is in the air and swings over as it makes the other, carried a little
-   past by the throw's overshoot (the raw value, not the bounced one). */
+/* The swing: the moving parts drawn at each of 43 angles, the two either
+   side of the blade's angle shown (desk.js). The stack is its own layer,
+   so a frame of the throw repaints it and nothing under it. */
+.sw-poses { will-change: transform; }
+/* The needle turns in the dial's own plane, which the eye sees shortened
+   by --sw-mk: stretch it back, turn it, shorten it again. It falls to zero
+   as the blades break one circuit, waits while they are in the air and
+   swings over as they make the other, carried a little past by the
+   throw's overshoot (the raw value, not the bounced one). */
 .sw-needle {
-  transform-origin: var(--sw-cx) var(--sw-met);
-  transform: rotate(calc(52deg * (clamp(0, (var(--sw) - 0.7) / 0.25, 1) - clamp(0, (0.3 - var(--sw)) / 0.25, 1)
-                                  + max(0, var(--sw) - 1) * 3 - max(0, 0 - var(--sw)) * 3)));
+  transform-origin: var(--sw-mx) var(--sw-my);
+  transform: scale(1, var(--sw-mk)) rotate(calc(44deg * (clamp(0, (var(--sw) - 0.7) / 0.25, 1) - clamp(0, (0.3 - var(--sw)) / 0.25, 1)
+                                  + max(0, var(--sw) - 1) * 3 - max(0, 0 - var(--sw)) * 3))) scale(1, calc(1 / var(--sw-mk)));
   will-change: transform;
 }
-/* The lamps follow the blade, not the wing: a pilot goes out as its jaws
-   open and the other lights as the blade lands, flickering if it bounces. */
+/* The lamps follow the blades, not the wing: a pilot goes out as its jaws
+   open and the other lights as the blades land, flickering if they bounce. */
 .sw-lit-salon, .sw-pool-salon { opacity: clamp(0, 1 - var(--sw) / 0.08, 1); will-change: opacity; }
 .sw-lit-bureau, .sw-pool-bureau { opacity: clamp(0, (var(--sw) - 0.92) / 0.08, 1); will-change: opacity; }
-.sw-rest-salon { opacity: clamp(0, 1 - var(--sw) / 0.12, 1); will-change: opacity; }
-.sw-rest-bureau { opacity: clamp(0, (var(--sw) - 0.88) / 0.12, 1); will-change: opacity; }
 .sw-spark { opacity: 0; will-change: opacity; }
 :root[data-motion="reduced"] .sw-spark { display: none; }
 
 /* Name plates. Each names the jaws above it, and a click on it lights that
-   wing and never the other. The live one takes no cursor. */
+   wing and never the other. The live one takes no cursor. They lie under
+   the swing, which passes in front of them. */
 .assembly .l-label {
-  position: absolute; bottom: var(--sw-plate-b);
+  position: absolute; top: var(--sw-plate-t);
   transform: translateX(-50%);
   pointer-events: auto; cursor: pointer;
   white-space: nowrap;
@@ -809,32 +780,37 @@ html[data-boot="suppressed"] #signal-desk {
 
 /* #lever is the switch a keyboard and a screen reader use. It lies over
    the board at the board's own scale and takes no pointer itself; the hit
-   strip inside it does, and it swings with the blade, so nothing but drawn
-   hardware throws the switch. */
+   strip inside it does, and it swings with the handle, so nothing but
+   drawn hardware throws the switch. */
 #lever {
   position: absolute; left: 50%; bottom: 0;
-  width: 440px; height: 300px; margin-left: -220px;
+  width: var(--hb-w, 460px); height: var(--hb-h, 296px); margin-left: calc(var(--hb-w, 460px) / -2);
   transform: scale(var(--desk-s));
   transform-origin: 50% 100%;
   pointer-events: none;
   z-index: 2;
 }
 #lever:focus-visible { outline: none; box-shadow: none; }
-/* From the hinge out past the handle's end, a little wider than the grip,
-   turned to the blade's projected angle. */
+/* From the hinge out past the handle's end, a little wider than the grip.
+   The blades turn about an upright pin, so seen from the hall the handle's
+   end travels (-cos a, --sw-k sin a) off the hinge: the strip turns to
+   that direction and shortens with it. */
 #lever .hit-arm {
-  position: absolute; left: calc(var(--sw-cx) - 18px); top: calc(var(--sw-hy) - var(--sw-arm));
-  width: 36px; height: var(--sw-arm);
-  border-radius: 18px 18px 4px 4px;
-  transform-origin: 50% 100%;
-  transform: rotate(var(--turn)) scaleY(calc(var(--near) * var(--reach)));
+  --a: calc(var(--sw) * 180deg);
+  position: absolute; left: calc(var(--sw-hx) - var(--sw-arm)); top: calc(var(--sw-hy) - 17px);
+  width: var(--sw-arm); height: 34px;
+  border-radius: 17px 4px 4px 17px;
+  transform-origin: 100% 50%;
+  transform: rotate(calc(-1 * atan2(calc(sin(var(--a)) * var(--sw-k)), cos(var(--a)))))
+             scaleX(hypot(cos(var(--a)), calc(sin(var(--a)) * var(--sw-k))));
   display: block;
   pointer-events: auto;
   cursor: pointer;
+  will-change: transform;
 }
-/* While the handle is held it lifts a hair off the crossbar, asking for
-   the pull. */
-.desk-core:has(.hit-arm:active) .sw-handle { translate: 0 -1.5px; }
+/* While the handle is held the moving parts come a hair toward the hand,
+   asking for the pull. */
+.desk-core:has(.hit-arm:active) .sw-poses { translate: 0 1.2px; }
 
 /* ==========================================================================
    STAGE — triptych; gates positioned by transform only (60 fps law)
