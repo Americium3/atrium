@@ -2430,9 +2430,13 @@ html[lang="zh"] .g-name { letter-spacing: 0.17em; }
   transform: translateY(var(--lift, 0px));
   transition: transform 0.6s var(--ease-stage);
 }
-/* A DARK gate's link leads to a dead tab, and while the link can be dragged
-   a press on the notice starts a link drag instead of a text selection. */
-.gate[data-state="dark"] { -webkit-user-drag: none; }
+/* No arch drags as a link. A press that wobbled 6px on the way to a click
+   started a link drag, and the gate never opened; a DARK gate's link leads
+   to a dead tab anyway, and a press on its notice has to select the path.
+   A Ledger plaque is the same kind of target and takes the same rule. */
+.gate, #ledger a.pl-in { -webkit-user-drag: none; }
+/* The RESERVED arch is not a link: no hand over it. */
+.gate.vacant { cursor: default; }
 
 /* ==========================================================================
    THE CONCOURSE CLOCK
