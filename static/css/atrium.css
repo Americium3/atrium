@@ -392,6 +392,14 @@ html[lang="zh"] .p-desc { font-size: calc(11.5px * 1.06 * var(--ui)); }
 html[lang="zh"] .l-empty .zh-sentence, html[lang="zh"] .al-cond { font-size: calc(13px * 1.06 * var(--ui)); }
 /* Localized display lines need the CJK tracking floor (0.25-0.35em). */
 html[lang="zh"] .display { letter-spacing: 0.26em; }
+/* The Chinese face has one weight and hairline strokes. Set small outside
+   the gates and the cabinetry it printed at 2.5 to 4.4:1 where the English
+   it stands in for passes 4.5:1, so it takes its own ink round every stroke
+   here too. Keyed on the lettering's own language; English signage inside
+   it keeps its own weight. */
+:where(.m-sub, #dateline, .bd-sub, .al-vlabel, .al-slabel, .bay-plate, .t-track):lang(zh) { -webkit-text-stroke: 0.4px currentColor; }
+:where(.m-sub):lang(zh) { -webkit-text-stroke-width: 0.5px; }
+:where(.m-sub, #dateline, .bd-sub, .al-vlabel, .al-slabel, .bay-plate, .t-track) [lang="en"] { -webkit-text-stroke-width: 0; }
 /* Addresses / numerals: true caps + tabular figures (digits have no small caps). */
 .addr, .num {
   font-variant-numeric: tabular-nums;
@@ -3018,7 +3026,7 @@ html[lang="zh"] .g-name { letter-spacing: 0.17em; }
 }
 .p-head h2 { font-size: calc(16px * var(--ui)); color: var(--gold-text); letter-spacing: 0.28em; }
 #prefs-close { color: var(--ink-faint); font-size: calc(16px * var(--ui)); padding: 4px 8px; }
-#prefs-close:hover { color: var(--ink); }
+@media (hover: hover) { #prefs-close:hover { color: var(--ink); } }
 .p-group { margin-bottom: 24px; }
 .p-label { font-size: calc(11px * var(--ui)); color: var(--ink-faint); letter-spacing: 0.26em; margin-bottom: 10px; }
 .p-options { display: flex; gap: 10px; flex-wrap: wrap; }
@@ -3030,7 +3038,7 @@ html[lang="zh"] .g-name { letter-spacing: 0.17em; }
   color: var(--ink-faint);
   transition: border-color 0.3s, color 0.3s;
 }
-.p-plaque:hover { color: var(--ink); }
+@media (hover: hover) { .p-plaque:hover { color: var(--ink); } }
 .p-plaque[aria-checked="true"] {
   border-color: var(--gold);
   color: var(--ink);

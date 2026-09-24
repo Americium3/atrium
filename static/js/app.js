@@ -40,6 +40,7 @@ var STR = {
     tickerMore: '{n} MORE IN THE LEDGER',
     hubLost: 'NO WORD FROM THE HUB',
     ledgerUnreadable: 'The Ledger could not be read',
+    ledgerLoading: 'Reading the Ledger',
     ledgerStale: 'NO WORD SINCE {t}',
     'desc.autopilot': 'Season anime, fetched and shelved while you sleep.',
     'desc.groundstation': 'Workshop mods tracked, updates caught in orbit.',
@@ -135,9 +136,9 @@ var STR = {
     appearance: 'APPEARANCE', language: 'LANGUAGE', motion: 'MOTION',
     uiScale: 'ENGRAVING SIZE',
     uiSmall: 'FINE', uiSmallDesc: 'Close reading',
-    uiMedium: 'STANDARD', uiMediumDesc: 'Scales with the screen',
+    uiMedium: 'STANDARD', uiMediumDesc: "The hall's own size",
     uiLarge: 'SIGNBOARD', uiLargeDesc: 'Legible from across the room',
-    onyx: 'ONYX', ivory: 'IVORY', system: 'FOLLOW SYSTEM',
+    onyxGloss: '', ivoryGloss: '', system: 'FOLLOW SYSTEM',
     onyxDesc: 'Black & gold', ivoryDesc: 'Platinum & gold', systemDesc: 'Match the OS',
     motionFull: 'FULL', motionReduced: 'REDUCED',
     replay: 'REPLAY ENTRANCE',
@@ -146,7 +147,7 @@ var STR = {
     ariaLever: 'Bureau wing',
     ariaDesk: 'Signal desk: mode lever',
     markAll: 'MARK ALL READ',
-    markAllHint: 'Strike every dispatch in the window, both wings',
+    markAllHint: 'Strike every dispatch in the Ledger, both wings',
     markAllDone: 'Nothing left to strike',
     markAllStruck: '{n} {n|dispatch|dispatches} struck',
     markAllScope: 'BOTH WINGS',
@@ -174,8 +175,8 @@ var STR = {
     keysTitle: 'KEYS',
     keyGates: 'Walk the gates', keyJump: 'Go to a gate', keyOpen: 'Open it',
     keyLever: 'Throw the lever', keyLedger: 'Open or close the Ledger', keyPrefs: 'Open Preferences',
-    keyWalk: 'Walk the dispatches, in the Ledger', keyPlate: 'Show or hide this plate',
-    keyClose: 'Close', keyEnter: 'ENTER', keyTo: 'to',
+    keyWalk: 'Walk the dispatches in the open Ledger', keyPlate: 'Show or hide this plate',
+    keyClose: 'Close', keyEsc: 'Close the top layer', keyEnter: 'ENTER', keyTo: 'to',
     unreadCount: '{n} new dispatches', unreadCountOne: '1 new dispatch'
   },
   zh: {
@@ -195,6 +196,7 @@ var STR = {
     tickerMore: '消息总台另有 {n} 条',
     hubLost: '中枢没有回音',
     ledgerUnreadable: '消息总台暂时读不出来',
+    ledgerLoading: '正在读取消息总台',
     ledgerStale: '{t} 之后没有回音',
     'desc.autopilot': '当季新番，睡着也替你追完入库。',
     'desc.groundstation': '工坊 Mod 追踪，更新在轨截获。',
@@ -289,9 +291,11 @@ var STR = {
     appearance: '外观', language: '语言', motion: '动效',
     uiScale: '字号',
     uiSmall: '精细', uiSmallDesc: '凑近细读',
-    uiMedium: '标准', uiMediumDesc: '随屏幕尺寸自动放大',
+    uiMedium: '标准', uiMediumDesc: '大厅原本的字号',
     uiLarge: '招牌', uiLargeDesc: '隔着房间也看得清',
-    onyx: '黑金 · ONYX', ivory: '白金 · IVORY', system: '跟随系统',
+    /* The Chinese gloss before the English name, which is signage and
+       carries lang="en" in the markup (index.html). */
+    onyxGloss: '黑金 · ', ivoryGloss: '白金 · ', system: '跟随系统',
     onyxDesc: '玄色与鎏金', ivoryDesc: '铂色与鎏金', systemDesc: '与操作系统一致',
     motionFull: '完整', motionReduced: '减弱',
     replay: '重播入场动画',
@@ -300,7 +304,7 @@ var STR = {
     ariaLever: '事务翼',
     ariaDesk: '信号台：模式拉杆',
     markAll: '全部标为已读',
-    markAllHint: '把窗口内两翼的消息一次全部盖章',
+    markAllHint: '把消息总台里两翼的消息全部划去',
     markAllDone: '没有未读了',
     markAllStruck: '已划去 {n} 条',
     markAllScope: '两翼一并',
@@ -318,7 +322,7 @@ var STR = {
     almSrShorterHair: '比昨日短不到一秒',
     leverDesc: '关：点亮沙龙翼（娱乐）。开：点亮事务翼（工作）。',
     ariaFilter: '筛选消息', ariaClose: '关闭',
-    ariaLedgerClose: '合上消息总台',
+    ariaLedgerClose: '关闭消息总台',
     ariaGates: '门廊', ariaLedger: '消息总台：时间轴',
     ariaWorks: '运转统计：本机实时读数',
     ariaAlmanac: '天象：本厅上空的日月与天气',
@@ -328,8 +332,8 @@ var STR = {
     keysTitle: '按键',
     keyGates: '在门廊间移动', keyJump: '直达某扇门', keyOpen: '打开',
     keyLever: '扳动拉杆', keyLedger: '开合消息总台', keyPrefs: '打开偏好设置',
-    keyWalk: '在消息总台里逐条移动', keyPlate: '显示或收起这块铭牌',
-    keyClose: '关闭', keyEnter: '回车', keyTo: '至',
+    keyWalk: '在打开的消息总台里逐条移动', keyPlate: '显示或收起这块铭牌',
+    keyClose: '关闭', keyEsc: '关闭最上面一层', keyEnter: '回车', keyTo: '至',
     unreadCount: '{n} 条新消息', unreadCountOne: '1 条新消息'
   }
 };
@@ -3961,6 +3965,7 @@ lever.addEventListener('keydown', function (e) {
    second time on the next poll after any notice. The notice has its own
    region now, #gate-say. */
 var hallSaid = '';
+var hallNews = '';   // what it has to say now, heard or not
 
 function applyStatuses() {
   var openCount = 0, known = 0;
@@ -4000,13 +4005,24 @@ function applyStatuses() {
   // "LINES OPEN 0/6" was announced as fact. A hub that stops answering is
   // said out loud, and a hub still asking clears the old count rather than
   // repeating a number it no longer knows.
-  var st = $('#hall-status');
   // (A hub that never answered at all has no registry either, and is said.)
-  if (st && (services.length || hubLost)) {
-    var msg = hubLost ? t('hubLost') : !known ? ''
+  if (services.length || hubLost) {
+    hallNews = hubLost ? t('hubLost') : !known ? ''
       : allDark ? t('allDark') : t('linesOpen', { n: openCount, m: services.length });
-    if (msg !== hallSaid) { hallSaid = msg; st.textContent = msg; }
+    sayLines();
   }
+}
+
+/* Said only where it can be heard. The region lives in the hall, which is
+   inert under Preferences and the open Ledger, and a count written there
+   then was taken as said though no screen reader could hear it: a line
+   that went DARK meanwhile was never announced. It waits instead, and
+   syncBehind() says it when the hall comes back. */
+function sayLines() {
+  var st = $('#hall-status');
+  if (!st || hallNews === hallSaid || st.closest('[inert]')) return;
+  hallSaid = hallNews;
+  st.textContent = hallNews;
 }
 
 function statText(svc) {
@@ -4262,6 +4278,14 @@ function updatePlaque(li, d) {
     n.textContent = t('list');
   });
   $('.pl-detail', li).textContent = h.detail || '';
+  ageCard(li, d);
+}
+
+/* A card's age is written twice, engraved for the eye and in words for a
+   screen reader (the engraving is aria-hidden), and always together: the
+   outage retimer once kept only the engraving counting, so a card that
+   showed "3 h ago" still said "1 hour ago". */
+function ageCard(li, d) {
   $('.pl-time', li).textContent = relTime(d.ts);
   $('.pl-said', li).textContent = relTime(d.ts, true);
 }
@@ -4270,7 +4294,7 @@ function updatePlaque(li, d) {
 function retimeLedger() {
   feed.forEach(function (d) {
     var li = plaqueEls[d.id];
-    if (li) $('.pl-time', li).textContent = relTime(d.ts);
+    if (li) ageCard(li, d);
   });
 }
 
@@ -4298,6 +4322,11 @@ function renderLedger() {
   // dispatches" over a feed that was still on its way.
   if (feedState === 'loading') {
     if (!ol.querySelector('.ghost')) renderGhosts();
+    var saying = ol.querySelector('li.sr-only.ghost');
+    if (saying) saying.textContent = t('ledgerLoading');   // a language switch meanwhile
+    // The idle stamp says why it is idle. Only the full render below synced
+    // it, so a drawer opened before the first feed showed no tooltip at all.
+    syncStamp();
     return;
   }
   var shown = feed.filter(function (d) {
@@ -4436,12 +4465,21 @@ function renderLedger() {
       // Normal arrive animation on poll-driven new dispatch. A plaque that
       // is only coming back (the hub restarted and answered empty once) is
       // not news, and nine of them replaying 'arrive' said it was.
-      li.classList.add('arrive');
-      li.addEventListener('animationend', function () {
-        li.classList.remove('arrive');
-      }, { once: true });
-      (function (el) {
-        setTimeout(function () { el.classList.remove('arrive'); }, 700);
+      // The card goes in held at the drop's first keyframe, and the drop
+      // waits for the column to be redrawn (afterReflow). Started with the
+      // insert, it ran through the frame that redraws every card below it
+      // (117-134 ms at 3440), and that one frame took the card from 18% to
+      // 90% of its fall.
+      li.classList.add('arrive-hold');
+      (function (card) {
+        afterReflow(function () {
+          card.classList.remove('arrive-hold');
+          card.classList.add('arrive');
+          card.addEventListener('animationend', function () {
+            card.classList.remove('arrive');
+          }, { once: true });
+          setTimeout(function () { card.classList.remove('arrive'); }, 700);
+        });
       })(li);
     }
   });
@@ -4459,6 +4497,23 @@ function renderLedger() {
   feed.forEach(function (d) { seenIds[d.id] = 1; });
   refocus();
   syncStamp();      // a chip change moves what the stamp's scope line says
+}
+
+/* A card let into the column moves every card below it, and the frame that
+   draws them in their new places is the slow one, two or three frames after
+   the insert rather than the next (the GPU is still redrawing the column;
+   117-167 ms at 3440 on an integrated GPU, after a 50 ms one). A fixed wait
+   is either too short for a slow machine or makes a fast one wait for it,
+   so this watches the frames: it runs on the first frame after a slow one,
+   or once 150 ms have gone by without one. */
+function afterReflow(fn) {
+  var first = 0, last = 0;
+  requestAnimationFrame(function tick(t) {
+    if (!first) first = t;
+    else if (t - last > 80 || t - first > 150) { fn(); return; }
+    last = t;
+    requestAnimationFrame(tick);
+  });
 }
 
 var badgeCount = 0;
@@ -4525,9 +4580,10 @@ function syncStamp() {
   btn.setAttribute('aria-disabled', String(idle));
   btn.classList.toggle('inert', idle);
   // "Nothing left to strike" is a claim about a window the hall has read.
-  // Before the first feed it claims nothing; with no feed it says why.
+  // Before the first feed it says only that the Ledger is being read, which
+  // is why it is idle; with no feed it says why.
   if (feedState === 'failed') btn.title = t('ledgerUnreadable');
-  else if (feedState === 'loading') btn.removeAttribute('title');
+  else if (feedState === 'loading') btn.title = t('ledgerLoading');
   else btn.title = idle ? t('markAllDone') : t('markAllHint');
   syncStale();
   // While a chip narrows the column, the stamp still clears both wings, and
@@ -4586,15 +4642,20 @@ function openLedger() {
   var scrimEl = $('#ledger-scrim');
   var ledgerBtnEl = $('#ledger-btn');
   if (!ledgerEl || !scrimEl || !ledgerBtnEl) return;
+  // A notice lying over the drawer's chips and stamp hid them and the focus
+  // ring on them. A pointer press already put the plate away; L does too.
+  // It goes first: L pressed on the plate's heading is L pressed on the gate
+  // the plate was called from, and putting the plate away hands focus back
+  // there. Read before it, the return was the plate's own heading, hidden by
+  // the time the drawer shut, and focus fell through to the hatch.
+  toggleKeyplate(false);
   // Where the reader was, so shutting the drawer can put them back there
   // rather than on the hatch, where the next arrow key did nothing. The bay
   // is kept as well: W can darken that gate while the drawer is open.
   var from = document.activeElement;
-  ledgerReturn = from && from !== document.body && !ledgerEl.contains(from)
+  ledgerReturn = from && from !== document.body && !ledgerEl.contains(from) &&
+    !(keyplate && keyplate.contains(from))
     ? { el: from, bay: litGates().indexOf(from) } : null;
-  // A notice lying over the drawer's chips and stamp hid them and the focus
-  // ring on them. A pointer press already put the plate away; L does too.
-  toggleKeyplate(false);
   layerMoved();
   // The column is about to slide in under wherever the pointer rests; no
   // dwell from before may carry over into it.
@@ -4609,13 +4670,20 @@ function openLedger() {
   ledgerEl.classList.add('open');
   scrimEl.classList.add('visible');
   ledgerBtnEl.setAttribute('aria-expanded', 'true');
+  // A drawer opened again starts at its head. It kept the scroll it was shut
+  // with, and the first Tab parked the knob at the screen's top edge with
+  // the top of its ring cut off.
+  ledgerEl.scrollTop = 0;
   renderLedger();
   ledgerOpening = false;
   // The drawer covers the hatch that opened it, so focus moves in with it:
   // to the drawer's heading, from where the chips, the stamp and the first
-  // plaque are one Tab away. Tab then cycles the drawer and the hatch.
+  // plaque are one Tab away. Tab then cycles the drawer's own stops.
   var head = $('#ledger h2');
   if (head) head.focus({ preventScroll: true });
+  // Only then does the hall go out of reach: made inert while focus was
+  // still on a gate, it would drop the reader's place on the way in.
+  syncBehind();
 }
 
 function closeLedger() {
@@ -4624,18 +4692,34 @@ function closeLedger() {
   var ledgerBtnEl = $('#ledger-btn');
   if (!ledgerEl || !scrimEl || !ledgerBtnEl) return;
   layerMoved();
+  var ae = document.activeElement;
+  // The key plate called up over the drawer returns to a plaque, which is
+  // about to go inert. L pressed there shut the drawer and threw its return
+  // away (focus was on the plate, not in the drawer), and the Esc that put
+  // the plate away then had nowhere to go but <body>.
+  var plateOver = keyplate && !keyplate.hidden && keyplate.contains(ae) &&
+    kpReturn && ledgerEl.contains(kpReturn);
+  // A dwell under way when the drawer shuts was not finished by the reader.
+  cancelDwells();
+  ledgerEl.classList.remove('open');
+  scrimEl.classList.remove('visible');
+  ledgerBtnEl.setAttribute('aria-expanded', 'false');
+  // The hall comes back into reach before focus is handed to it.
+  ['#hall', '#signal-desk'].forEach(function (s) { var n = $(s); if (n) n.inert = false; });
   // A closed drawer is inert: off screen it still sat in the tab order, and
   // because focus marks a dispatch read, one pass of Tab through the page
   // struck the whole Ledger. Focus inside it goes back where it came from
   // first, or making it inert would drop the reader's place onto <body>.
-  if (ledgerEl.contains(document.activeElement)) ledgerHandBack(ledgerBtnEl);
-  else ledgerReturn = null;
-  // A dwell under way when the drawer shuts was not finished by the reader.
-  cancelDwells();
-  ledgerEl.inert = true;
-  ledgerEl.classList.remove('open');
-  scrimEl.classList.remove('visible');
-  ledgerBtnEl.setAttribute('aria-expanded', 'false');
+  if (ledgerEl.contains(ae)) {
+    ledgerHandBack(ledgerBtnEl);
+  } else if (plateOver) {
+    // The plate stays up; it returns where the drawer would have.
+    kpReturn = ledgerReturnTarget() || ledgerBtnEl;
+    kpReturnX = kpReturn.classList.contains('gate') ? slotX(kpReturn) : null;
+  } else {
+    ledgerReturn = null;
+  }
+  syncBehind();
   // Closing marks nothing. Reading is what the pointer did while the drawer
   // was open, and a plaque three screens down was not read by the act of
   // shutting the drawer over it.
@@ -4651,7 +4735,7 @@ function closeLedger() {
    nowhere, or from something that has since gone. A gate darkened by the
    lever while the drawer was open hands over to the gate in its bay. */
 var ledgerReturn = null;
-function ledgerHandBack(hatch) {
+function ledgerReturnTarget() {
   var r = ledgerReturn;
   ledgerReturn = null;
   var to = r && r.el;
@@ -4659,14 +4743,44 @@ function ledgerHandBack(hatch) {
     var gates = r.bay >= 0 ? litGates() : [];
     to = gates.length ? gates[Math.min(r.bay, gates.length - 1)] : null;
   }
-  (to || hatch).focus({ preventScroll: true });
+  return to;
+}
+function ledgerHandBack(hatch) {
+  (ledgerReturnTarget() || hatch).focus({ preventScroll: true });
 }
 
+/* What each open layer puts out of reach behind it. Preferences is a modal
+   dialog over everything. The open drawer keeps Tab in its own ring, so the
+   hall and the desk behind its scrim go inert with it: a screen reader's
+   cursor used to walk out of the drawer into gates hidden behind the scrim,
+   and a Tab pressed there threw it straight back in. The key plate stays in
+   reach, since it is called up over the drawer and takes focus there. A
+   shut drawer is inert. */
+function syncBehind() {
+  var up = !prefs.hidden;
+  var l = $('#ledger');
+  var open = !!l && l.classList.contains('open');
+  ['#hall', '#signal-desk'].forEach(function (s) { var n = $(s); if (n) n.inert = up || open; });
+  ['#ledger-scrim', '#keyplate'].forEach(function (s) { var n = $(s); if (n) n.inert = up; });
+  if (l) l.inert = up || !open;
+  // The hall's live region was out of the tree while it was inert, so a
+  // line count that changed meanwhile was never heard. It is said once the
+  // hall is back, a beat later: the region has to be in the tree with its
+  // old words before new ones count as news.
+  if (!up && !open) setTimeout(sayLines, 150);
+}
+
+/* The ghosts are for the eye. To a screen reader they were a list of three
+   empty items and no word that anything was on its way, so they are hidden
+   from it, and one line it can read says the Ledger is being read. It goes
+   with the ghosts when the first feed lands. */
 function renderGhosts() {
   var ol = $('#plaques');
   ol.textContent = '';
+  ol.appendChild(el('li', 'ghost sr-only', t('ledgerLoading')));
   for (var i = 0; i < 3; i++) {
     var li = el('li', 'plaque ghost');
+    li.setAttribute('aria-hidden', 'true');
     li.appendChild(el('div', 'pl-in'));
     ol.appendChild(li);
   }
@@ -5185,13 +5299,13 @@ function prefsKeydown(e) {
 }
 
 /* aria-modal promises the rest of the page is out of reach; inert makes
-   it true for a screen reader's virtual cursor as well as for Tab. */
-var PREFS_BEHIND = ['#hall', '#signal-desk', '#ledger', '#ledger-scrim', '#keyplate'];
+   it true for a screen reader's virtual cursor as well as for Tab
+   (syncBehind). */
 function openPrefs() {
   layerMoved();
   lastFocus = document.activeElement;
-  PREFS_BEHIND.forEach(function (s) { var n = $(s); if (n) n.inert = true; });
   prefs.hidden = false;
+  syncBehind();
   syncPrefRadios();
   document.addEventListener('keydown', prefsKeydown);
   var first = prefs.querySelector('[role=radio][aria-checked=true]') ||
@@ -5200,15 +5314,19 @@ function openPrefs() {
 }
 function closePrefs() {
   layerMoved();
-  PREFS_BEHIND.forEach(function (s) { var n = $(s); if (n) n.inert = false; });
-  // The drawer keeps its own rule: inert whenever it is shut.
-  var l = $('#ledger');
-  if (l) l.inert = !l.classList.contains('open');
   prefs.hidden = true;
+  // Everything comes back as it stood, the open drawer's own reach included.
+  syncBehind();
   document.removeEventListener('keydown', prefsKeydown);
   if (lastFocus) lastFocus.focus();
 }
-prefsBtn.addEventListener('click', openPrefs);
+/* One gesture opens one layer. The sheet is centred, so the spot the
+   button stood on is backdrop the moment it opens, and the second press of
+   a double-click shut it again at once. Openers never take a second press. */
+prefsBtn.addEventListener('click', function (e) {
+  if (e.detail > 1) return;
+  openPrefs();
+});
 $('#prefs-close').addEventListener('click', closePrefs);
 /* Only a click that starts and ends on the backdrop closes the sheet. A
    press in the sheet released on the backdrop (or the other way round) is
@@ -5217,7 +5335,11 @@ var prefsPress = { down: null, up: null };
 prefs.addEventListener('pointerdown', function (e) { prefsPress.down = e.target; });
 prefs.addEventListener('pointerup', function (e) { prefsPress.up = e.target; });
 prefs.addEventListener('click', function (e) {
-  if (e.target === prefs && prefsPress.down === prefs && prefsPress.up === prefs) {
+  // Only the first click of a gesture: the second press of a double-click
+  // on a size key, or on the button that opened the sheet, lands where the
+  // sheet no longer is.
+  if (e.target === prefs && prefsPress.down === prefs && prefsPress.up === prefs &&
+      e.detail <= 1) {
     closePrefs();
   }
 });
@@ -5228,8 +5350,14 @@ prefs.addEventListener('click', function (e) {
 var ledgerBtnEl = $('#ledger-btn');
 var ledgerScrimEl = $('#ledger-scrim');
 
+/* A double-click is one act here too. The scrim takes the pointer the moment
+   the drawer starts to slide, over the hatch as well, so the second press
+   of a double-click on the hatch landed on the scrim and shut the drawer
+   while it was still coming in. Neither the hatch nor the scrim takes a
+   second press. */
 if (ledgerBtnEl) {
-  ledgerBtnEl.addEventListener('click', function () {
+  ledgerBtnEl.addEventListener('click', function (e) {
+    if (e.detail > 1) return;
     var ledgerEl = $('#ledger');
     if (ledgerEl && ledgerEl.classList.contains('open')) {
       closeLedger();
@@ -5240,13 +5368,21 @@ if (ledgerBtnEl) {
 }
 
 if (ledgerScrimEl) {
-  ledgerScrimEl.addEventListener('click', function () {
+  ledgerScrimEl.addEventListener('click', function (e) {
+    if (e.detail > 1) return;
     closeLedger();
   });
 }
-/* The drawer's own knob. closeLedger() hands focus back to the hatch. */
+/* The drawer's own knob. closeLedger() hands focus back where the drawer
+   was opened from. The drawer stops taking the pointer the moment it shuts,
+   so the second press of a double-click fell through to whatever lay
+   under the knob (PREFERENCES, from 1280 to 1920 wide), which is why the
+   masthead's openers ignore a second press as well. */
 var ledgerCloseEl = $('#ledger-close');
-if (ledgerCloseEl) ledgerCloseEl.addEventListener('click', closeLedger);
+if (ledgerCloseEl) ledgerCloseEl.addEventListener('click', function (e) {
+  if (e.detail > 1) return;
+  closeLedger();
+});
 
 /* The medallion hangs outside the plaque's link, over the spine where the
    clipped frame cannot reach, and the holder's gilt rim is the frame round
@@ -5285,6 +5421,18 @@ document.addEventListener('keydown', function (e) {
   var open = ledgerEl && ledgerEl.classList.contains('open');
   // Preferences sits above the drawer; one Escape closes one layer.
   if (!prefs.hidden) return;
+  // Tab from the key plate walks on from wherever the reader called it up,
+  // as every other key on it does. The plate sits after the hall in the
+  // page, so Tab went to the lever and Shift+Tab to the last gate. Putting
+  // the plate away hands focus back first; the browser's own Tab (or the
+  // drawer's ring below) then moves on from there. A Tab passing through is
+  // not a layer key, so a held Tab keeps walking.
+  if (e.key === 'Tab' && keyplate && !keyplate.hidden &&
+      keyplate.contains(document.activeElement)) {
+    var held = layerKey;
+    toggleKeyplate(false);
+    layerKey = held;
+  }
   if (e.key === 'Escape' && open) {
     // The key plate lies over the drawer, so it is the top layer. Handled
     // here in full: the keys handler below used to see the drawer already
@@ -5311,10 +5459,15 @@ document.addEventListener('keydown', function (e) {
 
 /* The browser brings a focused element into view only until any part of it
    shows, which left the last card of an arrow walk a few pixels under the
-   screen with its ring cut. The card's scroll margin covers the ring. */
+   screen with its ring cut. The card's scroll margin covers the ring. The
+   knob, the chips and the stamp are the drawer's head, so reaching one of
+   them from below scrolls the drawer back to its top: brought only into
+   view, each was parked on the screen's top edge with the top of its ring
+   cut off and the title plate scrolled away above it. */
 function focusInDrawer(n) {
   n.focus({ preventScroll: true });
-  (n.closest('.plaque') || n).scrollIntoView({ block: 'nearest' });
+  if (n.closest('#ledger .l-head, #ledger .l-tools')) $('#ledger').scrollTop = 0;
+  else (n.closest('.plaque') || n).scrollIntoView({ block: 'nearest' });
 }
 
 function syncPrefRadios() {
@@ -5352,21 +5505,30 @@ Array.prototype.forEach.call(prefs.querySelectorAll('[data-pref]'), function (gr
    the detent nearest the press, as a hand would, and a press on the boss,
    which has no side, steps one detent on. The radios stay the keyboard's and
    the screen reader's surface; a keyboard click carries no position. */
+/* The rotary's hub is the knob's round cap, the shaft it turns on (the knob
+   is hung so the cap sits on the plate's centre, palace-cabinetry.css). It
+   used to turn about the middle of its box, which swung the cap round the
+   step zone: half the visible boss stepped and the rest turned back or
+   skipped a detent. The step zone (9 x --ui) is wider than the cap (6.9). */
 var DETENTS = {
-  theme: { art: '.p-rotary', hub: '.p-knob', angles: [-52, 0, 52], values: ['onyx', 'ivory', 'system'] },
+  theme: { art: '.p-rotary', hub: '.pk-cap', angles: [-52, 0, 52], values: ['onyx', 'ivory', 'system'] },
   motion: { art: '.p-bat', hub: '.pb-nut', angles: [-38, 0, 38], values: ['full', 'reduced', 'system'] }
 };
 function detentUnder(group, e) {
+  // A keyboard click carries no position.
+  return e.detail ? detentAt(group, e.clientX, e.clientY) : null;
+}
+function detentAt(group, x, y) {
   var d = DETENTS[group.dataset.pref];
-  if (!d || !e.detail) return null;
+  if (!d) return null;
   var art = $(d.art, group), hub = $(d.hub, group);
   if (!art || !hub) return null;
   var a = art.getBoundingClientRect(), h = hub.getBoundingClientRect();
   var cx = h.left + h.width / 2, cy = h.top + h.height / 2;
-  var dx = e.clientX - cx, dy = e.clientY - cy;
+  var dx = x - cx, dy = y - cy;
   var reach = a.width * 0.46, boss = 9 * uiScale();   // the plate's radius (46 of 100)
   if (d.art === '.p-rotary') { if (dx * dx + dy * dy > reach * reach) return null; }
-  else if (e.clientX < a.left || e.clientX > a.right || e.clientY < a.top || e.clientY > a.bottom) return null;
+  else if (x < a.left || x > a.right || y < a.top || y > a.bottom) return null;
   if (dx * dx + dy * dy < boss * boss) {
     var at = d.values.indexOf(group.querySelector('[aria-checked=true]').dataset.value);
     return d.values[(at + 1) % d.values.length];
@@ -5379,7 +5541,37 @@ function detentUnder(group, e) {
   return d.values[best];
 }
 
+/* The legend lit under the pointer is the one a press there would pick.
+   The columns stand over the hardware, so the column's own hover lit IVORY
+   over half the rotary where a press chose ONYX or FOLLOW SYSTEM. Over the
+   rotary and the bat the aim is worked out by the press's own maths and
+   marked on that radio (data-aim); a mouse only, since a tap has no hover
+   and left two legends lit. */
+function aimSwitch(group, x, y, over) {
+  var v = group && DETENTS[group.dataset.pref] ? detentAt(group, x, y) : null;
+  var aim = v ? group.querySelector('[data-value="' + v + '"]') : over;
+  Array.prototype.forEach.call(prefs.querySelectorAll('[data-aim]'), function (n) {
+    if (n !== aim) n.removeAttribute('data-aim');
+  });
+  if (aim && group && DETENTS[group.dataset.pref]) aim.setAttribute('data-aim', '');
+}
+prefs.addEventListener('pointermove', function (e) {
+  if (e.pointerType !== 'mouse' && e.pointerType !== 'pen') return;
+  var over = e.target.closest('[role=radio]');
+  // Read at the whole pixel the click will report (Chrome truncates a
+  // click's position, not a move's), so a pointer on a detent's border
+  // lights the legend the press will pick.
+  aimSwitch(over ? over.parentNode : e.target.closest('[data-pref]'),
+    Math.floor(e.clientX), Math.floor(e.clientY), over);
+});
+prefs.addEventListener('pointerleave', function () { aimSwitch(null); });
+
 prefs.addEventListener('click', function (e) {
+  // One gesture, one act, as on a gate. The second press of a double-click
+  // stepped the bat's nut a second detent, and on ENGRAVING SIZE it landed
+  // on whatever the resized sheet had moved under the pointer: a
+  // neighbouring key, or the backdrop, which shut the sheet.
+  if (e.detail > 1) return;
   var btn = e.target.closest('[role=radio]');
   // The plate also shows between the columns, where no radio is.
   var group = btn ? btn.parentNode : e.target.closest('[data-pref]');
@@ -5407,6 +5599,11 @@ prefs.addEventListener('click', function (e) {
     requestAnimationFrame(function () { layoutStage(true); });
   }
   syncPrefRadios();
+  // The boss now steps from the new detent, so the aim under a still
+  // pointer moves on with it.
+  if (e.pointerType === 'mouse' || e.pointerType === 'pen') {
+    aimSwitch(group, e.clientX, e.clientY, e.target.closest('[role=radio]'));
+  }
 });
 
 var mq = matchMedia('(prefers-color-scheme: dark)');
@@ -5421,24 +5618,39 @@ var mq = matchMedia('(prefers-color-scheme: dark)');
    flip itself lands with every transition cut (.theme-cut), so the new hall
    is drawn once, finished, and nothing restyles per frame. Where a view
    transition is unavailable, or motion is reduced, the flip is simply
-   instant: still one picture, never half and half. */
+   instant: still one picture, never half and half.
+   The flip lands whatever was chosen last. A choice made while the old hall
+   is still being captured only retargets the flip on its way: compared
+   with data-theme, which that flip had not written yet, a second choice in
+   the window was taken as no change, and the hall stayed on the first. */
+var themeNext = null;   // what the flip on its way will write, until it lands
+var themeFade = null;   // the crossfade while it is on screen
+var themeGen = 0;
 function resolveTheme() {
   var pref = root.dataset.themePref || 'system';
   var dark = pref === 'onyx' || (pref === 'system' && mq.matches);
   var next = dark ? 'onyx' : 'ivory';
-  if (root.dataset.theme === next) return;
+  if ((themeNext || root.dataset.theme) === next) return;
+  var pending = themeNext !== null;
+  themeNext = next;
+  if (pending) return;
   themeBusy = true;
+  var gen = ++themeGen;
   var flip = function () {
     root.classList.add('theme-cut');
-    root.dataset.theme = next;
+    root.dataset.theme = themeNext;
+    themeNext = null;
   };
   var uncut = function () {
+    // A newer crossfade started over this one owns the cut now.
+    if (gen !== themeGen) return;
+    themeFade = null;
     root.classList.remove('theme-cut');
     themeBusy = false;
     if (afterTheme) { var f = afterTheme; afterTheme = null; f(); }
   };
   if (document.startViewTransition && root.dataset.motion !== 'reduced') {
-    var vt = document.startViewTransition(flip);
+    var vt = themeFade = document.startViewTransition(flip);
     // The cut is lifted when the fade has finished, not when it starts.
     // Lifting it restyles every element in the hall (the cut is a universal
     // rule), and at `ready` that restyle, 100-130ms at 3440, landed in the
@@ -5446,6 +5658,11 @@ function resolveTheme() {
     // changes nothing on screen. Nothing transitions until then, which is
     // why a throw asked for meanwhile waits for it (setWing).
     vt.finished.then(uncut, uncut);
+    // A second change after the flip, before the fade has begun, skips this
+    // transition, and its other promises reject. That is ordinary use of the
+    // Appearance control, not an error.
+    vt.ready.catch(function () {});
+    vt.updateCallbackDone.catch(function () {});
   } else {
     flip();
     void root.offsetWidth;   // the flip's style change happens under the cut
@@ -5459,6 +5676,34 @@ function setThemePref(pref) {
 }
 // Follow-system reacts live with the same crossfade.
 if (mq.addEventListener) mq.addEventListener('change', resolveTheme);
+
+/* The crossfade is a picture laid over a live hall, but Chrome hit-tests
+   the picture: for as long as it ran, every press landed on <html>, so
+   CLOSE, a language or a second theme ignored the click. A press now cuts
+   the fade short, and its click is handed to the control under it, with
+   its position and count, so the switchgear still reads where it landed. */
+var pressThrough = false;
+window.addEventListener('pointerdown', function (e) {
+  pressThrough = false;
+  if (!themeFade || e.target !== root) return;
+  themeFade.skipTransition();
+  pressThrough = true;
+}, true);
+window.addEventListener('click', function (e) {
+  if (!pressThrough) return;
+  pressThrough = false;
+  if (e.target !== root) return;   // it reached its control after all
+  var to = document.elementFromPoint(e.clientX, e.clientY);
+  if (!to || to === root) return;
+  e.stopImmediatePropagation();
+  var stop = to.closest('button, a[href], [tabindex]');
+  if (stop) stop.focus({ preventScroll: true });
+  to.dispatchEvent(new MouseEvent('click', {
+    bubbles: true, cancelable: true, view: window, detail: e.detail, button: e.button,
+    clientX: e.clientX, clientY: e.clientY, screenX: e.screenX, screenY: e.screenY,
+    ctrlKey: e.ctrlKey, shiftKey: e.shiftKey, altKey: e.altKey, metaKey: e.metaKey
+  }));
+}, true);
 
 function setLang(next) {
   lang = next === 'zh' ? 'zh' : 'en';
@@ -5624,7 +5869,7 @@ function renderKeyplate() {
     [['\u2191', '\u2193'], 'keyWalk'],
     [['P'], 'keyPrefs'],
     [['?'], 'keyPlate'],
-    [['+ESC'], 'keyClose'],
+    [['+ESC'], 'keyEsc'],
   ];
   var list = $('.kp-rows', keyplate);
   list.textContent = '';
@@ -5642,10 +5887,13 @@ function renderKeyplate() {
         dash.setAttribute('aria-hidden', 'true');
         dt.appendChild(dash);
         dt.appendChild(el('span', 'sr-only', ' ' + t('keyTo') + ' '));
-      } else if (k.charAt(0) === '+') {
-        dt.appendChild(el('kbd', 'kp-key kp-wide display', k.slice(1)));
       } else {
-        dt.appendChild(el('kbd', 'kp-key display', k));
+        var wide = k.charAt(0) === '+';
+        var key = el('kbd', 'kp-key display' + (wide ? ' kp-wide' : ''), wide ? k.slice(1) : k);
+        // In the Chinese hall ESC and W are English signage, and 回车 is
+        // not: the Chinese face's stroke weight goes on the one key it is.
+        if (lang === 'zh' && /[A-Za-z]/.test(key.textContent)) key.lang = 'en';
+        dt.appendChild(key);
       }
     });
     row.appendChild(dt);
@@ -5661,13 +5909,16 @@ function placeKeyplate() {
   var band = $('#ticker');
   if (!band) return;
   var r = band.getBoundingClientRect();
-  // Called up over the open Ledger, the plate stops at the drawer's edge:
+  // Called up over the open Ledger, the plate stops short of the drawer:
   // laid across it, it covered the chips and the stamp and the focus on them.
+  // It stands clear by the band's own margin, the air it keeps on its left:
+  // stopped at the drawer's edge, its moulding butted into the drawer's gilt
+  // bead and its end clip sat on the bead.
   var drawer = $('#ledger');
   var stop = r.right;
   // (Under 1280px the drawer takes the full width, and the plate lies over it.)
   var edge = drawer && drawer.classList.contains('open')
-    ? window.innerWidth - drawer.offsetWidth : Infinity;
+    ? window.innerWidth - drawer.offsetWidth - r.left : Infinity;
   if (edge - r.left >= 480) stop = Math.min(stop, edge);
   keyplate.style.top = Math.round(r.top) + 'px';
   keyplate.style.left = Math.round(r.left) + 'px';
@@ -5710,7 +5961,14 @@ function toggleKeyplate(show, byPointer) {
   if (!had || byPointer) return;
   var usable = back && back.isConnected && !back.closest('[inert]') &&
     (!back.checkVisibility || back.checkVisibility());
-  if (!usable) back = x === null ? null : nearestLit(x);
+  // A return that has gone and was no gate (a control now inert or hidden)
+  // falls back to the open drawer's heading, else the hatch. Left on the
+  // plate's heading as it hid, focus fell to <body> and the next arrow
+  // started the walk over from the first gate.
+  if (back && !usable) {
+    var drawerOpen = $('#ledger').classList.contains('open');
+    back = (x !== null && nearestLit(x)) || $(drawerOpen ? '#ledger-title' : '#ledger-btn');
+  }
   if (back) back.focus({ preventScroll: true });
 }
 window.addEventListener('resize', function () {
@@ -5765,6 +6023,18 @@ document.addEventListener('keydown', function (e) {
   if (k === '?') { e.preventDefault(); toggleKeyplate(); return; }
   if (k === 'Escape' && keyplate && !keyplate.hidden && !ledgerOpen) {
     toggleKeyplate(false); return;
+  }
+  // The plate says ENTER opens it, and every other key on it works the
+  // hall from where it was called up; Enter did nothing, since a heading
+  // has no action of its own. The plate goes away, handing focus back, and
+  // the press goes to what it handed focus to. A click from here carries no
+  // pointer detail, so a DARK gate still pins its card and says it.
+  if (k === 'Enter' && keyplate && !keyplate.hidden && tgt && keyplate.contains(tgt)) {
+    e.preventDefault();
+    toggleKeyplate(false);
+    var to = document.activeElement;
+    if (to && to.matches && to.matches('a[href], button, [role=switch]')) to.click();
+    return;
   }
 
   if (ledgerOpen) {
@@ -5843,7 +6113,7 @@ document.addEventListener('keydown', function (e) {
 applyI18nStatic();
 renderDateline();
 armMidnight();
-renderGhosts();
+renderLedger();       // the ghosts, and a stamp that says the Ledger is being read
 buildRosetteKnurl();
 buildDesk();
 buildFloorInlay();

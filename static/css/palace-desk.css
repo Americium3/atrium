@@ -687,8 +687,15 @@
   box-shadow: 1px 0 0 rgba(0, 0, 0, 0.8);
 }
 /* The heading takes focus when the plate is called up (app.js), so a
-   screen reader names it; the plate arriving is all the eye needs. */
+   screen reader names it. The caret is shown there too: the gate the plate
+   was called from loses its ring as focus leaves it, and with the heading
+   bare nothing on screen showed where the keys would count from. The plate
+   is black glass in both themes, so the ring is the night's gold in both. */
 .kp-title:focus { outline: none; }
+.kp-title:focus-visible {
+  outline: 2px solid #d4af37;
+  outline-offset: calc(5px * var(--ui));
+}
 .kp-rows {
   margin: 0;
   grid-template-columns: none;
@@ -761,7 +768,9 @@
   width: calc(23px * var(--ui)); height: calc(23px * var(--ui));
   padding: 0;
   border-radius: 50%;
-  font-size: calc(11px * var(--ui)); font-weight: 650;
+  /* The hall's 10px floor holds on the plate too: at FINE the legends
+     printed at 9.9px and the word keys at 8.55px. */
+  font-size: max(10px, calc(11px * var(--ui))); font-weight: 650;
   letter-spacing: 0.15em; text-indent: 0.15em;
   line-height: 1;
   color: #1b140b;
@@ -783,10 +792,10 @@
    wider top with square shoulders in a bright chrome bezel, the shape of a
    shift key, never a capsule. */
 .kp-key.kp-wide {
-  width: auto; min-width: calc(40px * var(--ui));
+  width: auto; min-width: max(42px, calc(40px * var(--ui)));
   padding: 0 calc(8px * var(--ui));
   border-radius: calc(3.5px * var(--ui));
-  font-size: calc(9.5px * var(--ui));
+  font-size: max(10px, calc(9.5px * var(--ui)));
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0) 46%),
     radial-gradient(120% 140% at 50% 10%, #f7eedb, #e4d5b4 60%, #bca880);
@@ -801,6 +810,10 @@
     0 3px 6px 2px rgba(0, 0, 0, 0.55);
 }
 .kp-do { margin: 0; color: var(--kp-ink); opacity: 0.9; }
+/* The Chinese face has one weight and hairline strokes: 回车 printed at
+   2.5:1 on the ivory key top where ENTER reads at full strength. Its own
+   ink round every stroke, as in the Ledger; the English keys keep theirs. */
+html[lang="zh"] .kp-key:not([lang="en"]) { -webkit-text-stroke: 0.4px currentColor; }
 @media (forced-colors: active) {
   #keyplate { border: 2px solid CanvasText; }
   .kp-title { color: CanvasText; background: none; }

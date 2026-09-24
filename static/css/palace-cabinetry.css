@@ -922,20 +922,38 @@ html[lang="zh"] .board .al-arc .a-lab { stroke: var(--cab-gold); stroke-width: c
   padding: calc(3px * var(--ui)) calc(6px * var(--ui));
   color: var(--lq-gold);
 }
-.l-stamp-ico { width: calc(30px * var(--ui)); height: calc(33px * var(--ui)); overflow: visible; }
-.l-stamp-ico .s-cradle-back { fill: var(--br-1); }
-.l-stamp-ico .s-cradle { fill: var(--br-2); stroke: var(--br-0); stroke-width: 0.5; }
-.l-stamp-ico .s-pad { fill: #2a2522; }
-.l-stamp-ico .s-pad-ink { fill: var(--stamp-ink); opacity: 0.8; }
-.l-stamp-ico .s-rule { stroke: var(--br-4); stroke-width: 0.8; opacity: 1; }
+/* The dater is drawn at 1.3 times the size it had as a flat pictogram, so
+   its turned and cast parts hold at a pixel ratio of one. Its fills are
+   gradients in the markup (the brass ones through the cs-b* stops); the
+   lines and the small parts are coloured here. */
+.l-stamp-ico { width: calc(39px * var(--ui)); height: calc(43px * var(--ui)); overflow: visible; }
+.l-stamp-ico .s-cradle-back { stroke: var(--br-0); stroke-width: 0.4; }
+.l-stamp-ico .s-cradle { stroke: var(--br-0); stroke-width: 0.5; }
+.l-stamp-ico .s-rule { stroke: var(--br-5); stroke-width: 0.6; opacity: 0.9; }
+.l-stamp-ico .s-cradle-foot { stroke: rgba(0, 0, 0, 0.55); stroke-width: 0.8; }
+.l-stamp-ico .s-screw { fill: var(--br-3); stroke: var(--br-0); stroke-width: 0.35; }
+.l-stamp-ico .s-slot { stroke: var(--br-0); stroke-width: 0.45; }
+.l-stamp-ico .s-pad { stroke: #0c0616; stroke-width: 0.4; }
+/* the ink standing wet on the pad, one sheen across it */
+.l-stamp-ico .s-pad-wet { fill: rgba(236, 222, 255, 0.34); }
 .l-stamp-ico .s-knob-sh { fill: rgba(0, 0, 0, 0.5); }
-.l-stamp-ico .s-knob { fill: #2b1a10; stroke: #120a05; stroke-width: 0.5; }
-.l-stamp-ico .s-knob-hi { fill: rgba(255, 220, 180, 0.35); }
-.l-stamp-ico .s-neck { fill: var(--br-2); stroke: var(--br-0); stroke-width: 0.4; }
-.l-stamp-ico .s-frame { fill: var(--br-3); stroke: var(--br-0); stroke-width: 0.6; }
-.l-stamp-ico .s-band { fill: #1b1512; }
-.l-stamp-ico .s-band-lines { stroke: var(--br-4); stroke-width: 0.5; }
-.l-stamp-ico .s-base { fill: #18110d; }
+.l-stamp-ico .s-knob { stroke: #0e0703; stroke-width: 0.45; }
+/* lathe rings: a cut in shade and its lit edge just above it */
+.l-stamp-ico .s-lathe { fill: none; stroke: rgba(10, 5, 2, 0.6); stroke-width: 0.4; }
+.l-stamp-ico .s-lathe-lit { fill: none; stroke: rgba(255, 214, 160, 0.22); stroke-width: 0.35; }
+.l-stamp-ico .s-knob-spec { fill: #fffaf0; opacity: 0.9; }
+.l-stamp-ico .s-ferrule, .l-stamp-ico .s-neck, .l-stamp-ico .s-plate { stroke: var(--br-0); stroke-width: 0.35; }
+.l-stamp-ico .s-frame { stroke: var(--br-0); stroke-width: 0.5; }
+.l-stamp-ico .s-frame-arris { stroke: var(--br-5); stroke-width: 0.5; opacity: 0.95; }
+.l-stamp-ico .s-frame-shade { stroke: rgba(0, 0, 0, 0.6); stroke-width: 0.5; }
+.l-stamp-ico .s-window { fill: #0b0806; stroke: var(--br-1); stroke-width: 0.4; }
+.l-stamp-ico .s-band rect { stroke: #030202; stroke-width: 0.3; }
+/* the wheels' figures, raised rubber catching the light on the drum */
+.l-stamp-ico .s-digits { fill: none; stroke: #d9ccb0; stroke-width: 0.45; stroke-linecap: round; stroke-linejoin: round; opacity: 0.88; }
+.l-stamp-ico .s-band-catch { stroke: rgba(255, 240, 214, 0.2); stroke-width: 0.5; }
+.l-stamp-ico .s-pin { fill: var(--br-3); stroke: var(--br-0); stroke-width: 0.3; }
+.l-stamp-ico .s-die { fill: #1d1512; stroke: #070504; stroke-width: 0.3; }
+.l-stamp-ico .s-die-ink { fill: var(--stamp-ink); opacity: 0.85; }
 .l-stamp-ico .s-head, .l-stamp-ico .s-grip, .l-stamp-ico .s-base { transition: transform 0.14s var(--ease-out); }
 .l-stamp:active .l-stamp-ico .s-head,
 .l-stamp:active .l-stamp-ico .s-grip,
@@ -948,7 +966,12 @@ html[lang="zh"] .board .al-arc .a-lab { stroke: var(--cab-gold); stroke-width: c
 .l-stamp-scope { border-left-color: var(--lq-faint); }
 
 /* ----- The main --------------------------------------------------------- */
-#ledger .l-col { padding-left: calc(56px * var(--ui)); }
+/* The main is architecture, so it runs the drawer's working height whatever
+   the feed holds: the column fills the drawer below the head. Sized by its
+   cards alone, an empty or unreadable Ledger stood a 130px brass stub in
+   the middle of bare lacquer. */
+#ledger { display: flex; flex-direction: column; }
+#ledger .l-col { flex: 1 0 auto; padding-left: calc(56px * var(--ui)); }
 #ledger .spine {
   left: calc(20px * var(--ui)); width: calc(9px * var(--ui));
   border: 0;
@@ -967,6 +990,21 @@ html[lang="zh"] .board .al-arc .a-lab { stroke: var(--cab-gold); stroke-width: c
   border: 0; border-radius: 2px 2px 1px 1px;
   background: linear-gradient(90deg, var(--br-0), var(--br-2) 16%, var(--br-5) 36%, var(--br-3) 48%, var(--br-2) 70%, var(--br-0));
   box-shadow: inset 0 1.5px 0 rgba(255, 244, 214, 0.5), 0 2px 3px rgba(0, 0, 0, 0.6);
+}
+/* and at its foot a capped end: a collar, then a domed cap, standing on its
+   own shadow, so a short column still ends in a fitting */
+#ledger .spine::after {
+  content: ""; position: absolute;
+  left: calc(-4px * var(--ui)); right: calc(-4px * var(--ui));
+  bottom: calc(-11px * var(--ui)); height: calc(13px * var(--ui));
+  border-radius: 1px 1px 45% 45% / 1px 1px 75% 75%;
+  background:
+    linear-gradient(180deg, rgba(255, 244, 214, 0.55) 0 1.5px, transparent 1.5px calc(4px * var(--ui)),
+      rgba(0, 0, 0, 0.55) calc(4px * var(--ui)) calc(4px * var(--ui) + 1px), rgba(255, 240, 200, 0.28) calc(4px * var(--ui) + 1px) calc(4px * var(--ui) + 2px),
+      transparent calc(4px * var(--ui) + 2px) 70%, rgba(0, 0, 0, 0.4)),
+    radial-gradient(60% 90% at 42% 30%, rgba(255, 246, 220, 0.5), transparent 70%),
+    linear-gradient(90deg, var(--br-0), var(--br-2) 16%, var(--br-5) 36%, var(--br-3) 48%, var(--br-2) 70%, var(--br-0));
+  box-shadow: 1px 3px 4px rgba(0, 0, 0, 0.6), 0 1px 1px rgba(0, 0, 0, 0.5);
 }
 #ledger.opening .spine { animation-name: spine-draw-cab; }
 @keyframes spine-draw-cab { from { transform: scaleY(0); } to { transform: scaleY(1); } }
@@ -1127,6 +1165,15 @@ html[lang="zh"] #ledger :is(.pl-head, .pl-detail, .pl-time, .chip, .l-close-cap,
 /* A new dispatch drops into its holder and settles on the felt: a short
    fall, a two-pixel bounce, still. Transform and opacity only. */
 #ledger .plaque.arrive { animation: card-drop 0.5s cubic-bezier(0.3, 0.9, 0.4, 1) both; }
+/* Held at the drop's first keyframe while the column is laid out again and
+   the card is given its own layer (app.js), so the drop starts on a layer
+   already drawn. And the falling card paints over the column rather than
+   under the cards below it: the browser assumes a card moving by transform
+   may overlap anything painted after it, and gave every card below it a
+   layer of its own to redraw. At 3440 that first frame of the drop took
+   117-134 ms and the card went from 18% to 90% of its fall in it. */
+#ledger .plaque.arrive-hold, #ledger .plaque.arrive { z-index: 2; will-change: transform, opacity; }
+#ledger .plaque.arrive-hold { opacity: 0.004; transform: translateY(-14px); }
 @keyframes card-drop {
   0% { opacity: 0; transform: translateY(-14px); }
   55% { opacity: 1; transform: translateY(2px); }
@@ -1308,7 +1355,7 @@ html[lang="zh"] #ledger :is(.pl-head, .pl-detail, .pl-time, .chip, .l-close-cap,
   text-transform: uppercase;
   font-family: var(--serif);
 }
-#prefs-close:hover { color: var(--pn-label); }
+@media (hover: hover) { #prefs-close:hover { color: var(--pn-label); } }
 #prefs-close:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; }
 
 /* ----- The wells ------------------------------------------------------- */
@@ -1327,22 +1374,33 @@ html[lang="zh"] #ledger :is(.pl-head, .pl-detail, .pl-time, .chip, .l-close-cap,
     0 0 0 1px var(--pn-fillet), 0 0 0 3px transparent;
 }
 /* By day the panel read as a greige form: wells a few levels off the field,
-   each outlined by a 1px line. The wells are now let into the shagreen
-   behind ebonised fillets, a polished black moulding with the skylight on
-   its outer lip and a line of bone inside it, and the skin's scales stand up
-   in the raking light. */
+   each outlined by a 1px line, and then as a form with fieldsets: an even
+   black line round every well, round-cornered, the same weight on all four
+   sides. The wells are let into the shagreen behind ebonised mouldings
+   with a profile. Square and mitred at the corners, the bead's upper and
+   left faces turned to the skylight and the other two in shade, its outer
+   arris lit up and to the left; inside it the cove drops to black and a
+   line of bone catches the light before the well. The skin is laid once;
+   laid twice over itself it read as grey gravel. The border takes its
+   width out of the padding, so the well keeps its size. */
 :root[data-theme="ivory"] .p-group:not([data-control="replay"]) {
+  border-radius: 0;
+  border: calc(3px * var(--ui)) solid;
+  border-color: #4d4236 #120e0a #090706 #3a3027;
+  padding: calc(6px * var(--ui)) calc(9px * var(--ui)) calc(9px * var(--ui));
   background:
     radial-gradient(ellipse 90% 60% at 40% 0%, rgba(255, 255, 255, 0.22), transparent 70%),
-    /* the skin twice over itself, so its scales stand twice as proud */
-    url('/static/assets/tex/grain-shagreen.webp') 0 0 / 150px, url('/static/assets/tex/grain-shagreen.webp') 0 0 / 150px,
+    url('/static/assets/tex/grain-shagreen.webp') 0 0 / 150px,
     var(--well);
-  background-blend-mode: normal, soft-light, soft-light, normal;
+  background-blend-mode: normal, soft-light, normal;
   box-shadow:
-    inset 0 2px 6px rgba(40, 30, 16, 0.5), inset 1px 1px 0 rgba(40, 30, 16, 0.35),
-    inset 0 0 0 1px rgba(250, 244, 226, 0.55),
-    0 0 0 1px #0c0907, 0 0 0 3px #231a12,
-    -1px -1px 0 3.5px rgba(255, 252, 242, 0.95), 1px 1px 0 3.5px rgba(60, 46, 28, 0.55);
+    inset 0 0 0 1px #0c0907,
+    inset 0 0 0 2px rgba(240, 231, 206, 0.92),
+    inset 1px 2px 0 2px rgba(255, 253, 244, 0.55),
+    inset 0 4px 7px 1px rgba(40, 30, 16, 0.42),
+    0 0 0 1px #0c0907,
+    -1px -1px 0 1px rgba(255, 252, 242, 0.95),
+    1px 1px 0 1px rgba(60, 46, 28, 0.5);
 }
 :root[data-theme="ivory"] .p-sheet::before { border-width: 2.5px; opacity: 1; }
 /* The brackets were pale leaf on pale shagreen, the size of a thumbnail.
@@ -1377,7 +1435,14 @@ html[lang="zh"] #ledger :is(.pl-head, .pl-detail, .pl-time, .chip, .l-close-cap,
   gap: calc(3px * var(--ui));
   transition: color 0.25s;
 }
-.p-group .p-plaque:hover { color: var(--pn-ink); }
+/* The hover ink is a mouse's alone: a tap left the legend it fell on lit
+   beside the one it chose. Over the rotary and the bat the columns stand
+   over the hardware, so there the ink goes to the radio a press would pick
+   (data-aim, app.js), not to the column under the pointer. */
+@media (hover: hover) {
+  .p-group .p-plaque:hover:where(:not([data-pref="theme"] > *, [data-pref="motion"] > *)) { color: var(--pn-ink); }
+}
+.p-group .p-plaque[data-aim] { color: var(--pn-ink); }
 .p-group .p-plaque[aria-checked="true"] { color: var(--pn-ink); border: 0; }
 .p-group .p-plaque:focus-visible { outline: none; }
 /* Focus is a champagne collar round the legend's jewel, and a rule under
@@ -1387,6 +1452,17 @@ html[lang="zh"] #ledger :is(.pl-head, .pl-detail, .pl-time, .chip, .l-close-cap,
     0 0 0 6px var(--focus), 1px 2px 3px 6px rgba(0, 0, 0, 0.4);
 }
 .p-group .p-plaque:focus-visible > .p-name { text-decoration: underline 2px var(--focus); text-underline-offset: 4px; }
+/* By day the slate collar and a 2px slate rule sank into the mottled
+   shagreen (2.6:1 against the unfocused column). They are drawn in the
+   rope's oxblood over a cream bed instead, as the gate and lever marquees
+   mark focus by day, and the rule is a pixel heavier. */
+:root[data-theme="ivory"] .p-group .p-plaque:focus-visible > .p-jewel {
+  box-shadow: 0 0 0 1.5px var(--br-1), 0 0 0 3px var(--br-3), 0 0 0 3.8px var(--br-0),
+    0 0 0 5.5px #fbf6e8, 0 0 0 8px #7a1a16, 0 0 0 9px rgba(251, 246, 232, 0.8), 1px 2px 3px 8px rgba(40, 26, 10, 0.3);
+}
+:root[data-theme="ivory"] .p-group .p-plaque:focus-visible > .p-name {
+  text-decoration: underline 3px #7a1a16; text-decoration-skip-ink: none;
+}
 /* The push keys have no jewel to collar. Their ring is gold laid in an ink
    bed on both sides: a bare gold outline fell on the gold of the brass tray
    and all but vanished (1.5:1), and the gold rule sat on cream card stock.
@@ -1402,9 +1478,13 @@ html[lang="zh"] #ledger :is(.pl-head, .pl-detail, .pl-time, .chip, .l-close-cap,
 .p-desc { font-size: max(10px, calc(10.5px * var(--ui))); font-weight: 500; line-height: 1.3; text-align: center; text-wrap: balance; }
 html[lang="zh"] .p-name { letter-spacing: 0.1em; }
 /* The Chinese face's hairlines, as in the Ledger: its own ink round every
-   stroke, or the group labels printed at 1.9:1 by day. */
-html[lang="zh"] #prefs :is(.p-label, .p-name, .p-desc):not([lang="en"]),
+   stroke, or the group labels printed at 1.9:1 by day. Keyed on the
+   lettering's own language rather than the hall's: 中文 is Chinese in the
+   English hall too, and printed there at 2.7:1 with no stroke at all. The
+   English signage inside a Chinese name keeps its own weight. */
+#prefs :is(.p-label, .p-name, .p-desc):lang(zh),
 html[lang="zh"] #prefs-close::after { -webkit-text-stroke: 0.4px currentColor; }
+#prefs .p-name [lang="en"] { -webkit-text-stroke-width: 0; }
 html[lang="zh"]:root[data-theme="ivory"] .p-head h2 { -webkit-text-stroke: 0.45px currentColor; }
 
 /* Pilot jewels. The live one is lit; the others are smoked glass. */
@@ -1469,8 +1549,14 @@ html[lang="zh"] [data-pref="theme"] .p-desc { font-size: max(10px, calc(10.5px *
 .p-rotary .pr-index { stroke: #1a1006; stroke-width: 1.8; stroke-linecap: round; }
 .p-rotary .pr-index-lip { stroke: rgba(255, 244, 214, 0.6); stroke-width: 1; stroke-linecap: round; }
 .p-rotary .pr-tick { stroke: rgba(26, 16, 6, 0.55); stroke-width: 0.7; }
+/* The chicken-head turns on its round cap, the shaft, which sits on the
+   plate's centre: the cap is drawn at (50, 60) of the knob's box, so the
+   box stands a tenth of itself higher than the plate's inset and turns
+   about that point. Turned about its box's middle, the cap swung round
+   the dial's centre and half the visible boss missed the step zone. */
 .p-knob {
-  position: absolute; inset: 14%;
+  position: absolute; inset: 6.8% 14% 21.2%;
+  transform-origin: 50% 60%;
   transform: rotate(0deg);
   transition: transform 0.3s cubic-bezier(0.3, 1.45, 0.5, 1);
 }
@@ -1580,7 +1666,7 @@ html[lang="zh"] [data-pref="theme"] .p-desc { font-size: max(10px, calc(10.5px *
   transform: translateY(0);
   transition: transform 0.12s var(--ease-out), box-shadow 0.12s, color 0.2s;
 }
-[data-pref="ui"] .p-plaque:hover { color: #1a1208; }
+@media (hover: hover) { [data-pref="ui"] .p-plaque:hover { color: #1a1208; } }
 [data-pref="ui"] .p-plaque[aria-checked="true"] {
   color: #120c04;
   transform: translateY(calc(3px * var(--ui)));
@@ -1650,7 +1736,7 @@ html[lang="zh"] [data-pref="theme"] .p-desc { font-size: max(10px, calc(10.5px *
 #replay .p-key { grid-row: 1 / span 2; width: calc(40px * var(--ui)); height: calc(40px * var(--ui)); overflow: visible; }
 #replay .p-name { align-self: end; color: var(--pn-label); }
 #replay .p-desc { align-self: start; text-align: left; color: var(--pn-faint); }
-#replay:hover .p-desc { color: var(--pn-ink); }
+@media (hover: hover) { #replay:hover .p-desc { color: var(--pn-ink); } }
 .p-key .pkey-sh { fill: rgba(0, 0, 0, 0.45); }
 .p-key .pkey-plate { stroke: var(--br-0); stroke-width: 0.5; }
 .p-key .pkey-screw { fill: var(--br-4); stroke: var(--br-0); stroke-width: 0.4; }
@@ -1679,6 +1765,10 @@ html[lang="zh"] [data-pref="theme"] .p-desc { font-size: max(10px, calc(10.5px *
   #ledger .plaque .pl-frame > a { background-color: Canvas !important; }
   #ledger .pl-frame > a::before { border-color: GrayText; }
   #ledger .plaque.new .pl-shadow-wrap { outline: 2px solid Highlight; outline-offset: 2px; }
+  /* The caret's ring stands clear of the unread one, and heavier. On the
+     same box the unread outline painted over it, and a walk that always
+     lands on unread cards could not tell the caret's card from the rest. */
+  #ledger .plaque:has(a:focus-visible) { outline: 3px solid CanvasText; outline-offset: 7px; }
   #ledger .spine { background: CanvasText; }
   .board .cs-door > .cs-glass { background: Canvas; }
 }
