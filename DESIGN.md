@@ -118,7 +118,7 @@ both themes; only the hour changes.
    reads as plaster or as pale gold); `--cu-*` warm bronze; `--pl-*` bare
    plaster, for the reserved gate, chalky and matte (by day a narrow ramp
    with no specular crest); `--sb-*` statuary
-   bronze, for the niche, the clock case and the signal desk; `--br-*` a
+   bronze, for the niche, the clock case and the house-lights board; `--br-*` a
    fixed brass for fittings that never follow the wing (bezels, lamps,
    screws, the dater, the switchgear).
 2. Relief is drawn three times along the one key light: a shadow copy
@@ -224,8 +224,8 @@ both themes; only the hour changes.
   red lacquer arc from 85; the Almanac's sky plate is enamel in a satin
   bezel, and its moon a shaded ball under its own crystal.
 - The Ledger and Preferences: see their sections.
-- The signal desk: statuary bronze casework on the runner (see
-  "The signal desk").
+- The house-lights board: an upright switchboard on a bronze standard at
+  the foot of the runner (see "The house-lights board").
 - The key plate: black verre eglomise in a gilt moulding, with each key
   set as a typewriter key (a ring in the wing's leaf, an ivory top, the
   legend cut and filled). Black glass in both themes, like every sign in the
@@ -396,10 +396,12 @@ and a little of the arch module before it gives up the one-screen rule:
 210px)`, and the hall's top padding to 12px. A 1280x800 laptop has ~700px of
 usable height for a composition whose stage alone wants 425 of it.
 
-The machine comes down with the floor. The signal desk stands *on* the
-stone, so once the floor is a band rather than a field the console has to fit
-inside that band: `.assembly` scales 0.78 under 860px and 0.62 under 760px.
-Its main-scale coefficient is `0.80 + 0.14 x --ui` rather than tracking the
+The machine comes down with the floor. The house-lights board stands *on*
+the stone, so once the floor is a band rather than a field it has to fit
+inside that band: `.assembly` scales 0.78 under 860px and 0.62 under 760px,
+and never more than the floor under the stage allows. Its main-scale
+coefficient is `0.62 + 0.4 x --ui` (see "The house-lights board"). The
+signal desk before it used `0.80 + 0.14 x --ui` rather than tracking the
 lettering 1:1. At the old slope a 3440 screen stood it 275px tall, which was
 taller than the stone under it once the wall took its headroom back, and the
 lever tip came up level with the skirting.
@@ -1080,8 +1082,9 @@ wing it lights ("Bureau wing"), with the Salon/Bureau explanation as its
 description. Space or Enter toggles, a held key does not repeat, W throws it
 from anywhere in the hall. Throwing it re-lights the three metal surfaces and
 swaps the wings in place; it never touches the Ledger or ticker content.
-Persisted in localStorage. On the desk the live wing is shown by the lit
-pilot jewel in its throw plate.
+Persisted in localStorage. On the house-lights board the live wing is shown
+by the blades lying in its jaws with the handle out past them to that side
+of the frame, and at night by the lit pilot above them.
 
 ## Settings: PREFERENCES (R4/R5)
 
@@ -1509,10 +1512,17 @@ reflected in the faces) and `--sb-top-far` / `--sb-top-near` for the top
 plane. Every coplanar face shares one gradient, so the horizon band runs
 straight across pilasters, panels and field. `patina-statuary.webp` carries
 the brushing, an uneven patina and a few casting pits as signed alpha, so it
-relights any bronze with no blend mode. Leaf sits only on wear points, in
-the wing's leaf: the cornice nosing, the body's arrises at hip height, the
-plinth toe, the pilaster bases and the quadrant's inner lip. The console is
-the dark object in the room in both themes. `--steam` and `--machine-edge`
+relights any bronze with no blend mode. The house-lights board, whose
+narrow rails and stiles made that brushing read as wood grain, takes its
+own cast patina (`patina-board.webp`, a mottle with no strokes in it) and
+its own tones: the same seven names redefined on `#signal-desk`, darker
+and cooler, an olive-black body under a pale brass crest, so the clock's
+case keeps the hall's warmer ramp (see "The house-lights board"). Leaf
+sits only on wear points, in the wing's leaf: on the board, the stiles'
+crests beside the handle's rest, the upper bosses' crowns, the fan's rim,
+the feet's toes and the plinth's toe strip.
+The board's bronze is the dark object in the room in both themes, and its
+slab the light one. `--steam` and `--machine-edge`
 keep their v3.1 meaning.
 
 ### New ornament classes (with their own density laws)
@@ -1523,140 +1533,157 @@ keep their v3.1 meaning.
 - Knurl band: short radial ticks at even pitch, the machined cousin of
   the Greek key; bridges deco and machine. Allowed on the masthead rosette's
   outer ring, dial bezels, grip surfaces. One ring per element.
-- Machined gear: trapezoid teeth on ISO proportions (addendum 1.0 m,
-  dedendum 1.25 m), spoked rim, evenodd cutouts. A gear MUST mesh with a
-  partner and rotate only when driven (max 2 gears page-wide, both on the
-  desk). No idle motion anywhere: the hall at rest is silent architecture.
-- Steam puff: event-only, 4–6 soft sprites per burst from the one vent
-  on lever throw. Never ambient, and no entrance wisp since v6.
+- Machined gear: retired with the signal desk. The clock's own train is
+  the only gearing left, and it turns only when driven. No idle motion
+  anywhere: the hall at rest is silent architecture.
+- Steam puff: retired with the signal desk. The house-lights board's one
+  event is the flash of the break.
 - Pneumatic main: the Ledger spine re-read as a brass dispatch tube,
   shaded across its width, with lit collars at the day breaks; the cards'
   cartouches hang from it. Pipes must plumb something.
 
-### The signal desk (`#signal-desk`)
+### The house-lights board (`#signal-desk`)
 
-The only region with full mechanism density; even here the drive train must
-be traceable: lever → hidden rack → gear pair → vent.
+The wing switch is the theatre's own front-of-house switchboard, where the
+house lights were thrown. A live-front board of the period was an upright
+slab of marble bolted to a frame, with its meters at the head of the panel
+and its knife switches on the face, and a double-throw switch was mounted to
+throw sideways (the wiring rules asked for it, since one thrown up and down
+could fall shut). This board is cut down to one circuit pair and stood on
+its own bronze standard at the foot of the runner, facing the reader. It
+replaces the signal desk of v4 to v6 and this board's first draft, a sloped
+lectern top on a pedestal that still read as a box lying on the floor.
 
-What changed in v4.1: this was a full-bleed bronze rail across the foot
-of the page. Once the hall had a floor, the bar read as a strip of UI taped
-under the picture rather than as anything standing in the room, so the
-housing band, the LINES dial (the ticker already counts the lines) and the
-maker's plate are struck, and what remains is the machine itself, planted
-centre stage on the terrazzo. The maker's plate is re-hung at the foot of
-the works board it names. The desk deliberately stays OUTSIDE the aisle
-grid: the boards fold away wherever the aisles shut, and the wing switch may never fold
-away with them.
-
-- Placement: `position:fixed; bottom: 10px·--ui` centred, a body-level
-  sibling AFTER `#hall` (never inside, because parallax vars are scoped to #stage;
-  a transformed ancestor would trap the fixed box). `z-index:50`, above
-  hall content, **below** prefs scrim (60), grain sheet (95), entrance
-  (100). The box is transparent and `pointer-events:none`; only the lever's
-  hit surface takes the pointer. `body` reserves no bottom clearance any
-  more. The hall owns every pixel down to the edge.
-- Anatomy (signal-box pattern, drawn by `static/js/desk.js` since v6):
-  a notched quadrant plate and a railway points lever (black enamel shaft,
-  polished steel grip with the catch handle behind it, a rod to the catch
-  block on the quadrant, a brass badge reading 1, WINGS; the wing metal is
-  the ferrule where the grip meets the shaft), ±16° throw; behind it a
-  glazed inspection window over the meshed gear pair, with a lamp at the
-  head of the well lit at night; the steam vent pipe with its collar. The
-  SALON and BUREAU throw plates are cast brass, engraved and filled black,
-  each with a pilot jewel. The assembly scales with the lettering
-  (`0.72 + 0.28·--ui`).
-- Drive: one scalar `--drive` (0 = salon, 1 = bureau) written by a JS
-  rAF driver onto the movers, `.desk-fx` and `#lever`, and kept in JS rather
-  than read back. A custom property restyles everything under the element it
-  changes on: on `:root` that was the whole page on every frame of the
-  throw, and on `#signal-desk` it repainted the console's cast relief every
-  frame. Lever (±16°), gear A (90°) and pinion B (−180°, ratio
-  −N_A/N_B) all derive via calc. Sync is structural. Meshing law: shared
-  module, center distance = r_pA + r_pB, interleave phase
-  `((1+N_A/N_B)·φ + 180 − 180/N_B) mod (360/N_B)` baked as a static
-  transform (never in the CSS-animated one).
-- Feel: weighty piecewise ease (fast start → ~4.5% overshoot → damped
-  clank settle, ~520 ms), starting from the rest pose: the throw's time
-  is clamped at 0, so an early first frame cannot kick the arm backwards
-  past its stop. Steam burst latched at 55% of the throw;
-  interrupt-safe (re-toggle reads current `--drive`). Reduced motion: snap
-  `--drive`, no steam, no overshoot. Gears stay correct for free.
-- Layers: `.desk-art` (static housing, `contain: layout paint`,
-  painted static gear shadows) / `.desk-fx` (the three movers + nozzle,
-  overflow visible so puffs escape) / `#lever` (the invisible hit surface,
-  same id, `role=switch`, Space/Enter, aria-checked, i18n attributes; all
-  existing JS bindings survive relocation verbatim). The gear well clips
-  via `overflow:hidden` on an inner div, never `clip-path` on the shell.
-- Boot: `html[data-boot="suppressed"] #signal-desk` mirrors the hall
-  fade; under a played entrance the curtain opens on the desk standing.
-  The lever is the last Tab stop (see "Accessibility summary").
-
-### The console casework (v4.3)
-
-v6 recast this casework in statuary bronze (a foreshortened top plane, a
-dentil course, a frieze of cast fans and ziggurats, fluted pilasters, sunk
-panels with hashed motifs, an archivolt round the window, a Portoro plinth).
-The desk stands on the wool runner and has a contact shadow in the pile, no
-floor return. The history below explains the stance that still holds.
-
-v4.1 put the machine on the floor but never gave it a body. What stood there
-was three loose parts sharing a patch of terrazzo: a lever pivoting at y=212
-on nothing, a quadrant arc hanging in mid-air above it, and an aperture cut
-into no surface at all. Two measurements showed it:
-
-- the housing tone `--bronze-deep` against `--terrazzo` is **1.05:1**. Every
-  solid face on the machine was invisible; only the `--bronze` hairlines
-  (2.58:1) survived, so the eye received a handful of strokes and no volume.
-  `scripts/contrast.py` is the check.
-- the aperture was **176×56**, the one bare rectangle in a hall built out
-  of arches, arcs and stepped shoulders, and an 88-wide gear crossing a
-  56-tall slot shows as a shallow band with no centre. The drive train was
-  drawn in full (63 nodes) and read as a stray arc.
-
-The fix follows the stance this document already takes: mechanism is
-sublimated by casework and revealed at exactly one deliberate opening. So
-the parts are housed in a bronze console that *stands* on the stone:
-
-- Body: stepped plinth (two courses on the gates' own 6px shoulder),
-  fluted pilasters (the aisle bays' articulation at furniture scale), a
-  knurl frieze, a two-step cornice cap. Every profile is already in this
-  building; that is what keeps it furniture in this room rather than a
-  machine parked in it.
-- Tone: three flat planes: `--bronze-cap` (lit tops and proud faces),
-  `--bronze-face` (fronts), `--bronze-deep` (recesses). `--bronze-face` is
-  new and exists because the old housing tone was specified when the desk
-  was a rail with the page behind it. Face-over-floor is 2.19:1 (onyx) and
-  2.29:1 (ivory); cap-over-face is 1.38:1 and 1.35:1, so both themes get the
-  same turn between planes. Ivory inverts the stack: a bronze console on
-  pale stone is the *dark* object in the room.
-- Aperture: a semicircular arch, 112×60, with archivolt and keystone,
-  the hall's own figure, and narrow enough that the gear inside reads as
-  round (48px of it showing instead of 34, across a 112 opening instead of
-  176).
-- The lever is bolted to it. The pivot moved from the floor (y=212,
-  *below* the console's own foot) onto the plinth top at y=186, and the arm
-  is `scale(.7)` about that pivot so its throw stops sweeping wider than the
-  machine it belongs to. The quadrant plate is on the same 0.7. It is what
-  the arm's pawl runs on, and if one scales without the other they stop
-  being one mechanism. At 0.7 the arc band lands at y 90-102, which is the
-  frieze: the plate is screwed to the console's face instead of floating.
-- It stands, so it returns. The waxed floor brings back every arch, the
-  clock and both aisle cases; the machine was the one object in the hall
-  with no reflection, which is precisely why it read as pasted onto the
-  floor. It gets a contact shadow and a three-course return (flat tones, not
-  a gradient. Over 14px the parallel-smear error is sub-pixel, so the
-  plane-space rule the tall reflections need does not bind here).
-- The vent leaves at the top. The stack used to run *down* the front
-  from y=112 to 202, which, once there was a console behind it, read as a
-  black post driven through the casework. It rises off the cornice at x=240,
-  the one gap clear of both the arch (ends 236) and the BUREAU plate
-  (starts 254).
-- The throw plates sit on the cap, bottom-anchored at y=96. Anchored
-  from the top they drifted off the cornice as soon as `--ui` changed the
-  label's own height.
-
-Verifying it: `scripts/contrast.py "#a" "#b"` checks a machine tone
-against the floor it stands on.
+- Form: a Bardiglio panel cut in setbacks, the picture palace's skyline: a
+  broad body for the switch, a step either side of the head for the two
+  pilots, and a head for the ammeter with a cast fan standing on it. A
+  statuary bronze bolection frame is swept round the whole outline, with a
+  boss and a cast fan on each outside corner. The panel stands on two
+  reeded bronze legs that corbel out under the frame; an apron of cast fans
+  and lightning runs between them under the frame's foot, a stretcher with
+  a sunburst runs low down, and a shallow Portoro plinth stands on the
+  runner with a contact shadow in the pile and no return. Whatever runs
+  back from the face is kept shallow (the frame's outer return, the bosses,
+  the corbels, the feet and the plinth): seen from above, a deep top reads
+  as a plan, and the board as furniture lying on the floor.
+- The switch: one double-pole, double-throw knife switch, the largest thing
+  on the panel. The hinge pin stands upright in the middle, the SALON jaws
+  are to the left and the BUREAU jaws to the right. The two copper blades,
+  bars 26 units wide and 10 thick, lie along the marble in the live wing's
+  jaws, broad faces up, their tips joined by an ebonite crossbar, and the
+  turned ebonite handle on its brass ferrule stands out along the blades
+  past the jaws to the frame. The other
+  pair of jaws stands empty, its slot dark between the spring leaves.
+  Engraved brass plates, SALON and BUREAU, are screwed under the jaws; the
+  pilots, jewels in knurled bezels, sit on the step above them (amber for
+  the Salon, opal for the Bureau); the round ammeter's needle leans over
+  the live wing's arc (gold leaf left, nickel right).
+- Legibility: from across the room the copper runs from the hinge to one
+  side and the black grip lies past it on that side, and at a quarter of
+  its size that lopsided mass is what reads. By day nothing is lit and the
+  blades and the handle carry it alone. At night the live pilot glows as
+  well and lights its half of the panel.
+- Drawing: every part is a solid (a prism, a chamfered box or a turned
+  part) in board units (x right, y up from the wool, z out of the panel),
+  projected through the floor's own camera: 32 degrees above the board,
+  from a little further off than the floor's eye, so the uprights converge
+  by a few percent and the tops of the frame, the jaws and the blades
+  show. Boxes are shaded facet by facet from their normals against the
+  room. The frame's moulding is shaded across its round: each run is one
+  path with a gradient sampled from the profile's normals, smoothed between
+  facets and broken only at the square outer arris, and laid along the run
+  as the eye sees it. Shaded in flat facets it came out as parallel stripes
+  of brown, and a moulding in stripes is wood. Turned parts that face the
+  eye (the meter's case, the pilots' bezels, the stretcher's boss) are
+  shaded the same way, one band of the profile at a time, and the legs'
+  reeds and the handle across their round. Every face is sealed with a hair
+  of its own colour, so no seam of what lies under shows between two faces.
+  Polished copper mirrors the floor and the dark house low down, the lit
+  wall and arches as a band a little above the horizon, the ceiling above
+  that, and the hall's lit side walls for a ray sent sideways; a key up and
+  a little left adds the highlight. The patinated bronze sees the same room
+  darker: the lit wall is the brightest thing in it and the ceiling is the
+  dark of the house, so its tops stay low and one hard line of light runs
+  along each crest. Tones are the palace's custom properties mixed with
+  color-mix, so one drawing serves both themes.
+- The throw: the pin is upright, so the blades turn in a level plane. Seen
+  from above, the handle comes round toward the room, points straight at
+  it (shortened, and larger for being nearer) and goes on to the other
+  side. The swing is a stack of 43 poses of the moving parts, each drawn at
+  its own angle with its shadows on the marble: 1.5 degrees apart where the
+  blades seat and bounce, 5 to 8 through the swing. The drive shows the
+  pose nearest the blades' angle, by opacity. The poses lie in five sheets
+  of one SVG (the lower blade with every shadow, the lower pole's top cheek
+  and leaves, the upper blade, the upper pole's, the crossbar and handle),
+  an order that holds at every angle because whatever stands higher or
+  further out is nearer the eye. They are drawn while the hall is idle.
+- Drive: `--sw` (0 = the blades in the Salon's jaws, 1 = in the Bureau's)
+  is registered and written by app.js on the parts CSS moves (the needle,
+  the two lamps and their pools, the hit strip), and `setDrive()` hands the
+  same number to `Desk.drive()` for the poses. The ease is a knife
+  switch's. For 36 ms the jaws hold while the hand pulls (3.5% of the way);
+  the break flashes as the blades clear the spring leaves at about 14
+  degrees; the hand carries them over gathering speed and they land still
+  moving; the springs throw them back out about 8 degrees once, and they
+  drop in and stay by 400 ms of the 520. It is interrupt safe. Past 1 the
+  value is the bounce (`bounced()` turns it back off the stop), and the
+  needle takes it raw and swings past. A pilot goes out as its jaws open
+  and the other lights as the blades land. The flash of the break is a
+  spark at the jaws the blades leave and a smaller one where they land (Web
+  Animations, opacity only, 150 ms each). Reduced motion snaps and shows no
+  spark.
+- Hit surfaces: the board's drawn shapes toggle the switch; each side's
+  plate, pilot and jaws light that side and never the other. The hit strip
+  inside `#lever` runs from the hinge past the handle's end and turns and
+  shortens with the handle's projection, (-cos a, k sin a) with k = sin 32
+  degrees; it takes a click as a throw and a pull toward the other side as
+  a throw that way. The wool under the plinth takes nothing.
+- Placement: fixed, body level, centred at the foot of the runner, scaled
+  by `--desk-s = min(--desk-k, --desk-room)` with `--desk-k` at
+  `0.62 + 0.4 × --ui`. `fitDesk()` caps it to the floor under the stage from
+  `Desk.BOX_H` (296) and `Desk.ART_TOP` (the top of the focus ring over the
+  finial). `budgetHall()` asks the floor for exactly what the signal desk
+  asked (198 units at 0.78, 0.62 under 760px), so the arches keep the width
+  they had with it at every size; on 3440x900 and 1366x768 the board
+  stands smaller in the floor it is given. The plates' lettering is set
+  against the board's scale and is never under 10px on screen.
+- Layers: `.desk-art` holds the static board (`.hl-board`, one SVG,
+  painted once); then the two plates; then `.desk-fx`, with the pilots'
+  pools and lit jewels and the meter's lamp, needle and glass; then
+  `.desk-sw`, with the swing and the two sparks, outside the Bureau's
+  re-leaf list because none of it reads the leaf. The board's namespace is
+  `hb-` and the moving parts' `sw-`; `.board` and `bd-` belong to the aisle
+  cases.
+- Focus: a stepped marquee round the silhouette (the fan, the setbacks, the
+  legs and the plinth), drawn on the board behind everything and clear of
+  both plates; Highlight under forced colours, where the live plate also
+  keeps a Highlight border.
+- Materials: the board's own statuary bronze (`--sb-*` redefined on
+  `#signal-desk`, darker and cooler than the hall's) with its cast patina
+  (`patina-board.webp`) for the frame, bosses, legs, apron and fan. The
+  wing's leaf (`--lead-*`) only where the board is handled or walked into:
+  the stiles' crests beside the handle's rest, the upper bosses' crowns,
+  the fan's rim, the feet's toes and the plinth's toe strip. Copper
+  (`--kc-*`) with a drawn grain (`brush-copper.webp`) for the blades, jaws
+  and hinges; each blade's broad face carries the grain laid along it, the
+  room as a streak across it and the run the jaws have burnished, and the
+  chamfer on its long arris nearest the eye takes the key as a hot lip, one
+  hard line brightest over the middle of the run. Ebonite (`--eb-*`) for
+  the handle and crossbar, shaded across its round and bright where it
+  mirrors the lamp. Fixed brass (`--bz-*`) for the bezels, ferrule, screws
+  and plates and for the sunburst inlaid in the marble under the meter.
+  Ivory enamel for the dial, printed heavy enough to read as a ring of
+  strokes from across the room: a long stroke and a figure every quarter
+  (50 and 25 either side of zero), the Salon's arc in gold leaf and the
+  Bureau's in nickel, under a glass with one reflection band. The Bardiglio
+  is a dove grey clouded with slate, with crisp dark streaks along the bed,
+  a few slate veins across it and white calcite threads, cut strong enough
+  that the night's veil does not flatten it. Its polish is one band on the
+  diagonal, hard at its leading edge and soft behind, with a narrow second
+  band after it: the room's opening and its glazing bar mirrored in the
+  face. `stone-bardiglio.webp`, `patina-board.webp` and `brush-copper.webp`
+  are baked by `scripts/board_materials.py`. Only the pilots, the meter's
+  lamp and the spark glow, and only at night.
 
 ### Entrance beat
 

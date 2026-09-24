@@ -626,49 +626,44 @@
 <div id="ledger-scrim" aria-hidden="true"></div>
 
 <!-- ======================================================================
-     Signal desk — the works of the hall, standing on the terrazzo. Fixed
-     and body-level (never inside #stage: parallax vars are scoped there,
-     and a transformed ancestor would trap the fixed box).
+     The house-lights board: the hall's one control, standing at the foot of
+     the runner. Fixed and body-level (never inside #stage: parallax vars are
+     scoped there, and a transformed ancestor would trap the fixed box).
 
-     This was a full-bleed bronze rail across the foot of the page. The bar
-     read as a strip of UI taped under the picture rather than as anything
-     in the room, so the housing, the LINES dial (the ticker already counts
-     the lines) and the maker's plate are gone. What is left is the machine
-     itself, planted centre stage on the floor. It stays outside the aisle
-     grid on purpose: the boards fold away below 1800px and the wing switch
-     may never fold away with them.
-     Layers: .desk-art (static housing, contained) / .desk-fx (the three
-     movers + steam nozzle, overflow visible) / #lever (hit surface).
+     A theatre's front-of-house switchboard cut down to one circuit pair: an
+     upright Bardiglio panel in a bronze frame on a reeded bronze standard,
+     carrying one double-throw knife switch. The blades lie in the SALON
+     jaws or the BUREAU jaws with the handle out past them; the pilot over
+     the live jaws is lit at night and the meter's needle stands on that
+     side. Drawn by static/js/desk.js.
+     Layers: .desk-art (the static board, contained) / the two name plates /
+     .desk-fx (the lamps, their pools and the meter's needle and glass, each
+     its own layer) / .desk-sw (the swing's poses and the sparks) / #lever
+     (the switch a keyboard reaches, with the handle's hit strip).
      A named region, not a <footer>: at body level a footer is the page's
      contentinfo landmark, which filed the hall's one wing control under
      the page's small print.
 ====================================================================== -->
-<div id="signal-desk" role="region" data-i18n-aria="ariaDesk" aria-label="Signal desk">
+<div id="signal-desk" role="region" data-i18n-aria="ariaDesk" aria-label="House-lights board: wing switch">
   <div class="desk-core">
     <div class="assembly" aria-hidden="true">
       <div class="desk-art">
-        <svg class="quadrant" viewBox="0 0 360 220"></svg>
+        <svg class="hl-board" viewBox="0 0 460 296"></svg>
       </div>
-      <div class="desk-fx">
-        <div class="gear-well" aria-hidden="true">
-          <svg class="gearA-svg" viewBox="-52 -52 104 104"></svg>
-          <svg class="gearB-svg" viewBox="-30 -30 60 60"></svg>
-        </div>
-        <svg class="lever-svg" viewBox="0 0 140 210"></svg>
-        <div class="nozzle"></div>
-      </div>
-      <span class="l-label l-salon display" data-i18n-title="salonWing" lang="en">SALON</span>
-      <span class="l-label l-bureau display" data-i18n-title="bureauWing" lang="en">BUREAU</span>
+      <span class="l-label l-salon display" data-side="salon" data-i18n-title="salonWing" lang="en">SALON</span>
+      <span class="l-label l-bureau display" data-side="bureau" data-i18n-title="bureauWing" lang="en">BUREAU</span>
+      <div class="desk-fx"></div>
+      <div class="desk-sw"></div>
     </div>
     <span id="lever-desc" hidden data-i18n="leverDesc">Off lights the Salon, the play wing. On lights the Bureau, the work wing.</span>
     <div id="lever" role="switch" aria-checked="false" tabindex="0" aria-keyshortcuts="W"
          aria-describedby="lever-desc" data-i18n-aria="ariaLever"
-         aria-label="Mode lever: off = Salon, on = Bureau">
-      <!-- The arm's hit strip: it pivots with the drawn lever and scales
-           with the machine, so the arm takes the pointer and the floor and
-           the clock above it do not. The console hit-tests on its own
-           shapes (atrium.css). -->
-      <span class="hit-arm" aria-hidden="true"></span>
+         aria-label="Bureau wing">
+      <!-- The blade's hit strip: it swings with the drawn blade and handle
+           and scales with the board, so the switch takes the pointer and
+           the floor and the clock above it do not. The board hit-tests on
+           its own drawn shapes (atrium.css). -->
+      <span class="hit-arm sw-drive" aria-hidden="true"></span>
     </div>
   </div>
 </div>
@@ -785,12 +780,12 @@ if (probeAt.some(function (v) { return /^[123]$/.test(v); })) setTimeout(functio
   var out = [];
   var sels = ['#hall', '#concourse', '#stage', '#floorplane', '#works',
     '#almanac', '#clock', '#gates', '.gate.active', '.gate.receded',
-    '#signal-desk', '.assembly', '.quadrant', '.gear-well', '.lever-svg'];
+    '#signal-desk', '.assembly', '.hl-board', '#lever', '.sw-handle'];
   if (probeAt.indexOf('2') >= 0) {
     /* Deep read for hardware work: the machinery is drawn inside three
        nested transformed boxes, so a part's page position cannot be derived
        from CSS by hand. Ask each part where it actually landed. */
-    sels = sels.concat(['.gearA-svg', '.gearB-svg', '.l-salon', '.l-bureau',
+    sels = sels.concat(['.sw-blade-far', '.sw-needle', '.l-salon', '.l-bureau',
                         '#lever', '.fl-plane', '.fl-rail',
                         /* The almanac's four registers: the case has a fixed
                            height and only the arc may flex, so the way this
@@ -826,7 +821,7 @@ if (probeAt.some(function (v) { return /^[123]$/.test(v); })) setTimeout(functio
     /* Outline the hardware too. Numbers still have to be trusted against a
        crop; an outline drawn by the page itself is in the same pixels as
        the thing it surrounds and cannot be off by a viewport. */
-    [['.assembly', '#f0f'], ['.gear-well', '#f00'], ['#lever', '#0ff']]
+    [['.assembly', '#f0f'], ['.sw-handle', '#f00'], ['#lever', '#0ff']]
       .forEach(function (pair) {
         var e = document.querySelector(pair[0]);
         if (e) e.style.outline = '2px solid ' + pair[1];
@@ -837,7 +832,7 @@ if (probeAt.some(function (v) { return /^[123]$/.test(v); })) setTimeout(functio
        is the same 100px lie in a different disguise. */
     setInterval(function () {
       tag.textContent = 'vp=' + innerWidth + 'x' + innerHeight +
-        ['.assembly', '.gear-well', '#lever'].map(function (s) {
+        ['.assembly', '.sw-handle', '#lever'].map(function (s) {
           var e = document.querySelector(s);
           if (!e) return '\n' + s + '=none';
           var r = e.getBoundingClientRect();

@@ -436,13 +436,7 @@ html[lang="zh"] .display { letter-spacing: 0.26em; }
 .medal, .medal .rim, .medal .m-sig, .chip,
 .wk-dial path, .wk-dial circle, .wk-dial line, .wk-dial text,
 .wk-hands path, .wk-hands circle,
-.wk-plate rect, .wk-plate circle, .wk-plate text,
-.lever-svg path, .lever-svg circle, .lever-svg rect, .lever-svg text,
-.lever-svg polygon, .lever-svg ellipse,
-.gearA-svg path, .gearA-svg circle, .gearA-svg rect, .gearA-svg polygon,
-.gearA-svg ellipse, .gearA-svg text,
-.gearB-svg path, .gearB-svg circle, .gearB-svg rect, .gearB-svg polygon,
-.gearB-svg ellipse, .gearB-svg text {
+.wk-plate rect, .wk-plate circle, .wk-plate text {
   transition: stroke 0.4s, fill 0.4s, color 0.4s,
               background-color 0.4s, border-color 0.4s;
 }
@@ -687,43 +681,38 @@ html[data-boot="suppressed"] #hall { animation: hall-fade 0.3s var(--ease-out) b
 .t-new { color: var(--gold-text); }
 
 /* ==========================================================================
-   SIGNAL DESK — the works of the hall (DESIGN.md v4.1). A machine standing
-   on the terrazzo, not a strip of chrome bolted under the picture: the
-   bronze band, the LINES dial and the maker's plate that used to flank it
-   are gone, and what survives is the lever with its quadrant, gear train
-   and steam. z ladder: desk 50 < prefs 60 < grain 95 < entrance 100. The
-   shell is never clipped (steam must escape; clip-path kills shadows) —
-   only the gear well clips, via overflow:hidden. One scalar --drive
-   (0=salon, 1=bureau, written by the JS driver) derives the lever and both
-   gears. It lives on the four parts that read it, not on :root and not on
-   the desk, and it does not inherit: a custom property restyles everything
-   under the element it changes on, and a console restyled every frame was
-   repainted every frame.
+   THE HOUSE-LIGHTS BOARD: the hall's one control (DESIGN.md "The
+   house-lights board"). An upright switchboard on a bronze standard at the
+   foot of the runner, drawn by static/js/desk.js and dressed in
+   palace-desk.css. z ladder: desk 50 < prefs 60 < grain 95 < entrance 100.
+   One number, --sw (0 = the blades in the Salon's jaws, 1 = in the
+   Bureau's), is written by app.js onto the few parts CSS moves: the
+   needle, the lamps and their pools, and the hit strip. The blades, the
+   crossbar and the handle are a stack of drawn poses that desk.js shows by
+   opacity from the same number. --sw is never written on the board or the
+   desk, so nothing larger is restyled by a throw.
    ========================================================================== */
-@property --drive { syntax: "<number>"; inherits: false; initial-value: 0; }
+@property --sw { syntax: "<number>"; inherits: true; initial-value: 0; }
 #signal-desk {
   position: fixed; left: 0; right: 0; bottom: calc(10px * var(--ui));
   height: var(--desk-h);
   z-index: 50;
   isolation: isolate;
-  pointer-events: none;   /* only the machine's own parts take the pointer */
-  /* One scale for the machine and everything that hit-tests on it. The hit
-     surfaces used to be fixed 300x108 and 220x112 boxes that ignored the
-     assembly's scale, so on a short screen the arm zone stood 75px over
-     bare floor and the clock's sill, and a click on the clock threw the
-     lever. --desk-k is what the viewport allows; --desk-room is what the
-     floor under the stage allows, written by fitDesk() in app.js. */
-  --desk-k: calc(0.80 + 0.14 * var(--ui));
+  pointer-events: none;   /* only the board's own parts take the pointer */
+  /* One scale for the board and everything that hit-tests on it. --desk-k
+     is what the viewport allows; --desk-room is what the floor under the
+     stage allows, written by fitDesk() in app.js. */
+  --desk-k: calc(0.62 + 0.4 * var(--ui));
   --desk-s: min(var(--desk-k), var(--desk-room, 9));
 }
 /* Boot parity with the hall: suppressed loads fade. A played entrance
-   raises the house curtain on a desk that is already standing. */
+   raises the house curtain on a board that is already standing. */
 html[data-boot="suppressed"] #signal-desk {
   animation: hall-fade 0.3s var(--ease-out) both;
 }
-/* Initial pose before the JS driver's first write. */
-:root[data-wing="salon"] :is(.lever-svg, .gearA-svg, .gearB-svg, #lever .hit-arm) { --drive: 0; }
-:root[data-wing="bureau"] :is(.lever-svg, .gearA-svg, .gearB-svg, #lever .hit-arm) { --drive: 1; }
+/* The rest pose before app.js writes its first value. */
+:root[data-wing="salon"] .sw-drive { --sw: 0; }
+:root[data-wing="bureau"] .sw-drive { --sw: 1; }
 
 .desk-core {
   position: relative;
@@ -731,242 +720,99 @@ html[data-boot="suppressed"] #signal-desk {
   margin: 0 auto;
   padding: 0 44px;
 }
-
-/* ----- Lever assembly ---------------------------------------------------- */
+/* The board's box, in its own units (desk.js writes --hb-w and --hb-h). */
 .assembly {
   position: absolute; left: 50%; bottom: 0;
-  width: 360px; height: 220px;
-  /* Tracks the lettering, but at a third of its slope. On a 3440 screen the
-     old coefficient stood the machine 275px tall — taller than the stone it
-     stands on once the wall took its headroom back, so the lever tip came up
-     level with the skirting and the hall lost its floor to its furniture.
-     The factor itself is --desk-s on #signal-desk. */
+  width: var(--hb-w, 460px); height: var(--hb-h, 296px);
   transform: translateX(-50%) scale(var(--desk-s));
   transform-origin: center bottom;
   pointer-events: none;
 }
-/* The console answers the pointer where it is drawn and nowhere else: the
-   shapes hit-test on their own paint. The contact shadow is floor, not
-   machine. */
-.quadrant { pointer-events: none; }
-.quadrant > * { pointer-events: visiblePainted; cursor: pointer; }
-.quadrant .dk-floor, .quadrant .dk-floor * { pointer-events: none; }
 .desk-art { position: absolute; inset: 0; contain: layout paint; }
-.quadrant { position: absolute; inset: 0; width: 100%; height: 100%; }
+.hl-board { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+/* The board answers the pointer where it is drawn and nowhere else: its
+   shapes hit-test on their own paint. The wool under it is floor. */
+.hl-board { pointer-events: none; }
+.hl-board > g, .hl-board > g * { pointer-events: visiblePainted; cursor: pointer; }
+.hl-board .hb-floor, .hl-board .hb-floor *, .hl-board .hb-noptr, .hl-board .hb-noptr * { pointer-events: none; }
 
-/* ---- Console casework ---------------------------------------------------
-   Statuary bronze, drawn by static/js/desk.js and dressed in
-   palace-desk.css. The floor under it (.dk-floor) takes no pointer. */
-
-.desk-fx { position: absolute; inset: 0; }
-/* The aperture. It was a 176×56 rectangle — the only bare rectangle in a
-   hall built entirely from arches, stepped shoulders and arcs — and it was
-   so wide and so short that an 88px gear crossing it showed as a single
-   shallow band with no centre and no visible teeth: a stray arc, not a
-   machine. It is an ARCH now, on the hall's own semicircular head, and
-   narrow enough that the gear reads as round: 128 wide against a gear that
-   spans 88, showing 48px of it instead of 34. One deliberate opening per
-   region is the whole rule; this is the region's. */
-.gear-well {
-  position: absolute; left: 50%; bottom: 42px;
-  width: 112px; height: 60px;
-  margin-left: -56px;
-  border-radius: 56px 56px 2px 2px;   /* semicircular head, r = half width */
-  overflow: hidden;               /* the one sanctioned clip — not clip-path */
-  background-color: var(--machine-edge);
-  border: 1px solid var(--bronze);
-  transition: background-color 0.4s, border-color 0.4s;
-  pointer-events: auto; cursor: pointer;   /* part of the console's face */
-}
-.gearA-svg, .gearB-svg {
-  position: absolute;
+.desk-fx, .desk-sw { position: absolute; inset: 0; pointer-events: none; }
+.desk-fx > svg, .desk-sw > svg {
+  position: absolute; inset: 0; width: 100%; height: 100%;
   overflow: visible;
-  will-change: transform;
-}
-.gearA-svg {
-  width: 104px; height: 104px;
-  transform: rotate(calc((var(--drive, 0) - 0.5) * 90deg));
-}
-.gearB-svg {
-  width: 60px; height: 60px;
-  transform: rotate(calc((var(--drive, 0) - 0.5) * -180deg));
-}
-/* The wheels' per-part tones: palace-desk.css. */
-
-/* ---- Gear well riveted-iron texture via pseudo-element ------------------ */
-/* Do NOT add `.gear-well { position: relative }` here to "anchor" this
-   ::before. The well is already position:absolute (rule above) — that is what
-   sets it into the rail at bottom:14px. A later `relative` silently wins the
-   cascade and the whole gear assembly drops out of the rail into normal flow,
-   ~164px too high. Absolute positioning is already the containing block
-   ::before needs. */
-.gear-well::before {
-  content: ''; position: absolute; inset: 0;
-  background: url('/static/assets/tex/riveted_iron.png') center / 112px;
-  opacity: 0.22;
   pointer-events: none;
-  z-index: 0;
 }
-
-/* The lever is BOLTED TO THE CONSOLE, not standing beside it. Its pivot
-   used to sit at assembly y=212 — below the console's own foot at 196 —
-   which made the arm a separate object that happened to lean across the
-   casework, and no amount of housing detail fixes two things sharing a
-   patch of floor. bottom:26px lands the pivot on the plinth's top face.
-   scale(.7) about that same pivot shortens the throw so the arm stops
-   sweeping wider than the machine it belongs to; every part on it scales
-   with it, so the anatomy keeps its proportions. */
-.lever-svg {
-  position: absolute; left: 110px; bottom: 26px;
-  width: 140px; height: 210px;
-  overflow: visible;
-  transform-origin: 70px 202px;
-  transform: rotate(calc(-16deg + var(--drive, 0) * 32deg)) scale(0.7);
+/* The swing: the moving parts drawn at each of 43 angles, the one nearest
+   the blades' angle shown (desk.js). The stack is its own layer,
+   so a frame of the throw repaints it and nothing under it, and it lies
+   outside .desk-fx, which the Bureau re-leafs: none of it reads the leaf,
+   and a flip would restyle every pose for nothing. */
+.sw-poses { will-change: transform; }
+/* The needle turns in the dial's own plane, which the eye sees shortened
+   by --sw-mk: stretch it back, turn it, shorten it again. It falls to zero
+   as the blades break one circuit, waits while they are in the air and
+   swings over as they make the other, carried a little past by the
+   throw's overshoot (the raw value, not the bounced one). */
+.sw-needle {
+  transform-origin: var(--sw-mx) var(--sw-my);
+  transform: scale(1, var(--sw-mk)) rotate(calc(44deg * (clamp(0, (var(--sw) - 0.7) / 0.25, 1) - clamp(0, (0.3 - var(--sw)) / 0.25, 1)
+                                  + max(0, var(--sw) - 1) * 3 - max(0, 0 - var(--sw)) * 3))) scale(1, calc(1 / var(--sw-mk)));
   will-change: transform;
 }
+/* The lamps follow the blades, not the wing: a pilot goes out as its jaws
+   open and the other lights as the blades land, flickering if they bounce. */
+.sw-lit-salon, .sw-pool-salon { opacity: clamp(0, 1 - var(--sw) / 0.08, 1); will-change: opacity; }
+.sw-lit-bureau, .sw-pool-bureau { opacity: clamp(0, (var(--sw) - 0.92) / 0.08, 1); will-change: opacity; }
+.sw-spark { opacity: 0; will-change: opacity; }
+:root[data-motion="reduced"] .sw-spark { display: none; }
 
-/* Throw plates.
-   -----------
-   These were two bare words floating on the terrazzo either side of the
-   lever: engraved ink on pale stone, foreshortened by the floor's own
-   projection, at the one place in the hall with no plate behind them — so
-   they were the least legible lettering in the building, and they were the
-   labels for its only control. A signal lever's throws are named on brass
-   screwed to the quadrant, which is legible because it is a THING and not a
-   caption, and which incidentally answers the question the bare machine
-   left open: what does pulling this do.
-   The plates ride at the quadrant's own height, one per throw, and the live
-   wing is the one that is lit. */
-/* Bottom-anchored, not top-anchored: the plates SIT ON the cornice at
-   y=96, and the label's own height changes with --ui. Anchored from the
-   top they float off the cap the moment the user rescales the interface. */
+/* Name plates. Each names the jaws above it, and a click on it lights that
+   wing and never the other. The live one takes no cursor. They lie under
+   the swing, which passes in front of them. */
 .assembly .l-label {
-  position: absolute; bottom: 124px;
-  padding: calc(4px * var(--ui)) calc(9px * var(--ui)) calc(3px * var(--ui));
-  font-size: calc(11px * var(--ui)); letter-spacing: 0.2em;
-  color: var(--ink-faint);
-  background-color: var(--bronze-deep);
-  border: 1px solid var(--bronze);
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--machine-edge) 55%, transparent);
-  transition: color 0.4s, background-color 0.4s, border-color 0.4s;
+  position: absolute; top: var(--sw-plate-t);
+  transform: translateX(-50%);
+  pointer-events: auto; cursor: pointer;
+  white-space: nowrap;
 }
-/* The two countersunk screws that hold the plate on. */
-.assembly .l-label::before,
-.assembly .l-label::after {
-  content: "";
-  position: absolute; top: 50%;
-  width: 3px; height: 3px; margin-top: -1.5px;
-  border-radius: 50%;
-  background-color: var(--machine-edge);
-}
-.assembly .l-label::before { left: 3.5px; }
-.assembly .l-label::after { right: 3.5px; }
-.assembly .l-salon { right: calc(50% + 74px); }
-.assembly .l-bureau { left: calc(50% + 74px); }
-/* The live throw is lit. Only the GRIP carries the wing metal, so the plate
-   brightens to champagne rather than joining the wing-metal contract. */
-:root[data-wing="salon"] .l-salon,
-:root[data-wing="bureau"] .l-bureau {
-  color: var(--champagne); border-color: var(--gold);
-  background-color: color-mix(in srgb, var(--gold) 16%, var(--bronze-deep));
-}
-:root[data-theme="ivory"][data-wing="salon"] .l-salon,
-:root[data-theme="ivory"][data-wing="bureau"] .l-bureau { color: var(--gold-text); }
-/* Each plate names a throw, so a click on it lights that wing and never the
-   other one. They straddled the lever's old hit boxes, and the inner half of
-   the lit SALON plate threw the hall into the Bureau while the outer half
-   did nothing. As targets they also show their zh titles on hover. */
-.assembly .l-label { pointer-events: auto; cursor: pointer; }
+.assembly .l-salon { left: var(--sw-plate-l); }
+.assembly .l-bureau { left: var(--sw-plate-r); }
 :root[data-wing="salon"] .l-salon,
 :root[data-wing="bureau"] .l-bureau { cursor: default; }
-@media (hover: hover) {
-  :root[data-wing="salon"] .l-bureau:hover,
-  :root[data-wing="bureau"] .l-salon:hover { border-color: var(--gold); }
-}
 
-/* #lever is the switch a keyboard and a screen reader use. Its box hugs the
-   base at the machine's own scale, which is where the focus ring draws, and
-   it takes no pointer itself: the console's shapes and the arm strip below
-   do, so nothing but drawn hardware throws the lever. */
+/* #lever is the switch a keyboard and a screen reader use. It lies over
+   the board at the board's own scale and takes no pointer itself; the hit
+   strip inside it does, and it swings with the handle, so nothing but
+   drawn hardware throws the switch. */
 #lever {
   position: absolute; left: 50%; bottom: 0;
-  width: calc(300px * var(--desk-s)); height: calc(108px * var(--desk-s));
-  transform: translateX(-50%);
+  width: var(--hb-w, 460px); height: var(--hb-h, 296px); margin-left: calc(var(--hb-w, 460px) / -2);
+  transform: scale(var(--desk-s));
+  transform-origin: 50% 100%;
   pointer-events: none;
   z-index: 2;
 }
-/* The arm's hit strip pivots with the drawn lever (same --drive, same pivot
-   34 units up the machine) and scales with it, a few pixels wider than the
-   grip so the thin arm is not a hard target. Clicks on it reach #lever. */
+#lever:focus-visible { outline: none; box-shadow: none; }
+/* From the hinge out past the handle's end, a little wider than the grip.
+   The blades turn about an upright pin, so seen from the hall the handle's
+   end travels (-cos a, --sw-k sin a) off the hinge: the strip turns to
+   that direction and shortens with it. */
 #lever .hit-arm {
-  position: absolute; left: 50%; bottom: calc(34px * var(--desk-s));
-  width: 24px; height: 142px; margin-left: -12px;
-  border-radius: 12px 12px 0 0;
-  transform-origin: 50% 100%;
-  transform: scale(var(--desk-s)) rotate(calc(-16deg + var(--drive, 0) * 32deg));
+  --a: calc(var(--sw) * 180deg);
+  position: absolute; left: calc(var(--sw-hx) - var(--sw-arm)); top: calc(var(--sw-hy) - 17px);
+  width: var(--sw-arm); height: 34px;
+  border-radius: 17px 4px 4px 17px;
+  transform-origin: 100% 50%;
+  transform: rotate(calc(-1 * atan2(calc(sin(var(--a)) * var(--sw-k)), cos(var(--a)))))
+             scaleX(hypot(cos(var(--a)), calc(sin(var(--a)) * var(--sw-k))));
   display: block;
   pointer-events: auto;
   cursor: pointer;
+  will-change: transform;
 }
-/* The switch answers the pointer the way the gates do: the grip lights to
-   the wing's bright metal, and the arm takes up its slack towards the other
-   throw, a little more while pressed. Only the drawn lever moves; the hit
-   strip holds still under the pointer. */
-.lever-svg { transition: rotate 0.2s var(--ease-out); }
-@media (hover: hover) {
-  .desk-core:has(.hit-arm:hover, .desk-art:hover, .gear-well:hover) .lv-grip {
-    fill: var(--metal-hi);
-  }
-  .desk-core:has(.hit-arm:hover, .desk-art:hover, .gear-well:hover) .lever-svg {
-    rotate: 1.5deg;
-  }
-  :root[data-wing="bureau"] .desk-core:has(.hit-arm:hover, .desk-art:hover, .gear-well:hover) .lever-svg {
-    rotate: -1.5deg;
-  }
-}
-.desk-core:has(.hit-arm:active, .desk-art:active, .gear-well:active) .lever-svg {
-  rotate: 3deg;
-}
-:root[data-wing="bureau"] .desk-core:has(.hit-arm:active, .desk-art:active, .gear-well:active) .lever-svg {
-  rotate: -3deg;
-}
-
-/* ----- Steam ------------------------------------------------------------- */
-/* Tracks the vent stack's mouth — moved with it onto the cornice. */
-.nozzle {
-  position: absolute; left: 245px; top: 24px;
-  width: 0; height: 0;
-  pointer-events: none; z-index: 3;
-}
-/* A puff is a wisp, not a ball: one round, evenly soft disc hung over the
-   stack like a lamp at night (VD-10). Four soft lobes of unequal size, set
-   off-centre and trailing upward, each sprite its own (steamBurst() writes
-   the offsets), with a thin core so the floor shows through it. The lobes
-   are painted once; only the sprite's transform and opacity move. */
-.puff {
-  position: absolute; left: -22px; top: -34px; width: 44px; height: 56px;
-  background:
-    radial-gradient(30% 24% at var(--p1, 44%) 74%, var(--steam-core), var(--steam-mid) 50%, transparent),
-    radial-gradient(22% 22% at var(--p2, 62%) 54%, var(--steam-mid), transparent),
-    radial-gradient(24% 16% at var(--p3, 34%) 38%, var(--steam-mid), transparent),
-    radial-gradient(12% 28% at var(--p4, 56%) 18%, var(--steam-wisp), transparent);
-  filter: blur(4px);
-  will-change: transform, opacity;
-  opacity: 0;
-  animation: puff-rise both cubic-bezier(0.25, 0.6, 0.35, 1);
-}
-@keyframes puff-rise {
-  0% { transform: translate3d(0, 0, 0) scale(0.55) rotate(0deg); opacity: 0; }
-  12% { opacity: 1; }
-  100% {
-    transform: translate3d(var(--dx, 8px), var(--rise, -70px), 0)
-               scale(var(--s, 2.4)) rotate(var(--rot, 20deg));
-    opacity: 0;
-  }
-}
-/* Belt and braces: the CSS kill-switch collapses the animation, but a
-   spawned sprite would still flash — hide the class outright. */
-:root[data-motion="reduced"] .puff { display: none; }
+/* While the handle is held the moving parts come a hair toward the hand,
+   asking for the pull. */
+.desk-core:has(.hit-arm:active) .sw-poses { translate: 0 1.2px; }
 
 /* ==========================================================================
    STAGE — triptych; gates positioned by transform only (60 fps law)
@@ -3349,7 +3195,7 @@ html[lang="zh"] .g-name { letter-spacing: 0.17em; }
    lever's first frames and ran into the sink (MO-1). Rastered alone, the
    same leaf costs about 290ms. */
 :where(.fl-border, .fl-inlay, .fl-round, .wall-piers, .m-title, .m-underline,
-    .mf-crest, .cs-top, .cs-door > .cf, .bd-title, #al-sky, .desk-art .quadrant) {
+    .mf-crest, .cs-top, .cs-door > .cf, .bd-title, #al-sky, .desk-art .hl-board) {
   will-change: transform;
 }
 :root[data-theme="onyx"] .alab.s0 { stop-color: #fff6e0; }

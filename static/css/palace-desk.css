@@ -1,50 +1,30 @@
 /* ===========================================================================
-   THE PICTURE PALACE: the signal desk, the key plate and the entrance.
+   THE PICTURE PALACE: the house-lights board, the key plate and the
+   entrance.
 
    Linked after atrium.css. Everything here is material: the drawing lives in
-   static/js/desk.js (the desk) and in playEntrance() (the entrance); the hit
-   surfaces, the throw and the keyboard model are atrium.css's and app.js's
-   and are not touched.
+   static/js/desk.js (the board) and in playEntrance() (the entrance); the
+   hit surfaces, the swing and the keyboard model are atrium.css's and
+   app.js's.
 
    One light model, as in the rest of the palace. At night the room's lamps
-   stand behind and above the desk (the fanlights, the niche, the marquee),
-   so its tops and upper arrises take the light and its faces, which look
-   back at the dark house, stay low. By day the skylight is the key and the
-   tops go pale. Only emitters bloom: the jewel lamps, the inspection lamp
-   and the entrance's footlights. Bronze, steel and brass never glow.
+   stand behind and above the board (the fanlights, the niche, the marquee),
+   so its tops and upper arrises take the light, its faces look back at the
+   dark house, and the slab lies in a veil that the live pilot's pool breaks.
+   By day the skylight is the key and nothing is lit. Only emitters glow: the
+   pilot jewels, the meter's lamp, the flash of the break.
    =========================================================================== */
 
 /* ----- Tokens ------------------------------------------------------------ */
+/* Statuary bronze. These also set the clock's case, which reads the same
+   names, so they stay as they are. */
 :root[data-theme="onyx"] {
-  /* statuary bronze: 0 oil in the recess .. 5 the hot rim */
   --sb-oil: #070402;
   --sb-0: #120c07; --sb-1: #22170e; --sb-2: #35261a; --sb-3: #4f3a26;
   --sb-4: #86643f; --sb-5: #d5ad74;
-  --sb-band: #8a6944;          /* the horizon, reflected in the faces */
-  --sb-top-far: #8a6a45;       /* the lit wall, reflected in the top */
-  --sb-top-near: #2a1d12;
-  --sb-spec: rgba(255, 206, 140, 0.42);
+  --sb-band: #8a6944;
   --sb-tex: 0.42;
   --sb-rl-lit: rgba(236, 190, 128, 0.55);
-  /* the lever */
-  --en-0: #040404; --en-1: #121110; --en-hi: #7a6248;
-  --st-0: #141517; --st-1: #3a3b3d; --st-2: #7b7a76; --st-3: #d6cbb6; --st-hot: #fff3da;
-  /* cast brass: the badge and the throw plates */
-  --bz-0: #3a2708; --bz-1: #6d4f1f; --bz-2: #a7813b; --bz-3: #d7b465; --bz-4: #f3dc9c;
-  --bz-ink: #120b04;
-  /* the dark house reflected across the throw plates, lifted a step so the
-     engraving still reads 4.5:1 through it at 10px (LY-7) */
-  --pl-band: color-mix(in srgb, var(--bz-1) 45%, var(--bz-2));
-  /* the pilot jewel */
-  --jw-core: #fffbe8; --jw-mid: #ffc35e; --jw-rim: #b54f0a;
-  --jw-bloom: rgba(255, 164, 60, 0.62);
-  --jw-off: #2a160b;
-  /* the gear train */
-  --ga-0: #45321a; --ga-1: #6c5029; --ga-2: #a07a42; --ga-3: #dcb06a; --ga-4: #f6dca4;
-  --gb-0: #140d07; --gb-1: #241910; --gb-2: #3b2b1a; --gb-3: #5a4328;
-  --well-lamp: rgba(255, 190, 110, 0.62);
-  --glass-tint: rgba(18, 12, 6, 0.30);
-  --glass-band: rgba(255, 238, 212, 0.24);
   --floor-shadow: rgba(0, 0, 0, 0.78);
 }
 :root[data-theme="ivory"] {
@@ -52,224 +32,98 @@
   --sb-0: #251a11; --sb-1: #37281a; --sb-2: #4c3825; --sb-3: #6a5136;
   --sb-4: #a4865e; --sb-5: #eadabc;
   --sb-band: #b19a78;
-  --sb-top-far: #d7c7a8;
-  --sb-top-near: #8d7556;
-  --sb-spec: rgba(255, 252, 240, 0.55);
   --sb-tex: 0.36;
   --sb-rl-lit: rgba(248, 236, 212, 0.62);
-  --en-0: #080808; --en-1: #1b1a19; --en-hi: #a9acae;
-  --st-0: #2a2d31; --st-1: #5d6368; --st-2: #9ea4a9; --st-3: #eceff1; --st-hot: #ffffff;
-  --bz-0: #4d3812; --bz-1: #86672c; --bz-2: #bd9848; --bz-3: #e4c777; --bz-4: #fbeab4;
-  --bz-ink: #120b04;
-  --pl-band: var(--bz-1);
-  --jw-core: #ffe6a8; --jw-mid: #f09a2e; --jw-rim: #9c4208;
-  --jw-bloom: transparent;
-  --jw-off: #3b2618;
-  --ga-0: #3c2c18; --ga-1: #604828; --ga-2: #8f6e40; --ga-3: #c6a068; --ga-4: #ead0a0;
-  --gb-0: #1d140c; --gb-1: #2d2115; --gb-2: #463421; --gb-3: #654d31;
-  --well-lamp: transparent;
-  --glass-tint: rgba(214, 208, 196, 0.16);
-  --glass-band: rgba(255, 255, 255, 0.34);
   --floor-shadow: rgba(24, 6, 4, 0.66);
+}
+/* The board's own materials, scoped to it. */
+:root[data-theme="onyx"] #signal-desk {
+  /* The board's bronze: the statuary ramp taken darker and cooler, an
+     olive-black body under a pale brass crest. At the hall's warmth the
+     frame's rails and stiles read as a varnished walnut picture frame;
+     cast bronze is darker than wood in its body and brighter and paler
+     where it takes the light. */
+  --sb-oil: #030302;
+  --sb-0: #0b0a07; --sb-1: #17140f; --sb-2: #2a2419; --sb-3: #4a3f2b; --sb-4: #8f7a53; --sb-5: #ead8a8;
+  --sb-rl-lit: rgba(232, 214, 168, 0.55);
+  /* copper, 0 in the oil .. 5 the hot arris; its drawn grain; and the
+     board's cast patina, laid lighter than the niche's dressed one */
+  --kc-0: #1c0b04; --kc-1: #43200f; --kc-2: #71381b; --kc-3: #a65b33; --kc-4: #d4875a; --kc-5: #ffc795;
+  --cu-tex: 0.24; --sb-tex: 0.3;
+  /* ebonite: hard rubber, black with a brown bloom where the light lies */
+  --eb-0: #020101; --eb-1: #0d0a08; --eb-2: #251c16; --eb-3: #44342a; --eb-hi: rgba(255, 220, 178, 0.72);
+  /* cast brass: bezels, ferrule, screws, plates (never the wing's leaf) */
+  --bz-0: #3a2708; --bz-1: #6d4f1f; --bz-2: #a7813b; --bz-3: #d7b465; --bz-4: #f3dc9c; --bz-ink: #120b04;
+  --pl-band: color-mix(in srgb, var(--bz-1) 45%, var(--bz-2));
+  /* the light on the Portoro plinth, laid over the stone's own figure */
+  --pt-0: #000; --pt-1: #060504; --pt-2: #2c261d; --pt-3: #6a5a42;
+  /* The panel: Bardiglio facing the dark house. Its face takes little of
+     the lamps behind the board, a little more toward its head, and the
+     marquee lies in its polish as one band. */
+  --slab-top: rgba(26, 22, 20, 0.34); --slab-mid: rgba(10, 10, 14, 0.5); --slab-bot: rgba(4, 4, 6, 0.62);
+  --slab-shade: rgba(0, 0, 0, 0.62); --slab-spec: rgba(255, 234, 204, 0.32);
+  --cast-a: 0.62;
+  /* the meter: an ivory dial with a small lamp behind it at night */
+  --dial-0: #b9ab8e; --dial-1: #d8caa9; --dial-2: #6f634d; --dial-ink: #1b140b;
+  --dial-lamp: rgba(255, 222, 160, 0.42);
+  --needle-ink: #120d08;
+  --glass-band: rgba(255, 240, 215, 0.34);
+  /* the pilots: amber for the Salon, opal for the Bureau */
+  --jw-off-salon: #2a1406; --jw-off-bureau: #151a22;
+  --jw-core-salon: #fffbe8; --jw-mid-salon: #ffbe55; --jw-rim-salon: #b24c08; --jw-bloom-salon: rgba(255, 162, 58, 0.72);
+  --jw-core-bureau: #ffffff; --jw-mid-bureau: #d5e6ff; --jw-rim-bureau: #4d6f9e; --jw-bloom-bureau: rgba(186, 212, 255, 0.62);
+  --pool-salon: rgba(255, 164, 76, 0.5); --pool-bureau: rgba(190, 210, 255, 0.4);
+  /* the flash of the break */
+  --arc-core: #f2f6ff; --arc-mid: rgba(140, 168, 255, 0.95);
+  --rest-shadow: rgba(0, 0, 0, 0.7);
+}
+:root[data-theme="ivory"] #signal-desk {
+  --sb-oil: #0d0b08;
+  --sb-0: #1a1712; --sb-1: #29251c; --sb-2: #3a3427; --sb-3: #564b37; --sb-4: #93805d; --sb-5: #efe2c2;
+  --sb-rl-lit: rgba(246, 238, 216, 0.62);
+  --kc-0: #3a1a0a; --kc-1: #6a321a; --kc-2: #975230; --kc-3: #c47a4c; --kc-4: #e6a476; --kc-5: #ffe2c4;
+  --cu-tex: 0.2; --sb-tex: 0.28;
+  --eb-0: #050404; --eb-1: #171311; --eb-2: #352d27; --eb-3: #564a40; --eb-hi: rgba(255, 255, 255, 0.8);
+  --bz-0: #4d3812; --bz-1: #86672c; --bz-2: #bd9848; --bz-3: #e4c777; --bz-4: #fbeab4; --bz-ink: #120b04;
+  --pl-band: var(--bz-1);
+  --pt-0: #000; --pt-1: #0e0c0a; --pt-2: #4a4136; --pt-3: #a0927c;
+  /* by day the skylight lies evenly on the panel and the open doors
+     behind the reader show in its polish */
+  --slab-top: rgba(255, 255, 255, 0.16); --slab-mid: rgba(255, 255, 255, 0.04); --slab-bot: rgba(20, 24, 30, 0.1);
+  --slab-shade: rgba(20, 16, 12, 0.42); --slab-spec: rgba(255, 255, 255, 0.5);
+  --cast-a: 0.42;
+  --dial-0: #ece3cf; --dial-1: #f8f2e4; --dial-2: #b3a586; --dial-ink: #1b140b;
+  --dial-lamp: transparent;
+  --needle-ink: #120d08;
+  --glass-band: rgba(255, 255, 255, 0.5);
+  /* Nothing is lit by day: both jewels show their coloured glass, dark. */
+  --jw-off-salon: #7a3e0e; --jw-off-bureau: #56657a;
+  --jw-core-salon: #fff0c4; --jw-mid-salon: #f6a531; --jw-rim-salon: #9c4208; --jw-bloom-salon: transparent;
+  --jw-core-bureau: #ffffff; --jw-mid-bureau: #c3d8f6; --jw-rim-bureau: #46628b; --jw-bloom-bureau: transparent;
+  --pool-salon: transparent; --pool-bureau: transparent;
+  --arc-core: #ffffff; --arc-mid: rgba(150, 172, 255, 0.7);
+  --rest-shadow: rgba(40, 30, 20, 0.5);
 }
 
 /* =====================================================================
-   THE SIGNAL DESK
+   THE HOUSE-LIGHTS BOARD
    ===================================================================== */
+/* The fittings' shadows on the marble (painted once), and the moving
+   parts' own, drawn with each pose. */
+.hl-board .hb-shadows { fill: #000; opacity: var(--cast-a); }
+.sw-shade path { fill: var(--rest-shadow); }
+/* Only emitters glow, and only at night: by day the pilots, their pools
+   and the meter's lamp are out. */
+:root[data-theme="ivory"] :is(.sw-pool, .sw-lit, .sw-dial-lamp) { display: none; }
+/* The spark's halo is a lamp; by day only the arc itself shows. */
+:root[data-theme="ivory"] .sw-spark .sw-arc-halo { opacity: 0.35; }
 
-/* Gradient stops (desk.js names them <gradient id>-<n>). */
-.dk-top-0 { stop-color: var(--sb-top-far); }
-.dk-top-1 { stop-color: color-mix(in srgb, var(--sb-top-far) 55%, var(--sb-top-near)); }
-.dk-top-2 { stop-color: var(--sb-top-near); }
-.dk-top-3 { stop-color: var(--sb-1); }
-.dk-topspec-0 { stop-color: var(--sb-spec); }
-.dk-topspec-1 { stop-color: var(--sb-spec); stop-opacity: 0.35; }
-.dk-topspec-2 { stop-color: var(--sb-spec); stop-opacity: 0; }
-.dk-cap-0 { stop-color: var(--sb-5); }
-.dk-cap-1 { stop-color: var(--sb-3); }
-.dk-cap-2 { stop-color: var(--sb-2); }
-.dk-cap-3 { stop-color: var(--sb-0); }
-.dk-dentil-0 { stop-color: var(--sb-4); }
-.dk-dentil-1 { stop-color: var(--sb-2); }
-.dk-dentil-2 { stop-color: var(--sb-0); }
-.dk-frieze-0 { stop-color: var(--sb-oil); }
-.dk-frieze-1 { stop-color: var(--sb-1); }
-.dk-rl-0 { stop-color: var(--sb-4); }
-.dk-rl-1 { stop-color: var(--sb-3); }
-.dk-rl-2 { stop-color: var(--sb-1); }
-.dk-face-0 { stop-color: var(--sb-3); }
-.dk-face-1 { stop-color: var(--sb-2); }
-.dk-face-2 { stop-color: var(--sb-2); }
-.dk-face-3 { stop-color: var(--sb-band); }
-.dk-face-4 { stop-color: var(--sb-2); }
-.dk-face-5 { stop-color: var(--sb-1); }
-.dk-face-6 { stop-color: var(--sb-0); }
-.dk-recess-0 { stop-color: var(--sb-oil); }
-.dk-recess-1 { stop-color: var(--sb-0); }
-.dk-panel-0 { stop-color: var(--sb-3); }
-.dk-panel-1 { stop-color: var(--sb-2); }
-.dk-panel-2 { stop-color: var(--sb-2); }
-.dk-panel-3 { stop-color: var(--sb-band); }
-.dk-panel-4 { stop-color: var(--sb-2); }
-.dk-panel-5 { stop-color: var(--sb-0); }
-.dk-pmotif-0 { stop-color: var(--sb-3); }
-.dk-pmotif-1 { stop-color: var(--sb-1); }
-.dk-flute-0 { stop-color: var(--sb-oil); }
-.dk-flute-1 { stop-color: var(--sb-1); }
-.dk-flute-2 { stop-color: var(--sb-3); }
-.dk-flute-3 { stop-color: var(--sb-2); }
-.dk-ring-0 { stop-color: var(--sb-0); }
-.dk-ring-1 { stop-color: var(--sb-2); }
-.dk-ring-2 { stop-color: var(--sb-4); }
-.dk-ring-3 { stop-color: var(--sb-2); }
-.dk-ring-4 { stop-color: var(--sb-0); }
-.dk-ringlight-0 { stop-color: var(--sb-spec); stop-opacity: 0.8; }
-.dk-ringlight-1 { stop-color: var(--sb-spec); stop-opacity: 0.1; }
-.dk-ringlight-2 { stop-color: #000; stop-opacity: 0.35; }
-.dk-key-0 { stop-color: var(--sb-5); }
-.dk-key-1 { stop-color: var(--sb-3); }
-.dk-key-2 { stop-color: var(--sb-1); }
-.dk-btop-0 { stop-color: var(--sb-3); }
-.dk-btop-1 { stop-color: var(--sb-4); }
-.dk-torus-0 { stop-color: var(--sb-4); }
-.dk-torus-1 { stop-color: var(--sb-3); }
-.dk-torus-2 { stop-color: var(--sb-1); }
-.dk-torus-3 { stop-color: var(--sb-oil); }
-.dk-mtop-0 { stop-color: #6f6150; }
-.dk-mtop-1 { stop-color: #1a1612; }
-:root[data-theme="ivory"] .dk-mtop-0 { stop-color: #cfc6b6; }
-:root[data-theme="ivory"] .dk-mtop-1 { stop-color: #3a342c; }
-.dk-mface-0 { stop-color: #000; stop-opacity: 0; }
-.dk-mface-1 { stop-color: #000; stop-opacity: 0.55; }
-/* Leaf only where the desk is touched: the stop opacity is the wear. */
-.dk-leafh-0, .dk-leafh-6 { stop-color: var(--lead-3); stop-opacity: 0; }
-.dk-leafh-1, .dk-leafh-5 { stop-color: var(--lead-4); stop-opacity: 0.18; }
-.dk-leafh-2, .dk-leafh-4 { stop-color: var(--lead-5); stop-opacity: 0.85; }
-.dk-leafh-3 { stop-color: var(--lead-3); stop-opacity: 1; }
-.dk-leafv-0 { stop-color: var(--lead-4); stop-opacity: 0; }
-.dk-leafv-1 { stop-color: var(--lead-4); stop-opacity: 0.2; }
-.dk-leafv-2 { stop-color: var(--lead-3); stop-opacity: 0.95; }
-.dk-leafv-3 { stop-color: var(--lead-5); stop-opacity: 0.6; }
-.dk-leafv-4 { stop-color: var(--lead-4); stop-opacity: 0.12; }
-.dk-leaftoe-0, .dk-leaftoe-4 { stop-color: var(--lead-4); stop-opacity: 0; }
-.dk-leaftoe-1, .dk-leaftoe-3 { stop-color: var(--lead-5); stop-opacity: 0.5; }
-.dk-leaftoe-2 { stop-color: var(--lead-3); stop-opacity: 0.9; }
-.dk-cyl-0 { stop-color: var(--sb-oil); }
-.dk-cyl-1 { stop-color: var(--sb-2); }
-.dk-cyl-2 { stop-color: var(--sb-5); }
-.dk-cyl-3 { stop-color: var(--sb-3); }
-.dk-cyl-4 { stop-color: var(--sb-1); }
-.dk-cyl-5 { stop-color: var(--sb-oil); }
-.dk-quad-0 { stop-color: var(--sb-4); }
-.dk-quad-1 { stop-color: var(--sb-3); }
-.dk-quad-2 { stop-color: var(--sb-1); }
-.dk-cshadow-0 { stop-color: var(--floor-shadow); }
-.dk-cshadow-1 { stop-color: var(--floor-shadow); stop-opacity: 0.45; }
-.dk-cshadow-2 { stop-color: var(--floor-shadow); stop-opacity: 0; }
-.dk-occl-0 { stop-color: #000; stop-opacity: 0; }
-.dk-occl-1 { stop-color: #000; stop-opacity: 0.9; }
-.dk-occl-2 { stop-color: #000; stop-opacity: 0; }
-.dk-screw-0 { stop-color: var(--sb-5); }
-.dk-screw-1 { stop-color: var(--sb-3); }
-.dk-screw-2 { stop-color: var(--sb-0); }
-.dk-flange-0 { stop-color: var(--sb-4); }
-.dk-flange-1 { stop-color: var(--sb-3); }
-.dk-flange-2 { stop-color: var(--sb-0); }
-.dk-gaiter-0 { stop-color: #050403; }
-.dk-gaiter-1 { stop-color: #2c2622; }
-.dk-gaiter-2 { stop-color: #120f0d; }
-.dk-gaiter-3 { stop-color: #030303; }
+/* A hand over the handle: the ebonite and the copper take more of the lamp. */
+@media (hover: hover) {
+  .desk-core:has(.hit-arm:hover) .sw-poses { filter: brightness(1.2) contrast(1.04); }
+}
 
-/* ----- The console --------------------------------------------------------- */
-.quadrant .dk-floor, .quadrant .dk-floor *,
-.quadrant .dk-noptr, .quadrant .dk-noptr * { pointer-events: none; }
-.quadrant .dk-hit { fill: transparent; }
-.quadrant .dk-cshadow { fill: url(#dk-cshadow); }
-.quadrant .dk-occl { fill: url(#dk-occl); }
-.quadrant .dk-top { fill: url(#dk-top); }
-.quadrant .dk-top-tex { fill: url(#dk-patina-top); opacity: calc(var(--sb-tex) * 0.8); }
-.quadrant .dk-topspec { fill: url(#dk-topspec); }
-.quadrant .dk-arris-back { fill: none; stroke: var(--sb-5); stroke-width: 0.7; opacity: 0.55; }
-.quadrant .dk-arris-side { fill: none; stroke: var(--sb-4); stroke-width: 0.6; opacity: 0.5; }
-.quadrant .dk-tex { fill: url(#dk-patina); opacity: var(--sb-tex); }
-.quadrant .dk-tex-a { fill: url(#dk-patina-a); }
-.quadrant .dk-tex-b { fill: url(#dk-patina-b); }
-.quadrant .dk-tex-c { fill: url(#dk-patina-c); }
-.quadrant .dk-tex-d { fill: url(#dk-patina-d); }
-.quadrant .dk-cap { fill: url(#dk-cap); }
-.quadrant .dk-leaf-nose { fill: url(#dk-leafh); }
-.quadrant .dk-leaf-hip { fill: url(#dk-leafv); }
-.quadrant .dk-leaf-toe { fill: url(#dk-leaftoe); }
-.quadrant .dk-leaf-base { fill: var(--lead-3); opacity: 0.45; }
-.quadrant .dk-leaf-stroke { fill: none; stroke: var(--lead-3); stroke-width: 1; opacity: 0.9; }
-.quadrant .dk-under { fill: var(--sb-oil); opacity: 0.8; }
-.quadrant .dk-oil { fill: var(--sb-oil); }
-.quadrant .dk-dentil { fill: url(#dk-dentil); }
-.quadrant .dk-dentil-top { fill: var(--sb-5); opacity: 0.6; }
-.quadrant .dk-fillet { fill: var(--sb-oil); opacity: 0.85; }
-.quadrant .dk-frieze { fill: url(#dk-frieze); }
-/* The cast-relief filter's colours (desk.js castFilter): the lamp on the
-   near shoulders, a broad sheen over each form's top, shade on the far
-   shoulders, pits, and the shadow on the ground. */
-.dk-cast-lit { flood-color: var(--sb-rl-lit); flood-opacity: 1; }
-.dk-cast-sheen { flood-color: var(--sb-4); flood-opacity: 0.42; }
-.dk-cast-shade { flood-color: var(--sb-oil); flood-opacity: 0.8; }
-.dk-cast-pit { flood-color: var(--sb-oil); flood-opacity: 0.4; }
-.dk-cast-oil { flood-color: var(--sb-oil); flood-opacity: 0.9; }
-.quadrant .dk-rl-body { fill: url(#dk-rl); }
-.quadrant .dk-rl-panel { fill: url(#dk-pmotif); }
-.quadrant .dk-face { fill: url(#dk-face); }
-.quadrant .dk-turn { fill: #000; opacity: 0.28; }
-.quadrant .dk-recess { fill: url(#dk-recess); }
-.quadrant .dk-panel { fill: url(#dk-panel); }
-.quadrant .dk-bead-lit { fill: none; stroke: var(--sb-4); stroke-width: 1.1; }
-.quadrant .dk-bead-sh { fill: none; stroke: var(--sb-oil); stroke-width: 1.1; }
-.quadrant .dk-cast-sh { fill: var(--sb-oil); opacity: 0.75; }
-.quadrant .dk-edge-lit { fill: none; stroke: var(--sb-5); stroke-width: 0.7; opacity: 0.7; }
-.quadrant .dk-flute { fill: url(#dk-flute); }
-.quadrant .dk-course { fill: url(#dk-cap); }
-.quadrant .dk-course-2 { opacity: 0.85; }
-.quadrant .dk-course-top { fill: var(--sb-5); opacity: 0.55; }
-.quadrant .dk-ring { fill: url(#dk-ring); }
-.quadrant .dk-ringlight { fill: url(#dk-ringlight); }
-.quadrant .dk-key { fill: url(#dk-key); }
-.quadrant .dk-key-step { opacity: 0.9; }
-.quadrant .dk-screw { fill: url(#dk-screw); }
-.quadrant .dk-screw-sh { fill: var(--sb-oil); opacity: 0.8; }
-.quadrant .dk-slot { fill: none; stroke: var(--sb-oil); stroke-width: 0.55; stroke-linecap: round; }
-.quadrant .dk-slot-lit { fill: none; stroke: var(--sb-5); stroke-width: 0.3; opacity: 0.5; }
-.quadrant .dk-btop { fill: url(#dk-btop); }
-.quadrant .dk-torus { fill: url(#dk-torus); }
-.quadrant .dk-mtop { fill: url(#dk-mtop); }
-.quadrant .dk-marble { fill: url(#dk-marble); }
-.quadrant .dk-mface { fill: url(#dk-mface); }
-.quadrant .dk-mlip { fill: #fff; opacity: 0.12; }
-.quadrant .dk-quad { fill: url(#dk-quad); }
-.quadrant .dk-engrave { fill: none; stroke: var(--sb-oil); stroke-width: 0.55; opacity: 0.9; }
-.quadrant .dk-teeth { fill: none; stroke: var(--sb-oil); stroke-width: 1; }
-.quadrant .dk-notch { fill: var(--sb-oil); }
-.quadrant .dk-cyl { fill: url(#dk-cyl); }
-.quadrant .dk-collar-top { fill: var(--sb-5); opacity: 0.6; stroke: none; }
-.quadrant path.dk-collar-top { fill: none; stroke: var(--sb-5); stroke-width: 0.6; }
-.quadrant .dk-vent-mouth { fill: var(--sb-oil); }
-.quadrant .dk-vent-flange { fill: var(--sb-3); }
-.quadrant .dk-vent-sh { opacity: 0.7; }
-.quadrant .dk-flange { fill: url(#dk-flange); }
-.quadrant .dk-gaiter { fill: url(#dk-gaiter); }
-.quadrant .dk-ao { pointer-events: none; }
-.quadrant .dk-ao-d { fill: url(#dk-ao-down); }
-.quadrant .dk-ao-r { fill: url(#dk-ao-right); }
-.dk-ao-down-0, .dk-ao-right-0 { stop-color: #000; stop-opacity: 0.62; }
-.dk-ao-down-1, .dk-ao-right-1 { stop-color: #000; stop-opacity: 0; }
-.quadrant .dk-glint { fill: url(#dk-glint); pointer-events: none; }
-.dk-glint-0 { stop-color: var(--sb-5); stop-opacity: 0.95; }
-.dk-glint-1 { stop-color: var(--sb-5); stop-opacity: 0.4; }
-.dk-glint-2 { stop-color: var(--sb-5); stop-opacity: 0; }
-.quadrant .dk-pleat { fill: none; stroke: #000; stroke-width: 0.7; opacity: 0.6; }
-
-/* The switch's focus ring (desk.js): the gates' marquee at the machine's
-   scale. It replaces the flat box ring on #lever, whose pale halo also
-   laid a light band across the bronze by day. */
+/* The switch's focus ring: the gates' marquee at the board's scale. */
 :root[data-theme="onyx"] #signal-desk {
   --focus-bed: rgba(6, 4, 2, 0.82); --focus-core: #ffdf9a; --focus-bulb: #fffbf0;
   --focus-glow: rgba(255, 196, 110, 0.55);
@@ -278,230 +132,34 @@
   --focus-bed: rgba(255, 252, 244, 0.95); --focus-core: #7a1a16; --focus-bulb: transparent;
   --focus-glow: rgba(90, 20, 14, 0.25);
 }
-#lever:focus-visible { outline: none; box-shadow: none; }
-.quadrant .dk-focus-g { opacity: 0; transition: opacity 0.16s ease; }
-.desk-core:has(#lever:focus-visible) .dk-focus-g { opacity: 1; }
-.quadrant .dk-focus-bed {
+.hl-board .hb-focus-g { opacity: 0; transition: opacity 0.16s ease; }
+.desk-core:has(#lever:focus-visible) .hb-focus-g { opacity: 1; }
+.hl-board .hb-focus-bed {
   fill: none; stroke: var(--focus-bed); stroke-width: 8; stroke-linejoin: round;
   filter: drop-shadow(0 0 2px var(--focus-glow));
 }
-.quadrant .dk-focus { fill: none; stroke: var(--focus-core); stroke-width: 3; stroke-linejoin: round; }
-.quadrant .dk-focus-bulbs {
+.hl-board .hb-focus { fill: none; stroke: var(--focus-core); stroke-width: 3; stroke-linejoin: round; }
+.hl-board .hb-focus-bulbs {
   fill: none; stroke: var(--focus-bulb); stroke-width: 3.4;
   stroke-linecap: round; stroke-dasharray: 0 8;
 }
 @media (forced-colors: active) {
-  .quadrant .dk-focus-bed { stroke: Canvas; filter: none; }
-  .quadrant .dk-focus { stroke: Highlight; }
-  .quadrant .dk-focus-bulbs { display: none; }
+  .hl-board .hb-focus-bed { stroke: Canvas; filter: none; }
+  .hl-board .hb-focus { stroke: Highlight; }
+  .hl-board .hb-focus-bulbs { display: none; }
 }
 
-/* ----- The lever ----------------------------------------------------------- */
-.dk-enamel-0 { stop-color: var(--en-1); }
-.dk-enamel-1 { stop-color: var(--en-hi); }
-.dk-enamel-2 { stop-color: var(--en-1); }
-.dk-enamel-3 { stop-color: var(--en-0); }
-.dk-enamel-4 { stop-color: var(--en-0); }
-.dk-enamel-edge-0 { stop-color: var(--st-3); stop-opacity: 0.8; }
-.dk-enamel-edge-1 { stop-color: var(--st-2); stop-opacity: 0.35; }
-.dk-enamel-edge-2 { stop-color: var(--st-2); stop-opacity: 0.1; }
-.dk-steel-0 { stop-color: var(--st-0); }
-.dk-steel-1 { stop-color: var(--st-1); }
-.dk-steel-2 { stop-color: var(--st-3); }
-.dk-steel-3 { stop-color: var(--st-hot); }
-.dk-steel-4 { stop-color: var(--st-2); }
-.dk-steel-5 { stop-color: var(--st-1); }
-.dk-steel-6 { stop-color: var(--st-0); }
-.dk-steel-flat-0 { stop-color: var(--st-3); }
-.dk-steel-flat-1 { stop-color: var(--st-1); }
-.dk-steel-flat-2 { stop-color: var(--st-0); }
-.dk-dome-0 { stop-color: var(--st-hot); }
-.dk-dome-1 { stop-color: var(--st-2); }
-.dk-dome-2 { stop-color: var(--st-0); }
-/* The ferrule is the lever's share of the wing metal (1 of the 3). */
-.dk-wing-0 { stop-color: color-mix(in srgb, var(--metal) 40%, #000); }
-.dk-wing-1 { stop-color: var(--metal); }
-.dk-wing-2 { stop-color: var(--metal-hi); }
-.dk-wing-3 { stop-color: var(--metal); }
-.dk-wing-4 { stop-color: color-mix(in srgb, var(--metal) 35%, #000); }
-.dk-wing-hi-0 { stop-color: var(--metal); }
-.dk-wing-hi-1 { stop-color: var(--metal-hi); }
-.dk-wing-hi-2 { stop-color: #fffaf0; }
-.dk-wing-hi-3 { stop-color: var(--metal-hi); }
-.dk-wing-hi-4 { stop-color: color-mix(in srgb, var(--metal) 55%, #000); }
-.dk-brass-0 { stop-color: var(--bz-4); }
-.dk-brass-1 { stop-color: var(--bz-3); }
-.dk-brass-2 { stop-color: var(--bz-2); }
-.dk-brass-3 { stop-color: var(--bz-1); }
-.dk-grip-wear-0 { stop-color: #000; stop-opacity: 0.3; }
-.dk-grip-wear-1 { stop-color: #fff; stop-opacity: 0.1; }
-.dk-grip-wear-2 { stop-color: #fff; stop-opacity: 0.1; }
-.dk-grip-wear-3 { stop-color: #000; stop-opacity: 0.35; }
-
-.lever-svg .lv-arm { fill: url(#dk-enamel); stroke: none; }
-.lever-svg .lv-arm-lit { fill: none; stroke: url(#dk-enamel-edge); stroke-width: 0.8; }
-.lever-svg .lv-arm-shd { fill: none; stroke: #000; stroke-width: 0.8; opacity: 0.7; }
-.lever-svg .lv-catch { fill: none; stroke: var(--st-1); stroke-width: 2.6; stroke-linecap: round; }
-.lever-svg .lv-catch-lit { fill: none; stroke: var(--st-3); stroke-width: 0.8; stroke-linecap: round; opacity: 0.85; }
-.lever-svg .lv-rod { fill: none; stroke: var(--st-2); stroke-width: 1.5; stroke-linecap: round; }
-.lever-svg .lv-block { fill: url(#dk-steel-flat); }
-.lever-svg .lv-block-top { fill: var(--st-hot); opacity: 0.55; }
-.lever-svg .lv-block-sh { fill: #000; opacity: 0.55; }
-.lever-svg .lv-bolt { fill: url(#dk-dome); }
-.lever-svg .dk-slot { fill: none; stroke: #000; stroke-width: 0.5; stroke-linecap: round; }
-.lever-svg .lv-grip { fill: url(#dk-wing); stroke: none; }
-.lever-svg .lv-ferrule-top { fill: #fff; opacity: 0.35; }
-.lever-svg .lv-steel { fill: url(#dk-steel); }
-.lever-svg .lv-wear { fill: url(#dk-grip-wear); }
-/* The hot line fades out toward both ends and dips a little in the worn
-   middle, where the hand has dulled the polish. */
-.dk-hot-0, .dk-hot-5 { stop-color: var(--st-hot); stop-opacity: 0; }
-.dk-hot-1, .dk-hot-4 { stop-color: var(--st-hot); stop-opacity: 0.95; }
-.dk-hot-2, .dk-hot-3 { stop-color: var(--st-hot); stop-opacity: 0.7; }
-.dk-hot2-0, .dk-hot2-3 { stop-color: var(--st-3); stop-opacity: 0; }
-.dk-hot2-1, .dk-hot2-2 { stop-color: var(--st-3); stop-opacity: 1; }
-.lever-svg .lv-hot { fill: url(#dk-hot); opacity: 0.7; }
-.lever-svg .lv-hot2 { fill: url(#dk-hot2); opacity: 0.2; }
-.lever-svg .lv-rim { fill: url(#dk-hot2); opacity: 0.45; }
-.lever-svg .lv-cap { fill: url(#dk-dome); }
-.lever-svg .lv-badge-sh { fill: #000; opacity: 0.6; }
-.lever-svg .lv-badge { fill: url(#dk-brass); }
-.lever-svg .lv-badge-line { fill: none; stroke: var(--bz-ink); stroke-width: 0.45; opacity: 0.55; }
-/* The figure is cut and filled, its lower wall catching the light; the
-   stamped legend is strokes (desk.js stamp()), not type. */
-.lever-svg .lv-badge-n {
-  fill: var(--bz-ink);
-  paint-order: stroke; stroke: var(--bz-4); stroke-width: 0.3px; stroke-opacity: 0.45;
-}
-.lever-svg .lv-badge-w {
-  fill: none; stroke: var(--bz-ink); stroke-width: 0.42;
-  stroke-linecap: round; stroke-linejoin: round; opacity: 0.85;
-}
-.lever-svg .lv-badge-dot { fill: var(--bz-ink); }
-.lever-svg .lv-rivet { fill: url(#dk-dome); }
-.lever-svg .lv-pin { fill: url(#dk-steel-flat); stroke: #000; stroke-width: 0.5; }
-.lever-svg .lv-cotter { fill: var(--st-2); }
-.lever-svg .lv-boss { fill: var(--sb-3); stroke: var(--sb-oil); stroke-width: 0.8; }
-
-/* Hover and press: the grip's highlight comes up and the ferrule lights to
-   the wing's bright metal. Same selectors as atrium.css, so these win. */
-@media (hover: hover) {
-  .desk-core:has(.hit-arm:hover, .desk-art:hover, .gear-well:hover) .lv-grip { fill: url(#dk-wing-hi); }
-  .desk-core:has(.hit-arm:hover, .desk-art:hover, .gear-well:hover) .lever-svg .lv-hot { opacity: 0.95; }
-}
-
-/* ----- The gear train ------------------------------------------------------ */
-.dk-gA-0, .dk-gA-1 { stop-color: var(--ga-1); }
-.dk-gA-2 { stop-color: var(--ga-3); }
-.dk-gA-3 { stop-color: var(--ga-2); }
-.dk-gA-4 { stop-color: var(--ga-1); }
-.dk-gA-5 { stop-color: var(--ga-0); }
-.dk-gA-6 { stop-color: var(--ga-2); }
-.dk-gA-7 { stop-color: var(--ga-3); }
-.dk-gA-8 { stop-color: var(--ga-2); }
-.dk-gA-9 { stop-color: var(--ga-4); }
-.dk-gA-10 { stop-color: var(--ga-1); }
-.dk-gB-0, .dk-gB-1 { stop-color: var(--gb-1); }
-.dk-gB-2 { stop-color: var(--gb-0); }
-.dk-gB-3 { stop-color: var(--gb-2); }
-.dk-gB-4 { stop-color: var(--gb-3); }
-.dk-gB-5 { stop-color: var(--gb-2); }
-.dk-gB-6 { stop-color: color-mix(in srgb, var(--gb-3) 45%, var(--ga-3)); }
-.dk-gB-7 { stop-color: var(--gb-0); }
-.gearA-svg .ga-rim { fill: url(#dk-gA); }
-.gearA-svg .ga-fillet { fill: none; stroke: var(--ga-0); stroke-width: 1; }
-.gearA-svg .ga-web { fill: var(--ga-1); }
-.gearA-svg .ga-spoke { fill: var(--ga-0); }
-.gearA-svg .ga-lhole { fill: var(--sb-oil); stroke: var(--ga-0); stroke-width: 0.6; }
-.gearA-svg .ga-witness { fill: none; stroke: var(--ga-3); stroke-width: 0.4; opacity: 0.45; }
-.gearA-svg .ga-cut { fill: none; stroke: var(--ga-0); stroke-width: 0.55; opacity: 0.75; }
-.gearA-svg .ga-lathe { fill: none; stroke: var(--ga-3); stroke-width: 0.3; opacity: 0.16; }
-.gearA-svg .ga-boss { fill: var(--ga-2); stroke: var(--ga-0); stroke-width: 1; }
-.gearA-svg .ga-bore { fill: var(--sb-oil); }
-.gearA-svg .ga-keyway { fill: var(--sb-oil); }
-.gearA-svg .ga-key { fill: var(--ga-3); }
-.gearA-svg .ga-index { fill: none; stroke: var(--ga-4); stroke-width: 1; }
-.gearA-svg .ga-pno-bg { fill: var(--ga-0); }
-.gearA-svg .ga-pno-t {
-  fill: none; stroke: var(--ga-3); stroke-width: 0.36;
-  stroke-linecap: round; stroke-linejoin: round;
-}
-.gearB-svg .gb-rim { fill: url(#dk-gB); }
-.gearB-svg .gb-cut { fill: none; stroke: #000; stroke-width: 0.5; opacity: 0.6; }
-.gearB-svg .gb-web { fill: var(--gb-1); }
-.gearB-svg .gb-spoke { fill: var(--gb-0); }
-.gearB-svg .gb-flange { fill: var(--gb-2); stroke: var(--gb-0); stroke-width: 1; }
-.gearB-svg .gb-bore { fill: var(--sb-oil); }
-.gearB-svg .gb-dflat { fill: var(--gb-2); }
-.gearB-svg .gb-serial { fill: none; stroke: var(--gb-3); stroke-width: 0.5; stroke-dasharray: 1.5 3.5; }
-.gearB-svg .gb-index { fill: none; stroke: var(--gb-3); stroke-width: 1; }
-
-/* The inspection window. The well keeps its box (it is a hit surface); the
-   archivolt is drawn on the console, so the well's own border is only the
-   dark joint between glass and bronze. */
-.gear-well {
-  border-color: var(--sb-oil);
-  background-color: var(--sb-oil);
-}
-.gear-well::before { opacity: 0.12; }
-.gw-lamp, .gw-shade, .gw-glass {
-  position: absolute; inset: 0;
-  border-radius: inherit;
-  pointer-events: none;
-}
-/* A small lamp at the head of the well, lit at night: it finds the front
-   wheel's teeth and leaves the back wheel in the oil. */
-.gw-lamp {
-  background: radial-gradient(70% 90% at 36% 0%, var(--well-lamp), transparent 70%);
-}
-.gw-shade {
-  background:
-    radial-gradient(60% 70% at 30% 18%, color-mix(in srgb, var(--well-lamp) 55%, transparent), transparent 70%),
-    /* the front wheel's own shadow on the back wheel and the plate behind:
-       a ring just outside its tips (the axle is at 38, 56 in the well),
-       thrown down and right, away from the lamp */
-    radial-gradient(circle at 39.5px 57.5px, transparent 43.2px, rgba(0, 0, 0, 0.62) 44.4px,
-      rgba(0, 0, 0, 0.3) 48px, transparent 55px),
-    linear-gradient(to left, rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0.2) 30%, transparent 48%),
-    linear-gradient(to top, rgba(0, 0, 0, 0.6), transparent 42%);
-}
-/* The glazing: a tint, one reflection band, a putty bead and the glass's
-   own depth in its rebate. */
-.gw-glass {
-  background:
-    linear-gradient(116deg, transparent 0 28%, var(--glass-band) 35%,
-      color-mix(in srgb, var(--glass-band) 40%, transparent) 41%, transparent 47%,
-      transparent 70%, color-mix(in srgb, var(--glass-band) 35%, transparent) 74%, transparent 77%),
-    radial-gradient(7% 9% at 24% 22%, color-mix(in srgb, var(--glass-band) 90%, #fff 10%), transparent),
-    radial-gradient(120% 110% at 50% 0%, transparent 40%, var(--glass-tint));
-  box-shadow:
-    inset 0 0 0 1.2px color-mix(in srgb, var(--sb-4) 70%, transparent),
-    inset 0 0 0 2.2px var(--sb-oil),
-    inset 0 3px 4px rgba(0, 0, 0, 0.55);
-}
-
-/* ----- The throw plates ---------------------------------------------------
-   Cast brass, engraved and filled black. The two screws are domed with a
-   slot turned by hash; on each plate the inner screw has given its hole to
-   a pilot jewel, and the live wing's jewel is lit. The box, padding and
-   type size are atrium.css's: each plate is a hit surface. */
-/* The plates grow with the engraving size, but the console only follows it
-   at a seventh of the slope; past 1.16 a plate outgrew the cornice it sits
-   on and hung over the runner. So the plates stop there.
-   They are the only words on the hall's one control, and the machine they
-   are screwed to is scaled by --desk-s, which took them to 7.7-8.6px on a
-   laptop and 6.6px on a short wide screen (LY-8). So the lettering is set
-   against the machine's scale, never under 10px on screen, up to 12.9
-   units, the largest plate the cornice holds; the vertical budget
-   (app.js) keeps the machine at 0.78 or more, where that is 10px.
-   Everything else on the plate is in em, so it keeps its proportions. */
+/* ----- The name plates ----------------------------------------------------
+   Cast brass, engraved and filled black, each held by two domed screws
+   with their slots turned by hash. They are the only words on the hall's
+   one control, and the board they are screwed to is scaled by --desk-s, so
+   the lettering is set against that scale and is never under 10px on
+   screen. Everything else on the plate is in em. */
 .assembly .l-label {
-  --pl-u: min(var(--ui), 1.16);
   /* The face, top layer first: the lip the lamp runs along; tarnish
-     gathering toward the margins with the middle rubbed bright by hands;
-     horizontal brushing (overlay, so it cuts both ways); and the room
-     reflected in polished brass, the lit ceiling in the top third and the
-     dark house as a band just under the middle. */
+     gathering toward the margins with the middle rubbed bright; horizontal
+     brushing; and the room reflected in the polish, the lit ceiling in the
+     top third and the dark house as a band under the middle. */
   --pl-face:
     linear-gradient(180deg, rgba(255, 250, 230, 0.55) 0 1px, transparent 1px),
     radial-gradient(80% 115% at 44% 40%, rgba(255, 240, 200, 0.2), transparent 52%, rgba(46, 26, 3, 0.42) 100%),
@@ -509,25 +167,24 @@
     linear-gradient(180deg, color-mix(in srgb, var(--bz-3) 60%, var(--bz-4)) 0%, var(--bz-3) 12%,
       var(--bz-2) 38%, var(--pl-band) 56%, color-mix(in srgb, var(--pl-band) 70%, var(--bz-2)) 64%,
       var(--bz-2) 80%, var(--bz-1) 100%);
-  font-size: min(12.9px, max(calc(11px * var(--pl-u)), calc(10.1px / var(--desk-s))));
-  /* The word sits centred between its screw and its jewel, 0.2em clear of
-     each. The jewel's collet used to touch the B of BUREAU, and both words
-     were pushed toward their jewels (VD-8). The padding on each side is
-     the fitting's reach plus that clearance, less the tracking the last
-     letter carries after it. */
-  letter-spacing: 0.18em;
-  padding: 0.36em 0.6em 0.27em calc(0.78em + 1.4px);
+  font-size: max(10.6px, calc(10.1px / var(--desk-s)));
+  line-height: 1.05;
+  /* On a short screen the board stands small and the 10px floor makes the
+     lettering large against it: the plate draws its tracking and its ends
+     in, so it stays under its jaws. */
+  --pl-ls: clamp(0.1em, calc(0.2em * var(--desk-s)), 0.2em);
+  --pl-pad: clamp(0.68em, calc(0.9em * var(--desk-s)), 0.9em);
+  letter-spacing: var(--pl-ls);
+  padding: 0.27em calc(var(--pl-pad) - var(--pl-ls)) 0.2em var(--pl-pad);
   color: var(--bz-ink);
   font-weight: 640;
-  /* cut into the brass: the lower wall of each stroke catches the light */
   text-shadow: 0 0.7px 0 color-mix(in srgb, var(--bz-4) 75%, transparent),
                0 -0.5px 0 rgba(20, 10, 0, 0.35);
   background: var(--pl-face);
   background-blend-mode: normal, normal, overlay, normal;
   border: 1px solid;
   border-color: var(--bz-4) var(--bz-1) var(--bz-0) var(--bz-3);
-  /* a chamfer all round (lit top and left, shaded bottom and right), then
-     the plate's own shadow on the cornice */
+  border-radius: 1px;
   box-shadow:
     inset 0 1px 0 rgba(255, 246, 214, 0.45),
     inset 1px 0 0 rgba(255, 238, 196, 0.22),
@@ -536,68 +193,29 @@
     inset 0 0 0.27em rgba(46, 26, 3, 0.35),
     0 1px 0 rgba(0, 0, 0, 0.55), 1px 2px 3px rgba(0, 0, 0, 0.55);
 }
-/* screw left, jewel right */
-.assembly .l-salon { padding-right: calc(0.67em + 2.6px); padding-left: calc(0.78em + 1.4px); }
-/* jewel left, screw right */
-.assembly .l-bureau { padding-left: calc(0.87em + 2.6px); padding-right: calc(0.6em + 1.4px); }
-:root[data-wing="salon"] .l-salon,
-:root[data-wing="bureau"] .l-bureau,
-:root[data-theme="ivory"][data-wing="salon"] .l-salon,
-:root[data-theme="ivory"][data-wing="bureau"] .l-bureau {
-  color: var(--bz-ink);
-  border-color: var(--bz-4) var(--bz-1) var(--bz-0) var(--bz-3);
-  background: var(--pl-face);
-  background-blend-mode: normal, normal, overlay, normal;
-}
+/* the two screws, domed and seated in countersinks */
 .assembly .l-label::before,
 .assembly .l-label::after {
-  width: 0.31em; height: 0.31em;
-  margin-top: -0.155em;
+  content: "";
+  position: absolute; top: 50%;
+  width: 0.34em; height: 0.34em;
+  margin-top: -0.17em;
+  border-radius: 50%;
   background:
     linear-gradient(var(--slot, 30deg), transparent 42%, rgba(18, 11, 4, 0.9) 42% 58%, transparent 58%),
     radial-gradient(circle at 36% 30%, var(--bz-4), var(--bz-2) 55%, var(--bz-0));
-  /* seated in a countersink, with the oil of years in the gap */
   box-shadow:
     0 0 0 0.6px rgba(24, 13, 2, 0.85),
     0 0 0 1.4px color-mix(in srgb, var(--bz-1) 70%, transparent),
     0 0.6px 1.2px 1.2px rgba(30, 16, 2, 0.45);
 }
-.assembly .l-label::before { left: 0.27em; }
-.assembly .l-label::after { right: 0.27em; }
-.assembly .l-salon::after, .assembly .l-bureau::before { content: none; }
-.l-jewel {
-  position: absolute; top: 50%;
-  width: 0.51em; height: 0.51em;
-  margin-top: -0.255em;
-  border-radius: 50%;
-  pointer-events: none;
-  /* the smoked cabochon in its collet */
+.assembly .l-label::before { left: calc(var(--pl-pad) * 0.26); }
+.assembly .l-label::after {
+  right: calc(var(--pl-pad) * 0.26);
   background:
-    radial-gradient(circle at 36% 30%, rgba(255, 255, 255, 0.5) 0 11%, transparent 22%),
-    radial-gradient(circle at 50% 58%, var(--jw-off), #0a0503 72%);
-  /* the collet: a dark seat, a bright bezel, then the oil-dark countersink
-     the bezel sits in */
-  box-shadow:
-    0 0 0 0.8px var(--bz-0),
-    0 0 0 1.6px var(--bz-3),
-    0 -0.4px 0 1.8px color-mix(in srgb, var(--bz-4) 60%, transparent),
-    0 0 0 2.6px rgba(26, 14, 2, 0.7),
-    0 0.8px 1.6px 2.6px rgba(26, 14, 2, 0.4);
+    linear-gradient(var(--slot2, 120deg), transparent 42%, rgba(18, 11, 4, 0.9) 42% 58%, transparent 58%),
+    radial-gradient(circle at 36% 30%, var(--bz-4), var(--bz-2) 55%, var(--bz-0));
 }
-.l-salon .l-jewel { right: 0.145em; }
-.l-bureau .l-jewel { left: 0.145em; }
-/* The lit glass is its own layer, faded by opacity. */
-.l-jewel::after {
-  content: ""; position: absolute; inset: 0; border-radius: 50%;
-  background:
-    radial-gradient(circle at 38% 32%, #fff 0 10%, transparent 20%),
-    radial-gradient(circle at 50% 55%, var(--jw-core) 0 12%, var(--jw-mid) 42%, var(--jw-rim) 88%);
-  box-shadow: 0 0 0.45em 0.14em var(--jw-bloom);
-  opacity: 0;
-  transition: opacity 0.3s ease 0.2s;
-}
-:root[data-wing="salon"] .l-salon .l-jewel::after,
-:root[data-wing="bureau"] .l-bureau .l-jewel::after { opacity: 1; }
 @media (hover: hover) {
   :root[data-wing="salon"] .l-bureau:hover,
   :root[data-wing="bureau"] .l-salon:hover {
@@ -609,13 +227,10 @@
       0 1px 0 rgba(0, 0, 0, 0.55), 1px 2px 3px rgba(0, 0, 0, 0.55);
   }
 }
-
 @media (forced-colors: active) {
-  .assembly svg, .gear-well, .l-jewel { forced-color-adjust: none; }
-  /* The lit plate's Highlight (atrium.css) lost the cascade to the brass
-     rules above, which restate its colour and border, so the live wing was
-     told apart by a 1px border and the jewel's hue. Restated here, after
-     them and one class heavier. */
+  .assembly svg, .desk-fx svg { forced-color-adjust: none; }
+  /* The live plate keeps a Highlight border it cannot lose. Restated here,
+     after the brass and one class heavier than atrium.css's rule. */
   :root[data-wing="salon"] .assembly .l-salon,
   :root[data-wing="bureau"] .assembly .l-bureau { border: 2px solid Highlight; color: Highlight; }
 }
