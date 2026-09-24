@@ -499,6 +499,9 @@
          inert with nothing to strike rather than disappearing, so its place
          on the drawer does not move under the pointer. -->
     <div class="l-tools">
+      <!-- Shown once a poll has gone by without a fresh feed: since when the
+           Ledger has had no word from the hub (app.js syncStale). -->
+      <span class="l-stale display" id="ledger-stale" hidden></span>
       <button class="l-stamp inert" id="mark-all" type="button" aria-disabled="true">
         <!-- A brass rubber dater standing in its cradle: turned knob, the
              frame and its date bands, the rubber foot over an inked pad.

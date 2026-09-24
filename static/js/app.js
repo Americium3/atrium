@@ -35,6 +35,7 @@ var STR = {
     linesOpen: 'LINES OPEN {n}/{m}',
     hubLost: 'NO WORD FROM THE HUB',
     ledgerUnreadable: 'The Ledger could not be read',
+    ledgerStale: 'NO WORD SINCE {t}',
     'desc.autopilot': 'Season anime, fetched and shelved while you sleep.',
     'desc.groundstation': 'Workshop mods tracked, updates caught in orbit.',
     'desc.outreach': "The day's introductions, briefed and dealt.",
@@ -172,6 +173,7 @@ var STR = {
     linesOpen: '线路畅通 {n}/{m}',
     hubLost: '中枢没有回音',
     ledgerUnreadable: '消息总台暂时读不出来',
+    ledgerStale: '{t} 之后没有回音',
     'desc.autopilot': '当季新番，睡着也替你追完入库。',
     'desc.groundstation': '创意工坊 Mod 尽在轨道监测之中。',
     'desc.outreach': '今日的引荐名单，已备好草稿待发。',
@@ -3097,6 +3099,31 @@ function updatePlaque(li, d) {
   $('.pl-time', li).textContent = relTime(d.ts);
 }
 
+/* Ages count from each dispatch, not from the last good read. */
+function retimeLedger() {
+  feed.forEach(function (d) {
+    var li = plaqueEls[d.id];
+    if (li) $('.pl-time', li).textContent = relTime(d.ts);
+  });
+}
+
+/* When the Ledger last heard from the hub. Once a poll has gone by without
+   a fresh feed the drawer says since when, in the lacquer beside the stamp:
+   the plaques it still shows were true then, but newer dispatches may be
+   waiting behind a hub that has gone quiet. */
+var feedReadAt = 0;
+var STALE_MS = 60000;   // longer than one 45 s beat
+function syncStale() {
+  var mark = $('#ledger-stale');
+  if (!mark) return;
+  var stale = feedState === 'ok' && feedReadAt && Date.now() - feedReadAt > STALE_MS;
+  mark.hidden = !stale;
+  if (!stale) return;
+  var at = new Intl.DateTimeFormat(lang === 'zh' ? 'zh-CN' : 'en-GB',
+    { hour: '2-digit', minute: '2-digit', hour12: false }).format(new Date(feedReadAt));
+  mark.textContent = t('ledgerStale', { t: at });
+}
+
 function renderLedger() {
   var ol = $('#plaques');
   // Nothing is known yet, so nothing is claimed: the ghosts stay until the
@@ -3328,7 +3355,12 @@ function syncStamp() {
   // keyboard reader loses the drawer.
   btn.setAttribute('aria-disabled', String(idle));
   btn.classList.toggle('inert', idle);
-  btn.title = idle ? t('markAllDone') : t('markAllHint');
+  // "Nothing left to strike" is a claim about a window the hall has read.
+  // Before the first feed it claims nothing; with no feed it says why.
+  if (feedState === 'failed') btn.title = t('ledgerUnreadable');
+  else if (feedState === 'loading') btn.removeAttribute('title');
+  else btn.title = idle ? t('markAllDone') : t('markAllHint');
+  syncStale();
   // While a chip narrows the column, the stamp still clears both wings, and
   // only the tooltip said so: engraved on the stamp itself, keyboard and
   // pointer both see it before they press.
@@ -3799,6 +3831,7 @@ function refresh() {
     else if (!cold(sx)) stats = sx.stats;
     applyStatuses();
     applyStats();
+    var lettered = false;
     if (fd && Array.isArray(fd.dispatches)) {
       if (!cold(fd)) {
         // The first feed landing in an open drawer falls in as the opening
@@ -3806,17 +3839,23 @@ function refresh() {
         var falling = firstFeed && $('#ledger').classList.contains('open');
         feed = fd.dispatches;
         feedState = 'ok';
+        feedReadAt = Date.now();
         if (falling) { ledgerOpening = true; cascadeIndex = 0; }
         renderLedger();
         ledgerOpening = false;
         firstFeed = false;
+        lettered = true;
       }
     } else if (feedState !== 'ok') {
       // Only a Ledger that never read says so. After a good read the plaques
       // stay: a dispatch that happened is still true when the hub goes quiet.
       feedState = 'failed';
       renderLedger();
+      lettered = true;
     }
+    // ...but its age is not. The plaques kept the ages they had when the
+    // feed went quiet, "16 h ago" two hours on.
+    if (!lettered && feedState === 'ok') retimeLedger();
     updateLedgerBadge();
     // Losing the hub (or finding it again) is not a routine change of
     // figure: the band says so at once rather than a loop later, still

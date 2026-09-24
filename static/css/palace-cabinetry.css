@@ -804,7 +804,17 @@
 #ledger .chip:focus-visible { outline: 2px solid var(--focus); outline-offset: 5px; }
 
 /* ----- The dater ---------------------------------------------------------- */
-#ledger .l-tools { justify-content: flex-end; margin: 0 0 calc(10px * var(--ui)); }
+#ledger .l-tools { justify-content: flex-end; align-items: center; margin: 0 0 calc(10px * var(--ui)); }
+/* No word since HH:MM: cut into the lacquer at the left of the stamp's row,
+   in the head's faint ink. */
+#ledger .l-stale {
+  margin-right: auto;
+  padding-left: calc(8px * var(--ui));
+  font-size: max(10px, calc(10px * var(--ui)));
+  white-space: nowrap;
+  color: var(--lq-faint);
+}
+#ledger .l-stale[hidden] { display: none; }
 .l-stamp {
   gap: calc(9px * var(--ui));
   padding: calc(3px * var(--ui)) calc(6px * var(--ui));
