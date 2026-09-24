@@ -3443,6 +3443,17 @@ html[lang="zh"] .g-name { letter-spacing: 0.17em; }
   box-shadow: 0 0 0 1px var(--lead-0), 0 0 0 3px var(--lead-2), 0 0 0 4px var(--lead-0),
               0 6px 14px rgba(0, 0, 0, 0.6), 0 0 38px var(--bulb-glow);
 }
+/* The marquee's own focus ring. At the default 3px the ring lay on the
+   frame's dark outer bead and read as one more moulding line (1.2:1 in
+   Ivory), and under the band there is no wall to set it on, only the
+   cornice. It stands just clear of the frame on a bed of the base colour,
+   as the lever's does. */
+#ticker:focus-visible {
+  outline-offset: 5px;
+  box-shadow: 0 0 0 1px var(--lead-0), 0 0 0 3px var(--lead-2), 0 0 0 4px var(--lead-0),
+              0 0 0 9px var(--base),
+              0 6px 14px rgba(0, 0, 0, 0.6), 0 0 38px var(--bulb-glow);
+}
 #ticker::before, #ticker::after { content: none; }
 .t-bulbs {
   position: absolute; left: 0; right: 0; height: calc(9px * var(--ui));
