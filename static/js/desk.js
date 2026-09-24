@@ -36,8 +36,8 @@
 
    The static board is painted once. The swing is a stack of poses of the
    moving parts (blades, crossbar, handle, their shadows on the marble),
-   each drawn at its own angle; the drive shows the two poses either side
-   of the blade's angle, by opacity. The needle turns in the dial's own
+   each drawn at its own angle; the drive shows the one nearest the
+   blades' angle, by opacity. The needle turns in the dial's own
    foreshortened plane; the pilots, the meter's lamp and the flash of the
    break are opacity layers.
    =========================================================================== */
@@ -878,7 +878,7 @@ function bladeFrame(phi, y) {
    with its corners eased; counter-clockwise. */
 var BLADE_OL = (function () {
   var r = WB / 2, out = [[0, -r], [BL - 2, -r], [BL, -r + 2], [BL, r - 2], [BL - 2, r], [0, r]];
-  for (var i = 1; i < 8; i++) { var b = Math.PI / 2 + i / 8 * Math.PI; out.push([Math.cos(b) * r, Math.sin(b) * r]); }
+  for (var i = 1; i < 6; i++) { var b = Math.PI / 2 + i / 6 * Math.PI; out.push([Math.cos(b) * r, Math.sin(b) * r]); }
   return out;
 })();
 
@@ -901,8 +901,8 @@ function turnedShape(g, defs, id, o, ax, up, prof, i0, i1, m, eb) {
   var vp = vnorm(vsub(v, vmul(ax, vdot(v, ax))));
   var p0 = proj(vsub(mid, vmul(across, R))), p1 = proj(vadd(mid, vmul(across, R)));
   var stops = [];
-  for (k = 0; k <= 16; k++) {
-    var b = Math.asin(Math.max(-1, Math.min(1, -1 + k / 8)));
+  for (k = 0; k <= 12; k++) {
+    var b = Math.asin(Math.max(-1, Math.min(1, -1 + k / 6)));
     var n = vnorm(vadd(vmul(across, Math.sin(b)), vmul(vp, Math.cos(b))));
     var col;
     if (eb) {
@@ -910,11 +910,11 @@ function turnedShape(g, defs, id, o, ax, up, prof, i0, i1, m, eb) {
       // and the lit wall mirrored in its polish
       var rr = vsub(vmul(n, 2 * vdot(n, v)), v);
       var sp = Math.pow(Math.max(0, vdot(rr, LIGHT)), 60), band = Math.max(0, 1 - Math.abs(rr[1] - 0.24) / 0.13);
-      var base = tone(m, clamp01(0.1 + 0.34 * Math.max(0, vdot(n, LIGHT)) + 0.2 * interp(ENV, rr[1])));
+      var base = tone(m, clamp01(0.1 + 0.34 * Math.max(0, vdot(n, LIGHT)) + 0.2 * envT(rr)));
       var hi = Math.min(1, sp * 1.5 + band * 0.3);
       col = hi > 0.02 ? 'color-mix(in srgb, var(--eb-hi) ' + Math.round(hi * 100) + '%, ' + base + ')' : base;
     } else col = tone(m, shadeT(n, mid, m));
-    stops.push([n2(k / 16), col]);
+    stops.push([n2(k / 12), col]);
   }
   lin(defs, id, p0[0], p0[1], p1[0], p1[1], stops);
   add(g, 'path', { d: pathOf(hull(pts)), fill: U(id) });
@@ -924,21 +924,31 @@ var POSE_A = (function () {
   var h = [0, 1.5, 3, 4.5, 6, 8, 10, 12.5, 15, 18, 22, 26, 31, 36, 42, 48, 54, 60, 67, 74, 82, 90];
   return h.concat(h.slice(0, -1).reverse().map(function (a) { return 180 - a; }));
 })();
-var poseLayer = null, poses = [], shown = [];
+/* The swing is laid in five sheets of one SVG: the lower blade with every
+   part's shadow; the lower pole's top cheek and top leaves over it; the
+   upper blade; the upper pole's cheek and leaves; the crossbar and the
+   handle. Seen from above, whatever stands higher or further out is nearer
+   the eye, so the order holds at every angle: the upper blade passes in
+   front of the lower jaws, and the handle in front of everything. Each
+   moving sheet holds one group per pose; the fittings are drawn once. */
+var stacks = null, poses = [], shown = [];
 
+function poseGroup(k, i) {
+  var g = E('g', { style: 'opacity:0;visibility:hidden' }, 'sw-pose');
+  var next = null;
+  for (var j = i + 1; j < poses.length; j++) if (poses[j]) { next = poses[j][k]; break; }
+  stacks[k].insertBefore(g, next);
+  return g;
+}
 function buildPose(i) {
   if (poses[i]) return poses[i];
   var phi = POSE_A[i], sn = Math.sin(phi * DEG);
-  var g = E('g', { style: 'opacity:0;visibility:hidden' }, 'sw-pose');
-  // keep the stack in angle order
-  var next = null;
-  for (var k = i + 1; k < poses.length; k++) if (poses[k]) { next = poses[k]; break; }
-  poseLayer.insertBefore(g, next);
-  poses[i] = g;
-  var defs = add(g, 'defs'), id = 'sp' + i;
+  var P = [poseGroup(0, i), poseGroup(1, i), poseGroup(2, i)];
+  poses[i] = P;
+  var id = 'sp' + i;
   var FL = bladeFrame(phi, PL), FU = bladeFrame(phi, PU), d = FL.a, e = FL.b;
   // Their shadows on the marble, while they are near it.
-  var shade = add(g, 'g', { filter: U('sw-soft') }, 'sw-shade');
+  var shade = add(P[0], 'g', { filter: U('sw-soft') }, 'sw-shade');
   function shadowOf(pts3, zc) {
     var op = clamp01(1.5 - (zc - ZB) / 26);
     if (op <= 0.02) return;
@@ -964,22 +974,31 @@ function buildPose(i) {
   shadowOf(hpts, ZB + sn * (XB1 + H_END * 0.6));
 
   var fc = new Faces();
-  var inJaws = phi < 16 ? -1 : phi > 164 ? 1 : 0;
-  // the lower blade and what stands over it, then the upper
-  [[FL, PL], [FU, PU]].forEach(function (pair) {
-    prism(fc, pair[0], BLADE_OL, -TB / 2, TB / 2, 1.4, MAT.cu);
+  [[FL, PL, P[0]], [FU, PU, P[1]]].forEach(function (pole) {
+    var F3 = pole[0], g = pole[2];
+    var defs = add(g, 'defs');
+    prism(fc, F3, BLADE_OL, -TB / 2, TB / 2, 1.4, MAT.cu);
     fc.flush(g);
-    // the run the jaws have burnished on the broad face, a thousand throws
-    var F3 = pair[0], h0 = proj(at(F3, 0, 0, TB / 2)), h1 = proj(at(F3, BL, 0, TB / 2));
-    var bid = id + '-b' + pair[1];
-    lin(defs, bid, h0[0], h0[1], h1[0], h1[1], [[0, 'var(--kc-5)', 0], [0.5, 'var(--kc-5)', 0.04], [0.74, 'var(--kc-5)', 0.34],
-        [0.86, 'var(--kc-5)', 0.42], [0.95, 'var(--kc-5)', 0.12], [1, 'var(--kc-5)', 0]]);
-    add(g, 'path', { d: pathOf(inset(BLADE_OL, 1.4).map(function (p) { return proj(at(F3, p[0], p[1], TB / 2)); })), fill: U(bid) });
-    if (inJaws) { jawLeaf(fc, inJaws * JX, pair[1], true); fc.flush(g); }
-    cheek(fc, pair[1], true);
-    fc.flush(g);
+    // The broad face: the rolling's grain laid along the blade, the room's
+    // light as a streak across it nearer the far arris, and the run the
+    // jaws have burnished bright in a thousand throws.
+    var top = pathOf(inset(BLADE_OL, 1.4).map(function (p) { return proj(at(F3, p[0], p[1], TB / 2)); }));
+    var o0 = proj(at(F3, 0, 0, TB / 2)), oa = proj(at(F3, 1, 0, TB / 2)), ob = proj(at(F3, 0, 1, TB / 2));
+    var bid = id + '-b' + pole[1];
+    pattern(defs, bid + 'g', '/static/assets/tex/brush-copper.webp', 26,
+            'matrix(' + [oa[0] - o0[0], oa[1] - o0[1], ob[0] - o0[0], ob[1] - o0[1], o0[0], o0[1]].map(n2).join(' ') + ')');
+    add(g, 'path', { d: top, fill: U(bid + 'g'), style: 'opacity:var(--cu-tex)' });
+    var q0 = proj(at(F3, BL / 2, WB / 2, TB / 2)), q1 = proj(at(F3, BL / 2, -WB / 2, TB / 2));
+    lin(defs, bid + 'x', q0[0], q0[1], q1[0], q1[1], [[0, 'var(--kc-0)', 0.35], [0.2, 'var(--kc-0)', 0], [0.5, 'var(--kc-5)', 0.1],
+        [0.62, 'var(--kc-5)', 0.55], [0.7, 'var(--kc-5)', 0.12], [0.9, 'var(--kc-0)', 0.05], [1, 'var(--kc-0)', 0.4]]);
+    add(g, 'path', { d: top, fill: U(bid + 'x') });
+    var h0 = proj(at(F3, 0, 0, TB / 2)), h1 = proj(at(F3, BL, 0, TB / 2));
+    lin(defs, bid, h0[0], h0[1], h1[0], h1[1], [[0, 'var(--kc-0)', 0.3], [0.2, 'var(--kc-5)', 0], [0.66, 'var(--kc-5)', 0.06], [0.76, 'var(--kc-5)', 0.4],
+        [0.88, 'var(--kc-5)', 0.5], [0.96, 'var(--kc-5)', 0.14], [1, 'var(--kc-5)', 0]]);
+    add(g, 'path', { d: top, fill: U(bid) });
   });
   // the crossbar joins the tips, riveted through
+  var g = P[2], defs = add(g, 'defs');
   prism(fc, { o: [0, 0, ZB], a: d, b: e, c: Y3 }, rectO(XB0, XB1, -XBQ, XBQ), PL - XBY, PU + XBY, 1.2, MAT.eb);
   fc.flush(g);
   [PL, PU].forEach(function (yp) {
@@ -1005,45 +1024,47 @@ function buildPose(i) {
          [[0, 'var(--eb-hi)', n2(k)], [0.18, 'var(--eb-hi)', n2(0.6 * k)], [0.45, 'var(--eb-hi)', n2(0.12 * k)], [1, 'var(--eb-hi)', 0]]);
     add(g, 'circle', { cx: n2(pp[0]), cy: n2(pp[1]), r: 6.5, fill: U(id + '-d') });
   }
-  return g;
+  return P;
 }
 function layer(fx, cls) {
   var s = E('svg', { viewBox: '0 0 ' + BOX_W + ' ' + BOX_H, 'aria-hidden': 'true', focusable: 'false' }, cls);
   fx.appendChild(s);
   return s;
 }
-function buildPoseLayer(fx) {
-  var s = layer(fx, 'sw-poses');
+function buildSwing(sw) {
+  var s = layer(sw, 'sw-poses');
   var d = add(s, 'defs');
   add(add(d, 'filter', { id: 'sw-soft', x: '-20%', y: '-40%', width: '140%', height: '180%' }), 'feGaussianBlur', { stdDeviation: 1.5 });
   grad(d, 'sw-rivet', true, { cx: 0.36, cy: 0.3, r: 0.8 }, [[0, 'var(--kc-5)'], [0.45, 'var(--kc-3)'], [1, 'var(--kc-0)']]);
-  poseLayer = add(s, 'g', null, 'sw-pose-stack');
+  stacks = [];
+  [PL, PU, null].forEach(function (yp) {
+    stacks.push(add(s, 'g', null, 'sw-stack'));
+    if (yp === null) return;
+    // the pole's fittings that stand over its blade, drawn once
+    var over = add(s, 'g', null, 'sw-over'), fc = new Faces();
+    [-JX, JX].forEach(function (jx) { jawLeaf(fc, jx, yp, true); fc.flush(over); });
+    cheek(fc, yp, true);
+    fc.flush(over);
+  });
   poses = new Array(POSE_A.length);
 }
-function showPose(i, op) {
-  var g = buildPose(i);
-  g.style.opacity = op > 0.995 ? '1' : n2(op);
-  g.style.visibility = op > 0.004 ? 'visible' : 'hidden';
+function showPose(i, on) {
+  buildPose(i).forEach(function (g) { g.style.opacity = on ? '1' : '0'; g.style.visibility = on ? 'visible' : 'hidden'; });
 }
-/* The drive: 0 = the blades in the Salon's jaws, 1 = in the Bureau's. The
-   two poses either side of the angle share it, each solid until the blade
-   is halfway to the other, so the stone never shows through a blade. */
+/* The drive: 0 = the blades in the Salon's jaws, 1 = in the Bureau's. It
+   shows the pose nearest the blades' angle, whole. The poses are 1.5
+   degrees apart where the blades seat and bounce and 5 to 8 through the
+   swing, which a frame of the throw crosses faster than that; a crossfade
+   between two poses showed two handles in any frame caught between them. */
 function drivePoses(v) {
-  if (!poseLayer) return;
+  if (!stacks) return;
   var phi = clamp01(v) * 180, i = 0;
   while (i < POSE_A.length - 2 && POSE_A[i + 1] <= phi) i++;
-  var f = (phi - POSE_A[i]) / (POSE_A[i + 1] - POSE_A[i]);
-  if (f < 0.004) f = 0;
-  if (f > 0.996) f = 1;
-  var want = {};
-  want[i] = Math.min(1, 2 * (1 - f));
-  want[i + 1] = Math.min(1, 2 * f);
-  shown.forEach(function (k) { if (!(k in want)) showPose(k, 0); });
-  shown = [];
-  Object.keys(want).forEach(function (k) {
-    if (want[k] > 0.004) { showPose(+k, want[k]); shown.push(+k); }
-    else if (poses[+k]) showPose(+k, 0);
-  });
+  if (phi - POSE_A[i] > POSE_A[i + 1] - phi) i++;
+  if (shown.length === 1 && shown[0] === i) return;
+  showPose(i, 1);
+  shown.forEach(function (k) { if (k !== i) showPose(k, 0); });
+  shown = [i];
 }
 /* The rest of the poses are drawn while the hall is idle, so a throw only
    shows them. */
@@ -1103,11 +1124,13 @@ function buildFx(fx) {
   add(gg, 'circle', { cx: 0, cy: 0, r: MR + 0.4, fill: U('sw-glass-g') });
   add(gg, 'ellipse', { cx: -5.5, cy: -8.5, rx: 5, ry: 2.2, transform: 'rotate(-28 -5.5 -8.5)', style: F('#fff') + ';opacity:.22' });
 
-  buildPoseLayer(fx);
-
+}
+/* The swing and the flash of the break, over the plates. */
+function buildSw(sw) {
+  buildSwing(sw);
   // The flash of the break: a spark at the mouth of each pair of jaws.
   ['salon', 'bureau'].forEach(function (side, s) {
-    var sp = layer(fx, 'sw-spark sw-spark-' + side);
+    var sp = layer(sw, 'sw-spark sw-spark-' + side);
     var jx = s ? JX : -JX;
     grad(add(sp, 'defs'), 'sw-arc-' + side, true, { cx: 0.5, cy: 0.5, r: 0.5 }, [[0, 'var(--arc-core)'], [0.25, 'var(--arc-mid)', 0.8], [1, 'var(--arc-mid)', 0]]);
     [PL, PU].forEach(function (y, k) {
@@ -1139,9 +1162,10 @@ window.Desk = {
   BOX_W: BOX_W, BOX_H: BOX_H, ART_TOP: ART_TOP,
   build: function (desk) {
     if (!desk) return;
-    var q = desk.querySelector('.hl-board'), fx = desk.querySelector('.desk-fx');
+    var q = desk.querySelector('.hl-board'), fx = desk.querySelector('.desk-fx'), sw = desk.querySelector('.desk-sw');
     if (q && !q.firstChild) buildBoard(q);
-    if (fx && !fx.firstChild) { buildFx(fx); prebuild(); }
+    if (fx && !fx.firstChild) buildFx(fx);
+    if (sw && !sw.firstChild) { buildSw(sw); prebuild(); }
     dressPlates(desk);
     // Where the parts CSS moves and places stand, in board units.
     var st = desk.style;

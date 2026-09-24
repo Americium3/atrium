@@ -736,15 +736,17 @@ html[data-boot="suppressed"] #signal-desk {
 .hl-board > g, .hl-board > g * { pointer-events: visiblePainted; cursor: pointer; }
 .hl-board .hb-floor, .hl-board .hb-floor *, .hl-board .hb-noptr, .hl-board .hb-noptr * { pointer-events: none; }
 
-.desk-fx { position: absolute; inset: 0; pointer-events: none; }
-.desk-fx > svg {
+.desk-fx, .desk-sw { position: absolute; inset: 0; pointer-events: none; }
+.desk-fx > svg, .desk-sw > svg {
   position: absolute; inset: 0; width: 100%; height: 100%;
   overflow: visible;
   pointer-events: none;
 }
-/* The swing: the moving parts drawn at each of 43 angles, the two either
-   side of the blade's angle shown (desk.js). The stack is its own layer,
-   so a frame of the throw repaints it and nothing under it. */
+/* The swing: the moving parts drawn at each of 43 angles, the one nearest
+   the blades' angle shown (desk.js). The stack is its own layer,
+   so a frame of the throw repaints it and nothing under it, and it lies
+   outside .desk-fx, which the Bureau re-leafs: none of it reads the leaf,
+   and a flip would restyle every pose for nothing. */
 .sw-poses { will-change: transform; }
 /* The needle turns in the dial's own plane, which the eye sees shortened
    by --sw-mk: stretch it back, turn it, shorten it again. It falls to zero

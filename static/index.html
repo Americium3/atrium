@@ -637,9 +637,9 @@
      the live jaws is lit at night and the meter's needle stands on that
      side. Drawn by static/js/desk.js.
      Layers: .desk-art (the static board, contained) / the two name plates /
-     .desk-fx (the lamps, the needle, the swing's poses and the sparks, each
-     its own layer) / #lever (the switch a keyboard reaches, with the
-     handle's hit strip).
+     .desk-fx (the lamps, their pools and the meter's needle and glass, each
+     its own layer) / .desk-sw (the swing's poses and the sparks) / #lever
+     (the switch a keyboard reaches, with the handle's hit strip).
      A named region, not a <footer>: at body level a footer is the page's
      contentinfo landmark, which filed the hall's one wing control under
      the page's small print.
@@ -653,6 +653,7 @@
       <span class="l-label l-salon display" data-side="salon" data-i18n-title="salonWing" lang="en">SALON</span>
       <span class="l-label l-bureau display" data-side="bureau" data-i18n-title="bureauWing" lang="en">BUREAU</span>
       <div class="desk-fx"></div>
+      <div class="desk-sw"></div>
     </div>
     <span id="lever-desc" hidden data-i18n="leverDesc">Off lights the Salon, the play wing. On lights the Bureau, the work wing.</span>
     <div id="lever" role="switch" aria-checked="false" tabindex="0" aria-keyshortcuts="W"
