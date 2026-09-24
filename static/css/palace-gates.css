@@ -660,3 +660,21 @@ html[lang="zh"] .g-desc { font-size: clamp(11px, 5.4cqw, calc(14.5px * var(--ui)
    pixel of its own ink round every stroke brings it up to strength. */
 :root[lang="zh"][data-theme="ivory"] .gate[data-state="open"] .g-desc,
 html[lang="zh"] .gate.vacant .g-desc { -webkit-text-stroke: 0.3px currentColor; }
+
+/* ----- The day's title card as an object ------------------------------------
+   By day the card read as a bordered white box on a white screen, a web
+   card. It is now printed card stock standing before the screen: warm
+   stock with its own shadow on a matte silver screen whose fine weave and
+   falloff show round it. */
+:root[data-theme="ivory"] .gate:not(.opening) .g-screen {
+  background:
+    radial-gradient(90% 80% at 50% 40%, transparent 55%, rgba(60, 50, 36, 0.28) 100%),
+    url('/static/assets/tex/grain-frost.webp') 0 0 / 18cqw auto,
+    linear-gradient(180deg, #d6d1c5, #c7c1b2);
+  background-blend-mode: normal, soft-light, normal;
+}
+:root[data-theme="ivory"] .gate[data-state="open"][data-card] .g-desc {
+  background-color: #f3ead3;
+  box-shadow: 0 0.4cqw 0.5cqw rgba(50, 36, 18, 0.28), 0 1.4cqw 2.6cqw rgba(50, 36, 18, 0.16),
+              inset 0 0 2.4cqw rgba(150, 120, 70, 0.14);
+}
