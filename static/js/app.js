@@ -4859,7 +4859,13 @@ function closePrefs() {
   document.removeEventListener('keydown', prefsKeydown);
   if (lastFocus) lastFocus.focus();
 }
-prefsBtn.addEventListener('click', openPrefs);
+/* One gesture opens one layer. The sheet is centred, so the spot the
+   button stood on is backdrop the moment it opens, and the second press of
+   a double-click shut it again at once. Openers never take a second press. */
+prefsBtn.addEventListener('click', function (e) {
+  if (e.detail > 1) return;
+  openPrefs();
+});
 $('#prefs-close').addEventListener('click', closePrefs);
 /* Only a click that starts and ends on the backdrop closes the sheet. A
    press in the sheet released on the backdrop (or the other way round) is
@@ -4868,7 +4874,11 @@ var prefsPress = { down: null, up: null };
 prefs.addEventListener('pointerdown', function (e) { prefsPress.down = e.target; });
 prefs.addEventListener('pointerup', function (e) { prefsPress.up = e.target; });
 prefs.addEventListener('click', function (e) {
-  if (e.target === prefs && prefsPress.down === prefs && prefsPress.up === prefs) {
+  // Only the first click of a gesture: the second press of a double-click
+  // on a size key, or on the button that opened the sheet, lands where the
+  // sheet no longer is.
+  if (e.target === prefs && prefsPress.down === prefs && prefsPress.up === prefs &&
+      e.detail <= 1) {
     closePrefs();
   }
 });
@@ -4879,8 +4889,14 @@ prefs.addEventListener('click', function (e) {
 var ledgerBtnEl = $('#ledger-btn');
 var ledgerScrimEl = $('#ledger-scrim');
 
+/* A double-click is one act here too. The scrim takes the pointer the moment
+   the drawer starts to slide, over the hatch as well, so the second press
+   of a double-click on the hatch landed on the scrim and shut the drawer
+   while it was still coming in. Neither the hatch nor the scrim takes a
+   second press. */
 if (ledgerBtnEl) {
-  ledgerBtnEl.addEventListener('click', function () {
+  ledgerBtnEl.addEventListener('click', function (e) {
+    if (e.detail > 1) return;
     var ledgerEl = $('#ledger');
     if (ledgerEl && ledgerEl.classList.contains('open')) {
       closeLedger();
@@ -4891,13 +4907,21 @@ if (ledgerBtnEl) {
 }
 
 if (ledgerScrimEl) {
-  ledgerScrimEl.addEventListener('click', function () {
+  ledgerScrimEl.addEventListener('click', function (e) {
+    if (e.detail > 1) return;
     closeLedger();
   });
 }
-/* The drawer's own knob. closeLedger() hands focus back to the hatch. */
+/* The drawer's own knob. closeLedger() hands focus back where the drawer
+   was opened from. The drawer stops taking the pointer the moment it shuts,
+   so the second press of a double-click fell through to whatever lay
+   under the knob (PREFERENCES, from 1280 to 1920 wide), which is why the
+   masthead's openers ignore a second press as well. */
 var ledgerCloseEl = $('#ledger-close');
-if (ledgerCloseEl) ledgerCloseEl.addEventListener('click', closeLedger);
+if (ledgerCloseEl) ledgerCloseEl.addEventListener('click', function (e) {
+  if (e.detail > 1) return;
+  closeLedger();
+});
 
 /* The medallion hangs outside the plaque's link, over the spine where the
    clipped frame cannot reach, and the holder's gilt rim is the frame round
@@ -5048,6 +5072,11 @@ function detentUnder(group, e) {
 }
 
 prefs.addEventListener('click', function (e) {
+  // One gesture, one act, as on a gate. The second press of a double-click
+  // stepped the bat's nut a second detent, and on ENGRAVING SIZE it landed
+  // on whatever the resized sheet had moved under the pointer: a
+  // neighbouring key, or the backdrop, which shut the sheet.
+  if (e.detail > 1) return;
   var btn = e.target.closest('[role=radio]');
   // The plate also shows between the columns, where no radio is.
   var group = btn ? btn.parentNode : e.target.closest('[data-pref]');
