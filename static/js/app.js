@@ -725,8 +725,13 @@ function dockEntrance() {
    Now that raster happens under a curtain that is standing still: the
    clock starts once the boot's first readings are in (the gates', and the
    cases' where they stand) and the frames that draw them have gone out. A
-   hub slow to answer holds the curtain ENTRANCE_HOLD ms at most. */
-var ENTRANCE_HOLD = 900;
+   hub slow to answer holds the curtain ENTRANCE_HOLD ms, and then the clock
+   starts as soon as the frames run at the display's pace again. It used to
+   start the moment the hold ran out, and at 3440 the hall's first raster
+   takes longer than that: the footlights and the spot began inside a
+   250-550ms freeze (MO-8). ENTRANCE_HOLD_MAX is for a renderer that never
+   settles, and for a tab that draws nothing. */
+var ENTRANCE_HOLD = 900, ENTRANCE_HOLD_MAX = 2500;
 /* Calls fn once what has been handed to the compositor is on screen. No
    callback says so, and a fixed two frames is not it: the main thread runs
    a frame or two ahead of the GPU, so its animation frames kept arriving on
@@ -773,7 +778,8 @@ function playEntrance(built) {
     started = true;
     runEntrance(day);
   }
-  entranceTimers.push(setTimeout(start, ENTRANCE_HOLD));
+  entranceTimers.push(setTimeout(function () { afterDrawn(start); }, ENTRANCE_HOLD));
+  entranceTimers.push(setTimeout(start, ENTRANCE_HOLD_MAX));
   Promise.resolve(built).then(function () {
     afterDrawn(start);
   });
