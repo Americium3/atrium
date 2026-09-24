@@ -439,8 +439,13 @@ function fitMasthead() {
     f.style.width = f2(w) + 'px';
   }
   if (crownFits) {
-    hang(fl, tRight + gap, lo);
-    hang(fr, ro, rLeft - gap);
+    // The panels hang as a pair, each the width of the narrower stretch, so
+    // the canopy stays symmetric about the clock's axis: hung one at a time,
+    // a long English title stowed the left panel and left the right one
+    // hanging alone (VD-12).
+    var w = Math.min(lo - (tRight + gap), (rLeft - gap) - ro);
+    hang(fl, lo - w, lo);
+    hang(fr, ro, ro + w);
   } else {
     hang(fl, 0, -1);
     hang(fr, 0, -1);
