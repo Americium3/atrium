@@ -480,13 +480,18 @@ function buildDefs(svg) {
       'feGaussianBlur', { stdDeviation: 2.6 });
   grad(defs, 'hb-cshadow', true, { cx: 0.5, cy: 0.45, r: 0.5 },
        [[0, 'var(--floor-shadow)'], [0.55, 'var(--floor-shadow)', 0.5], [1, 'var(--floor-shadow)', 0]]);
-  // The marble's light: its veil by the hour and one band of polish.
+  // The marble's light: its veil by the hour and its polish. The polish
+  // is the room's one bright opening mirrored in the face: a broad band
+  // laid on the diagonal, its leading edge hard where the opening's jamb
+  // is, falling off softly behind, with the glazing bar's narrow second
+  // band after it. The first one was a fifth as strong and read as haze.
   var t0 = proj([0, SY2, 0]), t1 = proj([0, PY0, 0]);
   lin(defs, 'hb-veil', 0, t0[1], 0, t1[1], [[0, 'var(--slab-top)'], [0.45, 'var(--slab-mid)'], [1, 'var(--slab-bot)']]);
-  var b0 = proj([-PX, SY2, 0]), b1 = proj([PX * 0.6, PY0, 0]);
-  lin(defs, 'hb-polish', b0[0], b0[1], b1[0], b1[1], [[0, 'var(--slab-spec)', 0], [0.33, 'var(--slab-spec)', 0], [0.38, 'var(--slab-spec)', 0.75],
-      [0.42, 'var(--slab-spec)', 1], [0.45, 'var(--slab-spec)', 0.3], [0.5, 'var(--slab-spec)', 0.55], [0.54, 'var(--slab-spec)', 0.1],
-      [0.62, 'var(--slab-spec)', 0], [1, 'var(--slab-spec)', 0]]);
+  var b0 = proj([-PX, SY2, 0]), b1 = proj([PX, PY0, 0]);
+  lin(defs, 'hb-polish', b0[0], b0[1], b1[0], b1[1], [[0, 'var(--slab-spec)', 0], [0.512, 'var(--slab-spec)', 0], [0.516, 'var(--slab-spec)', 0.7],
+      [0.524, 'var(--slab-spec)', 1], [0.57, 'var(--slab-spec)', 0.88], [0.62, 'var(--slab-spec)', 0.58], [0.68, 'var(--slab-spec)', 0.26],
+      [0.73, 'var(--slab-spec)', 0.08], [0.76, 'var(--slab-spec)', 0], [0.785, 'var(--slab-spec)', 0], [0.793, 'var(--slab-spec)', 0.55],
+      [0.808, 'var(--slab-spec)', 0.45], [0.82, 'var(--slab-spec)', 0], [1, 'var(--slab-spec)', 0]]);
   grad(defs, 'hb-cu-dome', true, { cx: 0.36, cy: 0.3, r: 0.8 }, [[0, 'var(--kc-5)'], [0.45, 'var(--kc-3)'], [1, 'var(--kc-0)']]);
   grad(defs, 'hb-br-dome', true, { cx: 0.36, cy: 0.3, r: 0.8 }, [[0, 'var(--bz-4)'], [0.45, 'var(--bz-2)'], [1, 'var(--bz-0)']]);
   grad(defs, 'hb-sb-dome', true, { cx: 0.36, cy: 0.3, r: 0.8 }, [[0, 'var(--sb-5)'], [0.4, 'var(--sb-3)'], [1, 'var(--sb-0)']]);

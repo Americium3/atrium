@@ -61,7 +61,7 @@
      the lamps behind the board, a little more toward its head, and the
      marquee lies in its polish as one band. */
   --slab-top: rgba(26, 22, 20, 0.34); --slab-mid: rgba(10, 10, 14, 0.5); --slab-bot: rgba(4, 4, 6, 0.62);
-  --slab-shade: rgba(0, 0, 0, 0.62); --slab-spec: rgba(255, 226, 184, 0.2);
+  --slab-shade: rgba(0, 0, 0, 0.62); --slab-spec: rgba(255, 234, 204, 0.32);
   --cast-a: 0.62;
   /* the meter: an ivory dial with a small lamp behind it at night */
   --dial-0: #b9ab8e; --dial-1: #d8caa9; --dial-2: #6f634d; --dial-ink: #1b140b;
@@ -90,7 +90,7 @@
   /* by day the skylight lies evenly on the panel and the open doors
      behind the reader show in its polish */
   --slab-top: rgba(255, 255, 255, 0.16); --slab-mid: rgba(255, 255, 255, 0.04); --slab-bot: rgba(20, 24, 30, 0.1);
-  --slab-shade: rgba(20, 16, 12, 0.42); --slab-spec: rgba(255, 255, 255, 0.34);
+  --slab-shade: rgba(20, 16, 12, 0.42); --slab-spec: rgba(255, 255, 255, 0.5);
   --cast-a: 0.42;
   --dial-0: #ece3cf; --dial-1: #f8f2e4; --dial-2: #b3a586; --dial-ink: #1b140b;
   --dial-lamp: transparent;
