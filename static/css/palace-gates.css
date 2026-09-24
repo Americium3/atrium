@@ -642,3 +642,21 @@ html[lang="zh"] .g-lamp { letter-spacing: 0.2em; }
   box-shadow: 1px 2px 5px rgba(0, 0, 0, 0.55);
 }
 .g-house:has(> .g-notice:not([hidden])) > .g-desc { visibility: hidden; }
+
+/* ----- Stroke weight for legibility -------------------------------------
+   Garamond's hairlines at 10 to 14px never reach full ink once
+   anti-aliased, so measured contrast fell far short of the colours'
+   own (the day card's #3a2e1c on the screen is 11:1 as colours and
+   measured 3.6:1 as pixels). The description and the apron lines take a
+   heavier cut of the same face, the day card a darker ink, and the Chinese
+   description, whose face has one weight, a size step up. */
+.g-desc { font-weight: 500; }
+:root[data-theme="ivory"] .gate[data-state="open"] .g-desc { color: #241a0e; }
+html[lang="zh"] .g-desc { font-size: clamp(11px, 5.4cqw, calc(14.5px * var(--ui))); }
+:root[data-theme="onyx"], :root[data-theme="ivory"] { --apron-gilt: #e8c677; }
+:root[data-theme="onyx"] .gate.vacant, :root[data-theme="ivory"] .gate.vacant { --plate-hi: #e6cf97; --plate: #cdb074; --plate-lo: #9d7f45; --plate-ink: #140d05; }
+/* The Chinese face has one weight and hairline strokes; where it is set
+   dark on a light ground (the day card, the builder's plate) a quarter
+   pixel of its own ink round every stroke brings it up to strength. */
+:root[lang="zh"][data-theme="ivory"] .gate[data-state="open"] .g-desc,
+html[lang="zh"] .gate.vacant .g-desc { -webkit-text-stroke: 0.3px currentColor; }
