@@ -690,13 +690,16 @@
    was allowed to be, and CSS cannot report what a clamp() resolved to. This
    writes the live boxes into document.title, which headless Chrome hands
    back through --dump-dom with no debugger attached. Debug-only, in the same
-   spirit as the ?theme= and ?prefs=1 overrides above; it renders nothing. */
-if (location.search.indexOf('probe=1') >= 0) setTimeout(function () {
+   spirit as the ?theme= and ?prefs=1 overrides above; it renders nothing.
+   Every level brings this read-out with it: probe=2 and probe=3 used to sit
+   inside a probe=1 test, so on their own they did nothing at all. */
+var probeAt = new URLSearchParams(location.search).getAll('probe');
+if (probeAt.some(function (v) { return /^[123]$/.test(v); })) setTimeout(function () {
   var out = [];
   var sels = ['#hall', '#concourse', '#stage', '#floorplane', '#works',
     '#almanac', '#clock', '#gates', '.gate.active', '.gate.receded',
     '#signal-desk', '.assembly', '.quadrant', '.gear-well', '.lever-svg'];
-  if (location.search.indexOf('probe=2') >= 0) {
+  if (probeAt.indexOf('2') >= 0) {
     /* Deep read for hardware work: the machinery is drawn inside three
        nested transformed boxes, so a part's page position cannot be derived
        from CSS by hand. Ask each part where it actually landed. */
@@ -727,7 +730,7 @@ if (location.search.indexOf('probe=1') >= 0) setTimeout(function () {
      crop taken from those numbers lands on the floor instead of the machine.
      Painting the numbers into the shot is the only read that cannot
      disagree with the pixels next to it. */
-  if (location.search.indexOf('probe=3') >= 0) {
+  if (probeAt.indexOf('3') >= 0) {
     var tag = document.createElement('div');
     tag.setAttribute('style', 'position:fixed;left:0;top:0;z-index:9999;' +
       'background:#000;color:#0f0;font:12px monospace;padding:4px 6px;' +
