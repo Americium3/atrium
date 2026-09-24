@@ -683,10 +683,14 @@ function lightDoors() {
       var y = yl + (H - yl) * (0.08 + 0.9 * v);
       var t = y <= yw ? 0 : (y - yw) / (foot - yw);
       var a = x0 + (out(x0) - x0) * t, b = x1 + (out(x1) - x1) * t;
-      var r = (0.7 + 1.5 * Math.pow(hash01(k * 31 + i + 701), 2)).toFixed(2);
+      var r = +(0.7 + 1.5 * Math.pow(hash01(k * 31 + i + 701), 2)).toFixed(2), R = r * 2.4;
       var al = (0.35 + 0.5 * hash01(k * 29 + i + 801)).toFixed(2);
-      motes.push('radial-gradient(circle at ' + f1(a + (b - a) * u) + 'px ' + f1(y) + 'px, ' +
-        'rgba(255, 252, 238, ' + al + ') 0 ' + r + 'px, rgba(255, 248, 226, 0) ' + (r * 2.4).toFixed(2) + 'px)');
+      // each mote is its own speck on whole pixels, its exact centre kept
+      // inside it
+      var cx = a + (b - a) * u, tx = Math.floor(cx - R), ty = Math.floor(y - R), S = Math.ceil(2 * R) + 2;
+      motes.push('left:' + tx + 'px;top:' + ty + 'px;width:' + S + 'px;height:' + S + 'px;' +
+        'background:radial-gradient(circle at ' + (cx - tx).toFixed(2) + 'px ' + (y - ty).toFixed(2) + 'px, ' +
+        'rgba(255, 252, 238, ' + al + ') 0 ' + r.toFixed(2) + 'px, rgba(255, 248, 226, 0) ' + R.toFixed(2) + 'px)');
     }
   });
   host.innerHTML =
@@ -698,9 +702,24 @@ function lightDoors() {
       '<rect class="e-shade" width="' + W + '" height="' + H + '"/>' +
       '<g filter="url(#e-pen)"><path class="e-beam" d="' + beams + '"/><path class="e-bar" d="' + bars + '"/></g>' +
     '</svg>';
-  var dust = el('div', 'e-motes');
-  dust.style.backgroundImage = motes.join(',');
-  host.appendChild(dust);
+  // The dust was one screen-sized layer of 88 screen-sized gradients inside
+  // the glare. Its one raster took about a second of raster time at 3440
+  // and landed in the fade (a 340-390ms frame), and a screen-sized layer
+  // on the move cost every frame of the drift about a fifth more than the
+  // same dust held still. Now each speck is its own small layer beside the
+  // glare, fading on the glare's curve (palace-desk.css), and only their
+  // holder moves.
+  var flood = host.parentNode, dust = flood.nextElementSibling;
+  if (!dust || !dust.classList.contains('e-motes')) {
+    dust = el('div', 'e-motes');
+    flood.parentNode.insertBefore(dust, flood.nextSibling);
+  }
+  dust.textContent = '';
+  motes.forEach(function (css) {
+    var m = el('i', 'e-mote');
+    m.style.cssText = css;
+    dust.appendChild(m);
+  });
 }
 
 /* A gilt ring that draws itself round from twelve o'clock, by opacity
