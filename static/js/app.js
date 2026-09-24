@@ -3532,7 +3532,17 @@ function toggleWing() {
   var cur = wingPending || root.dataset.wing;
   setWing(cur === 'salon' ? 'bureau' : 'salon');
 }
-lever.addEventListener('click', toggleWing);
+/* One gesture, one throw. Each click of a double-click used to throw the
+   lever, so the pair threw it there and back: the gesture came to nothing,
+   and a slow one reversed the swap mid-throw with no service arch standing
+   for most of a second (PT-19). Keyboard clicks carry detail 0. */
+function leverClick(e) {
+  if (e.detail > 1) return false;
+  // the click that ends a pull on the arm, which has already thrown it
+  if (armPulled && e.timeStamp - armPulled < 400) { armPulled = 0; return false; }
+  return true;
+}
+lever.addEventListener('click', function (e) { if (leverClick(e)) toggleWing(); });
 /* The pointer reaches the switch through the machine itself: the arm strip
    is inside #lever and arrives above, the console's drawn shapes and the
    gear well throw it from here, and each throw plate lights its own wing
@@ -3545,10 +3555,38 @@ deskCore.addEventListener('click', function (e) {
   if (plate) {
     var want = plate.classList.contains('l-bureau') ? 'bureau' : 'salon';
     if ((wingPending || root.dataset.wing) !== want) setWing(want);
-  } else if (tgt.closest('.desk-art, .gear-well')) {
+  } else if (tgt.closest('.desk-art, .gear-well') && leverClick(e)) {
     toggleWing();
   }
 });
+/* The arm leans toward the other throw while it is held (atrium.css), which
+   asks for a pull, and a pull used to do nothing: released anywhere off the
+   arm, its click landed on the console's box or the floor (PT-20). The arm
+   now keeps the pointer it was pressed with, and a release carried a few
+   pixels toward the other throw throws it; one carried the other way pushes
+   against the stop and does nothing. A release that barely moved is left to
+   the click. */
+var ARM_PULL = 6;   // px of travel that makes a press a pull
+var armPulled = 0, armPress = null;
+var hitArm = $('#lever .hit-arm');
+if (hitArm) {
+  hitArm.addEventListener('pointerdown', function (e) {
+    if (e.button !== 0) return;
+    armPress = { id: e.pointerId, x: e.clientX };
+    try { hitArm.setPointerCapture(e.pointerId); } catch (err) { /* already gone */ }
+  });
+  hitArm.addEventListener('pointerup', function (e) {
+    if (!armPress || armPress.id !== e.pointerId) return;
+    var dx = e.clientX - armPress.x;
+    armPress = null;
+    if (Math.abs(dx) < ARM_PULL) return;
+    armPulled = e.timeStamp;
+    // The Salon's throw is on the left and the Bureau's on the right.
+    var want = dx > 0 ? 'bureau' : 'salon';
+    if ((wingPending || root.dataset.wing) !== want) setWing(want);
+  });
+  hitArm.addEventListener('pointercancel', function () { armPress = null; });
+}
 
 /* The desk is fixed to the foot of the screen, but the stage's baseline
    moves with whatever stands above it: a Chinese masthead that wraps pushes
