@@ -18,10 +18,12 @@ noise, fixed seeds, byte-stable output.
   passes, and on the board's narrow rails and stiles those passes read as
   the grain of wood. A casting is finished differently: the patina lies in
   a fine mottle with darker islands where it took deeper, the hands have
-  rubbed some of it back, the file has left short strokes along each
-  member, and the metal shows a few pits. Signed alpha, as the statuary
-  tile: light where the patina is thin, dark where it is thick, so it
-  relights any bronze with no blend mode.
+  rubbed some of it back and the metal shows a few pits. It has no strokes
+  at all: the first bake filed short ones along each member, and on the
+  frame they still read as grain. Signed alpha, as the statuary tile:
+  light where the patina is thin, dark where it is thick, so it relights
+  any bronze with no blend mode. The light is a pale brass, not the warm
+  one of the niche, so the board's bronze stays cool.
 - brush-copper.webp: the draw marks on rolled copper and brass: fine
   streaks along the bar, a few heavier ones, in signed alpha. The swing's
   poses lay it along each blade, so the grain turns with the blade.
@@ -48,62 +50,70 @@ def bardiglio(n=1024):
     # Perlin's marble: the bed as a stack of sine bands pushed about by
     # turbulence. The turbulence is rough (beta under 2) and stretched along
     # the bed, so the bands fray into cloudy streaks instead of rippling
-    # (a smooth warp gave a topographic map; contour lines gave wood).
-    # Integer wave numbers keep the tile periodic.
+    # (a smooth warp gave a topographic map, contour lines gave wood, and
+    # the level sets of noise gave a coastline). Integer wave numbers keep
+    # the tile periodic.
     t1 = fbm(n, 391, 1.75, (3.0, 1.0)) - 0.5
     t2 = fbm(n, 392, 2.4, (2.0, 1.0)) - 0.5
-    ph = 2 * np.pi * (1 * x + 9 * y) + t1 * 16.0 + t2 * 8.0
+    t3 = fbm(n, 393, 3.0, (1.0, 1.0)) - 0.5
+    ph = 2 * np.pi * (1 * x + 7 * y) + t1 * 14.0 + t2 * 7.0 + t3 * 6.0
     b = 0.5 + 0.5 * np.sin(ph)
-    ph2 = 2 * np.pi * (2 * x + 23 * y) + t1 * 22.0 + (fbm(n, 393, 1.9, (3.0, 1.0)) - 0.5) * 10.0
+    ph2 = 2 * np.pi * (2 * x + 19 * y) + t1 * 20.0 + (fbm(n, 394, 1.9, (3.0, 1.0)) - 0.5) * 9.0 + t3 * 8
     b2 = 0.5 + 0.5 * np.sin(ph2)
-    cloud = fbm(n, 394, 2.0, (2.0, 1.0))
-    body = 0.4 * b + 0.35 * b2 + 0.25 * cloud
+    cloud = fbm(n, 395, 2.2, (2.5, 1.0))
+    # The ground is a pale dove grey and the clouds a bluer slate. The first
+    # bake kept every value between 110 and 198 and the veil took half of
+    # that away, so on the board the stone read as a flat grey field: the
+    # streaks now go down to slate and the calcite up to near white.
+    body = 0.45 * b + 0.2 * b2 + 0.35 * cloud
     body = (body - body.min()) / (body.max() - body.min())
     ground = ramp(body, [
-        (0.00, (110, 119, 130)), (0.2, (124, 132, 143)), (0.45, (142, 150, 159)),
-        (0.7, (160, 167, 175)), (0.88, (176, 182, 188)), (1.00, (188, 193, 198))])
-    dark = np.array([60, 68, 81], dtype=np.float64)
-    # The darkest streaks lie in the troughs of the bands, sharpened and
-    # broken along their run.
-    s1 = np.power(1 - b, 7.0) * _smoothstep(0.3, 0.72, fbm(n, 395, 2.1, (4.0, 1.0)))
-    s2 = np.power(1 - b2, 12.0) * _smoothstep(0.4, 0.8, fbm(n, 396, 2.1, (4.0, 1.0))) * 0.8
-    s = np.clip(s1 * 0.7 + s2 * 0.6, 0, 1)
-    rgb = ground * (1 - s[..., None] * 0.45) + dark * (s[..., None] * 0.45)
-    # Slate veins cross the bed, few and wavering.
-    sv = flow_veins(n, 397, 2.6, (1.0, 1.4), 0.08, 180, 0.9) * _smoothstep(0.52, 0.84, fbm(n, 398, 2.2))
-    rgb = rgb * (1 - sv[..., None] * 0.5) + dark * (sv[..., None] * 0.5)
-    # White calcite runs with the bed along a few of the crests.
-    c1 = np.power(b, 60.0) * _smoothstep(0.55, 0.85, fbm(n, 399, 2.2, (3.0, 1.0)))
-    white = np.array([226, 231, 234], dtype=np.float64)
-    rgb = rgb * (1 - c1[..., None] * 0.55) + white * (c1[..., None] * 0.55)
+        (0.00, (98, 108, 122)), (0.25, (120, 129, 141)), (0.5, (146, 154, 164)),
+        (0.72, (170, 177, 185)), (0.9, (190, 195, 201)), (1.00, (202, 206, 211))])
+    dark = np.array([46, 54, 68], dtype=np.float64)
+    # The bedding streaks lie in the troughs of the bands, crisp and broken
+    # along their run, with a few hairlines where the bed laminates.
+    s1 = np.power(1 - b, 9.0) * _smoothstep(0.34, 0.62, fbm(n, 396, 2.0, (5.0, 1.0)))
+    s2 = np.power(1 - b2, 16.0) * _smoothstep(0.42, 0.7, fbm(n, 397, 2.0, (5.0, 1.0)))
+    ph3 = ph2 * 2.0 + t2 * 6.0
+    s3 = (np.power(0.5 + 0.5 * np.sin(ph3), 40.0) * _smoothstep(0.45, 0.75, fbm(n, 398, 2.1, (4.0, 1.0)))
+          * (1 - body) * 1.4)
+    s = np.clip(s1 * 0.85 + s2 * 0.8 + s3 * 0.3, 0, 1)
+    rgb = ground * (1 - s[..., None] * 0.62) + dark * (s[..., None] * 0.62)
+    # Slate veins cross the bed, few, wavering and crisp.
+    sv = flow_veins(n, 399, 2.6, (1.0, 1.3), 0.08, 150, 0.9) * _smoothstep(0.48, 0.8, fbm(n, 400, 2.2))
+    rgb = rgb * (1 - sv[..., None] * 0.66) + dark * (sv[..., None] * 0.66)
+    # White calcite heals the fissures: along a few crests, and a thread or
+    # two across the bed.
+    c1 = np.power(b, 70.0) * _smoothstep(0.5, 0.8, fbm(n, 401, 2.2, (3.0, 1.0)))
+    c2 = flow_veins(n, 405, 2.7, (1.0, 1.8), 0.06, 280, 0.9) * _smoothstep(0.6, 0.85, fbm(n, 403, 2.3))
+    white = np.array([232, 236, 239], dtype=np.float64)
+    c = np.clip(c1 * 0.8 + c2 * 0.9, 0, 1)
+    rgb = rgb * (1 - c[..., None] * 0.8) + white * (c[..., None] * 0.8)
     # the fine sparkle of a polished saccharoidal marble
-    grain = (fbm(n, 400, 0.3) - 0.5) * 6.0
+    grain = (fbm(n, 404, 0.3) - 0.5) * 7.0
     return rgb + grain[..., None]
 
 
 def patina_board(n=384):
-    from scipy.ndimage import gaussian_filter
     rng = np.random.default_rng(411)
     mottle = fbm(n, 412, 2.1) - 0.5
     fine = fbm(n, 413, 1.4) - 0.5
+    speck = fbm(n, 418, 0.8) - 0.5
     islands = np.clip((fbm(n, 414, 2.4) - 0.58) * 3.2, 0, 1)
     rub = np.clip((fbm(n, 415, 2.6) - 0.55) * 2.8, 0, 1)
-    # the file's short strokes along the member, broken
-    st = fbm(n, 416, 1.2, (1.0, 14.0))
-    st = st - gaussian_filter(st, (0, 4), mode="wrap")
-    st = st / (np.abs(st).max() + 1e-9) * np.clip(fbm(n, 417, 2.0) * 1.6 - 0.3, 0, 1)
     pits = np.zeros((n, n))
-    for _ in range(50):
+    for _ in range(60):
         y, x = rng.integers(0, n, 2)
-        r = rng.uniform(0.6, 1.6)
+        r = rng.uniform(0.6, 1.5)
         yy, xx = np.ogrid[-4:5, -4:5]
         spot = np.exp(-(xx * xx + yy * yy) / (2 * r * r))
         ys, xs = (np.arange(y - 4, y + 5) % n), (np.arange(x - 4, x + 5) % n)
         pits[np.ix_(ys, xs)] = np.maximum(pits[np.ix_(ys, xs)], spot)
-    g = 0.5 + mottle * 0.34 + fine * 0.16 - islands * 0.16 + rub * 0.12 + st * 0.025 - pits * 0.3
+    g = 0.5 + mottle * 0.34 + fine * 0.18 + speck * 0.1 - islands * 0.18 + rub * 0.12 - pits * 0.3
     d = np.clip(g, 0, 1) - 0.5
-    light = np.array([255, 226, 188], dtype=np.float64)
-    dark = np.array([8, 4, 2], dtype=np.float64)
+    light = np.array([236, 224, 194], dtype=np.float64)
+    dark = np.array([6, 6, 3], dtype=np.float64)
     rgb = np.where(d[..., None] > 0, light[None, None, :], dark[None, None, :])
     a = np.clip(np.abs(d) * 2.1, 0, 0.9)
     arr = np.concatenate([rgb, a[..., None] * 255], axis=-1)
