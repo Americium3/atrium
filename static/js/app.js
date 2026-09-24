@@ -5064,24 +5064,45 @@ function resolveTheme() {
     root.classList.add('theme-cut');
     root.dataset.theme = next;
   };
-  var uncut = function () {
-    root.classList.remove('theme-cut');
+  var uncut = function () { root.classList.remove('theme-cut'); };
+  var done = function () {
+    uncut();
     themeBusy = false;
     if (afterTheme) { var f = afterTheme; afterTheme = null; f(); }
   };
   if (document.startViewTransition && root.dataset.motion !== 'reduced') {
     var vt = document.startViewTransition(flip);
-    // The cut is lifted when the fade has finished, not when it starts.
-    // Lifting it restyles every element in the hall (the cut is a universal
-    // rule), and at `ready` that restyle, 100-130ms at 3440, landed in the
-    // middle of the 400ms fade and stalled it (MO-7). After `finished` it
-    // changes nothing on screen. Nothing transitions until then, which is
-    // why a throw asked for meanwhile waits for it (setWing).
-    vt.finished.then(uncut, uncut);
+    // The fade is held on its first millisecond until the new hall has been
+    // rastered, and the cut is lifted meanwhile. The fade starts at `ready`,
+    // before the new hall is drawn, and at 3440 that raster took 300-700ms:
+    // the fade ran out on the clock behind it and landed in two or three
+    // frames. Held at 1ms the new hall is on screen, too faint to see, so it
+    // is rastered, and the 400ms fade then plays in full. Lifting the cut
+    // restyles every element in the hall (88ms at 3440, and a 240ms raster
+    // after it); lifted after `finished` it froze the hall again once the
+    // fade was over (MO-7), so it goes in the frame after `ready`, inside
+    // the hold, when the flip is styled and nothing new is seen yet.
+    vt.ready.then(function () {
+      requestAnimationFrame(uncut);
+      var fades = document.getAnimations().filter(function (a) {
+        return a.effect && a.effect.pseudoElement &&
+          a.effect.pseudoElement.indexOf('::view-transition') === 0;
+      });
+      fades.forEach(function (a) { a.pause(); a.currentTime = 1; });
+      var go = function () {
+        clearTimeout(cap);
+        fades.forEach(function (a) { if (a.playState === 'paused') a.play(); });
+      };
+      var cap = setTimeout(go, 1200);
+      afterDrawn(go);
+    }, uncut);
+    // A throw asked for meanwhile still waits for the fade to finish
+    // (setWing): its arches would change places inside the picture.
+    vt.finished.then(done, done);
   } else {
     flip();
     void root.offsetWidth;   // the flip's style change happens under the cut
-    uncut();
+    done();
   }
 }
 function setThemePref(pref) {
