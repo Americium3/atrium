@@ -1,0 +1,74 @@
+/* ===========================================================================
+   THE PICTURE PALACE: the entrance, through the doors
+
+   The street in front of the palace, dressed by static/js/entrance.js: the
+   canopy, the entrance bay and its doors, the pavement, and the hall seen
+   through the glass. Every piece is drawn once in its own SVG and moved
+   only by transform and opacity (Web Animations), so the walk runs on the
+   compositor. This sheet only places the pieces and colours the few plain
+   planes; the drawing and the light live in the script.
+   =========================================================================== */
+#entrance {
+  position: fixed; inset: 0; z-index: 100;
+  overflow: hidden;
+  pointer-events: none;
+}
+html[data-entered="no"] #entrance { pointer-events: auto; cursor: pointer; }
+html[data-entered="yes"] #entrance { display: none; }
+html[data-entered="no"] #entrance.done-fade { pointer-events: none; cursor: auto; }
+/* Until the script has dressed the street, the street's own dark (or the
+   day's pale stone) stands in for it, so no first frame shows the hall
+   bare and at full size. */
+html[data-entered="no"] #entrance:not(.dressed) { background: #07060a; }
+:root[data-theme="ivory"][data-entered="no"] #entrance:not(.dressed) { background: #d9d4c8; }
+
+#entrance .e-world { position: absolute; inset: 0; overflow: hidden; }
+#entrance .e-defs { position: absolute; width: 0; height: 0; overflow: hidden; }
+#entrance .e-card,
+#entrance .e-row,
+#entrance .e-leaf,
+#entrance .e-plane,
+#entrance .e-band { position: absolute; left: 0; top: 0; }
+#entrance .e-row,
+#entrance .e-leaf { transform-origin: 0 0; }
+#entrance .e-layer {
+  position: absolute; left: 0; top: 0;
+  width: 100%; height: 100%;
+  overflow: visible;
+}
+
+/* ----- The foyer's far wall ------------------------------------------------
+   Round the hall the foyer carries on: its ceiling over the masthead, its
+   floor under the hall's own, its walls either side. The ring is seen only
+   in the last of the walk, in the doorway's corners. Flat colours, like the
+   veil and the ground under the wet stone: a plane of one colour is drawn
+   by the compositor without a tile to raster, however large it is scaled. */
+:root[data-theme="onyx"] #entrance .e-ring-top { background: #080605; }
+:root[data-theme="onyx"] #entrance .e-ring-bot { background: #0b0907; }
+:root[data-theme="onyx"] #entrance .e-ring-l,
+:root[data-theme="onyx"] #entrance .e-ring-r { background: #0a0806; }
+:root[data-theme="ivory"] #entrance .e-ring-top { background: #e9e2d3; }
+:root[data-theme="ivory"] #entrance .e-ring-bot { background: #d3c7ae; }
+:root[data-theme="ivory"] #entrance .e-ring-l,
+:root[data-theme="ivory"] #entrance .e-ring-r { background: #e6dece; }
+/* The hall as the street sees it: the foyer by night is lit but not yet at
+   full light; by day it is a shade darker than the sunlit pavement the eye
+   has been on. The veil lifts as the reader crosses the threshold. */
+:root[data-theme="onyx"] #entrance .e-veil { background: rgba(6, 4, 2, 0.4); }
+:root[data-theme="ivory"] #entrance .e-veil { background: rgba(40, 30, 16, 0.2); }
+#entrance .e-mirror-ground { background: #050406; }
+
+/* ----- The marquee's one chase (the hall's own, at the landing) ------------ */
+.e-marquee { position: absolute; overflow-x: clip; overflow-y: visible; }
+/* Sized and moved in whole bulb pitches, from the bulbs' own origin
+   (marqueeChase() in entrance.js writes the lengths and the steps). */
+.e-chase {
+  position: absolute; left: 0; width: var(--ec-w, 24%);
+  height: calc(21px * var(--ui));
+  background:
+    radial-gradient(circle, #fff 0 24%, rgba(255, 238, 196, 0.95) 38%, rgba(255, 200, 120, 0.45) 56%, transparent 66%) 0 50% / calc(13px * var(--ui)) calc(9px * var(--ui)) repeat-x,
+    radial-gradient(50% 50% at 50% 50%, rgba(255, 196, 110, 0.5), transparent 100%);
+  opacity: 0;
+}
+.e-chase-t { top: calc(-6px * var(--ui)); }
+.e-chase-b { bottom: calc(-6px * var(--ui)); }

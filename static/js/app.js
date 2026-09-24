@@ -544,350 +544,43 @@ function cancelDwells() {
 }
 
 /* ========================================================================
-   Entrance: the house curtain (see DESIGN.md timeline)
+   Entrance: through the doors (see DESIGN.md timeline). The street, its
+   camera and its clock are static/js/entrance.js; this is the wiring: the
+   hold, the skip and the landing.
    ======================================================================== */
 var entrance = $('#entrance');
 var entranceTimers = [];
-var ENS = 'http://www.w3.org/2000/svg';
-function eEl(tag, attrs, cls) {
-  var e = document.createElementNS(ENS, tag);
-  for (var k in attrs) e.setAttribute(k, attrs[k]);
-  if (cls) e.setAttribute('class', cls);
-  return e;
+
+/* The walk ends with the horizon on the clock's dial, the hall's own eye
+   point, where its floor runs to. Read when the street is dressed and again
+   whenever the stage is solved while it stands (the gates arriving), so the
+   hall lands where it will rest. */
+function entranceEye() {
+  var dial = $('#clock .dial');
+  var r = dial && dial.getBoundingClientRect();
+  if (!r || !r.height) return window.innerHeight * 0.45;
+  // read through the hall's pose behind the doors, if it has one yet
+  return window.Entrance ? window.Entrance.restY(r.top + r.height / 2) : r.top + r.height / 2;
+}
+function entranceMeasure() {
+  if (root.dataset.entered !== 'no' || !window.Entrance) return;
+  window.Entrance.measure(entranceEye());
 }
 
-/* The crest on the house curtain: a gilt sunburst appliqued on the velvet
-   (the rays, which exist nowhere else in the hall but in the day's light
-   shafts) round the hall's own enamelled badge. Built once.
-   Each ray is carved and gilded, a half-round moulding that tapers to its
-   point. It is shaded in eight bands across its width, each band lit by
-   how it faces the follow spot (from the booth: in front and above) and
-   the footlights (below, warm), so the bands follow the taper and every
-   ray is rounded whichever way it points. The leaf carries its burnish
-   grain, each ray takes the light a little differently, and the crest
-   stands off the pile and throws a soft shadow down onto it. The rays used
-   to be flat wedges, one half of each a shade darker over a hard shadow,
-   with a line drawing of the rosette at the centre: a logo from an icon
-   set against a photographed hall (AR-32). */
-function buildRays() {
-  var g = $('.e-rays');
-  if (!g || g.childNodes.length) return;
-  var defs = eEl('defs', {});
-  // the leaf along each ray, brightest toward the badge where the spot is
-  var gr = eEl('radialGradient', { id: 'e-gilt', gradientUnits: 'userSpaceOnUse', cx: 0, cy: 0, r: 336 });
-  [0, 0.3, 0.62, 1].forEach(function (o, k) { gr.appendChild(eEl('stop', { offset: o }, 'e-gilt-' + k)); });
-  defs.appendChild(gr);
-  var pt = eEl('pattern', { id: 'e-gilt-tex', patternUnits: 'userSpaceOnUse', width: 150, height: 150 });
-  pt.appendChild(eEl('image', { href: '/static/assets/tex/grain-gilt.webp', width: 150, height: 150 }));
-  defs.appendChild(pt);
-  var soft = eEl('filter', { id: 'e-soft', x: '-20%', y: '-20%', width: '140%', height: '140%' });
-  soft.appendChild(eEl('feGaussianBlur', { stdDeviation: 5 }));
-  defs.appendChild(soft);
-  g.parentNode.insertBefore(defs, g);
-
-  var N = 48, B = 8, D = Math.PI / 180;
-  var unit = function (v) { var l = Math.hypot(v[0], v[1], v[2]); return [v[0] / l, v[1] / l, v[2] / l]; };
-  var dot = function (u, v) { return u[0] * v[0] + u[1] * v[1] + u[2] * v[2]; };
-  var spot = unit([0.1, -0.45, 0.89]), foot = unit([0, 0.8, 0.6]);
-  var glint = unit([spot[0], spot[1], spot[2] + 1]);
-  var xy = function (v) { return v[0].toFixed(1) + ',' + v[1].toFixed(1); };
-  var outline = '', rays = [];
-  for (var i = 0; i < N; i++) {
-    var a = i * 360 / N - 90, tier = i % 4 === 0 ? 0 : i % 2 === 0 ? 1 : 2;
-    var r0 = 96, r1 = [330, 268, 212][tier] + 12 * (hash01(i + 11) - 0.5);
-    var w0 = [4.6, 3.8, 3.1][tier], w1 = w0 * 0.3 * 98 / r1 * 2.4;
-    var at = function (r, da) { return [r * Math.cos((a + da) * D), r * Math.sin((a + da) * D)]; };
-    var tl = at(r1, -w1), tp = at(r1 + 7, 0), tr = at(r1, w1);
-    // across the ray (s from -1 to 1): the foot on the badge's rim, and the
-    // point, cut to a mitre at the tip
-    var foot0 = function (s) { return at(r0, s * w0); };
-    var tipAt = function (s) {
-      var u = s < 0 ? s + 1 : s, p = s < 0 ? tl : tp, q = s < 0 ? tp : tr;
-      return [p[0] + (q[0] - p[0]) * u, p[1] + (q[1] - p[1]) * u];
-    };
-    outline += 'M' + [foot0(-1), tl, tp, tr, foot0(1)].map(xy).join('L') + 'Z';
-    var across = [-Math.sin(a * D), Math.cos(a * D)];
-    var take = 0.86 + 0.28 * hash01(i + 71);   // each ray takes the light its own way
-    var best = -1, bestK = 0, bands = [];
-    for (var k = 0; k < B; k++) {
-      var s0 = -1 + 2 * k / B, s1 = s0 + 2 / B, th = (s0 + s1) / 2 * 74 * D;
-      var n = [across[0] * Math.sin(th), across[1] * Math.sin(th), Math.cos(th)];
-      var v = (0.78 * Math.max(0, dot(n, spot)) + 0.26 * Math.max(0, dot(n, foot))) * take;
-      var gl = Math.pow(Math.max(0, dot(n, glint)), 28);
-      if (gl > best) { best = gl; bestK = k; }
-      // a band darker than the leaf's own tone is glazed toward umber, a
-      // lighter one toward the warm white of burnished gold
-      var fill = v < 0.66
-        ? 'rgba(34,16,2,' + Math.min(0.8, (0.66 - v) * 1.25).toFixed(3) + ')'
-        : 'rgba(255,238,196,' + Math.min(0.75, (v - 0.66) * 1.1 + gl * 0.55).toFixed(3) + ')';
-      bands.push({ d: 'M' + [foot0(s0), foot0(s1), tipAt(s1), tipAt(s0)].map(xy).join('L') + 'Z', fill: fill });
-    }
-    var g0 = -1 + 2 * Math.max(0, bestK - 1) / B, g1 = -1 + 2 * Math.min(B, bestK + 2) / B;
-    rays.push({ bands: bands, glint: [foot0(g0), foot0(g1), tipAt(g1), tipAt(g0)].map(xy).join(' ') });
-  }
-  g.appendChild(eEl('path', { d: outline, transform: 'translate(3 8)', filter: 'url(#e-soft)' }, 'e-ray-sh'));
-  g.appendChild(eEl('path', { d: outline }, 'e-ray'));
-  rays.forEach(function (r) {
-    r.bands.forEach(function (b) {
-      var p = eEl('path', { d: b.d }, 'e-ray-band');
-      p.style.fill = b.fill;
-      g.appendChild(p);
-    });
-  });
-  g.appendChild(eEl('path', { d: outline }, 'e-ray-tex'));
-  g.appendChild(eEl('path', { d: outline }, 'e-ray-edge'));
-  // Each ray catches the spot on its own beat, along its crown: the glint
-  // runs round the sun.
-  rays.forEach(function (r, i) {
-    var p = eEl('polygon', { points: r.glint }, 'e-ray-lit');
-    p.style.setProperty('--i', String(i));
-    g.appendChild(p);
-  });
-}
-
-/* The badge at the crest's heart is the masthead's own: the enamelled
-   radiator badge room.js casts for the monogram, at crest scale, so the
-   spot docks on the badge it opened on. Cloned rather than <use>d, so its
-   parts keep their styling; it is built at DOMContentLoaded, after the
-   masthead. */
-function dressMedal() {
-  var m = $('.e-medal'), src = $('#monogram');
-  if (!m || m.childNodes.length) return;
-  m.appendChild(eEl('circle', { cx: 3, cy: 9, r: 86, filter: 'url(#e-soft)' }, 'e-medal-sh'));
-  var badge = eEl('g', { transform: 'scale(3.62) translate(-24 -24)' }, 'e-badge');
-  var parts = src ? Array.prototype.filter.call(src.childNodes, function (n) {
-    return n.nodeType === 1 && n.tagName.toLowerCase() !== 'defs';
-  }) : [];
-  if (parts.length) {
-    parts.forEach(function (n) { badge.appendChild(n.cloneNode(true)); });
-  } else {
-    badge.appendChild(eEl('use', { href: '#rosette' }, 'e-medal-mark'));
-  }
-  m.appendChild(badge);
-}
-
-/* The day's light: a low sun through four open doors behind the reader.
-   Its rays are parallel, so each door's light on the floor is a band whose
-   edges run away to one point dead ahead at eye height, cut off where the
-   floor meets the wall; on the wall the same band stands upright and ends
-   at the shadow of the door's lintel. Each band carries the shadow of its
-   glazing bar and, on the wall, of the transom. The shade between them is
-   the street's sky, cooler than the sun, and dust turns in the beams. The
-   geometry follows the room (the floor line is measured), so it is drawn
-   in an SVG sized to the screen, and again whenever the stage is solved
-   while the entrance stands. Only the motes move. */
-var DOORS = [[0.115, 0.215], [0.335, 0.425], [0.572, 0.668], [0.79, 0.885]];
-function lightDoors() {
-  var host = $('.e-shafts');
-  if (!host || !entrance.classList.contains('day') || root.dataset.entered !== 'no') return;
-  var W = window.innerWidth, H = window.innerHeight;
-  var fp = $('#floorplane'), fr = fp && fp.getBoundingClientRect();
-  var yw = fr && fr.height ? fr.top : H * 0.7;
-  var key = W + 'x' + H + ':' + Math.round(yw);
-  if (host.dataset.key === key) return;
-  host.dataset.key = key;
-  var vx = W / 2, vy = yw - H * 0.3;       // eye height, dead ahead
-  var yl = H * 0.2, foot = H + 40;         // the lintel's shadow; past the screen's foot
-  var yt = yl + (yw - yl) * 0.28, th = (yw - yl) * 0.035;
-  var out = function (x) { return vx + (x - vx) * (foot - vy) / (yw - vy); };
-  var f1 = function (v) { return v.toFixed(1); };
-  var band = function (x0, x1) {
-    return 'M' + [[x0, yl], [x1, yl], [x1, yw], [out(x1), foot], [out(x0), foot], [x0, yw]]
-      .map(function (p) { return f1(p[0]) + ' ' + f1(p[1]); }).join('L') + 'Z';
-  };
-  var beams = '', bars = '', motes = [];
-  DOORS.forEach(function (d, k) {
-    var x0 = d[0] * W, x1 = d[1] * W, xm = (x0 + x1) / 2, m = (x1 - x0) * 0.035;
-    beams += band(x0, x1);
-    bars += band(xm - m, xm + m) +
-      'M' + f1(x0) + ' ' + f1(yt) + 'H' + f1(x1) + 'V' + f1(yt + th) + 'H' + f1(x0) + 'Z';
-    // the dust in this door's light, placed inside it
-    for (var i = 0; i < 22; i++) {
-      var u = hash01(k * 97 + i * 7 + 501), v = hash01(k * 89 + i * 13 + 601);
-      var y = yl + (H - yl) * (0.08 + 0.9 * v);
-      var t = y <= yw ? 0 : (y - yw) / (foot - yw);
-      var a = x0 + (out(x0) - x0) * t, b = x1 + (out(x1) - x1) * t;
-      var r = +(0.7 + 1.5 * Math.pow(hash01(k * 31 + i + 701), 2)).toFixed(2), R = r * 2.4;
-      var al = (0.35 + 0.5 * hash01(k * 29 + i + 801)).toFixed(2);
-      // each mote is its own speck on whole pixels, its exact centre kept
-      // inside it
-      var cx = a + (b - a) * u, tx = Math.floor(cx - R), ty = Math.floor(y - R), S = Math.ceil(2 * R) + 2;
-      motes.push('left:' + tx + 'px;top:' + ty + 'px;width:' + S + 'px;height:' + S + 'px;' +
-        'background:radial-gradient(circle at ' + (cx - tx).toFixed(2) + 'px ' + (y - ty).toFixed(2) + 'px, ' +
-        'rgba(255, 252, 238, ' + al + ') 0 ' + r.toFixed(2) + 'px, rgba(255, 248, 226, 0) ' + R.toFixed(2) + 'px)');
-    }
-  });
-  host.innerHTML =
-    '<svg class="e-light" viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none" aria-hidden="true">' +
-      '<defs><filter id="e-pen" x="-5%" y="-5%" width="110%" height="110%"><feGaussianBlur stdDeviation="2.4"/></filter>' +
-      '<linearGradient id="e-sun" x1="0" y1="0" x2="0" y2="1">' +
-        '<stop offset="0" class="e-sun-0"/><stop offset="0.6" class="e-sun-1"/><stop offset="1" class="e-sun-2"/>' +
-      '</linearGradient></defs>' +
-      '<rect class="e-shade" width="' + W + '" height="' + H + '"/>' +
-      '<g filter="url(#e-pen)"><path class="e-beam" d="' + beams + '"/><path class="e-bar" d="' + bars + '"/></g>' +
-    '</svg>';
-  // The dust was one screen-sized layer of 88 screen-sized gradients inside
-  // the glare. Its one raster took about a second of raster time at 3440
-  // and landed in the fade (a 340-390ms frame), and a screen-sized layer
-  // on the move cost every frame of the drift about a fifth more than the
-  // same dust held still. Now each speck is its own small layer beside the
-  // glare, fading on the glare's curve (palace-desk.css), and only their
-  // holder moves.
-  var flood = host.parentNode, dust = flood.nextElementSibling;
-  if (!dust || !dust.classList.contains('e-motes')) {
-    dust = el('div', 'e-motes');
-    flood.parentNode.insertBefore(dust, flood.nextSibling);
-  }
-  dust.textContent = '';
-  motes.forEach(function (css) {
-    var m = el('i', 'e-mote');
-    m.style.cssText = css;
-    dust.appendChild(m);
-  });
-}
-
-/* A gilt ring that draws itself round from twelve o'clock, by opacity
-   alone: short arcs, each fading in on its own beat (the beats bunch up at
-   the start, as an ease-out would), laid under the finished ring, which
-   is the same geometry and takes over in one frame once every arc is in,
-   so no seam between two arcs is left on the ring. Built once. */
-function segmentRing(whole, r, n, layers) {
-  if (!whole || (whole.previousSibling && whole.previousSibling.nodeType === 1 &&
-      whole.previousSibling.classList.contains('e-segs'))) return;
-  var g = eEl('g', {}, 'e-segs'), D = Math.PI / 180, T = 400;
-  var P = function (a) { return (r * Math.cos(a * D)).toFixed(2) + ' ' + (r * Math.sin(a * D)).toFixed(2); };
-  for (var i = 0; i < n; i++) {
-    // each arc runs a hair into the next, so none of the joins shows a gap
-    var a0 = -90 + i * 360 / n, a1 = a0 + 360 / n + 0.4;
-    var d = 'M' + P(a0) + 'A' + r + ' ' + r + ' 0 0 1 ' + P(a1);
-    var seg = eEl('g', {}, 'e-seg');
-    seg.style.setProperty('--d', Math.round(T * Math.pow(i / n, 1.9)) + 'ms');
-    layers.forEach(function (l) {
-      var at = { d: d };
-      if (l[1]) at.transform = 'translate(0 ' + l[1] + ')';
-      seg.appendChild(eEl('path', at, l[0]));
-    });
-    g.appendChild(seg);
-  }
-  whole.parentNode.insertBefore(g, whole);
-}
-
-/* The festoon: as the curtain flies out, the hem gathers between its lift
-   lines into swags. One swag per ~300px of screen, each a velvet drape
-   with its folds running up to the lift points and a bullion fringe. */
-function buildSwag() {
-  var svg = $('.e-swag');
-  if (!svg) return;
-  var W = window.innerWidth, H = Math.round(window.innerHeight * 0.2);
-  var n = Math.max(4, Math.round(W / 300)), s = W / n, dip = Math.min(H - 26, s * 0.3);
-  var f1 = function (v) { return v.toFixed(1); };
-  svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
-  svg.textContent = '';
-  var defs = eEl('defs', {});
-  var gr = eEl('linearGradient', { id: 'e-swag-g', x1: 0, y1: 0, x2: 0, y2: 1 });
-  [0, 0.55, 1].forEach(function (o, k) { gr.appendChild(eEl('stop', { offset: o }, 'e-swag-s' + k)); });
-  defs.appendChild(gr);
-  svg.appendChild(defs);
-  var drape = '', folds = '', lights = '', fringe = '';
-  for (var k = 0; k < n; k++) {
-    var x0 = k * s, x1 = (k + 1) * s, cx = (x0 + x1) / 2;
-    drape += 'M' + f1(x0) + ' 0H' + f1(x1) + 'C' + f1(x1 - s * 0.12) + ' ' + f1(dip * 1.25) +
-             ' ' + f1(x0 + s * 0.12) + ' ' + f1(dip * 1.25) + ' ' + f1(x0) + ' 0Z';
-    for (var f = 1; f <= 4; f++) {
-      var t = f / 5, side = f % 2 ? x0 : x1, mx = x0 + s * t, my = dip * (0.35 + 0.6 * Math.sin(t * Math.PI));
-      folds += 'M' + f1(side) + ' 2Q' + f1((side + mx) / 2) + ' ' + f1(my * 0.5) + ' ' + f1(mx) + ' ' + f1(my);
-      lights += 'M' + f1(side + (f % 2 ? 3 : -3)) + ' 2Q' + f1((side + mx) / 2 + 2) + ' ' + f1(my * 0.45) +
-                ' ' + f1(mx + 2) + ' ' + f1(my - 3);
-    }
-    // the fringe hangs from the drape's lower edge
-    for (var x = x0 + 1; x < x1; x += 3) {
-      var u = (x - x0) / s, y = dip * 0.94 * (1 - Math.pow(2 * u - 1, 2)) + 0.5;
-      fringe += 'M' + f1(x) + ' ' + f1(y) + 'v' + f1(13 + 3 * hash01(Math.round(x)));
-    }
-    lights += 'M' + f1(cx - s * 0.3) + ' ' + f1(dip * 0.72) + 'Q' + f1(cx) + ' ' + f1(dip * 1.02) +
-              ' ' + f1(cx + s * 0.3) + ' ' + f1(dip * 0.72);
-  }
-  svg.appendChild(eEl('path', { d: drape }, 'e-swag-body'));
-  svg.appendChild(eEl('path', { d: folds }, 'e-swag-fold'));
-  svg.appendChild(eEl('path', { d: lights }, 'e-swag-lit'));
-  svg.appendChild(eEl('path', { d: fringe }, 'e-swag-fringe'));
-}
-
-/* The fanlights light from the clock outward: each lit arch is ranked by
-   how many bays stand between it and the niche, and the pair in the same
-   bay either side light together. */
-function orderFanlights() {
-  var clock = $('#clock');
-  if (!clock) return;
-  var c = clock.getBoundingClientRect(), mid = c.left + c.width / 2;
-  var left = [], right = [];
-  document.querySelectorAll('#gates .gate.active').forEach(function (g) {
-    var r = g.getBoundingClientRect(), x = r.left + r.width / 2;
-    (x < mid ? left : right).push({ g: g, d: Math.abs(x - mid) });
-  });
-  [left, right].forEach(function (side) {
-    side.sort(function (a, b) { return a.d - b.d; });
-    side.forEach(function (it, i) { it.g.style.setProperty('--fan-i', String(i)); });
-  });
-}
-
-/* The marquee's bulbs chase once, on the band's own box, in whole bulbs.
-   The run of lit bulbs was a quarter of the band wide and travelled in
-   percent of itself, so its 28 steps came out 5.6 bulb pitches long at
-   1920 and 7.9 at 3440, and each step lit dots 3-9px off the bulbs. Now
-   the run is a whole number of pitches, starts one run-length off the
-   band's left end (the bulbs' own origin) and steps a whole number of
-   pitches, so every lit dot lands on a bulb. */
-var E_CHASE_STEPS = 28;   // the keyframes' steps(), palace-desk.css
-function placeMarquee() {
-  var tk = $('#ticker'), mq = $('.e-marquee');
-  if (!tk || !mq) return;
-  var r = tk.getBoundingClientRect();
-  mq.style.left = r.left + 'px'; mq.style.top = r.top + 'px';
-  mq.style.width = r.width + 'px'; mq.style.height = r.height + 'px';
-  var ui = parseFloat(getComputedStyle(tk).getPropertyValue('--ui')) || 1;
-  var pitch = 13 * ui;                         // .t-bulbs' tile
-  var run = Math.max(1, Math.round(r.width * 0.24 / pitch));
-  var span = run + Math.ceil(r.width / pitch); // off the left end to off the right
-  var step = Math.ceil(span / E_CHASE_STEPS);
-  mq.style.setProperty('--ec-w', (run * pitch) + 'px');
-  mq.style.setProperty('--ec-from', (-run * pitch) + 'px');
-  mq.style.setProperty('--ec-to', ((step * E_CHASE_STEPS - run) * pitch) + 'px');
-}
-
-/* The dock: the spot (night) or the gilt ring (day) flies onto the
-   masthead's rosette and goes out on it. Aimed at where the rosette rests,
-   read off the masthead's own transform this frame. */
-function dockEntrance() {
-  var mono = $('#monogram').getBoundingClientRect();
-  var burst = $('.e-burst').getBoundingClientRect();
-  var mast = $('#masthead');
-  var lift = mast ? new DOMMatrixReadOnly(getComputedStyle(mast).transform).m42 : 0;
-  entrance.style.setProperty('--dock-x', (mono.left + mono.width / 2 - (burst.left + burst.width / 2)) + 'px');
-  entrance.style.setProperty('--dock-y', (mono.top + mono.height / 2 - lift - (burst.top + burst.height / 2)) + 'px');
-  entrance.style.setProperty('--dock-s', String(Math.max(0.04, mono.width * 1.15 / burst.width)));
-  entrance.classList.add('dock');
-}
-
-/* The curtain is dressed at once, but its clock starts only when the hall
-   behind it is built and drawn. It used to start as the script ran, while
-   the gates, their first readings, the band and the Ledger were still going
-   in behind it: at 3440 their first raster froze the curtain twice in its
-   first 400ms, just as the footlights came up and the spot opened (MO-8).
-   Now that raster happens under a curtain that is standing still: the
-   clock starts once the boot's first readings are in (the gates', and the
-   cases' where they stand) and the frames that draw them have gone out. A
-   hub slow to answer holds the curtain ENTRANCE_HOLD ms, and then the clock
-   starts as soon as the frames run at the display's pace again. It used to
-   start the moment the hold ran out, and a first raster can take longer
-   than that: the footlights and the spot began inside a 250-550ms freeze
-   (MO-8). A browser that has drawn the hall before (a new tab, or a restart
-   on the same profile) settles 0.45-0.85s after load, at 1920 and at 3440.
-   One with no shaders compiled yet (a new profile, as every probe launch
-   is) spends 2.3-3s on its first draws at either size, and there it is
-   ENTRANCE_HOLD_MAX that starts the clock, at 3440 into the last of them.
-   It is also for a renderer that never settles, and for a tab that draws
-   nothing. */
+/* The street is dressed at once, but its clock starts only when the hall
+   behind the doors is built and drawn. The hall is seen through the glass
+   from the first beat, and its first raster at 3440 froze the page twice
+   in its first 400ms; that raster now happens while the street stands
+   still. The clock starts once the boot's first readings are in (the
+   gates', and the cases' where they stand) and the frames that draw them
+   have gone out. A hub slow to answer holds the street ENTRANCE_HOLD ms,
+   and then the clock starts as soon as the frames run at the display's
+   pace again. A browser that has drawn the hall before (a new tab, or a
+   restart on the same profile) settles 0.45-0.85s after load, at 1920 and
+   at 3440. One with no shaders compiled yet (a new profile, as every probe
+   launch is) spends 2.3-3s on its first draws at either size, and there it
+   is ENTRANCE_HOLD_MAX that starts the clock. It is also for a renderer
+   that never settles, and for a tab that draws nothing. */
 var ENTRANCE_HOLD = 900, ENTRANCE_HOLD_MAX = 2500;
 /* Calls fn once what has been handed to the compositor is on screen. No
    callback says so, and a fixed two frames is not it: the main thread runs
@@ -916,62 +609,76 @@ function afterDrawn(fn) {
     if (calm >= (heavy ? 2 : CALM_RUN)) fn(); else requestAnimationFrame(tick);
   });
 }
-/* The crest is hung, and the spot opened, where the dial stands behind the
-   curtain, so the spot the curtain leaves behind is on the clock. Both were
-   at a fixed 44vh, and the dial's centre is the solved row's: 17-42px lower
-   on most screens and 42-53px higher on tall ones, and the pool sat across
-   the dial's upper half before it flew to the monogram (VD-18). Measured
-   when the curtain is dressed and again whenever the stage is solved while
-   it stands (the gates arriving, a resize). The crest and the name stay
-   out of sight until then (.placed): the dial is not drawn when the curtain
-   is dressed, and the row it stands in is solved only once the gates are in,
-   so a crest shown at once jumped to the dial during the hold. */
-function placeCrest(anyway) {
-  if (root.dataset.entered !== 'no') return;
-  var dial = $('#clock .dial');
-  var r = dial && dial.getBoundingClientRect();
-  if (r && r.height) {
-    entrance.style.setProperty('--clock-cy', (r.top + r.height / 2).toFixed(1) + 'px');
-  } else if (!anyway) {
-    return;
-  }
-  entrance.classList.add('placed');
-  lightDoors();
+
+/* The street is painted into its canvases while it stands (a few hundred
+   ms at 3440); until then the overlay's own dark (or the day's stone) holds
+   the screen. */
+var streetReady = Promise.resolve(false);
+var ENTRANCE_GIVE_UP = 6000;
+function dressStreet() {
+  entrance.classList.remove('dressed');
+  var p = streetReady = window.Entrance.dress(entrance, {
+    theme: root.dataset.theme, wing: root.dataset.wing, yEnd: entranceEye()
+  }).then(function (ok) {
+    if (ok && p === streetReady) entrance.classList.add('dressed');
+    return ok && p === streetReady;
+  });
+  return p;
 }
+function whenStreet(fn) {
+  var p = streetReady;
+  p.then(function (ok) {
+    if (p !== streetReady) whenStreet(fn);
+    else if (ok) fn();
+  });
+}
+/* A resize while the street stands dresses it again for the new screen;
+   once the walk has begun it lands the hall instead. */
+function entranceResize() {
+  if (root.dataset.entered !== 'no') return;
+  if (window.Entrance.running()) finishEntrance();
+  else dressStreet();
+}
+
 function playEntrance(built) {
-  // Disable ledger button during entrance; re-enabled in finishEntrance()
+  // The Ledger's hatch waits for the hall; finishEntrance() opens it.
   var lb = $('#ledger-btn');
   if (lb) lb.disabled = true;
-  var day = root.dataset.theme === 'ivory';
-  entrance.classList.add(day ? 'day' : 'night');
-  placeCrest();
-  if (day) {
-    segmentRing($('.e-ring-whole'), 34, 40, [['e-ring-sh', 1], ['e-ring-hi', 0.6], ['e-ring-c', 0]]);
-  } else {
-    buildRays();
-    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', dressMedal);
-    else dressMedal();
-    buildSwag();
-    segmentRing($('.e-crest > .e-circle'), 92, 60, [['e-circle', 0]]);
+  // A reader who asked for less motion gets the quiet fade, ?entrance=1 or
+  // not: under the kill switch the walk would only be a run of hard cuts.
+  if (root.dataset.motion === 'reduced' || !window.Entrance || !Element.prototype.animate) {
+    root.dataset.boot = 'suppressed';
+    finishEntrance();
+    return;
   }
+  entrance.classList.add(root.dataset.theme === 'ivory' ? 'day' : 'night');
+  dressStreet();
+  window.addEventListener('resize', entranceResize);
   var started = false;
   function start() {
-    if (started || root.dataset.entered !== 'no') return;
+    if (started || root.dataset.entered !== 'no' || !window.Entrance.ready()) return;
     started = true;
-    runEntrance(day);
+    runEntrance();
   }
+  // Each way in waits for the street to be painted; the frames after that
+  // are the ones afterDrawn() watches.
   function arm() {
-    entranceTimers.push(setTimeout(function () { afterDrawn(start); }, ENTRANCE_HOLD));
-    entranceTimers.push(setTimeout(start, ENTRANCE_HOLD_MAX));
+    entranceTimers.push(setTimeout(function () { whenStreet(function () { afterDrawn(start); }); }, ENTRANCE_HOLD));
+    entranceTimers.push(setTimeout(function () { whenStreet(start); }, ENTRANCE_HOLD_MAX));
     Promise.resolve(built).then(function () {
-      afterDrawn(start);
+      whenStreet(function () { afterDrawn(start); });
     });
+    // A street that could not be painted lands the hall rather than
+    // holding the screen.
+    entranceTimers.push(setTimeout(function () {
+      if (!started) finishEntrance();
+    }, ENTRANCE_GIVE_UP));
   }
   // A hall loaded where nobody can see it (a tab opened in the background,
-  // a restored session) holds the curtain until the tab is first shown. The
-  // hold's fallback timer used to start the curtain anyway, and the hidden
+  // a restored session) holds the street until the tab is first shown. The
+  // hold's fallback timer used to start the clock anyway, and the hidden
   // tab's throttled timers ran the whole timeline to the end, so the reader
-  // arrived at a finished hall and never saw the curtain (RC-19).
+  // arrived at a finished hall and never saw the entrance (RC-19).
   if (document.visibilityState === 'hidden') {
     document.addEventListener('visibilitychange', function shown() {
       if (document.visibilityState !== 'visible') return;
@@ -984,46 +691,25 @@ function playEntrance(built) {
   armEntranceSkip();
 }
 
-function runEntrance(day) {
-  var at = function (ms, fn) { entranceTimers.push(setTimeout(fn, ms)); };
-  var beat = function (cls) { return function () { entrance.classList.add(cls); }; };
+function runEntrance() {
+  var E = window.Entrance;
+  // the gates may have been solved since the street was dressed
+  entranceMeasure();
   window.__entranceT0 = performance.now();   // read by the frame-capture scripts
-  // hung before the curtain's clock starts, on the dial if it stands
-  placeCrest(true);
+  E.start();
   entrance.classList.add('play');
-
-  if (day) {
-    // The doors are open to the street and the curtain is already up: the
-    // hall arrives as an exposure settling, with the sun's shafts in it,
-    // while the gilt ring that drew itself in the glare docks.
-    at(280, beat('expose'));
-    at(900, dockEntrance);
-    at(1400, beat('done-fade'));
-    at(1700, finishEntrance);
-  } else {
-    // The house is dark. The footlights come up along the curtain's hem.
-    at(60, beat('foot'));
-    // A follow spot opens on the crest; the rays catch it one by one.
-    at(250, beat('spot'));
-    // The curtain flies out, gathering into swags as it goes.
-    at(950, beat('rise'));
-    // The house lights come up: the marquee chases once, and the arches'
-    // fanlights light from the clock outward.
-    at(1450, function () {
-      placeMarquee();
-      orderFanlights();
-      entrance.classList.add('house');
-    });
-    // The spot, left on the air where the crest was, finds the rosette.
-    at(1750, dockEntrance);
-    // From done-fade the hall is what shows, so the overlay stops taking
-    // the pointer; a click there lands the entrance and does what it says.
-    at(2140, beat('done-fade'));
-    at(2700, finishEntrance);
-  }
+  var b = E.beats();
+  // From done-fade the hall is what shows, so the overlay stops taking the
+  // pointer; a click there lands the entrance and does what it says.
+  entranceTimers.push(setTimeout(function () { entrance.classList.add('done-fade'); }, b.doneFade));
+  // A frame capture that has stopped the clock (Entrance.seek) keeps the
+  // street standing until it is done.
+  entranceTimers.push(setTimeout(function () {
+    if (!E.frozen()) finishEntrance();
+  }, b.total));
 }
 
-/* Armed with the curtain, before its clock starts: a skip during the hold
+/* Armed with the street, before its clock starts: a skip during the hold
    lands the hall just the same. */
 function armEntranceSkip() {
   // Any input cuts the entrance short. Until done-fade the overlay has
@@ -1076,37 +762,31 @@ function swallowNextClick() {
   window.addEventListener('pointercancel', soon, true);
 }
 
+/* Lands the hall, wherever the entrance had got to: every animation of the
+   street, the hall's scale, its lamps and the marquee's chase is cancelled
+   at once, so the hall stands at rest with its lamps as the room has them,
+   nothing left half done. */
 function finishEntrance() {
+  if (root.dataset.entered === 'yes') return;
   entranceTimers.forEach(clearTimeout);
+  entranceTimers = [];
   if (entranceSkip) {
     window.removeEventListener('pointerdown', entranceSkip, true);
     window.removeEventListener('keydown', entranceSkip);
     window.removeEventListener('wheel', entranceSkip);
     entranceSkip = null;
   }
+  window.removeEventListener('resize', entranceResize);
+  if (window.Entrance) window.Entrance.clear();
   entrance.style.display = 'none';
-  // A skip before the house beat lands the lamps with the hall. They were
-  // held out by the curtain's rule, and once that let go they came up on
-  // the throw's timing, 420ms late and over 0.7s, so a skip showed the
-  // assembled hall with its fanlights dark for most of a second. The short
-  // fade is set for the flip's frame only; a transition keeps the timing
-  // it started with, so lifting the class later leaves it running.
-  var early = entrance.classList.contains('night') && !entrance.classList.contains('house');
-  if (early) root.classList.add('e-landing');
   // data-boot stays 'played', so the suppressed-load hall-fade does NOT
-  // retrigger on this flip. The fanlights' entrance order goes with it.
+  // retrigger on this flip.
   root.dataset.entered = 'yes';
-  if (early) {
-    requestAnimationFrame(function () {
-      requestAnimationFrame(function () { root.classList.remove('e-landing'); });
-    });
-  }
-  document.querySelectorAll('#gates .gate').forEach(function (g) { g.style.removeProperty('--fan-i'); });
   // Re-enable ledger button now that entrance is done
   var lb = $('#ledger-btn');
   if (lb) lb.disabled = false;
   // Relay: motion transfers from the overlay to the hall. The gear train
-  // twitches one tooth — the machine exhales as the overlay clears.
+  // twitches one tooth: the machine exhales as the overlay clears.
   deskNudge();
 }
 
@@ -2079,7 +1759,7 @@ function layoutStage(initial) {
   });
   rowGeom = geom;
   if (initial || !same) buildAisles();
-  if (initial) placeCrest();
+  if (initial) entranceMeasure();
 }
 var handoffT = 0, handoffFn = null;
 var HANDOFF_NET = 1500;   // ms past an arch's beat before focus stops waiting for its rise
