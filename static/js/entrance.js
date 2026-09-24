@@ -385,6 +385,8 @@ function defsMap(P) {
   D['e-dusk-g'] = '<radialGradient id="e-dusk-g" gradientUnits="userSpaceOnUse" cx="0" cy="-1.4" r="7.5">' +
     '<stop offset="0" stop-color="rgba(3,2,5,0.18)"/><stop offset="0.32" stop-color="rgba(3,2,5,0.5)"/>' +
     '<stop offset="1" stop-color="rgba(3,2,5,0.78)"/></radialGradient>';
+  D['e-dim'] = '<filter id="e-dim" x="0" y="0" width="1" height="1"><feComponentTransfer>' +
+    '<feFuncR type="linear" slope="0.34"/><feFuncG type="linear" slope="0.3"/><feFuncB type="linear" slope="0.3"/></feComponentTransfer></filter>';
   D['e-softer'] = '<filter id="e-softer" filterUnits="userSpaceOnUse" x="-2" y="-4" width="5" height="6"><feGaussianBlur stdDeviation="0.12"/></filter>';
   D['e-streak'] = '<filter id="e-streak" x="-10%" y="-10%" width="120%" height="120%"><feGaussianBlur stdDeviation="0.06 0.3"/></filter>';
   return D;
@@ -1063,7 +1065,9 @@ function buildLeaf(side, P) {
   var haze;
   if (P.night) {
     haze = rect(gx0, gy0, gw, gy1, 'url(#e-foyer)') +
-      rect(gx0, gy0, gw, gy1, 'url(#e-frost)', ' opacity="0.45"');
+      '<ellipse cx="' + f3(side < 0 ? gx0 + gw : gx0) + '" cy="' + f3(-1.25) + '" rx="0.9" ry="1.3" fill="url(#e-pool)" opacity="0.9"/>' +
+      rect(gx0, gy0, gw, gy1, 'url(#e-frost)', ' opacity="0.12"') +
+      rect(gx0, gy0, gw, gy1, 'url(#e-sheen)', ' opacity="0.12"');
   } else {
     // the far side of the street in the glass: pale sky over soft fronts,
     // the sheen across it all
@@ -1120,10 +1124,14 @@ function buildStanchions(P) {
     });
   });
   var box = { x0: -3.55, x1: 3.55, y0: -0.06, y1: hgt + 0.08, z: z };
-  var layers = [lay('e-base', s, { x0: -3.55, x1: -1.1, y0: box.y0, y1: box.y1 }), lay('e-base', s, { x0: 1.1, x1: 3.55, y0: box.y0, y1: box.y1 })];
+  // By night the brass is in the dark until the canopy lights it: the
+  // standing piece is the brass unlit, and the lit brass fades in over it.
+  var dark = P.night ? '<g filter="url(#e-dim)">' + s + '</g>' : s;
+  var L = { x0: -3.55, x1: -1.1, y0: box.y0, y1: box.y1 }, R = { x0: 1.1, x1: 3.55, y0: box.y0, y1: box.y1 };
+  var layers = [lay('e-base', dark, L), lay('e-base', dark, R)];
   if (lit) {
-    layers.push(lay('e-lit', lit, { x0: -3.55, x1: -1.1, y0: box.y0, y1: box.y1 }));
-    layers.push(lay('e-lit', lit, { x0: 1.1, x1: 3.55, y0: box.y0, y1: box.y1 }));
+    layers.push(lay('e-lit', s + lit, L));
+    layers.push(lay('e-lit', s + lit, R));
   }
   var part = face('e-stanchions', box, layers);
   part.cap = 0.5;
@@ -1327,9 +1335,11 @@ function run(el, frames, total) {
   anims.push(a);
   return a;
 }
+/* A lamp that is out stands at 0.004, not 0: invisible, but a layer the
+   compositor still draws, so its first light is not also its first draw. */
 function fade(el, pts, total) {
   return run(el, pts.map(function (p) {
-    var o = { opacity: p[1] };
+    var o = { opacity: Math.max(0.004, p[1]) };
     if (p[2]) o.easing = p[2];
     return [p[0], o];
   }), total);
