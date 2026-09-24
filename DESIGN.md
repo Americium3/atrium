@@ -280,10 +280,16 @@ what shows, so a click there lands the entrance and then does what it says.
 only when the hall behind it has its first readings and has been drawn, so
 the hall's first raster happens under a still curtain and not during the
 footlights. A hub slow to answer holds it 900 ms; after that the clock starts
-as soon as the frames run at the display's pace again (2.5 s at the most). Under reduced motion a load gets the 300 ms fade
-instead. PREFERENCES > REPLAY ENTRANCE sets a one-shot `sessionStorage` flag and
-reloads; the pre-paint script reads and clears it, so nothing sticks to the
-address bar, and under reduced motion a replay is the same quiet fade. The
+as soon as the frames run at the display's pace again (2.5 s at the most).
+In a new tab, or a browser restarted on a profile that has drawn the hall
+before, that is about 0.5 s after load at 1920 and 0.7 s at 3440. A profile
+with no shaders compiled yet, such as a new one, takes 2.3 to 3 s over the
+hall's and the curtain's first draws at either size, and holds the curtain
+the full 2.5 s. A clock started earlier runs through those draws: the
+footlights and the spot froze for 250 to 600 ms at a time. Under reduced
+motion a load gets the 300 ms fade instead. PREFERENCES > REPLAY ENTRANCE
+sets a one-shot `sessionStorage` flag and reloads; the pre-paint script
+reads and clears it, so nothing sticks to the address bar, and under reduced motion a replay is the same quiet fade. The
 entrance overlay is `aria-hidden`; the app is usable underneath once
 assembled.
 

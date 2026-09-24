@@ -727,10 +727,15 @@ function dockEntrance() {
    cases' where they stand) and the frames that draw them have gone out. A
    hub slow to answer holds the curtain ENTRANCE_HOLD ms, and then the clock
    starts as soon as the frames run at the display's pace again. It used to
-   start the moment the hold ran out, and at 3440 the hall's first raster
-   takes longer than that: the footlights and the spot began inside a
-   250-550ms freeze (MO-8). ENTRANCE_HOLD_MAX is for a renderer that never
-   settles, and for a tab that draws nothing. */
+   start the moment the hold ran out, and a first raster can take longer
+   than that: the footlights and the spot began inside a 250-550ms freeze
+   (MO-8). A browser that has drawn the hall before (a new tab, or a restart
+   on the same profile) settles 0.45-0.85s after load, at 1920 and at 3440.
+   One with no shaders compiled yet (a new profile, as every probe launch
+   is) spends 2.3-3s on its first draws at either size, and there it is
+   ENTRANCE_HOLD_MAX that starts the clock, at 3440 into the last of them.
+   It is also for a renderer that never settles, and for a tab that draws
+   nothing. */
 var ENTRANCE_HOLD = 900, ENTRANCE_HOLD_MAX = 2500;
 /* Calls fn once what has been handed to the compositor is on screen. No
    callback says so, and a fixed two frames is not it: the main thread runs
