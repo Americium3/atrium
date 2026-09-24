@@ -35,32 +35,53 @@ def save_rgba(name, rgb, a, q=86):
 
 def patina_statuary(n=512):
     """Statuary bronze: a chemical patina worn back by hands and cloths. The
-    brushing runs vertically (the faces were dressed top to bottom), the
-    patina lies unevenly in slow clouds, and the casting shows a few pits."""
+    brushing runs vertically (the faces were dressed top to bottom) at two
+    widths, heavier in some passes than others, with a few long scratches;
+    the patina lies unevenly in slow clouds, and the casting shows pits.
+
+    The tile is laid at about two texels to a screen pixel at 1x, so the
+    brushing has to live in streaks two to six texels wide to survive the
+    downsampling: the first bake's one-texel lines all but vanished."""
     from scipy.ndimage import gaussian_filter
-    brush = fbm(n, 201, 1.15, (1.0, 38.0)) * 0.65 + fbm(n, 202, 0.8, (1.0, 70.0)) * 0.35
-    # high-pass across the grain: the brushing is fine lines, not broad bands
-    brush = brush - gaussian_filter(brush, (0, 10), mode="wrap")
-    brush = brush / (np.abs(brush).max() + 1e-9)
+    fine = fbm(n, 201, 1.1, (1.0, 40.0))
+    fine = fine - gaussian_filter(fine, (0, 5), mode="wrap")
+    fine = fine / (np.abs(fine).max() + 1e-9)
+    broad = fbm(n, 202, 1.5, (1.0, 22.0))
+    broad = broad - gaussian_filter(broad, (0, 22), mode="wrap")
+    broad = broad / (np.abs(broad).max() + 1e-9)
+    # the dresser's passes: some strips were worked harder than others
+    passes = 0.55 + 0.9 * fbm(n, 207, 2.4, (1.0, 6.0))
+    brush = (fine * 0.5 + broad * 0.5) * passes
+    # a few long scratches, a texel or two wide, bright in their bed
+    rng = np.random.default_rng(208)
+    scr = np.zeros((n, n))
+    for _ in range(14):
+        x = rng.integers(0, n)
+        y0 = rng.integers(0, n)
+        ln = rng.integers(n // 6, n // 2)
+        w = rng.uniform(0.6, 1.3)
+        ys = np.arange(y0, y0 + ln) % n
+        prof = np.sin(np.linspace(0, np.pi, ln)) ** 0.6
+        for dx in (-1, 0, 1):
+            scr[ys, (x + dx) % n] = np.maximum(scr[ys, (x + dx) % n], prof * np.exp(-(dx * dx) / (2 * w * w)))
     cloud = fbm(n, 203, 2.6) - 0.5
-    blotch = np.clip((fbm(n, 204, 2.2) - 0.62) * 3.0, 0, 1)      # darker patina islands
-    rub = np.clip((fbm(n, 205, 2.8) - 0.58) * 2.6, 0, 1)         # hand-worn, lighter
-    rng = np.random.default_rng(206)
+    blotch = np.clip((fbm(n, 204, 2.2) - 0.6) * 3.0, 0, 1)       # darker patina islands
+    rub = np.clip((fbm(n, 205, 2.8) - 0.56) * 2.6, 0, 1)          # hand-worn, lighter
     pits = np.zeros((n, n))
-    for _ in range(36):
+    for _ in range(60):
         y, x = rng.integers(0, n, 2)
-        r = rng.uniform(0.6, 1.6)
-        yy, xx = np.ogrid[-3:4, -3:4]
+        r = rng.uniform(0.7, 1.9)
+        yy, xx = np.ogrid[-4:5, -4:5]
         spot = np.exp(-(xx * xx + yy * yy) / (2 * r * r))
-        ys, xs = (np.arange(y - 3, y + 4) % n), (np.arange(x - 3, x + 4) % n)
+        ys, xs = (np.arange(y - 4, y + 5) % n), (np.arange(x - 4, x + 5) % n)
         pits[np.ix_(ys, xs)] = np.maximum(pits[np.ix_(ys, xs)], spot)
-    g = 0.5 + brush * 0.13 + cloud * 0.18 - blotch * 0.12 + rub * 0.07 - pits * 0.18
+    g = 0.5 + brush * 0.24 + cloud * 0.30 - blotch * 0.17 + rub * 0.11 + scr * 0.16 - pits * 0.26
     g = np.clip(g, 0, 1)
     d = g - 0.5
     light = np.array([255, 226, 188], dtype=np.float64)
     dark = np.array([8, 4, 2], dtype=np.float64)
     rgb = np.where(d[..., None] > 0, light[None, None, :], dark[None, None, :])
-    a = np.clip(np.abs(d) * 1.9, 0, 0.85)
+    a = np.clip(np.abs(d) * 2.1, 0, 0.9)
     return rgb, a
 
 

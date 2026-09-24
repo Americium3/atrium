@@ -92,7 +92,7 @@
 .dk-frieze-1 { stop-color: var(--sb-1); }
 .dk-rl-0 { stop-color: var(--sb-4); }
 .dk-rl-1 { stop-color: var(--sb-3); }
-.dk-rl-2 { stop-color: var(--sb-2); }
+.dk-rl-2 { stop-color: var(--sb-1); }
 .dk-face-0 { stop-color: var(--sb-3); }
 .dk-face-1 { stop-color: var(--sb-2); }
 .dk-face-2 { stop-color: var(--sb-2); }
@@ -108,8 +108,8 @@
 .dk-panel-3 { stop-color: var(--sb-band); }
 .dk-panel-4 { stop-color: var(--sb-2); }
 .dk-panel-5 { stop-color: var(--sb-0); }
-.dk-pmotif-0 { stop-color: var(--sb-4); }
-.dk-pmotif-1 { stop-color: var(--sb-2); }
+.dk-pmotif-0 { stop-color: var(--sb-3); }
+.dk-pmotif-1 { stop-color: var(--sb-1); }
 .dk-flute-0 { stop-color: var(--sb-oil); }
 .dk-flute-1 { stop-color: var(--sb-1); }
 .dk-flute-2 { stop-color: var(--sb-3); }
@@ -183,11 +183,15 @@
 .quadrant .dk-cshadow { fill: url(#dk-cshadow); }
 .quadrant .dk-occl { fill: url(#dk-occl); }
 .quadrant .dk-top { fill: url(#dk-top); }
-.quadrant .dk-top-tex { fill: url(#dk-patina); opacity: calc(var(--sb-tex) * 0.6); }
+.quadrant .dk-top-tex { fill: url(#dk-patina-top); opacity: calc(var(--sb-tex) * 0.8); }
 .quadrant .dk-topspec { fill: url(#dk-topspec); }
 .quadrant .dk-arris-back { fill: none; stroke: var(--sb-5); stroke-width: 0.7; opacity: 0.55; }
 .quadrant .dk-arris-side { fill: none; stroke: var(--sb-4); stroke-width: 0.6; opacity: 0.5; }
 .quadrant .dk-tex { fill: url(#dk-patina); opacity: var(--sb-tex); }
+.quadrant .dk-tex-a { fill: url(#dk-patina-a); }
+.quadrant .dk-tex-b { fill: url(#dk-patina-b); }
+.quadrant .dk-tex-c { fill: url(#dk-patina-c); }
+.quadrant .dk-tex-d { fill: url(#dk-patina-d); }
 .quadrant .dk-cap { fill: url(#dk-cap); }
 .quadrant .dk-leaf-nose { fill: url(#dk-leafh); }
 .quadrant .dk-leaf-hip { fill: url(#dk-leafv); }
@@ -200,8 +204,14 @@
 .quadrant .dk-dentil-top { fill: var(--sb-5); opacity: 0.6; }
 .quadrant .dk-fillet { fill: var(--sb-oil); opacity: 0.85; }
 .quadrant .dk-frieze { fill: url(#dk-frieze); }
-.quadrant .dk-rl-lit { fill: var(--sb-rl-lit); }
-.quadrant .dk-rl-sh { fill: var(--sb-oil); opacity: 0.9; }
+/* The cast-relief filter's colours (desk.js castFilter): the lamp on the
+   near shoulders, a broad sheen over each form's top, shade on the far
+   shoulders, pits, and the shadow on the ground. */
+.dk-cast-lit { flood-color: var(--sb-rl-lit); flood-opacity: 1; }
+.dk-cast-sheen { flood-color: var(--sb-4); flood-opacity: 0.42; }
+.dk-cast-shade { flood-color: var(--sb-oil); flood-opacity: 0.8; }
+.dk-cast-pit { flood-color: var(--sb-oil); flood-opacity: 0.4; }
+.dk-cast-oil { flood-color: var(--sb-oil); flood-opacity: 0.9; }
 .quadrant .dk-rl-body { fill: url(#dk-rl); }
 .quadrant .dk-rl-panel { fill: url(#dk-pmotif); }
 .quadrant .dk-face { fill: url(#dk-face); }

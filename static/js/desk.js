@@ -99,12 +99,66 @@ function screw(g, cx, cy, r, id) {
   add(g, 'path', { d: 'M' + n2(cx - dx) + ' ' + n2(cy - dy + 0.35) + 'L' + n2(cx + dx) + ' ' + n2(cy + dy + 0.35) }, 'dk-slot-lit');
 }
 
-/* Cast relief, drawn the way the gates' archivolts are: a lit copy up-left,
-   a shadow copy down-right, then the body over both. */
+/* Cast relief. The motif is drawn once, flat, and the dk-cast filter turns
+   it into metal: the silhouette is worn round (blur, then a soft threshold,
+   so no corner is sharper than a cloth leaves it), the shoulders that face
+   the lamps catch it in a broken line, the far shoulders roll into shade,
+   and the form throws a soft shadow on the ground it was cast on. The
+   filter's primitives work in user units, so the relief keeps its shape
+   at every scale and pixel ratio. The console never moves, so a filter
+   here is painted once. */
 function relief(g, d, body) {
-  add(g, 'path', { d: d, transform: 'translate(-.45 -.55)' }, 'dk-rl-lit');
-  add(g, 'path', { d: d, transform: 'translate(.7 .9)' }, 'dk-rl-sh');
+  g.setAttribute('filter', U('dk-cast'));
   add(g, 'path', { d: d }, body || 'dk-rl-body');
+}
+function castFilter(defs) {
+  var f = add(defs, 'filter', { id: 'dk-cast', x: '-8%', y: '-14%', width: '120%', height: '134%',
+                                'color-interpolation-filters': 'sRGB' });
+  // the worn silhouette
+  add(f, 'feGaussianBlur', { in: 'SourceAlpha', stdDeviation: 0.42, result: 'b' });
+  var ct = add(f, 'feComponentTransfer', { in: 'b', result: 'm0' });
+  add(ct, 'feFuncA', { type: 'linear', slope: 3.4, intercept: -1.2 });
+  add(f, 'feComposite', { in: 'm0', in2: 'SourceAlpha', operator: 'in', result: 'm' });
+  add(f, 'feComposite', { in: 'SourceGraphic', in2: 'm', operator: 'in', result: 'body' });
+  // pitting and rub: a fine casting grain that breaks the highlight
+  add(f, 'feTurbulence', { type: 'fractalNoise', baseFrequency: '0.32 0.5', numOctaves: 2, seed: 11, result: 'n' });
+  add(f, 'feColorMatrix', { in: 'n', type: 'matrix', result: 'wear',
+    values: '0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  2.2 0 0 0 -0.3' });
+  // the lit shoulder (up and left, toward the lamps)
+  add(f, 'feOffset', { in: 'm', dx: 0.55, dy: 0.8, result: 'mo' });
+  add(f, 'feComposite', { in: 'm', in2: 'mo', operator: 'out', result: 'ul' });
+  add(f, 'feGaussianBlur', { in: 'ul', stdDeviation: 0.28, result: 'ulb' });
+  add(f, 'feFlood', { result: 'lc' }, 'dk-cast-lit');
+  add(f, 'feComposite', { in: 'lc', in2: 'ulb', operator: 'in', result: 'l0' });
+  add(f, 'feComposite', { in: 'l0', in2: 'wear', operator: 'in', result: 'l1' });
+  add(f, 'feComposite', { in: 'l1', in2: 'm', operator: 'in', result: 'lit' });
+  // a softer sheen across the whole top of each form
+  add(f, 'feOffset', { in: 'm', dx: 1.6, dy: 2.2, result: 'mo2' });
+  add(f, 'feComposite', { in: 'm', in2: 'mo2', operator: 'out', result: 'ul2' });
+  add(f, 'feGaussianBlur', { in: 'ul2', stdDeviation: 0.9, result: 'ul2b' });
+  add(f, 'feFlood', { result: 'sc' }, 'dk-cast-sheen');
+  add(f, 'feComposite', { in: 'sc', in2: 'ul2b', operator: 'in', result: 's0' });
+  add(f, 'feComposite', { in: 's0', in2: 'm', operator: 'in', result: 'sheen' });
+  // the far shoulder, rolling into shade
+  add(f, 'feOffset', { in: 'm', dx: -0.6, dy: -0.85, result: 'mo3' });
+  add(f, 'feComposite', { in: 'm', in2: 'mo3', operator: 'out', result: 'lr' });
+  add(f, 'feGaussianBlur', { in: 'lr', stdDeviation: 0.4, result: 'lrb' });
+  add(f, 'feFlood', { result: 'dc' }, 'dk-cast-shade');
+  add(f, 'feComposite', { in: 'dc', in2: 'lrb', operator: 'in', result: 'd0' });
+  add(f, 'feComposite', { in: 'd0', in2: 'm', operator: 'in', result: 'shade' });
+  // pits in the body itself
+  add(f, 'feColorMatrix', { in: 'n', type: 'matrix', result: 'pit',
+    values: '0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 -7 0 0 2.6' });
+  add(f, 'feFlood', { result: 'pc' }, 'dk-cast-pit');
+  add(f, 'feComposite', { in: 'pc', in2: 'pit', operator: 'in', result: 'p0' });
+  add(f, 'feComposite', { in: 'p0', in2: 'm', operator: 'in', result: 'pits' });
+  // the shadow the form throws on its ground
+  add(f, 'feOffset', { in: 'b', dx: 0.75, dy: 1.05, result: 'so' });
+  add(f, 'feGaussianBlur', { in: 'so', stdDeviation: 0.35, result: 'sob' });
+  add(f, 'feFlood', { result: 'oc' }, 'dk-cast-oil');
+  add(f, 'feComposite', { in: 'oc', in2: 'sob', operator: 'in', result: 'drop' });
+  var mg = add(f, 'feMerge');
+  ['drop', 'body', 'sheen', 'pits', 'shade', 'lit'].forEach(function (r) { add(mg, 'feMergeNode', { in: r }); });
 }
 
 /* Motifs, each inside a box (x, y, w, h). */
@@ -201,9 +255,24 @@ function buildDefs(svg) {
   grad(defs, 'dk-ao-down', false, { x1: 0, y1: 0, x2: 0, y2: 1 }, [0, 1]);
   grad(defs, 'dk-ao-right', false, { x1: 0, y1: 0, x2: 1, y2: 0 }, [0, 1]);
   grad(defs, 'dk-glint', true, { cx: 0.5, cy: 0.5, r: 0.5 }, [0, 0.4, 1]);
-  pattern(defs, 'dk-patina', '/static/assets/tex/patina-statuary.webp', 118);
+  pattern(defs, 'dk-patina', '/static/assets/tex/patina-statuary.webp', 272);
+  // Each separately cast piece (a pilaster, a panel) was dressed on its own,
+  // so its brushing and patina do not run on from the field: the same tile,
+  // shifted and turned end for end by hash.
+  ['a', 'b', 'c', 'd'].forEach(function (k, i) {
+    var id = 'desk-cast-piece-' + k;
+    var tx = Math.round(rnd(id, 1) * 272), ty = Math.round(rnd(id, 2) * 272);
+    pattern(defs, 'dk-patina-' + k, '/static/assets/tex/patina-statuary.webp', 272)
+      .setAttribute('patternTransform', 'translate(' + tx + ' ' + ty + ')' + (i % 2 ? ' scale(1 -1)' : ''));
+  });
+  // The top was dressed along its length: the same tile turned a quarter,
+  // and foreshortened, so its brushing lies flat in the plane instead of
+  // standing up in the screen.
+  pattern(defs, 'dk-patina-top', '/static/assets/tex/patina-statuary.webp', 272)
+    .setAttribute('patternTransform', 'translate(0 ' + TOP_BACK + ') scale(1 .32) rotate(90)');
   pattern(defs, 'dk-marble', '/static/assets/tex/stone-portoro.webp', 190);
   pattern(defs, 'dk-gilt', '/static/assets/tex/grain-gilt.webp', 60);
+  castFilter(defs);
   return defs;
 }
 
@@ -294,7 +363,7 @@ function buildConsole(q) {
     var ix0 = x0 + 3.2, ix1 = x1 - 3.2, iy0 = y0 + 3.2, iy1 = y1 - 3.2;
     add(q, 'rect', { x: ix0 + 0.8, y: iy0 + 1, width: ix1 - ix0, height: iy1 - iy0 }, 'dk-cast-sh');
     add(q, 'rect', { x: ix0, y: iy0, width: ix1 - ix0, height: iy1 - iy0 }, 'dk-panel');
-    add(q, 'rect', { x: ix0, y: iy0, width: ix1 - ix0, height: iy1 - iy0 }, 'dk-tex');
+    add(q, 'rect', { x: ix0, y: iy0, width: ix1 - ix0, height: iy1 - iy0 }, 'dk-tex dk-tex-' + (x0 < 180 ? 'a' : 'b'));
     add(q, 'path', { d: 'M' + n2(ix0) + ' ' + n2(iy1) + 'V' + n2(iy0) + 'H' + n2(ix1) }, 'dk-edge-lit');
     var g = add(q, 'g', null, 'dk-relief');
     var d;
@@ -310,7 +379,7 @@ function buildConsole(q) {
     var id = 'desk-pilaster-' + k, pw = 32;
     add(q, 'rect', { x: px + pw, y: FRZ_B, width: 5, height: BODY_B - FRZ_B }, 'dk-ao dk-ao-r');
     add(q, 'rect', { x: px, y: FRZ_B, width: pw, height: BODY_B - FRZ_B }, 'dk-face');
-    add(q, 'rect', { x: px, y: FRZ_B, width: pw, height: BODY_B - FRZ_B }, 'dk-tex');
+    add(q, 'rect', { x: px, y: FRZ_B, width: pw, height: BODY_B - FRZ_B }, 'dk-tex dk-tex-' + (k ? 'd' : 'c'));
     add(q, 'path', { d: 'M' + px + ' ' + BODY_B + 'V' + FRZ_B }, 'dk-edge-lit');
     var nf = rnd(id) < 0.5 ? 3 : 4, gap = 2.6, fw = (pw - 10 - (nf - 1) * gap) / nf;
     for (var i = 0; i < nf; i++) {
