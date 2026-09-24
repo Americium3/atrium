@@ -66,8 +66,12 @@ function spandrels() {
 function rivets() {
   var pts = [[212, 30], [788, 30], [970, 212], [970, 788],
              [788, 970], [212, 970], [30, 788], [30, 212]];
+  // Domed bronze rivets: a shadow cast down-right, the dome, and the one
+  // lit spot on the side that faces the key light.
   return pts.map(function (p) {
-    return '<circle class="ck-rivet" cx="' + p[0] + '" cy="' + p[1] + '" r="9"/>';
+    return '<circle class="ck-rivet-sh" cx="' + (p[0] + 3) + '" cy="' + (p[1] + 4) + '" r="9.5"/>' +
+      '<circle class="ck-rivet" cx="' + p[0] + '" cy="' + p[1] + '" r="9"/>' +
+      '<circle class="ck-rivet-lt" cx="' + (p[0] - 3) + '" cy="' + (p[1] - 3.2) + '" r="3.2"/>';
   }).join('');
 }
 
@@ -256,6 +260,35 @@ function dialDefs() {
       '<stop offset="1" class="ckc s2"/></radialGradient>' +
     '<radialGradient id="ck-dome" cx="380" cy="300" r="420" gradientUnits="userSpaceOnUse">' +
       '<stop offset="0" class="ckd s0"/><stop offset="1" class="ckd s1"/></radialGradient>' +
+    // Cast bronze is never one flat brown: the patina lies in clouds, darker
+    // where the wax has worn thin. The leaf on the bevels is laid in the
+    // same 85 mm squares as the gates' archivolts.
+    '<pattern id="ck-patina" patternUnits="userSpaceOnUse" width="470" height="470">' +
+      '<image href="/static/assets/tex/metal-bronze.webp" width="470" height="470"/></pattern>' +
+    // Metal is known by what it reflects. The waxed face gives back the one
+    // bright thing above it (the cove lamp by night, the skylight by day) as
+    // a soft band across its upper part, and a broad warm lift toward the
+    // key light; the rest of the face stays in its patina.
+    '<linearGradient id="ck-sheen-g" gradientUnits="userSpaceOnUse" x1="330" y1="0" x2="620" y2="1000">' +
+      '<stop offset="0" class="cks2 s0"/><stop offset=".07" class="cks2 s1"/>' +
+      '<stop offset=".13" class="cks2 s2"/><stop offset=".2" class="cks2 s3"/>' +
+      '<stop offset=".62" class="cks2 s3"/><stop offset="1" class="cks2 s4"/></linearGradient>' +
+    // The leaf on a bevel is burnished flat, so each facet mirrors the room:
+    // brighter at the end nearer the lamp, a darker reach toward the far one.
+    '<linearGradient id="ck-bev-g" gradientUnits="userSpaceOnUse" x1="80" y1="60" x2="920" y2="940">' +
+      '<stop offset="0" class="ckb s0"/><stop offset=".2" class="ckb s1"/>' +
+      '<stop offset=".42" class="ckb s2"/><stop offset=".58" class="ckb s3"/>' +
+      '<stop offset="1" class="ckb s4"/></linearGradient>' +
+    '<radialGradient id="ck-lift-g" gradientUnits="userSpaceOnUse" cx="250" cy="230" r="420">' +
+      '<stop offset="0" class="ckl s0"/><stop offset="1" class="ckl s1"/></radialGradient>' +
+    '<pattern id="ck-leaf" patternUnits="userSpaceOnUse" width="290" height="290">' +
+      '<image href="/static/assets/tex/grain-gilt.webp" width="290" height="290"/></pattern>' +
+    // The turned bezel: a lathe leaves concentric brushing, so the ring
+    // takes the light in two opposed sectors, as a conic sweep would.
+    '<linearGradient id="ck-turn" x1="0" y1="0" x2="1" y2="1">' +
+      '<stop offset="0" class="ckt s0"/><stop offset=".3" class="ckt s1"/>' +
+      '<stop offset=".5" class="ckt s2"/><stop offset=".72" class="ckt s3"/>' +
+      '<stop offset="1" class="ckt s4"/></linearGradient>' +
     '</defs>';
 }
 
@@ -321,8 +354,15 @@ function facets() {
 }
 
 function markup() {
+  // Statuary bronze for the case, leaf only on the eight bevels: the patina
+  // clouds the flat face, the leaf lattice lies over the bevel ring alone.
   return dialDefs() + '<path class="ck-case" d="' + octagon(0) + '" fill="url(#ck-case-g)"/>' +
+    '<path class="ck-patina" d="' + octagon(24) + '"/>' +
+    '<path class="ck-lift" d="' + octagon(24) + '" fill="url(#ck-lift-g)"/>' +
+    '<path class="ck-sheen" d="' + octagon(24) + '" fill="url(#ck-sheen-g)"/>' +
     facets() +
+    '<path class="ck-bevel-leaf" fill-rule="evenodd" d="' + octagon(0) + ' ' + octagon(24) + '"/>' +
+    '<path class="ck-bevel-sheen" fill-rule="evenodd" fill="url(#ck-bev-g)" d="' + octagon(0) + ' ' + octagon(24) + '"/>' +
     '<path class="ck-caseline2" d="' + octagon(24) + '"/>' +
     shoulders() + spandrels() + rivets() +
     '<g transform="translate(500,500) scale(0.855) translate(-500,-500)">' +
@@ -413,7 +453,11 @@ function niche() {
   // mosaic at night; a black marble sill with a gilt nosing carries the case.
   return '<div class="n-mosaic"></div><div class="n-cove"></div>' +
     '<div class="n-step n-s1"></div><div class="n-step n-s2"></div><div class="n-step n-s3"></div>' +
-    '<div class="n-sill"></div>' +
+    // Corner blocks where the frame's mitres meet: a cast bronze square with
+    // a turned boss, the boss's crown the only leaf on it.
+    '<i class="n-corner nc-tl"></i><i class="n-corner nc-tr"></i>' +
+    '<i class="n-corner nc-bl"></i><i class="n-corner nc-br"></i>' +
+    '<div class="n-sill"><i class="n-nose"></i></div>' +
     '<svg class="n-crest" viewBox="0 0 120 40" aria-hidden="true" focusable="false">' +
       '<path class="nc-sh" transform="translate(1 1.4)" d="' + crestFan() + '"/>' +
       '<path class="nc-body" d="' + crestFan() + '"/>' +

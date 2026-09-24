@@ -138,15 +138,15 @@
   color-scheme: light;
 }
 /* ----- Material foundation: the picture palace (direction C) -------------
-   A Deco gold room is a chord of metals, never one: gold leaf, aluminium
-   leaf and warm bronze, each as six tones across a moulding (0 glaze in the
+   A Deco gold room is a chord of metals, never one: gold leaf, nickel
+   silver (the Bureau's leaf; it was a flat aluminium grey) and warm bronze, each as six tones across a moulding (0 glaze in the
    reveal, 1 shade, 2 body, 3 crest in the light, 4 relief body, 5 lip).
    Night keeps the metal dark and lets the lamps find it; day lifts the body
    and cools the crest toward the sky. Gold is glazed down: the glaze token
    is what lies in every reveal. */
 :root[data-theme="onyx"] {
   --au-0: #251806; --au-1: #57401a; --au-2: #94722e; --au-3: #f3d993; --au-4: #b68d3c; --au-5: #e6c67a;
-  --ag-0: #1a1b1b; --ag-1: #454644; --ag-2: #86877f; --ag-3: #f1f0e6; --ag-4: #a9a9a1; --ag-5: #dcdcd2;
+  --ag-0: #17140f; --ag-1: #463d2f; --ag-2: #938670; --ag-3: #f4e8c8; --ag-4: #b9a987; --ag-5: #dccaa2;
   --cu-0: #180f08; --cu-1: #382513; --cu-2: #684a2a; --cu-3: #d5a769; --cu-4: #8b6a3f; --cu-5: #b38a58;
   --pl-0: #121110; --pl-1: #24211c; --pl-2: #3a362f; --pl-3: #6c665a; --pl-4: #4b463d; --pl-5: #5c574c;
   --relief-shadow: rgba(8, 5, 2, 0.74);
@@ -176,7 +176,7 @@
 }
 :root[data-theme="ivory"] {
   --au-0: #6a5220; --au-1: #94763a; --au-2: #c4a45e; --au-3: #fdf0c8; --au-4: #d6b772; --au-5: #f1dea4;
-  --ag-0: #6c6f70; --ag-1: #999c9c; --ag-2: #c1c3c2; --ag-3: #fdfdfb; --ag-4: #d5d7d5; --ag-5: #edefed;
+  --ag-0: #6b6456; --ag-1: #9c9382; --ag-2: #cac1ad; --ag-3: #fdfbf4; --ag-4: #ddd4bf; --ag-5: #f6f2e8;
   --cu-0: #4a3620; --cu-1: #6c5133; --cu-2: #92714a; --cu-3: #e6c79c; --cu-4: #aa895e; --cu-5: #caa77b;
   --pl-0: #aea593; --pl-1: #c7bfae; --pl-2: #dad3c4; --pl-3: #f8f5ee; --pl-4: #e5dfd3; --pl-5: #efeae1;
   --relief-shadow: rgba(62, 45, 20, 0.46);
@@ -2474,11 +2474,13 @@ html[lang="zh"] .g-name { letter-spacing: 0.17em; }
 :root[data-theme="ivory"] .gate[data-state="open"] .g-tab { transform: scaleX(0.2); }
 :root[data-theme="ivory"] .gate[data-state="open"] .g-desc { color: var(--ink); text-shadow: none; }
 
-/* Hover and focus: at night the tabs part a hand's breadth and the screen
-   behind shows a thread of light; by day the screen comes up a shade. One
-   sheen runs across the gilding only. */
-:root[data-theme="onyx"] .gate:not(.vacant):focus-visible .g-tab-l { transform: translateX(-5%); }
-:root[data-theme="onyx"] .gate:not(.vacant):focus-visible .g-tab-r { transform: translateX(5%); }
+/* Hover and focus: at night the house curtain lifts a hand's breadth off
+   the stage, like a contour curtain taking its first swag, and the
+   footlit foot of the screen shows under the fringe. The tabs never part:
+   a parting drew a thread of light up the meeting line, straight through
+   the projected description. By day the card stays. One sheen runs across
+   the gilding only. */
+:root[data-theme="onyx"] .gate:not(.vacant):focus-visible .g-tab { transform: translateY(-8%); }
 .gate:not(.vacant):focus-visible .p-sheen { animation: gilt-sheen 0.8s var(--ease-out) 1; }
 @keyframes gilt-sheen { from { transform: translateX(0); } to { transform: translateX(560px); } }
 /* The rise rides on the pose inside the link (--lift), never on the link
@@ -2488,8 +2490,7 @@ html[lang="zh"] .g-name { letter-spacing: 0.17em; }
    answer a pointer that can rest. Focus keeps all of them. */
 .gate:not(.vacant):focus-visible { --lift: -3px; }
 @media (hover: hover) {
-  :root[data-theme="onyx"] .gate:not(.vacant):hover .g-tab-l { transform: translateX(-5%); }
-  :root[data-theme="onyx"] .gate:not(.vacant):hover .g-tab-r { transform: translateX(5%); }
+  :root[data-theme="onyx"] .gate:not(.vacant):hover .g-tab { transform: translateY(-8%); }
   .gate:not(.vacant):hover .p-sheen { animation: gilt-sheen 0.8s var(--ease-out) 1; }
   .gate:not(.vacant):hover { --lift: -3px; }
 }
@@ -2498,8 +2499,8 @@ html[lang="zh"] .g-name { letter-spacing: 0.17em; }
 .gate.opening .g-screen { background: var(--screen-flood); transition: background 0.1s; }
 .gate.flash .b-lip, .gate.flash .rim-lt { stroke: var(--champagne); transition: stroke 0.05s; }
 
-/* The waiting wing: same bays, out of the room. Opacity sits on .gate, the
 .g-veil { display: none; }
+/* The waiting wing: same bays, out of the room. Opacity sits on .gate, the
    PARENT of the preserve-3d pose, never on the pose itself: on the pose it
    would flatten the tilt. Visibility follows the fade so a hidden arch can
    never take a pointer or a hover.

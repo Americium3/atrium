@@ -17,7 +17,8 @@
                        within a wing)
      card              the border of the day screen's title card (unique
                        within a wing)
-     velvet            the house curtain's colour, fold pitch and phase
+     velvet            the house curtain's colour, fold pitch and phase, and
+                       which three of the four baked swags its valance hangs
 
    All geometry lives on the gate's 300 x 570 design box. The archivolts are
    stilted arches: boundary k of n sits DJ*k/n in from the jamb but DC*k/n
@@ -69,13 +70,14 @@ var QUIET = ['bead', 'reed', 'flute', 'plain'];
 /* Walk the registry in order: the (velvet, glass, fanlight) of a gate is its
    own unless a gate ahead of it in the registry already took it. */
 function identities(list) {
-  var out = {}, tv = {}, tg = {}, tf = {}, tn = {}, tc = {}, tk = {};
+  var out = {}, tv = {}, tg = {}, tf = {}, tn = {}, tc = {}, tk = {}, ts = {};
   list.forEach(function (svc) {
     if (svc.vacant) { out[svc.id] = vacant(svc); return; }
     var h = fnv1a(svc.id);
     var wingN = tn[svc.wing] || (tn[svc.wing] = {});
     var wingC = tc[svc.wing] || (tc[svc.wing] = {});
     var wingK = tk[svc.wing] || (tk[svc.wing] = {});
+    var wingS = ts[svc.wing] || (ts[svc.wing] = {});
     var lead = svc.wing === 'bureau' ? 'ag' : 'au';
     var other = lead === 'au' ? 'ag' : 'au';
     var n = pickUnique([3, 4, 5, 6], h, 4, wingN);
@@ -99,7 +101,9 @@ function identities(list) {
       card: pickUnique(CARDS, h, 12, wingK),         // the day screen's title card
       folds: 7 + Math.floor(draw(h, 9) * 5),        // folds across the house
       foldX: Math.round(draw(h, 10) * 100),         // fold phase, %
-      tilt: (draw(h, 11) - 0.5) * 0.6               // cartouche screw slots, deg/10
+      tilt: (draw(h, 11) - 0.5) * 0.6,              // cartouche screw slots, deg/10
+      rivets: [8, 10, 12][Math.floor(draw(h, 13) * 3)],  // round the bezel
+      swag: pickUnique([0, 1, 2, 3], h, 14, wingS)        // which three swags hang
     };
   });
   return out;
@@ -111,7 +115,7 @@ function identities(list) {
 function vacant(svc) {
   return { h: 0, n: 4, motifs: ['plain', 'bead', 'plain', 'reed'],
            metals: ['pl', 'pl', 'pl', 'pl'], velvet: 'iron', glass: 'void',
-           fan: 'rays', rays: 9, crest: 'none', folds: 1, foldX: 0, tilt: 0,
+           fan: 'rays', rays: 9, crest: 'none', folds: 1, foldX: 0, tilt: 0, rivets: 8, swag: 0,
            vacant: true };
 }
 
@@ -294,9 +298,21 @@ function fanBars(kind, rays) {
 function crest(kind) {
   var d = '', k, th;
   if (kind === 'fan') {
-    var pts = [[CX, 24]];
-    for (k = 0; k <= 12; k++) { th = Math.PI * k / 12; pts.push([CX + 17 * Math.cos(th), 24 - 17 * Math.sin(th)]); }
-    d = poly(pts);
+    // a cast sunburst fan: seven blades with the gaps between them cut
+    // through, on a small hub (a plain half-disc read as a blob)
+    for (k = 0; k < 7; k++) {
+      var a0 = Math.PI * k / 7 + 0.05, a1 = Math.PI * (k + 1) / 7 - 0.05, pts = [];
+      pts.push([CX + 4.5 * Math.cos(a0), 24 - 4.5 * Math.sin(a0)]);
+      for (var q = 0; q <= 4; q++) {
+        th = a0 + (a1 - a0) * q / 4;
+        pts.push([CX + 18 * Math.cos(th), 24 - 18 * Math.sin(th)]);
+      }
+      pts.push([CX + 4.5 * Math.cos(a1), 24 - 4.5 * Math.sin(a1)]);
+      d += poly(pts);
+    }
+    var hub = [[CX + 3.6, 24]];
+    for (k = 0; k <= 8; k++) { th = Math.PI * k / 8; hub.push([CX + 3.6 * Math.cos(th), 24 - 3.6 * Math.sin(th)]); }
+    d += poly(hub);
   } else if (kind === 'ziggurat') {
     d = 'M131 24 V18 H136 V12 H142 V6 H158 V12 H164 V18 H169 V24 Z';
   } else if (kind === 'star') {
@@ -359,11 +375,16 @@ function portal(gid, id) {
         '" width="' + f2(i.x - o.x + 0.2) + '" height="' + f2(BOT - i.ys) + '"/>';
     var rel = relief(id.motifs[b], o, i, b, n);
     if (rel) {
-      body += '<g clip-path="url(#' + cp + ')">' +
-        '<path class="r-sh" transform="translate(0.5 0.8)" d="' + rel + '"/>' +
+      // Burnished relief on a matte ground, as gilders lay it: the field
+      // between the ornament is toned down, so the raised work (body, lit
+      // edge, cast shadow) stands brighter than the ground it rises from,
+      // and reads at arm's length instead of only in a close-up.
+      body += '<path class="b-ground" d="' + ringD(o, i) + '"/>' +
+        '<g clip-path="url(#' + cp + ')">' +
+        '<path class="r-sh" transform="translate(0.75 1.1)" d="' + rel + '"/>' +
         '<path class="r-body" d="' + rel + '"/>' +
-        '<path class="r-lt" transform="translate(-0.35 -0.5)" d="' + rel + '"/>' +
-        '<path class="r-body" transform="translate(0.1 0.15)" d="' + rel + '"/></g>';
+        '<path class="r-lt" transform="translate(-0.5 -0.7)" d="' + rel + '"/>' +
+        '<path class="r-body" transform="translate(0.12 0.18)" d="' + rel + '"/></g>';
     }
     // Arris: the outer lip catches the light, the step down into the next
     // band sits in its own glaze.
@@ -380,6 +401,14 @@ function portal(gid, id) {
         '<path class="cv1" d="' + archD(bnd(b + 0.04, n)) + '"/></g>';
     }
   }
+  // The key light across the whole portal: the stack is one solid object
+  // lit from up and to the left, so the left jamb and the upper left of the
+  // arch take the light and the right jamb falls off into shade. Without it
+  // every band was lit the same all the way round, a gradient in a ring.
+  defs += '<linearGradient id="' + gid + '-key" gradientUnits="userSpaceOnUse" x1="20" y1="40" x2="290" y2="540">' +
+    '<stop offset="0" class="pk-s0"/><stop offset=".32" class="pk-s1"/>' +
+    '<stop offset=".55" class="pk-s2"/><stop offset="1" class="pk-s3"/></linearGradient>';
+  body += '<path class="p-key" fill="url(#' + gid + '-key)" d="' + ringD(bd[0], inner) + '"/>';
   // The leaf itself: 85 mm squares laid edge to edge, each a shade off its
   // neighbours, soft-lit over every band so the gradients read as gilding
   // rather than as paint.
@@ -423,30 +452,7 @@ function portal(gid, id) {
     '<rect class="tr-sh" x="' + f2(tx0) + '" y="' + (YS + 6.6) + '" width="' + f2(tx1 - tx0) + '" height="1.4"/>' +
     '</g>';
 
-  // Cartouche: a stepped lozenge, each step cut as four flat facets that
-  // take the one light (upper-left lit, lower-right in shade).
-  var cart = '<g class="cartouche">';
-  [[48, 'c-outer'], [41, 'c-mid'], [35, 'c-field']].forEach(function (s, idx) {
-    var R = s[0], r = idx < 2 ? R - 5 : 0;
-    var T = [CX, MARK_Y - R], Rt = [CX + R, MARK_Y], B = [CX, MARK_Y + R], L = [CX - R, MARK_Y];
-    if (idx === 2) {
-      cart += '<path class="' + s[1] + '" d="' + poly([T, Rt, B, L]) + '"/>';
-      return;
-    }
-    var t = [CX, MARK_Y - r], rt = [CX + r, MARK_Y], bb = [CX, MARK_Y + r], l = [CX - r, MARK_Y];
-    cart += '<path class="' + s[1] + ' fa-tl" d="' + poly([L, T, t, l]) + '"/>' +
-            '<path class="' + s[1] + ' fa-tr" d="' + poly([T, Rt, rt, t]) + '"/>' +
-            '<path class="' + s[1] + ' fa-br" d="' + poly([Rt, B, bb, rt]) + '"/>' +
-            '<path class="' + s[1] + ' fa-bl" d="' + poly([B, L, l, bb]) + '"/>';
-  });
-  // four screws at the lozenge points, slots turned by the hash
-  [[0, -44], [44, 0], [0, 44], [-44, 0]].forEach(function (p, idx) {
-    var sx = CX + p[0], sy = MARK_Y + p[1], a = (id.tilt * 100 + idx * 37) % 180;
-    cart += '<circle class="screw" cx="' + sx + '" cy="' + sy + '" r="2.1"/>' +
-            '<path class="screw-slot" transform="rotate(' + f2(a) + ' ' + sx + ' ' + sy + ')" d="M' +
-            f2(sx - 1.6) + ' ' + sy + ' H' + f2(sx + 1.6) + '"/>';
-  });
-  cart += '</g>';
+  var cart = cartouche(id);
 
   var cr = crest(id.crest);
   var crestG = cr ? '<g class="crest"><path class="cr-sh" transform="translate(0.6 0.9)" d="' + cr +
@@ -478,10 +484,130 @@ function portal(gid, id) {
   // travels across the archivolts only, never the glass or the sign.
   defs += '<clipPath id="' + gid + '-gilt"><path d="' + ringD(bd[0], inner) + '"/></clipPath>';
   var sheen = '<g clip-path="url(#' + gid + '-gilt)"><rect class="p-sheen" x="-120" y="0" width="70" height="570"/></g>';
-  var focus = '<path class="p-focus" d="' + archD(bnd(-0.18, n)) + '"/>';
+  // Keyboard focus: the arch's own marquee comes up. A dark bed and a lit
+  // core trace the outer arris five units out, and at night a string of
+  // bulbs rides the core. It lies under the crest, so the crest still
+  // stands on the crown.
+  var ring = { x: X0 - 5, r: R0 + 5, ys: Y0 };
+  var focusD = archD(ring);
+  var focus = '<g class="p-focus-g"><path class="p-focus-bed" d="' + focusD + '"/>' +
+    '<path class="p-focus" d="' + focusD + '"/>' +
+    '<path class="p-focus-bulbs" d="' + focusD + '"/></g>';
 
   return '<defs>' + defs + '</defs>' + body + '<g class="lights">' + lights + '</g>' +
-    fan + transom + blocks + cart + crestG + plinth + sheen + focus;
+    fan + transom + blocks + cart + focus + crestG + plinth + sheen;
+}
+
+/* ---- the cartouche ------------------------------------------------------
+   A stepped lozenge plate screwed to the fanlight's hub, and set into it a
+   machined bezel that holds the service's mark: a knurled rim, a turned
+   ring, a row of rivets (8, 10 or 12 by the hash) and a black enamel field.
+   At 1920 the archivolt relief is too fine to read; the bezel is not.
+   Every tone is chosen by the part's angle to the one key light, up and to
+   the left, and the parts of one tone share one path, so the whole bezel
+   is a dozen nodes however many teeth and rivets it has. The domed crystal
+   over the mark is drawn above it, in the face (see crystal()). */
+var BZ = { r: 43.8, knurl: 39.2, ring: 33.4, field: 32.2, rivet: 36.3 };
+var KEY = Math.PI * 0.75;                     // up and to the left, y up
+function ringWedge(r0, r1, a0, a1) {
+  function p(r, a) { return f2(CX + r * Math.cos(a)) + ' ' + f2(MARK_Y - r * Math.sin(a)); }
+  return 'M' + p(r1, a0) + ' A' + r1 + ' ' + r1 + ' 0 0 0 ' + p(r1, a1) +
+         ' L' + p(r0, a1) + ' A' + r0 + ' ' + r0 + ' 0 0 1 ' + p(r0, a0) + ' Z';
+}
+function cartouche(id) {
+  var s = '<g class="cartouche">', k, a;
+  // The plate: a lozenge in two steps, the outer convex and the inner a
+  // cavetto, each step four flat facets.
+  [[56, 'c-outer'], [50.5, 'c-mid']].forEach(function (st) {
+    var R = st[0], r = R - 5.5;
+    var T = [CX, MARK_Y - R], Rt = [CX + R, MARK_Y], B = [CX, MARK_Y + R], L = [CX - R, MARK_Y];
+    var t = [CX, MARK_Y - r], rt = [CX + r, MARK_Y], bb = [CX, MARK_Y + r], l = [CX - r, MARK_Y];
+    s += '<path class="' + st[1] + ' fa-tl" d="' + poly([L, T, t, l]) + '"/>' +
+         '<path class="' + st[1] + ' fa-tr" d="' + poly([T, Rt, rt, t]) + '"/>' +
+         '<path class="' + st[1] + ' fa-br" d="' + poly([Rt, B, bb, rt]) + '"/>' +
+         '<path class="' + st[1] + ' fa-bl" d="' + poly([B, L, l, bb]) + '"/>';
+  });
+  s += '<path class="c-field" d="' + poly([[CX, MARK_Y - 45], [CX + 45, MARK_Y], [CX, MARK_Y + 45], [CX - 45, MARK_Y]]) + '"/>';
+  // four screws at the lozenge points, slots turned by the hash
+  [[0, -52.5], [52.5, 0], [0, 52.5], [-52.5, 0]].forEach(function (p, idx) {
+    var sx = CX + p[0], sy = MARK_Y + p[1], ang = (id.tilt * 100 + idx * 37) % 180;
+    s += '<circle class="screw" cx="' + f2(sx) + '" cy="' + f2(sy) + '" r="2.3"/>' +
+         '<path class="screw-slot" transform="rotate(' + f2(ang) + ' ' + f2(sx) + ' ' + f2(sy) + ')" d="M' +
+         f2(sx - 1.7) + ' ' + f2(sy) + ' H' + f2(sx + 1.7) + '"/>';
+  });
+  // The bezel's cast shadow on the plate, down and to the right.
+  s += '<circle class="bz-shadow" cx="' + f2(CX + 1.4) + '" cy="' + f2(MARK_Y + 2.2) + '" r="' + (BZ.r + 0.6) + '"/>';
+  // Knurled rim: 48 coarse teeth (a finer knurl blurred into a plain ring
+  // at 1920), lit on the lamp side, dark on the far side.
+  var teeth = ['', '', ''], n = 48;
+  for (k = 0; k < n; k++) {
+    a = 2 * Math.PI * k / n;
+    var lit = Math.cos(a - KEY), cls = lit > 0.3 ? 0 : lit < -0.3 ? 2 : 1;
+    teeth[cls] += ringWedge(BZ.knurl, BZ.r, a - 0.036, a + 0.036);
+  }
+  s += '<circle class="bz-rim" cx="' + CX + '" cy="' + MARK_Y + '" r="' + ((BZ.r + BZ.knurl) / 2) + '" stroke-width="' + f2(BZ.r - BZ.knurl) + '"/>' +
+       '<path class="bz-kn bz-kn0" d="' + teeth[0] + '"/>' +
+       '<path class="bz-kn bz-kn1" d="' + teeth[1] + '"/>' +
+       '<path class="bz-kn bz-kn2" d="' + teeth[2] + '"/>';
+  // The turned ring: a lathe leaves concentric brushing, which takes the
+  // light in two opposed sectors (the conic highlight of turned metal),
+  // brighter on the lamp side. Six tones, one path each.
+  var tones = ['', '', '', '', '', ''], seg = 48;
+  for (k = 0; k < seg; k++) {
+    a = 2 * Math.PI * (k + 0.5) / seg;
+    var v = 0.5 + 0.3 * Math.cos(2 * (a - KEY)) + 0.2 * Math.cos(a - KEY);
+    var ti = Math.max(0, Math.min(5, Math.floor(v * 6)));
+    tones[ti] += ringWedge(BZ.ring, BZ.knurl, a - Math.PI / seg - 0.004, a + Math.PI / seg + 0.004);
+  }
+  tones.forEach(function (d, ti) { if (d) s += '<path class="bz-t bz-t' + ti + '" d="' + d + '"/>'; });
+  // the turning's grooves, and the arris between rim and ring
+  s += '<circle class="bz-groove" cx="' + CX + '" cy="' + MARK_Y + '" r="' + f2(BZ.ring + 2.4) + '"/>' +
+       '<circle class="bz-groove" cx="' + CX + '" cy="' + MARK_Y + '" r="' + f2(BZ.knurl - 1.5) + '"/>' +
+       '<circle class="bz-arris" cx="' + CX + '" cy="' + MARK_Y + '" r="' + BZ.knurl + '"/>';
+  // Rivets: each a dome with its own shadow and its own lit side.
+  var nr = id.rivets || 10, rsh = '', rb = '', rl = '';
+  for (k = 0; k < nr; k++) {
+    a = Math.PI / 2 + 2 * Math.PI * (k + 0.5) / nr;
+    var rx = CX + BZ.rivet * Math.cos(a), ry = MARK_Y - BZ.rivet * Math.sin(a);
+    rsh += circ(rx + 0.55, ry + 0.75, 1.85);
+    rb += circ(rx, ry, 1.65);
+    rl += circ(rx - 0.5, ry - 0.55, 0.68);
+  }
+  s += '<path class="bz-rv-sh" d="' + rsh + '"/><path class="bz-rv" d="' + rb + '"/><path class="bz-rv-lt" d="' + rl + '"/>';
+  // The enamel field, sunk: a lip of light on the far edge, shade on the
+  // near one, where the ring overhangs it.
+  s += '<circle class="bz-field" cx="' + CX + '" cy="' + MARK_Y + '" r="' + BZ.field + '"/>' +
+       '<path class="bz-lip-lt" d="' + ringWedge(BZ.field - 0.9, BZ.field, -Math.PI * 0.55, Math.PI * 0.05) + '"/>' +
+       '<path class="bz-lip-sh" d="' + ringWedge(BZ.field - 1.6, BZ.field, Math.PI * 0.35, Math.PI * 1.15) + '"/>';
+  if (id.vacant) {
+    // No tenant yet: a blank cover plate in the bezel, four screws.
+    s += '<circle class="bz-blank" cx="' + CX + '" cy="' + MARK_Y + '" r="' + f2(BZ.field - 3) + '"/>' +
+         '<circle class="bz-blank-ring" cx="' + CX + '" cy="' + MARK_Y + '" r="' + f2(BZ.field - 9) + '"/>';
+    [45, 135, 225, 315].forEach(function (d, idx) {
+      var q = d * Math.PI / 180, sx = CX + (BZ.field - 7) * Math.cos(q), sy = MARK_Y - (BZ.field - 7) * Math.sin(q);
+      s += '<circle class="screw" cx="' + f2(sx) + '" cy="' + f2(sy) + '" r="2"/>' +
+           '<path class="screw-slot" transform="rotate(' + (30 + idx * 41) + ' ' + f2(sx) + ' ' + f2(sy) + ')" d="M' +
+           f2(sx - 1.5) + ' ' + f2(sy) + ' H' + f2(sx + 1.5) + '"/>';
+    });
+  }
+  return s + '</g>';
+}
+
+/* The domed crystal over the mark: one broad soft reflection of the room on
+   the lamp side, a fainter bounce opposite, one sharp glint and the glass's
+   own edge. It lies over the mark, so it is its own small sheet in the face
+   (the mark itself stays the byte-identical <use>). viewBox is portal units
+   around the bezel. */
+function crystal() {
+  var c = CX, y = MARK_Y, r = BZ.field;
+  return '<ellipse class="cr-dome" cx="' + f2(c - 9) + '" cy="' + f2(y - 11) + '" rx="' + f2(r * 0.62) + '" ry="' + f2(r * 0.4) +
+           '" transform="rotate(-38 ' + f2(c - 9) + ' ' + f2(y - 11) + ')"/>' +
+         '<path class="cr-bounce" d="' + ringWedge(r - 5.5, r - 1.2, -Math.PI * 0.42, -Math.PI * 0.05) + '"/>' +
+         '<path class="cr-arc" d="M' + f2(c - r * 0.78) + ' ' + f2(y - r * 0.2) + ' A' + f2(r * 0.8) + ' ' + f2(r * 0.8) +
+           ' 0 0 1 ' + f2(c - r * 0.1) + ' ' + f2(y - r * 0.8) + '"/>' +
+         '<ellipse class="cr-glint" cx="' + f2(c - 14) + '" cy="' + f2(y - 18.5) + '" rx="2.6" ry="1.3" transform="rotate(-38 ' +
+           f2(c - 14) + ' ' + f2(y - 18.5) + ')"/>' +
+         '<circle class="cr-edge" cx="' + c + '" cy="' + y + '" r="' + f2(r - 0.4) + '"/>';
 }
 
 /* One slab of an impost or pedestal, centred on cx, half-width hw. A boss
@@ -535,7 +661,7 @@ function mirror(pgid, id) {
 }
 
 window.Palace = {
-  identities: identities, portal: portal, mirror: mirror,
+  identities: identities, portal: portal, mirror: mirror, crystal: crystal,
   geometry: { YS: YS, MARK_Y: MARK_Y, BOT: BOT, INNER_X: X0 + DJ }
 };
 })();
