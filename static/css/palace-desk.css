@@ -853,20 +853,21 @@ html[data-entered="no"] #entrance.done-fade { pointer-events: none; cursor: auto
   transform: translateY(-128vh);
   transition: transform 0.92s cubic-bezier(0.62, 0.02, 0.3, 1);
 }
+/* One drop, three times as wide as it is tall (desk_materials.py), so no
+   screen up to 3:1 sees a fold twice: pinch pleats under a heading tape,
+   folds of wandering pitch and depth, a few broad bays. It was a 640px
+   tile, and at 1920 the same folds came round every 540px (AR-31). */
 .e-drop {
   position: absolute; inset: 0;
-  background-color: #3a0a10;
-  background-image: url('/static/assets/tex/house-curtain.webp');
-  background-size: auto 100%;
-  background-repeat: repeat-x;
-  background-position: 50% 0;
+  background: url('/static/assets/tex/house-curtain.webp') 50% 0 / auto 100% repeat-x, #3a0a10;
 }
-/* The house lights are down: the drop's head is lost in the dark and its
-   two edges fall off into the wings. */
+/* The house lights are down: the drop's head goes dark toward the grid,
+   with its heading and pleats still made out under it, and its two edges
+   fall off into the wings. */
 .e-drop::after {
   content: ""; position: absolute; inset: 0;
   background:
-    linear-gradient(180deg, rgba(0, 0, 0, 0.78), rgba(0, 0, 0, 0.35) 34%, rgba(0, 0, 0, 0.12) 62%, rgba(0, 0, 0, 0.28)),
+    linear-gradient(180deg, rgba(0, 0, 0, 0.8) 3%, rgba(0, 0, 0, 0.5) 9%, rgba(0, 0, 0, 0.32) 34%, rgba(0, 0, 0, 0.12) 62%, rgba(0, 0, 0, 0.28)),
     linear-gradient(90deg, rgba(0, 0, 0, 0.55), transparent 14% 86%, rgba(0, 0, 0, 0.55));
 }
 /* The footlights on the tabs: a warm wash up from the hem, each lamp
