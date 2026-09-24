@@ -1476,3 +1476,9 @@ html[lang="zh"] .p-name { letter-spacing: 0.1em; }
 :root[data-motion="reduced"] .kn-blade,
 :root[data-motion="reduced"] .p-lever,
 :root[data-motion="reduced"] .p-key .pkey-arm { transition: none; }
+
+/* Outside the cabinetry, one line: the Ledger hatch's caption on the
+   masthead. CJK breaks between any two characters, and the 48px hatch
+   broke 消息总台 as 消息总 / 台 and pushed the whole hall down (LY-06,
+   VD-07). Held to one line; the hatch centres the overflow. */
+#ledger-btn .p-caption { white-space: nowrap; }
