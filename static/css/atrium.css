@@ -406,6 +406,14 @@ html[lang="zh"] .display { letter-spacing: 0.26em; }
               background-color 0.4s, border-color 0.4s;
 }
 
+/* The theme crossfade (resolveTheme): the old hall, captured as a picture,
+   fades out over the new one in 400ms. Under it the flip lands with every
+   transition cut, so the new hall is drawn once, already finished. */
+::view-transition-old(root),
+::view-transition-new(root) { animation-duration: 0.4s; }
+:root.theme-cut, :root.theme-cut *,
+:root.theme-cut *::before, :root.theme-cut *::after { transition: none !important; }
+
 /* ==========================================================================
    HALL LAYOUT
    ========================================================================== */
@@ -426,6 +434,12 @@ html[lang="zh"] .display { letter-spacing: 0.26em; }
      ground below the floor on a 1235px viewport — a bright dead band under
      the terrazzo that no amount of tuning inside the floor could reach. */
   min-height: 100vh;
+  /* The room ends at its own floor. Each arch's reflection hangs 44% of an
+     arch below its plinth, and on a short or narrow screen it ran as much
+     as 22px past the bottom of the hall and gave the page a scrollbar. clip,
+     not hidden: it leaves the other axis visible, so the full-bleed wall
+     and floor still reach the screen edges. */
+  overflow-y: clip;
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   grid-template-rows: auto auto minmax(0, 1fr);
@@ -632,7 +646,8 @@ html[data-boot="suppressed"] #hall { animation: hall-fade 0.3s var(--ease-out) b
    shell is never clipped (steam must escape; clip-path kills shadows) —
    only the gear well clips, via overflow:hidden. One scalar --drive
    (0=salon, 1=bureau, written by the JS driver) derives the lever and both
-   gears; it lives on :root so the works board can read it too.
+   gears. It lives on the desk, not on :root: nothing outside the desk reads
+   it, and a custom property changed on :root restyles the whole page.
    ========================================================================== */
 #signal-desk {
   position: fixed; left: 0; right: 0; bottom: calc(10px * var(--ui));
@@ -660,8 +675,8 @@ html[data-entered="no"] #signal-desk {
   animation-delay: 2.1s;
 }
 /* Initial pose before the JS driver's first write. */
-:root[data-wing="salon"] { --drive: 0; }
-:root[data-wing="bureau"] { --drive: 1; }
+:root[data-wing="salon"] #signal-desk { --drive: 0; }
+:root[data-wing="bureau"] #signal-desk { --drive: 1; }
 
 .desk-core {
   position: relative;
@@ -1252,10 +1267,10 @@ html[data-entered="no"] #signal-desk {
 .sc-body { position: relative; width: 100%; height: auto; }
 .sc-body .sc-shell { fill: var(--bronze-deep); stroke: var(--bronze); stroke-width: 1; }
 .sc-body .sc-step { fill: none; stroke: var(--bronze); stroke-width: 1; opacity: 0.8; }
+/* The flame holds still. It used to breathe on a 5.5s loop forever, and
+   the hall at rest keeps no idle motion but the clock's. */
 .sc-body .sc-flame { fill: var(--gold); opacity: 0.55; }
 .sc-body .sc-bracket { fill: none; stroke: var(--bronze); stroke-width: 1; }
-:root[data-motion="full"] .sc-flame { animation: sconce-breathe 5.5s ease-in-out infinite; }
-@keyframes sconce-breathe { 50% { opacity: 0.34; } }
 
 /* Bay number: each bay is engraved on the chair rail, so no two spans of
    wall are the same span of wall. */
@@ -1462,10 +1477,13 @@ html[data-entered="no"] #signal-desk {
   position: absolute; inset: 0; width: 100%; height: 100%;
   filter: blur(calc(var(--fh, 320px) * 0.017));
   opacity: 0.85;
-  transition: opacity 0.45s var(--ease-out);
 }
+/* A throw leaves the smears where they are and re-lights them with the
+   arches above: the stops carry the new --metal across in step with the
+   swap. */
 .fl-mirror .mir-lit { stop-color: var(--metal); }
 .fl-mirror .mir-dim { stop-color: var(--ink-faint); }
+.fl-mirror stop { transition: stop-color 0.4s ease 0.1s; }
 
 /* ----- The runner -------------------------------------------------------
    A rectangle in floor space, which the projection turns into the trapezoid
@@ -1996,12 +2014,16 @@ html[lang="zh"] .al-arc text {
   left: 50%; bottom: 0;
   width: var(--gate-fit);
   aspect-ratio: 300 / 570;
+  /* transform carries the slot and the hover lift. The slot never animates:
+     layoutStage writes it under .no-slide, so the only transform transition
+     that ever runs is the lift. The throw's sink and rise live on the
+     separate `translate` property (.active/.receded), so they can wait for
+     their bay's beat without delaying a hover. */
   transform: translateX(calc(-50% + var(--slot-x, 0px)))
-             translateY(calc(var(--rise, 0px) + var(--sink, 0px)))
+             translateY(var(--rise, 0px))
              scale(var(--slot-s, 1));
   transform-origin: center bottom;
   transition: transform 0.6s var(--ease-stage);
-  transition-delay: var(--slot-delay, 0ms);
   cursor: pointer;
   display: block;
   /* Plain perspective property — NEVER preserve-3d on #gates (it would
@@ -2024,13 +2046,19 @@ html[lang="zh"] .al-arc text {
   --lead-0: var(--pl-0); --lead-1: var(--pl-1); --lead-2: var(--pl-2);
   --lead-3: var(--pl-3); --lead-4: var(--pl-4); --lead-5: var(--pl-5);
 }
-/* 3D chain: .g-pose = static wing tilt (transitions with the stage
-   choreography); .g-shell = pointer parallax (NO transition — it would
-   smear the tilt). Children stay flat so the intra-gate z-stack holds. */
+/* Every slot move lands in one frame: first layout, resize, --ui, the
+   waiting wing taking its bays. */
+.gate.no-slide, .gate.no-slide .g-pose { transition: none !important; }
+/* 3D chain: .g-pose = static wing tilt (set with the bay, never animated:
+   both wings stand in a bay at its own tilt); .g-shell = pointer parallax
+   (NO transition — it would smear the tilt). Children stay flat so the
+   intra-gate z-stack holds. */
 .g-pose {
   position: absolute; inset: 0;
   transform-style: preserve-3d;
   transform: translateY(var(--lift, 0px)) rotateY(calc(var(--side, 0) * 10deg));
+  /* Only the hover lift animates here. The tilt is written with the bay
+     under .no-slide, which cuts this too, so it lands in one frame. */
   transition: transform 0.6s var(--ease-stage);
 }
 .g-shell {
@@ -2471,21 +2499,36 @@ html[lang="zh"] .g-name { letter-spacing: 0.17em; }
 .gate.flash .b-lip, .gate.flash .rim-lt { stroke: var(--champagne); transition: stroke 0.05s; }
 
 /* The waiting wing: same bays, out of the room. Opacity sits on .gate, the
-   PARENT of the preserve-3d pose, never on the pose itself. The outgoing
-   arches sink a tenth of their height as they fade; the incoming rise from
-   the same depth into the bay. */
 .g-veil { display: none; }
+   PARENT of the preserve-3d pose, never on the pose itself: on the pose it
+   would flatten the tilt. Visibility follows the fade so a hidden arch can
+   never take a pointer or a hover.
+   A throw runs one bay at a time, never two faces at once. The outgoing
+   arch sinks 14px and fades in 200ms from its bay's beat (--slot-delay,
+   rank x 60ms out from the clock); the incoming one waits until that bay is
+   empty (+220ms), then rises and fades up. The two used to cross-fade with
+   offset timings, and for ~280ms each bay printed both wings' lettering. */
 .gate.receded {
   opacity: 0; visibility: hidden;
-  --rise: calc(var(--gate-fit) * 0.19);
-  transition: transform 0.6s var(--ease-stage), opacity 0.36s ease 0.12s,
-              visibility 0s linear 0.48s;
+  translate: 0 14px;
+  transition: transform 0.6s var(--ease-stage),
+              translate 0.2s ease-in var(--slot-delay, 0ms),
+              opacity 0.2s ease-in var(--slot-delay, 0ms),
+              visibility 0s linear calc(var(--slot-delay, 0ms) + 0.2s);
 }
 .gate.active {
   opacity: 1; visibility: visible;
-  transition: transform 0.6s var(--ease-stage) var(--slot-delay, 0ms),
-              opacity 0.42s ease var(--slot-delay, 0ms), visibility 0s;
+  translate: 0 0;
+  transition: transform 0.6s var(--ease-stage),
+              translate 0.4s var(--ease-out) var(--slot-delay, 0ms),
+              opacity 0.36s ease-out var(--slot-delay, 0ms),
+              visibility 0s;
 }
+/* An incoming arch is visible at once (W puts focus on it), but it takes no
+   pointer until its fade is 120ms under way. An animation, not a timer, so
+   it runs on the same clock as the fade however late the first frame is. */
+.gate.active.arriving { animation: gate-arrive 0.12s linear var(--slot-delay, 0ms) backwards; }
+@keyframes gate-arrive { from, to { pointer-events: none; } }
 .gate.active { z-index: 2; }
 .gate.receded { z-index: 1; }
 
@@ -3087,7 +3130,8 @@ html[lang="zh"] .g-name { letter-spacing: 0.17em; }
    ENTRANCE — vault-door sequence per DESIGN.md spec v1.
    Beat ladder: 0=circle+engrave(0ms) 1=wheel+bolts(500ms)
    2=wheel-turn+bolt-retract(700ms) 3=seam(870ms) 4=doors-open(1030ms)
-   5=wordmark(1500ms) 6=dock(1800ms) 7=done-fade(2200ms) 8=finish(2700ms)
+   5=wordmark(1500ms) 6=dock(1800ms) 7=done-fade(2140ms) 8=dial(2320ms)
+   9=finish(2700ms)
    Performance: transform/opacity only. Static shadows on static layers.
    ========================================================================== */
 #entrance {
@@ -3097,6 +3141,10 @@ html[lang="zh"] .g-name { letter-spacing: 0.17em; }
 }
 html[data-entered="no"] #entrance { pointer-events: auto; cursor: pointer; }
 html[data-entered="yes"] #entrance { display: none; }
+/* From done-fade the panels are hidden and the void is clear: the hall is
+   what the reader sees, so it is what the pointer reaches. The last half
+   second used to spend a click on the skip, with the gate right there. */
+html[data-entered="no"] #entrance.done-fade { pointer-events: none; cursor: auto; }
 
 #entrance .e-void {
   position: absolute; inset: 0;
@@ -3188,7 +3236,7 @@ html[data-entered="yes"] #entrance { display: none; }
      and the lock anatomy actually reads. */
   width: min(88vmin, 1000px); height: min(88vmin, 1000px);
   margin: calc(min(88vmin, 1000px) / -2) 0 0 calc(min(88vmin, 1000px) / -2);
-  /* translate: 480ms (arrives before 280ms fade so circle clicks in then dissolves) */
+  /* The flight takes 480ms and the fade waits 300ms of it (see .dock). */
   transition: transform 0.48s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.28s;
   will-change: transform;
 }
@@ -3374,20 +3422,27 @@ html[data-entered="yes"] #entrance { display: none; }
 
 /* ---- Beat 4: Dock transform --------------------------------------------- */
 /* The entire .e-burst (lock face assembly) flies to the masthead rosette.
-   --dock-x, --dock-y, --dock-s are set in JS at 1800ms.
+   --dock-x, --dock-y, --dock-s are set in JS at 1800ms, aimed at where the
+   rosette comes to rest (playEntrance reads the masthead's rise-in).
    The * 0.23 factor: circle r=92 on 800px viewBox = 184/800 = 23% of burst.
-   !! LOAD-BEARING: if masthead rise-in delay changes from 2000ms,
-   recompute the -14px offset in playEntrance() !! */
+   The circle lands before it goes. The flight's ease-out has it ~95% of the
+   way at 300ms, so the fade waits that long and takes the last 180ms: the
+   circle dissolves ON the rosette. A 280ms fade from the start dropped it to
+   a quarter opacity while it was still ~200px short. */
 #entrance.dock .e-burst {
   transform: translate(var(--dock-x, 0px), var(--dock-y, 0px)) scale(var(--dock-s, 0.1));
   opacity: 0;
+  transition: transform 0.48s cubic-bezier(0.22, 1, 0.36, 1),
+              opacity 0.18s ease-in 0.3s;
 }
 #entrance.open .e-void { opacity: 0; transition: opacity 0.28s; }
 
 /* ---- Beat 5: Wordmark stamps down --------------------------------------- */
 /* Per-letter treatment: rotateX(-38deg) with per-letter perspective context.
-   fill-mode: backwards only (holds from-state before delay fires, but
-   returns to natural CSS state after — no fill-mode:both to avoid freeze). */
+   fill-mode: both. A letter's natural state is opacity 0, so 'backwards'
+   handed each one back to invisible the moment its stamp ended: the word
+   came apart A, T, R, I, U, M before done-fade ever ran. The fade-out sits
+   on the parent .e-wordmark, so holding the letters freezes nothing. */
 .e-wordmark {
   position: absolute; left: 0; right: 0; top: 50%;
   transform: translateY(-50%);
@@ -3407,7 +3462,7 @@ html[data-entered="yes"] #entrance { display: none; }
 #entrance.word .e-wordmark { opacity: 1; transition: opacity 0.3s; }
 /* word-stamp keyframe: per-letter translateX + rotateX press-home motion */
 #entrance.word .e-wordmark span {
-  animation: word-stamp 480ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
+  animation: word-stamp 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 /* --wi index set inline on each span; JS also sets animationDelay inline */
 @keyframes word-stamp {
@@ -3431,10 +3486,11 @@ html[data-entered="yes"] #entrance { display: none; }
 .e-wordmark span:nth-child(6) { --wx: 2.25;  }
 
 /* ---- Beat 7: Done-fade -------------------------------------------------- */
-/* done-fade fires at 2200ms — 30ms after last letter settles (2170ms).
-   This gap is load-bearing: the prior done-fade at 2100ms was a timing
-   bug (sixth letter still animating at 2170ms). */
-#entrance.done-fade .e-wordmark,
+/* done-fade fires at 2140ms, 30ms after the last letter settles (2110ms).
+   This gap is load-bearing: a done-fade that lands while the sixth letter is
+   still stamping cuts it off. The word fades in 180ms, because the dial
+   wakes behind it at 2320ms (beat 8) and must not wake under the letters. */
+#entrance.done-fade .e-wordmark { opacity: 0; transition: opacity 0.18s ease-in; }
 #entrance.done-fade .e-void { opacity: 0; transition: opacity 0.36s; }
 #entrance.done-fade .e-panel { visibility: hidden; }
 
@@ -3445,24 +3501,37 @@ html[data-entered="yes"] #entrance { display: none; }
 }
 
 /* Hall assembly (only while the entrance plays) */
-html[data-entered="no"] #masthead { animation: rise-in 0.5s var(--ease-out) both; animation-delay: 2.0s; }
+/* The masthead comes up with the dock (1.8s), so the rosette is there when
+   the lock face lands on it. At 2.0s it was still invisible for the whole
+   flight. playEntrance aims the dock at its resting place. */
+html[data-entered="no"] #masthead { animation: rise-in 0.5s var(--ease-out) both; animation-delay: 1.8s; }
 html[data-entered="no"] #ticker { animation: rise-in 0.45s var(--ease-out) both; animation-delay: 2.05s; }
 html[data-entered="no"] #ticker::before { animation: rule-draw 0.4s var(--ease-out) both; animation-delay: 1.9s; }
 html[data-entered="no"] #ticker::after { animation: rule-draw 0.4s var(--ease-out) both; animation-delay: 2.0s; }
-/* The dial is set into the back wall, so it has to be standing there before
-   the gates rise in front of it: 1.88s puts it one beat ahead of the first
-   gate. It was missing from this list entirely and so arrived fully formed at
-   frame zero, which read as a rendering fault rather than as the centrepiece.
-   Like .gate below, its keyframes must carry the translateX(-50%) that centres
-   it — an animated transform replaces the static one outright, and without it
-   the clock snaps to the left edge for the length of the entrance. */
-html[data-entered="no"] #clock { animation: dial-wake 0.62s var(--ease-out) both; animation-delay: 1.88s; }
+/* The dial wakes last, on its own beat (.dial, 2320ms), once the wordmark
+   has gone. The letters are printed across the middle of the dial, and when
+   it woke at 1.88s the fading word sat over the numerals and the hands. The
+   beat is a class, not a CSS delay, because the wordmark runs on the JS
+   timers and a CSS delay counts from first style, which is earlier by
+   however long the scripts took. Paused until then, the animation holds its
+   from-state. It was once missing from this list entirely and arrived fully
+   formed at frame zero, which read as a rendering fault rather than as the
+   centrepiece. Like .gate below, its keyframes must carry the
+   translateX(-50%) that centres it — an animated transform replaces the
+   static one outright, and without it the clock snaps to the left edge for
+   the length of the entrance. */
+html[data-entered="no"] #clock { animation: dial-wake 0.36s var(--ease-out) both paused; }
+html[data-entered="no"] #entrance.dial ~ #hall #clock { animation-play-state: running; }
 html[data-entered="no"] .gate { animation: gate-rise 0.5s var(--ease-out) both; animation-delay: calc(1.9s + var(--gi, 0) * 80ms); }
 /* #ledger is a fixed drawer — it has no entrance animation; it opens via JS */
 /* The glow and floor light only once the gates have landed; the stage
-   dollies in gently — the camera walks into the hall. */
+   dollies in gently — the camera walks into the hall. The floor's
+   reflections come up with the dial (beat 8). This rule used to name
+   `.floor`, which no element carries, so the stone showed four arches and a
+   clock from the moment the doors parted, over an empty wall. */
 html[data-entered="no"] .stage-glow { animation: glow-in 0.45s var(--ease-out) both; animation-delay: 2.2s; }
-html[data-entered="no"] .floor { animation: floor-in 0.6s var(--ease-out) both; animation-delay: 2.15s; }
+html[data-entered="no"] #floorplane .fl-mirror { animation: floor-in 0.36s var(--ease-out) both paused; }
+html[data-entered="no"] #entrance.dial ~ #hall .fl-mirror { animation-play-state: running; }
 html[data-entered="no"] #stage { animation: stage-dolly 0.9s var(--ease-out) both; animation-delay: 1.85s; }
 @keyframes glow-in { from { opacity: 0; } to { opacity: 0.6; } }
 @keyframes floor-in { from { opacity: 0; } to { opacity: 0.85; } }
@@ -3548,6 +3617,13 @@ html[data-entered="no"] #stage { animation: stage-dolly 0.9s var(--ease-out) bot
    hard cut. */
 :root[data-motion="reduced"] #ticker.paged .t-page {
   transition-duration: 0.9s !important;
+}
+/* ...except the quiet boot's fade. It is the whole of what a reduced-motion
+   load gets instead of the entrance, and it is opacity only, so it moves
+   nothing. Under the blanket 0.01ms above the hall cut in on one frame. */
+:root[data-motion="reduced"][data-boot="suppressed"] #hall,
+:root[data-motion="reduced"][data-boot="suppressed"] #signal-desk {
+  animation-duration: 0.3s !important;
 }
 
 /* Ledger drawer: a fade instead of the slide. data-motion is the one switch:

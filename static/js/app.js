@@ -592,7 +592,7 @@ function playEntrance() {
 
   // Beat 5 — wordmark stamps down (1500ms).
   // Door is 40% open by 1500ms — the sign is readable in the widening aperture.
-  // Per-letter stagger: 38ms × 5 = 190ms total; last letter at 1500+190+480=2170ms.
+  // Per-letter stagger: 38ms × 5 = 190ms total; last letter at 1500+190+420=2110ms.
   at(1500, function () {
     entrance.classList.add('word');
     // Set per-letter animation delays inline so each span has its own timing.
@@ -607,54 +607,104 @@ function playEntrance() {
   // masthead rosette. The circle flies inward and up to its permanent home.
   // Dock arithmetic (all values runtime-computed from live DOM):
   //   --dock-x = mono.cx - burst.cx (px, signed)
-  //   --dock-y = mono.cy - burst.cy - 14 (px; -14 compensates masthead
-  //              rise-in from-state translateY(14px) which fires at 2000ms,
-  //              200ms after dock)
+  //   --dock-y = mono.cy - lift - burst.cy (px)
   //   --dock-s = mono.width / (burst.width * 0.23)
   //   * 0.23: SVG viewBox=800x800, circle r=92, diameter=184, 184/800=0.23.
-  //   !! LOAD-BEARING: if masthead rise-in delay changes from 2000ms,
-  //   recompute -14 as: masthead_from_translateY * (1 - elapsed_fraction) !!
+  // The masthead rises in with the flight (rise-in from translateY(14px),
+  // CSS delay 1.8s), so the rosette may still be low when this reads it.
+  // `lift` is how low, read off the masthead's own transform this frame, so
+  // the circle aims at where the rosette comes to rest. A fixed -14px was
+  // only right while the rise-in had not begun. The masthead now starts
+  // with the flight rather than 200ms after it: the circle has to land on a
+  // rosette that is there to land on.
   at(1800, function () {
     var mono  = $('#monogram').getBoundingClientRect();
     var burst = $('.e-burst').getBoundingClientRect();
+    var mast  = $('#masthead');
+    var lift  = mast ? new DOMMatrixReadOnly(getComputedStyle(mast).transform).m42 : 0;
     entrance.style.setProperty('--dock-x',
       (mono.left + mono.width / 2 - (burst.left + burst.width / 2)) + 'px');
     entrance.style.setProperty('--dock-y',
-      (mono.top + mono.height / 2 - (burst.top + burst.height / 2) - 14) + 'px');
+      (mono.top + mono.height / 2 - lift - (burst.top + burst.height / 2)) + 'px');
     entrance.style.setProperty('--dock-s',
       String(mono.width / (burst.width * 0.23)));
     entrance.classList.add('dock');
   });
 
-  // Beat 7 — done-fade (2200ms).
-  // 30ms gap after last letter (2170ms): load-bearing. Prior code fired at
-  // 2100ms while the sixth letter was still animating — this closes that bug.
-  at(2200, function () { entrance.classList.add('done-fade'); });
+  // Beat 7 — done-fade (2140ms).
+  // 30ms gap after last letter (2110ms): load-bearing. A done-fade that
+  // fires while the sixth letter is still animating cuts it off mid-stamp.
+  // From here the panels are hidden and the void is clear, so the overlay
+  // stops catching the pointer (CSS): the hall is visible, and a click on
+  // it lands the entrance and then does what it says (see entranceSkip).
+  at(2140, function () { entrance.classList.add('done-fade'); });
 
-  // Beat 8 — finish (2700ms).
+  // Beat 8 — the dial wakes (2320ms).
+  // Only once the wordmark has faded (2140 + 180ms). The letters print
+  // across the middle of the dial, and a dial waking behind them read as
+  // ATRIUM stencilled over the clock face. The floor's reflections come up
+  // with it, so the stone never reflects an empty niche.
+  at(2320, function () { entrance.classList.add('dial'); });
+
+  // Beat 9 — finish (2700ms).
   at(2700, finishEntrance);
 
-  // The overlay has pointer-events:auto while playing, so the skip gesture
-  // is swallowed here and never reaches the invisible hall underneath.
+  // Any input cuts the entrance short. Until done-fade the overlay has
+  // pointer-events:auto, so a pointerdown lands on the overlay; it is
+  // swallowed there, and so is the click it turns into (swallowNextClick),
+  // because by the time that click is hit-tested the overlay has gone and
+  // it would land on whatever gate, lever or hatch was under the finger.
+  // After done-fade a pointerdown reaches the hall itself: the entrance
+  // lands and the click goes on to the thing that was clicked.
   entranceSkip = function (e) {
-    // Any input cuts the entrance short, but only the keys the hall itself
-    // would act on are swallowed: F5, Ctrl+R and the like keep working.
-    var own = !e || e.type !== 'keydown' ||
-      (!e.ctrlKey && !e.metaKey && !e.altKey && !/^F\d+$/.test(e.key));
-    if (own && e && e.preventDefault) e.preventDefault();
+    var type = e ? e.type : '';
+    if (type === 'keydown') {
+      // Only the keys the hall itself would act on are swallowed: F5,
+      // Ctrl+R and the like keep working.
+      if (!e.ctrlKey && !e.metaKey && !e.altKey && !/^F\d+$/.test(e.key)) e.preventDefault();
+    } else if (type === 'pointerdown' && entrance.contains(e.target)) {
+      e.preventDefault();
+      swallowNextClick();
+    }
+    // A wheel turn only lands the hall. It is passive: the hall never
+    // scrolls, so there is nothing to cancel.
     finishEntrance();
   };
-  entrance.addEventListener('pointerdown', entranceSkip);
+  window.addEventListener('pointerdown', entranceSkip, true);
   window.addEventListener('keydown', entranceSkip);
+  window.addEventListener('wheel', entranceSkip, { passive: true });
 }
 
 var entranceSkip = null;
 
+/* preventDefault on pointerdown stops a mouse's compatibility events but
+   not the click a touchscreen synthesizes from a tap. That click is eaten
+   here, in the capture phase, before anything in the hall sees it. The
+   trap disarms itself shortly after the pointer comes up, so a skip that
+   never turns into a click (a drag, a cancelled touch) cannot eat a later,
+   deliberate one. */
+function swallowNextClick() {
+  var armed = true;
+  function eat(e) { e.preventDefault(); e.stopPropagation(); disarm(); }
+  function disarm() {
+    if (!armed) return;
+    armed = false;
+    window.removeEventListener('click', eat, true);
+    window.removeEventListener('pointerup', soon, true);
+    window.removeEventListener('pointercancel', soon, true);
+  }
+  function soon() { setTimeout(disarm, 400); }
+  window.addEventListener('click', eat, true);
+  window.addEventListener('pointerup', soon, true);
+  window.addEventListener('pointercancel', soon, true);
+}
+
 function finishEntrance() {
   entranceTimers.forEach(clearTimeout);
   if (entranceSkip) {
-    entrance.removeEventListener('pointerdown', entranceSkip);
+    window.removeEventListener('pointerdown', entranceSkip, true);
     window.removeEventListener('keydown', entranceSkip);
+    window.removeEventListener('wheel', entranceSkip);
     entranceSkip = null;
   }
   entrance.style.display = 'none';
@@ -680,7 +730,7 @@ function deskNudge() {
   var PUSH = 200, PULL = 280, AMP = 0.07;
   var base = getDrive();
   function frame(now) {
-    var dt = now - t0;
+    var dt = Math.max(0, now - t0);   // same early-frame timestamp as deskDrive
     var v;
     if (dt < PUSH) {
       v = base + AMP * (dt / PUSH);
@@ -698,9 +748,9 @@ function deskNudge() {
 
 /* ========================================================================
    Signal desk — lever, gear train, steam (DESIGN.md v4.1). One scalar
-   --drive (0=salon, 1=bureau) written by a rAF driver onto :root; the
-   lever, both gears and the works board's movement all derive from it via
-   calc, so sync is structural.
+   --drive (0=salon, 1=bureau) written by a rAF driver onto #signal-desk;
+   the lever and both gears derive from it via calc, so sync is
+   structural.
    ======================================================================== */
 var desk = $('#signal-desk');
 var deskNozzle = $('#signal-desk .nozzle');
@@ -1325,8 +1375,11 @@ function steamBurst(nozzleEl, n) {
 }
 
 /* Weighty throw: fast start → ~4.5% overshoot → damped clank settle.
-   C0-continuous at the seam; identical feel both directions. */
+   C0-continuous at the seam; identical feel both directions. The overshoot
+   lives at the far end only: below 0 the cubic extrapolates backwards, so
+   t is pinned to the rest pose there rather than trusted to be >= 0. */
 function easeWeighty(t) {
+  if (t <= 0) return 0;
   if (t >= 1) return 1;
   var MAIN = 0.78, OVER = 0.045;
   if (t < MAIN) {
@@ -1338,9 +1391,14 @@ function easeWeighty(t) {
 }
 
 var deskRaf = null;
-function setDrive(v) { root.style.setProperty('--drive', v.toFixed(4)); }
+/* --drive is written on the desk, not on :root. Only the lever arm and the
+   two gears read it, and an inherited custom property changed on :root
+   restyles every element in the document: ~3,600 of them per frame, which
+   held the throw to 20-25 fps. On the desk it restyles the desk. */
+function setDrive(v) { if (desk) desk.style.setProperty('--drive', v.toFixed(4)); }
 function getDrive() {
-  var v = parseFloat(getComputedStyle(root).getPropertyValue('--drive'));
+  if (!desk) return 0;
+  var v = parseFloat(getComputedStyle(desk).getPropertyValue('--drive'));
   return isNaN(v) ? 0 : v;
 }
 
@@ -1359,7 +1417,10 @@ function deskDrive(target) {
     // The Motion preference can flip (or the tab hide) mid-throw — land it.
     if (root.dataset.motion === 'reduced' ||
         document.visibilityState === 'hidden') { setDrive(target); return; }
-    var t = Math.min(1, (now - t0) / DUR);
+    // The first frame's timestamp is taken when the frame began, which can
+    // be before the click handler read t0; unclamped, that negative t
+    // kicked the lever back past its end stop for one frame.
+    var t = Math.max(0, Math.min(1, (now - t0) / DUR));
     var p = from + (target - from) * easeWeighty(t);
     setDrive(t === 1 ? target : p);
     var prog = target === 1 ? p : 1 - p;
@@ -1426,8 +1487,10 @@ function slots() {
   return out;
 }
 
-/* Gates are absolutely positioned, so DOM order is free — keep it
-   active-wing-first so the tab order is active → receded in both wings. */
+/* Gates are absolutely positioned, so DOM order is free. They are built
+   lit-wing-first so the entrance's rise stagger (--gi) runs across the arches
+   that are actually showing. Tab order does not depend on it: the waiting
+   wing is inert. */
 function gateDomOrder() {
   var wing = root.dataset.wing;
   return slots().sort(function (a, b) {
@@ -1654,6 +1717,7 @@ function gateClick(e, a, svc) {
 
 /* Triptych stage: slots computed from the registry so future services
    flank symmetrically. Transform-only (60 fps law). */
+var SWAP_OUT = 200, SWAP_GAP = 20, SWAP_STEP = 60;   // ms, see the throw below
 function layoutStage(initial) {
   var wrap = $('#gates');
   var W = wrap.clientWidth;
@@ -1692,58 +1756,137 @@ function layoutStage(initial) {
      niche rather than straddling the centre. */
   var half = clock ? (c0 * fit) / 2 + gateW * CLEAR : 0;
 
-  // The active gates split equally to either side of the clock; slots()
-  // has already made the count even, so the dial keeps the axis at full size.
-  var perSide = Math.floor(active.length / 2);
-  var leftActives = active.slice(0, perSide);          // outermost → innermost
-  var rightActives = active.slice(perSide);            // innermost → outermost
-
-  function placeActive(svc, x, side, order) {
-    var a = $('#gate-' + svc.id);
-    if (!a) return;
-    a.classList.add('active'); a.classList.remove('receded');
-    // Depth order is set here, not left to DOM order (absolutely positioned
-    // siblings), so a gate sweeping out to a flank drops behind before it
-    // travels rather than eclipsing the pair coming forward.
-    a.style.zIndex = '3';
-    a.style.setProperty('--slot-x', x + 'px');
-    a.style.setProperty('--slot-s', '1');
-    a.style.setProperty('--sink', '0px');   // a former centre gate rises back
-    a.style.setProperty('--side', String(side));
-    a.style.setProperty('--slot-delay', initial ? '0ms' : (80 + order * 60) + 'ms');
+  /* The bays of a wing of n, left to right. slots() has already made n even,
+     so half stand left of the clock (outermost first) and half right
+     (innermost first), and the dial keeps the axis at full size. rank counts
+     out from the clock on both sides. Both wings are laid in the same bays:
+     the waiting wing stands exactly where its counterparts stand, out of the
+     room, so a throw of the lever lets one wing's arches sink while the
+     other's rise in place, and the doors change places rather than slide
+     across the hall. */
+  function bays(n) {
+    var per = Math.floor(n / 2), out = [];
+    for (var i = 0; i < n; i++) {
+      var left = i < per;
+      var rank = left ? per - 1 - i : i - per;
+      out.push({ x: (left ? -1 : 1) * (half + gateW / 2 + rank * spacing),
+                 side: left ? 0.55 : -0.55, rank: rank });
+    }
+    return out;
   }
-  leftActives.forEach(function (svc, i) {
-    var rank = leftActives.length - 1 - i;                  // 0 = nearest clock
-    placeActive(svc, -(half + gateW / 2 + rank * spacing), 0.55, i);
-  });
-  rightActives.forEach(function (svc, i) {
-    placeActive(svc, +(half + gateW / 2 + i * spacing), -0.55, i);   // mirror
-  });
-  // The waiting wing stands exactly where its counterparts stand, out of the
-  // room: a throw of the lever lets one wing's arches sink and fade while the
-  // other's rise in the same bays, so the doors change places rather than
-  // slide across the hall. It is inert while it waits, so it takes no tab
-  // stop, no pointer and no screen-reader attention.
-  var slotX = [];
-  leftActives.forEach(function (svc, i) {
-    slotX.push(-(half + gateW / 2 + (leftActives.length - 1 - i) * spacing));
-  });
-  rightActives.forEach(function (svc, i) {
-    slotX.push(+(half + gateW / 2 + i * spacing));
+  var litBays = bays(active.length), waitBays = bays(receded.length);
+
+  /* A slot is never travelled to. Arches used to glide 0.6s from wherever
+     they last stood: out from behind the clock when they were first laid
+     out (a forced style read put new gates at the centre before their slot
+     was written), and across each other and the niche after a resize, when
+     their size changed at once but their slots did not. Every move is now
+     written with the gate's transitions cut (.no-slide), flushed, and the
+     cut lifted, so an arch is in its bay in the same frame the bay exists. */
+  var cut = [];
+  function place(a, bay) {
+    var x = bay.x.toFixed(2) + 'px', side = String(bay.side);
+    a.style.setProperty('--slot-s', '1');
+    if (a.style.getPropertyValue('--slot-x') === x &&
+        a.style.getPropertyValue('--side') === side) return;
+    hold(a);
+    a.style.setProperty('--slot-x', x);
+    a.style.setProperty('--side', side);
+  }
+  function role(a, lit, delay) {
+    a.classList.toggle('active', lit);
+    a.classList.toggle('receded', !lit);
+    // Depth order is set here, not left to DOM order (absolutely positioned
+    // siblings).
+    a.style.zIndex = lit ? '3' : '1';
+    a.style.setProperty('--slot-delay', delay + 'ms');
+  }
+  function gate(svc) { return $('#gate-' + svc.id); }
+
+  var swaps = [];
+  function hold(a) { if (cut.indexOf(a) < 0) { a.classList.add('no-slide'); cut.push(a); } }
+  active.forEach(function (svc, i) {
+    var a = gate(svc);
+    if (!a) return;
+    place(a, litBays[i]);
+    if (initial) {
+      // First layout, resize, --ui: the row simply is where it is solved.
+      hold(a);
+      role(a, true, 0);
+      a.classList.remove('arriving');
+    } else if (!a.classList.contains('active')) {
+      swaps.push({ a: a, lit: true, rank: litBays[i].rank, vacant: !!svc.vacant, x: litBays[i].x });
+    }
   });
   receded.forEach(function (svc, i) {
-    var a = $('#gate-' + svc.id);
+    var a = gate(svc);
     if (!a) return;
-    a.classList.add('receded'); a.classList.remove('active');
-    a.style.zIndex = '1';
-    a.style.setProperty('--sink', '0px');
-    a.style.setProperty('--slot-x', (slotX[i] !== undefined ? slotX[i] : 0) + 'px');
-    a.style.setProperty('--slot-s', '1');
-    a.style.setProperty('--slot-delay', '0ms');
-    a.style.setProperty('--side', '0');
+    a.classList.remove('arriving');
+    if (initial) {
+      place(a, waitBays[i]);
+      hold(a);
+      role(a, false, 0);
+    } else if (!a.classList.contains('active')) {
+      place(a, waitBays[i]);     // out of the room, so it moves unseen
+    } else {
+      // Going out: it sinks where it stands.
+      swaps.push({ a: a, lit: false, rank: waitBays[i].rank, vacant: !!svc.vacant,
+                   x: parseFloat(a.style.getPropertyValue('--slot-x')) || 0 });
+    }
   });
+
+  /* The RESERVED arch is the same arch in both wings. Where one stands down
+     and the other takes its bay, they change places under the cut, so the
+     bay stays put through the throw instead of blinking out and back. */
+  var outV = swaps.filter(function (s) { return s.vacant && !s.lit; })[0];
+  var inV = swaps.filter(function (s) { return s.vacant && s.lit; })[0];
+  if (outV && inV && Math.abs(outV.x - inV.x) < 0.5) {
+    [outV, inV].forEach(function (s) {
+      hold(s.a);
+      role(s.a, s.lit, 0);
+    });
+    swaps = swaps.filter(function (s) { return s !== outV && s !== inV; });
+  }
+
+  if (cut.length) {
+    void wrap.offsetWidth;   // the cut values become the before-change style
+    cut.forEach(function (a) { a.classList.remove('no-slide'); });
+  }
+
+  /* The throw, bay by bay: the outgoing arch sinks and fades in 200ms, the
+     bay stands empty for a beat, and only then does the incoming arch rise
+     into it. Both faces used to share the bay for ~280ms, and the lettering
+     of AUTOPILOT and OUTREACH DESK printed over each other. The beat runs out
+     from the clock on both sides at once (rank), mirrored about the axis the
+     clock holds; by DOM order it used to lead with the outer left and the
+     inner right. An incoming arch takes no pointer until its fade is under
+     way (.arriving, timed in CSS off the same delay): visibility has to
+     switch at once so W can put focus on it, and for its whole delay it was
+     an invisible target that took the clicks meant for the arch still
+     fading out above it.
+     The wait is for the arch leaving the same bay, so where there is none
+     showing (a throw reversed before the other arch began to rise, or a bay
+     only one wing fills) the incoming arch goes on its own beat. Without
+     this, a change of mind left the arch that was leaving frozen half faded
+     for the length of the wait before it came back. */
+  function shown(a) {
+    var cs = getComputedStyle(a);
+    return cs.visibility === 'visible' ? parseFloat(cs.opacity) : 0;
+  }
+  swaps.forEach(function (s) {
+    if (!s.lit) return;
+    var mate = swaps.filter(function (o) { return !o.lit && Math.abs(o.x - s.x) < 0.5; })[0];
+    s.wait = !!mate && shown(mate.a) > 0.02;
+  });
+  swaps.forEach(function (s) {
+    var delay = s.rank * SWAP_STEP;
+    if (s.wait) delay += SWAP_OUT + SWAP_GAP;
+    s.a.classList.toggle('arriving', s.lit);
+    role(s.a, s.lit, delay);
+  });
+
   all.forEach(function (svc) {
-    var a = $('#gate-' + svc.id);
+    var a = gate(svc);
     if (!a) return;
     var waiting = svc.wing !== wing;
     a.inert = waiting;
@@ -1754,14 +1897,13 @@ function layoutStage(initial) {
   // THIS, not against the stage column, which is wider than the row.
   triptychHalf = half + (nSide ? gateW + (nSide - 1) * spacing : 0);
   buildAisles();
-  if (!initial) scheduleMirror(680);
 }
 
-var resizeT;
-window.addEventListener('resize', function () {
-  clearTimeout(resizeT);
-  resizeT = setTimeout(function () { layoutStage(true); }, 120);
-});
+/* Re-solved in the resize event itself, which runs before the frame is
+   styled, so the new size and the new slots paint together. A 120ms
+   debounce used to leave the arches at their new size in their old slots,
+   overlapping each other and the clock, for the length of the wait. */
+window.addEventListener('resize', function () { layoutStage(true); });
 
 /* ========================================================================
    The concourse — aisle walls, boards, floor inlay
@@ -1966,32 +2108,9 @@ function buildAisles() {
   fillWall(wr, rw, boardHole($('#almanac'), axis + reach), used + 1);
   sizeFloor();
   buildStanchions();
-  // The reflections are cast from the live arch boxes, so they are repainted
-  // by whatever last moved them — a resize, a wing throw, a font swap.
-  scheduleMirror(0);
-}
-
-/* A gate takes 0.6s to cross the stage, and getBoundingClientRect during
-   that is the arch's CURRENT box, not its destination — so a reflection
-   painted on the spot would sit under nothing for half a second and then
-   jump. SVG polygon points do not transition, so the smears fade out while
-   the arches travel and come back up under wherever they landed, which is
-   also how a reflection behaves when the thing casting it moves. */
-var mirrorT = null;
-function scheduleMirror(wait) {
-  var svg = $('.fl-mirror');
-  if (!svg) return;
-  clearTimeout(mirrorT);
-  if (!wait || root.dataset.motion === 'reduced') {
-    svg.style.opacity = '';
-    paintFloorMirror();
-    return;
-  }
-  svg.style.opacity = '0';
-  mirrorT = setTimeout(function () {
-    paintFloorMirror();
-    svg.style.opacity = '';
-  }, wait);
+  // Repainted with everything that re-lays the wall: a resize, a wing
+  // throw, a language or engraving-size change.
+  paintFloorMirror();
 }
 
 /* The floor's perspective distance has to be a function of the floor's own
@@ -2204,26 +2323,55 @@ function buildTerrazzo() {
    so a column that is vertical ON SCREEN is a WEDGE on the plane, widening
    toward the viewer. Hence the trapezoid: 0.98 of the offset at the wall,
    0.49 at the near edge. Reflections carry --metal, so the whole floor
-   changes temperature the moment the lever is thrown. */
+   changes temperature the moment the lever is thrown.
+
+   The arches and the clock are cast from the row as layoutStage solved it,
+   never from their live boxes. A live box is wherever the arch is THIS
+   frame: mid-glide, mid-dolly, or (on a quiet boot) at the centre before
+   its slot had landed, which painted all four arches as one beam under the
+   clock and left the stone under every arch dry until the next throw. The
+   waiting wing casts nothing: it is not in the room. */
 var MIRROR_FAR = 0.98, MIRROR_NEAR = 0.49, MIRROR_RUN = 560;
 function paintFloorMirror() {
   var svg = $('.fl-mirror');
   if (!svg) return;
   var W = window.innerWidth || 1;
   var seen = [];
-  // The arches and the clock carry their own reflections now (the portal
+  // The arches and the clock carry their own reflections (each portal
   // flipped in the wax, and the niche's own), so only the two aisle cases
-  // still need a smear here.
-  [['#works', false, false], ['#almanac', false, false]]
-  .forEach(function (spec) {
-    var e = $(spec[0]);
+  // still need a smear here. They never move.
+  ['#works', '#almanac'].forEach(function (sel) {
+    var e = $(sel);
     if (!e) return;
     var r = e.getBoundingClientRect();
     if (r.width > 4) {
-      seen.push({ dx: (r.left + r.width / 2) / W - 0.5, hw: r.width / W / 2,
-                  lit: spec[1], wide: spec[2] });
+      seen.push({ dx: (r.left + r.width / 2) / W - 0.5, hw: r.width / W / 2, lit: false });
     }
   });
+  function points(it) {
+    var far = 500 + 1000 * MIRROR_FAR * it.dx, fw = 1000 * MIRROR_FAR * it.hw;
+    var near = 500 + 1000 * MIRROR_NEAR * it.dx, nw = 1000 * MIRROR_NEAR * it.hw;
+    return [(far - fw).toFixed(1) + ',0', (far + fw).toFixed(1) + ',0',
+            (near + nw).toFixed(1) + ',' + MIRROR_RUN,
+            (near - nw).toFixed(1) + ',' + MIRROR_RUN].join(' ');
+  }
+  function stops(it) {
+    var top = it.lit ? (it.wide ? 0.34 : 0.30) : 0.13;
+    return [[0, top], [0.42, top * 0.42], [1, 0]];
+  }
+  // The same set of smears as last time is repainted in place. A lever throw
+  // leaves every bay where it was, so the polygons stay put and only --metal
+  // changes under them, which the stops' own transition carries across with
+  // the arches (it used to blank the floor for a second and repaint it).
+  var shape = seen.map(function (it) { return (it.lit ? 'L' : 'D') + (it.wide ? 'W' : ''); }).join();
+  var polys = svg.querySelectorAll('polygon');
+  if (svg.dataset.shape === shape && polys.length === seen.length) {
+    seen.forEach(function (it, i) {
+      polys[i].setAttribute('points', points(it));
+    });
+    return;
+  }
+  svg.dataset.shape = shape;
   svg.textContent = '';
   var defs = svgEl('defs');
   svg.appendChild(defs);
@@ -2231,26 +2379,18 @@ function paintFloorMirror() {
     var id = 'mir' + i;
     var grad = svgEl('linearGradient',
       { id: id, x1: '0', y1: '0', x2: '0', y2: '1' });
-    var top = it.lit ? (it.wide ? 0.34 : 0.30) : 0.13;
     // stop-color is set by CLASS, never as a presentation attribute: var()
     // does not resolve in presentation attributes, so `stop-color="var(--metal)"`
     // parses to nothing and the whole reflection paints transparent — which
     // it did, silently, with all six polygons present in the DOM.
-    [[0, top], [0.42, top * 0.42], [1, 0]].forEach(function (st) {
+    stops(it).forEach(function (st) {
       grad.appendChild(svgEl('stop', {
         offset: (st[0] * 100) + '%',
         'stop-opacity': st[1].toFixed(3)
       }, it.lit ? 'mir-lit' : 'mir-dim'));
     });
     defs.appendChild(grad);
-    var far = 500 + 1000 * MIRROR_FAR * it.dx, fw = 1000 * MIRROR_FAR * it.hw;
-    var near = 500 + 1000 * MIRROR_NEAR * it.dx, nw = 1000 * MIRROR_NEAR * it.hw;
-    svg.appendChild(svgEl('polygon', {
-      points: [(far - fw).toFixed(1) + ',0', (far + fw).toFixed(1) + ',0',
-               (near + nw).toFixed(1) + ',' + MIRROR_RUN,
-               (near - nw).toFixed(1) + ',' + MIRROR_RUN].join(' '),
-      fill: 'url(#' + id + ')'
-    }));
+    svg.appendChild(svgEl('polygon', { points: points(it), fill: 'url(#' + id + ')' }));
   });
 }
 
@@ -3052,8 +3192,6 @@ function startAlmanac() {
 var lever = $('#lever');
 var themeBusy = false;
 
-var wingReorderT;
-
 function setWing(w) {
   wingPending = w;
   var apply = function () {
@@ -3062,23 +3200,12 @@ function setWing(w) {
     store('atrium.wing', w);
     lever.setAttribute('aria-checked', String(w === 'bureau'));
     deskDrive(w === 'bureau' ? 1 : 0);
+    // The gates stay in the order they were built. The waiting wing is
+    // inert, so Tab walks only the lit one, left to right, wherever the two
+    // sit in the DOM. A 750ms re-append used to put the lit wing first, and
+    // moving live nodes replayed the sheen on a hovered arch and bounced
+    // focus off the gate the reader had just landed on.
     layoutStage(false);
-    // After the slide settles, re-append gates active-first so the tab
-    // order matches the new composition (pixels don't move — gates are
-    // transform-placed).
-    clearTimeout(wingReorderT);
-    wingReorderT = setTimeout(function () {
-      var wrap = $('#gates');
-      var had = document.activeElement;
-      gateDomOrder().forEach(function (svc, i) {
-        var a = $('#gate-' + svc.id);
-        if (a && wrap.children[i] !== a) wrap.insertBefore(a, wrap.children[i] || null);
-      });
-      // Moving the focused node drops focus to <body>; put it back.
-      if (had && had !== document.activeElement && had.isConnected && !had.inert) {
-        had.focus({ preventScroll: true });
-      }
-    }, 750);
   };
   // Serialize: the lever re-light queues until a theme crossfade finishes.
   if (themeBusy) setTimeout(apply, 420); else apply();
@@ -4287,14 +4414,39 @@ prefs.addEventListener('click', function (e) {
 });
 
 var mq = matchMedia('(prefers-color-scheme: dark)');
+/* The theme changes as one picture. Flipping data-theme under the scoped
+   colour transitions never made a crossfade: the wall, floor, pilasters and
+   dado are gradients, which cannot interpolate, so they jumped at once
+   while the arches, clock and masthead were still fading; and the ~1,100
+   transitions it started (310 on the clock's chapter ring alone) restyled
+   the whole tree every frame, at 6-25 fps, after a ~280ms stall.
+   Now the old hall is captured as an image and the new one fades in over it
+   (a view transition, 400ms, css ::view-transition-*). Beneath the image the
+   flip itself lands with every transition cut (.theme-cut), so the new hall
+   is drawn once, finished, and nothing restyles per frame. Where a view
+   transition is unavailable, or motion is reduced, the flip is simply
+   instant: still one picture, never half and half. */
 function resolveTheme() {
   var pref = root.dataset.themePref || 'system';
   var dark = pref === 'onyx' || (pref === 'system' && mq.matches);
   var next = dark ? 'onyx' : 'ivory';
-  if (root.dataset.theme !== next) {
-    themeBusy = true;
+  if (root.dataset.theme === next) return;
+  themeBusy = true;
+  setTimeout(function () { themeBusy = false; }, 420);
+  var flip = function () {
+    root.classList.add('theme-cut');
     root.dataset.theme = next;
-    setTimeout(function () { themeBusy = false; }, 420);
+  };
+  var uncut = function () { root.classList.remove('theme-cut'); };
+  if (document.startViewTransition && root.dataset.motion !== 'reduced') {
+    var vt = document.startViewTransition(flip);
+    // By `ready` the new hall has been drawn under the cut, so lifting it
+    // starts nothing; the old picture is still fading over it.
+    vt.ready.then(uncut, uncut);
+  } else {
+    flip();
+    void root.offsetWidth;   // the flip's style change happens under the cut
+    uncut();
   }
 }
 function setThemePref(pref) {
