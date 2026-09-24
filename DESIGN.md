@@ -1,4 +1,4 @@
-# Atrium: Design Contract (v2)
+# Atrium: design contract (v2)
 
 Master entry portal for all local web UIs. Reviewed by a 4-judge panel
 (requirements / art direction / UX / technical); every blocker and major
@@ -6,14 +6,14 @@ finding is folded in below. This document is the implementation contract.
 
 ## Concept
 
-**Atrium** is a grand Art-Deco entrance hall. Every destination web UI is a
-**Gate**: a tall arched portal opening off the hall. Two wings:
+Atrium is a grand Art-Deco entrance hall. Every destination web UI is a
+Gate: a tall arched portal opening off the hall. Two wings:
 
-- **Salon** (play): Anime Autopilot, Ground Station, Arsenal
-- **Bureau** (work): Outreach Desk, The Press Room, Bourse
+- Salon (play): Anime Autopilot, Ground Station, Arsenal
+- Bureau (work): Outreach Desk, The Press Room, Bourse
 
-A brass **mode lever** re-lights the hall toward one wing. A gilded dispatch
-column, **the Ledger**, collects the last week's news from *all* services
+A brass mode lever re-lights the hall toward one wing. A gilded dispatch
+column, the Ledger, collects the last week's news from *all* services
 regardless of wing. First run: theme = follow system (resolved pre-paint),
 wing = SALON, Ledger filter = ALL.
 
@@ -58,20 +58,20 @@ of follows "The picture palace (v6)".
   as a bow tie): the three masthead controls only.
 - Double hairline rule: the printed border of the Ledger's programme cards.
   The day breaks are a brass collar on the main and one engraved groove.
-- **Clock-only classes (v3.2)**: the octagonal case with its stepped
+- Clock-only classes (v3.2): the octagonal case with its stepped
   shoulders, the four diagonal spandrels, the knurled bezel, the fret band
   and the guilloche field belong to the concourse clock and appear nowhere
   else. The clock is also the one place a fourth wing-metal surface is
   allowed (quarter numerals, spandrel lozenges, subdial rings, the seconds
   baton). It is the hall's single jewel. Since v6 the case is statuary bronze
   with leaf on its bevels only.
-- **Service marks (v3.2)**: gate cartouches and Ledger cards carry each
+- Service marks (v3.2): gate cartouches and Ledger cards carry each
   service's own coloured mark rather than a monochrome sigil. This is the
   one sanctioned break in the hall's monochrome discipline: the mark shown
   in the hall is byte-identical to the one the service's own favicon,
   taskbar tile and masthead show. Services with no mark fall back to the
   line-drawn keystone sigil, which still tints with `color`.
-- **Concourse vocabulary (v4, dressed in v6)**. *Wall*: a dentil cornice
+- Concourse vocabulary (v4, dressed in v6). *Wall*: a dentil cornice
   broken by console blocks over a relief frieze, damask hung bay by bay,
   antique-mirror pilasters between reeded fillets, torchieres in the outer
   bays, onyx pier lights between the portals. *Case*: the aisle boards are
@@ -79,14 +79,14 @@ of follows "The picture palace (v6)".
   paired roundels of poured terrazzo, floor only; the compass and roulette
   language is banned there. The floor is still the one surface where
   ornament is **cut rather than stroked**.
-- **Palace families (v6)**, each fenced: velvet (gate houses, the entrance
+- Palace families (v6), each fenced: velvet (gate houses, the entrance
   curtain, the stanchion rope), bulbs (the marquee and the focus ring),
   title cards (the day screen), smalti (the clock niche), stanchions (the
   near flanks of the floor), typewriter keys (the key plate).
 - Hairline tokens: 1px and 1.5px; a double rule = 2×1px with 3px gap.
   Hairlines are for engraving, card borders and rules. Mouldings take real
   widths from the object they belong to.
-- **Ban list**: no outer glows on gold. Only emitters bloom: lit glass,
+- Ban list: no outer glows on gold. Only emitters bloom: lit glass,
   bulbs, coves, alabaster, onyx, jewel lamps and the opal dial. The v2 bans
   on multi-stop metallic gradients and bevel/emboss are lifted by the v6
   material law. The one moving specular effect is a single sheen across a
@@ -109,7 +109,7 @@ both themes; only the hour changes.
 
 ### The law
 
-1. **Metal** is six tones across a moulding, in this order: the glaze lying
+1. Metal is six tones across a moulding, in this order: the glaze lying
    in the reveal, shade, body, the crest turned to the light, relief body,
    the lip. Per theme: `--au-*` gold leaf; `--ag-*` nickel silver, the
    Bureau's leaf (Onyx `#17140f #463d2f #938670 #f4e8c8 #b9a987 #dccaa2`,
@@ -118,34 +118,34 @@ both themes; only the hour changes.
    bronze, for the niche, the clock case and the signal desk; `--br-*` a
    fixed brass for fittings that never follow the wing (bezels, lamps,
    screws, the dater, the switchgear).
-2. **Relief** is drawn three times along the one key light: a shadow copy
+2. Relief is drawn three times along the one key light: a shadow copy
    down and right, the body, a lit edge up and left. Bevels are drawn facets,
    each lit by its angle to the key.
-3. **Texture** is baked on the CPU into `static/assets/tex` by
+3. Texture is baked on the CPU into `static/assets/tex` by
    `scripts/materials.py` and its siblings (`materials_gates.py`,
    `materials_room.py`, `cabinetry_tex.py`, `desk_materials.py`): leaf,
    stone, veneer, velvet, damask, carpet, glass, smalti, card, shagreen,
    bronze patina. Each is low in contrast and a few KB. Rust, verdigris and
    grime stay banned.
-4. **One light model per theme.** At night only emitters glow; gold never
+4. One light model per theme. At night only emitters glow; gold never
    does, it takes its light from them. Every lamp is its own layer faded by
    opacity (`.lit`, `--lamp-on`), lit only in Onyx and, on a gate, only while
    the gate stands in the lit wing and its line is open. By day nothing is lit
    and the skylight, up and a little left, is the key light.
-5. **The wing's leaf leads every fixture** through `--lead-*`: gold in the
+5. The wing's leaf leads every fixture through `--lead-*`: gold in the
    Salon, nickel silver in the Bureau, plaster on a reserved gate. The lever
    re-leafs the hall. The three wing-metal surfaces of v2 still read
    `--metal`; the wordmark's nickel face and the crown join the throw as a
    crossfade, not as a fourth surface.
-6. **Nothing crosses lettering.** No line, seam, joint or light ever crosses
+6. Nothing crosses lettering. No line, seam, joint or light ever crosses
    a line of lettering, including a curtain's meeting line. A plate that
    carries words is one piece.
-7. **Gate text has a floor**: every gate string (name, description, status,
+7. Gate text has a floor: every gate string (name, description, status,
    address, lamp word, service note, launch notice) is 10px or more at every
    size from 1280x800 up, and none clips. The status tightens its tracking
    (never under 0.05em) and then takes a second line; the house gives up the
    height.
-8. **Siblings are a family, never twins.** A gate's archivolt count, metal
+8. Siblings are a family, never twins. A gate's archivolt count, metal
    chord, relief programme, fanlight glass and glazing, velvet and its fold
    pitch, valance swags, crest and day card come from an FNV-1a hash of its
    service id, walked in registry order so a new service never repaints the
@@ -153,16 +153,16 @@ both themes; only the hour changes.
    dado slabs, console blocks, Ledger cards and desk panels vary the same
    way. Fixtures do not vary: sign, transom, cartouche, imposts, apron, lamp
    and plinth are the same on every gate.
-9. **Specular**: one hover sheen crosses a gate's gilding only. Glass,
+9. Specular: one hover sheen crosses a gate's gilding only. Glass,
    crystal, mirror, lacquer and black glass signs each carry one static
    reflection band.
-10. **Reflections**: each portal is flipped in the wax with its own paint,
+10. Reflections: each portal is flipped in the wax with its own paint,
     and the niche has its own. Every lamp throws a rippled streak on the
     floor (torchieres, pier lights, lit fanlights in their own glass colour,
     the marquee's returns); the streaks are lamp layers, never clones. By day
     the floor gives back only the gilt and the screen, at 1.5 × `--mirror-a`.
     The desk stands on wool and returns nothing.
-11. **Performance**: only transform and opacity animate. Blurs are static on
+11. Performance: only transform and opacity animate. Blurs are static on
     inner elements, with the moving transform on a parent. The clock is two
     sheets, a still dial painted once and a thin moving sheet, and each part
     on the moving sheet is its own layer turned by the compositor, so the
@@ -172,14 +172,14 @@ both themes; only the hour changes.
 
 ### Surface by surface
 
-- **The gates**: see Gates (R9) for their states.
-- **The clock niche**: statuary bronze glazed dark, with leaf near a tenth of
+- The gates: see Gates (R9) for their states.
+- The clock niche: statuary bronze glazed dark, with leaf near a tenth of
   it (measured 4.8% by night, 7.9% by day, dial excluded): the case's eight
   bevels, the fillet round the smalti, the crest, the sill nosing's lip and
   the bosses' crowns. The smalti are glazed and darken toward the foot. The
   sill is book-matched stone, Portoro by night and Calacatta by day, with a
   gilt fillet on the plinth line.
-- **The masthead** is the canopy fascia, book-matched Portoro by night and
+- The masthead is the canopy fascia, book-matched Portoro by night and
   Calacatta by day, laid slab by slab from the clock's axis. ATRIUM is cast
   gilt standing off the stone, with a nickel face that crossfades over it on
   the Bureau throw. GRAND CONCOURSE, the date and the captions are cut and
@@ -193,13 +193,13 @@ both themes; only the hour changes.
   touch the title or the date. The Ledger hatch is a domed brass cap
   whose unread signal is a jewel lamp; Preferences is a nickel escutcheon
   that turns 22.5 degrees on hover and focus.
-- **The marquee**: milk glass between two rows of bulbs on a gilt channel,
+- The marquee: milk glass between two rows of bulbs on a gilt channel,
   each end a gilt return with three bulbs. The chase steps in whole bulb
   pitches, three times a second, and runs only while the band carries an
   unread dispatch, at night, in full motion, in a visible tab; otherwise
   every bulb burns evenly. By day the bulbs are clear glass in brass
   sockets.
-- **The wall**: a rolled crown, the dentil course (lit tops, shaded returns,
+- The wall: a rolled crown, the dentil course (lit tops, shaded returns,
   cast shadows), a bed mould, the relief frieze and a fillet over the lamp
   trough, broken over every pier and pilaster by a cast console block. Onyx
   pier lights stand in every gap between two portals, and between each case
@@ -208,10 +208,10 @@ both themes; only the hour changes.
   The damask is hung bay by bay, each bay its own dye lot. The dado is
   book-matched stone under a gilt chair rail, over a black skirting with two
   channelled nickel strips, whose top meets the portals' plinth nosing.
-- **The floor**: polished terrazzo; the medallion and roundels poured into
+- The floor: polished terrazzo; the medallion and roundels poured into
   it; a red wool runner; brass stanchions with velvet rope along the near
   flanks, each rope's sag its own.
-- **The cases** (Statistics, Almanac, wherever the aisles open, on an aisle
+- The cases (Statistics, Almanac, wherever the aisles open, on an aisle
   tall enough to hang them): wall cases in
   book-matched veneer with crossbanding and stringing (macassar ebony for
   Statistics, figured walnut for the Almanac), a gilt bolection frame round
@@ -219,10 +219,10 @@ both themes; only the hour changes.
   lit at night. The dials are turned brass bezels over enamel faces with a
   red lacquer arc from 85; the Almanac's sky plate is enamel in a satin
   bezel, and its moon a shaded ball under its own crystal.
-- **The Ledger** and **Preferences**: see their sections.
-- **The signal desk**: statuary bronze casework on the runner (see
+- The Ledger and Preferences: see their sections.
+- The signal desk: statuary bronze casework on the runner (see
   "The signal desk").
-- **The key plate**: black verre eglomise in a gilt moulding, with each key
+- The key plate: black verre eglomise in a gilt moulding, with each key
   set as a typewriter key (a ring in the wing's leaf, an ivory top, the
   legend cut and filled). Black glass in both themes, like every sign in the
   hall.
@@ -255,7 +255,7 @@ services without custom art.
   hand cutting both alphabets. The face has ONE weight, and the `@font-face`
   declares 200–900 anyway: a face that claims the range is never
   synthetically bolded, and CJK strokes at 10px do not survive faux bold.
-- **Signage stays English** in both languages: ATRIUM, SALON, BUREAU, lamp
+- Signage stays English in both languages: ATRIUM, SALON, BUREAU, lamp
   words OPEN/DARK, engraved architectural terms (zh translation provided as
   `title`/aria). Sentences (descriptions, headlines, day breaks, settings
   labels) localize fully with tracking 0.
@@ -285,7 +285,7 @@ address bar, and under reduced motion a replay is the same quiet fade. The
 entrance overlay is `aria-hidden`; the app is usable underneath once
 assembled.
 
-**Night** (v6). The hall stands dark behind a full-screen house curtain:
+Night (v6): the hall stands dark behind a full-screen house curtain:
 claret velvet, a gilt sunburst crest with a medallion, the name ATRIUM in
 gilt letters, a bullion fringe on the hem and a footlight trough across the
 foot of the screen. The hall behind it is already built; nothing in it rises
@@ -305,7 +305,7 @@ or assembles.
   the pointer.
 - 2700 ms: finish.
 
-**Day.** The curtain is already up. The street's light floods in from behind
+Day: the curtain is already up. The street's light floods in from behind
 the reader and settles like an exposure (1.05 s from 280 ms), with the sun's
 shafts in it; a gilt ring draws itself in the glare and docks on the
 monogram at 900 ms. Done-fade at 1400 ms, finish at 1700 ms.
@@ -318,7 +318,7 @@ Below 1280px the Ledger moves beneath the stage; below ~900px everything
 stacks single-column (masthead → ticker → lever → active gates → receded
 gates → Ledger). Mobile is out of scope for v1 but must not break.
 
-**The hall stands on one screen.** No vertical scrollbar at any supported
+The hall stands on one screen. No vertical scrollbar at any supported
 size, and no horizontal one either. The vertical budget is spent in this
 order: masthead, ticker, arch module, floor. The module is capped by
 `min(13.6vw, 26.5vh)` and by `296px x (0.62 + 0.38 x --ui)`, so a short
@@ -328,7 +328,7 @@ insists on when the hall is taller than the screen. The concourse's grid row
 is exactly `--stage-h`: a board is never allowed to dictate the hall's
 height.
 
-**The wall claims its headroom back above 1080px.** The arch is aspect-locked,
+The wall claims its headroom back above 1080px. The arch is aspect-locked,
 so on a tall screen every pixel the wall does not take goes to the floor, and
 the floor was reading as the largest object in the room. `--stage-h` is
 `--gh2 + clamp(80px, 100vh - 1080px, 100px)`: the term is inert below 1080px,
@@ -337,7 +337,7 @@ surplus goes to the wall and to the two cases hanging on it. On a 3440x1330
 display that moves the floor from 31.6% of the viewport to 27.1%, the arches
 up 6% and the boards up 9%.
 
-**Optical scale (`--ui`).** What a 34" desk display changes is physical
+Optical scale (`--ui`): what a 34" desk display changes is physical
 size, not pixel count. The 12.5px engraving that reads at arm's length on a
 laptop is illegible from across a room. One multiplier drives every piece of
 hall lettering and the arch module: `--ui-auto` steps with the viewport
@@ -358,13 +358,13 @@ count. The escutcheon is a nickel plate with its keyhole cut through and a
 persistent PREFERENCES caption beneath, and that caption is its name, so it
 carries no aria-label.
 
-**Short screens.** Under 860px of viewport height the hall gives up floor
+Short screens: under 860px of viewport height the hall gives up floor
 and a little of the arch module before it gives up the one-screen rule:
 `--gate-w`'s floor drops to 164px, `--floor-min` to `clamp(62px, 8vh,
 210px)`, and the hall's top padding to 12px. A 1280x800 laptop has ~700px of
 usable height for a composition whose stage alone wants 425 of it.
 
-**And the machine comes down with the floor.** The signal desk stands *on* the
+The machine comes down with the floor. The signal desk stands *on* the
 stone, so once the floor is a band rather than a field the console has to fit
 inside that band: `.assembly` scales 0.78 under 860px and 0.62 under 760px.
 Its main-scale coefficient is `0.80 + 0.14 x --ui` rather than tracking the
@@ -380,20 +380,20 @@ machine's local time. `static/js/clock.js` generates the geometry so the
 colour. All strokes carry `vector-effect: non-scaling-stroke`, so the 1 /
 1.5px hairline law holds whether the dial draws at 160px or 620px.
 
-- **Case**: octagon with three-step shoulders (the gate language), a deco
+- Case: octagon with three-step shoulders (the gate language), a deco
   spandrel on each diagonal, rivets at the eight vertices.
-- **Dial** (own 1000 space, scaled 0.855): knurled bronze bezel, fret band,
+- Dial (own 1000 space, scaled 0.855): knurled bronze bezel, fret band,
   guilloche field (concentric rules crossed by a 90-spoke fan, both under 10%
   ink), 60-mark chapter ring, **twelve** Roman numerals with the quarters in
   wing metal.
-- **Complications** on the cardinal axes: 12 the true moon (Meeus: true new
+- Complications on the cardinal axes: 12 the true moon (Meeus: true new
   moons, illumination from the phase angle), its phase and age computed to
   the minute and shared with the Almanac through `window.AtriumMoon`, 3 date
   on a 31-step ring read through an aperture, 6 small seconds, 9 the works,
   two wheels geared 14:9 turning against each other off the seconds arbor.
-- **Hands**: pierced Breguet with stepped counterweights; the hour hand
+- Hands: pierced Breguet with stepped counterweights; the hour hand
   carries a second, smaller piercing so the two never read alike.
-- **Drive**: each hand, its shadow and each wheel of the works is a layer
+- Drive: each hand, its shadow and each wheel of the works is a layer
   the size of the dial, turned about its arbor by a compositor animation.
   The animations are set in phase from `new Date()` and set again every ten
   seconds on the boundary, so the clock never accumulates, drift is
@@ -403,7 +403,7 @@ colour. All strokes carry `vector-effect: non-scaling-stroke`, so the 1 /
   boundary-aligned 1 Hz deadbeat tick,
   `setTimeout(tick, 1000 - Date.now() % 1000)`, which is the mechanism a
   real regulator actually has.
-- **Subdial captions** (LUNA, DATE, SEC, WORKS) are engraved only where the
+- Subdial captions (LUNA, DATE, SEC, WORKS) are engraved only where the
   dial draws them at 10px or more: light on the dark moon and works wells,
   ink on the white dials.
 
@@ -428,8 +428,8 @@ The owner's brief: the clock and every gate of a wing visible at once, the
 clock never stowed, and nothing on the stage covering any part of anything
 else.
 
-- **The clock stands at the centre**, full size, always.
-- **Each wing stands in pairs**, two arches left of the clock and two right.
+- The clock stands at the centre, full size, always.
+- Each wing stands in pairs, two arches left of the clock and two right.
   `slots()` pads a wing with an odd number of services with one RESERVED
   gate at its right-hand end: a `div.gate.vacant`, not a link and not a tab
   stop, `aria-hidden`, lamp reading SHUT, description "Held for the next
@@ -438,28 +438,28 @@ else.
   that wing it takes the slot. Placeholders exist only in the stage's view of
   the registry; status, stats, the Ledger and the ticker read the real
   `services`.
-- **Only the lit wing stands in the hall.** The other wing waits in the same
+- Only the lit wing stands in the hall. The other wing waits in the same
   bays, `opacity: 0`, `visibility: hidden` and `inert`. Throwing the lever
   lets one wing's arches sink and fade while the other's rise in place. The
   flanking arches this replaced (receded wing at 0.62 either side) could not
   keep their width without either shrinking every arch by a fifth or letting
   one arch cover another; the owner chose the full-size row. The fade sits on
   `.gate`, the parent of the `preserve-3d` pose, never on the pose itself.
-- **No overlap, at any size.** `layoutStage()` solves the row as one line,
+- No overlap, at any size. `layoutStage()` solves the row as one line,
   `[arches] [clock] [arches]`, at pitch 1.16 gate widths and a 0.10 gate-width
   clearance to the niche. If that line is wider than the stage, it writes
   `--fit` (0..1) on `#stage`, and the arches, the niche and the plinth rule
   all size from `--gate-fit = --gate-w × --fit`. Widths are measured at fit 1
   so the solve never chases its own output. Checked at twelve sizes from
   1280x800 to 3440x1440 in both wings with a Playwright overlap audit.
-- **A throw goes bay by bay**, out from the clock on both sides, 60 ms a
+- A throw goes bay by bay, out from the clock on both sides, 60 ms a
   step. By night the lit arch's lamps go out first, in 120 ms. Then it
   sinks 14px and fades in 200 ms, the bay stands empty for 20 ms, and the
   other wing's arch rises into it. Two faces never
   share a bay, and an incoming arch takes no pointer until its fade is under
   way. Where both wings end in a RESERVED arch, that bay stays put. Lever
   re-light queues until any in-flight theme crossfade finishes.
-- **Slots never animate.** A re-solve (first layout, a resize, the engraving
+- Slots never animate. A re-solve (first layout, a resize, the engraving
   size) writes every slot with the gates' transitions cut, so the row lands
   in the frame it is solved and no arch ever passes over another or over the
   clock. A resize is re-solved in the resize event itself.
@@ -475,7 +475,7 @@ in the middle of a beige desert. A room is made by a *continuous* wall and a
 *continuous* floor, so both now run the full width of the screen and the
 triptych stands on them.
 
-**Grid.** `#concourse` is `aisle-l · stage · aisle-r`, opening from 2800px (v5; it was 2200)
+Grid: `#concourse` is `aisle-l · stage · aisle-r`, opening from 2800px (v5; it was 2200)
 where the full-size row leaves room for it (see below);
 below that it collapses to the single centre column the hall shipped with
 and both boards are hidden (they are ultrawide furniture, not a fallback).
@@ -499,12 +499,12 @@ the row leaves it (`layoutStage()` writes `data-aisles` and `--aisle-room` on
 shrank to 305px arches at every engraving size. At the default size they now
 open near 3100px; at 3440 they stand at every size, 392 to 518px wide.
 
-**Full bleed from inside a centred grid.** Both scenery layers use
+Full bleed from inside a centred grid: both scenery layers use
 `left: calc(50% - 50vw); width: 100vw`. 50% is half the concourse, 50vw half
 the viewport, and the concourse is centred, so the difference is exactly its
 left offset, with no wrapper element, and it survives the max-width cap.
 
-**Back wall.** Plaster field (one two-stop wash, top-lit), a dentil cornice,
+Back wall: a plaster field (one two-stop wash, top-lit), a dentil cornice,
 and a dado of chair rail + recessed panels + skirting whose top edge lands
 on `--gh2 × 0.079`, the gates' own plinth rule, so wall and arches share
 one horizontal. Aisle bays carry fluted pilasters (stepped capital, shaft
@@ -520,7 +520,7 @@ legend will not fit. A lamp is never cast below 0.45 of its size. A bay too
 narrow even for that (3440 at SIGNBOARD) stands unlit and unnumbered, and
 the numbers run on over the bays that carry a plate.
 
-**Bays are measured, not assumed.** `layoutStage()` publishes
+Bays are measured from the solved row. `layoutStage()` publishes
 `triptychHalf`, how far the composition actually reaches from the axis,
 flanks at 0.62 scale included, and the walls are cut against *that*, not
 against the stage column, which is far wider than the triptych standing in
@@ -530,7 +530,7 @@ the board, articulation built and then covered up. Laying them in the
 daylight either side also lands a pilaster hard against each edge of the
 board, so the board reads as set into the wall rather than stuck onto it.
 
-**Boards.** `STATISTICS` (left) is an instrument case reading the machine the
+Boards: `STATISTICS` (left) is an instrument case reading the machine the
 hub runs on: four needle dials (processor, memory, the card's VRAM, traffic) on
 one 240° scale with a red sector from 85 to 100, a tape of hours run
 and store remaining, and the maker's plate off the retired rail at its foot.
@@ -556,7 +556,7 @@ takes a second line makes its row's reading track taller and never takes the
 height out of its own dial; the dial tracks are equal, and the four dials
 always match.
 
-**Hanging the pair.** A case hangs from the cornice to the chair rail, and
+Hanging the pair: a case hangs from the cornice to the chair rail, and
 the head and the tape keep their size while the dials and the sky plate take
 what is left. On a short aisle that was nothing: captions over dials of 0px,
 a sky plate with no height, and the Almanac's tape running out under its
@@ -573,7 +573,7 @@ unit its window reads, so the window holds the two figures and the face
 states its own full scale. The head of the glass carries the two corner fans;
 the foot is where the ivorine strips are screwed, so it carries none.
 
-**The works poll.** `/api/works` on a 4s cadence of its own, because instruments
+The works poll: `/api/works` on a 4s cadence of its own, because instruments
 read live or they are decoration, but only while the board is genuinely on
 screen. Where the aisles are shut it is `display:none`, and a hidden panel must never
 keep the host sampling: `worksVisible()` gates every tick, and the hub's own
@@ -586,7 +586,7 @@ as if it were live. That holds for a reading kept while the board could not
 poll (a hidden tab, a narrow window, a folded case): it comes down before the
 next one is asked for, and a tab coming back asks at once.
 
-**Floor (v4.2), cut rather than drawn.** One plane hinged on its NEAR edge,
+The floor (v4.2) is one plane hinged on its NEAR edge,
 `transform-origin: bottom center` with `rotateX(58deg)`, so the hall recedes
 *toward* the wall the way a floor does. Hinged at the top it receded downward,
 which is a ceiling seen from underneath. Its box runs from the stage baseline
@@ -616,7 +616,7 @@ set of inlays rather than one motif stamped three times; **aggregate**, 700
 chips on a fixed hash, three tones, one in eleven in brass, biased toward the
 viewer; a border course and key band in plane units; and **reflections**.
 
-**Reflections.** The stone is waxed, so every arch, the clock and both aisle
+Reflections: the stone is waxed, so every arch, the clock and both aisle
 cases come back up off it. The smears are drawn in *plane* space and left to
 the one `rotateX`, which is what makes each converge exactly as its own arch
 does. Painted on the glass they would stay parallel and read as stripes. A
@@ -637,7 +637,7 @@ foreground balustrade runs along the flanks only: carried edge to edge it read
 as a fence pinned across the view, flattening the very depth it exists to
 create.
 
-**Throw plates.** `SALON` and `BUREAU` used to float on the terrazzo either
+Throw plates: `SALON` and `BUREAU` used to float on the terrazzo either
 side of the lever: engraved ink on pale stone, foreshortened by the floor's
 own projection, at the one place in the hall with no plate behind them, the
 least legible lettering in the building, and it labelled its only control.
@@ -646,7 +646,7 @@ the live wing lit. A signal lever's throws are named on metal because a plate
 is a *thing* and not a caption, and it answers the question the bare machine
 left open: what does pulling this do.
 
-**The perspective distance is a function of the floor's height.** `d = 2H ·
+The perspective distance is a function of the floor's height. `d = 2H ·
 tan θ` puts the horizon at twice the box height, and `377% = 2H / cos θ` is
 the plane length whose far edge then projects exactly onto the box's own
 top. H is the box's used height, which CSS cannot read back into a `calc`,
@@ -657,7 +657,7 @@ one. The plane is 204% of the screen wide for the same reason: at the
 skirting the divide compresses it by exactly 2, and a plane only as wide as
 the screen pulls away from the corners.
 
-**Six traps, recorded so they are not re-sprung.** (1) A 3D-transformed
+Six traps are recorded here so nobody springs them again. (1) A 3D-transformed
 child still contributes to the scrollable overflow area: the plane's near
 edge projects far past its own box and hung a scrollbar on a hall that
 otherwise fit the screen exactly. `#floorplane` clips it. (2) Sizing a
@@ -692,7 +692,7 @@ this one said it three times. `ALMANAC` replaces it with the one fact
 nothing else in the building carries: where the sun is standing over the
 machine, right now.
 
-**Two halves that fail independently.** Sun and moon are ARITHMETIC: NOAA's
+The two halves fail independently. Sun and moon are ARITHMETIC: NOAA's
 sunrise equation and the true moon (Meeus, the clock's own computation
 through `window.AtriumMoon`), run in the page on the coordinates the
 hub hands over. That is what keeps the bead moving through the day on a
@@ -704,7 +704,7 @@ otherwise), a 6s timeout, and it never raises. An outage prints an em dash
 and NO READING in the reading register, drains the vitals to 45% and leaves
 the sky untouched, the same law as a dial with no reading resting at zero.
 
-**The plate is a horizon dial, not a dome.** The sun runs one ellipse
+The plate is a horizon dial. The sun runs one ellipse
 through the whole 24 hours (the circle of its own path, seen edge-on) with
 the horizon cutting across it: solid above, dotted below, the two crossings
 engraved RISE and SET with their times just outside the bezel (an ellipse
@@ -713,8 +713,8 @@ to stand but on the curve). Elapsed daylight is inked in gold as far as the
 day has got. After sunset that is all of it, because the plate reports
 daylight SPENT, not merely where the sun is.
 
-**Two corrections (v4.6), because the first draft was decorative rather than
-true.** A dial is a claim about the sky, and this one was making two false
+Two corrections came in v4.6, because the first draft was decorative rather
+than true. A dial is a claim about the sky, and this one was making two false
 ones, both invisible in a screenshot, both obvious the moment the drawing is
 measured against the times engraved on it.
 
@@ -751,7 +751,7 @@ A **clock**: there is a grande-complication regulator the size of a doorway
 standing between the arches, and the bead's job is the one thing it cannot
 say, which is *where in the day* this is.
 
-**Whose sunrise.** The page computes its own from NOAA's short-form equation,
+Which sunrise wins: the page computes its own from NOAA's short-form equation,
 which is what leaves it with a sky when the forecast service is down, but
 that form lands 2–3 minutes off Open-Meteo, and the service's own times ride
 in the payload already. When they are there they win, for the dial's geometry
@@ -760,7 +760,7 @@ times those crossings stand for, and DAYLIGHT in the tape has to be the same
 pair subtracted. The day-length delta against yesterday stays on the computed
 pair. A difference wants one consistent source, not the better one.
 
-**The viewBox is measured, never fixed.** The aisle is 300px wide at 2800
+The viewBox is measured from its register. The aisle is 300px wide at 2800
 and 560 at 3440 while the case keeps its height, so one fixed aspect either
 letterboxes the plate into a third of its register or balloons out of it,
 and a void inside a lit case reads as a board that failed to draw. `skyBox()`
@@ -774,7 +774,7 @@ lettering gives up size. A register that changes size (a resize, a new
 engraving size or language) re-cuts the plate at once instead of on the next
 sky tick.
 
-**The moon is a real terminator.** An ellipse, not a chord and not a second
+The moon is a real terminator: an ellipse, not a chord and not a second
 circle offset sideways. Both shortcuts get gibbous phases visibly wrong,
 which is the first thing an almanac reader looks at. The phase is carried by
 VALUE, so the two faces keep their order in both themes: onyx prints a lit
@@ -783,7 +783,7 @@ and the lit face left as paper. That paper is `--base`, not `--surface`: on
 the case's own tone a full moon comes out as an empty ring, which reads as a
 disc that failed to render. The bezel is what says an object is there.
 
-**Signage stays English, sentences localize**, as everywhere else. The
+Signage stays English and sentences localize, as everywhere else. The
 station line at the foot (`PITTSBURGH · 40.44°N 80.00°W`) is an ADDRESS
 engraved on the case and keeps the gates' contract; the localized place name
 lives in the subtitle, and the plate carries `lang="en"`. The plate's SVG
@@ -791,12 +791,12 @@ labels name `var(--serif)` themselves, and since `--serif` carries the CJK
 face their Chinese is set in the same serif as every other Chinese word in
 the hall.
 
-**Where the hall stands.** `almanac.PLACE`, overridable by dropping
+Where the hall stands: `almanac.PLACE`, overridable by dropping
 `state/almanac.json`. There is no place picker: this board is furniture, and
 a hall does not get a control for moving itself. A malformed override is
 ignored. A lobby board has nowhere to report a parse error to.
 
-**The almanac poll.** `/api/almanac` every 10 minutes and the plate re-drawn
+The almanac poll: `/api/almanac` every 10 minutes and the plate re-drawn
 every 60 seconds, both gated on `almanacVisible()` for the same reason the
 works board is: where the aisles are shut the case is `display:none`, and a hidden panel
 must not have the hub calling a weather service on the reader's behalf. A
@@ -826,7 +826,7 @@ the apron carrying one live stat (odometer roll on change), the address and
 the lamp. A service's own warning is engraved in amber on the apron above
 the lamp and takes the address line's place while it stands.
 
-- **Rest, open**: the fanlight, coves and footlights are lit, and the
+- Rest, open: the fanlight, coves and footlights are lit, and the
   description is a lantern slide on the closed tabs (a dark field ruled like
   the day card, carrying the gate's own corner ornament in light). By day the
   tabs are drawn back and tied, and the screen shows the title card: card
@@ -834,10 +834,10 @@ the lamp and takes the address line's place while it stands.
   (oxblood, bottle green or navy) with a border band, its corner motif, a
   headpiece and a rule, set semibold in `#160f06`, never
   smaller than its words.
-- **Lamp states**: `…` (checking, until the first /api/status, lights at
+- Lamp states: `…` (checking, until the first /api/status, lights at
   35%), OPEN, DARK. The lamp always renders its text label. State never
   depends on luminance alone.
-- **Hover** (a pointer that can rest) **and focus-visible**: at night the
+- Hover (a pointer that can rest) and focus-visible: at night the
   curtain lifts 8% off the stage and the footlit foot of the screen shows
   under the fringe; the tabs never part. A DARK house keeps its curtain
   down. The arch rises 3px on the pose inside the link (its hit area keeps
@@ -845,15 +845,15 @@ the lamp and takes the address line's place while it stands.
   card stays.
   A gate takes the pointer only inside its arch and on its lettering, never
   on the wall above its shoulders.
-- **Focus** traces the outer arch five units out from the arris as a
+- Focus traces the outer arch five units out from the arris as a
   marquee: a 12-unit dark bed, a 5-unit lit core and, at night, a string of
   bulbs on the core. By day a cream bed and an oxblood core. Under forced
   colours a Highlight core on a Canvas bed.
-- **OPEN gate click**: the tabs fly, the screen floods and the lips flash
+- OPEN gate click: the tabs fly, the screen floods and the lips flash
   champagne inside 240 ms, then `window.open(url, 'atrium-<serviceId>')`, a
   named window so each service reuses one tab. A modifier or middle click is
   left to the browser.
-- **DARK gate**: fanlight and coves off, tabs closed, and the velvet in
+- DARK gate: fanlight and coves off, tabs closed, and the velvet in
   shadow below every open house's velvet, by day as by night and whatever
   the two dyes. The engraving sits at 35% (full strength under forced
   colours or more contrast), and the lamp is a hollow diamond
@@ -865,7 +865,7 @@ the lamp and takes the address line's place while it stands.
   a step at a time to stay inside the house. All-dark hall: the marquee leads with one line,
   "The hall is dark. No services are reachable.", where LINES OPEN would
   stand. On the stage it lay behind the clock.
-- **Reserved**: the same architecture in bare plaster, its bezel holding a
+- Reserved: the same architecture in bare plaster, its bezel holding a
   blank cover plate, behind an iron safety curtain: red oxide primer steel
   in three lapped courses, domed rivets lit on the lamp side, a stencilled
   border and a cast brass builder's plate carrying the words. The lamp reads
@@ -888,7 +888,7 @@ opening the dispatch url. A press on the holder's rim or the medallion is a
 press on the card, and a modifier or middle click is left to the browser,
 as on a gate.
 
-- **Read is what the pointer rested on**: an unread card carries a jewel
+- Read is what the pointer rested on: an unread card carries a jewel
   lamp in its holder's corner (champagne at night, gold glass by day); the Ledger itself always shows the full window. A
   dispatch is marked read when the pointer has rested on its card for
   **420 ms**, when the keyboard caret has rested on it (the mark lands as
@@ -902,15 +902,13 @@ as on a gate.
   so it cannot grow forever; `atrium.lastVisit` is now a frozen **floor** left
   by the old close-stamp, kept only so the change of model does not resurface
   a fortnight of dispatches the reader already dismissed.
-- **The stamp (v4.5)**, a brass rubber dater in a cradle since v6: one
+- The stamp (v4.5), a brass rubber dater in a cradle since v6: one
   control that clears the whole window, docked
   under the head on its own line rather than beside the chips, where a fourth
-  control on that baseline would read as a fourth filter. This does not
-  reverse the rule above; it completes it. The rule was never *nothing may
-  mark wholesale*. It was that **nothing marks except the reader**, which is
-  why the drawer's own open and close still clear nothing. A button pressed
-  on purpose is the reader saying so out loud, and it is the only wholesale
-  path that exists.
+  control on that baseline would read as a fourth filter. Nothing marks a
+  dispatch read except the reader, and a press on the stamp is the reader
+  saying so; it is the only wholesale path, and the drawer's own open and
+  close still clear nothing.
   * It clears **both wings** even while a chip is filtering the column,
     because the annunciator on the masthead counts both: a control labelled
     "mark all read" that leaves the disc lit has not done what it says. The
@@ -936,7 +934,7 @@ as on a gate.
     single path and `markRead()` is a one-element call into it. Striking a
     window a dispatch at a time serializes a localStorage write and a full
     re-sync per card.
-- **The dwell shows its work**: resting adds `.reading`, which drains the
+- The dwell shows its work: resting adds `.reading`, which drains the
   jewel over exactly the 420 ms the timer runs, leaving the empty bezel. A mechanic with no button to press otherwise does
   something invisible and then jumps; leaving early drops the class and the
   rim refills, so an aborted read looks aborted. Reduced motion keeps the
@@ -957,7 +955,7 @@ as on a gate.
   drops that dispatch is already on its way. The reader rested on a plaque the
   hall was showing, and the hall cannot know the hub has let it go until the
   answer lands.
-- **Unread signal (masthead)**: a jewel lamp set at 45° in the Ledger
+- Unread signal (masthead): a jewel lamp set at 45° in the Ledger
   hatch's housing, an annunciator on the dispatch cap rather than a badge
   pinned to the button's bounding box. It is an emitter, so at night it
   blooms (6 to 7px); by day it is coloured glass. It carries no numeral: the
@@ -984,7 +982,7 @@ as on a gate.
   already shown does not play its arrival again after dropping out of one
   poll (a hub restarting).
 
-## Ticker (status band, not an echo)
+## Ticker: the status band
 
 The band under the masthead carries **status segments** (LINES OPEN n/m,
 counted over every registered service in both wings, then each gate's live
@@ -1117,7 +1115,7 @@ Endpoints:
   stays down past one board poll, or at once when the cached forecast is
   dated for another local day; serialized on a lock.
 
-**Time contract**: feed `ts` is **epoch milliseconds**. Normalization:
+Time contract: feed `ts` is **epoch milliseconds**. Normalization:
 Ground Station `ts*1000`; Autopilot ledger `ts*1000` (epoch seconds on the
 wire); outreach `invitedAt` as-is,
 `finishedAt*1000`; anime naive ISO via
@@ -1125,7 +1123,7 @@ wire); outreach `invitedAt` as-is,
 `utcnow()`; a UTC slip shifts every stamp by the zone offset). Same rule for
 `last_sync` staleness. Day breaks computed in the browser's local timezone.
 
-**Deterministic dispatch ids** (feed idempotent across hub restarts):
+Deterministic dispatch ids (feed idempotent across hub restarts):
 `gs:<seq>` · `ap:<seq>` · `anime:notif:<bgm_id>:<detected_at>` ·
 `anime:unresolved:<bgm_id>` ·
 `outreach:queue-ready:<local-date>` · `outreach:progress` (single mutable
@@ -1133,7 +1131,7 @@ item, replaced in place) · `outreach:invites:<local-date>` (mutable).
 
 ### Adapters
 
-**Anime Autopilot** (`127.0.0.1:8767`, GET-only, server-side, no CORS.
+Anime Autopilot (`127.0.0.1:8767`, GET-only, server-side, no CORS.
 *Never POST*: `/api/notifications/read` would eat the user's panel banners):
 
 - 60 s: `GET /api/notifications` (~50 ms). Known kinds enumerated:
@@ -1175,7 +1173,7 @@ item, replaced in place) · `outreach:invites:<local-date>` (mutable).
   hub restart.
 - Link `http://127.0.0.1:8767/`. Hint: `run_webui_hidden.vbs`.
 
-**Ground Station** (`127.0.0.1:8768`, header `X-PMH: 1` on *every* call
+Ground Station (`127.0.0.1:8768`, header `X-PMH: 1` on *every* call
 including the ping probe):
 
 - 60 s: `GET /api/ping`; if `.seq` == stored cursor → done. Else page
@@ -1186,14 +1184,14 @@ including the ping probe):
   `/api/state` `games[]` (cached per session). Changelog snippet: local file
   `X:/Github/pdx-mod-hub/data/changelogs/<modId>.json`, match
   `entries[].ts == event.ts`; never call `/api/mods/:id/changelog`.
-- **Cursor persisted** in `state/cursors.json` (atomic temp+replace). Cold
+- Cursor persisted in `state/cursors.json` (atomic temp+replace). Cold
   start: read current `.seq`, backfill only events within the 48 h window,
   set cursor.
 - Offline fallback: `X:/Github/pdx-mod-hub/data/events.json`, same cursor.
 - Link `http://127.0.0.1:8768/#/updates`. Stat: mods tracked / updates
   pending. Hint: `scripts\run_hub_hidden.vbs`.
 
-**Outreach Desk** (`127.0.0.1:8802`, GET-only):
+Outreach Desk (`127.0.0.1:8802`, GET-only):
 
 - 60 s: `GET /api/ping` then `GET /api/progress`. Queue ready: `total > 0`
   and the drafter's completion stamp falls on the local today, `finishedAt`
@@ -1204,7 +1202,7 @@ including the ping probe):
   learned the queue had been prepared. Dispatches: queue-ready(N), progress
   (mutable), drafter error. Invites-today: `data/panel_state.json`
   (`invitedAt` epoch **ms**, local-day compare).
-- **Privacy enforced server-side**: the adapter emits params through an
+- Privacy enforced server-side: the adapter emits params through an
   allowlist of count keys only (`done, total, n, target`); `current`,
   names, draft text, non-panel URLs never leave the hub process; dispatch
   `url` is always `http://127.0.0.1:8802/index.html`. Unit test feeds a fake
@@ -1308,18 +1306,18 @@ Motion setting collapse all of the above to fades/instant.
 
 ## Accessibility summary
 
-- **Tab order (v5)**: masthead (Ledger hatch, Preferences) > ticker > the lit
+- Tab order (v5): masthead (Ledger hatch, Preferences) > ticker > the lit
   wing's gates, left to right > lever. The waiting wing and the shut Ledger
   are `inert`: the drawer used to sit in the tab order off screen, and since
   focus marks a dispatch read, one pass of Tab struck the whole Ledger.
-- **Keys**: arrows walk the lit gates, digits jump to one, Enter opens it, W
+- Keys: arrows walk the lit gates, digits jump to one, Enter opens it, W
   throws the lever (focus lands on the gate in the same bay of the other
   wing), L opens and closes the Ledger (arrows then walk its dispatches), P
   opens Preferences, ? shows the key plate, Esc closes the top layer. With
   the drawer open W and P still work, and a digit shuts it on the way to its
   gate. A key held down that opens or shuts a layer acts once. Nothing
   fires with a modifier held, over Preferences or during the entrance.
-- **The Ledger drawer** lives at body level beside its scrim (inside `#hall`
+- The Ledger drawer lives at body level beside its scrim (inside `#hall`
   it painted under the scrim on every quiet boot). Opening it moves focus to
   its heading; while open, Tab cycles the drawer's own controls (the hatch
   lies under the drawer's head, so it is left out). Shutting the drawer
@@ -1328,7 +1326,7 @@ Motion setting collapse all of the above to fades/instant.
   the focused dispatch leaves the feed, focus goes to the next plaque down
   (else the one above, else the heading), and that move marks nothing read:
   the hall put the caret there, not the reader.
-- **Names**: a gate is named by its engraved name alone, so a name is voiced
+- Names: a gate is named by its engraved name alone, so a name is voiced
   in one language. It is described by its lamp word, its description, its
   status line, its service note, the launch card while one is pinned, and
   "opens in its own tab" whenever a press would open one.
@@ -1338,31 +1336,33 @@ Motion setting collapse all of the above to fades/instant.
   headings. Plaques say "unread" while they are. The Almanac and Statistics
   speak their readings. English signage carries `lang="en"` in the Chinese
   hall.
-- **Forced colours**: every selected or lit state gets a Highlight border or
+- Forced colours: every selected or lit state gets a Highlight border or
   fill; the wall and floor keep their own colours. Readers who ask for more
   contrast or less transparency get an opaque scrim.
 - Chips radiogroup; lamps always carry text; AA contrast per the token
   matrix.
 
-## Depth pass (v3, client mandate: keep the motion, kill the flatness)
+## Depth pass (v3)
 
+The v3 brief was to give a flat hall depth and keep every motion it had.
 v6 keeps this section's 3D chain, pose tilt and parallax. Its slab, floor,
 reflection, entrance and ban-list bullets are superseded by "The picture
 palace (v6)" and the Entrance timeline.
 
-Depth comes from GEOMETRY, LIGHT and OCCLUSION, never filter soup. One key
-light, near-vertical (skylight): every shadow offset points down, slight x.
+Depth is built from the planes themselves, one key light and the shadows
+it casts. The key light is near-vertical (skylight): every shadow offset
+points down, slight x.
 
-- **Scene**: `perspective` as a plain property on `.gate` (never
+- Scene: `perspective` as a plain property on `.gate` (never
   `preserve-3d` on #gates, because it would replace the load-bearing active/receded
   z-index contract with depth sorting). Per-gate chain:
   `.gate {perspective:900px}` → `.g-pose` (`preserve-3d`, static wing tilt,
   transitioned with the stage choreography) → `.g-shell` (pointer parallax,
   NO transition, since a transition would smear the tilt) → flat children (the
   intra-gate z-index stack survives verbatim).
-- **Triptych pose**: receded flanks tilt inward `rotateY(±10deg)` via
+- Triptych pose: receded flanks tilt inward `rotateY(±10deg)` via
   `--side` set by layoutStage, an altar-wing composition.
-- **Pointer parallax**: one rAF lerp loop (k≈0.1) writes each `.g-shell`'s
+- Pointer parallax: one rAF lerp loop (k≈0.1) writes each `.g-shell`'s
   transform directly (±5°/−3°). It used to write `--par-x/--par-y` on
   #stage for the shells to read through calc(), and because custom
   properties inherit, every frame recalculated style for the whole stage:
@@ -1370,44 +1370,43 @@ light, near-vertical (skylight): every shadow offset points down, slight x.
   80 ms. Gated on `(hover:hover) and (pointer:fine)`,
   `data-motion!=reduced` (checked live, because the CSS kill-switch can't stop rAF
   writes), `visibilityState`, and starts only after the entrance finishes.
-- **Slab thickness**: `.g-back`, an arch-shaped backing layer (border-radius
+- Slab thickness: `.g-back`, an arch-shaped backing layer (border-radius
   arch, so box-shadow works) offset along the light vector, carrying the
   two-shadow grounding pair: tight contact + broad soft penumbra
   (`--shadow-drop`/`--shadow-soft` theme tokens; ivory shadows derive from
   ink, never pure black).
-- **Floor**: one-point-perspective plane under the gates
+- Floor: one-point-perspective plane under the gates
   (`rotateX(~55deg)`, own perspective), deco seam grid converging behind the
   stage, dissolving into the base color at the far edge (atmospheric
   falloff; the fade also hides aliasing). The stage-glow line remains as the
   horizon sheen at the plinth.
-- **Reflections**: each gate carries a `.g-mirror`, a scaleY(−1) clone of
+- Reflections: each gate carries a `.g-mirror`, a scaleY(−1) clone of
   its frame below the plinth, gradient-masked to die within ~35% height,
   polished-floor grounding that rides the gate's own transform.
-- **Entrance in 3D**: `#entrance {perspective:1100px}`; panels hinge at the
+- Entrance in 3D: `#entrance {perspective:1100px}`; panels hinge at the
   outer edges (`transform-origin: left/right center`) and swing open
   `rotateY(±74deg)` + outward translate, 0.9 s; a subtle stage dolly
   (scale 0.965→1) lands with the gates.
-- **Ledger/lever depth**: chamfered plaques get
+- Ledger/lever depth: chamfered plaques get
   `filter: drop-shadow()` ×2 on `.pl-frame` (box-shadow dies under
   clip-path), excluded on ghosts; hover lifts 2 px. Lever plaque gets one
   small drop-shadow.
-- **Atmosphere**: one fixed front sheet (vignette + 2.5% grain, z between
+- Atmosphere: one fixed front sheet (vignette + 2.5% grain, z between
   hall and entrance) unifies the layers and kills banding.
-- **Ban list (amended)**: occlusion shadows (dark, never gold-tinted), the
+- Ban list (amended): occlusion shadows (dark, never gold-tinted), the
   floor grid and frame reflections are now sanctioned; still banned:
   multi-stop metallic gradients, bevel/emboss highlights, outer glows on
   gold. Static depth (pose tilt, shadows, floor) persists under reduced
   motion. Depth is not motion; only parallax and the entrance are.
 
-## Steampunk pass (v3.1, revised v4.1): the signal desk and the
-deco-machine fusion
+## Steampunk pass (v3.1, revised v4.1): the signal desk and the deco-machine fusion
 
-Design stance (from the BioShock/Rapture research): kitsch is prevented by
-COHERENCE, not restraint alone. Machinery is sublimated by finishes. The
-mechanism lives inside architectural casework and is revealed at exactly one
-deliberate aperture per region. Mechanism density is a gradient that peaks
-at the machine standing on the floor and dies before the architecture
-above.
+Design stance (from the BioShock/Rapture research): coherence keeps the
+machinery from reading as kitsch, and every part is sublimated by the same
+finishes. The mechanism lives inside architectural casework and is revealed
+at exactly one deliberate aperture per region. Mechanism density is a
+gradient that peaks at the machine standing on the floor and dies before the
+architecture above.
 
 ### Material law: statuary bronze (v6)
 
@@ -1427,19 +1426,19 @@ keep their v3.1 meaning.
 
 ### New ornament classes (with their own density laws)
 
-- **Rivet line**: retired from the desk in v6 (its screws have domed heads
+- Rivet line: retired from the desk in v6 (its screws have domed heads
   and hashed slots). Rivets survive on the reserved gate's iron and the
   cartouche bezels.
-- **Knurl band**: short radial ticks at even pitch, the machined cousin of
+- Knurl band: short radial ticks at even pitch, the machined cousin of
   the Greek key; bridges deco and machine. Allowed on the masthead rosette's
   outer ring, dial bezels, grip surfaces. One ring per element.
-- **Machined gear**: trapezoid teeth on ISO proportions (addendum 1.0 m,
+- Machined gear: trapezoid teeth on ISO proportions (addendum 1.0 m,
   dedendum 1.25 m), spoked rim, evenodd cutouts. A gear MUST mesh with a
   partner and rotate only when driven (max 2 gears page-wide, both on the
   desk). No idle motion anywhere: the hall at rest is silent architecture.
-- **Steam puff**: event-only, 4–6 soft sprites per burst from the one vent
+- Steam puff: event-only, 4–6 soft sprites per burst from the one vent
   on lever throw. Never ambient, and no entrance wisp since v6.
-- **Pneumatic main**: the Ledger spine re-read as a brass dispatch tube,
+- Pneumatic main: the Ledger spine re-read as a brass dispatch tube,
   shaded across its width, with lit collars at the day breaks; the cards'
   cartouches hang from it. Pipes must plumb something.
 
@@ -1448,7 +1447,7 @@ keep their v3.1 meaning.
 The only region with full mechanism density; even here the drive train must
 be traceable: lever → hidden rack → gear pair → vent.
 
-**What changed in v4.1.** This was a full-bleed bronze rail across the foot
+What changed in v4.1: this was a full-bleed bronze rail across the foot
 of the page. Once the hall had a floor, the bar read as a strip of UI taped
 under the picture rather than as anything standing in the room, so the
 housing band, the LINES dial (the ticker already counts the lines) and the
@@ -1458,14 +1457,14 @@ the works board it names. The desk deliberately stays OUTSIDE the aisle
 grid: the boards fold away wherever the aisles shut, and the wing switch may never fold
 away with them.
 
-- **Placement**: `position:fixed; bottom: 10px·--ui` centred, a body-level
+- Placement: `position:fixed; bottom: 10px·--ui` centred, a body-level
   sibling AFTER `#hall` (never inside, because parallax vars are scoped to #stage;
   a transformed ancestor would trap the fixed box). `z-index:50`, above
   hall content, **below** prefs scrim (60), grain sheet (95), entrance
   (100). The box is transparent and `pointer-events:none`; only the lever's
   hit surface takes the pointer. `body` reserves no bottom clearance any
   more. The hall owns every pixel down to the edge.
-- **Anatomy** (signal-box pattern, drawn by `static/js/desk.js` since v6):
+- Anatomy (signal-box pattern, drawn by `static/js/desk.js` since v6):
   a notched quadrant plate and a railway points lever (black enamel shaft,
   polished steel grip with the catch handle behind it, a rod to the catch
   block on the quadrant, a brass badge reading 1, WINGS; the wing metal is
@@ -1475,7 +1474,7 @@ away with them.
   SALON and BUREAU throw plates are cast brass, engraved and filled black,
   each with a pilot jewel. The assembly scales with the lettering
   (`0.72 + 0.28·--ui`).
-- **Drive**: one scalar `--drive` (0 = salon, 1 = bureau) written by a JS
+- Drive: one scalar `--drive` (0 = salon, 1 = bureau) written by a JS
   rAF driver onto the movers, `.desk-fx` and `#lever`, and kept in JS rather
   than read back. A custom property restyles everything under the element it
   changes on: on `:root` that was the whole page on every frame of the
@@ -1485,19 +1484,19 @@ away with them.
   module, center distance = r_pA + r_pB, interleave phase
   `((1+N_A/N_B)·φ + 180 − 180/N_B) mod (360/N_B)` baked as a static
   transform (never in the CSS-animated one).
-- **Feel**: weighty piecewise ease (fast start → ~4.5% overshoot → damped
+- Feel: weighty piecewise ease (fast start → ~4.5% overshoot → damped
   clank settle, ~520 ms), starting from the rest pose: the throw's time
   is clamped at 0, so an early first frame cannot kick the arm backwards
   past its stop. Steam burst latched at 55% of the throw;
   interrupt-safe (re-toggle reads current `--drive`). Reduced motion: snap
   `--drive`, no steam, no overshoot. Gears stay correct for free.
-- **Layers**: `.desk-art` (static housing, `contain: layout paint`,
+- Layers: `.desk-art` (static housing, `contain: layout paint`,
   painted static gear shadows) / `.desk-fx` (the three movers + nozzle,
   overflow visible so puffs escape) / `#lever` (the invisible hit surface,
   same id, `role=switch`, Space/Enter, aria-checked, i18n attributes; all
   existing JS bindings survive relocation verbatim). The gear well clips
   via `overflow:hidden` on an inner div, never `clip-path` on the shell.
-- **Boot**: `html[data-boot="suppressed"] #signal-desk` mirrors the hall
+- Boot: `html[data-boot="suppressed"] #signal-desk` mirrors the hall
   fade; under a played entrance the curtain opens on the desk standing.
   The lever is the last Tab stop (see "Accessibility summary").
 
@@ -1527,45 +1526,45 @@ The fix follows the stance this document already takes: mechanism is
 sublimated by casework and revealed at exactly one deliberate opening. So
 the parts are housed in a bronze console that *stands* on the stone:
 
-- **Body**: stepped plinth (two courses on the gates' own 6px shoulder),
+- Body: stepped plinth (two courses on the gates' own 6px shoulder),
   fluted pilasters (the aisle bays' articulation at furniture scale), a
   knurl frieze, a two-step cornice cap. Every profile is already in this
   building; that is what keeps it furniture in this room rather than a
   machine parked in it.
-- **Tone**: three flat planes: `--bronze-cap` (lit tops and proud faces),
+- Tone: three flat planes: `--bronze-cap` (lit tops and proud faces),
   `--bronze-face` (fronts), `--bronze-deep` (recesses). `--bronze-face` is
   new and exists because the old housing tone was specified when the desk
   was a rail with the page behind it. Face-over-floor is 2.19:1 (onyx) and
   2.29:1 (ivory); cap-over-face is 1.38:1 and 1.35:1, so both themes get the
   same turn between planes. Ivory inverts the stack: a bronze console on
   pale stone is the *dark* object in the room.
-- **Aperture**: a semicircular arch, 112×60, with archivolt and keystone,
+- Aperture: a semicircular arch, 112×60, with archivolt and keystone,
   the hall's own figure, and narrow enough that the gear inside reads as
   round (48px of it showing instead of 34, across a 112 opening instead of
   176).
-- **The lever is bolted to it.** The pivot moved from the floor (y=212,
+- The lever is bolted to it. The pivot moved from the floor (y=212,
   *below* the console's own foot) onto the plinth top at y=186, and the arm
   is `scale(.7)` about that pivot so its throw stops sweeping wider than the
   machine it belongs to. The quadrant plate is on the same 0.7. It is what
   the arm's pawl runs on, and if one scales without the other they stop
   being one mechanism. At 0.7 the arc band lands at y 90-102, which is the
   frieze: the plate is screwed to the console's face instead of floating.
-- **It stands, so it returns.** The waxed floor brings back every arch, the
+- It stands, so it returns. The waxed floor brings back every arch, the
   clock and both aisle cases; the machine was the one object in the hall
   with no reflection, which is precisely why it read as pasted onto the
   floor. It gets a contact shadow and a three-course return (flat tones, not
   a gradient. Over 14px the parallel-smear error is sub-pixel, so the
   plane-space rule the tall reflections need does not bind here).
-- **The vent leaves at the top.** The stack used to run *down* the front
+- The vent leaves at the top. The stack used to run *down* the front
   from y=112 to 202, which, once there was a console behind it, read as a
   black post driven through the casework. It rises off the cornice at x=240,
   the one gap clear of both the arch (ends 236) and the BUREAU plate
   (starts 254).
-- **The throw plates sit on the cap**, bottom-anchored at y=96. Anchored
+- The throw plates sit on the cap, bottom-anchored at y=96. Anchored
   from the top they drifted off the cornice as soon as `--ui` changed the
   label's own height.
 
-**Verifying it.** `scripts/contrast.py "#a" "#b"` checks a machine tone
+Verifying it: `scripts/contrast.py "#a" "#b"` checks a machine tone
 against the floor it stands on.
 
 ### Entrance beat
