@@ -436,12 +436,14 @@ html[lang="zh"] #masthead .p-caption { letter-spacing: 0.3em; }
 :root[data-theme="ivory"] .l-badge { background:
     radial-gradient(circle at 36% 30%, #fffdf2 0 10%, transparent 22%),
     radial-gradient(circle at 50% 55%, #ffcf7a 0%, #e8892a 40%, #a4460f 72%, #4a1904 100%); }
-.l-count { left: calc(50% + var(--med) / 2 + 9px); }
+/* the count stands outside the button, clear of its focus ring */
+.l-count { left: calc(100% + 6px); top: calc(var(--med) * 0.05); }
 
 /* Forced colours: the medallions are ornament; the jewel keeps its
    Highlight, and the captions stay system text. */
 @media (forced-colors: active) {
-  .m-fascia, .m-crown, .m-frieze, #monogram, #ledger-btn svg, #prefs-btn svg { forced-color-adjust: none; }
+  .m-fascia, .m-crown, .m-frieze, #monogram, #ledger-btn svg, #prefs-btn svg,
+  .t-bulbs, #ticker::before, #ticker::after { forced-color-adjust: none; }
   .m-title h1::before, .m-title h1::after { display: none; }
   .m-title h1 { color: CanvasText; text-shadow: none; }
   .m-sub, #dateline, #masthead .p-caption { text-shadow: none; }
