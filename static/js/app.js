@@ -3249,8 +3249,11 @@ function buildTape(sky, where) {
   var moon = el('div', 'al-moon');
   moon.appendChild(moonDisc(phase, 15));
   var text = el('div', 'al-mtext');
+  // No-break spaces hold the figure to the name's last word. A narrow column
+  // (SIGNBOARD at 3100) broke the line after the separator and left "95%"
+  // alone on a line of its own; now it can only break inside the name.
   text.appendChild(el('span', 'al-mname zh-sentence',
-    t('almPhase' + phase.idx) + '  ·  ' + Math.round(phase.lit * 100) + '%'));
+    t('almPhase' + phase.idx) + ' · ' + Math.round(phase.lit * 100) + '%'));
   text.appendChild(almStrip(t('almAge'), t('almDays', { n: phase.age.toFixed(1) }),
     t('almSrDays', { n: phase.age.toFixed(1) })));
   moon.appendChild(text);
