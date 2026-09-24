@@ -1232,6 +1232,15 @@ function showNotice(a, svc) {
   var hs = $('#hall-status'); if (hs) hs.textContent = n.textContent;
 }
 
+/* Put away, the card is also emptied. The gate's aria-describedby names it
+   directly, and a directly named node is voiced even while hidden: a gate
+   that came back OPEN still described itself as "Dark. Launch with ...".
+   showNotice letters it afresh each time, in the hall's current language. */
+function hideNotice(n) {
+  n.hidden = true;
+  n.textContent = '';
+}
+
 /* The browser's new-tab modifier: Cmd on a Mac, Ctrl everywhere else.
    Elsewhere, Meta is the Windows or Super key, and the browser treats a
    click holding it as a plain same-tab navigation. Letting that through
@@ -1257,7 +1266,7 @@ function gateClick(e, a, svc) {
     // A double-click is two clicks, and a plain toggle ended it hidden.
     // Only the first click of a run toggles; the rest leave it showing.
     if (e.detail > 1 || n.hidden) showNotice(a, svc);
-    else n.hidden = true;
+    else hideNotice(n);
     return;
   }
   // One gesture, one tab: each click of a double-click used to schedule
@@ -2879,7 +2888,7 @@ function applyStatuses() {
     // Stopped, like every part of the gate's description, or speech runs
     // the lamp word straight into the curtain's sentence.
     if (sr) sr.textContent = t(state === 'open' ? 'srOpen' : state === 'dark' ? 'srDark' : 'srChecking') + t('srStop');
-    if (state !== 'dark') $('.g-notice', a).hidden = true;
+    if (state !== 'dark') hideNotice($('.g-notice', a));
     var note = st && st.note && STR.en['note.' + st.note] !== undefined ? t('note.' + st.note) : '';
     $('.g-lamp', a).title = note || lampT.title;
     var noteEl = $('.g-note', a);
