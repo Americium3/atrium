@@ -566,10 +566,192 @@ function card(li, id, host) {
   return seed;
 }
 
+/* ---------------------------------------------------------------- Preferences
+   The panel is a starter's panel in Dunand lacquer, and every preference
+   is a piece of switchgear: appearance a three-way rotary with a pilot
+   jewel over each legend, language a double-throw knife switch on slate,
+   engraving size an interlocked push-button bank, motion a bat toggle and
+   the replay a spring-return key. The radios and buttons themselves stay
+   exactly what they were; what is added here is aria-hidden hardware laid
+   under and beside them, turned by CSS from the checked radio. */
+function rotaryArt() {
+  var wrap = hx('div', 'p-rotary');
+  wrap.setAttribute('aria-hidden', 'true');
+  var plate = sv('svg', { viewBox: '0 0 100 100' }, 'p-rotary-plate');
+  var defs = sv('defs');
+  defs.appendChild(grad('radialGradient', 'pr-plate', { cx: 0.4, cy: 0.35, r: 0.7 },
+    [[0, 'cs-b5'], [0.35, 'cs-b3'], [0.7, 'cs-b2'], [1, 'cs-b1']]));
+  plate.appendChild(defs);
+  plate.appendChild(sv('circle', { cx: 51.5, cy: 53, r: 46 }, 'pr-sh'));
+  plate.appendChild(sv('circle', { cx: 50, cy: 50, r: 46, fill: 'url(#pr-plate)' }, 'pr-plate'));
+  var turn = sv('g', null, 'pr-turning');
+  for (var r = 8; r < 45; r += 1.6) turn.appendChild(sv('circle', { cx: 50, cy: 50, r: f2(r) }));
+  plate.appendChild(turn);
+  plate.appendChild(sv('circle', { cx: 50, cy: 50, r: 44.5 }, 'pr-lip'));
+  // engraved index marks for the three detents, and the stops between them
+  [-52, 0, 52].forEach(function (a) {
+    var p0 = polar(50, 50, 33, a), p1 = polar(50, 50, 43, a);
+    plate.appendChild(sv('path', { d: 'M' + P(p0) + ' L' + P(p1), transform: 'translate(0.5 0.7)' }, 'pr-index-lip'));
+    plate.appendChild(sv('path', { d: 'M' + P(p0) + ' L' + P(p1) }, 'pr-index'));
+  });
+  for (var t = -80; t <= 80; t += 13) {
+    var m0 = polar(50, 50, 39, t), m1 = polar(50, 50, 43, t);
+    plate.appendChild(sv('path', { d: 'M' + P(m0) + ' L' + P(m1) }, 'pr-tick'));
+  }
+  wrap.appendChild(plate);
+  // the knob: a black bakelite chicken-head, its pointer inlaid in ivory
+  var knob = hx('div', 'p-knob');
+  var k = sv('svg', { viewBox: '0 0 100 100' });
+  var kd = sv('defs');
+  kd.appendChild(grad('radialGradient', 'pr-bake', { cx: 0.38, cy: 0.3, r: 0.8 },
+    [[0, 'pk-0'], [0.45, 'pk-1'], [1, 'pk-2']]));
+  k.appendChild(kd);
+  var head = 'M50 6 C56 6 58 12 58 20 L60 44 C68 48 72 56 70 64 C66 76 34 76 30 64 C28 56 32 48 40 44 L42 20 C42 12 44 6 50 6 Z';
+  k.appendChild(sv('path', { d: head, transform: 'translate(2.6 3.4)' }, 'pk-sh'));
+  k.appendChild(sv('path', { d: head, fill: 'url(#pr-bake)' }, 'pk-body'));
+  k.appendChild(sv('path', { d: 'M50 9 L50 40' }, 'pk-pointer'));
+  k.appendChild(sv('circle', { cx: 50, cy: 60, r: 8.6 }, 'pk-cap'));
+  k.appendChild(sv('path', { d: 'M44.5 12 C46 9.5 49 9 50 9', fill: 'none' }, 'pk-hi'));
+  k.appendChild(sv('ellipse', { cx: 42, cy: 55, rx: 5, ry: 2.4, transform: 'rotate(-30 42 55)' }, 'pk-hi2'));
+  knob.appendChild(k);
+  wrap.appendChild(knob);
+  return wrap;
+}
+function jewel(cls) {
+  var j = hx('span', 'p-jewel' + (cls ? ' ' + cls : ''));
+  j.setAttribute('aria-hidden', 'true');
+  j.appendChild(hx('i', 'p-jewel-lit'));
+  return j;
+}
+function knifeArt() {
+  var wrap = hx('div', 'p-knife');
+  wrap.setAttribute('aria-hidden', 'true');
+  wrap.appendChild(hx('div', 'kn-slate'));
+  ['l', 'r'].forEach(function (side) {
+    var jaw = sv('svg', { viewBox: '0 0 24 30' }, 'kn-jaw kn-jaw-' + side);
+    jaw.appendChild(sv('rect', { x: 2, y: 23, width: 20, height: 5, rx: 1 }, 'kj-foot'));
+    jaw.appendChild(sv('rect', { x: 6, y: 3, width: 4.2, height: 22, rx: 1 }, 'kj-leaf'));
+    jaw.appendChild(sv('rect', { x: 13.8, y: 3, width: 4.2, height: 22, rx: 1 }, 'kj-leaf'));
+    jaw.appendChild(sv('circle', { cx: 5, cy: 25.5, r: 1.5 }, 'kj-nut'));
+    jaw.appendChild(sv('circle', { cx: 19, cy: 25.5, r: 1.5 }, 'kj-nut'));
+    wrap.appendChild(jaw);
+  });
+  var hinge = sv('svg', { viewBox: '0 0 24 30' }, 'kn-hinge');
+  hinge.appendChild(sv('rect', { x: 2, y: 23, width: 20, height: 5, rx: 1 }, 'kj-foot'));
+  hinge.appendChild(sv('rect', { x: 5, y: 6, width: 4.4, height: 19, rx: 1 }, 'kj-leaf'));
+  hinge.appendChild(sv('rect', { x: 14.6, y: 6, width: 4.4, height: 19, rx: 1 }, 'kj-leaf'));
+  hinge.appendChild(sv('circle', { cx: 12, cy: 11, r: 3.2 }, 'kj-pin'));
+  wrap.appendChild(hinge);
+  // the blade: two copper bars joined by a crossbar, a bakelite handle on
+  // the end. It flips over the hinge in depth (rotateY) when thrown.
+  var blade = hx('div', 'kn-blade');
+  var b = sv('svg', { viewBox: '0 0 100 30', preserveAspectRatio: 'none' });
+  b.appendChild(sv('rect', { x: 2, y: 9, width: 96, height: 5, rx: 1.4 }, 'kb-bar'));
+  b.appendChild(sv('rect', { x: 2, y: 16, width: 96, height: 5, rx: 1.4 }, 'kb-bar'));
+  b.appendChild(sv('rect', { x: 2, y: 9.4, width: 96, height: 1.2 }, 'kb-hi'));
+  b.appendChild(sv('rect', { x: 2, y: 16.4, width: 96, height: 1.2 }, 'kb-hi'));
+  b.appendChild(sv('rect', { x: 20, y: 7.5, width: 7, height: 15, rx: 1.2 }, 'kb-cross'));
+  blade.appendChild(b);
+  blade.appendChild(hx('i', 'kn-handle'));
+  wrap.appendChild(blade);
+  return wrap;
+}
+function batArt() {
+  var wrap = hx('div', 'p-bat');
+  wrap.setAttribute('aria-hidden', 'true');
+  var plate = sv('svg', { viewBox: '0 0 100 40' }, 'p-bat-plate');
+  var defs = sv('defs');
+  defs.appendChild(grad('linearGradient', 'pb-plate', { x1: 0, y1: 0, x2: 0.2, y2: 1 },
+    [[0, 'cs-b5'], [0.3, 'cs-b3'], [0.65, 'cs-b2'], [1, 'cs-b1']]));
+  defs.appendChild(grad('radialGradient', 'pb-bush', { cx: 0.38, cy: 0.32, r: 0.75 },
+    [[0, 'cs-b5'], [0.5, 'cs-b2'], [1, 'cs-b0']]));
+  plate.appendChild(defs);
+  plate.appendChild(sv('rect', { x: 13.5, y: 21.5, width: 76, height: 17, rx: 3 }, 'pb-sh'));
+  plate.appendChild(sv('rect', { x: 12, y: 20, width: 76, height: 17, rx: 3, fill: 'url(#pb-plate)' }, 'pb-body'));
+  [18, 82].forEach(function (x, i) {
+    var a = i ? 64 : 131;
+    plate.appendChild(sv('circle', { cx: x, cy: 28.5, r: 2 }, 'pb-screw'));
+    plate.appendChild(sv('path', { d: 'M' + (x - 1.5) + ' 28.5 H' + (x + 1.5), transform: 'rotate(' + a + ' ' + x + ' 28.5)' }, 'pb-slot'));
+  });
+  [-38, 0, 38].forEach(function (a) {
+    var p0 = polar(50, 30, 9, a), p1 = polar(50, 30, 15, a);
+    plate.appendChild(sv('path', { d: 'M' + P(p0) + ' L' + P(p1) }, 'pb-index'));
+  });
+  plate.appendChild(sv('circle', { cx: 50, cy: 30, r: 5.4, fill: 'url(#pb-bush)' }, 'pb-bush'));
+  plate.appendChild(sv('circle', { cx: 50, cy: 30, r: 3.4 }, 'pb-nut'));
+  wrap.appendChild(plate);
+  var lever = hx('div', 'p-lever');
+  var l = sv('svg', { viewBox: '0 0 20 60' });
+  var ld = sv('defs');
+  ld.appendChild(grad('linearGradient', 'pb-lever', { x1: 0, y1: 0, x2: 1, y2: 0 },
+    [[0, 'pl-0'], [0.35, 'pl-2'], [0.55, 'pl-1'], [1, 'pl-0']]));
+  l.appendChild(ld);
+  // the bat: a tapered shaft swelling to a flattened paddle at the tip
+  var bat = 'M8 58 L7 24 C3.6 19 2.8 10 4.8 4.6 C6.6 0.6 13.4 0.6 15.2 4.6 C17.2 10 16.4 19 13 24 L12 58 Z';
+  l.appendChild(sv('path', { d: bat, transform: 'translate(1.4 1.6)' }, 'pv-sh'));
+  l.appendChild(sv('path', { d: bat, fill: 'url(#pb-lever)' }, 'pv-body'));
+  l.appendChild(sv('path', { d: 'M8 8 C8 5 9 4 10 4', fill: 'none' }, 'pv-hi'));
+  lever.appendChild(l);
+  wrap.appendChild(lever);
+  return wrap;
+}
+function keyArt() {
+  var s = sv('svg', { viewBox: '0 0 44 44', 'aria-hidden': 'true' }, 'p-key');
+  var defs = sv('defs');
+  defs.appendChild(grad('radialGradient', 'pkey-plate', { cx: 0.4, cy: 0.35, r: 0.75 },
+    [[0, 'cs-b5'], [0.4, 'cs-b3'], [0.75, 'cs-b2'], [1, 'cs-b1']]));
+  s.appendChild(defs);
+  s.appendChild(sv('rect', { x: 5.5, y: 25.5, width: 35, height: 14, rx: 2.4 }, 'pkey-sh'));
+  s.appendChild(sv('rect', { x: 4, y: 24, width: 35, height: 14, rx: 2.4, fill: 'url(#pkey-plate)' }, 'pkey-plate'));
+  s.appendChild(sv('circle', { cx: 9, cy: 31, r: 1.6 }, 'pkey-screw'));
+  s.appendChild(sv('circle', { cx: 34, cy: 31, r: 1.6 }, 'pkey-screw'));
+  s.appendChild(sv('rect', { x: 17, y: 26.5, width: 9, height: 9, rx: 1.4 }, 'pkey-slot'));
+  var arm = sv('g', null, 'pkey-arm');
+  arm.appendChild(sv('path', { d: 'M20.3 31 L19.4 11 L23.6 11 L22.7 31 Z' }, 'pkey-shaft'));
+  arm.appendChild(sv('rect', { x: 14.5, y: 3.5, width: 14, height: 9, rx: 4.5 }, 'pkey-cap'));
+  arm.appendChild(sv('rect', { x: 16.5, y: 5, width: 7, height: 2.2, rx: 1.1 }, 'pkey-hi'));
+  s.appendChild(arm);
+  return s;
+}
+function dressPrefs(prefs) {
+  if (!prefs || prefs.dataset.dressed) return;
+  prefs.dataset.dressed = '1';
+  var sheet = prefs.querySelector('.p-sheet');
+  if (sheet) {
+    ['tl', 'tr', 'bl', 'br'].forEach(function (c) {
+      var b = hx('i', 'p-bracket p-bracket-' + c);
+      b.setAttribute('aria-hidden', 'true');
+      sheet.appendChild(b);
+    });
+  }
+  Array.prototype.forEach.call(prefs.querySelectorAll('[data-pref]'), function (group) {
+    var pref = group.dataset.pref;
+    var sec = group.closest('.p-group');
+    if (sec) sec.dataset.control = pref;
+    var radios = Array.prototype.slice.call(group.querySelectorAll('[role=radio]'));
+    if (pref === 'theme') {
+      group.insertBefore(rotaryArt(), group.firstChild);
+      radios.forEach(function (r) { r.insertBefore(jewel(), r.firstChild); });
+    } else if (pref === 'lang') {
+      group.insertBefore(knifeArt(), group.firstChild);
+      radios.forEach(function (r) { r.insertBefore(jewel('p-jewel-sm'), r.firstChild); });
+    } else if (pref === 'motion') {
+      group.insertBefore(batArt(), group.firstChild);
+      radios.forEach(function (r) { r.insertBefore(jewel('p-jewel-sm'), r.firstChild); });
+    }
+  });
+  var replay = prefs.querySelector('#replay');
+  if (replay) {
+    var sec2 = replay.closest('.p-group');
+    if (sec2) sec2.dataset.control = 'replay';
+    replay.insertBefore(keyArt(), replay.firstChild);
+  }
+}
+
 window.Cabinet = {
   fnv1a: fnv1a, draw: draw, f2: f2, sv: sv, hx: hx, grad: grad,
   polar: polar, sector: sector, arc: arc, screw: screw, frame: frame,
   dressCase: dressCase, dial: dial, moon: moon, skyPlate: skyPlate, sunBead: sunBead,
-  cartouche: cartouche, card: card
+  cartouche: cartouche, card: card, dressPrefs: dressPrefs
 };
 })();

@@ -1002,3 +1002,456 @@
 #ledger .l-empty { color: var(--lq-faint); }
 #ledger .l-empty svg { color: var(--lead-2); }
 
+/* ==========================================================================
+   PREFERENCES: the starter's panel
+   ==========================================================================
+   Dunand lacquer with a leaf fillet inset from the edge and a bone line
+   inside it, stepped brackets at the four corners, and each preference in
+   its own well of shagreen. By day the field itself is pale shagreen with
+   ebonised fillets. The controls are switchgear; the radios, the buttons,
+   the focus trap and Esc are unchanged underneath it. */
+:root[data-theme="onyx"] {
+  --pn: #0b0908; --pn-refl: rgba(255, 244, 222, 0.06);
+  --pn-fillet: var(--lead-3); --pn-string: rgba(236, 226, 200, 0.28);
+  --well: #2e2b24; --well-tex: 0.9; --well-rim: rgba(0, 0, 0, 0.7);
+  --pn-ink: #eadfc4; --pn-faint: #a2957a; --pn-label: #d6b867;
+  --pk-0: #4a4640; --pk-1: #1a1816; --pk-2: #060505;
+  --pl-0: #0c0b0a; --pl-1: #6f6a62; --pl-2: #d9d6cf;
+  --pilot-0: #fff8e2; --pilot-1: #ffcf7a; --pilot-2: #d97e20; --pilot-3: #5c2606;
+  --pilot-glow: rgba(255, 190, 100, 0.8);
+}
+:root[data-theme="ivory"] {
+  --pn: #d8d5c6; --pn-refl: rgba(255, 255, 255, 0.3);
+  --pn-fillet: #15110d; --pn-string: rgba(255, 253, 246, 0.9);
+  --well: #c6c1ae; --well-tex: 1; --well-rim: rgba(40, 30, 16, 0.45);
+  --pn-ink: #1f180e; --pn-faint: #5b4f3a; --pn-label: #5c4613;
+  --pk-0: #4a4640; --pk-1: #1a1816; --pk-2: #060505;
+  --pl-0: #3a3834; --pl-1: #a7a39a; --pl-2: #f4f2ec;
+  --pilot-0: #ffe7b0; --pilot-1: #e0a040; --pilot-2: #a4600e; --pilot-3: #4a2a06;
+  --pilot-glow: rgba(0, 0, 0, 0);
+}
+.pk-0 { stop-color: var(--pk-0); } .pk-1 { stop-color: var(--pk-1); } .pk-2 { stop-color: var(--pk-2); }
+.pl-0 { stop-color: var(--pl-0); } .pl-1 { stop-color: var(--pl-1); } .pl-2 { stop-color: var(--pl-2); }
+
+#prefs {
+  background-color: color-mix(in srgb, var(--base) 58%, transparent);
+  -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px);
+}
+.p-sheet {
+  --u: calc(1px * var(--ui));
+  --n: calc(16px * var(--ui));
+  position: relative;
+  width: min(calc(680px * var(--ui)), 94vw);
+  max-height: 94vh;
+  padding: calc(24px * var(--ui)) calc(30px * var(--ui)) calc(26px * var(--ui));
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-areas: "head head" "theme lang" "theme motion" "ui ui" "replay replay";
+  column-gap: calc(16px * var(--ui));
+  row-gap: calc(12px * var(--ui));
+  color: var(--pn-ink);
+  background:
+    linear-gradient(112deg, transparent 18%, var(--pn-refl) 30%, transparent 44%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.03), transparent 30%, rgba(0, 0, 0, 0.14)),
+    var(--pn);
+}
+:root[data-theme="ivory"] .p-sheet {
+  background:
+    linear-gradient(112deg, transparent 18%, var(--pn-refl) 30%, transparent 44%),
+    url('/static/assets/tex/grain-shagreen.webp') 0 0 / 210px,
+    var(--pn);
+  background-blend-mode: normal, soft-light, normal;
+}
+/* the leaf fillet and, inside it, a line of bone stringing */
+.p-sheet::before, .p-sheet::after {
+  content: ""; position: absolute; pointer-events: none;
+  clip-path: polygon(var(--n) 0, calc(100% - var(--n)) 0, 100% var(--n), 100% calc(100% - var(--n)),
+    calc(100% - var(--n)) 100%, var(--n) 100%, 0 calc(100% - var(--n)), 0 var(--n));
+}
+.p-sheet::before { inset: calc(7px * var(--ui)); border: 1.5px solid var(--pn-fillet); opacity: 0.8; }
+.p-sheet::after { inset: calc(10px * var(--ui)); border: 1px solid var(--pn-string); }
+.p-bracket {
+  position: absolute; z-index: 2;
+  width: calc(30px * var(--ui)); height: calc(30px * var(--ui));
+  pointer-events: none;
+  background:
+    url('/static/assets/tex/grain-gilt.webp') 0 0 / 40px,
+    linear-gradient(135deg, var(--lead-5), var(--lead-3) 30%, var(--lead-2) 60%, var(--lead-1));
+  background-blend-mode: soft-light, normal;
+  /* a stepped L running along the chamfer, two courses deep */
+  clip-path: polygon(0 55%, 55% 0, 100% 0, 100% 16%, 64% 16%, 16% 64%, 16% 100%, 0 100%,
+    0 55%, 8% 55%, 8% 88%, 12% 88%, 12% 58%, 58% 12%, 88% 12%, 88% 8%, 58% 8%, 8% 58%);
+  forced-color-adjust: none;
+}
+.p-bracket-tl { left: calc(3px * var(--ui)); top: calc(3px * var(--ui)); }
+.p-bracket-tr { right: calc(3px * var(--ui)); top: calc(3px * var(--ui)); transform: scaleX(-1); }
+.p-bracket-bl { left: calc(3px * var(--ui)); bottom: calc(3px * var(--ui)); transform: scaleY(-1); }
+.p-bracket-br { right: calc(3px * var(--ui)); bottom: calc(3px * var(--ui)); transform: scale(-1, -1); }
+
+.p-head {
+  grid-area: head;
+  position: relative; z-index: 1;
+  border-bottom: 0;
+  padding: calc(4px * var(--ui)) calc(8px * var(--ui)) calc(10px * var(--ui));
+  margin: 0;
+}
+.p-head::after {
+  content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--pn-fillet) 12%, var(--pn-fillet) 88%, transparent);
+  opacity: 0.7;
+}
+.p-head h2 {
+  font-size: calc(16px * var(--ui));
+  font-weight: 600;
+  letter-spacing: 0.3em;
+  background:
+    url('/static/assets/tex/grain-gilt.webp') 0 0 / 60px,
+    linear-gradient(180deg, var(--leaf-0) 0%, var(--leaf-1) 34%, var(--leaf-2) 58%, var(--leaf-3) 76%, var(--leaf-4) 100%) 0 0 / 100% 1.2em;
+  background-blend-mode: soft-light, normal;
+  -webkit-background-clip: text; background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 0.6px 0 rgba(0, 0, 0, 0.8));
+}
+:root[data-theme="ivory"] .p-head h2 { filter: drop-shadow(0 0.8px 0 rgba(0, 0, 0, 0.55)); }
+/* Close: a small brass knob with its word engraved beside it. */
+#prefs-close {
+  display: flex; align-items: center; gap: calc(7px * var(--ui));
+  font-size: 0;
+  padding: 4px 2px 4px 8px;
+  color: var(--pn-faint);
+}
+#prefs-close::before {
+  content: "";
+  width: calc(24px * var(--ui)); height: calc(24px * var(--ui));
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 50% 50%, transparent 0 34%, rgba(0, 0, 0, 0.45) 36%, transparent 40%),
+    radial-gradient(circle at 38% 32%, var(--br-5), var(--br-3) 30%, var(--br-2) 58%, var(--br-0) 100%);
+  box-shadow: 0 0 0 1px var(--br-0), 1px 2px 3px rgba(0, 0, 0, 0.6);
+  order: 2;
+}
+#prefs-close::after {
+  content: attr(aria-label);
+  font-size: calc(9.5px * var(--ui));
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  font-family: var(--serif);
+}
+#prefs-close:hover { color: var(--pn-label); }
+#prefs-close:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; }
+
+/* ----- The wells ------------------------------------------------------- */
+.p-group {
+  position: relative; z-index: 1;
+  margin: 0;
+  padding: calc(9px * var(--ui)) calc(12px * var(--ui)) calc(12px * var(--ui));
+  border-radius: calc(3px * var(--ui));
+  background:
+    radial-gradient(ellipse 90% 60% at 40% 0%, rgba(255, 255, 255, 0.06), transparent 70%),
+    url('/static/assets/tex/grain-shagreen.webp') 0 0 / 150px,
+    var(--well);
+  background-blend-mode: normal, soft-light, normal;
+  box-shadow:
+    inset 0 2px 5px var(--well-rim), inset 0 -1px 0 rgba(255, 255, 255, 0.06),
+    0 0 0 1px var(--pn-fillet), 0 0 0 3px transparent;
+}
+.p-group[data-control="theme"] { grid-area: theme; }
+.p-group[data-control="lang"] { grid-area: lang; }
+.p-group[data-control="ui"] { grid-area: ui; }
+.p-group[data-control="motion"] { grid-area: motion; }
+.p-group[data-control="replay"] { grid-area: replay; background: none; box-shadow: none; padding: 0; }
+.p-label {
+  font-size: calc(10.5px * var(--ui));
+  letter-spacing: 0.28em;
+  color: var(--pn-label);
+  margin-bottom: calc(6px * var(--ui));
+}
+/* the radios themselves: no box of their own; the hardware carries them */
+.p-group .p-plaque {
+  position: relative; z-index: 2;
+  border: 0;
+  background: none;
+  color: var(--pn-faint);
+  padding: calc(4px * var(--ui)) calc(4px * var(--ui));
+  gap: calc(3px * var(--ui));
+  transition: color 0.25s;
+}
+.p-group .p-plaque:hover { color: var(--pn-ink); }
+.p-group .p-plaque[aria-checked="true"] { color: var(--pn-ink); border: 0; }
+.p-group .p-plaque:focus-visible { outline: none; }
+/* Focus is a champagne collar round the legend's jewel, and a rule under
+   its name: no box drawn round a column of the panel. */
+.p-group .p-plaque:focus-visible > .p-jewel {
+  box-shadow: 0 0 0 1.5px var(--br-1), 0 0 0 3px var(--br-3), 0 0 0 3.8px var(--br-0),
+    0 0 0 6px var(--focus), 1px 2px 3px 6px rgba(0, 0, 0, 0.4);
+}
+.p-group .p-plaque:focus-visible > .p-name { text-decoration: underline 2px var(--focus); text-underline-offset: 4px; }
+[data-pref="ui"] .p-plaque:focus-visible { outline: 2px solid var(--focus); outline-offset: 4px; }
+.p-name { font-size: calc(11px * var(--ui)); letter-spacing: 0.18em; white-space: nowrap; }
+.p-desc { font-size: calc(10.5px * var(--ui)); line-height: 1.3; text-align: center; text-wrap: balance; }
+html[lang="zh"] .p-name { letter-spacing: 0.1em; }
+
+/* Pilot jewels. The live one is lit; the others are smoked glass. */
+.p-jewel {
+  position: relative; display: block; flex: none;
+  width: calc(13px * var(--ui)); height: calc(13px * var(--ui));
+  margin-bottom: calc(3px * var(--ui));
+  border-radius: 50%;
+  background: radial-gradient(circle at 40% 35%, #4a4236, #120f0b 72%);
+  box-shadow: 0 0 0 1.5px var(--br-1), 0 0 0 3px var(--br-3), 0 0 0 3.8px var(--br-0), 1px 2px 3px 2px rgba(0, 0, 0, 0.5);
+  forced-color-adjust: none;
+}
+.p-jewel-sm { width: calc(10px * var(--ui)); height: calc(10px * var(--ui)); }
+.p-jewel-lit {
+  position: absolute; inset: 0; border-radius: 50%;
+  background:
+    radial-gradient(circle at 36% 30%, #ffffff 0 10%, transparent 24%),
+    radial-gradient(circle at 50% 55%, var(--pilot-0), var(--pilot-1) 32%, var(--pilot-2) 64%, var(--pilot-3));
+  box-shadow: 0 0 7px 2px var(--pilot-glow);
+  opacity: 0;
+  transition: opacity 0.18s;
+}
+[aria-checked="true"] > .p-jewel .p-jewel-lit { opacity: 1; }
+
+/* The lacquer chips that were the swatches. */
+.p-group .swatch {
+  width: calc(26px * var(--ui)); height: calc(9px * var(--ui));
+  border: 0; border-radius: 1px;
+  box-shadow: 0 0 0 1px var(--br-1), 0 1px 2px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+}
+.p-group .sw-onyx { background: linear-gradient(115deg, #0c0a07 40%, #2a241a 50%, #0c0a07 60%); }
+.p-group .sw-ivory { background: linear-gradient(115deg, #ece4cf 40%, #fffaf0 50%, #ece4cf 60%); }
+.p-group .sw-system { background: linear-gradient(90deg, #0c0a07 50%, #ece4cf 50%); }
+
+/* ----- Appearance: the rotary --------------------------------------------- */
+[data-pref="theme"].p-options {
+  position: relative;
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: calc(4px * var(--ui));
+  height: calc(100% - 20px * var(--ui));
+  min-height: calc(176px * var(--ui));
+}
+[data-pref="theme"] .p-plaque { justify-content: flex-start; height: 100%; }
+[data-pref="theme"] .p-name { white-space: normal; text-align: center; line-height: 1.25; }
+.p-rotary {
+  position: absolute; z-index: 1;
+  left: 50%; bottom: calc(8px * var(--ui));
+  width: calc(112px * var(--ui)); height: calc(112px * var(--ui));
+  margin-left: calc(-56px * var(--ui));
+  pointer-events: none;
+  forced-color-adjust: none;
+}
+.p-rotary-plate { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.p-rotary .pr-sh { fill: rgba(0, 0, 0, 0.5); }
+.p-rotary .pr-plate { stroke: var(--br-0); stroke-width: 0.8; }
+.p-rotary .pr-turning circle { fill: none; stroke: rgba(40, 24, 4, 0.12); stroke-width: 0.5; }
+.p-rotary .pr-lip { fill: none; stroke: rgba(255, 246, 220, 0.4); stroke-width: 0.6; }
+.p-rotary .pr-index { stroke: #1a1006; stroke-width: 1.8; stroke-linecap: round; }
+.p-rotary .pr-index-lip { stroke: rgba(255, 244, 214, 0.6); stroke-width: 1; stroke-linecap: round; }
+.p-rotary .pr-tick { stroke: rgba(26, 16, 6, 0.55); stroke-width: 0.7; }
+.p-knob {
+  position: absolute; inset: 14%;
+  transform: rotate(0deg);
+  transition: transform 0.3s cubic-bezier(0.3, 1.45, 0.5, 1);
+}
+.p-knob svg { width: 100%; height: 100%; overflow: visible; }
+.p-knob .pk-sh { fill: rgba(0, 0, 0, 0.5); }
+.p-knob .pk-body { stroke: #000; stroke-width: 0.8; }
+.p-knob .pk-pointer { stroke: #efe6d0; stroke-width: 3; stroke-linecap: round; }
+.p-knob .pk-cap { fill: url(#pr-plate); stroke: #000; stroke-width: 0.6; }
+.p-knob .pk-hi { stroke: rgba(255, 255, 255, 0.45); stroke-width: 1.4; stroke-linecap: round; }
+.p-knob .pk-hi2 { fill: rgba(255, 255, 255, 0.14); }
+[data-pref="theme"]:has([data-value="onyx"][aria-checked="true"]) .p-knob { transform: rotate(-52deg); }
+[data-pref="theme"]:has([data-value="system"][aria-checked="true"]) .p-knob { transform: rotate(52deg); }
+
+/* ----- Language: the knife switch ---------------------------------------- */
+[data-pref="lang"].p-options {
+  position: relative;
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 0;
+  height: calc(80px * var(--ui));
+}
+[data-pref="lang"] .p-plaque { padding-top: 0; flex-direction: row; gap: calc(7px * var(--ui)); }
+[data-pref="lang"] .p-plaque .p-jewel { margin: 0; }
+[data-pref="lang"] .p-plaque[data-value="zh"] { flex-direction: row-reverse; }
+[data-pref="lang"] .p-plaque { align-items: center; align-self: start; height: auto; justify-content: flex-start; }
+[data-pref="lang"] .p-plaque[data-value="en"] { padding-left: calc(6px * var(--ui)); }
+[data-pref="lang"] .p-plaque[data-value="zh"] { padding-right: calc(6px * var(--ui)); }
+.p-knife {
+  position: absolute; z-index: 1;
+  left: 0; right: 0; bottom: 0; height: calc(54px * var(--ui));
+  pointer-events: none;
+  perspective: 300px;
+  forced-color-adjust: none;
+}
+.kn-slate {
+  position: absolute; inset: 0;
+  border-radius: calc(3px * var(--ui));
+  background:
+    linear-gradient(112deg, transparent 20%, rgba(255, 255, 255, 0.06) 32%, transparent 44%),
+    url('/static/assets/tex/stone-slate.webp') 0 0 / 180px;
+  box-shadow: 0 0 0 1px #0a0b0c, 0 2px 4px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+.kn-jaw, .kn-hinge {
+  position: absolute; bottom: calc(6px * var(--ui));
+  width: calc(24px * var(--ui)); height: calc(32px * var(--ui));
+  overflow: visible;
+}
+.kn-jaw-l { left: 13%; }
+.kn-jaw-r { right: 13%; }
+.kn-hinge { left: 50%; margin-left: calc(-12px * var(--ui)); }
+.p-knife .kj-foot { fill: #3b2a1a; stroke: #120a04; stroke-width: 0.5; }
+.p-knife .kj-leaf { fill: url(#pb-plate); stroke: #2a1a0a; stroke-width: 0.5; }
+.p-knife .kj-nut { fill: var(--br-3); stroke: var(--br-0); stroke-width: 0.4; }
+.p-knife .kj-pin { fill: var(--br-4); stroke: var(--br-0); stroke-width: 0.6; }
+.kn-blade {
+  position: absolute; z-index: 2;
+  left: 50%; width: 35%;
+  bottom: calc(20px * var(--ui)); height: calc(14px * var(--ui));
+  transform-origin: 0 50%;
+  transform: rotateY(0deg);
+  transition: transform 0.38s cubic-bezier(0.5, 0, 0.3, 1);
+}
+.kn-blade svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible;
+  filter: drop-shadow(1px 2px 1.2px rgba(0, 0, 0, 0.6)); }
+.p-knife .kb-bar { fill: #b06a3a; stroke: #3c1c08; stroke-width: 0.4; }
+.p-knife .kb-hi { fill: rgba(255, 214, 180, 0.6); }
+.p-knife .kb-cross { fill: #1b1512; }
+.kn-handle {
+  position: absolute; right: calc(-9px * var(--ui)); top: 50%;
+  width: calc(20px * var(--ui)); height: calc(20px * var(--ui));
+  margin-top: calc(-10px * var(--ui));
+  border-radius: 50%;
+  background: radial-gradient(circle at 38% 32%, #6a655f, #1a1816 45%, #040303);
+  box-shadow: 1px 2px 3px rgba(0, 0, 0, 0.7), inset 0 0 0 1px #000;
+}
+[data-pref="lang"]:has([data-value="en"][aria-checked="true"]) .kn-blade { transform: rotateY(180deg); }
+
+/* ----- Engraving size: the push-button bank ---------------------------- */
+[data-pref="ui"].p-options {
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: calc(3px * var(--ui));
+  padding: calc(5px * var(--ui)) calc(5px * var(--ui)) calc(7px * var(--ui));
+  border-radius: calc(3px * var(--ui));
+  background:
+    url('/static/assets/tex/grain-brushed.webp') 0 0 / 200px,
+    linear-gradient(180deg, var(--br-3), var(--br-2) 40%, var(--br-1));
+  background-blend-mode: soft-light, normal;
+  box-shadow: 0 0 0 1px var(--br-0), 0 2px 4px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 244, 214, 0.5);
+}
+[data-pref="ui"] .p-plaque {
+  color: #3a2e1c;
+  padding: calc(8px * var(--ui)) calc(6px * var(--ui)) calc(7px * var(--ui));
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.55), transparent 30%, rgba(0, 0, 0, 0.08)),
+    url('/static/assets/tex/grain-card.webp') 0 0 / 140px,
+    #efe6cc;
+  background-blend-mode: normal, soft-light, normal;
+  border-radius: 2px;
+  box-shadow: 0 0 0 1px #1c140a, 0 calc(4px * var(--ui)) 0 0 #3a2a18, 0 calc(4px * var(--ui)) 0 1px #1c140a,
+    0 calc(6px * var(--ui)) 5px rgba(0, 0, 0, 0.45);
+  transform: translateY(0);
+  transition: transform 0.12s var(--ease-out), box-shadow 0.12s, color 0.2s;
+}
+[data-pref="ui"] .p-plaque:hover { color: #1a1208; }
+[data-pref="ui"] .p-plaque[aria-checked="true"] {
+  color: #120c04;
+  transform: translateY(calc(3px * var(--ui)));
+  background:
+    linear-gradient(180deg, rgba(0, 0, 0, 0.1), transparent 30%),
+    url('/static/assets/tex/grain-card.webp') 0 0 / 140px,
+    #e2d6b4;
+  background-blend-mode: normal, soft-light, normal;
+  box-shadow: 0 0 0 1px #1c140a, 0 calc(1px * var(--ui)) 0 0 #3a2a18, 0 calc(1px * var(--ui)) 0 1px #1c140a,
+    0 calc(2px * var(--ui)) 2px rgba(0, 0, 0, 0.45), inset 0 2px 3px rgba(0, 0, 0, 0.18);
+}
+[data-pref="ui"] .p-desc { color: #5a4a30; }
+
+/* ----- Motion: the bat toggle -------------------------------------------- */
+[data-pref="motion"].p-options {
+  position: relative;
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: calc(2px * var(--ui));
+  height: calc(100px * var(--ui));
+}
+[data-pref="motion"] .p-plaque { justify-content: flex-start; height: 100%; }
+[data-pref="motion"] .p-name { white-space: normal; text-align: center; line-height: 1.2; }
+.p-bat {
+  position: absolute; z-index: 1;
+  left: 50%; bottom: 0;
+  width: calc(130px * var(--ui)); height: calc(52px * var(--ui));
+  margin-left: calc(-65px * var(--ui));
+  pointer-events: none;
+  forced-color-adjust: none;
+}
+.p-bat-plate { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.p-bat .pb-sh { fill: rgba(0, 0, 0, 0.5); }
+.p-bat .pb-body { stroke: var(--br-0); stroke-width: 0.6; }
+.p-bat .pb-screw { fill: var(--br-3); stroke: var(--br-0); stroke-width: 0.4; }
+.p-bat .pb-slot { stroke: var(--br-0); stroke-width: 0.6; }
+.p-bat .pb-index { stroke: #1a1006; stroke-width: 1.3; stroke-linecap: round; }
+.p-bat .pb-bush { stroke: var(--br-0); stroke-width: 0.5; }
+.p-bat .pb-nut { fill: none; stroke: rgba(40, 24, 4, 0.7); stroke-width: 0.6; }
+.p-lever {
+  position: absolute;
+  left: 50%; bottom: 22%;
+  width: calc(17px * var(--ui)); height: calc(46px * var(--ui));
+  margin-left: calc(-8.5px * var(--ui));
+  transform-origin: 50% 96%;
+  transform: rotate(0deg);
+  transition: transform 0.16s cubic-bezier(0.3, 1.5, 0.5, 1);
+}
+.p-lever svg { width: 100%; height: 100%; overflow: visible; }
+.p-lever .pv-sh { fill: rgba(0, 0, 0, 0.45); }
+.p-lever .pv-body { stroke: rgba(0, 0, 0, 0.6); stroke-width: 0.5; }
+.p-lever .pv-hi { stroke: rgba(255, 255, 255, 0.8); stroke-width: 1.2; stroke-linecap: round; }
+[data-pref="motion"]:has([data-value="full"][aria-checked="true"]) .p-lever { transform: rotate(-38deg); }
+[data-pref="motion"]:has([data-value="system"][aria-checked="true"]) .p-lever { transform: rotate(38deg); }
+
+/* ----- Replay: the spring-return key ------------------------------------- */
+#replay.p-plaque {
+  display: grid;
+  grid-template-columns: auto auto;
+  grid-template-rows: auto auto;
+  column-gap: calc(12px * var(--ui));
+  justify-content: center; align-items: center;
+  width: auto; margin: 0 auto;
+  padding: calc(4px * var(--ui)) calc(14px * var(--ui));
+  color: var(--pn-faint);
+  background: none; border: 0;
+}
+#replay .p-key { grid-row: 1 / span 2; width: calc(40px * var(--ui)); height: calc(40px * var(--ui)); overflow: visible; }
+#replay .p-name { align-self: end; color: var(--pn-label); }
+#replay .p-desc { align-self: start; text-align: left; color: var(--pn-faint); }
+#replay:hover .p-desc { color: var(--pn-ink); }
+.p-key .pkey-sh { fill: rgba(0, 0, 0, 0.45); }
+.p-key .pkey-plate { stroke: var(--br-0); stroke-width: 0.5; }
+.p-key .pkey-screw { fill: var(--br-4); stroke: var(--br-0); stroke-width: 0.4; }
+.p-key .pkey-slot { fill: #0e0a06; }
+.p-key .pkey-shaft { fill: #c9c4b8; stroke: #2a2620; stroke-width: 0.4; }
+.p-key .pkey-cap { fill: #151210; stroke: #000; stroke-width: 0.5; }
+.p-key .pkey-hi { fill: rgba(255, 255, 255, 0.3); }
+.p-key .pkey-arm {
+  transform-box: view-box; transform-origin: 21.5px 31px;
+  transition: transform 0.22s cubic-bezier(0.3, 1.6, 0.5, 1);
+}
+#replay:active .p-key .pkey-arm { transform: rotate(-24deg); transition-duration: 0.08s; }
+#replay:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; }
+
+/* Forced colours: the hardware is ornament and keeps its own paint; every
+   radio keeps a border it cannot lose and the live one a Highlight one. */
+@media (forced-colors: active) {
+  .p-group .p-plaque { border: 1px solid CanvasText; }
+  .p-group .p-plaque[aria-checked="true"] { border: 3px solid Highlight; }
+  .p-sheet::before, .p-sheet::after { border-color: CanvasText; }
+  #ledger .chip { border: 1px solid CanvasText; }
+  #ledger .chip[aria-checked="true"] { border: 2px solid Highlight; color: Highlight; }
+  .pl-jewel, .p-knife, .p-rotary, .p-bat, .l-close-knob, .l-stamp-ico { forced-color-adjust: none; }
+  #ledger .plaque.new .pl-frame { outline: 2px solid Highlight; }
+}
+
+/* Reduced motion: the switchgear snaps. */
+:root[data-motion="reduced"] .p-knob,
+:root[data-motion="reduced"] .kn-blade,
+:root[data-motion="reduced"] .p-lever,
+:root[data-motion="reduced"] .p-key .pkey-arm { transition: none; }

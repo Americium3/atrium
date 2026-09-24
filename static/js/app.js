@@ -126,6 +126,7 @@ var STR = {
     onyxDesc: 'Black & gold', ivoryDesc: 'Platinum & gold', systemDesc: 'Match the OS',
     motionFull: 'FULL', motionReduced: 'REDUCED',
     replay: 'REPLAY ENTRANCE',
+    replayDesc: 'Reloads the hall to play it once more',
     ariaTicker: 'Status band',
     ariaLever: 'Bureau wing',
     ariaDesk: 'Signal desk: mode lever',
@@ -260,6 +261,7 @@ var STR = {
     onyxDesc: '玄色与鎏金', ivoryDesc: '铂色与鎏金', systemDesc: '与操作系统一致',
     motionFull: '完整', motionReduced: '减弱',
     replay: '重播入场动画',
+    replayDesc: '重新载入大厅，再演一遍',
     ariaTicker: '状态带',
     ariaLever: '事务翼',
     ariaDesk: '信号台：模式拨杆',
@@ -4197,6 +4199,8 @@ document.addEventListener('visibilitychange', function () {
    ======================================================================== */
 var prefs = $('#prefs');
 var prefsBtn = $('#prefs-btn');
+// The panel's switchgear is drawn once, before it is ever opened.
+window.Cabinet.dressPrefs(prefs);
 var lastFocus = null;
 
 var FOCUSABLE = 'button, [href], input, select, [tabindex]:not([tabindex="-1"])';
