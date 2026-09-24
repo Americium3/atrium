@@ -1015,13 +1015,17 @@ var deskRaf = null;
    a console restyled every frame is a console repainted every frame: its
    cast relief runs through a turbulence filter, and re-rastering it for
    each frame of the throw cost the GPU 60-150ms a frame at 3440 (MO-1).
-   On .desk-fx and #lever the console is never touched.
+   On .desk-fx and #lever the console is never touched. It is now written
+   on the four parts that read it, and it does not inherit (atrium.css):
+   on .desk-fx it still restyled the lever's and the gears' whole drawings,
+   some 180 nodes, on every frame of the throw.
    The value is also kept here. It used to be read back through
    getComputedStyle, and the throw read it straight after the wing flip, so
    every throw forced the flip's whole-hall restyle (8-10k elements, ~100ms)
    inside the key handler (MO-2). */
 var driveNow = 0;
-var driveEls = desk ? [$('.desk-fx', desk), $('#lever', desk)].filter(Boolean) : [];
+var driveEls = desk ? Array.prototype.slice.call(
+  desk.querySelectorAll('.lever-svg, .gearA-svg, .gearB-svg, #lever .hit-arm')) : [];
 function setDrive(v) {
   driveNow = v;
   var s = v.toFixed(4);
@@ -1031,23 +1035,33 @@ function getDrive() { return driveNow; }
 
 /* Interrupt-safe rAF driver: a re-toggle mid-throw reads the current
    --drive as its new start. Steam fires once past 55% of the throw
-   (latched). Reduced motion: snap — the gears stay correct for free. */
+   (latched). Reduced motion: snap — the gears stay correct for free.
+   The throw runs on drawn frames, not on the wall clock: no frame moves
+   the arm more than a sixteenth of its throw. Placed where the clock said
+   it should be, the arm skipped its swing whenever a frame came late: the
+   first frame after W carries the flip's re-leaf, 250-1,085ms of raster
+   at 3440, and the arm was first drawn at or past its end stop (MO-15).
+   After a late frame it now carries on from where it was drawn, and the
+   swing and the overshoot are always drawn in sixteen frames or more. */
 function deskDrive(target) {
   if (!desk) return;
   cancelAnimationFrame(deskRaf);
   // Hidden pages never fire rAF — land the mechanism instantly.
   if (root.dataset.motion === 'reduced' ||
       document.visibilityState === 'hidden') { setDrive(target); return; }
-  var from = getDrive(), t0 = performance.now(), DUR = 520;
+  var from = getDrive(), last = performance.now(), run = 0, DUR = 520;
+  var STEP = DUR / 16;
   var latched = false;
   var frame = function (now) {
     // The Motion preference can flip (or the tab hide) mid-throw — land it.
     if (root.dataset.motion === 'reduced' ||
         document.visibilityState === 'hidden') { setDrive(target); return; }
     // The first frame's timestamp is taken when the frame began, which can
-    // be before the click handler read t0; unclamped, that negative t
-    // kicked the lever back past its end stop for one frame.
-    var t = Math.max(0, Math.min(1, (now - t0) / DUR));
+    // be before the click handler read the clock; a negative step kicked
+    // the lever back past its end stop for one frame.
+    run += Math.max(0, Math.min(STEP, now - last));
+    last = Math.max(last, now);
+    var t = Math.min(1, run / DUR);
     var p = from + (target - from) * easeWeighty(t);
     setDrive(t === 1 ? target : p);
     var prog = target === 1 ? p : 1 - p;
@@ -3465,25 +3479,39 @@ var lever = $('#lever');
 var themeBusy = false;   // a theme crossfade is running, under its cut
 var afterTheme = null;   // the lever re-light waiting for it
 
+var flipRaf = 0;
 function setWing(w) {
   wingPending = w;
   var apply = function () {
-    root.dataset.wing = w;
-    if (wingPending === w) wingPending = null;
     store('atrium.wing', w);
     lever.setAttribute('aria-checked', String(w === 'bureau'));
-    afterReleaf(throwWing);
+    // The lever answers the hand at once: it is its own layer, and its
+    // drive restyles only the lever and its gears. It used to wait with the
+    // arches for the re-leaf to be drawn, so nothing on the machine moved
+    // for 250-1,085ms after W (MO-15). Only the arches wait.
+    deskDrive(w === 'bureau' ? 1 : 0);
+    // The re-leaf goes out in the frame after the lever's first. In the
+    // same frame its raster (120-170ms at 3440) held that frame back, and
+    // the arm was first seen a fifth of a second after the key.
+    var flip = function () {
+      flipRaf = 0;
+      if (themeBusy) { afterTheme = flip; return; }
+      root.dataset.wing = w;
+      if (wingPending === w) wingPending = null;
+      afterReleaf(throwWing);
+    };
+    cancelAnimationFrame(flipRaf);
+    if (root.dataset.motion === 'reduced' || document.visibilityState === 'hidden') flip();
+    else flipRaf = requestAnimationFrame(function () { flipRaf = requestAnimationFrame(flip); });
   };
   // Serialize: the lever re-light queues until a theme crossfade finishes
   // and its cut is lifted; under the cut the throw would land in one frame.
   // The latest throw asked for is the one that runs.
   if (themeBusy) afterTheme = apply; else apply();
 }
-/* The moving parts of a throw: the lever and its gears, and the arches
-   changing places. They read the wing as it stands when they run, so two
-   quick throws land where the second one points. */
+/* The arches changing places. They read the wing as it stands when they
+   run, so two quick throws land where the second one points. */
 function throwWing() {
-  deskDrive(root.dataset.wing === 'bureau' ? 1 : 0);
   // The gates stay in the order they were built. The waiting wing is
   // inert, so Tab walks only the lit one, left to right, wherever the two
   // sit in the DOM. A 750ms re-append used to put the lit wing first, and
@@ -3495,15 +3523,15 @@ function throwWing() {
   layoutStage(false);
 }
 /* The flip re-leafs the whole hall: every gilt fixture off the arches
-   changes metal through --lead-* and --metal, which restyles the document
-   and re-rasters most of the screen. On the owner's 3440 display that frame
-   took 150-250ms of GPU raster, and a throw started in the same task ran on
-   the clock meanwhile: the 200ms sink was over before the next frame was
-   drawn, so nobody saw it, and the lever jumped (MO-1). So the flip goes
-   out on its own, and the lever and the arches start once it has been
-   drawn. (The fixtures change metal in that one frame, not over a 0.4s
-   colour fade: a fill fading on the clock and the pilasters re-rastered
-   them on every frame of the throw, 70ms a frame at 3440. Law 11.) */
+   changes metal through --lead-* and --metal, and each one is rastered
+   again. On the owner's 3440 display that frame took 150-250ms of GPU
+   raster, and a throw started in the same task ran on the clock meanwhile:
+   the 200ms sink was over before the next frame was drawn, so nobody saw
+   it (MO-1). So the flip goes out on its own, and the arches start once it
+   has been drawn. (The fixtures change metal in that one frame, not over a
+   0.4s colour fade: a fill fading on the clock and the pilasters
+   re-rastered them on every frame of the throw, 70ms a frame at 3440.
+   Law 11.) */
 var releafN = 0, releafT = 0;
 function afterReleaf(fn) {
   var n = ++releafN;
@@ -3514,8 +3542,10 @@ function afterReleaf(fn) {
     releafN++;
     fn();
   };
-  // A hidden tab draws nothing and fires no frames.
-  if (document.visibilityState === 'hidden') { go(); return; }
+  // A hidden tab draws nothing and fires no frames. Under reduced motion
+  // nothing sinks, so there is no sink to wait to be seen: the arches
+  // change with the re-leaf, in its frame.
+  if (document.visibilityState === 'hidden' || root.dataset.motion === 'reduced') { go(); return; }
   afterDrawn(go);
   releafT = setTimeout(go, 500);
 }

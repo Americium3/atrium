@@ -663,10 +663,12 @@ html[data-boot="suppressed"] #hall { animation: hall-fade 0.3s var(--ease-out) b
    shell is never clipped (steam must escape; clip-path kills shadows) —
    only the gear well clips, via overflow:hidden. One scalar --drive
    (0=salon, 1=bureau, written by the JS driver) derives the lever and both
-   gears. It lives on the movers (.desk-fx and #lever), not on :root and not
-   on the desk: a custom property restyles everything under the element it
-   changes on, and a console restyled every frame was repainted every frame.
+   gears. It lives on the four parts that read it, not on :root and not on
+   the desk, and it does not inherit: a custom property restyles everything
+   under the element it changes on, and a console restyled every frame was
+   repainted every frame.
    ========================================================================== */
+@property --drive { syntax: "<number>"; inherits: false; initial-value: 0; }
 #signal-desk {
   position: fixed; left: 0; right: 0; bottom: calc(10px * var(--ui));
   height: var(--desk-h);
@@ -688,8 +690,8 @@ html[data-boot="suppressed"] #signal-desk {
   animation: hall-fade 0.3s var(--ease-out) both;
 }
 /* Initial pose before the JS driver's first write. */
-:root[data-wing="salon"] :is(.desk-fx, #lever) { --drive: 0; }
-:root[data-wing="bureau"] :is(.desk-fx, #lever) { --drive: 1; }
+:root[data-wing="salon"] :is(.lever-svg, .gearA-svg, .gearB-svg, #lever .hit-arm) { --drive: 0; }
+:root[data-wing="bureau"] :is(.lever-svg, .gearA-svg, .gearB-svg, #lever .hit-arm) { --drive: 1; }
 
 .desk-core {
   position: relative;
