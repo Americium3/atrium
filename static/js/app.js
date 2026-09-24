@@ -546,20 +546,25 @@ function playEntrance() {
   // masthead rosette. The circle flies inward and up to its permanent home.
   // Dock arithmetic (all values runtime-computed from live DOM):
   //   --dock-x = mono.cx - burst.cx (px, signed)
-  //   --dock-y = mono.cy - burst.cy - 14 (px; -14 compensates masthead
-  //              rise-in from-state translateY(14px) which fires at 2000ms,
-  //              200ms after dock)
+  //   --dock-y = mono.cy - lift - burst.cy (px)
   //   --dock-s = mono.width / (burst.width * 0.23)
   //   * 0.23: SVG viewBox=800x800, circle r=92, diameter=184, 184/800=0.23.
-  //   !! LOAD-BEARING: if masthead rise-in delay changes from 2000ms,
-  //   recompute -14 as: masthead_from_translateY * (1 - elapsed_fraction) !!
+  // The masthead rises in with the flight (rise-in from translateY(14px),
+  // CSS delay 1.8s), so the rosette may still be low when this reads it.
+  // `lift` is how low, read off the masthead's own transform this frame, so
+  // the circle aims at where the rosette comes to rest. A fixed -14px was
+  // only right while the rise-in had not begun. The masthead now starts
+  // with the flight rather than 200ms after it: the circle has to land on a
+  // rosette that is there to land on.
   at(1800, function () {
     var mono  = $('#monogram').getBoundingClientRect();
     var burst = $('.e-burst').getBoundingClientRect();
+    var mast  = $('#masthead');
+    var lift  = mast ? new DOMMatrixReadOnly(getComputedStyle(mast).transform).m42 : 0;
     entrance.style.setProperty('--dock-x',
       (mono.left + mono.width / 2 - (burst.left + burst.width / 2)) + 'px');
     entrance.style.setProperty('--dock-y',
-      (mono.top + mono.height / 2 - (burst.top + burst.height / 2) - 14) + 'px');
+      (mono.top + mono.height / 2 - lift - (burst.top + burst.height / 2)) + 'px');
     entrance.style.setProperty('--dock-s',
       String(mono.width / (burst.width * 0.23)));
     entrance.classList.add('dock');

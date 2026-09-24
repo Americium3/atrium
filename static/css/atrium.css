@@ -2683,7 +2683,7 @@ html[data-entered="no"] #entrance.done-fade { pointer-events: none; cursor: auto
      and the lock anatomy actually reads. */
   width: min(88vmin, 1000px); height: min(88vmin, 1000px);
   margin: calc(min(88vmin, 1000px) / -2) 0 0 calc(min(88vmin, 1000px) / -2);
-  /* translate: 480ms (arrives before 280ms fade so circle clicks in then dissolves) */
+  /* The flight takes 480ms and the fade waits 300ms of it (see .dock). */
   transition: transform 0.48s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.28s;
   will-change: transform;
 }
@@ -2869,13 +2869,18 @@ html[data-entered="no"] #entrance.done-fade { pointer-events: none; cursor: auto
 
 /* ---- Beat 4: Dock transform --------------------------------------------- */
 /* The entire .e-burst (lock face assembly) flies to the masthead rosette.
-   --dock-x, --dock-y, --dock-s are set in JS at 1800ms.
+   --dock-x, --dock-y, --dock-s are set in JS at 1800ms, aimed at where the
+   rosette comes to rest (playEntrance reads the masthead's rise-in).
    The * 0.23 factor: circle r=92 on 800px viewBox = 184/800 = 23% of burst.
-   !! LOAD-BEARING: if masthead rise-in delay changes from 2000ms,
-   recompute the -14px offset in playEntrance() !! */
+   The circle lands before it goes. The flight's ease-out has it ~95% of the
+   way at 300ms, so the fade waits that long and takes the last 180ms: the
+   circle dissolves ON the rosette. A 280ms fade from the start dropped it to
+   a quarter opacity while it was still ~200px short. */
 #entrance.dock .e-burst {
   transform: translate(var(--dock-x, 0px), var(--dock-y, 0px)) scale(var(--dock-s, 0.1));
   opacity: 0;
+  transition: transform 0.48s cubic-bezier(0.22, 1, 0.36, 1),
+              opacity 0.18s ease-in 0.3s;
 }
 #entrance.open .e-void { opacity: 0; transition: opacity 0.28s; }
 
@@ -2943,7 +2948,10 @@ html[data-entered="no"] #entrance.done-fade { pointer-events: none; cursor: auto
 }
 
 /* Hall assembly (only while the entrance plays) */
-html[data-entered="no"] #masthead { animation: rise-in 0.5s var(--ease-out) both; animation-delay: 2.0s; }
+/* The masthead comes up with the dock (1.8s), so the rosette is there when
+   the lock face lands on it. At 2.0s it was still invisible for the whole
+   flight. playEntrance aims the dock at its resting place. */
+html[data-entered="no"] #masthead { animation: rise-in 0.5s var(--ease-out) both; animation-delay: 1.8s; }
 html[data-entered="no"] #ticker { animation: rise-in 0.45s var(--ease-out) both; animation-delay: 2.05s; }
 html[data-entered="no"] #ticker::before { animation: rule-draw 0.4s var(--ease-out) both; animation-delay: 1.9s; }
 html[data-entered="no"] #ticker::after { animation: rule-draw 0.4s var(--ease-out) both; animation-delay: 2.0s; }
