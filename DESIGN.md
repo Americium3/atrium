@@ -110,11 +110,14 @@ services without custom art.
 
 ## Entrance animation (timeline)
 
-Total ~2.4 s. It plays on every load. A click or a keypress cuts it short
-and lands the assembled hall; only the keys the hall would act on are
-swallowed, so F5, Ctrl+R and other browser shortcuts still work. `?entrance=0`
-skips it. Under reduced motion a load gets the 300 ms fade instead.
-PREFERENCES > REPLAY ENTRANCE sets a one-shot `sessionStorage` flag and
+Total ~2.7 s. It plays on every load. A click, a tap, a keypress or a turn
+of the wheel cuts it short and lands the assembled hall. Only the keys the
+hall would act on are swallowed, so F5, Ctrl+R and other browser shortcuts
+still work. A tap's click is swallowed along with it, so the tap that skips
+cannot also open the gate under the finger. From done-fade on the hall is
+what shows, so a click there lands the entrance and then does what it says.
+`?entrance=0` skips it. Under reduced motion a load gets the 300 ms fade
+instead. PREFERENCES > REPLAY ENTRANCE sets a one-shot `sessionStorage` flag and
 reloads; the pre-paint script reads and clears it, so nothing sticks to the
 address bar, and under reduced motion a replay is the same quiet fade. The
 entrance overlay is `aria-hidden`; the app is usable underneath once
@@ -125,14 +128,22 @@ assembled.
 - 300–900 ms: 24 sunburst rays, 18 ms stagger, scaleY from center.
 - 850–950 ms: a 1px seam of gold light splits the center; hold the frame.
 - 950–1600 ms: two engraved panels part outward with ~2% overshoot.
-- 1500–2000 ms: ATRIUM wordmark settles: per-letter `<span>`s animated with
+- 1500–2110 ms: ATRIUM wordmark settles: per-letter `<span>`s animated with
   `transform: translateX` + opacity (never animate `letter-spacing`: reflow),
-  visual tracking 0.5em → 0.22em.
+  visual tracking 0.5em → 0.22em. Each letter holds once it lands, and the
+  word fades as one.
 - 1800–2300 ms, **signature moment**: the drawn circle does not vanish. It
   flies and docks as the masthead monogram rosette (shared-element morph),
   while two rays flatten into the ticker's double rules. The entrance
-  literally assembles the chrome.
+  literally assembles the chrome. The masthead rises with the flight, so the
+  rosette is there to land on, and the circle fades only once it has
+  arrived.
 - 1900–2400 ms: gates rise 40px at 80 ms stagger; Ledger fades in.
+- 2140 ms, done-fade: the wordmark fades in 180 ms and the overlay stops
+  catching the pointer.
+- 2320–2700 ms: the dial wakes in its niche, and the floor's reflections come
+  up with it. The dial waits for the wordmark because the letters are
+  printed across the middle of its face.
 
 ## Layout & viewport
 
@@ -266,8 +277,18 @@ else.
   all size from `--gate-fit = --gate-w × --fit`. Widths are measured at fit 1
   so the solve never chases its own output. Checked at twelve sizes from
   1280x800 to 3440x1440 in both wings with a Playwright overlap audit.
-- Transition: 600 ms, **transform-only** for position, opacity for the swap.
-  Lever re-light queues until any in-flight theme crossfade finishes.
+- **A throw goes bay by bay**, out from the clock on both sides, 60 ms a
+  step. The lit arch sinks 14px and fades in 200 ms, the bay stands empty
+  for 20 ms, and then the other wing's arch rises into it. Two faces never
+  share a bay, and an incoming arch takes no pointer until its fade is under
+  way. Where both wings end in a RESERVED arch, that bay stays put. Lever
+  re-light queues until any in-flight theme crossfade finishes.
+- **Slots never animate.** A re-solve (first layout, a resize, the engraving
+  size) writes every slot with the gates' transitions cut, so the row lands
+  in the frame it is solved and no arch ever passes over another or over the
+  clock. A resize is re-solved in the resize event itself.
+- The gates keep the DOM order they were built in. The waiting wing is
+  inert, so Tab walks only the lit one.
 
 ## The concourse (v4): the hall gets its aisles, its wall and its floor
 
@@ -382,7 +403,12 @@ does. Painted on the glass they would stay parallel and read as stripes. A
 point at depth `u` divides by `f = 1/(1 + u/L)`, so a column that is vertical
 *on screen* is a wedge on the plane: hence the trapezoid, 0.98 of the offset
 at the wall and 0.49 at the near edge. They carry `--metal`, so the whole
-floor changes temperature the moment the lever is thrown.
+floor changes temperature the moment the lever is thrown. They are cast from
+the row as `layoutStage()` solved it, not from the arches' live boxes, which
+on a quiet boot or after a resize were still at the centre or mid-move and
+stacked every reflection under the clock. The waiting wing casts nothing. A
+throw leaves the smears in place and their stops carry the new `--metal`
+across with the arches.
 
 Over all of it: a skylight pool, the room's own shadow across the near ground,
 and a contact shadow where the stone meets the skirting, so a wall and a floor
@@ -842,10 +868,16 @@ payload. Feed capped ~60 items, deduped by id, sorted ts desc.
 
 ## Implementation notes (60 fps)
 
-Stage gates live in fixed slots animated exclusively via
-`transform: translate/scale` + opacity (FLIP). Theme/wing re-lighting via a
-**scoped** transition list (`color, background-color, border-color, fill,
-stroke, opacity`) on themed elements. No universal `* { transition }`.
+Stage gates live in fixed slots placed by `transform`, which never
+animates a slot; a throw moves them only by `translate` and opacity. The
+theme changes as one 400 ms view transition: the old hall, captured as a
+picture, fades out over the new one, and the flip underneath lands with
+every transition cut (`.theme-cut`). Per-element transitions could not do
+it: the wall, floor and dado are gradients, which do not interpolate, and
+the ~1,100 colour transitions a flip started restyled the page every frame.
+Wing re-lighting uses a **scoped** transition list (`color,
+background-color, border-color, fill, stroke, opacity`) on themed elements.
+No universal `* { transition }`.
 Custom properties don't interpolate; the consuming elements transition.
 Wordmark letters are spans with transforms. `prefers-reduced-motion` and the
 Motion setting collapse all of the above to fades/instant.
