@@ -143,7 +143,8 @@ var STR = {
     wkHot: 'in the red',
     almSrTimes: 'Sunrise {rise}, sunset {set}.',
     almSrHours: '{h} {h|hour|hours} {m} {m|minute|minutes}',
-    almSrMinutes: '{m} {m|minute|minutes} {s} {s|second|seconds}',
+    almSrLonger: 'Longer than yesterday by {m} {m|minute|minutes} {s} {s|second|seconds}',
+    almSrShorter: 'Shorter than yesterday by {m} {m|minute|minutes} {s} {s|second|seconds}',
     leverDesc: 'Off lights the Salon, the play wing. On lights the Bureau, the work wing.',
     ariaFilter: 'Filter dispatches', ariaClose: 'Close',
     ariaLedgerClose: 'Close the Ledger',
@@ -279,7 +280,8 @@ var STR = {
     wkHot: '已入红区',
     almSrTimes: '日出 {rise}，日落 {set}。',
     almSrHours: '{h} 小时 {m} 分',
-    almSrMinutes: '{m} 分 {s} 秒',
+    almSrLonger: '比昨日长 {m} 分 {s} 秒',
+    almSrShorter: '比昨日短 {m} 分 {s} 秒',
     leverDesc: '关：点亮沙龙翼（娱乐）。开：点亮事务翼（工作）。',
     ariaFilter: '筛选快讯', ariaClose: '关闭',
     ariaLedgerClose: '合上消息总台',
@@ -2588,14 +2590,18 @@ function buildRead(w) {
     : '';
 }
 
-function almStrip(label, value, spoken) {
+/* `spoken` stands in for the value; with `whole` it stands in for the
+   label as well, for a strip whose label is only half a sentence. */
+function almStrip(label, value, spoken, whole) {
   var row = el('div', 'al-strip');
-  row.appendChild(el('span', 'al-slabel display', label));
+  var l = el('span', 'al-slabel display', label);
+  row.appendChild(l);
   var v = el('span', 'al-sval num', value);
   row.appendChild(v);
   // "12:10" and "2'39"" are engraving, not speech.
   if (spoken) {
     v.setAttribute('aria-hidden', 'true');
+    if (whole) l.setAttribute('aria-hidden', 'true');
     row.appendChild(el('span', 'sr-only', spoken));
   }
   return row;
@@ -2639,9 +2645,13 @@ function buildTape(sky, where) {
     // LABEL carries the direction — this hall does not signal with colour.
     var ds = Math.round((sun.hours - yest.hours) * 3600);
     var abs = Math.abs(ds);
+    // The engraved English label is SHORTER on its own, as an almanac sets
+    // it; spoken, it carries its comparison ("than yesterday"), as the
+    // Chinese label does on the strip.
     strips.appendChild(almStrip(t(ds >= 0 ? 'almLonger' : 'almShorter'),
       Math.floor(abs / 60) + '\u2032' + pad2(abs % 60) + '\u2033',
-      t('almSrMinutes', { m: Math.floor(abs / 60), s: abs % 60 })));
+      t(ds >= 0 ? 'almSrLonger' : 'almSrShorter', { m: Math.floor(abs / 60), s: abs % 60 }),
+      true));
   }
   box.appendChild(strips);
 }

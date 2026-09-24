@@ -132,9 +132,8 @@ async def fetch_weather(lat: float, lon: float) -> dict[str, Any] | None:
         "latitude": lat,
         "longitude": lon,
         "daily": ("weather_code,temperature_2m_max,temperature_2m_min,"
-                  "precipitation_probability_max,wind_speed_10m_max,"
-                  "sunrise,sunset"),
-        "current": "temperature_2m,weather_code",
+                  "precipitation_probability_max,sunrise,sunset"),
+        "current": "temperature_2m,weather_code,wind_speed_10m",
         "timezone": "auto",
         "forecast_days": 1,
     }
@@ -170,7 +169,10 @@ async def fetch_weather(lat: float, lon: float) -> dict[str, Any] | None:
         "high_c": high, "high_f": _c_to_f(high),
         "low_c": low, "low_f": _c_to_f(low),
         "precip_prob": _first(daily.get("precipitation_probability_max")),
-        "wind_kmh": _first(daily.get("wind_speed_10m_max")),
+        # The wind now, printed beside the temperature now. The day's peak
+        # (wind_speed_10m_max) used to stand there unlabelled. A missing
+        # current reading is a dash, never the peak standing in for it.
+        "wind_kmh": current.get("wind_speed_10m"),
         # The service's own sun times. The board computes its own from the
         # coordinates so it still has a sky when this block is missing; these
         # are kept as the check on that arithmetic.

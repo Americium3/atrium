@@ -110,7 +110,7 @@ FORECAST = {
         "wind_speed_10m_max": [18.4, 0],
         "sunrise": ["2026-08-28T06:45"], "sunset": ["2026-08-28T20:01"],
     },
-    "current": {"temperature_2m": 25.2, "weather_code": 3},
+    "current": {"temperature_2m": 25.2, "weather_code": 3, "wind_speed_10m": 9.7},
     "utc_offset_seconds": -14400,
 }
 
@@ -130,7 +130,20 @@ def test_reads_one_day_out_of_the_daily_arrays():
     # 29.9C is 85.8F — printed in the tooltip for a reader who lives in a
     # country that speaks Fahrenheit and stands in a hall that does not.
     assert w["high_f"] == 85.8
-    assert w["precip_prob"] == 40 and w["wind_kmh"] == 18.4
+    # The wind printed beside the temperature now is the wind now, not the
+    # day's peak (18.4 in the daily block).
+    assert w["precip_prob"] == 40 and w["wind_kmh"] == 9.7
+
+
+def test_no_current_wind_prints_a_dash_not_the_days_peak():
+    real = almanac.httpx
+    try:
+        doc = {**FORECAST, "current": {"temperature_2m": 25.2, "weather_code": 3}}
+        _stub(doc)
+        w = asyncio.run(almanac.fetch_weather(40.4406, -79.9959))
+    finally:
+        almanac.httpx = real
+    assert w["wind_kmh"] is None
 
 
 def test_the_daily_code_stands_in_when_the_current_one_is_missing():
@@ -207,7 +220,8 @@ def test_every_almanac_string_is_in_both_languages():
     keys = ["almSub", "almHigh", "almLow", "almPrecip", "almWind",
             "almRise", "almSet", "almPolarDay", "almPolarNight",
             "almAge", "almDaylight", "almLonger", "almShorter",
-            "almDays", "almWindUnit", "almFahrenheit", "ariaAlmanac"]
+            "almDays", "almWindUnit", "almFahrenheit", "ariaAlmanac",
+            "almSrLonger", "almSrShorter"]
     keys += ["almPhase%d" % i for i in range(8)]
     for key in keys:
         assert js.count(key + ":") == 2, key
