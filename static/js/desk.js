@@ -765,22 +765,26 @@ function buildMeter(q) {
     return 'M' + P(r1, a0) + 'A' + r1 + ' ' + r1 + ' 0 0 1 ' + P(r1, a1) + 'L' + P(r0, a1) + 'A' + r0 + ' ' + r0 + ' 0 0 0 ' + P(r0, a0) + 'Z';
   }
   // the Salon's arc in gold leaf, the Bureau's in nickel, zero between
-  add(d, 'path', { d: arc(10.2, 12.2, -56, -8), style: F('var(--au-3)') + ';stroke:var(--au-1);stroke-width:.3' });
-  add(d, 'path', { d: arc(10.2, 12.2, 8, 56), style: F('var(--ag-2)') + ';stroke:var(--ag-1);stroke-width:.3' });
+  add(d, 'path', { d: arc(10, 12.3, -56, -7), style: F('var(--au-3)') + ';stroke:var(--au-1);stroke-width:.35' });
+  add(d, 'path', { d: arc(10, 12.3, 7, 56), style: F('var(--ag-2)') + ';stroke:var(--ag-1);stroke-width:.35' });
+  // The scale: printed heavy enough to read across the room as a ring of
+  // strokes, a long one every quarter and its figure inside the arc.
   var ticks = '', major = '';
   for (var t = -56; t <= 56; t += 7) {
     if (t === 0) continue;
-    if (t % 14 === 0) major += 'M' + P(12.8, t) + 'L' + P(15.6, t);
-    else ticks += 'M' + P(12.8, t) + 'L' + P(14.4, t);
+    if (t % 14 === 0) major += 'M' + P(12.3, t) + 'L' + P(16.1, t);
+    else ticks += 'M' + P(12.3, t) + 'L' + P(14.7, t);
   }
-  add(d, 'path', { d: 'M' + P(9.6, 0) + 'L' + P(15.8, 0), style: S('var(--dial-ink)', 0.9) });
-  add(d, 'path', { d: major, style: S('var(--dial-ink)', 0.6) });
-  add(d, 'path', { d: ticks, style: S('var(--dial-ink)', 0.34) });
-  add(d, 'path', { d: 'M' + P(12.8, -57) + 'A12.8 12.8 0 0 1 ' + P(12.8, 57), style: S('var(--dial-ink)', 0.3) });
-  stamp(d, 'AMPERES', 0, 5.6, 1.9, S('var(--dial-ink)', 0.3, 'stroke-linecap:round;stroke-linejoin:round;opacity:.8'));
-  var rays = '';
-  for (var r = -60; r <= 60; r += 12) rays += 'M' + P(3, r) + 'L' + P(9, r);
-  add(d, 'path', { d: rays, style: S('var(--dial-ink)', 0.25, 'opacity:.3') });
+  add(d, 'path', { d: 'M' + P(9.2, 0) + 'L' + P(16.3, 0), style: S('var(--dial-ink)', 1.15) });
+  add(d, 'path', { d: major, style: S('var(--dial-ink)', 0.9) });
+  add(d, 'path', { d: ticks, style: S('var(--dial-ink)', 0.55) });
+  add(d, 'path', { d: 'M' + P(12.3, -57) + 'A12.3 12.3 0 0 1 ' + P(12.3, 57), style: S('var(--dial-ink)', 0.45) });
+  [[-56, '50'], [-28, '25'], [28, '25'], [56, '50']].forEach(function (f) {
+    var a = f[0] * DEG, cx = 7.7 * Math.sin(a), cy = 3.5 - 7.7 * Math.cos(a);
+    stamp(d, f[1], cx, cy - 1.15, 2.3, S('var(--dial-ink)', 0.38, 'stroke-linecap:round;stroke-linejoin:round'));
+  });
+  stamp(d, '0', 0, -4.9, 2.3, S('var(--dial-ink)', 0.38, 'stroke-linecap:round;stroke-linejoin:round'));
+  stamp(d, 'AMPERES', 0, 6.4, 1.9, S('var(--dial-ink)', 0.34, 'stroke-linecap:round;stroke-linejoin:round;opacity:.85'));
   // the bezel's shadow on the enamel, heaviest under its upper lip
   add(d, 'circle', { cx: 0.5, cy: 0.8, r: 16.9, style: S('#000', 1.6, 'opacity:.28'), filter: U('hb-soft') });
   // the case's shadow on the stone
