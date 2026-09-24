@@ -1151,11 +1151,15 @@ Motion setting collapse all of the above to fades/instant.
 - **Keys**: arrows walk the lit gates, digits jump to one, Enter opens it, W
   throws the lever (focus lands on the gate in the same bay of the other
   wing), L opens and closes the Ledger (arrows then walk its dispatches), P
-  opens Preferences, ? shows the key plate, Esc closes the top layer. Nothing
+  opens Preferences, ? shows the key plate, Esc closes the top layer. With
+  the drawer open W and P still work, and a digit shuts it on the way to its
+  gate. A key held down that opens or shuts a layer acts once. Nothing
   fires with a modifier held, over Preferences or during the entrance.
 - **The Ledger drawer** lives at body level beside its scrim (inside `#hall`
   it painted under the scrim on every quiet boot). Opening it moves focus to
-  its heading; while open, Tab cycles the drawer and its hatch. The poll
+  its heading; while open, Tab cycles the drawer's own controls (the hatch
+  lies under the drawer's head, so it is left out). Shutting the drawer
+  puts focus back where it was when the drawer opened. The poll
   moves a plaque only when it is out of place, so focus survives it. When
   the focused dispatch leaves the feed, focus goes to the next plaque down
   (else the one above, else the heading), and that move marks nothing read:

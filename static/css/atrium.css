@@ -332,6 +332,9 @@ svg { display: block; }
   color: var(--ink);
 }
 #keyplate[hidden] { display: none; }
+/* The plate lies exactly on the band. Called up while the band holds the
+   caret, it carries the band's ring, or the focus would show nowhere. */
+body:has(#ticker:focus-visible) #keyplate { outline: 2px solid var(--focus); outline-offset: 3px; }
 .kp-title {
   font-size: calc(12px * var(--ui)); letter-spacing: 0.28em;
   color: var(--gold-text);
@@ -2661,6 +2664,8 @@ html[lang="zh"] .g-name { letter-spacing: 0.17em; }
   outline: 2px solid var(--focus);
   outline-offset: 3px;
 }
+/* Room for that ring when a walk brings the card into view. */
+.plaque { scroll-margin: 12px 0; }
 .l-head h2 { font-size: calc(15px * var(--ui)); color: var(--gold-text); letter-spacing: 0.28em; }
 .chips { display: flex; gap: 6px; }
 .chip {

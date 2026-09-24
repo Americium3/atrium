@@ -3363,6 +3363,16 @@ function openLedger() {
   var scrimEl = $('#ledger-scrim');
   var ledgerBtnEl = $('#ledger-btn');
   if (!ledgerEl || !scrimEl || !ledgerBtnEl) return;
+  // Where the reader was, so shutting the drawer can put them back there
+  // rather than on the hatch, where the next arrow key did nothing. The bay
+  // is kept as well: W can darken that gate while the drawer is open.
+  var from = document.activeElement;
+  ledgerReturn = from && from !== document.body && !ledgerEl.contains(from)
+    ? { el: from, bay: litGates().indexOf(from) } : null;
+  // A notice lying over the drawer's chips and stamp hid them and the focus
+  // ring on them. A pointer press already put the plate away; L does too.
+  toggleKeyplate(false);
+  layerMoved();
   // The column is about to slide in under wherever the pointer rests; no
   // dwell from before may carry over into it.
   cancelDwells();
@@ -3390,11 +3400,13 @@ function closeLedger() {
   var scrimEl = $('#ledger-scrim');
   var ledgerBtnEl = $('#ledger-btn');
   if (!ledgerEl || !scrimEl || !ledgerBtnEl) return;
+  layerMoved();
   // A closed drawer is inert: off screen it still sat in the tab order, and
   // because focus marks a dispatch read, one pass of Tab through the page
-  // struck the whole Ledger. Focus inside it goes back to the button first,
-  // or making it inert would drop the reader's place onto <body>.
-  if (ledgerEl.contains(document.activeElement)) ledgerBtnEl.focus();
+  // struck the whole Ledger. Focus inside it goes back where it came from
+  // first, or making it inert would drop the reader's place onto <body>.
+  if (ledgerEl.contains(document.activeElement)) ledgerHandBack(ledgerBtnEl);
+  else ledgerReturn = null;
   // A dwell under way when the drawer shuts was not finished by the reader.
   cancelDwells();
   ledgerEl.inert = true;
@@ -3406,6 +3418,25 @@ function closeLedger() {
   // shutting the drawer over it.
   renderLedger();
   updateLedgerBadge();
+  // A plate called up over the open drawer stood short of it; it takes the
+  // whole band again.
+  if (keyplate && !keyplate.hidden) placeKeyplate();
+}
+
+/* Focus goes back to whatever opened the drawer: a gate, the lever, the
+   band. The hatch is the fallback, for a drawer opened from the hatch, from
+   nowhere, or from something that has since gone. A gate darkened by the
+   lever while the drawer was open hands over to the gate in its bay. */
+var ledgerReturn = null;
+function ledgerHandBack(hatch) {
+  var r = ledgerReturn;
+  ledgerReturn = null;
+  var to = r && r.el;
+  if (to && (!to.isConnected || to.closest('[inert]') || !to.getClientRects().length)) {
+    var gates = r.bay >= 0 ? litGates() : [];
+    to = gates.length ? gates[Math.min(r.bay, gates.length - 1)] : null;
+  }
+  (to || hatch).focus({ preventScroll: true });
 }
 
 function renderGhosts() {
@@ -3794,14 +3825,25 @@ var prefsBtn = $('#prefs-btn');
 window.Cabinet.dressPrefs(prefs);
 var lastFocus = null;
 
-var FOCUSABLE = 'button, [href], input, select, [tabindex]:not([tabindex="-1"])';
+/* The real Tab stops inside a layer, for the Preferences trap and the
+   Ledger's ring. The bare selector also matched an SVG <use href> (it has an
+   href, and no offsetParent to fail the visibility test), which focus()
+   ignores, so Tab stuck on the control before it; and it matched every radio
+   of a roving group, where only the checked one is a stop. */
+var FOCUSABLE = 'a[href], button, input, select, [tabindex]';
+function tabStops(scope) {
+  return Array.prototype.filter.call(scope.querySelectorAll(FOCUSABLE), function (n) {
+    return n instanceof HTMLElement && n.tabIndex >= 0 && !n.disabled &&
+      n.getClientRects().length > 0 && !n.closest('[inert]');
+  });
+}
 
 /* Bound on document while the dialog is open — a keydown must close/trap
    even when focus fell to body (e.g. after clicking sheet padding). */
 function prefsKeydown(e) {
   if (e.key === 'Escape') { closePrefs(); return; }
   if (e.key !== 'Tab') return;
-  var focusables = prefs.querySelectorAll(FOCUSABLE);
+  var focusables = tabStops(prefs);
   if (!focusables.length) return;
   var first = focusables[0], last = focusables[focusables.length - 1];
   if (!prefs.contains(document.activeElement)) {
@@ -3818,6 +3860,7 @@ function prefsKeydown(e) {
    it true for a screen reader's virtual cursor as well as for Tab. */
 var PREFS_BEHIND = ['#hall', '#signal-desk', '#ledger', '#ledger-scrim', '#keyplate'];
 function openPrefs() {
+  layerMoved();
   lastFocus = document.activeElement;
   PREFS_BEHIND.forEach(function (s) { var n = $(s); if (n) n.inert = true; });
   prefs.hidden = false;
@@ -3828,6 +3871,7 @@ function openPrefs() {
   if (first) first.focus();
 }
 function closePrefs() {
+  layerMoved();
   PREFS_BEHIND.forEach(function (s) { var n = $(s); if (n) n.inert = false; });
   // The drawer keeps its own rule: inert whenever it is shut.
   var l = $('#ledger');
@@ -3896,23 +3940,36 @@ document.addEventListener('keydown', function (e) {
   // Preferences sits above the drawer; one Escape closes one layer.
   if (!prefs.hidden) return;
   if (e.key === 'Escape' && open) {
-    closeLedger();
-    if (ledgerBtnEl) ledgerBtnEl.focus();
+    // The key plate lies over the drawer, so it is the top layer. Handled
+    // here in full: the keys handler below used to see the drawer already
+    // shut and close the plate on the same press.
+    e.preventDefault();
+    if (keyplate && !keyplate.hidden) toggleKeyplate(false);
+    else closeLedger();
     return;
   }
   if (e.key === 'Tab' && open) {
-    var ring = [ledgerBtnEl].concat(Array.prototype.slice.call(
-      ledgerEl.querySelectorAll(FOCUSABLE)));
-    // Handled in full: the hatch and the drawer are not neighbours in the
-    // document, so leaving Tab to the browser from the hatch walked straight
-    // on into the masthead behind the scrim.
-    var ring2 = ring.filter(function (n) { return n && n.offsetParent !== null; });
-    var i = ring2.indexOf(document.activeElement);
+    // The drawer's own stops, handled in full so Tab never walks out into
+    // the hall behind the scrim. The hatch used to lead the ring, but the
+    // drawer's head lies over it at every size: the first Tab from the
+    // heading put the caret where nobody could see it. The knob, Esc and L
+    // all shut the drawer.
+    var ring = tabStops(ledgerEl);
+    if (!ring.length) return;
+    var i = ring.indexOf(document.activeElement);
     e.preventDefault();
-    var n2 = ring2.length;
-    ring2[i < 0 ? (e.shiftKey ? n2 - 1 : 0) : (i + (e.shiftKey ? n2 - 1 : 1)) % n2].focus();
+    var n = ring.length;
+    focusInDrawer(ring[i < 0 ? (e.shiftKey ? n - 1 : 0) : (i + (e.shiftKey ? n - 1 : 1)) % n]);
   }
 });
+
+/* The browser brings a focused element into view only until any part of it
+   shows, which left the last card of an arrow walk a few pixels under the
+   screen with its ring cut. The card's scroll margin covers the ring. */
+function focusInDrawer(n) {
+  n.focus({ preventScroll: true });
+  (n.closest('.plaque') || n).scrollIntoView({ block: 'nearest' });
+}
 
 function syncPrefRadios() {
   var current = {
@@ -4173,9 +4230,17 @@ function placeKeyplate() {
   var band = $('#ticker');
   if (!band) return;
   var r = band.getBoundingClientRect();
+  // Called up over the open Ledger, the plate stops at the drawer's edge:
+  // laid across it, it covered the chips and the stamp and the focus on them.
+  var drawer = $('#ledger');
+  var stop = r.right;
+  // (Under 1280px the drawer takes the full width, and the plate lies over it.)
+  var edge = drawer && drawer.classList.contains('open')
+    ? window.innerWidth - drawer.offsetWidth : Infinity;
+  if (edge - r.left >= 480) stop = Math.min(stop, edge);
   keyplate.style.top = Math.round(r.top) + 'px';
   keyplate.style.left = Math.round(r.left) + 'px';
-  keyplate.style.right = Math.round(window.innerWidth - r.right) + 'px';
+  keyplate.style.right = Math.round(window.innerWidth - stop) + 'px';
 }
 /* The plate is a notice, not a dialog. It used to answer only "?" and Esc,
    so a pointer left it standing over the hall. Now any press closes it, on
@@ -4185,6 +4250,7 @@ function keyplatePress() { toggleKeyplate(false); }
 function toggleKeyplate(show) {
   if (!keyplate) return;
   var next = show === undefined ? keyplate.hidden : show;
+  if (next === keyplate.hidden) layerMoved();
   if (next) { renderKeyplate(); placeKeyplate(); }
   keyplate.hidden = !next;
   if (next) document.addEventListener('pointerdown', keyplatePress, true);
@@ -4200,6 +4266,35 @@ function focusGate(i) {
   var g = gates[Math.max(0, Math.min(gates.length - 1, i))];
   g.focus({ preventScroll: true });
 }
+
+/* A held key acts once when it opens or shuts a layer, as W already did for
+   the lever. Held L flashed the drawer open and shut at the key-repeat rate
+   and held ? did the same to the plate. Held Enter on the drawer's knob shut
+   it, then the repeats landed on whatever took focus next: the hatch opened
+   the drawer again, a gate would have opened its service. Whatever layer a
+   key moved, its repeats are dropped until it comes up. */
+var keyHeld = null;   // the key down now, by code
+var layerKey = null;  // that key, once it has moved a layer
+document.addEventListener('keydown', function (e) {
+  if (!e.repeat) { keyHeld = e.code; layerKey = null; return; }
+  if (e.code === layerKey) { e.preventDefault(); e.stopImmediatePropagation(); }
+}, true);
+document.addEventListener('keyup', function (e) {
+  if (e.code === keyHeld) keyHeld = null;
+  if (e.code === layerKey) layerKey = null;
+}, true);
+function layerMoved() { if (keyHeld) layerKey = keyHeld; }
+
+/* The plate lies on the band, so a caret arriving on the band would sit
+   under it. The notice gives way to the reader. */
+var tickerEl = $('#ticker');
+if (tickerEl) tickerEl.addEventListener('focusin', function () {
+  if (!keyplate || keyplate.hidden) return;
+  // Tab passing through is not a layer key: a held Tab walks on.
+  var held = layerKey;
+  toggleKeyplate(false);
+  layerKey = held;
+});
 
 document.addEventListener('keydown', function (e) {
   if (e.defaultPrevented || e.ctrlKey || e.metaKey || e.altKey) return;
@@ -4225,13 +4320,20 @@ document.addEventListener('keydown', function (e) {
       var at = links.indexOf(document.activeElement);
       var next = k === 'Home' ? 0 : k === 'End' ? links.length - 1 :
         at < 0 ? 0 : Math.max(0, Math.min(links.length - 1, at + (k === 'ArrowDown' ? 1 : -1)));
-      links[next].focus();
-    } else if (k === 'l' || k === 'L') {
+      focusInDrawer(links[next]);
+      return;
+    }
+    if (k === 'l' || k === 'L') {
       e.preventDefault();
       closeLedger();
-      if (ledgerBtnEl) ledgerBtnEl.focus();
+      return;
     }
-    return;
+    // The plate lists W, P and the digits with the drawer open, and they
+    // used to do nothing there. W throws the lever behind the drawer and P
+    // lays Preferences over it (one Esc then closes one layer). A digit is
+    // a walk to a gate, so the drawer shuts first.
+    if (/^[1-9]$/.test(k) && +k <= litGates().length) closeLedger();
+    else if (!/^[wWpP]$/.test(k)) return;
   }
 
   var gates = litGates();
