@@ -32,6 +32,9 @@ var STR = {
     darkNotice: 'Dark. Launch with: {hint}',
     lampOpen: 'Reachable', lampDark: 'Offline', lampChecking: 'Checking',
     justNow: 'just now', minAgo: '{n} min ago', hAgo: '{n} h ago', dAgo: '{n} d ago',
+    /* Said, not engraved: a screen reader read "15 H AGO" letter for letter. */
+    minAgoSr: '{n} {n|minute|minutes} ago', hAgoSr: '{n} {n|hour|hours} ago',
+    dAgoSr: '{n} {n|day|days} ago',
     linesOpen: 'LINES OPEN {n}/{m}',
     hubLost: 'NO WORD FROM THE HUB',
     ledgerUnreadable: 'The Ledger could not be read',
@@ -99,6 +102,7 @@ var STR = {
     wkCpu: 'PROCESSOR', wkMem: 'MEMORY', wkGpu: 'GRAPHICS', wkNet: 'TRAFFIC',
     wkHours: 'HOURS RUN', wkDisk: 'STORE', wkFree: '{n} FREE',
     runD: 'd', runH: 'h', runM: 'm', wkRate: 'MB/s', join: ': ', list: ', ',
+    runSrDays: '{d} {d|day|days} {h} {h|hour|hours}', runSrMinutes: '{m} {m|minute|minutes}',
     /* No English tooltip where it would only repeat the engraving above it
        (RESERVED, STATISTICS, ALMANAC). The Chinese one is the translation. */
     vacantName: '', vacantLamp: 'Not in service',
@@ -111,7 +115,7 @@ var STR = {
     almPolarDay: 'MIDNIGHT SUN', almPolarNight: 'POLAR NIGHT',
     almAge: 'AGE',
     almDaylight: 'DAYLIGHT', almLonger: 'LONGER', almShorter: 'SHORTER',
-    almDays: '{n} d', almWindUnit: '{n} km/h',
+    almDays: '{n} d', almSrDays: '{n} days', almWindUnit: '{n} km/h',
     almFahrenheit: '{high} / {low} °F',
     /* The eight phases, in order from new moon. Sentences, not signage: the
        hall's engraved caps stay English, a moon's name does not. */
@@ -173,6 +177,7 @@ var STR = {
     darkNotice: '未点亮。用此脚本启动：{hint}',
     lampOpen: '已点亮', lampDark: '离线', lampChecking: '检查中',
     justNow: '刚刚', minAgo: '{n} 分钟前', hAgo: '{n} 小时前', dAgo: '{n} 天前',
+    minAgoSr: '{n} 分钟前', hAgoSr: '{n} 小时前', dAgoSr: '{n} 天前',
     linesOpen: '线路畅通 {n}/{m}',
     hubLost: '中枢没有回音',
     ledgerUnreadable: '消息总台暂时读不出来',
@@ -240,6 +245,7 @@ var STR = {
     wkCpu: '处理器', wkMem: '内存', wkGpu: '显卡', wkNet: '网络',
     wkHours: '已运转', wkDisk: '存储', wkFree: '余 {n}',
     runD: ' 天 ', runH: ' 时 ', runM: ' 分', wkRate: 'MB/s', join: '：', list: '，',
+    runSrDays: '{d} 天 {h} 小时', runSrMinutes: '{m} 分钟',
     vacantName: '预留', vacantLamp: '未启用',
     wkNoReading: '无读数',
     wkCores: '{n} 核', wkOf: '{a} / {b} GB',
@@ -250,7 +256,7 @@ var STR = {
     almPolarDay: '极昼', almPolarNight: '极夜',
     almAge: '月龄',
     almDaylight: '昼长', almLonger: '比昨日长', almShorter: '比昨日短',
-    almDays: '{n} 日', almWindUnit: '{n} 公里/时',
+    almDays: '{n} 日', almSrDays: '{n} 日', almWindUnit: '{n} 公里/时',
     almFahrenheit: '{high} / {low} °F',
     almPhase0: '朔', almPhase1: '蛾眉月',
     almPhase2: '上弦', almPhase3: '盈凸',
@@ -2052,6 +2058,13 @@ function runFor(s) {
   return (d ? d + D.trimEnd() + ' ' + pad2(h) + H :
           h ? h + H.trimEnd() + ' ' + pad2(m) + M : m + M).trim();
 }
+function runSaid(s) {
+  if (s === null || s === undefined) return '';
+  var d = Math.floor(s / 86400), h = Math.floor((s % 86400) / 3600);
+  var m = Math.floor((s % 3600) / 60);
+  return d ? t('runSrDays', { d: d, h: h }) :
+         h ? t('almSrHours', { h: h, m: m }) : t('runSrMinutes', { m: m });
+}
 function tera(gb) {
   return gb >= 1024 ? (gb / 1024).toFixed(1) + ' TB' : Math.round(gb) + ' GB';
 }
@@ -2106,9 +2119,18 @@ function syncWorks() {
   var hours = tape.querySelector('[data-strip="hours"] .wk-sval');
   // The machine's uptime, as the board promises; the hub's own uptime reset
   // to minutes on every restart. It stands in only when the host's is null.
-  if (hours) hours.textContent = runFor(works &&
-    (works.host_uptime_s !== null && works.host_uptime_s !== undefined
-      ? works.host_uptime_s : works.hub_uptime_s));
+  var up = works && (works.host_uptime_s !== null && works.host_uptime_s !== undefined
+    ? works.host_uptime_s : works.hub_uptime_s);
+  if (hours) {
+    hours.textContent = runFor(up);
+    // "1d 08h" is engraving; the reading is said in words beside it.
+    var saidRun = runSaid(up);
+    if (saidRun) hours.setAttribute('aria-hidden', 'true');
+    else hours.removeAttribute('aria-hidden');
+    var sr = hours.parentNode.querySelector('.wk-said');
+    if (!sr) { sr = el('span', 'sr-only wk-said'); hours.parentNode.appendChild(sr); }
+    sr.textContent = saidRun;
+  }
   var disk = tape.querySelector('[data-strip="disk"] .wk-sval');
   if (disk) {
     disk.textContent = works && works.disk
@@ -2593,7 +2615,8 @@ function buildTape(sky, where) {
   var text = el('div', 'al-mtext');
   text.appendChild(el('span', 'al-mname zh-sentence',
     t('almPhase' + phase.idx) + '  ·  ' + Math.round(phase.lit * 100) + '%'));
-  text.appendChild(almStrip(t('almAge'), t('almDays', { n: phase.age.toFixed(1) })));
+  text.appendChild(almStrip(t('almAge'), t('almDays', { n: phase.age.toFixed(1) }),
+    t('almSrDays', { n: phase.age.toFixed(1) })));
   moon.appendChild(text);
   box.appendChild(moon);
 
@@ -3031,16 +3054,17 @@ function headline(d) {
    a dispatch not yet an hour old and "48 h ago" on one of 47.8 h. Past two
    days the count is calendar days, so a Monday dispatch can no longer read
    "3 d ago" on Wednesday evening. */
-function relTime(ts) {
+function relTime(ts, spoken) {
   var d = Date.now() - ts;
   if (d < 90 * 1000) return t('justNow');
-  if (d < 3600 * 1000) return t('minAgo', { n: Math.floor(d / 60000) });
-  if (d < 48 * 3600 * 1000) return t('hAgo', { n: Math.floor(d / 3600000) });
+  // spoken: the same age in words. "15 h ago" was read as "15 H AGO".
+  if (d < 3600 * 1000) return t(spoken ? 'minAgoSr' : 'minAgo', { n: Math.floor(d / 60000) });
+  if (d < 48 * 3600 * 1000) return t(spoken ? 'hAgoSr' : 'hAgo', { n: Math.floor(d / 3600000) });
   var then = new Date(ts), today = new Date();
   then.setHours(0, 0, 0, 0);
   today.setHours(0, 0, 0, 0);
   // Rounded only to absorb a 23 or 25 hour day at a clock change.
-  return t('dAgo', { n: Math.round((today - then) / 86400000) });
+  return t(spoken ? 'dAgoSr' : 'dAgo', { n: Math.round((today - then) / 86400000) });
 }
 
 function buildPlaque(d) {
@@ -3080,7 +3104,10 @@ function buildPlaque(d) {
   a.appendChild(el('div', 'pl-head'));
   a.appendChild(el('span', 'sr-only pl-unread', t('unread')));
   a.appendChild(el('div', 'pl-detail'));
-  a.appendChild(el('div', 'pl-time num'));
+  var when = el('div', 'pl-time num');
+  when.setAttribute('aria-hidden', 'true');
+  a.appendChild(when);
+  a.appendChild(el('span', 'sr-only pl-said'));
   frame.appendChild(a);
   shadowWrap.appendChild(frame);
   li.appendChild(shadowWrap);
@@ -3099,6 +3126,7 @@ function updatePlaque(li, d) {
   $('.pl-unread', li).textContent = t('unread');
   $('.pl-detail', li).textContent = h.detail || '';
   $('.pl-time', li).textContent = relTime(d.ts);
+  $('.pl-said', li).textContent = relTime(d.ts, true);
 }
 
 function renderLedger() {
