@@ -491,6 +491,21 @@ function buildConsole(q) {
   screw(q, +qp(139, -19.5).split(' ')[0], +qp(139, -19.5).split(' ')[1], 1.35, 'desk-quad-screw-0');
   screw(q, +qp(139, 19.5).split(' ')[0], +qp(139, 19.5).split(' ')[1], 1.35, 'desk-quad-screw-1');
 
+  // ---- keyboard focus: the machine's own marquee
+  // #lever is the switch a keyboard reaches, but its box only hugs the
+  // base, so its ring framed the lower console and missed the handle and
+  // both throw plates (KB-14). The ring is drawn here instead, the way the
+  // gates draw theirs: a stepped outline round the switch, the plates and
+  // the lever's sweep, with a dark bed, a lit core and at night a string
+  // of bulbs. It stays clear of every plate, so it crosses no lettering.
+  // It is laid under the stack, which stands in front of it, so it never
+  // rises over the art's top (fitDesk() keeps that clear of the sill).
+  var ring = 'M8 204V60H128V44H232V60H352V204Z';
+  var fg = add(q, 'g', null, 'dk-focus-g dk-noptr');
+  add(fg, 'path', { d: ring }, 'dk-focus-bed');
+  add(fg, 'path', { d: ring }, 'dk-focus');
+  add(fg, 'path', { d: ring }, 'dk-focus-bulbs');
+
   // ---- the vent stack, standing on the top plane
   var vx = 240, vw = 11, vbase = 75;
   add(q, 'ellipse', { cx: vx + vw / 2 + 1, cy: vbase + 0.8, rx: 9.5, ry: 2.4 }, 'dk-oil dk-vent-sh dk-noptr');
