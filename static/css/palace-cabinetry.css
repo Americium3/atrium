@@ -1257,7 +1257,7 @@ html[lang="zh"] #ledger :is(.pl-head, .pl-detail, .pl-time, .chip, .l-close-cap,
   text-transform: uppercase;
   font-family: var(--serif);
 }
-#prefs-close:hover { color: var(--pn-label); }
+@media (hover: hover) { #prefs-close:hover { color: var(--pn-label); } }
 #prefs-close:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; }
 
 /* ----- The wells ------------------------------------------------------- */
@@ -1326,7 +1326,14 @@ html[lang="zh"] #ledger :is(.pl-head, .pl-detail, .pl-time, .chip, .l-close-cap,
   gap: calc(3px * var(--ui));
   transition: color 0.25s;
 }
-.p-group .p-plaque:hover { color: var(--pn-ink); }
+/* The hover ink is a mouse's alone: a tap left the legend it fell on lit
+   beside the one it chose. Over the rotary and the bat the columns stand
+   over the hardware, so there the ink goes to the radio a press would pick
+   (data-aim, app.js), not to the column under the pointer. */
+@media (hover: hover) {
+  .p-group .p-plaque:hover:where(:not([data-pref="theme"] > *, [data-pref="motion"] > *)) { color: var(--pn-ink); }
+}
+.p-group .p-plaque[data-aim] { color: var(--pn-ink); }
 .p-group .p-plaque[aria-checked="true"] { color: var(--pn-ink); border: 0; }
 .p-group .p-plaque:focus-visible { outline: none; }
 /* Focus is a champagne collar round the legend's jewel, and a rule under
@@ -1418,8 +1425,14 @@ html[lang="zh"] [data-pref="theme"] .p-desc { font-size: max(10px, calc(10.5px *
 .p-rotary .pr-index { stroke: #1a1006; stroke-width: 1.8; stroke-linecap: round; }
 .p-rotary .pr-index-lip { stroke: rgba(255, 244, 214, 0.6); stroke-width: 1; stroke-linecap: round; }
 .p-rotary .pr-tick { stroke: rgba(26, 16, 6, 0.55); stroke-width: 0.7; }
+/* The chicken-head turns on its round cap, the shaft, which sits on the
+   plate's centre: the cap is drawn at (50, 60) of the knob's box, so the
+   box stands a tenth of itself higher than the plate's inset and turns
+   about that point. Turned about its box's middle, the cap swung round
+   the dial's centre and half the visible boss missed the step zone. */
 .p-knob {
-  position: absolute; inset: 14%;
+  position: absolute; inset: 6.8% 14% 21.2%;
+  transform-origin: 50% 60%;
   transform: rotate(0deg);
   transition: transform 0.3s cubic-bezier(0.3, 1.45, 0.5, 1);
 }
@@ -1529,7 +1542,7 @@ html[lang="zh"] [data-pref="theme"] .p-desc { font-size: max(10px, calc(10.5px *
   transform: translateY(0);
   transition: transform 0.12s var(--ease-out), box-shadow 0.12s, color 0.2s;
 }
-[data-pref="ui"] .p-plaque:hover { color: #1a1208; }
+@media (hover: hover) { [data-pref="ui"] .p-plaque:hover { color: #1a1208; } }
 [data-pref="ui"] .p-plaque[aria-checked="true"] {
   color: #120c04;
   transform: translateY(calc(3px * var(--ui)));
@@ -1599,7 +1612,7 @@ html[lang="zh"] [data-pref="theme"] .p-desc { font-size: max(10px, calc(10.5px *
 #replay .p-key { grid-row: 1 / span 2; width: calc(40px * var(--ui)); height: calc(40px * var(--ui)); overflow: visible; }
 #replay .p-name { align-self: end; color: var(--pn-label); }
 #replay .p-desc { align-self: start; text-align: left; color: var(--pn-faint); }
-#replay:hover .p-desc { color: var(--pn-ink); }
+@media (hover: hover) { #replay:hover .p-desc { color: var(--pn-ink); } }
 .p-key .pkey-sh { fill: rgba(0, 0, 0, 0.45); }
 .p-key .pkey-plate { stroke: var(--br-0); stroke-width: 0.5; }
 .p-key .pkey-screw { fill: var(--br-4); stroke: var(--br-0); stroke-width: 0.4; }

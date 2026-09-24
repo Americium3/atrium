@@ -3018,7 +3018,7 @@ html[lang="zh"] .g-name { letter-spacing: 0.17em; }
 }
 .p-head h2 { font-size: calc(16px * var(--ui)); color: var(--gold-text); letter-spacing: 0.28em; }
 #prefs-close { color: var(--ink-faint); font-size: calc(16px * var(--ui)); padding: 4px 8px; }
-#prefs-close:hover { color: var(--ink); }
+@media (hover: hover) { #prefs-close:hover { color: var(--ink); } }
 .p-group { margin-bottom: 24px; }
 .p-label { font-size: calc(11px * var(--ui)); color: var(--ink-faint); letter-spacing: 0.26em; margin-bottom: 10px; }
 .p-options { display: flex; gap: 10px; flex-wrap: wrap; }
@@ -3030,7 +3030,7 @@ html[lang="zh"] .g-name { letter-spacing: 0.17em; }
   color: var(--ink-faint);
   transition: border-color 0.3s, color 0.3s;
 }
-.p-plaque:hover { color: var(--ink); }
+@media (hover: hover) { .p-plaque:hover { color: var(--ink); } }
 .p-plaque[aria-checked="true"] {
   border-color: var(--gold);
   color: var(--ink);

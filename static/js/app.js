@@ -5044,21 +5044,30 @@ Array.prototype.forEach.call(prefs.querySelectorAll('[data-pref]'), function (gr
    the detent nearest the press, as a hand would, and a press on the boss,
    which has no side, steps one detent on. The radios stay the keyboard's and
    the screen reader's surface; a keyboard click carries no position. */
+/* The rotary's hub is the knob's round cap, the shaft it turns on (the knob
+   is hung so the cap sits on the plate's centre, palace-cabinetry.css). It
+   used to turn about the middle of its box, which swung the cap round the
+   step zone: half the visible boss stepped and the rest turned back or
+   skipped a detent. The step zone (9 x --ui) is wider than the cap (6.9). */
 var DETENTS = {
-  theme: { art: '.p-rotary', hub: '.p-knob', angles: [-52, 0, 52], values: ['onyx', 'ivory', 'system'] },
+  theme: { art: '.p-rotary', hub: '.pk-cap', angles: [-52, 0, 52], values: ['onyx', 'ivory', 'system'] },
   motion: { art: '.p-bat', hub: '.pb-nut', angles: [-38, 0, 38], values: ['full', 'reduced', 'system'] }
 };
 function detentUnder(group, e) {
+  // A keyboard click carries no position.
+  return e.detail ? detentAt(group, e.clientX, e.clientY) : null;
+}
+function detentAt(group, x, y) {
   var d = DETENTS[group.dataset.pref];
-  if (!d || !e.detail) return null;
+  if (!d) return null;
   var art = $(d.art, group), hub = $(d.hub, group);
   if (!art || !hub) return null;
   var a = art.getBoundingClientRect(), h = hub.getBoundingClientRect();
   var cx = h.left + h.width / 2, cy = h.top + h.height / 2;
-  var dx = e.clientX - cx, dy = e.clientY - cy;
+  var dx = x - cx, dy = y - cy;
   var reach = a.width * 0.46, boss = 9 * uiScale();   // the plate's radius (46 of 100)
   if (d.art === '.p-rotary') { if (dx * dx + dy * dy > reach * reach) return null; }
-  else if (e.clientX < a.left || e.clientX > a.right || e.clientY < a.top || e.clientY > a.bottom) return null;
+  else if (x < a.left || x > a.right || y < a.top || y > a.bottom) return null;
   if (dx * dx + dy * dy < boss * boss) {
     var at = d.values.indexOf(group.querySelector('[aria-checked=true]').dataset.value);
     return d.values[(at + 1) % d.values.length];
@@ -5070,6 +5079,31 @@ function detentUnder(group, e) {
   d.angles.forEach(function (g, i) { if (Math.abs(deg - g) < Math.abs(deg - d.angles[best])) best = i; });
   return d.values[best];
 }
+
+/* The legend lit under the pointer is the one a press there would pick.
+   The columns stand over the hardware, so the column's own hover lit IVORY
+   over half the rotary where a press chose ONYX or FOLLOW SYSTEM. Over the
+   rotary and the bat the aim is worked out by the press's own maths and
+   marked on that radio (data-aim); a mouse only, since a tap has no hover
+   and left two legends lit. */
+function aimSwitch(group, x, y, over) {
+  var v = group && DETENTS[group.dataset.pref] ? detentAt(group, x, y) : null;
+  var aim = v ? group.querySelector('[data-value="' + v + '"]') : over;
+  Array.prototype.forEach.call(prefs.querySelectorAll('[data-aim]'), function (n) {
+    if (n !== aim) n.removeAttribute('data-aim');
+  });
+  if (aim && group && DETENTS[group.dataset.pref]) aim.setAttribute('data-aim', '');
+}
+prefs.addEventListener('pointermove', function (e) {
+  if (e.pointerType !== 'mouse' && e.pointerType !== 'pen') return;
+  var over = e.target.closest('[role=radio]');
+  // Read at the whole pixel the click will report (Chrome truncates a
+  // click's position, not a move's), so a pointer on a detent's border
+  // lights the legend the press will pick.
+  aimSwitch(over ? over.parentNode : e.target.closest('[data-pref]'),
+    Math.floor(e.clientX), Math.floor(e.clientY), over);
+});
+prefs.addEventListener('pointerleave', function () { aimSwitch(null); });
 
 prefs.addEventListener('click', function (e) {
   // One gesture, one act, as on a gate. The second press of a double-click
@@ -5104,6 +5138,11 @@ prefs.addEventListener('click', function (e) {
     requestAnimationFrame(function () { layoutStage(true); });
   }
   syncPrefRadios();
+  // The boss now steps from the new detent, so the aim under a still
+  // pointer moves on with it.
+  if (e.pointerType === 'mouse' || e.pointerType === 'pen') {
+    aimSwitch(group, e.clientX, e.clientY, e.target.closest('[role=radio]'));
+  }
 });
 
 var mq = matchMedia('(prefers-color-scheme: dark)');
