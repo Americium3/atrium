@@ -121,7 +121,7 @@ var X3 = [1, 0, 0], Y3 = [0, 1, 0], Z3 = [0, 0, 1], DN = [0, -1, 0];
    BOX_W x BOX_H units and the board's foot on the wool is (CX, FLOOR). u
    runs up the screen, w toward the eye. */
 var PITCH = 32 * DEG, SP = Math.sin(PITCH), CP = Math.cos(PITCH), EYE = 1500;
-var BOX_W = 460, BOX_H = 296, CX = 230, FLOOR = 268;
+var BOX_W = 460, BOX_H = 296, CX = 230, FLOOR = 271;
 var EYE_P = [0, EYE * SP, EYE * CP];
 function proj(p) {
   var u = p[1] * CP - p[2] * SP, w = p[1] * SP + p[2] * CP, s = EYE / (EYE - w);
@@ -425,7 +425,7 @@ var HANDLE = [                                       // the handle, turned: [t, 
 var H_FER = 5;                                       // HANDLE[0..H_FER] is the brass ferrule
 var H_END = HANDLE[HANDLE.length - 1][0];
 var LEG_X = 138;
-var PLX = 166, PLY = 7, PLZ0 = -24, PLZ1 = 18;       // the plinth
+var PLX = 166, PLY = 7, PLZ0 = -17, PLZ1 = 12;       // the plinth
 var ART_TOP = Math.floor(proj([0, FANY + FANR + 8, 3])[1]);
 
 /* ------------------------------------------------------------ defs */
@@ -502,7 +502,7 @@ function buildStand(q) {
   var fc = new Faces();
   var capTop = PY0 - FW + 0.5, inner = LEG_X - 15;
   // The stretcher first: the legs' inner faces stand in front of its ends.
-  boxZ(fc, -inner, inner, 21, 27, -12, -3, 1.1, MAT.sb);
+  boxZ(fc, -inner, inner, 21, 27, -9, -3, 1.1, MAT.sb);
   fc.flush(g);
   turned(fc, [0, 30, -3], Z3, X3, Y3, [[-1, 10], [0.6, 10], [1.6, 9], [2, 0]], 36, MAT.sb);
   fc.flush(g);
@@ -525,14 +525,14 @@ function buildStand(q) {
   [-1, 1].forEach(function (sg) {
     var x = sg * LEG_X;
     // the foot: a stepped block, its toe rubbed to the leaf
-    boxY(fc, x - 22, x + 22, PLY, PLY + 6, -20, 12, 1.5, MAT.sb);
-    boxY(fc, x - 17.5, x + 17.5, PLY + 6, PLY + 9, -16, 8.5, 1.1, MAT.sb);
+    boxY(fc, x - 22, x + 22, PLY, PLY + 6, -15, 9, 1.5, MAT.sb);
+    boxY(fc, x - 17.5, x + 17.5, PLY + 6, PLY + 9, -12, 6, 1.1, MAT.sb);
     fc.flush(g);
-    var t0 = proj([x - 16, PLY + 6, 12]), t1 = proj([x + 16, PLY + 6, 12]);
+    var t0 = proj([x - 16, PLY + 6, 9]), t1 = proj([x + 16, PLY + 6, 9]);
     add(g, 'path', { d: 'M' + n2(t0[0]) + ' ' + n2(t0[1]) + 'L' + n2(t1[0]) + ' ' + n2(t1[1]), style: S('var(--lead-5)', 0.9, 'opacity:.85') });
     // the shaft: reeded on its face, a half round per reed
     var y0 = PLY + 9, y1 = capTop - 7;
-    boxZ(fc, x - 13, x + 13, y0, y1, -14, 3, 0, MAT.sb);
+    boxZ(fc, x - 13, x + 13, y0, y1, -11, 3, 0, MAT.sb);
     fc.flush(g);
     for (var r = 0; r < 5; r++) {
       var rx = x - 13 + 2.6 * (2 * r + 1);
@@ -540,10 +540,10 @@ function buildStand(q) {
       fc.flush(g);
     }
     // the corbel under the frame, stepping out in two courses
-    boxY(fc, x - 16, x + 16, y1, y1 + 3.2, -17, 5.5, 1, MAT.sb);
-    boxY(fc, x - 20, x + 20, y1 + 3.2, capTop, -20, 7.5, 1, MAT.sb);
+    boxY(fc, x - 16, x + 16, y1, y1 + 3.2, -13, 5.5, 1, MAT.sb);
+    boxY(fc, x - 20, x + 20, y1 + 3.2, capTop, -15, 7, 1, MAT.sb);
     fc.flush(g);
-    var c0 = proj([x - 19, capTop, 7.5]), c1 = proj([x + 19, capTop, 7.5]);
+    var c0 = proj([x - 19, capTop, 7]), c1 = proj([x + 19, capTop, 7]);
     add(g, 'path', { d: 'M' + n2(c0[0]) + ' ' + n2(c0[1]) + 'L' + n2(c1[0]) + ' ' + n2(c1[1]), style: S('var(--lead-3)', 0.8, 'opacity:.6') });
   });
 }
@@ -668,12 +668,12 @@ function frameRuns(g, defs, poly, prof, m, idp) {
   });
 }
 function boss(g, fc, cx, cy, h, lead) {
-  boxZ(fc, cx - h, cx + h, cy - h, cy + h, -2, 7.2, 1.5, MAT.sb);
+  boxZ(fc, cx - h, cx + h, cy - h, cy + h, -1, 6.4, 1.5, MAT.sb);
   fc.flush(g);
-  var fg = add(g, 'g', { transform: planeXf([cx, cy, 7.2], X3, DN), filter: U('hb-cast') });
+  var fg = add(g, 'g', { transform: planeXf([cx, cy, 6.4], X3, DN), filter: U('hb-cast') });
   add(fg, 'path', { d: fanPath(0, h * 0.42, h * 0.6, 5, Math.PI, 2 * Math.PI) + 'M' + n2(-h * 0.2) + ' ' + n2(h * 0.42) + 'A' + n2(h * 0.2) + ' ' + n2(h * 0.2) + ' 0 0 1 ' + n2(h * 0.2) + ' ' + n2(h * 0.42) + 'Z',
                    style: F('var(--sb-3)') });
-  var a = proj([cx - h + 1.5, cy + h - 0.2, 5.7]), b = proj([cx + h - 1.5, cy + h - 0.2, 5.7]);
+  var a = proj([cx - h + 1.5, cy + h - 0.2, 4.9]), b = proj([cx + h - 1.5, cy + h - 0.2, 4.9]);
   add(g, 'path', { d: 'M' + n2(a[0]) + ' ' + n2(a[1]) + 'H' + n2(b[0]), style: S('var(--lead-5)', 0.9, 'opacity:' + lead) });
 }
 function buildFrame(q) {
@@ -910,7 +910,7 @@ function buildFocus(q) {
   [[SX2 + FW, SY2 + FW], [SX2 + FW, SY1 + FW], [SX1 + FW, SY1 + FW], [SX1 + FW, PY1 + FW], [PX + FW, PY1 + FW], [PX + FW, PY0 - FW]].forEach(function (p) {
     pts.push([p[0], p[1], z]);
   });
-  pts.push([LEG_X + 22, PY0 - FW, z], [LEG_X + 22, PLY, 12], [PLX, PLY, PLZ1], [PLX, 0, PLZ1]);
+  pts.push([LEG_X + 22, PY0 - FW, z], [LEG_X + 22, PLY, 9], [PLX, PLY, PLZ1], [PLX, 0, PLZ1]);
   for (var i = pts.length - 1; i >= 2; i--) pts.push([-pts[i][0], pts[i][1], pts[i][2]]);
   pts.push([-FANR - 6, FANY + FANR, z]);
   pts = pts.slice(0, -1).map(proj);
