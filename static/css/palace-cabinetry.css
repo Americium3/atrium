@@ -922,6 +922,12 @@
     linear-gradient(90deg, #fffaf0 -40%, var(--card), var(--card-2));
   background-blend-mode: normal, soft-light, normal;
 }
+/* The whole card answers the pointer, holder and all (the click is handed to
+   the link from #plaques), so the whole card says so. */
+#ledger .plaque:not(.ghost) { cursor: pointer; }
+/* A dispatch title is someone else's text: a mod's file name with no space
+   in it ran under the jewel and out past the card's edge. */
+#ledger .pl-head, #ledger .pl-detail { overflow-wrap: anywhere; }
 #ledger .pl-head { color: var(--card-ink); font-weight: 600; }
 #ledger .plaque.warn .pl-head { color: #7a1a10; }
 #ledger .pl-detail { color: var(--card-faint); }

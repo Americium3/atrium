@@ -2632,6 +2632,10 @@ html[lang="zh"] .g-name { letter-spacing: 0.17em; }
   pointer-events: none;
 }
 #ledger.open { transform: translateX(0); }
+/* The drawer, the key plate and Preferences are cabinetry like the rest of
+   the hall: a double-click or a drag across them painted the browser's blue
+   selection over the lacquer. */
+#ledger, #keyplate, #prefs { user-select: none; }
 
 /* Scrim — dims the hall behind the drawer; click to close */
 #ledger-scrim {

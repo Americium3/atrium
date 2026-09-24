@@ -3041,10 +3041,20 @@ function buildPlaque(d) {
   var a = el('a', 'pl-in');
   a.href = d.url;
   a.addEventListener('click', function (e) {
-    e.preventDefault();
     markRead(d.id);   // following a dispatch is the least ambiguous read there is
+    // The browser's own new-tab gestures are left to it, as on a gate: a
+    // Ctrl or Shift click used to be turned into the named tab, which took
+    // the reader's open service tab away from whatever it was showing. A
+    // middle click reaches here only forwarded from the holder (#plaques).
+    if (e[NEW_TAB_KEY] || e.shiftKey || e.button === 1) return;
+    e.preventDefault();
+    // One gesture, one open: a double-click loaded the dispatch twice.
+    if (e.detail > 1) return;
     window.open(d.url, 'atrium-' + d.origin);
   });
+  // A middle click on the card itself goes to the browser untouched; it is
+  // still the reader following the dispatch.
+  a.addEventListener('auxclick', function (e) { if (e.button === 1) markRead(d.id); });
   // Armed on the li, not the anchor: the medallion overhangs the spine
   // outside the frame, and a reader who rests on the sigil is on the plaque.
   armDwell(li, d.id);
@@ -3933,14 +3943,32 @@ var ledgerCloseEl = $('#ledger-close');
 if (ledgerCloseEl) ledgerCloseEl.addEventListener('click', closeLedger);
 
 /* The medallion hangs outside the plaque's link, over the spine where the
-   clipped frame cannot reach, so a click on it used to do nothing. It reads
-   as part of the plaque, so it opens the dispatch like the rest of it. */
+   clipped frame cannot reach, and the holder's gilt rim is the frame round
+   the link. Both read as the plaque, so a press on either opens the dispatch
+   like the rest of it. The press is handed to the link whole (button,
+   modifiers, click count), so a Ctrl, Shift, middle or double click does
+   what it does on the card; link.click() carried none of that. */
 var plaquesEl = $('#plaques');
+function plaqueLinkUnder(e) {
+  var li = e.target.closest && e.target.closest('.plaque');
+  if (!li || e.target.closest('a.pl-in')) return null;
+  return li.querySelector('a.pl-in');
+}
+function forwardToPlaque(e) {
+  var link = plaqueLinkUnder(e);
+  if (!link) return;
+  link.dispatchEvent(new MouseEvent('click', {
+    bubbles: true, cancelable: true, view: window, detail: e.detail, button: e.button,
+    ctrlKey: e.ctrlKey, shiftKey: e.shiftKey, altKey: e.altKey, metaKey: e.metaKey
+  }));
+}
 if (plaquesEl) {
-  plaquesEl.addEventListener('click', function (e) {
-    var medal = e.target.closest && e.target.closest('.medal');
-    var link = medal && medal.parentNode.querySelector('a.pl-in');
-    if (link) link.click();
+  plaquesEl.addEventListener('click', forwardToPlaque);
+  plaquesEl.addEventListener('auxclick', function (e) { if (e.button === 1) forwardToPlaque(e); });
+  // Chrome arms its middle-button autoscroll on the press, and the reader's
+  // next click was spent ending it.
+  plaquesEl.addEventListener('mousedown', function (e) {
+    if (e.button === 1 && plaqueLinkUnder(e)) e.preventDefault();
   });
 }
 
