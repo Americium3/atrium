@@ -487,6 +487,23 @@ html[lang="zh"] .g-lamp { letter-spacing: 0.2em; }
 /* The slide is projected light: it goes out with the lamps, ahead of the sink. */
 .gate.receded .g-desc::before { transition: opacity var(--gate-dim, 0ms) ease-in var(--slot-delay, 0ms); }
 :root[data-theme="ivory"] .gate:not([data-state="open"]) .g-desc::before { opacity: 0.9; }
+/* A DARK house keeps its slide too, unlit: the black field with no ruled
+   border, no ornament and no light in it, by night as by day. With the
+   field gone at night the curtain's meeting line ran down through the
+   middle of both lines of the description (law 6), and by day the field
+   was there but faded with the words to a third, so the seam still read
+   through it. The words are dimmed by their own ink now, not by the
+   element's opacity, which took the field down with them. */
+.gate[data-state="dark"] .g-desc {
+  opacity: 1;
+  color: color-mix(in srgb, var(--desc-night) 35%, transparent);
+  text-shadow: none;
+}
+:root[data-theme] .gate[data-state="dark"]:not(.vacant) .g-desc::before {
+  opacity: 0.92;
+  background: var(--slide-field);
+  box-shadow: 0 0 2.4cqw 1.6cqw rgba(9, 6, 4, 0.55);
+}
 .gate.vacant .g-desc::before { display: none; }
 /* The slide's corner ornament: the gate's own card, in projected light. */
 :root[data-theme="onyx"] .gate[data-card="fans"] .g-desc::before {
@@ -680,6 +697,7 @@ html[lang="zh"] .g-lamp { letter-spacing: 0.2em; }
 }
 @media (prefers-contrast: more) {
   .gate[data-state="dark"] :is(.g-desc, .g-stat, .g-addr, .sigil) { opacity: 1; }
+  .gate[data-state="dark"] .g-desc { color: var(--desc-night); }
 }
 /* The niche is scenery (its drawing is aria-hidden and the clock says the
    time in text): under forced colours it keeps its own paint rather than

@@ -853,8 +853,9 @@ the lamp and takes the address line's place while it stands.
 - **DARK gate**: fanlight and coves off, tabs closed, and the velvet in
   shadow below every open house's velvet, by day as by night and whatever
   the two dyes. The engraving sits at 35% (full strength under forced
-  colours or more contrast), and the lamp is a hollow diamond
-  (extinguished, not alarmed, no red).
+  colours or more contrast), on the slide's black field with no light in
+  it, so the tabs' meeting line never runs through the words. The lamp is
+  a hollow diamond (extinguished, not alarmed, no red).
   Clicking pins a printed card on the curtain, a house notice headed DARK,
   with the service's launcher hint (from the registry) instead of opening a
   dead tab; a keyboard press pins it and says it every time, and Esc on
