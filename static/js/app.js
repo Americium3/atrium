@@ -3588,10 +3588,11 @@ lever.addEventListener('keydown', function (e) {
 /* ========================================================================
    Status / stats
    ======================================================================== */
-/* What the live region last said about the lines. A DARK gate's launch
-   notice is said through the same region, so its text is no guide to what
-   was last announced: compared against it, an unchanged count was said a
-   second time on the next poll after any notice. */
+/* What the live region last said about the lines. It is compared against
+   this, never against the region's text: a DARK gate's launch notice used
+   to be said through the same region, and an unchanged count was said a
+   second time on the next poll after any notice. The notice has its own
+   region now, #gate-say. */
 var hallSaid = '';
 
 function applyStatuses() {

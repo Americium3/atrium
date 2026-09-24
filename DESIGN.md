@@ -350,10 +350,13 @@ complaint, and a module scaled 1:1 with it costs the floor its depth.
 SVG-internal font sizes (gear plates, lever plate, gauge, clock numerals)
 are user units inside a viewBox and are deliberately **not** scaled.
 
-Masthead: monogram rosette · "ATRIUM · GRAND CONCOURSE" · localized date
-line · settings trigger at right edge. The settings trigger is a rosette of
-visibly distinct construction (keyhole center), with a persistent caption
-"PREFERENCES" beneath, hover glint, focus ring, aria-label.
+Masthead, left to right: the monogram, an enamelled badge in a knurled
+turned-brass bezel; "ATRIUM · GRAND CONCOURSE"; and at the right edge the
+localized date line, the Ledger hatch and the Preferences escutcheon. The
+hatch is named "Ledger: dispatch timeline" and described by the unread
+count. The escutcheon is a nickel plate with its keyhole cut through and a
+persistent PREFERENCES caption beneath, and that caption is its name, so it
+carries no aria-label.
 
 **Short screens.** Under 860px of viewport height the hall gives up floor
 and a little of the arch module before it gives up the one-screen rule:
@@ -529,7 +532,7 @@ board, so the board reads as set into the wall rather than stuck onto it.
 
 **Boards.** `STATISTICS` (left) is an instrument case reading the machine the
 hub runs on: four needle dials (processor, memory, the card's VRAM, traffic) on
-one 240° scale with a red sector over the last fifth, a tape of hours run
+one 240° scale with a red sector from 85 to 100, a tape of hours run
 and store remaining, and the maker's plate off the retired rail at its foot.
 It replaced a `DIRECTORY` that listed every service's mark, name, address
 and lamp, i.e. said the gates' own three facts back at them a second time
@@ -1192,8 +1195,13 @@ including the ping probe):
 
 **Outreach Desk** (`127.0.0.1:8802`, GET-only):
 
-- 60 s: `GET /api/ping` then `GET /api/progress`. Queue ready:
-  `done >= total && total > 0`. Dispatches: queue-ready(N), progress
+- 60 s: `GET /api/ping` then `GET /api/progress`. Queue ready: `total > 0`
+  and the drafter's completion stamp falls on the local today, `finishedAt`
+  when the desk still holds it, else the mtime of `data/ai_drafts.json`
+  (the desk restarted since). `done` cannot decide it: the queue rotates as
+  invitations go out, so `done` falls back to zero once the morning's
+  candidates are contacted, and a hall that was not up at 04:00 never
+  learned the queue had been prepared. Dispatches: queue-ready(N), progress
   (mutable), drafter error. Invites-today: `data/panel_state.json`
   (`invitedAt` epoch **ms**, local-day compare).
 - **Privacy enforced server-side**: the adapter emits params through an
@@ -1263,9 +1271,12 @@ the clock's date aperture.
 - A payload marked `warm: false` comes from a hub still on its first round
   of adapter polls. Its empties mean "not asked yet", so it is not applied,
   the status included: the last lamp reading stands.
-- The live region speaks the line count only when it changes. A DARK gate's
-  notice is said through the same region, so the hall compares against what
-  it last said about the lines, never against the region's current text.
+- The live region `#hall-status` speaks the line count only when it
+  changes, compared against what it last said. A DARK gate's launch card is
+  said in a polite region of its own, `#gate-say`, emptied and written a
+  beat later, so the same card pinned twice is heard twice. The card used
+  to borrow `#hall-status`, and the next poll then said an unchanged count
+  again.
 - A DARK gate's notice is emptied when it is put away, whether the reader
   closes it or the lamp comes back. The gate's `aria-describedby` names the
   card, and Chrome voices a named node even while it is hidden, so a gate
@@ -1317,8 +1328,10 @@ Motion setting collapse all of the above to fades/instant.
   the focused dispatch leaves the feed, focus goes to the next plaque down
   (else the one above, else the heading), and that move marks nothing read:
   the hall put the caret there, not the reader.
-- **Names**: a gate is named by its engraved name and lamp word and described
-  by its description, status line, service note and "opens in its own tab".
+- **Names**: a gate is named by its engraved name alone, so a name is voiced
+  in one language. It is described by its lamp word, its description, its
+  status line, its service note, the launch card while one is pinned, and
+  "opens in its own tab" whenever a press would open one.
   Service warnings are engraved on the apron above the lamp, not hidden in
   a title. The
   ticker is a `marquee` whose loop copy is `aria-hidden`. Day breaks are
@@ -1485,8 +1498,8 @@ away with them.
   existing JS bindings survive relocation verbatim). The gear well clips
   via `overflow:hidden` on an inner div, never `clip-path` on the shell.
 - **Boot**: `html[data-boot="suppressed"] #signal-desk` mirrors the hall
-  fade; under a played entrance the curtain opens on the desk standing. Tab order is now masthead → ticker → gates → chips →
-  plaques → lever (footer-last, re-documented).
+  fade; under a played entrance the curtain opens on the desk standing.
+  The lever is the last Tab stop (see "Accessibility summary").
 
 ### The console casework (v4.3)
 
