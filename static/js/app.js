@@ -3997,6 +3997,12 @@ function setLang(next) {
     var a = $('#gate-' + svc.id);
     if (!a) return;
     $('.g-desc', a).textContent = t(descKey(svc));
+    // An open launch notice is lettered once, on the click that opened it,
+    // so it kept its English under a Chinese description.
+    var notice = $('.g-notice', a);
+    if (notice && !notice.hidden) {
+      notice.textContent = t('darkNotice', { hint: svc.launch_hint || svc.url });
+    }
     if (svc.vacant) {
       $('.g-name', a).title = t('vacantName');
       $('.lamp-t', a).title = t('vacantLamp');
