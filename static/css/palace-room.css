@@ -843,8 +843,13 @@ html[lang="zh"] .m-sub, html[lang="zh"] #dateline { -webkit-text-stroke: 0.35px 
 .st-marquee { --sc: rgba(255, 226, 170, 0.5); --so: 0.55; }
 /* A fanlight's streak is that lamp's own layer (syncStreaks copies its
    gate's state and beat): it comes up with the fanlight, after the arch has
-   risen into its bay, and goes down with it, never ahead of it (MO-3). */
+   risen into its bay, and goes down with it, never ahead of it (MO-3). Going
+   out it takes the lamp's own fall, --gate-dim from its bay's beat: on one
+   0.35s curve from the throw every streak went down together, an inner
+   bay's still at 41% when its lamp was out and an outer bay's a third gone
+   before its lamp began to dim (MO-19). */
 .st-fan { --so: 0.36; opacity: 0; transition: opacity 0.35s ease; }
+.st-fan:not(.on) { transition: opacity var(--gate-dim, 0ms) ease-in var(--slot-delay, 0ms); }
 .st-fan.on[data-state="open"] {
   opacity: calc(var(--lamp-on) * var(--so));
   transition: opacity 0.7s ease calc(var(--slot-delay, 0ms) + 420ms);

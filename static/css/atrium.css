@@ -2356,7 +2356,8 @@ html[lang="zh"] .g-name { letter-spacing: 0.17em; }
    They used to fade with no delay over 0.35s, so an outer arch was still
    at 0.7 when it began to sink and an inner one still glowed when it had
    gone. */
-:root[data-theme="onyx"] .gate { --gate-dim: 120ms; }
+/* the fanlight's streak on the floor goes down on the same beat (room.js) */
+:root[data-theme="onyx"] :is(.gate, .st-fan) { --gate-dim: 120ms; }
 .gate .lit { opacity: 0; transition: opacity 0.35s ease; }
 .gate.receded .lit { transition: opacity var(--gate-dim, 0ms) ease-in var(--slot-delay, 0ms); }
 :root[data-theme="onyx"] .gate.active[data-state="open"] .lit {
