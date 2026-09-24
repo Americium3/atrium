@@ -2566,7 +2566,11 @@ function dialRead(key, w) {
              title: count };
   }
   if (key === 'mem' || key === 'gpu') {
-    var of = t('wkOf', { a: d.used_gb.toFixed(1), b: d.total_gb.toFixed(1) });
+    // Rounded once, for the window and the spoken line alike: the window
+    // printed "5.7 / 32 GB" while the tooltip and the reader said "5.7 of
+    // 31.8 GB", two figures for one instrument.
+    var used = d.used_gb.toFixed(1), total = Math.round(d.total_gb);
+    var of = t('wkOf', { a: used, b: total });
     // The VRAM needle is the card's memory. How hard the card is working is
     // a different figure, and it is said beside it rather than dropped.
     var more = key === 'gpu'
@@ -2575,15 +2579,18 @@ function dialRead(key, w) {
         (d.name ? t('list') + d.name : '')
       : '';
     return { pct: d.pct,
-             text: d.used_gb.toFixed(1) + ' / ' + Math.round(d.total_gb) + ' GB',
+             text: used + ' / ' + total + ' GB',
              said: of + more, title: of + more };
   }
-  var rate = t('wkDown', { d: d.down_mbs, u: d.up_mbs });
+  // The same tenths the window prints; the spoken line used to read the
+  // hub's raw floats ("0.43 up" under a window of "0.4").
+  var down = d.down_mbs.toFixed(1), up = d.up_mbs.toFixed(1);
+  var rate = t('wkDown', { d: down, u: up });
   return { pct: d.pct,
            // The unit is engraved on the face (MB/s), which keeps the window
            // to one line in a 300px aisle. No-break spaces hold each figure
            // to its arrow if a narrow window still takes two.
-           text: d.down_mbs.toFixed(1) + ' ↓  ' + d.up_mbs.toFixed(1) + ' ↑',
+           text: down + ' ↓  ' + up + ' ↑',
            said: rate, title: rate };
 }
 
