@@ -647,13 +647,28 @@ function orderFanlights() {
   });
 }
 
-/* The marquee's bulbs chase once, on the band's own box. */
+/* The marquee's bulbs chase once, on the band's own box, in whole bulbs.
+   The run of lit bulbs was a quarter of the band wide and travelled in
+   percent of itself, so its 28 steps came out 5.6 bulb pitches long at
+   1920 and 7.9 at 3440, and each step lit dots 3-9px off the bulbs. Now
+   the run is a whole number of pitches, starts one run-length off the
+   band's left end (the bulbs' own origin) and steps a whole number of
+   pitches, so every lit dot lands on a bulb. */
+var E_CHASE_STEPS = 28;   // the keyframes' steps(), palace-desk.css
 function placeMarquee() {
   var tk = $('#ticker'), mq = $('.e-marquee');
   if (!tk || !mq) return;
   var r = tk.getBoundingClientRect();
   mq.style.left = r.left + 'px'; mq.style.top = r.top + 'px';
   mq.style.width = r.width + 'px'; mq.style.height = r.height + 'px';
+  var ui = parseFloat(getComputedStyle(tk).getPropertyValue('--ui')) || 1;
+  var pitch = 13 * ui;                         // .t-bulbs' tile
+  var run = Math.max(1, Math.round(r.width * 0.24 / pitch));
+  var span = run + Math.ceil(r.width / pitch); // off the left end to off the right
+  var step = Math.ceil(span / E_CHASE_STEPS);
+  mq.style.setProperty('--ec-w', (run * pitch) + 'px');
+  mq.style.setProperty('--ec-from', (-run * pitch) + 'px');
+  mq.style.setProperty('--ec-to', ((step * E_CHASE_STEPS - run) * pitch) + 'px');
 }
 
 /* The dock: the spot (night) or the gilt ring (day) flies onto the

@@ -987,8 +987,10 @@ html[data-entered="no"] #entrance.done-fade { pointer-events: none; cursor: auto
 
 /* ----- The marquee's one chase ------------------------------------------- */
 .e-marquee { position: absolute; overflow-x: clip; overflow-y: visible; }
+/* Sized and moved in whole bulb pitches, from the bulbs' own origin
+   (placeMarquee() in app.js writes the three lengths). */
 .e-chase {
-  position: absolute; left: 0; width: 24%;
+  position: absolute; left: 0; width: var(--ec-w, 24%);
   height: calc(21px * var(--ui));
   background:
     radial-gradient(circle, #fff 0 24%, rgba(255, 238, 196, 0.95) 38%, rgba(255, 200, 120, 0.45) 56%, transparent 66%) 0 50% / calc(13px * var(--ui)) calc(9px * var(--ui)) repeat-x,
@@ -1000,14 +1002,14 @@ html[data-entered="no"] #entrance.done-fade { pointer-events: none; cursor: auto
 #entrance.house .e-chase-t { animation: e-chase-lr 0.56s steps(28) both; }
 #entrance.house .e-chase-b { animation: e-chase-rl 0.56s steps(28) both; }
 @keyframes e-chase-lr {
-  0% { transform: translateX(-100%); opacity: 1; }
+  0% { transform: translateX(var(--ec-from, -100%)); opacity: 1; }
   92% { opacity: 1; }
-  100% { transform: translateX(420%); opacity: 0; }
+  100% { transform: translateX(var(--ec-to, 420%)); opacity: 0; }
 }
 @keyframes e-chase-rl {
-  0% { transform: translateX(420%); opacity: 1; }
+  0% { transform: translateX(var(--ec-to, 420%)); opacity: 1; }
   92% { opacity: 1; }
-  100% { transform: translateX(-100%); opacity: 0; }
+  100% { transform: translateX(var(--ec-from, -100%)); opacity: 0; }
 }
 
 /* ----- The spot and the ring: the dock ------------------------------------ */
