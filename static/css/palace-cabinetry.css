@@ -391,7 +391,11 @@
   filter: drop-shadow(0 0.6px 0 rgba(0, 0, 0, 0.9));
 }
 .board .bd-title::before, .board .bd-title::after { color: var(--leaf-2); -webkit-text-fill-color: var(--leaf-2); opacity: 0.9; }
-.board .bd-sub { color: var(--cab-faint); font-style: italic; letter-spacing: 0.04em; }
+/* Set roman, as every sentence in the hall is. It was italic, and with no
+   italic face loaded the browser slanted the roman ones: an oblique
+   Garamond, and in the Chinese hall a sheared Mincho. The line keeps apart
+   from the title by size, ink and case. */
+.board .bd-sub { color: var(--cab-faint); letter-spacing: 0.04em; }
 
 /* ----- The dials ------------------------------------------------------------
    The turned brass of the bezel is the svg's own background: a conic
