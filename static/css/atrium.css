@@ -243,7 +243,8 @@
      the module grows with the lettering (--ui): a 1720px diorama stranded in
      the middle of a 3440px screen is the thing this pass exists to end.
      --gate-vcap is the vertical budget's cap (budgetHall() in app.js): the
-     largest arch that still leaves the lever its floor under the stage. */
+     largest arch that still leaves the lever its floor under the stage. It
+     does not inherit (see the @property rules above). */
   --gate-w: clamp(182px, min(13.6vw, 26.5vh, var(--gate-vcap, 100vh)),
                   calc(296px * (0.62 + 0.38 * var(--ui))));
   --desk-h: 210px;         /* the signal desk's own standing height */
@@ -269,6 +270,15 @@
    "calc(var(--ui-auto) * var(--ui-user))" — which parseFloat reads as NaN,
    and every JS-side `* u` silently falls back to 1. */
 @property --ui { syntax: "<number>"; inherits: true; initial-value: 1; }
+/* Measurements the layout pass writes on every resize, each read only by
+   the element it is written on: the vertical cap (:root), the floor's
+   share (#concourse), an arch's slot (.gate) and the desk's room
+   (#signal-desk). Inherited, each new value restyled everything under its
+   element, some 11,000 elements per resize event at 1920 (MO-17). */
+@property --gate-vcap { syntax: "*"; inherits: false; }
+@property --floor-fit { syntax: "*"; inherits: false; }
+@property --slot-x { syntax: "*"; inherits: false; }
+@property --desk-room { syntax: "*"; inherits: false; }
 :root { --ui-auto: 1; --ui-user: 1; --ui: calc(var(--ui-auto) * var(--ui-user)); }
 @media (min-width: 1900px) { :root { --ui-auto: 1.12; } }
 @media (min-width: 2400px) { :root { --ui-auto: 1.24; } }
