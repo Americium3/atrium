@@ -167,8 +167,8 @@ var STR = {
     keysTitle: 'KEYS',
     keyGates: 'Walk the gates', keyJump: 'Go to a gate', keyOpen: 'Open it',
     keyLever: 'Throw the lever', keyLedger: 'Open or close the Ledger', keyPrefs: 'Open Preferences',
-    keyWalk: 'Walk the dispatches, in the Ledger', keyPlate: 'Show or hide this plate',
-    keyClose: 'Close', keyEnter: 'ENTER', keyTo: 'to',
+    keyWalk: 'Walk the dispatches in the open Ledger', keyPlate: 'Show or hide this plate',
+    keyClose: 'Close', keyEsc: 'Close the top layer', keyEnter: 'ENTER', keyTo: 'to',
     unreadCount: '{n} new dispatches', unreadCountOne: '1 new dispatch'
   },
   zh: {
@@ -311,8 +311,8 @@ var STR = {
     keysTitle: '按键',
     keyGates: '在门廊间移动', keyJump: '直达某扇门', keyOpen: '打开',
     keyLever: '扳动拉杆', keyLedger: '开合消息总台', keyPrefs: '打开偏好设置',
-    keyWalk: '在消息总台里逐条移动', keyPlate: '显示或收起这块铭牌',
-    keyClose: '关闭', keyEnter: '回车', keyTo: '至',
+    keyWalk: '在打开的消息总台里逐条移动', keyPlate: '显示或收起这块铭牌',
+    keyClose: '关闭', keyEsc: '关闭最上面一层', keyEnter: '回车', keyTo: '至',
     unreadCount: '{n} 条新消息', unreadCountOne: '1 条新消息'
   }
 };
@@ -5423,7 +5423,7 @@ function renderKeyplate() {
     [['\u2191', '\u2193'], 'keyWalk'],
     [['P'], 'keyPrefs'],
     [['?'], 'keyPlate'],
-    [['+ESC'], 'keyClose'],
+    [['+ESC'], 'keyEsc'],
   ];
   var list = $('.kp-rows', keyplate);
   list.textContent = '';
@@ -5460,13 +5460,16 @@ function placeKeyplate() {
   var band = $('#ticker');
   if (!band) return;
   var r = band.getBoundingClientRect();
-  // Called up over the open Ledger, the plate stops at the drawer's edge:
+  // Called up over the open Ledger, the plate stops short of the drawer:
   // laid across it, it covered the chips and the stamp and the focus on them.
+  // It stands clear by the band's own margin, the air it keeps on its left:
+  // stopped at the drawer's edge, its moulding butted into the drawer's gilt
+  // bead and its end clip sat on the bead.
   var drawer = $('#ledger');
   var stop = r.right;
   // (Under 1280px the drawer takes the full width, and the plate lies over it.)
   var edge = drawer && drawer.classList.contains('open')
-    ? window.innerWidth - drawer.offsetWidth : Infinity;
+    ? window.innerWidth - drawer.offsetWidth - r.left : Infinity;
   if (edge - r.left >= 480) stop = Math.min(stop, edge);
   keyplate.style.top = Math.round(r.top) + 'px';
   keyplate.style.left = Math.round(r.left) + 'px';
