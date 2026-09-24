@@ -1066,10 +1066,10 @@ html[data-entered="no"] #signal-desk {
 .sc-body { position: relative; width: 100%; height: auto; }
 .sc-body .sc-shell { fill: var(--bronze-deep); stroke: var(--bronze); stroke-width: 1; }
 .sc-body .sc-step { fill: none; stroke: var(--bronze); stroke-width: 1; opacity: 0.8; }
+/* The flame holds still. It used to breathe on a 5.5s loop forever, and
+   the hall at rest keeps no idle motion but the clock's. */
 .sc-body .sc-flame { fill: var(--gold); opacity: 0.55; }
 .sc-body .sc-bracket { fill: none; stroke: var(--bronze); stroke-width: 1; }
-:root[data-motion="full"] .sc-flame { animation: sconce-breathe 5.5s ease-in-out infinite; }
-@keyframes sconce-breathe { 50% { opacity: 0.34; } }
 
 /* Bay number: each bay is engraved on the chair rail, so no two spans of
    wall are the same span of wall. */
