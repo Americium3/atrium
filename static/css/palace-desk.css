@@ -1070,5 +1070,9 @@ html[data-entered="no"] #entrance.night.house ~ #hall .gate.active[data-state="o
   transition: opacity 0.5s ease calc(140ms + var(--fan-i, 0) * 170ms);
 }
 /* Cut short before the house lights, the lamps land with the hall: the
-   flip's frame only (finishEntrance() lifts the class two frames on). */
-html.e-landing #hall .gate .lit { transition: opacity 0.2s ease; }
+   flip's frame only (finishEntrance() lifts the class two frames on).
+   Their streaks on the floor are the same lamps (Law 10) and land with
+   them; they used to keep the throw's timing, 420ms late and over 0.7s,
+   so the fanlights burned over a dry floor for most of a second (MO-18). */
+html.e-landing #hall .gate .lit,
+html.e-landing #hall .st-fan { transition: opacity 0.2s ease; }
