@@ -813,7 +813,7 @@ function deskNudge() {
 
 /* ========================================================================
    Signal desk — lever, gear train, steam (DESIGN.md v4.1). One scalar
-   --drive (0=salon, 1=bureau) written by a rAF driver onto #signal-desk;
+   --drive (0=salon, 1=bureau) written by a rAF driver onto the movers;
    the lever and both gears derive from it via calc, so sync is
    structural.
    ======================================================================== */
@@ -895,16 +895,27 @@ function easeWeighty(t) {
 }
 
 var deskRaf = null;
-/* --drive is written on the desk, not on :root. Only the lever arm and the
-   two gears read it, and an inherited custom property changed on :root
-   restyles every element in the document: ~3,600 of them per frame, which
-   held the throw to 20-25 fps. On the desk it restyles the desk. */
-function setDrive(v) { if (desk) desk.style.setProperty('--drive', v.toFixed(4)); }
-function getDrive() {
-  if (!desk) return 0;
-  var v = parseFloat(getComputedStyle(desk).getPropertyValue('--drive'));
-  return isNaN(v) ? 0 : v;
+/* --drive is written on the movers only, never on :root and not on the
+   desk either. Only the lever arm, its hit strip and the two gears read it,
+   and an inherited custom property restyles everything under the element
+   it changes on: on :root that was ~3,600 elements per frame, which held
+   the throw to 20-25 fps. On #signal-desk it was the console as well, and
+   a console restyled every frame is a console repainted every frame: its
+   cast relief runs through a turbulence filter, and re-rastering it for
+   each frame of the throw cost the GPU 60-150ms a frame at 3440 (MO-1).
+   On .desk-fx and #lever the console is never touched.
+   The value is also kept here. It used to be read back through
+   getComputedStyle, and the throw read it straight after the wing flip, so
+   every throw forced the flip's whole-hall restyle (8-10k elements, ~100ms)
+   inside the key handler (MO-2). */
+var driveNow = 0;
+var driveEls = desk ? [$('.desk-fx', desk), $('#lever', desk)].filter(Boolean) : [];
+function setDrive(v) {
+  driveNow = v;
+  var s = v.toFixed(4);
+  driveEls.forEach(function (e) { e.style.setProperty('--drive', s); });
 }
+function getDrive() { return driveNow; }
 
 /* Interrupt-safe rAF driver: a re-toggle mid-throw reads the current
    --drive as its new start. Steam fires once past 55% of the throw
@@ -1267,9 +1278,16 @@ function gateClick(e, a, svc) {
 /* Triptych stage: slots computed from the registry so future services
    flank symmetrically. Transform-only (60 fps law). */
 var SWAP_OUT = 200, SWAP_GAP = 20, SWAP_STEP = 60;   // ms, see the throw below
+var solved = null;   // the last solve's measurements, for a throw to reuse
 function layoutStage(initial) {
   var wrap = $('#gates');
-  var W = wrap.clientWidth;
+  // A throw re-lays the row it already has, so it reuses the last solve's
+  // measurements instead of reading them back: straight after the wing
+  // flip, any read forced the flip's whole-hall restyle inside the key
+  // handler (MO-2). A resize, the engraving size and a new registry all
+  // come in as initial, and measure afresh.
+  var m = !initial && solved;
+  var W = m ? m.W : wrap.clientWidth;
   if (!W) return;
   var wing = root.dataset.wing;
   var first = wrap.querySelector('.gate');
@@ -1288,12 +1306,18 @@ function layoutStage(initial) {
      The row is solved as one line, [arches] [clock] [arches]; if it is wider
      than the stage, the whole arch module (arches and niche together, via
      --fit) comes down until it is not. Widths are measured at fit 1 so the
-     solve does not chase its own output. */
+     solve does not chase its own output. Both boxes are linear in --fit, so
+     the used width over the fit in force IS the fit-1 width, as long as it
+     is read unrounded: offsetWidth is a whole pixel, and at 2800 and wider
+     its rounding moved the row by a fraction of a pixel on the first throw
+     after a load, enough to rebuild the wall and every floor streak
+     mid-throw (MO-10). */
   var fitNow = parseFloat(stage.style.getPropertyValue('--fit')) || 1;
-  var g0 = (first ? first.offsetWidth : 260) / fitNow;
-  var c0 = clock ? clock.offsetWidth / fitNow : 0;
+  var g0 = m ? m.g0 : (first ? parseFloat(getComputedStyle(first).width) || first.offsetWidth : 260) / fitNow;
+  var c0 = m ? m.c0 : clock ? (parseFloat(getComputedStyle(clock).width) || clock.offsetWidth) / fitNow : 0;
   var PITCH = 1.16;        // arch centre to arch centre, in gate widths
   var CLEAR = 0.10;        // clock to its nearest arch
+  if (!m && first) solved = { W: W, g0: g0, c0: c0 };
   var nSide = Math.ceil(active.length / 2);
   var rowG = 2 * CLEAR + 2 * (nSide ? 1 + (nSide - 1) * PITCH : 0);
   var fit = Math.min(1, (W * 0.985) / (c0 + g0 * rowG));
@@ -1345,6 +1369,8 @@ function layoutStage(initial) {
   function role(a, lit, delay) {
     a.classList.toggle('active', lit);
     a.classList.toggle('receded', !lit);
+    // when its fade begins, for shown() below
+    a.riseAt = lit ? performance.now() + delay : Infinity;
     // Depth order is set here, not left to DOM order (absolutely positioned
     // siblings).
     a.style.zIndex = lit ? '3' : '1';
@@ -1397,9 +1423,19 @@ function layoutStage(initial) {
     swaps = swaps.filter(function (s) { return s !== outV && s !== inV; });
   }
 
-  if (cut.length) {
+  if (cut.length && initial) {
     void wrap.offsetWidth;   // the cut values become the before-change style
     cut.forEach(function (a) { a.classList.remove('no-slide'); });
+  } else if (cut.length) {
+    // In a throw the only cut is the RESERVED pair changing places, and the
+    // flush above forced the wing flip's whole-hall restyle inside the key
+    // handler (MO-2). The frame styles the cut instead, and it is lifted in
+    // the frame after, when the values it held are the ones in place.
+    requestAnimationFrame(function () {
+      requestAnimationFrame(function () {
+        cut.forEach(function (a) { a.classList.remove('no-slide'); });
+      });
+    });
   }
 
   /* The throw, bay by bay: the outgoing arch sinks and fades in 200ms, the
@@ -1418,14 +1454,14 @@ function layoutStage(initial) {
      only one wing fills) the incoming arch goes on its own beat. Without
      this, a change of mind left the arch that was leaving frozen half faded
      for the length of the wait before it came back. */
-  function shown(a) {
-    var cs = getComputedStyle(a);
-    return cs.visibility === 'visible' ? parseFloat(cs.opacity) : 0;
-  }
+  // Whether an arch now going out had begun to show: kept in JS (role()
+  // stamps when each fade begins), since a computed-style read here was one
+  // more forced whole-hall restyle in the key handler (MO-2).
+  function shown(a) { return performance.now() >= (a.riseAt === undefined ? 0 : a.riseAt) + 5; }
   swaps.forEach(function (s) {
     if (!s.lit) return;
     var mate = swaps.filter(function (o) { return !o.lit && Math.abs(o.x - s.x) < 0.5; })[0];
-    s.wait = !!mate && shown(mate.a) > 0.02;
+    s.wait = !!mate && shown(mate.a);
   });
   swaps.forEach(function (s) {
     var delay = s.rank * SWAP_STEP;
@@ -1446,10 +1482,18 @@ function layoutStage(initial) {
   // THIS, not against the stage column, which is wider than the row.
   triptychHalf = half + (nSide ? gateW + (nSide - 1) * spacing : 0);
   // The solved row, for the wall: the pier lights stand in the gaps between
-  // resting slots, never where an arch happens to be mid-throw.
-  rowGeom = { half: half, gateW: gateW, spacing: spacing, nSide: nSide };
-  buildAisles();
+  // resting slots, never where an arch happens to be mid-throw. A throw
+  // leaves every bay where it was, so it re-lays nothing: rebuilding the
+  // wall, the rope and the floor on every throw forced ~50ms of layout in
+  // the key handler for a row that had not moved (MO-2).
+  var geom = { half: half, gateW: gateW, spacing: spacing, nSide: nSide };
+  var same = rowGeom && ['half', 'gateW', 'spacing', 'nSide'].every(function (k) {
+    return Math.abs(rowGeom[k] - geom[k]) < 0.01;
+  });
+  rowGeom = geom;
+  if (initial || !same) buildAisles();
 }
+function slotX(g) { return parseFloat(g.style.getPropertyValue('--slot-x')) || 0; }
 
 /* Re-solved in the resize event itself, which runs before the frame is
    styled, so the new size and the new slots paint together. A 120ms
@@ -4137,12 +4181,13 @@ window.addEventListener('storage', function (e) {
    ======================================================================== */
 var keyplate = $('#keyplate');
 
+/* Left to right by the slot the stage solved, not by the painted box: a
+   box read forces layout, and in the throw it was also the whole-hall
+   restyle of the wing flip, paid inside the key handler. */
 function litGates() {
   return Array.prototype.slice.call(
     document.querySelectorAll('#gates .gate.active:not(.vacant)'))
-    .sort(function (a, b) {
-      return a.getBoundingClientRect().left - b.getBoundingClientRect().left;
-    });
+    .sort(function (a, b) { return slotX(a) - slotX(b); });
 }
 
 function renderKeyplate() {

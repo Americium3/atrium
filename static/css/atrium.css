@@ -648,8 +648,9 @@ html[data-boot="suppressed"] #hall { animation: hall-fade 0.3s var(--ease-out) b
    shell is never clipped (steam must escape; clip-path kills shadows) —
    only the gear well clips, via overflow:hidden. One scalar --drive
    (0=salon, 1=bureau, written by the JS driver) derives the lever and both
-   gears. It lives on the desk, not on :root: nothing outside the desk reads
-   it, and a custom property changed on :root restyles the whole page.
+   gears. It lives on the movers (.desk-fx and #lever), not on :root and not
+   on the desk: a custom property restyles everything under the element it
+   changes on, and a console restyled every frame was repainted every frame.
    ========================================================================== */
 #signal-desk {
   position: fixed; left: 0; right: 0; bottom: calc(10px * var(--ui));
@@ -672,8 +673,8 @@ html[data-boot="suppressed"] #signal-desk {
   animation: hall-fade 0.3s var(--ease-out) both;
 }
 /* Initial pose before the JS driver's first write. */
-:root[data-wing="salon"] #signal-desk { --drive: 0; }
-:root[data-wing="bureau"] #signal-desk { --drive: 1; }
+:root[data-wing="salon"] :is(.desk-fx, #lever) { --drive: 0; }
+:root[data-wing="bureau"] :is(.desk-fx, #lever) { --drive: 1; }
 
 .desk-core {
   position: relative;
