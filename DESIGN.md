@@ -1140,9 +1140,13 @@ it: the wall, floor and dado are gradients, which do not interpolate, and
 the ~1,100 colour transitions a flip started restyled the page every frame.
 The cut is lifted when the fade has finished: lifting it restyles every
 element, and at `ready` that landed inside the fade and stalled it.
-Wing re-lighting uses a **scoped** transition list (`color,
-background-color, border-color, fill, stroke, opacity`) on themed elements.
-No universal `* { transition }`.
+The lever's re-leaf lands in one frame. The fixtures it changes (the clock's
+gilt, the pilasters, the stage rule, the console's leaf) carry no colour
+transition: a fill fading on them re-rastered them on every frame of the
+throw, 70 ms a frame at 3440. The flip goes out first, and the lever and the
+arches start once it is on screen (`afterDrawn()`), so the sink is seen.
+Only the crossfade layers (the wordmark's nickel face, the crown) fade, by
+opacity. No universal `* { transition }`.
 Custom properties don't interpolate; the consuming elements transition.
 Wordmark letters are spans with transforms. `prefers-reduced-motion` and the
 Motion setting collapse all of the above to fades/instant.

@@ -2899,18 +2899,52 @@ function setWing(w) {
     if (wingPending === w) wingPending = null;
     store('atrium.wing', w);
     lever.setAttribute('aria-checked', String(w === 'bureau'));
-    deskDrive(w === 'bureau' ? 1 : 0);
-    // The gates stay in the order they were built. The waiting wing is
-    // inert, so Tab walks only the lit one, left to right, wherever the two
-    // sit in the DOM. A 750ms re-append used to put the lit wing first, and
-    // moving live nodes replayed the sheen on a hovered arch and bounced
-    // focus off the gate the reader had just landed on.
-    layoutStage(false);
+    afterReleaf(throwWing);
   };
   // Serialize: the lever re-light queues until a theme crossfade finishes
   // and its cut is lifted; under the cut the throw would land in one frame.
   // The latest throw asked for is the one that runs.
   if (themeBusy) afterTheme = apply; else apply();
+}
+/* The moving parts of a throw: the lever and its gears, and the arches
+   changing places. They read the wing as it stands when they run, so two
+   quick throws land where the second one points. */
+function throwWing() {
+  deskDrive(root.dataset.wing === 'bureau' ? 1 : 0);
+  // The gates stay in the order they were built. The waiting wing is
+  // inert, so Tab walks only the lit one, left to right, wherever the two
+  // sit in the DOM. A 750ms re-append used to put the lit wing first, and
+  // moving live nodes replayed the sheen on a hovered arch and bounced
+  // focus off the gate the reader had just landed on.
+  // Nothing here reads style or layout back (MO-2): the flip restyled the
+  // whole hall, and every read after it used to force that restyle inside
+  // the key handler (94-220ms) before the throw could start.
+  layoutStage(false);
+}
+/* The flip re-leafs the whole hall: every gilt fixture off the arches
+   changes metal through --lead-* and --metal, which restyles the document
+   and re-rasters most of the screen. On the owner's 3440 display that frame
+   took 150-250ms of GPU raster, and a throw started in the same task ran on
+   the clock meanwhile: the 200ms sink was over before the next frame was
+   drawn, so nobody saw it, and the lever jumped (MO-1). So the flip goes
+   out on its own, and the lever and the arches start once it has been
+   drawn. (The fixtures change metal in that one frame, not over a 0.4s
+   colour fade: a fill fading on the clock and the pilasters re-rastered
+   them on every frame of the throw, 70ms a frame at 3440. Law 11.) */
+var releafN = 0, releafT = 0;
+function afterReleaf(fn) {
+  var n = ++releafN;
+  clearTimeout(releafT);
+  var go = function () {
+    if (n !== releafN) return;
+    clearTimeout(releafT);
+    releafN++;
+    fn();
+  };
+  // A hidden tab draws nothing and fires no frames.
+  if (document.visibilityState === 'hidden') { go(); return; }
+  afterDrawn(go);
+  releafT = setTimeout(go, 500);
 }
 /* Toggle target derives from the PENDING wing when a crossfade has queued
    the apply — two quick toggles must round-trip, not both land on the same

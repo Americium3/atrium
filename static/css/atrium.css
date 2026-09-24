@@ -394,8 +394,6 @@ html[lang="zh"] .display { letter-spacing: 0.26em; }
    the sequential-lighting stagger below and must win the cascade. */
 .sigil, #monogram, #prefs-btn svg,
 .medal, .medal .rim, .medal .m-sig, .chip,
-.quadrant path, .quadrant circle, .quadrant rect, .quadrant polygon,
-.quadrant ellipse,
 .wk-dial path, .wk-dial circle, .wk-dial line, .wk-dial text,
 .wk-plate rect, .wk-plate circle, .wk-plate text,
 .lever-svg path, .lever-svg circle, .lever-svg rect, .lever-svg text,
@@ -996,7 +994,6 @@ html[data-boot="suppressed"] #signal-desk {
   transform: translateX(-50%);
   background-color: var(--metal);
   opacity: 0.6;
-  transition: background-color 0.4s;
   z-index: 1;
 }
 /* One-point-perspective floor: a real rotated plane whose deco seams
@@ -1098,7 +1095,6 @@ html[data-boot="suppressed"] #signal-desk {
 .pil-cap, .pil-base { width: 100%; height: auto; flex: none; }
 .pil-cap path, .pil-cap rect, .pil-base path, .pil-base rect {
   fill: var(--wall-hi); stroke: var(--line); stroke-width: 1;
-  transition: fill 0.4s, stroke 0.4s;
 }
 .pil-shaft {
   flex: 1 1 auto;
@@ -1117,7 +1113,6 @@ html[data-boot="suppressed"] #signal-desk {
   background-size: 100% 100%, 100% 100%, calc(28px * var(--ui)) 100%;
   background-repeat: no-repeat, no-repeat, repeat-x;
   opacity: 0.92;
-  transition: background-color 0.4s;
 }
 
 /* Sconce: one lamp per bay, bracketed to the wall, throwing a pool on the
@@ -2600,10 +2595,8 @@ html[lang="zh"] .g-name { letter-spacing: 0.17em; }
   fill: none; stroke: var(--metal);
   stroke-width: 1; vector-effect: non-scaling-stroke;
 }
-/* Theme flips ride the same 0.4s crossfade as the rest of the chrome. */
-#clock [class^="ck-"] { transition: fill 0.4s, stroke 0.4s; }
-/* ...but never the hands or the works: they are re-transformed every frame
-   and a transition on transform would smear the sweep. */
+/* The hands and the works never transition: they are re-transformed every
+   frame and a transition on transform would smear the sweep. */
 .ck-h, .ck-m, .ck-ss, .ck-gA, .ck-gB { transition: none; }
 
 /* ==========================================================================
