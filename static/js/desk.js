@@ -385,7 +385,7 @@ var FPROF = [[-2.6, 0.3], [-1.8, 1.4], [-0.6, 2.6], [0.8, 3.6], [2.4, 4.4], [4, 
              [8.4, 2.4], [8.9, 1.3], [9, 0.4], [9, -4]];
 var FANR = 15, FANY = SY2 + FW;                      // the finial
 var MY = 227, MR = 16;                               // the ammeter
-var JWX = 95, JWY = 192, JR = 6.3;                   // the pilots
+var JWX = 95, JWY = 192, JR = 7;                     // the pilots
 /* the switch */
 var PL = 108, PU = 146, HY = (PL + PU) / 2;          // the two poles and the handle's axis
 var BL = 118, WB = 22, TB = 8, ZB = 22;              // blade length, width, thickness, stand-off
@@ -535,12 +535,11 @@ function buildStand(q) {
 
 /* ------------------------------------------------------------ the panel */
 function facePts(x0, x1, y0, y1, z) { return [[x0, y0, z], [x1, y0, z], [x1, y1, z], [x0, y1, z]]; }
-function slabPath(inset0) {
-  var pts = inset0 ? insetCW(SLAB, inset0) : SLAB;
-  return path3(pts.map(function (p) { return [p[0], p[1], 0]; }));
+/* The slab's face, or a line inset from its edge (SLAB runs
+   counter-clockwise, which inset() takes). */
+function slabPath(d) {
+  return path3((d ? inset(SLAB, d) : SLAB).map(function (p) { return [p[0], p[1], 0]; }));
 }
-/* SLAB runs counter-clockwise (x right, y up); inset() takes that. */
-function insetCW(poly, d) { return inset(poly, d); }
 function buildPanel(q) {
   var g = add(q, 'g', null, 'hb-panel');
   var face = slabPath(0);
@@ -562,6 +561,22 @@ function buildPanel(q) {
   var sl = slabPath(11);
   add(g, 'path', { d: sl, style: S('#000', 0.9, 'opacity:.35'), transform: 'translate(.4 .6)' });
   add(g, 'path', { d: sl, style: S('var(--bz-2)', 0.8) });
+  // A sunburst of brass let into the stone under the meter, fanning down
+  // over the pilots' step to the jaws, inside the stringing: long and
+  // short rays by turns.
+  var defs = q.querySelector('defs'), cp = add(defs, 'clipPath', { id: 'hb-burst-clip' });
+  add(cp, 'path', { d: path3(inset(SLAB, 13).map(function (p) { return [p[0], Math.max(p[1], PU + 16), 0]; })) });
+  var rays = '', grooves = '';
+  for (var k = 1; k < 24; k++) {
+    var a = k / 24 * Math.PI, r1 = k % 2 ? 150 : 250;
+    var q0 = proj([Math.cos(a) * (MR + 9), MY - 4 - Math.sin(a) * (MR + 9), 0]);
+    var q1 = proj([Math.cos(a) * r1, MY - 4 - Math.sin(a) * r1, 0]);
+    rays += 'M' + n2(q0[0]) + ' ' + n2(q0[1]) + 'L' + n2(q1[0]) + ' ' + n2(q1[1]);
+    grooves += 'M' + n2(q0[0] + 0.35) + ' ' + n2(q0[1] + 0.5) + 'L' + n2(q1[0] + 0.35) + ' ' + n2(q1[1] + 0.5);
+  }
+  var bg = add(g, 'g', { 'clip-path': U('hb-burst-clip') });
+  add(bg, 'path', { d: grooves, style: S('#000', 0.7, 'opacity:.3') });
+  add(bg, 'path', { d: rays, style: S('var(--bz-2)', 0.55, 'opacity:.6') });
 }
 
 /* The bolection frame, swept round the slab's outline. Every corner is
@@ -762,14 +777,14 @@ function facets(g, cx, cy, r, gradId) {
 /* A pilot: a jewel lamp in a knurled brass bezel. */
 function buildPilot(g, x, side) {
   var fc = new Faces();
-  turned(fc, [x, JWY, 0], Z3, X3, Y3, [[0, 10.5], [1.4, 10.5], [1.4, 9.3], [4.2, 9.3], [5.2, 8.4], [5.8, 7], [5.9, JR]], 36, MAT.bz);
+  turned(fc, [x, JWY, 0], Z3, X3, Y3, [[0, 11.2], [1.4, 11.2], [1.4, 10], [4.2, 10], [5.3, 9], [6, 7.8], [6.1, JR]], 36, MAT.bz);
   fc.flush(g);
   // the knurl round the bezel's drum
   var kn = '';
   for (var k = 0; k < 36; k++) {
     var a = k * 10 * DEG;
     if (Math.sin(a) < -0.2) continue;
-    var p0 = proj([x + Math.cos(a) * 9.3, JWY + Math.sin(a) * 9.3, 1.8]), p1 = proj([x + Math.cos(a) * 9.3, JWY + Math.sin(a) * 9.3, 4]);
+    var p0 = proj([x + Math.cos(a) * 10, JWY + Math.sin(a) * 10, 1.8]), p1 = proj([x + Math.cos(a) * 10, JWY + Math.sin(a) * 10, 4]);
     kn += 'M' + n2(p0[0]) + ' ' + n2(p0[1]) + 'L' + n2(p1[0]) + ' ' + n2(p1[1]);
   }
   add(g, 'path', { d: kn, style: S('var(--bz-0)', 0.5, 'opacity:.55') });
@@ -977,12 +992,12 @@ function buildPose(i) {
   [[FL, PL, P[0]], [FU, PU, P[1]]].forEach(function (pole) {
     var F3 = pole[0], g = pole[2];
     var defs = add(g, 'defs');
-    prism(fc, F3, BLADE_OL, -TB / 2, TB / 2, 1.4, MAT.cu);
+    prism(fc, F3, BLADE_OL, -TB / 2, TB / 2, 1.9, MAT.cu);
     fc.flush(g);
     // The broad face: the rolling's grain laid along the blade, the room's
     // light as a streak across it nearer the far arris, and the run the
     // jaws have burnished bright in a thousand throws.
-    var top = pathOf(inset(BLADE_OL, 1.4).map(function (p) { return proj(at(F3, p[0], p[1], TB / 2)); }));
+    var top = pathOf(inset(BLADE_OL, 1.9).map(function (p) { return proj(at(F3, p[0], p[1], TB / 2)); }));
     var o0 = proj(at(F3, 0, 0, TB / 2)), oa = proj(at(F3, 1, 0, TB / 2)), ob = proj(at(F3, 0, 1, TB / 2));
     var bid = id + '-b' + pole[1];
     pattern(defs, bid + 'g', '/static/assets/tex/brush-copper.webp', 26,
