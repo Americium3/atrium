@@ -1270,9 +1270,11 @@ the ~1,100 colour transitions a flip started restyled the page every frame.
 The cut is lifted when the fade has finished: lifting it restyles every
 element, and at `ready` that landed inside the fade and stalled it.
 The lever's re-leaf lands in one frame. The fixtures it changes (the clock's
-gilt, the pilasters, the stage rule, the console's leaf) carry no colour
-transition: a fill fading on them re-rastered them on every frame of the
-throw, 70 ms a frame at 3440. The flip goes out first, and the lever and the
+gilt, the pilasters and the aisle walls, the marquee's channel, the frieze
+panels and the cornice, the stage rule, the console's leaf) carry no colour
+or filter transition: a fill fading on them re-rastered them on every frame
+of the throw, 70 ms a frame at 3440, and a room that eased half its gilt
+changed metal in two halves. The flip goes out first, and the lever and the
 arches start once it is on screen (`afterDrawn()`), so the sink is seen.
 Only the crossfade layers (the wordmark's nickel face, the crown) fade, by
 opacity. No universal `* { transition }`.
