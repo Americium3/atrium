@@ -1062,9 +1062,13 @@ html[data-entered="no"] #entrance.done-fade { pointer-events: none; cursor: auto
    with their bars' shadows, the shade between them cool (lightDoors() in
    app.js draws them to the room), and dust turns in the beams. All of it
    fades with the glare. */
+/* The glare is its own layer from the start, so the shafts' blur is
+   rastered once as the entrance opens, well before the fade, and not three
+   times over the fade's first frames when the fade made it a layer. */
 .e-flood {
   position: absolute; inset: 0;
   background: radial-gradient(130% 95% at 50% 108%, rgba(255, 254, 249, 0.74), rgba(252, 246, 232, 0.64) 42%, rgba(245, 234, 211, 0.56));
+  will-change: opacity;
 }
 #entrance.expose :is(.e-flood, .e-mote) { opacity: 0; transition: opacity 1.05s cubic-bezier(0.25, 0.7, 0.25, 1); }
 .e-shafts { position: absolute; inset: 0; }
