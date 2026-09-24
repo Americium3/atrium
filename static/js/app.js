@@ -3724,6 +3724,23 @@ function renderDateline() {
   if ($('#dateline').textContent !== txt) $('#dateline').textContent = txt;
 }
 
+/* The poll alone left the dateline up to 45 s behind the clock's DATE
+   aperture, and TODAY's plaques under TODAY for as long. A timer aimed at
+   the next local midnight turns both with the clock. setHours(24) is the
+   next midnight across a clock change too, and a timer that wakes early
+   (or late, from a sleeping laptop) simply re-aims. */
+var midnightT = 0;
+function armMidnight() {
+  clearTimeout(midnightT);
+  var next = new Date();
+  next.setHours(24, 0, 0, 0);
+  midnightT = setTimeout(function () {
+    renderDateline();
+    if (!firstFeed) renderLedger();
+    armMidnight();
+  }, next.getTime() - Date.now() + 50);
+}
+
 // Replay leaves a one-shot flag for the pre-paint script and reloads. Every
 // load plays the entrance anyway; the flag is for a reader who set motion to
 // reduced, who then gets the quiet fade rather than a run of hard cuts.
@@ -3899,6 +3916,7 @@ document.addEventListener('keydown', function (e) {
    ======================================================================== */
 applyI18nStatic();
 renderDateline();
+armMidnight();
 renderGhosts();
 buildRosetteKnurl();
 buildDesk();

@@ -838,7 +838,9 @@ payload. Feed capped ~60 items, deduped by id, sorted ts desc.
 ## Client polling
 
 `/api/feed` + `/api/status` (+stats) every 45 s, gated on
-`document.visibilityState`, immediate refetch on tab refocus.
+`document.visibilityState`, immediate refetch on tab refocus. The dateline
+and the Ledger's TODAY / EARLIER break do not wait for a poll: a timer aimed
+at the next local midnight turns them with the clock's date aperture.
 
 ## Implementation notes (60 fps)
 
