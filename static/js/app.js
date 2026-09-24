@@ -1032,6 +1032,8 @@ function renderGates() {
     a.dataset.glass = id.glass || 'amber';
     // The day screen's title card: an intertitle border, the gate's own.
     a.dataset.card = id.card || 'fans';
+    a.dataset.ink = id.ink || 'oxblood';
+    a.dataset.stock = id.stock || 'cream';
     a.style.setProperty('--gi', String(i));
     a.style.setProperty('--folds', String(id.folds || 9));
     a.style.setProperty('--fold-x', (id.foldX || 0) + '%');

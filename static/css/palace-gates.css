@@ -383,14 +383,14 @@ html[lang="zh"] .g-lamp { letter-spacing: 0.2em; }
    the apron, and with the description hung at a fixed drop the house cut
    the slide's last line in half, or the day card's foot. The valance now
    hangs in the house's own column, and it and the gap under it are what
-   shrink: the swags draw up shallower (down to 5cqw), the gap down to
+   shrink: the swags draw up shallower (down to 4.5cqw), the gap down to
    the slide's own margin, and the words keep their size and stay clear of
    the hem. The slide's field reaches 2.4cqw past the words, so the column
    keeps that much room under them as well. */
 .g-sign { padding: 2.9cqw 2.4cqw 2.6cqw; }
 .g-valance {
   position: relative; left: auto; right: auto; top: auto; height: auto;
-  flex: 0 1 11.5cqw; min-height: 5cqw;
+  flex: 0 1 11.5cqw; min-height: 4.5cqw;
   margin: 0 -3%;
 }
 .g-house::before { content: ""; order: 1; flex: 0 1 4cqw; min-height: 2.4cqw; }
@@ -909,8 +909,102 @@ html[lang="zh"] .gate.vacant .g-desc { -webkit-text-stroke: 0.3px currentColor; 
     linear-gradient(180deg, #d6d1c5, #c7c1b2);
   background-blend-mode: normal, soft-light, normal;
 }
+/* ----- The title card, printed ---------------------------------------------
+   The card read as a blank cream rectangle with a hairline round it, its
+   fans, steps or lozenge drawn in 1px lines nobody could see from across
+   the room, so the three cards of a wing were twins. It is printed now, as
+   a picture palace's title cards were: a deco border band in the gate's
+   own ink (oxblood, bottle green or navy), a hairline inside the band, the
+   gate's corner motif printed solid in the same ink, a headpiece over the
+   words and the rule under them, on the gate's own card stock (cream, bone
+   or buff) with a lithographic grain. Ink, stock and motif each come from
+   the hash, unique within a wing. The headpiece is the first thing to give
+   way when the house is short; the words never do. */
+.gate[data-ink="oxblood"] { --card-ink: #6a1d19; --ink-loz: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'%3E%3Cpath d='M5 0L10 5L5 10L0 5Z' fill='%236a1d19'/%3E%3C/svg%3E"); }
+.gate[data-ink="bottle"]  { --card-ink: #1d4633; --ink-loz: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'%3E%3Cpath d='M5 0L10 5L5 10L0 5Z' fill='%231d4633'/%3E%3C/svg%3E"); }
+.gate[data-ink="navy"]    { --card-ink: #1c2b4c; --ink-loz: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'%3E%3Cpath d='M5 0L10 5L5 10L0 5Z' fill='%231c2b4c'/%3E%3C/svg%3E"); }
+.gate[data-stock="cream"] { --card-stock: #f3ead3; }
+.gate[data-stock="bone"]  { --card-stock: #f6f1e3; }
+.gate[data-stock="buff"]  { --card-stock: #f3e6cb; }
 :root[data-theme="ivory"] .gate[data-state="open"][data-card] .g-desc {
-  background-color: #f3ead3;
+  --band: clamp(3px, 2cqw, 7px);
+  border: var(--band) solid var(--card-ink);
+  outline: 1px solid var(--card-ink); outline-offset: calc(-1 * var(--band) - 0.7cqw);
+  padding: 1.4cqw 2.4cqw 1.3cqw;
+  background-color: var(--card-stock);
   box-shadow: 0 0.4cqw 0.5cqw rgba(50, 36, 18, 0.28), 0 1.4cqw 2.6cqw rgba(50, 36, 18, 0.16),
-              inset 0 0 2.4cqw rgba(150, 120, 70, 0.14);
+              inset 0 0 2.4cqw rgba(150, 120, 70, 0.12);
+}
+:root[data-theme="ivory"] .gate[data-state="open"][data-card="fans"] .g-desc {
+  background:
+    radial-gradient(circle at 0 0, var(--card-ink) 0 1.7cqw, transparent calc(1.7cqw + 0.5px) 2.4cqw, var(--card-ink) calc(2.4cqw + 0.5px) 2.9cqw, transparent calc(2.9cqw + 0.5px) 3.5cqw, var(--card-ink) calc(3.5cqw + 0.5px) 3.9cqw, transparent calc(3.9cqw + 0.5px)) 0 0 / 4.2cqw 4.2cqw no-repeat,
+    radial-gradient(circle at 100% 0, var(--card-ink) 0 1.7cqw, transparent calc(1.7cqw + 0.5px) 2.4cqw, var(--card-ink) calc(2.4cqw + 0.5px) 2.9cqw, transparent calc(2.9cqw + 0.5px) 3.5cqw, var(--card-ink) calc(3.5cqw + 0.5px) 3.9cqw, transparent calc(3.9cqw + 0.5px)) 100% 0 / 4.2cqw 4.2cqw no-repeat,
+    radial-gradient(circle at 0 100%, var(--card-ink) 0 1.7cqw, transparent calc(1.7cqw + 0.5px) 2.4cqw, var(--card-ink) calc(2.4cqw + 0.5px) 2.9cqw, transparent calc(2.9cqw + 0.5px) 3.5cqw, var(--card-ink) calc(3.5cqw + 0.5px) 3.9cqw, transparent calc(3.9cqw + 0.5px)) 0 100% / 4.2cqw 4.2cqw no-repeat,
+    radial-gradient(circle at 100% 100%, var(--card-ink) 0 1.7cqw, transparent calc(1.7cqw + 0.5px) 2.4cqw, var(--card-ink) calc(2.4cqw + 0.5px) 2.9cqw, transparent calc(2.9cqw + 0.5px) 3.5cqw, var(--card-ink) calc(3.5cqw + 0.5px) 3.9cqw, transparent calc(3.9cqw + 0.5px)) 100% 100% / 4.2cqw 4.2cqw no-repeat,
+    url('/static/assets/tex/grain-card.webp') 0 0 / 24cqw auto,
+    var(--card-stock);
+  background-blend-mode: normal, normal, normal, normal, soft-light, normal;
+}
+:root[data-theme="ivory"] .gate[data-state="open"][data-card="steps"] .g-desc {
+  background:
+    linear-gradient(var(--card-ink), var(--card-ink)) 0 0 / 4.2cqw 1cqw no-repeat,
+    linear-gradient(var(--card-ink), var(--card-ink)) 0 0 / 3.15cqw 2cqw no-repeat,
+    linear-gradient(var(--card-ink), var(--card-ink)) 0 0 / 2.1cqw 3cqw no-repeat,
+    linear-gradient(var(--card-ink), var(--card-ink)) 0 0 / 1.05cqw 4cqw no-repeat,
+    linear-gradient(var(--card-ink), var(--card-ink)) 100% 0 / 4.2cqw 1cqw no-repeat,
+    linear-gradient(var(--card-ink), var(--card-ink)) 100% 0 / 3.15cqw 2cqw no-repeat,
+    linear-gradient(var(--card-ink), var(--card-ink)) 100% 0 / 2.1cqw 3cqw no-repeat,
+    linear-gradient(var(--card-ink), var(--card-ink)) 100% 0 / 1.05cqw 4cqw no-repeat,
+    linear-gradient(var(--card-ink), var(--card-ink)) 0 100% / 4.2cqw 1cqw no-repeat,
+    linear-gradient(var(--card-ink), var(--card-ink)) 0 100% / 3.15cqw 2cqw no-repeat,
+    linear-gradient(var(--card-ink), var(--card-ink)) 0 100% / 2.1cqw 3cqw no-repeat,
+    linear-gradient(var(--card-ink), var(--card-ink)) 0 100% / 1.05cqw 4cqw no-repeat,
+    linear-gradient(var(--card-ink), var(--card-ink)) 100% 100% / 4.2cqw 1cqw no-repeat,
+    linear-gradient(var(--card-ink), var(--card-ink)) 100% 100% / 3.15cqw 2cqw no-repeat,
+    linear-gradient(var(--card-ink), var(--card-ink)) 100% 100% / 2.1cqw 3cqw no-repeat,
+    linear-gradient(var(--card-ink), var(--card-ink)) 100% 100% / 1.05cqw 4cqw no-repeat,
+    url('/static/assets/tex/grain-card.webp') 0 0 / 24cqw auto,
+    var(--card-stock);
+  background-blend-mode: normal, normal, normal, normal, normal, normal, normal, normal, normal, normal, normal, normal, normal, normal, normal, normal, soft-light, normal;
+}
+:root[data-theme="ivory"] .gate[data-state="open"][data-card="lozenge"] .g-desc {
+  background:
+    var(--ink-loz) 0 0 / 3.2cqw 3.2cqw no-repeat,
+    var(--ink-loz) 100% 0 / 3.2cqw 3.2cqw no-repeat,
+    var(--ink-loz) 0 100% / 3.2cqw 3.2cqw no-repeat,
+    var(--ink-loz) 100% 100% / 3.2cqw 3.2cqw no-repeat,
+    var(--ink-loz) 3.4cqw 0.3cqw / 1.3cqw 1.3cqw no-repeat,
+    var(--ink-loz) 0.3cqw 3.4cqw / 1.3cqw 1.3cqw no-repeat,
+    var(--ink-loz) calc(100% - 3.4cqw) 0.3cqw / 1.3cqw 1.3cqw no-repeat,
+    var(--ink-loz) calc(100% - 0.3cqw) 3.4cqw / 1.3cqw 1.3cqw no-repeat,
+    var(--ink-loz) 3.4cqw calc(100% - 0.3cqw) / 1.3cqw 1.3cqw no-repeat,
+    var(--ink-loz) 0.3cqw calc(100% - 3.4cqw) / 1.3cqw 1.3cqw no-repeat,
+    var(--ink-loz) calc(100% - 3.4cqw) calc(100% - 0.3cqw) / 1.3cqw 1.3cqw no-repeat,
+    var(--ink-loz) calc(100% - 0.3cqw) calc(100% - 3.4cqw) / 1.3cqw 1.3cqw no-repeat,
+    url('/static/assets/tex/grain-card.webp') 0 0 / 24cqw auto,
+    var(--card-stock);
+  background-blend-mode: normal, normal, normal, normal, normal, normal, normal, normal, normal, normal, normal, normal, soft-light, normal;
+}
+/* The headpiece: the card's motif flanked by two rules, printed in its ink
+   (a mask over the ink, so one drawing serves all three inks). It stands in
+   the card's column over the words and takes only room the card has to
+   spare: it grows from nothing up to its full size (and a gap under it),
+   so a short house loses the headpiece before anything else. */
+:root[data-theme="ivory"] .gate[data-state="open"][data-card] .g-desc::before {
+  content: ""; display: block; position: relative; inset: auto; z-index: auto;
+  flex: 1 1 0; min-height: 0; max-height: 4.3cqw; width: 72%; margin: 0 auto;
+  opacity: 1; box-shadow: none;
+  background: var(--card-ink);
+  -webkit-mask: var(--headpiece) 50% 0 / auto min(3.2cqw, 100%) no-repeat;
+  mask: var(--headpiece) 50% 0 / auto min(3.2cqw, 100%) no-repeat;
+}
+.gate[data-card="fans"] { --headpiece: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 16'%3E%3Crect x='0' y='12.4' width='45' height='1.2' fill='white'/%3E%3Crect x='75' y='12.4' width='45' height='1.2' fill='white'/%3E%3Cg fill='none' stroke='white' stroke-width='1.5'%3E%3Cpath d='M47 13a13 13 0 0 1 26 0'/%3E%3Cpath d='M51.5 13a8.5 8.5 0 0 1 17 0'/%3E%3C/g%3E%3Cpath d='M56 13a4 4 0 0 1 8 0z' fill='white'/%3E%3Crect x='47' y='12.4' width='26' height='1.6' fill='white'/%3E%3C/svg%3E"); }
+.gate[data-card="steps"] { --headpiece: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 16'%3E%3Crect x='0' y='12.4' width='45' height='1.2' fill='white'/%3E%3Crect x='75' y='12.4' width='45' height='1.2' fill='white'/%3E%3Crect x='48' y='11' width='24' height='3' fill='white'/%3E%3Crect x='51.5' y='7.6' width='17' height='2.6' fill='white'/%3E%3Crect x='55' y='4.2' width='10' height='2.6' fill='white'/%3E%3Crect x='58.2' y='1' width='3.6' height='2.4' fill='white'/%3E%3C/svg%3E"); }
+.gate[data-card="lozenge"] { --headpiece: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 16'%3E%3Crect x='0' y='7.4' width='43' height='1.2' fill='white'/%3E%3Crect x='77' y='7.4' width='43' height='1.2' fill='white'/%3E%3Cpath d='M60 1L67 8L60 15L53 8Z' fill='white'/%3E%3Cpath d='M47 4.5L50.5 8L47 11.5L43.5 8Z' fill='white'/%3E%3Cpath d='M73 4.5L76.5 8L73 11.5L69.5 8Z' fill='white'/%3E%3C/svg%3E"); }
+/* The rule under the words, in the card's ink. */
+:root[data-theme="ivory"] .gate[data-state="open"][data-card] .g-desc::after {
+  background:
+    linear-gradient(var(--card-ink), var(--card-ink)) 0 50% / calc(50% - 1.6cqw) 1px no-repeat,
+    linear-gradient(var(--card-ink), var(--card-ink)) 100% 50% / calc(50% - 1.6cqw) 1px no-repeat,
+    var(--ink-loz) 50% 50% / 1.4cqw 1.4cqw no-repeat;
 }

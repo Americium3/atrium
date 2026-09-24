@@ -753,15 +753,19 @@ the lamp and takes the address line's place while it stands.
   description is a lantern slide on the closed tabs (a dark field ruled like
   the day card, carrying the gate's own corner ornament in light). By day the
   tabs are drawn back and tied, and the screen shows the title card: card
-  stock in front of a matte silver screen, set semibold in `#160f06`, never
+  stock in front of a matte silver screen, printed in the gate's own ink
+  (oxblood, bottle green or navy) with a border band, its corner motif, a
+  headpiece and a rule, set semibold in `#160f06`, never
   smaller than its words.
 - **Lamp states**: `…` (checking, until the first /api/status, lights at
   35%), OPEN, DARK. The lamp always renders its text label. State never
   depends on luminance alone.
 - **Hover** (a pointer that can rest) **and focus-visible**: at night the
   curtain lifts 8% off the stage and the footlit foot of the screen shows
-  under the fringe; the tabs never part. The arch rises 3px on the pose
-  inside the link, and one sheen crosses the gilding. By day the card stays.
+  under the fringe; the tabs never part. A DARK house keeps its curtain
+  down. The arch rises 3px on the pose inside the link (its hit area keeps
+  its foot on the floor), and one sheen crosses the gilding. By day the
+  card stays.
   A gate takes the pointer only inside its arch and on its lettering, never
   on the wall above its shoulders.
 - **Focus** traces the outer arch five units out from the arris as a
@@ -772,13 +776,15 @@ the lamp and takes the address line's place while it stands.
   champagne inside 240 ms, then `window.open(url, 'atrium-<serviceId>')`, a
   named window so each service reuses one tab. A modifier or middle click is
   left to the browser.
-- **DARK gate**: fanlight and coves off, tabs closed, the engraving at 35%,
-  the lamp a hollow diamond (extinguished, not alarmed, no red). Clicking
-  pins a printed card on the curtain with the service's launcher hint (from
-  the registry) instead of opening a dead tab; the path breaks only at its
-  separators, so a copy is exact, and the card tightens a step at a time to
-  stay inside the house. All-dark hall: one engraved line "The hall is dark.
-  No services are reachable."
+- **DARK gate**: fanlight and coves off, tabs closed and the velvet in
+  shadow, the engraving at 35% (full strength under forced colours or more
+  contrast), the lamp a hollow diamond (extinguished, not alarmed, no red).
+  Clicking pins a printed card on the curtain, a house notice headed DARK,
+  with the service's launcher hint (from the registry) instead of opening a
+  dead tab; a keyboard press pins it and says it every time. The path
+  breaks only at its separators, so a copy is exact, and the card tightens
+  a step at a time to stay inside the house. All-dark hall: one engraved
+  line "The hall is dark. No services are reachable."
 - **Reserved**: the same architecture in bare plaster, its bezel holding a
   blank cover plate, behind an iron safety curtain: red oxide primer steel
   in three lapped courses, domed rivets lit on the lamp side, a stencilled
