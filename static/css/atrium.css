@@ -3281,9 +3281,12 @@ html[lang="zh"] .g-name { letter-spacing: 0.17em; }
 /* Torchieres. */
 .sconce {
   top: calc(var(--cornice-h) + 20%);
-  width: calc(44px * var(--ui)); margin-left: calc(-22px * var(--ui));
+  /* --sc: a narrow bay's smaller lamp (fillSpan). The wash and the pool
+     below scale with it. */
+  --scu: calc(var(--ui) * var(--sc, 1));
+  width: calc(44px * var(--scu)); margin-left: calc(-22px * var(--scu));
 }
-.sc-body { position: relative; z-index: 2; filter: drop-shadow(0 calc(3px * var(--ui)) calc(3px * var(--ui)) rgba(0, 0, 0, 0.55)); }
+.sc-body { position: relative; z-index: 2; filter: drop-shadow(0 calc(3px * var(--scu)) calc(3px * var(--scu)) rgba(0, 0, 0, 0.55)); }
 .sc-body path { stroke: none; }
 .sc-body .sc-plate { fill: var(--lead-2); }
 .sc-body .sc-lit { fill: var(--lead-5); }
@@ -3296,8 +3299,8 @@ html[lang="zh"] .g-name { letter-spacing: 0.17em; }
 /* The uplight: a scalloped wash on the damask, ribbed by the bowl's
    fluting, brightest just above the rim and dying up the wall. */
 .sc-pool {
-  position: absolute; left: 50%; top: calc(-250px * var(--ui));
-  width: calc(210px * var(--ui)); height: calc(280px * var(--ui));
+  position: absolute; left: 50%; top: calc(-250px * var(--scu));
+  width: calc(210px * var(--scu)); height: calc(280px * var(--scu));
   transform: translateX(-50%);
   background:
     repeating-conic-gradient(from -70deg at 50% 100%, var(--wash-ray) 0 4deg, transparent 4deg 9deg),
@@ -3317,8 +3320,8 @@ html[lang="zh"] .g-name { letter-spacing: 0.17em; }
   pointer-events: none;
 }
 .sc-down {
-  position: absolute; left: 50%; top: calc(26px * var(--ui));
-  width: calc(90px * var(--ui)); height: calc(120px * var(--ui));
+  position: absolute; left: 50%; top: calc(26px * var(--scu));
+  width: calc(90px * var(--scu)); height: calc(120px * var(--scu));
   transform: translateX(-50%);
   background: radial-gradient(50% 50% at 50% 20%, color-mix(in srgb, var(--wash) 45%, transparent), transparent 75%);
   mix-blend-mode: screen;
@@ -3340,6 +3343,12 @@ html[lang="zh"] .g-name { letter-spacing: 0.17em; }
 }
 /* The Chinese plate's hairline strokes need more body at this size. */
 html[lang="zh"] .bay-plate { font-weight: 700; letter-spacing: 0.16em; }
+/* A narrow bay's plate carries the numeral alone, set closer, with the
+   trailing tracking balanced by the left padding. */
+.aisle-wall .bay-plate.bay-num {
+  letter-spacing: 0.14em;
+  padding-left: calc(4px * var(--ui) + 0.14em); padding-right: calc(4px * var(--ui));
+}
 
 /* ----- The floor ---------------------------------------------------------
    Polished terrazzo, big slabs, brass (night) or white-metal (day) strips

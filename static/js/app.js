@@ -1518,9 +1518,12 @@ function pilaster(x, k) {
    damask (the cut edge of a cone on a wall is a hyperbola, which is what
    the wash's mask approximates), with a smaller pool below; by day the lamp
    is out and the bowl is just carved stone catching the street light. */
-function sconce(x) {
+function sconce(x, s) {
   var d = el('div', 'sconce');
   d.style.left = x + 'px';
+  // A narrow bay takes a smaller lamp: the fixture, its bracket and the
+  // light it throws all scale by s.
+  if (s < 1) d.style.setProperty('--sc', s.toFixed(3));
   d.appendChild(el('div', 'sc-pool'));
   d.appendChild(el('div', 'sc-down'));
   var svg = svgEl('svg', { viewBox: '0 0 46 72', 'aria-hidden': 'true' }, 'sc-body');
@@ -1651,6 +1654,10 @@ function buildStanchions() {
   rail.appendChild(svg);
 }
 
+/* The smallest a torchiere is cast, as a share of its full 44u: below it
+   the bowl no longer reads as alabaster, and the bay stands unlit. */
+var SCONCE_MIN = 0.45;
+
 /* Lay a rhythm of bays across one clear stretch of wall, a pilaster at each
    end. Returns how many bays it used. */
 function fillSpan(node, x0, x1, firstBay, edge) {
@@ -1670,17 +1677,27 @@ function fillSpan(node, x0, x1, firstBay, edge) {
   // torchiere is 44u wide; the bay plate is as wide as its lettering. The
   // old test (a 52u span) hung both across the pilasters in the sliver bays
   // at the screen's edges, and ran a plate off the screen at 3440 (LY-15,
-  // VD-6). A sliver bay stands unlit and unnumbered; the numbering runs on
-  // over the bays that carry a plate.
+  // VD-6). Leaving those bays bare took the lamps and the numbers off the
+  // wall at 1280 to 1600 and at 3440, where the edge bay is the only one,
+  // so a narrow bay takes a smaller lamp, with 2u of wall either side of
+  // it, and a plate cut with the numeral alone when the full legend will
+  // not fit. Only a bay too narrow even for those stands bare, and the
+  // numbering runs on over the bays that carry a plate.
   var clear = bay - 28 * u;
+  var lamp = Math.min(1, (clear - 4 * u) / (44 * u));
   var numbered = 0;
   for (var j = 0; j < n; j++) {
     var mid = x0 + (j + 0.5) * bay;
-    if (clear >= 48 * u) node.appendChild(sconce(mid));
-    var plate = el('div', 'bay-plate display', t('bayLabel', { n: roman(firstBay + numbered) }));
+    if (lamp >= SCONCE_MIN) node.appendChild(sconce(mid, lamp));
+    var num = roman(firstBay + numbered);
+    var plate = el('div', 'bay-plate display', t('bayLabel', { n: num }));
     plate.style.left = mid + 'px';
     node.appendChild(plate);
-    if (plate.offsetWidth + 8 * u > clear) node.removeChild(plate);
+    if (plate.offsetWidth + 8 * u > clear) {
+      plate.textContent = num;
+      plate.classList.add('bay-num');
+    }
+    if (plate.offsetWidth + 4 * u > clear) node.removeChild(plate);
     else numbered++;
   }
   return numbered;

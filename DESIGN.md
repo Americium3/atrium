@@ -490,10 +490,13 @@ proud of the field with a shadow behind it, plinth block), one sconce per
 bay throwing a pool on the plaster, and a Roman bay number engraved on the
 chair rail.
 
-A bay takes its torchiere only when the fixture stands clear between the
-shafts of the pilasters at its two ends, and its plate only when the plate's
-lettering does; a sliver bay at the screen's edge stands unlit and
-unnumbered, and the numbers run on over the bays that carry a plate.
+Whatever a bay holds stands clear between the shafts of the pilasters at
+its two ends. A narrow bay, like the edge bays from 1280 to 1600 and at
+3440, takes a smaller torchiere with 2u of wall either side, its wash
+scaled with it, and a plate cut with the numeral alone (`II`) when the full
+legend will not fit. A lamp is never cast below 0.45 of its size. A bay too
+narrow even for that (3440 at SIGNBOARD) stands unlit and unnumbered, and
+the numbers run on over the bays that carry a plate.
 
 **Bays are measured, not assumed.** `layoutStage()` publishes
 `triptychHalf`, how far the composition actually reaches from the axis,
