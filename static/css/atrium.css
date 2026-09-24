@@ -226,7 +226,15 @@
 :root[data-wing="bureau"] { --metal: var(--plat); --metal-hi: var(--plat-hi); }
 
 :root {
-  --serif: 'EB Garamond', Georgia, 'Palatino Linotype', serif;
+  /* One stack for both languages. The CJK face sits second, so it sets every
+     Chinese character in either hall: with it only under html[lang="zh"],
+     a CJK title in the English hall, and any element that names var(--serif)
+     itself, fell through to the generic serif, which Chrome resolves to
+     SimSun for Chinese text (and bolds by hand at weight 600). The face only
+     sets what EB Garamond lacks, and measured glyph by glyph (arrows, the
+     diamond, primes, dashes) the only characters that change are Chinese. */
+  --serif: 'EB Garamond', 'LXGW Heart Serif', Georgia, 'Palatino Linotype',
+           'Microsoft YaHei', serif;
   /* The stage now seats a clock between the arches — the gates give up some
      width so all three stand on one screen without crowding. On a wide wall
      the module grows with the lettering (--ui): a 1720px diorama stranded in
@@ -278,7 +286,6 @@ body {
   /* No bottom clearance any more. The signal desk stands ON the floor rather
      than under the page, so the hall owns every pixel down to the edge. */
 }
-html[lang="zh"] body { font-family: 'EB Garamond', 'LXGW Heart Serif', 'Microsoft YaHei', serif; }
 /* Atmosphere sheet: vignette + fine grain in front of the hall — implies
    air, unifies the depth layers, kills gradient banding on dark ground. */
 body::after {
@@ -1769,12 +1776,6 @@ html[data-boot="suppressed"] #signal-desk {
   font-family: var(--serif);
   fill: var(--ink-faint);
   font-variant-numeric: tabular-nums;
-}
-/* --serif carries no CJK face, and an SVG text node does not inherit the
-   body's zh stack — it takes whatever the browser substitutes, which is a
-   different serif from every other Chinese word in the hall. */
-html[lang="zh"] .al-arc text {
-  font-family: 'EB Garamond', 'LXGW Heart Serif', 'Microsoft YaHei', serif;
 }
 .al-arc .a-lab { font-size: 8px; letter-spacing: 1.5px; }
 .al-arc .a-time { font-size: 12px; fill: var(--ink); letter-spacing: 0.6px; }
