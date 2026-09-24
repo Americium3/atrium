@@ -2762,13 +2762,37 @@ function almanacVisible() {
          document.visibilityState === 'visible';
 }
 
+/* A payload without weather is the hub reporting a miss, and the hub asks
+   the forecast service again 120 s later (almanac.py FAIL_TTL_S).
+   The board asks on the same beat: waiting out the ten-minute poll kept one
+   missed forecast engraved as NO READING for ten minutes. */
+var ALM_RETRY_MS = 121000;   // just past the hub's 120 s, so the retry is real
+var almRetryT = null;
+var almReadAt = 0;
+
 function pollAlmanac() {
   if (!almanacVisible()) return Promise.resolve();
   return fetchJson('/api/almanac').then(function (a) {
     almanac = a;
+    almReadAt = Date.now();
+    clearTimeout(almRetryT);
+    if (!a.weather) almRetryT = setTimeout(pollAlmanac, ALM_RETRY_MS);
     renderAlmanac();
   }).catch(function () { /* a restarting hub is not a forecast */ });
 }
+
+/* The boards open at 2800px, so a window that grows past that shows a case
+   that has never read anything: the boot poll declined while it was hidden,
+   and the Almanac waited out a minute of blank plate for its sky tick. Read
+   the moment the case opens. */
+var boardsT = null;
+window.addEventListener('resize', function () {
+  clearTimeout(boardsT);
+  boardsT = setTimeout(function () {
+    if (!works) pollWorks();
+    if (!almanac || !almanac.weather || Date.now() - almReadAt > ALM_POLL_MS) pollAlmanac();
+  }, 150);
+});
 
 function startAlmanac() {
   clearInterval(almTimer);

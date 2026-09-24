@@ -551,10 +551,13 @@ ignored. A lobby board has nowhere to report a parse error to.
 **The almanac poll.** `/api/almanac` every 10 minutes and the plate re-drawn
 every 60 seconds, both gated on `almanacVisible()` for the same reason the
 works board is: below 2800px the case is `display:none`, and a hidden panel
-must not have the hub calling a weather service on the reader's behalf. The
-60s tick is also the way back from a cold start: the case can be opened by
-a resize long after the boot fetch declined to run, and ten minutes of a
-blank plate is not a wait, it is a fault.
+must not have the hub calling a weather service on the reader's behalf. A
+resize that opens the case reads it at once, since the boot fetch declined
+while the case was hidden and the 60 s tick used to leave a blank plate for
+up to a minute; the tick stays as the fallback. A payload with no weather
+is the hub reporting a miss, and the board asks again 121 s later, just past
+the hub's own 120 s retry, rather than keeping NO READING up for the whole
+ten-minute poll.
 
 ## Gates (R9)
 
