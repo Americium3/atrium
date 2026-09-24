@@ -530,9 +530,9 @@ html[lang="zh"] .g-lamp { letter-spacing: 0.2em; }
   .portal .p-focus { stroke: Highlight; stroke-width: 4; }
   .portal .p-focus-bulbs { display: none; }
 }
-/* The niche is scenery (the clock is aria-hidden and says the time in
-   text): under forced colours it keeps its own paint rather than being
-   redrawn as system lines. */
+/* The niche is scenery (its drawing is aria-hidden and the clock says the
+   time in text): under forced colours it keeps its own paint rather than
+   being redrawn as system lines. */
 @media (forced-colors: active) { .niche { forced-color-adjust: none; } }
 
 /* ==========================================================================

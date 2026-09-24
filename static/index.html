@@ -424,8 +424,9 @@
       <!-- The hall's centrepiece, set into the back wall between the gates.
            Built by clock.js — the 1000-unit geometry stays in one place with
            its drive loop. It sits inside #stage so the stage solves its slot
-           alongside the gates and the three re-compose together. -->
-      <div id="clock" aria-hidden="true"></div>
+           alongside the gates and the three re-compose together. Its
+           drawing is aria-hidden; the time it keeps is read as text. -->
+      <div id="clock"></div>
       <div id="gates"></div>
       <p id="hall-status" class="sr-only" role="status" aria-live="polite"></p>
       <div id="all-dark" hidden data-i18n="allDark">The hall is dark. No services are reachable.</div>

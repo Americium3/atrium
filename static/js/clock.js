@@ -481,6 +481,9 @@ function crestRays() {
 function build(host) {
   var wrap = document.createElement('div');
   wrap.className = 'niche';
+  // The drawing is scenery. The host itself is not hidden: the time below
+  // is read from it, and inside an aria-hidden host it never was (AT-2).
+  wrap.setAttribute('aria-hidden', 'true');
   wrap.innerHTML = niche();
 
   var svg = document.createElementNS(NS, 'svg');
@@ -503,6 +506,7 @@ function build(host) {
   // reflection that repaints every second.
   var mir = document.createElement('div');
   mir.className = 'ck-mirror';
+  mir.setAttribute('aria-hidden', 'true');
   host.appendChild(mir);
 
   /* The dial itself is decorative art, but it is the hall's only clock — so
