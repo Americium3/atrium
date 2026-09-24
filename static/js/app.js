@@ -1555,6 +1555,15 @@ function renderGates() {
     face.appendChild(sig
       ? svgUse('sigil mark', '0 0 96 96', '#mark-' + sig)
       : svgUse('sigil', '0 0 96 96', '#sig-fallback'));
+    // The domed crystal the bezel holds over the mark (palace.js).
+    if (window.Palace) {
+      var crys = document.createElementNS(ns, 'svg');
+      crys.setAttribute('class', 'g-crystal');
+      crys.setAttribute('viewBox', '104 100 92 92');
+      crys.setAttribute('aria-hidden', 'true');
+      crys.innerHTML = window.Palace.crystal();
+      face.appendChild(crys);
+    }
     // The name is signage on the transom: gilt behind black glass.
     var sign = el('div', 'g-sign');
     var gname = el('h3', 'g-name display', svc.name);

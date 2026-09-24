@@ -187,3 +187,49 @@
 .nc-tr { right: 0; top: 0; }
 .nc-br { right: 0; bottom: calc(var(--sill) - var(--st) * 1.4); }
 .nc-bl { left: 0; bottom: calc(var(--sill) - var(--st) * 1.4); }
+
+/* ==========================================================================
+   THE CARTOUCHE: A MACHINED BEZEL FOR THE MARK
+   ==========================================================================
+   Grafted from prototype B. The lozenge plate is screwed to the fanlight's
+   hub and a machined bezel is set into it: knurled rim, turned ring with
+   its conic highlight, rivets each lit on the lamp side, a black enamel
+   field, and a domed crystal over the mark. Drawn in palace.js. */
+.portal .bz-shadow { fill: rgba(0, 0, 0, 0.55); }
+.portal .bz-rim { fill: none; stroke: var(--lead-1); }
+.portal .bz-kn0 { fill: var(--lead-3); }
+.portal .bz-kn1 { fill: var(--lead-2); }
+.portal .bz-kn2 { fill: var(--lead-0); }
+.portal .bz-t0 { fill: var(--lead-0); }
+.portal .bz-t1 { fill: var(--lead-1); }
+.portal .bz-t2 { fill: var(--lead-2); }
+.portal .bz-t3 { fill: var(--lead-4); }
+.portal .bz-t4 { fill: var(--lead-5); }
+.portal .bz-t5 { fill: var(--lead-3); }
+.portal .bz-groove { fill: none; stroke: rgba(0, 0, 0, 0.32); stroke-width: 0.45; }
+.portal .bz-arris { fill: none; stroke: var(--glaze); stroke-width: 0.8; }
+.portal .bz-rv-sh { fill: rgba(0, 0, 0, 0.55); }
+.portal .bz-rv { fill: var(--lead-2); }
+.portal .bz-rv-lt { fill: var(--lead-5); }
+.portal .bz-field { fill: var(--enamel); }
+.portal .bz-lip-lt { fill: var(--lead-4); opacity: 0.75; }
+.portal .bz-lip-sh { fill: rgba(0, 0, 0, 0.65); }
+.portal .bz-blank { fill: var(--lead-2); stroke: var(--lead-0); stroke-width: 0.6; }
+.portal .bz-blank-ring { fill: none; stroke: var(--lead-0); stroke-width: 0.8; }
+/* The plate's lozenge now shows only its points round the bezel; its
+   field is the plate's own ground, a step darker than the facets. */
+.portal .c-field { fill: var(--lead-1); }
+/* The crystal: its own small sheet over the mark, in portal units
+   (viewBox 104 100 92 92 on the 300 x 570 gate box). */
+.g-crystal {
+  position: absolute;
+  left: 34.667%; top: 17.544%; width: 30.667%; height: auto; aspect-ratio: 1;
+  overflow: visible; pointer-events: none;
+}
+.g-crystal .cr-dome { fill: #fffaf0; opacity: 0.13; }
+.g-crystal .cr-bounce { fill: #fff6e0; opacity: 0.08; }
+.g-crystal .cr-arc { fill: none; stroke: #fffaf0; stroke-width: 0.8; stroke-linecap: round; opacity: 0.38; }
+.g-crystal .cr-glint { fill: #fffdf6; opacity: 0.9; }
+.g-crystal .cr-edge { fill: none; stroke: rgba(255, 250, 235, 0.2); stroke-width: 0.6; }
+/* A reserved gate's bezel holds a blank cover plate: no mark, no crystal. */
+.gate.vacant .sigil, .gate.vacant .g-crystal { visibility: hidden; }
