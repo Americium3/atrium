@@ -1023,11 +1023,13 @@ function renderGates() {
       a.setAttribute('aria-hidden', 'true');
     } else {
       a.href = svc.url;
-      // Named by its engraved name and its lamp, described by everything
-      // else it says. An aria-label of the bare name used to hide the lamp,
-      // the description and the status line from a screen reader.
-      a.setAttribute('aria-labelledby', 'gn-' + svc.id + ' gl-' + svc.id);
-      a.setAttribute('aria-describedby', ['gd-', 'gs-', 'gnote-', 'gx-']
+      // Named by its engraved name, described by everything else it says,
+      // the lamp first. An aria-label of the bare name used to hide the lamp,
+      // the description and the status line from a screen reader. The lamp
+      // word is not in the name: "OUTREACH DESK 已点亮" was one name in two
+      // languages, and a name is voiced in one.
+      a.setAttribute('aria-labelledby', 'gn-' + svc.id);
+      a.setAttribute('aria-describedby', ['gl-', 'gd-', 'gs-', 'gnote-', 'gx-']
         .map(function (p) { return p + svc.id; }).join(' ') + ' opens-tab');
     }
     a.dataset.service = svc.id;

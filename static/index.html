@@ -492,8 +492,10 @@
       </button>
       <div class="chips" role="radiogroup" data-i18n-aria="ariaFilter" aria-label="Filter">
         <button class="chip display" role="radio" aria-checked="true" data-chip="all" data-i18n="chipAll">ALL</button>
-        <button class="chip display" role="radio" aria-checked="false" data-chip="salon" data-i18n-title="salonWing" tabindex="-1" lang="en">SALON</button>
-        <button class="chip display" role="radio" aria-checked="false" data-chip="bureau" data-i18n-title="bureauWing" tabindex="-1" lang="en">BUREAU</button>
+        <!-- The engraved word is English; the tooltip that describes it is in
+             the hall's language, so lang=en sits on the word, not the chip. -->
+        <button class="chip display" role="radio" aria-checked="false" data-chip="salon" data-i18n-title="salonWing" tabindex="-1"><span lang="en">SALON</span></button>
+        <button class="chip display" role="radio" aria-checked="false" data-chip="bureau" data-i18n-title="bureauWing" tabindex="-1"><span lang="en">BUREAU</span></button>
       </div>
     </div>
     <!-- The stamp. Resting on a plaque strikes one dispatch; this strikes the
@@ -626,11 +628,13 @@
     <section class="p-group">
       <h3 class="p-label display" id="lbl-language" data-i18n="language">LANGUAGE</h3>
       <div class="p-options" role="radiogroup" aria-labelledby="lbl-language" data-pref="lang">
-        <button class="p-plaque" role="radio" data-value="en">
-          <span class="p-name display" lang="en">ENGLISH</span>
+        <!-- lang on the radio itself: its name is what a screen reader says,
+             and a name is voiced in the language of the element it names. -->
+        <button class="p-plaque" role="radio" data-value="en" lang="en">
+          <span class="p-name display">ENGLISH</span>
         </button>
-        <button class="p-plaque" role="radio" data-value="zh">
-          <span class="p-name display" lang="zh">中文</span>
+        <button class="p-plaque" role="radio" data-value="zh" lang="zh">
+          <span class="p-name display">中文</span>
         </button>
       </div>
     </section>
