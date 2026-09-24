@@ -489,6 +489,13 @@ html[lang="zh"] #masthead .p-caption { letter-spacing: 0.3em; }
               filter 0.45s ease;
 }
 .wall-cornice { transition: filter 0.45s ease; }
+/* The pilasters' parts kept their own 0.4s fill and background transitions
+   from before the wall eased. Inside an easing wall each frame's new leaf
+   restarted them, so the capitals and shafts trailed the wall's leaf and
+   settled at about 900ms instead of 450ms. The wall's leaf is the only
+   clock they need. */
+.aisle-wall .pil-cap :is(path, rect), .aisle-wall .pil-base :is(path, rect),
+.aisle-wall .pil-shaft { transition: none; }
 
 /* ==========================================================================
    THE BACK WALL
