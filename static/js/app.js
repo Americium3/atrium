@@ -482,172 +482,205 @@ function cancelDwells() {
 }
 
 /* ========================================================================
-   Entrance — the sequence assembles the chrome (see DESIGN.md timeline)
+   Entrance: the house curtain (see DESIGN.md timeline)
    ======================================================================== */
 var entrance = $('#entrance');
 var entranceTimers = [];
-
-function buildRays() {
-  var g = $('.e-rays');
-  if (!g) return;
-  var ns = 'http://www.w3.org/2000/svg';
-  for (var i = 0; i < 24; i++) {
-    // Rotation lives on a wrapper <g> attribute: the ray's CSS scale
-    // animation would otherwise override the transform attribute entirely.
-    var wrap = document.createElementNS(ns, 'g');
-    wrap.setAttribute('transform', 'rotate(' + (i * 15) + ' 400 400)');
-    var line = document.createElementNS(ns, 'line');
-    line.setAttribute('x1', '400'); line.setAttribute('y1', '288');
-    line.setAttribute('x2', '400'); line.setAttribute('y2', '46');
-    line.style.setProperty('--i', String(i));
-    wrap.appendChild(line);
-    g.appendChild(wrap);
-  }
+var ENS = 'http://www.w3.org/2000/svg';
+function eEl(tag, attrs, cls) {
+  var e = document.createElementNS(ENS, tag);
+  for (var k in attrs) e.setAttribute(k, attrs[k]);
+  if (cls) e.setAttribute('class', cls);
+  return e;
 }
 
-/* Vault boltwork: 8 radial rods around the drawn circle. Rotation lives on
-   wrapper <g> attributes (attribute/CSS override law); the retract is a
-   plain translateY on each line, made radial by the wrapper rotation.
-   --bi index drives the 12ms stagger; slight stroke-width variation (hash)
-   makes the bolts feel individually machined, not stamped. */
-function buildBolts() {
-  var g = $('.e-bolts');
+/* The crest on the house curtain: a gilt sunburst appliqued on the velvet
+   (the rays, which exist nowhere else in the hall but in the day's light
+   shafts) behind a medallion carrying the rosette. Built once. */
+function buildRays() {
+  var g = $('.e-rays'), m = $('.e-medal');
   if (!g || g.childNodes.length) return;
-  var ns = 'http://www.w3.org/2000/svg';
-  var swVariants = [5, 4.5, 5.5, 4, 5, 5.5, 4.5, 5];
-  for (var i = 0; i < 8; i++) {
-    var wrap = document.createElementNS(ns, 'g');
-    wrap.setAttribute('transform', 'rotate(' + (i * 45) + ' 400 400)');
-    var line = document.createElementNS(ns, 'line');
-    line.setAttribute('x1', '400'); line.setAttribute('y1', '306');
-    line.setAttribute('x2', '400'); line.setAttribute('y2', '262');
-    line.setAttribute('stroke-width', String(swVariants[i]));
-    line.style.setProperty('--bi', String(i));
-    line.setAttribute('class', 'e-bolt-' + i);
-    wrap.appendChild(line);
-    g.appendChild(wrap);
+  // Gilt thread catches the light in rings as it runs out along each ray.
+  var defs = eEl('defs', {});
+  var gr = eEl('radialGradient', { id: 'e-gilt', gradientUnits: 'userSpaceOnUse', cx: 0, cy: 0, r: 330 });
+  [0, 0.28, 0.55, 0.8, 1].forEach(function (o, k) { gr.appendChild(eEl('stop', { offset: o }, 'e-gilt-' + k)); });
+  defs.appendChild(gr);
+  var pt = eEl('pattern', { id: 'e-gilt-tex', patternUnits: 'userSpaceOnUse', width: 90, height: 90 });
+  pt.appendChild(eEl('image', { href: '/static/assets/tex/grain-gilt.webp', width: 90, height: 90 }));
+  defs.appendChild(pt);
+  g.parentNode.insertBefore(defs, g);
+  // Forty-eight faceted rays in three lengths, each a ridge: the facet
+  // toward the footlights lit, the other in shade.
+  var N = 48, D = Math.PI / 180, shade = '', hi = [], sh = '', lit = [];
+  for (var i = 0; i < N; i++) {
+    var a = i * 360 / N - 90, tier = i % 4 === 0 ? 0 : i % 2 === 0 ? 1 : 2;
+    var r0 = 98, r1 = [330, 268, 212][tier] + 12 * (hash01(i + 11) - 0.5);
+    var w0 = [4.6, 3.8, 3.1][tier], w1 = w0 * 0.3 * 98 / r1 * 2.4;
+    var p = function (r, da) {
+      return (r * Math.cos((a + da) * D)).toFixed(1) + ',' + (r * Math.sin((a + da) * D)).toFixed(1);
+    };
+    // a wedge cut square at its tip, with a ridge down its middle
+    var left = p(r0, -w0), right = p(r0, w0), tl = p(r1, -w1), tr = p(r1, w1);
+    var c0 = p(r0, 0), c1 = p(r1 + 6, 0);
+    sh += 'M' + [left, tl, c1, tr, right].join('L') + 'Z';
+    // which facet faces down toward the footlights
+    var down = Math.sin(a * D) > 0 === Math.cos(a * D) > 0;
+    hi.push((down ? [left, tl, c1, c0] : [right, tr, c1, c0]).join(' '));
+    shade += 'M' + (down ? [right, tr, c1, c0] : [left, tl, c1, c0]).join('L') + 'Z';
+    lit.push([left, tl, c1, tr, right].join(' '));
   }
-  // Bolt guide channels (4, at N/S/E/W) — individual rect elements
-  for (var j = 0; j < 4; j++) {
-    var gWrap = document.createElementNS(ns, 'g');
-    gWrap.setAttribute('transform', 'rotate(' + (j * 90) + ' 400 400)');
-    var guide = document.createElementNS(ns, 'rect');
-    guide.setAttribute('x', '397'); guide.setAttribute('y', '274');
-    guide.setAttribute('width', '6'); guide.setAttribute('height', '28');
-    guide.setAttribute('rx', '1');
-    guide.setAttribute('fill', 'var(--bronze-deep)');
-    guide.setAttribute('stroke', 'var(--bronze)');
-    guide.setAttribute('stroke-width', '1');
-    guide.setAttribute('class', 'e-bolt-guide');
-    gWrap.appendChild(guide);
-    g.appendChild(gWrap);
+  g.appendChild(eEl('path', { d: sh, transform: 'translate(3 5)' }, 'e-ray-sh'));
+  g.appendChild(eEl('path', { d: sh }, 'e-ray'));
+  g.appendChild(eEl('path', { d: sh }, 'e-ray-tex'));
+  g.appendChild(eEl('path', { d: shade }, 'e-ray-shade'));
+  // each ray's lit facet takes the light a little differently
+  hi.forEach(function (pts, i) {
+    var f = eEl('polygon', { points: pts }, 'e-ray-hi');
+    f.style.opacity = (0.18 + 0.26 * hash01(i + 71)).toFixed(2);
+    g.appendChild(f);
+  });
+  // Each ray catches the spot on its own beat: the glint runs round the sun.
+  lit.forEach(function (pts, i) {
+    var r = eEl('polygon', { points: pts }, 'e-ray-lit');
+    r.style.setProperty('--i', String(i));
+    g.appendChild(r);
+  });
+  m.appendChild(eEl('circle', { cx: 4, cy: 6, r: 88 }, 'e-medal-sh'));
+  m.appendChild(eEl('circle', { cx: 0, cy: 0, r: 86 }, 'e-medal-ring'));
+  m.appendChild(eEl('circle', { cx: 0, cy: 0, r: 86 }, 'e-medal-tex'));
+  m.appendChild(eEl('circle', { cx: 0, cy: 0, r: 85 }, 'e-medal-lip'));
+  for (var b = 0; b < 40; b++) {
+    var ba = b * 9 * D;
+    m.appendChild(eEl('circle', { cx: (80 * Math.cos(ba)).toFixed(1), cy: (80 * Math.sin(ba)).toFixed(1), r: 2.6 }, 'e-bead'));
   }
-  // Bolt carrier ring (circular track all bolts engage)
-  var carrier = document.createElementNS(ns, 'circle');
-  carrier.setAttribute('cx', '400'); carrier.setAttribute('cy', '400');
-  carrier.setAttribute('r', '100');
-  carrier.setAttribute('stroke', 'var(--bronze)');
-  carrier.setAttribute('stroke-width', '2');
-  carrier.setAttribute('fill', 'none');
-  carrier.setAttribute('class', 'e-bolt-carrier');
-  g.appendChild(carrier);
+  m.appendChild(eEl('circle', { cx: 0, cy: 0, r: 74 }, 'e-medal-field'));
+  m.appendChild(eEl('use', { href: '#rosette', x: -24, y: -24, width: 48, height: 48,
+                             transform: 'scale(2.7)' }, 'e-medal-mark'));
+}
+
+/* The festoon: as the curtain flies out, the hem gathers between its lift
+   lines into swags. One swag per ~300px of screen, each a velvet drape
+   with its folds running up to the lift points and a bullion fringe. */
+function buildSwag() {
+  var svg = $('.e-swag');
+  if (!svg) return;
+  var W = window.innerWidth, H = Math.round(window.innerHeight * 0.2);
+  var n = Math.max(4, Math.round(W / 300)), s = W / n, dip = Math.min(H - 26, s * 0.3);
+  var f1 = function (v) { return v.toFixed(1); };
+  svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
+  svg.textContent = '';
+  var defs = eEl('defs', {});
+  var gr = eEl('linearGradient', { id: 'e-swag-g', x1: 0, y1: 0, x2: 0, y2: 1 });
+  [0, 0.55, 1].forEach(function (o, k) { gr.appendChild(eEl('stop', { offset: o }, 'e-swag-s' + k)); });
+  defs.appendChild(gr);
+  svg.appendChild(defs);
+  var drape = '', folds = '', lights = '', fringe = '';
+  for (var k = 0; k < n; k++) {
+    var x0 = k * s, x1 = (k + 1) * s, cx = (x0 + x1) / 2;
+    drape += 'M' + f1(x0) + ' 0H' + f1(x1) + 'C' + f1(x1 - s * 0.12) + ' ' + f1(dip * 1.25) +
+             ' ' + f1(x0 + s * 0.12) + ' ' + f1(dip * 1.25) + ' ' + f1(x0) + ' 0Z';
+    for (var f = 1; f <= 4; f++) {
+      var t = f / 5, side = f % 2 ? x0 : x1, mx = x0 + s * t, my = dip * (0.35 + 0.6 * Math.sin(t * Math.PI));
+      folds += 'M' + f1(side) + ' 2Q' + f1((side + mx) / 2) + ' ' + f1(my * 0.5) + ' ' + f1(mx) + ' ' + f1(my);
+      lights += 'M' + f1(side + (f % 2 ? 3 : -3)) + ' 2Q' + f1((side + mx) / 2 + 2) + ' ' + f1(my * 0.45) +
+                ' ' + f1(mx + 2) + ' ' + f1(my - 3);
+    }
+    // the fringe hangs from the drape's lower edge
+    for (var x = x0 + 1; x < x1; x += 3) {
+      var u = (x - x0) / s, y = dip * 0.94 * (1 - Math.pow(2 * u - 1, 2)) + 0.5;
+      fringe += 'M' + f1(x) + ' ' + f1(y) + 'v' + f1(13 + 3 * hash01(Math.round(x)));
+    }
+    lights += 'M' + f1(cx - s * 0.3) + ' ' + f1(dip * 0.72) + 'Q' + f1(cx) + ' ' + f1(dip * 1.02) +
+              ' ' + f1(cx + s * 0.3) + ' ' + f1(dip * 0.72);
+  }
+  svg.appendChild(eEl('path', { d: drape }, 'e-swag-body'));
+  svg.appendChild(eEl('path', { d: folds }, 'e-swag-fold'));
+  svg.appendChild(eEl('path', { d: lights }, 'e-swag-lit'));
+  svg.appendChild(eEl('path', { d: fringe }, 'e-swag-fringe'));
+}
+
+/* The fanlights light from the clock outward: each lit arch is ranked by
+   how many bays stand between it and the niche, and the pair in the same
+   bay either side light together. */
+function orderFanlights() {
+  var clock = $('#clock');
+  if (!clock) return;
+  var c = clock.getBoundingClientRect(), mid = c.left + c.width / 2;
+  var left = [], right = [];
+  document.querySelectorAll('#gates .gate.active').forEach(function (g) {
+    var r = g.getBoundingClientRect(), x = r.left + r.width / 2;
+    (x < mid ? left : right).push({ g: g, d: Math.abs(x - mid) });
+  });
+  [left, right].forEach(function (side) {
+    side.sort(function (a, b) { return a.d - b.d; });
+    side.forEach(function (it, i) { it.g.style.setProperty('--fan-i', String(i)); });
+  });
+}
+
+/* The marquee's bulbs chase once, on the band's own box. */
+function placeMarquee() {
+  var tk = $('#ticker'), mq = $('.e-marquee');
+  if (!tk || !mq) return;
+  var r = tk.getBoundingClientRect();
+  mq.style.left = r.left + 'px'; mq.style.top = r.top + 'px';
+  mq.style.width = r.width + 'px'; mq.style.height = r.height + 'px';
+}
+
+/* The dock: the spot (night) or the gilt ring (day) flies onto the
+   masthead's rosette and goes out on it. Aimed at where the rosette rests,
+   read off the masthead's own transform this frame. */
+function dockEntrance() {
+  var mono = $('#monogram').getBoundingClientRect();
+  var burst = $('.e-burst').getBoundingClientRect();
+  var mast = $('#masthead');
+  var lift = mast ? new DOMMatrixReadOnly(getComputedStyle(mast).transform).m42 : 0;
+  entrance.style.setProperty('--dock-x', (mono.left + mono.width / 2 - (burst.left + burst.width / 2)) + 'px');
+  entrance.style.setProperty('--dock-y', (mono.top + mono.height / 2 - lift - (burst.top + burst.height / 2)) + 'px');
+  entrance.style.setProperty('--dock-s', String(Math.max(0.04, mono.width * 1.15 / burst.width)));
+  entrance.classList.add('dock');
 }
 
 function playEntrance() {
   // Disable ledger button during entrance; re-enabled in finishEntrance()
   var lb = $('#ledger-btn');
   if (lb) lb.disabled = true;
-  buildRays();
-  buildBolts();
+  var day = root.dataset.theme === 'ivory';
   var at = function (ms, fn) { entranceTimers.push(setTimeout(fn, ms)); };
+  var beat = function (cls) { return function () { entrance.classList.add(cls); }; };
+  window.__entranceT0 = performance.now();   // read by the frame-capture scripts
+  entrance.classList.add('play', day ? 'day' : 'night');
 
-  // Beat 0 — circle draws + engraving scribes simultaneously (0ms).
-  // Both classes added in the same synchronous statement: the circle is
-  // being manufactured; the engraving scribes happen during manufacture.
-  entrance.classList.add('play');
-  entrance.classList.add('engrave');
-
-  // Beat 1 — handwheel materialises + bolts tick in (500ms).
-  // The circle (lock case) is complete at ~420ms. The wheel and bolt
-  // assembly live inside the case and can only appear once the case is visible.
-  at(500, function () { entrance.classList.add('doors'); });
-
-  // Beat 2 — wheel turns 60 deg; bolts retract in two-phase rush-and-settle (700ms).
-  // The wheel is the drive: turning it advances the drive cams, which push
-  // the bolt carrier, which retracts all eight bolts simultaneously.
-  at(700, function () { entrance.classList.add('wheel'); });
-
-  // Beat 3 — seam hairline descends (870ms).
-  // The bolts have cleared their locking engagement (bolt body has passed the
-  // jamb face before reaching full retraction). The door leaf is now free.
-  // STRUCTURED HOLD — seam visible 160ms, wheel settled, bolts home.
-  // Do not compress this gap: it is the mechanism confirmation beat.
-  at(870, function () { entrance.classList.add('seam'); });
-
-  // Beat 4 — doors swing open; steam vents (1030ms).
-  // The seam is the visual proof of pressure differential. At 1030ms the
-  // door swings. Steam fires 20ms later — pressure escaping through the gap.
-  at(1030, function () { entrance.classList.add('open'); });
-  at(1050, function () { steamBurst($('.e-nozzle'), 3); });
-
-  // Beat 5 — wordmark stamps down (1500ms).
-  // Door is 40% open by 1500ms — the sign is readable in the widening aperture.
-  // Per-letter stagger: 38ms × 5 = 190ms total; last letter at 1500+190+420=2110ms.
-  at(1500, function () {
-    entrance.classList.add('word');
-    // Set per-letter animation delays inline so each span has its own timing.
-    var spans = entrance.querySelectorAll('.e-wordmark span');
-    for (var si = 0; si < spans.length; si++) {
-      spans[si].style.animationDelay = (si * 38) + 'ms';
-    }
-  });
-
-  // Beat 6 — circle docks as masthead rosette (1800ms).
-  // The lock face is no longer needed on the door — it belongs on the hall
-  // masthead rosette. The circle flies inward and up to its permanent home.
-  // Dock arithmetic (all values runtime-computed from live DOM):
-  //   --dock-x = mono.cx - burst.cx (px, signed)
-  //   --dock-y = mono.cy - lift - burst.cy (px)
-  //   --dock-s = mono.width / (burst.width * 0.23)
-  //   * 0.23: SVG viewBox=800x800, circle r=92, diameter=184, 184/800=0.23.
-  // The masthead rises in with the flight (rise-in from translateY(14px),
-  // CSS delay 1.8s), so the rosette may still be low when this reads it.
-  // `lift` is how low, read off the masthead's own transform this frame, so
-  // the circle aims at where the rosette comes to rest. A fixed -14px was
-  // only right while the rise-in had not begun. The masthead now starts
-  // with the flight rather than 200ms after it: the circle has to land on a
-  // rosette that is there to land on.
-  at(1800, function () {
-    var mono  = $('#monogram').getBoundingClientRect();
-    var burst = $('.e-burst').getBoundingClientRect();
-    var mast  = $('#masthead');
-    var lift  = mast ? new DOMMatrixReadOnly(getComputedStyle(mast).transform).m42 : 0;
-    entrance.style.setProperty('--dock-x',
-      (mono.left + mono.width / 2 - (burst.left + burst.width / 2)) + 'px');
-    entrance.style.setProperty('--dock-y',
-      (mono.top + mono.height / 2 - lift - (burst.top + burst.height / 2)) + 'px');
-    entrance.style.setProperty('--dock-s',
-      String(mono.width / (burst.width * 0.23)));
-    entrance.classList.add('dock');
-  });
-
-  // Beat 7 — done-fade (2140ms).
-  // 30ms gap after last letter (2110ms): load-bearing. A done-fade that
-  // fires while the sixth letter is still animating cuts it off mid-stamp.
-  // From here the panels are hidden and the void is clear, so the overlay
-  // stops catching the pointer (CSS): the hall is visible, and a click on
-  // it lands the entrance and then does what it says (see entranceSkip).
-  at(2140, function () { entrance.classList.add('done-fade'); });
-
-  // Beat 8 — the dial wakes (2320ms).
-  // Only once the wordmark has faded (2140 + 180ms). The letters print
-  // across the middle of the dial, and a dial waking behind them read as
-  // ATRIUM stencilled over the clock face. The floor's reflections come up
-  // with it, so the stone never reflects an empty niche.
-  at(2320, function () { entrance.classList.add('dial'); });
-
-  // Beat 9 — finish (2700ms).
-  at(2700, finishEntrance);
+  if (day) {
+    // The doors are open to the street and the curtain is already up: the
+    // hall arrives as an exposure settling, with the sun's shafts in it,
+    // while the gilt ring that drew itself in the glare docks.
+    at(280, beat('expose'));
+    at(900, dockEntrance);
+    at(1400, beat('done-fade'));
+    at(1700, finishEntrance);
+  } else {
+    buildRays();
+    buildSwag();
+    // The house is dark. The footlights come up along the curtain's hem.
+    at(60, beat('foot'));
+    // A follow spot opens on the crest; the rays catch it one by one.
+    at(250, beat('spot'));
+    // The curtain flies out, gathering into swags as it goes.
+    at(950, beat('rise'));
+    // The house lights come up: the marquee chases once, and the arches'
+    // fanlights light from the clock outward.
+    at(1450, function () {
+      placeMarquee();
+      orderFanlights();
+      entrance.classList.add('house');
+    });
+    // The spot, left on the air where the crest was, finds the rosette.
+    at(1750, dockEntrance);
+    // From done-fade the hall is what shows, so the overlay stops taking
+    // the pointer; a click there lands the entrance and does what it says.
+    at(2140, beat('done-fade'));
+    at(2700, finishEntrance);
+  }
 
   // Any input cuts the entrance short. Until done-fade the overlay has
   // pointer-events:auto, so a pointerdown lands on the overlay; it is
@@ -708,10 +741,10 @@ function finishEntrance() {
     entranceSkip = null;
   }
   entrance.style.display = 'none';
-  // Fill-mode 'both' animations on the hall have either finished or get
-  // snapped to their end state here. data-boot stays 'played', so the
-  // suppressed-load hall-fade does NOT retrigger on this flip.
+  // data-boot stays 'played', so the suppressed-load hall-fade does NOT
+  // retrigger on this flip. The fanlights' entrance order goes with it.
   root.dataset.entered = 'yes';
+  document.querySelectorAll('#gates .gate').forEach(function (g) { g.style.removeProperty('--fan-i'); });
   // Re-enable ledger button now that entrance is done
   var lb = $('#ledger-btn');
   if (lb) lb.disabled = false;
