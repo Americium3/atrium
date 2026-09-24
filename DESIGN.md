@@ -871,8 +871,10 @@ the lamp and takes the address line's place while it stands.
 - **Reserved**: the same architecture in bare plaster, its bezel holding a
   blank cover plate, behind an iron safety curtain: red oxide primer steel
   in three lapped courses, domed rivets lit on the lamp side, a stencilled
-  border and a cast brass builder's plate carrying the words. The lamp reads
-  SHUT. It is never lit and never lifts.
+  border and a cast brass builder's plate carrying the words: a sand-cast
+  field inside a raised bead, four slotted screws, and the letters in
+  relief, polished on their faces. The lamp reads SHUT. It is never lit and
+  never lifts.
 
 ## The Ledger (R10)
 

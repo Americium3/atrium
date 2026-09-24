@@ -733,7 +733,6 @@ html[lang="zh"] .g-lamp { letter-spacing: 0.2em; }
   --iron-overspray: rgba(222, 204, 166, 0.15);
   --iron-veil: rgba(69, 36, 26, 0.7); --iron-satin: rgba(255, 214, 190, 0.05);
   --iron-edge: rgba(255, 216, 170, 0.16);
-  --plate-hi: #b99a5e; --plate: #8f743f; --plate-lo: #5f4a24; --plate-ink: #1e150a;
 }
 :root[data-theme="ivory"] .gate.vacant {
   --iron: #86412f; --iron-hi: #954d39; --iron-lo: #6b3325;
@@ -744,7 +743,6 @@ html[lang="zh"] .g-lamp { letter-spacing: 0.2em; }
   --iron-overspray: rgba(246, 236, 212, 0.2);
   --iron-veil: rgba(134, 65, 47, 0.7); --iron-satin: rgba(255, 236, 222, 0.12);
   --iron-edge: rgba(255, 248, 236, 0.35);
-  --plate-hi: #e2c98e; --plate: #c1a262; --plate-lo: #8d7036; --plate-ink: #22180b;
 }
 .g-iron {
   background:
@@ -806,24 +804,62 @@ html[lang="zh"] .g-lamp { letter-spacing: 0.2em; }
     linear-gradient(var(--iron-stencil), var(--iron-stencil)) 0 100% / 1.6cqw 1.6cqw no-repeat,
     linear-gradient(var(--iron-stencil), var(--iron-stencil)) 100% 100% / 1.6cqw 1.6cqw no-repeat;
 }
-/* The builder's plate: cast brass, bolted at the corners, the words
-   engraved and filled black. It stands in the middle of the iron. */
-.gate.vacant .g-desc { margin: auto 12cqw; color: var(--plate-ink); font-weight: 560; text-shadow: 0 1px 0 rgba(255, 240, 200, 0.28); }
+/* The builder's plate: sand-cast brass screwed to the iron, carrying the
+   words, so no seam ever runs through them. It read as a pale wooden rule:
+   a blond plate under long brushed streaks, no bead, its screws cut off at
+   the corners and its words printed flat. It is a casting now. The field
+   keeps the sand's tooth and is the deeper, browner brass of a casting
+   left as it came from the mould; a raised bead runs round it; four
+   slotted screws hold it inside the bead; the letters stand in relief,
+   filed and polished on their faces, each lit along its top edge with its
+   lower wall in shade. The same object by day and by night. */
+.gate.vacant {
+  --plate-hi: #8c6c2b; --plate: #775a22; --plate-lo: #5f4518;
+  --plate-face: #f3dfa2; --plate-lit: rgba(255, 249, 226, 0.8); --plate-wall: #2a1904;
+  --bead-lt: #edd28a; --bead-dk: #4e3710;
+  --screw: radial-gradient(circle closest-side at 46% 42%, #f8e8b8 0 14%, #cfa95a 38%, #86652a 70%, #3a2808 88%, rgba(20, 12, 2, 0.5) 94%, transparent 100%);
+}
+.gate.vacant .g-desc {
+  margin: auto 12cqw;
+  color: var(--plate-face); font-weight: 620;
+  text-shadow: -0.04em -0.05em 0 var(--plate-lit), 0.05em 0.07em 0 var(--plate-wall),
+               0.07em 0.12em 0.08em rgba(20, 12, 2, 0.55);
+}
 :root[data-theme] .gate.vacant[data-card] .g-desc::before {
   display: block; opacity: 1;
-  inset: -2.2cqw -3cqw;
+  inset: -2.4cqw -4.6cqw;
+  border-radius: 0.5cqw;
   background:
-    radial-gradient(circle at 40% 36%, #f3dfae 0 14%, var(--plate-lo) 38%, rgba(0, 0, 0, 0.7) 52%, transparent 58%) 0.5cqw 0.5cqw / 1.9cqw 1.9cqw no-repeat,
-    radial-gradient(circle at 40% 36%, #f3dfae 0 14%, var(--plate-lo) 38%, rgba(0, 0, 0, 0.7) 52%, transparent 58%) calc(100% - 0.5cqw) 0.5cqw / 1.9cqw 1.9cqw no-repeat,
-    radial-gradient(circle at 40% 36%, #f3dfae 0 14%, var(--plate-lo) 38%, rgba(0, 0, 0, 0.7) 52%, transparent 58%) 0.5cqw calc(100% - 0.5cqw) / 1.9cqw 1.9cqw no-repeat,
-    radial-gradient(circle at 40% 36%, #f3dfae 0 14%, var(--plate-lo) 38%, rgba(0, 0, 0, 0.7) 52%, transparent 58%) calc(100% - 0.5cqw) calc(100% - 0.5cqw) / 1.9cqw 1.9cqw no-repeat,
-    url('/static/assets/tex/grain-brushed.webp') 0 0 / 80cqw auto,
-    linear-gradient(170deg, var(--plate-hi), var(--plate) 45%, var(--plate-lo));
-  background-blend-mode: normal, normal, normal, normal, soft-light, normal;
+    /* the four screws, each slot turned its own way */
+    linear-gradient(28deg, transparent 41%, rgba(24, 14, 2, 0.85) 41% 59%, transparent 59%) 2.05cqw 2.05cqw / 1.1cqw 1.1cqw no-repeat,
+    linear-gradient(-61deg, transparent 41%, rgba(24, 14, 2, 0.85) 41% 59%, transparent 59%) calc(100% - 2.05cqw) 2.05cqw / 1.1cqw 1.1cqw no-repeat,
+    linear-gradient(83deg, transparent 41%, rgba(24, 14, 2, 0.85) 41% 59%, transparent 59%) 2.05cqw calc(100% - 2.05cqw) / 1.1cqw 1.1cqw no-repeat,
+    linear-gradient(-17deg, transparent 41%, rgba(24, 14, 2, 0.85) 41% 59%, transparent 59%) calc(100% - 2.05cqw) calc(100% - 2.05cqw) / 1.1cqw 1.1cqw no-repeat,
+    var(--screw) 1.5cqw 1.5cqw / 2.2cqw 2.2cqw no-repeat,
+    var(--screw) calc(100% - 1.5cqw) 1.5cqw / 2.2cqw 2.2cqw no-repeat,
+    var(--screw) 1.5cqw calc(100% - 1.5cqw) / 2.2cqw 2.2cqw no-repeat,
+    var(--screw) calc(100% - 1.5cqw) calc(100% - 1.5cqw) / 2.2cqw 2.2cqw no-repeat,
+    /* the sand's fine tooth, and the casting's cloud where it cooled */
+    url('/static/assets/tex/grain-frost.webp') 0 0 / 7cqw auto,
+    url('/static/assets/tex/metal-bronze.webp') 30% 40% / 46cqw auto,
+    linear-gradient(172deg, var(--plate-hi), var(--plate) 50%, var(--plate-lo));
+  background-blend-mode: normal, normal, normal, normal, normal, normal, normal, normal, overlay, soft-light, normal;
+  /* the plate's edge, chamfered to the light, and its shadow on the iron */
   box-shadow:
-    inset 0 1px 0 rgba(255, 244, 214, 0.55), inset 0 -1px 0 rgba(0, 0, 0, 0.45),
-    inset 0 0 0 0.45cqw rgba(0, 0, 0, 0.06),
-    1px 2px 3px rgba(0, 0, 0, 0.55);
+    inset 0.15cqw 0.2cqw 0 rgba(255, 238, 190, 0.4), inset -0.15cqw -0.2cqw 0 rgba(30, 18, 2, 0.55),
+    0.3cqw 0.5cqw 0.6cqw rgba(20, 8, 2, 0.6), 0 0 0 0.5px rgba(20, 10, 2, 0.6);
+}
+/* The bead: a ridge cast round the plate's field, lit on its upper and
+   left runs, in shade on the others, throwing its own shadow down and to
+   the right, inside the ring on the lit runs and outside on the others. */
+:root[data-theme] .gate.vacant[data-card] .g-desc::after {
+  content: ""; position: absolute; z-index: -1; pointer-events: none;
+  inset: -1.75cqw -3.95cqw;
+  border: max(1px, 0.42cqw) solid;
+  border-color: var(--bead-lt) var(--bead-dk) var(--bead-dk) var(--bead-lt);
+  border-radius: 0.35cqw;
+  box-shadow: 0.12cqw 0.18cqw 0.05cqw rgba(24, 12, 2, 0.55),
+              inset 0.12cqw 0.18cqw 0.05cqw rgba(24, 12, 2, 0.45);
 }
 
 /* ==========================================================================
@@ -1001,10 +1037,9 @@ html[lang="zh"] .g-desc { font-size: clamp(11px, 5.4cqw, calc(14.5px * var(--ui)
    strings put back the good ones as zero-width spaces (app.js STR). */
 html[lang="zh"] .g-desc { word-break: keep-all; }
 :root[data-theme="onyx"], :root[data-theme="ivory"] { --apron-gilt: #e8c677; }
-:root[data-theme="onyx"] .gate.vacant, :root[data-theme="ivory"] .gate.vacant { --plate-hi: #e6cf97; --plate: #cdb074; --plate-lo: #9d7f45; --plate-ink: #140d05; }
-/* The Chinese face has one weight and hairline strokes; where it is set
-   dark on a light ground (the day card, the builder's plate) a quarter
-   pixel of its own ink round every stroke brings it up to strength. */
+/* The Chinese face has one weight and hairline strokes; on the day card
+   and the builder's plate a quarter pixel of its own ink round every
+   stroke brings it up to strength. */
 :root[lang="zh"][data-theme="ivory"] .gate[data-state="open"] .g-desc { -webkit-text-stroke: 0.45px currentColor; }
 html[lang="zh"] .gate.vacant .g-desc { -webkit-text-stroke: 0.3px currentColor; }
 
