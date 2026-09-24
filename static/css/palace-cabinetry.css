@@ -417,8 +417,15 @@
   font-weight: 600;
   font-variant-numeric: lining-nums tabular-nums;
 }
-.board .wk-dial .d-num text { font-size: 7.4px; }
-.board .wk-dial .d-legend { font-size: 4.6px; letter-spacing: 0.4px; opacity: 0.8; font-weight: 500; }
+/* The figures and the unit are sized from the dial as it is drawn: --dpu is
+   its pixels per unit, which app.js's fitCases() writes on #wk-dials. They
+   ask for 7.4px x --ui and never less than 10px, so a larger engraving size
+   only ever makes them larger. 13 units is the most a figure can take before
+   it reaches the ticks; the cases fold away before a dial is too small to
+   carry 10px at that. (Inside the dial px are user units, hence the divide.) */
+.board .wk-dials { --num: max(10px, calc(7.4px * var(--ui))); }
+.board .wk-dial .d-num text { font-size: clamp(7.4px, calc(var(--num) / var(--dpu, 1)), 13px); }
+.board .wk-dial .d-legend { font-size: clamp(7.4px, calc(var(--num) / var(--dpu, 1)), 13px); letter-spacing: 0.04em; }
 .board .wk-dial .d-serial { font-size: 3.4px; letter-spacing: 0.5px; opacity: 0.55; font-weight: 500; }
 .board .wk-dial .d-zero { stroke: rgba(0, 0, 0, 0.5); stroke-width: 0.3; }
 .board .wk-dial .d-lip { pointer-events: none; }
@@ -601,7 +608,12 @@
 .board .al-arc .a-h-night { stroke: #1a1006; opacity: 0.5; stroke-width: 1; }
 .board .al-arc .a-foot { stroke: var(--leaf-2); }
 .board .al-arc text { fill: var(--cab-faint); }
-.board .al-arc .a-lab { fill: var(--cab-gold); opacity: 0.85; }
+/* Full strength: at the plate's lettering size a dimmed leaf painted under
+   4.5:1 on the glass. The Chinese labels take a trace of stroke for the
+   same reason as the tape's; --ppu (pixels per plate unit) keeps it at a
+   third of a pixel on screen whatever the plate is drawn at. */
+.board .al-arc .a-lab { fill: var(--cab-gold); }
+html[lang="zh"] .board .al-arc .a-lab { stroke: var(--cab-gold); stroke-width: calc(0.35px / var(--ppu, 1)); }
 .board .al-arc .a-time { fill: var(--cab-ink); }
 .board .al-arc .a-polar { fill: var(--cab-gold); }
 .board .al-arc .sk-bead-sh { fill: rgba(0, 0, 0, 0.55); }

@@ -2358,18 +2358,59 @@ function moonDisc(phase, r) {
    loose from the curve. */
 var SKY_TICK_HOURS = 24;
 
+/* The register the plate is inscribed in: its content box, which is what the
+   svg's 100% fills. */
+function skyRoom(host) {
+  if (!host || !host.clientWidth) return { w: 300, h: 150 };
+  var cs = getComputedStyle(host);
+  return { w: host.clientWidth,
+           h: host.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom) };
+}
+
+/* The plate's lettering in screen pixels: 10px at the least, and more with
+   the engraving size, never less. It used to be cut at fixed plate units,
+   which on a short case drew RISE at 5px and made SIGNBOARD (whose taller
+   head and tape shrink the plate) print it smaller than FINE. */
+function skyLetterPx() {
+  var ui = uiScale();
+  // 10.1: a tenth over the floor, so a register that settles a fraction of a
+  // pixel shorter after the plate is cut does not land the lettering under it.
+  return { lab: Math.max(10.1, 7 * ui), time: Math.max(10.1, 8.5 * ui) };
+}
+
 function skyBox(host) {
-  var w = (host && host.clientWidth) || 300;
-  var h = (host && host.clientHeight) || 150;
+  var room = skyRoom(host);
+  var w = room.w || 300, h = room.h > 0 ? room.h : 150;
   var H = Math.max(150, Math.min(300, Math.round(300 * h / Math.max(w, 1))));
+  // A register wider than the plate's own 2:1 widens the plate to match
+  // rather than letterboxing a 300-unit plate in the middle of it, so a short
+  // case can keep its ellipse and still have room for the lettering beside it.
+  var W = Math.max(300, Math.round(H * w / Math.max(h, 1)));
+  // Pixels per plate unit as drawn (the svg meets its box), so the lettering
+  // can be cut in units at the size it has to read at.
+  var ppu = Math.min(w / W, h / H) || 1;
+  var px = skyLetterPx();
+  var lab = px.lab / ppu, time = px.time / ppu;
+  // The widest word at a crossing, RISE or 07:09 (tracking included), and
+  // room for it beside the bezel: the ellipse gives up width before the
+  // lettering gives up size.
+  var word = Math.max(2.3 * lab + 6, 2.4 * time + 3);
+  var cx = W / 2;
+  var rx = Math.max(64, Math.min(104, cx - 4 - word - 6.5 - 4));
+  // The lettering stands just outside the bezel, as it did on the 300-unit
+  // plate, not out at the edges of a widened one.
+  var xL = Math.max(4, cx - rx - 6.5 - 4 - word);
   return {
     // The ellipse stops well short of the plate edge on purpose: the two
     // crossings are where the only lettering on the instrument lives, and an
     // ellipse drawn to the full width leaves it nowhere to stand but on the
     // curve itself.
-    W: 300, H: H, cx: 150, cy: H / 2, rx: 104,
+    W: W, H: H, cx: cx, cy: H / 2, rx: rx,
     // Flatter than it is wide, always: a diurnal circle seen edge-on.
-    ry: Math.max(38, Math.min(66, H / 2 - 26))
+    ry: Math.max(38, Math.min(66, H / 2 - 26)),
+    lab: lab, time: time, xL: xL, xR: W - xL, ppu: ppu,
+    // What the plate was cut for; a register of another size re-cuts it.
+    key: Math.round(w) + 'x' + Math.round(h) + '@' + px.lab.toFixed(2)
   };
 }
 
@@ -2396,10 +2437,12 @@ function ringArc(g, from, to) {
        + p1.x.toFixed(2) + ' ' + p1.y.toFixed(2);
 }
 
-function skyText(x, y, cls, text, anchor) {
+function skyText(x, y, cls, text, anchor, size) {
   var n = svgEl('text', {
     x: x.toFixed(1), y: y.toFixed(1), 'text-anchor': anchor || 'middle'
   }, cls);
+  // In plate units, so it is set inline: the sheet's sizes are the fallback.
+  if (size) n.style.fontSize = size.toFixed(2) + 'px';
   n.textContent = text;
   return n;
 }
@@ -2444,13 +2487,15 @@ function buildSky(where, host, weather) {
     viewBox: '0 0 ' + g.W + ' ' + g.H, preserveAspectRatio: 'xMidYMid meet',
     'aria-hidden': 'true'
   }, 'al-arc');
+  // For a stroke the sheet sets in screen pixels (the zh labels' weight).
+  svg.style.setProperty('--ppu', g.ppu.toFixed(3));
   // Nothing has arrived yet: a bare horizon still reads as an instrument,
   // where a blank panel reads as a case with its glass knocked out.
   var plateSeed = window.Cabinet.fnv1a('sky');
   if (!where) {
     window.Cabinet.skyPlate(svg, g, g.cy, plateSeed);
     svg.appendChild(svgEl('line', {
-      x1: 6, y1: g.cy, x2: g.W - 6, y2: g.cy, 'stroke-width': 1
+      x1: g.xL + 2, y1: g.cy, x2: g.xR - 2, y2: g.cy, 'stroke-width': 1
     }, 'a-horizon'));
     return { svg: svg, sun: null };
   }
@@ -2463,10 +2508,10 @@ function buildSky(where, host, weather) {
   if (sun.polar) {
     window.Cabinet.skyPlate(svg, g, g.cy, plateSeed);
     svg.appendChild(svgEl('line', {
-      x1: 6, y1: g.cy, x2: g.W - 6, y2: g.cy, 'stroke-width': 1
+      x1: g.xL + 2, y1: g.cy, x2: g.xR - 2, y2: g.cy, 'stroke-width': 1
     }, 'a-horizon'));
     svg.appendChild(skyText(g.cx, g.cy - 12, 'a-polar',
-      t(sun.polar === 'day' ? 'almPolarDay' : 'almPolarNight')));
+      t(sun.polar === 'day' ? 'almPolarDay' : 'almPolarNight'), 'middle', g.time));
     return { svg: svg, sun: sun, here: here, at: at, tz: tzh };
   }
 
@@ -2488,7 +2533,7 @@ function buildSky(where, host, weather) {
     d: ringArc(g, -half, half), fill: 'none', 'stroke-width': 1
   }, 'a-track'));
   svg.appendChild(svgEl('line', {
-    x1: 6, y1: horizonY.toFixed(2), x2: g.W - 6, y2: horizonY.toFixed(2),
+    x1: g.xL + 2, y1: horizonY.toFixed(2), x2: g.xR - 2, y2: horizonY.toFixed(2),
     'stroke-width': 1
   }, 'a-horizon'));
 
@@ -2518,18 +2563,21 @@ function buildSky(where, host, weather) {
   }
   svg.appendChild(hours);
 
-  // The crossings: label engraved above the horizon, time below it, both at
-  // the plate's outer edges where the curve cannot reach them.
-  [[-half, 4, 'start', 'almRise', shown.rise],
-   [half, g.W - 4, 'end', 'almSet', shown.set]]
+  // The crossings: label engraved above the horizon, time below it, both
+  // outside the bezel where the curve cannot reach them. The gaps to the
+  // horizon grow with the lettering (7 and 17 units at the old 8 and 12).
+  [[-half, g.xL, 'start', 'almRise', shown.rise],
+   [half, g.xR, 'end', 'almSet', shown.set]]
   .forEach(function (foot) {
     var p = spot(g, foot[0]);
     svg.appendChild(svgEl('line', {
       x1: p.x.toFixed(2), y1: (p.y - 4).toFixed(2),
       x2: p.x.toFixed(2), y2: (p.y + 5).toFixed(2), 'stroke-width': 1.5
     }, 'a-foot'));
-    svg.appendChild(skyText(foot[1], horizonY - 7, 'a-lab', t(foot[3]), foot[2]));
-    svg.appendChild(skyText(foot[1], horizonY + 17, 'a-time', hhmm(foot[4]), foot[2]));
+    svg.appendChild(skyText(foot[1], horizonY - 3 - 0.5 * g.lab, 'a-lab',
+      t(foot[3]), foot[2], g.lab));
+    svg.appendChild(skyText(foot[1], horizonY + 8.6 + 0.7 * g.time, 'a-time',
+      hhmm(foot[4]), foot[2], g.time));
   });
 
   var s = spot(g, phi);
