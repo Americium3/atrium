@@ -488,3 +488,117 @@
 @media (forced-colors: active) {
   .assembly svg, .gear-well, .l-jewel { forced-color-adjust: none; }
 }
+
+/* =====================================================================
+   THE KEY PLATE
+   An instruction plate in the palace's own sign language: black verre
+   eglomise in a gilt moulding, two gilt clips, the title in leaf, and each
+   key set as a typewriter key (a ring in the wing's leaf, a black glass top,
+   an ivory legend). Black glass in both themes, like every sign in the
+   hall, so it reads the same by day. It still lies along the marquee, the
+   one band no arch or clock can reach.
+   ===================================================================== */
+#keyplate {
+  --kp-ink: #e3d5b2;
+  padding: calc(9px * var(--ui)) calc(26px * var(--ui));
+  color: var(--kp-ink);
+  background:
+    linear-gradient(104deg, transparent 0 55%, rgba(255, 248, 230, 0.04) 59%,
+      rgba(255, 248, 230, 0.085) 62.5%, rgba(255, 248, 230, 0.025) 66%, transparent 71%),
+    linear-gradient(180deg, rgba(255, 240, 210, 0.07), transparent 38%),
+    radial-gradient(90% 160% at 50% 110%, rgba(60, 40, 18, 0.25), transparent 70%),
+    var(--sign-glass);
+  border: calc(3px * var(--ui)) solid transparent;
+  border-image: linear-gradient(180deg, var(--lead-5), var(--lead-3) 22%, var(--lead-2) 55%,
+    var(--lead-1) 78%, var(--lead-4)) 1;
+  box-shadow:
+    0 0 0 1px var(--lead-0),
+    inset 0 0 0 1px var(--lead-0),
+    inset 0 1px 0 1px rgba(255, 244, 214, 0.1),
+    0 calc(10px * var(--ui)) calc(26px * var(--ui)) rgba(0, 0, 0, 0.62),
+    0 2px 4px rgba(0, 0, 0, 0.5);
+  /* the gilt line engraved inside the frame */
+  outline: 1px solid color-mix(in srgb, var(--lead-3) 34%, transparent);
+  outline-offset: calc(-6px * var(--ui));
+}
+/* the two gilt clips that hold the glass, one at each end */
+#keyplate::before, #keyplate::after {
+  content: ""; position: absolute; top: 50%;
+  width: calc(11px * var(--ui)); height: calc(11px * var(--ui));
+  margin-top: calc(-5.5px * var(--ui));
+  transform: rotate(45deg);
+  background:
+    radial-gradient(circle at 50% 50%, var(--lead-0) 0 14%, transparent 18%),
+    linear-gradient(135deg, var(--lead-5), var(--lead-3) 38%, var(--lead-2) 62%, var(--lead-1));
+  box-shadow: 0 0 0 1px var(--lead-0), 1px 2px 3px rgba(0, 0, 0, 0.6);
+}
+#keyplate::before { left: calc(-7.5px * var(--ui)); }
+#keyplate::after { right: calc(-7.5px * var(--ui)); }
+.kp-title {
+  align-self: center;
+  font-size: calc(14px * var(--ui)); font-weight: 620; letter-spacing: 0.3em;
+  background:
+    url('/static/assets/tex/grain-gilt.webp') 0 0 / 60px,
+    linear-gradient(180deg, var(--leaf-0) 0%, var(--leaf-1) 32%, var(--leaf-2) 56%, var(--leaf-3) 74%, var(--leaf-4) 100%);
+  background-blend-mode: soft-light, normal;
+  -webkit-background-clip: text; background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 1px 0 rgba(0, 0, 0, 0.9));
+}
+/* Two engraved rows, the keys in columns: each column a cell ruled off
+   from the next with a gilt line, the long descriptions wrapping inside
+   their own cell rather than pushing the plate taller. */
+.kp-title {
+  padding-right: calc(22px * var(--ui));
+  border-right: 1px solid color-mix(in srgb, var(--lead-3) 55%, transparent);
+  box-shadow: 1px 0 0 rgba(0, 0, 0, 0.8);
+}
+.kp-rows {
+  grid-template-columns: none;
+  grid-auto-flow: column;
+  grid-template-rows: repeat(2, auto);
+  grid-auto-columns: minmax(0, 1fr);
+  column-gap: 0; row-gap: calc(5px * var(--ui));
+  align-items: center;
+}
+.kp-row {
+  grid-template-columns: auto minmax(0, 1fr);
+  column-gap: calc(10px * var(--ui));
+  align-items: center;
+  padding: 0 calc(14px * var(--ui));
+  line-height: 1.3;
+}
+.kp-row:nth-child(n+3) {
+  border-left: 1px solid color-mix(in srgb, var(--lead-3) 32%, transparent);
+  box-shadow: inset 1px 0 0 rgba(0, 0, 0, 0.7);
+}
+/* The key: a typewriter key. A ring in the wing's leaf, an ivory celluloid
+   top with its dome catching the light, the legend cut and filled black. */
+.kp-key {
+  justify-self: start;
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: calc(24px * var(--ui)); height: calc(22px * var(--ui));
+  padding: 0 calc(7px * var(--ui));
+  border-radius: calc(11px * var(--ui));
+  font-size: calc(10.5px * var(--ui)); font-weight: 650; letter-spacing: 0.08em;
+  color: #1b140b;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.45);
+  white-space: nowrap;
+  background:
+    radial-gradient(80% 55% at 42% 18%, rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0) 70%),
+    radial-gradient(140% 120% at 50% 20%, #f7eedb, #e4d5b4 55%, #b6a17a);
+  box-shadow:
+    inset 0 -1.5px 1px rgba(90, 64, 30, 0.55),
+    inset 0 0 0 1px rgba(120, 92, 50, 0.35),
+    0 0 0 1px var(--lead-0),
+    0 0 0 2.3px var(--lead-3),
+    0 0 0 3.1px var(--lead-1),
+    0 2px 0 2.8px rgba(0, 0, 0, 0.6),
+    0 3px 6px 2px rgba(0, 0, 0, 0.55);
+}
+.kp-do { color: var(--kp-ink); opacity: 0.9; }
+@media (forced-colors: active) {
+  #keyplate { border: 2px solid CanvasText; }
+  .kp-title { color: CanvasText; background: none; }
+  .kp-key { border: 1px solid CanvasText; }
+}
