@@ -5,8 +5,8 @@
    entirely from flat fills and 1 / 1.5px hairlines (DESIGN.md material law:
    no gradients, no bevels, no glows — richness comes from line density).
 
-   Case (1000-unit square)  octagon + stepped shoulders + diagonal spandrels
-                            + rivets at the eight vertices.
+   Case (1000-unit square)  octagon + stepped shoulders cast under the
+                            diagonal bevels + rivets at the eight vertices.
    Dial (own 1000 space, scaled 0.855)
         knurled bronze bezel . fret band . guilloche field . 60-mark chapter
         ring . twelve Roman numerals (quarters in wing metal) . four
@@ -42,24 +42,48 @@ function octagon(inset) {
          ' H' + c + ' L' + m + ' ' + (1000 - c) + ' V' + c + ' Z';
 }
 
-function shoulders() {
-  var s = '', i;
-  for (i = 0; i < 4; i++) {
-    s += '<path class="ck-step" transform="rotate(' + (i * 90) + ' 500 500)"' +
-         ' d="M212 4 l0 13 l-13 0 M199 17 l-13 13 l0 13 M186 43 l-13 0"/>';
-  }
-  return s;
+/* The key light's bearing, up and a little left, as a unit vector in the
+   case's own units (y down). */
+var KEY = [-0.35, -0.94];
+function rot(p, deg) {
+  var t = deg * Math.PI / 180, c = Math.cos(t), s = Math.sin(t), x = p[0] - 500, y = p[1] - 500;
+  return [500 + x * c - y * s, 500 + x * s + y * c];
+}
+function pts(list) {
+  return list.map(function (p) { return p[0].toFixed(2) + ',' + p[1].toFixed(2); }).join(' ');
+}
+/* A cast edge from a to b, on a solid whose outline runs clockwise on
+   screen: a strip `w` wide laid into the solid, lit, mid or in shade by how
+   squarely its outward normal faces the key. */
+function arris(a, b, w, cls) {
+  var dx = b[0] - a[0], dy = b[1] - a[1], len = Math.sqrt(dx * dx + dy * dy);
+  var nx = dy / len, ny = -dx / len;
+  var lit = nx * KEY[0] + ny * KEY[1];
+  var k = lit > 0.25 ? 'lt' : lit < -0.25 ? 'dk' : 'md';
+  return '<polygon class="' + cls + ' ' + cls + '-' + k + '" points="' +
+    pts([a, b, [b[0] - nx * w, b[1] - ny * w], [a[0] - nx * w, a[1] - ny * w]]) + '"/>';
 }
 
-function spandrels() {
-  var s = '', i;
+/* The stepped shoulders, the gates' three steps, cast on the case face under
+   each diagonal bevel: a stepped block hanging from the bevel, each tier
+   narrower toward the dial. Relief is drawn along the key light: a shadow
+   copy down and right, the body in its patina, and each edge lit or in
+   shade by the way it faces (AR-16: they were a stepped hairline laid
+   across the leaf and out over the smalti). Local frame: the diagonal points
+   straight up and its bevel's inner edge lies at y = -20. */
+function shoulders() {
+  var local = [[430, -19], [570, -19], [570, -3], [548, -3], [548, 13], [526, 13],
+               [526, 29], [474, 29], [474, 13], [452, 13], [452, -3], [430, -3]];
+  var s = '', i, k;
   for (i = 0; i < 4; i++) {
-    s += '<g transform="rotate(' + (i * 90 + 45) + ' 500 500)">' +
-         '<path class="ck-span" d="M500 96 L529 125 L500 154 L471 125 Z"/>' +
-         '<path class="ck-spanin" d="M500 116 L514 130 L500 144 L486 130 Z"/>' +
-         '<path class="ck-hair" d="M462 125 L432 125 M538 125 L568 125"/>' +
-         '<path class="ck-hair" d="M500 60 L500 92 M478 74 L490 88 M522 74 L510 88"/>' +
-         '</g>';
+    var P = local.map(function (p) { return rot(p, i * 90 + 45); });
+    var sh = P.map(function (p) { return [p[0] + 2.5, p[1] + 3.5]; });
+    s += '<polygon class="ck-sho-sh" points="' + pts(sh) + '"/>' +
+         '<polygon class="ck-sho" points="' + pts(P) + '"/>' +
+         '<polygon class="ck-sho-tex" points="' + pts(P) + '"/>';
+    // every edge but the one the block hangs from takes the light (the
+    // outline runs clockwise)
+    for (k = 1; k < P.length; k++) s += arris(P[k], P[(k + 1) % P.length], 2.2, 'ck-sho-e');
   }
   return s;
 }
@@ -267,6 +291,13 @@ function dialDefs() {
     // same 85 mm squares as the gates' archivolts.
     '<pattern id="ck-patina" patternUnits="userSpaceOnUse" width="470" height="470">' +
       '<image href="/static/assets/tex/metal-bronze.webp" width="470" height="470"/></pattern>' +
+    // ...and the casting and the years over it: a signed relighting tile
+    // (room-case-patina, baked by materials_room.py) in plain alpha, the
+    // patina's clouds and islands, the wax rubbed through, the sand-cast
+    // tooth and the pits. Nothing in it runs one way: a cast face was never
+    // brushed.
+    '<pattern id="ck-cast" patternUnits="userSpaceOnUse" width="380" height="380">' +
+      '<image href="/static/assets/tex/room-case-patina.webp" width="380" height="380"/></pattern>' +
     // Metal is known by what it reflects. The waxed face gives back the one
     // bright thing above it (the cove lamp by night, the skylight by day) as
     // a soft band across its upper part, and a broad warm lift toward the
@@ -386,7 +417,11 @@ function bossAndCrystal() {
 
 /* The octagon's bevel is eight flat planes, each lit by its angle to the
    key light (up and a little left): the top facet brightest, the bottom one
-   in shade. Flat tones, no ramp; the planes are what make it a solid. */
+   in shade. Flat tones, no ramp; the planes are what make it a solid. Each
+   plane then takes its two arrises by the same angle (the crest where it
+   leaves the face, the lip where it drops to the case side), and the leaf
+   is rubbed through to the bronze along the lip, where hands have worn it
+   (AR-7: the bevels were eight flat gold strips). */
 function octagonPts(inset) {
   var c = 212 + inset, m = 4 + inset, M = 996 - inset;
   return [[c, m], [1000 - c, m], [M, c], [M, 1000 - c], [1000 - c, M], [c, M], [m, 1000 - c], [m, c]];
@@ -404,19 +439,37 @@ function facets() {
   }
   return s;
 }
+function lerp(a, b, t) { return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t]; }
+function facetEdges() {
+  var o = octagonPts(0), inn = octagonPts(24), wear = '', edges = '', i, j;
+  for (i = 0; i < 8; i++) {
+    j = (i + 1) % 8;
+    var mx = (o[i][0] + o[j][0]) / 2 - 500, my = (o[i][1] + o[j][1]) / 2 - 500;
+    var lit = (mx * KEY[0] + my * KEY[1]) / Math.sqrt(mx * mx + my * my);
+    var k = lit > 0.3 ? 'lt' : lit < -0.3 ? 'dk' : 'md';
+    wear += '<polygon class="ck-wear" points="' + pts([o[i], o[j], lerp(o[j], inn[j], 0.4), lerp(o[i], inn[i], 0.4)]) + '"/>';
+    edges += '<polygon class="ck-crest ck-crest-' + k + '" points="' +
+      pts([inn[i], inn[j], lerp(inn[j], o[j], 0.14), lerp(inn[i], o[i], 0.14)]) + '"/>' +
+      '<polygon class="ck-lip ck-lip-' + k + '" points="' +
+      pts([o[i], o[j], lerp(o[j], inn[j], 0.09), lerp(o[i], inn[i], 0.09)]) + '"/>';
+  }
+  return wear + edges;
+}
 
 function markup() {
   // Statuary bronze for the case, leaf only on the eight bevels: the patina
   // clouds the flat face, the leaf lattice lies over the bevel ring alone.
   return dialDefs() + '<path class="ck-case" d="' + octagon(0) + '" fill="url(#ck-case-g)"/>' +
     '<path class="ck-patina" d="' + octagon(24) + '"/>' +
+    '<path class="ck-cast" d="' + octagon(24) + '"/>' +
     '<path class="ck-lift" d="' + octagon(24) + '" fill="url(#ck-lift-g)"/>' +
     '<path class="ck-sheen" d="' + octagon(24) + '" fill="url(#ck-sheen-g)"/>' +
     facets() +
     '<path class="ck-bevel-leaf" fill-rule="evenodd" d="' + octagon(0) + ' ' + octagon(24) + '"/>' +
     '<path class="ck-bevel-sheen" fill-rule="evenodd" fill="url(#ck-bev-g)" d="' + octagon(0) + ' ' + octagon(24) + '"/>' +
+    facetEdges() +
     '<path class="ck-caseline2" d="' + octagon(24) + '"/>' +
-    shoulders() + spandrels() + rivets() +
+    shoulders() + rivets() +
     '<g transform="translate(500,500) scale(0.855) translate(-500,-500)">' +
     dial() + '</g>';
 }

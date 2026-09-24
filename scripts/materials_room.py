@@ -20,7 +20,7 @@ from materials import (OUT, ROOT, fbm, ramp, band_veins, flow_veins, ridges,  # 
                        _height_to_rgb)
 
 
-def save(name, rgb, q=86, alpha=None):
+def save(name, rgb, q=86, alpha=None, alpha_q=100):
     os.makedirs(OUT, exist_ok=True)
     arr = np.clip(rgb, 0, 255).astype(np.uint8)
     if alpha is not None:
@@ -29,7 +29,7 @@ def save(name, rgb, q=86, alpha=None):
     else:
         img = Image.fromarray(arr, "RGB")
     path = os.path.join(OUT, name + ".webp")
-    img.save(path, "WEBP", quality=q, method=6)
+    img.save(path, "WEBP", quality=q, method=6, alpha_quality=alpha_q)
     return path
 
 
@@ -299,6 +299,58 @@ def vein_gray(n=512, seed=301):
     return np.dstack([g, g, g])
 
 
+def case_patina(n=512, seed=361):
+    """The clock case's cast bronze, as a signed relighting tile like the
+    desk's patina-statuary: every pixel is near-black or warm-white, with
+    alpha for how far it pushes, so it lies over the case's bronze ramp in
+    plain alpha. A cast face was never dressed with a brush, so nothing here
+    runs one way: the chemical patina lies in clouds at two scales with
+    darker islands, the wax is rubbed through to lighter metal in patches,
+    the sand cast leaves a fine tooth, and pits with a lit lip are scattered
+    through it, with a few short cleaning scratches in any direction. Laid
+    at 380 units to the tile, the clouds span 60 to 120px of the case on a
+    wide screen."""
+    rng = np.random.default_rng(seed)
+    clouds = fbm(n, seed, 2.3) - 0.5
+    mid = fbm(n, seed + 1, 1.6) - 0.5
+    tooth = fbm(n, seed + 2, 0.3) - 0.5
+    islands = np.clip((fbm(n, seed + 3, 2.1) - 0.62) * 3.2, 0, 1)
+    rub = np.clip((fbm(n, seed + 4, 2.5) - 0.57) * 2.8, 0, 1)
+    pits = np.zeros((n, n))
+    lips = np.zeros((n, n))
+    yy, xx = np.ogrid[-5:6, -5:6]
+    for _ in range(140):
+        y, x = rng.integers(0, n, 2)
+        r = rng.uniform(0.6, 1.8)
+        spot = np.exp(-(xx * xx + yy * yy) / (2 * r * r))
+        # the pit's far wall catches the key light: up and to the left
+        lip = np.exp(-((xx + 1.1 * r) ** 2 + (yy + 1.3 * r) ** 2) / (2 * (r * 0.8) ** 2))
+        ys, xs = (np.arange(y - 5, y + 6) % n), (np.arange(x - 5, x + 6) % n)
+        pits[np.ix_(ys, xs)] = np.maximum(pits[np.ix_(ys, xs)], spot)
+        lips[np.ix_(ys, xs)] = np.maximum(lips[np.ix_(ys, xs)], lip * 0.6)
+    scr = np.zeros((n, n))
+    for _ in range(18):
+        x0, y0 = rng.uniform(0, n, 2)
+        a = rng.uniform(0, np.pi)
+        ln = rng.uniform(n * 0.04, n * 0.16)
+        t = np.linspace(0, 1, int(ln * 2))
+        xs = (x0 + np.cos(a) * ln * t).astype(int) % n
+        ys = (y0 + np.sin(a) * ln * t).astype(int) % n
+        scr[ys, xs] = np.maximum(scr[ys, xs], np.sin(t * np.pi) ** 0.7)
+    scr = gaussian_filter(scr, 0.5, mode="wrap")
+    scr = scr / (scr.max() + 1e-9)
+    # centred a little under half: the glaze darkens more of the face than
+    # the rubbing lifts
+    g = (0.46 + clouds * 0.32 + mid * 0.22 + tooth * 0.22 - islands * 0.18 + rub * 0.15
+         - pits * 0.30 + lips * 0.14 + scr * 0.12)
+    d = np.clip(g, 0, 1) - 0.5
+    # the lift is rubbed metal, warm and a little dull, never a white haze
+    light = np.array([222, 176, 120], dtype=np.float64)
+    dark = np.array([10, 5, 2], dtype=np.float64)
+    rgb = np.where(d[..., None] > 0, light[None, None, :], dark[None, None, :])
+    return rgb, np.clip(np.abs(d) * 2.0, 0, 0.85)
+
+
 BAKES = [
     ("room-portoro", lambda: portoro_calm(), None),
     ("room-onyx-glow-lit", lambda: onyx(lit=True), None),
@@ -308,16 +360,22 @@ BAKES = [
     ("room-mfrieze-night", lambda: mast_frieze(False), None),
     ("room-mfrieze-day", lambda: mast_frieze(True), None),
     ("room-inlay-figure", lambda: vein_gray(), None),
+    ("room-case-patina", lambda: case_patina(), "rgba"),
 ]
 
 
 def main():
     written = []
     only = [a for a in sys.argv[1:] if not a.startswith("--")]
-    for name, fn, _ in BAKES:
+    for name, fn, kind in BAKES:
         if only and name not in only:
             continue
-        path = save(name, fn())
+        if kind == "rgba":
+            rgb, a = fn()
+            # a signed tile's alpha is noise too; lossless it doubles the file
+            path = save(name, rgb, q=80, alpha=a, alpha_q=60)
+        else:
+            path = save(name, fn())
         written.append(path)
         print("%-22s %6.1f KB" % (name, os.path.getsize(path) / 1024))
     if "--sheet" in sys.argv:

@@ -2509,12 +2509,6 @@ html[lang="zh"] .g-name { letter-spacing: 0.17em; }
   fill: none; stroke: var(--machine-edge);
   stroke-width: 1; vector-effect: non-scaling-stroke;
 }
-.ck-step, .ck-span {
-  fill: none; stroke-width: 1.5; vector-effect: non-scaling-stroke;
-}
-.ck-step { stroke: var(--bronze); }
-.ck-span { stroke: var(--metal); }
-.ck-spanin { fill: var(--metal); }
 .ck-rivet { fill: var(--rivet); }
 .ck-knurl { fill: var(--bronze); }
 .ck-well {
@@ -3579,7 +3573,6 @@ html[lang="zh"] .g-name { letter-spacing: 0.17em; }
 .ck-facet.fc1 { fill: var(--lead-1); }
 .ck-facet.fc0 { fill: var(--lead-0); }
 .ck-caseline2, .ck-caseline { stroke: rgba(0, 0, 0, 0.6); }
-.ck-step { stroke: var(--lead-4); }
 .ck-rivet { fill: var(--lead-3); stroke: var(--lead-0); stroke-width: 1.5; vector-effect: non-scaling-stroke; }
 .ck-case2 { fill: var(--lead-1); stroke: var(--lead-0); }
 .ck-knurl.kn-lt { fill: var(--lead-3); }
