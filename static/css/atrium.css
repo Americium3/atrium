@@ -3029,6 +3029,13 @@ html[data-entered="no"] #stage { animation: stage-dolly 0.9s var(--ease-out) bot
 :root[data-motion="reduced"] #ticker.rolling .t-track {
   animation: none; transform: none;
 }
+/* ...except the quiet boot's fade. It is the whole of what a reduced-motion
+   load gets instead of the entrance, and it is opacity only, so it moves
+   nothing. Under the blanket 0.01ms above the hall cut in on one frame. */
+:root[data-motion="reduced"][data-boot="suppressed"] #hall,
+:root[data-motion="reduced"][data-boot="suppressed"] #signal-desk {
+  animation-duration: 0.3s !important;
+}
 
 /* Ledger drawer: a fade instead of the slide. data-motion is the one switch:
    the pre-paint script and resolveMotion() already fold the OS setting into
