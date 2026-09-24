@@ -113,6 +113,12 @@ _setup_logging()
 FAST_TICK_S = 60
 SLOW_EVERY = 5          # slow tick every N fast ticks (5 min)
 HTTP_TIMEOUT_S = 2.0
+# The connect phase gets longer than the rest. Windows reports a refused
+# connection to a closed local port only after about 2 s of SYN retries, so a
+# 2 s budget turned every "nothing is listening" into a ConnectTimeout that
+# could not be told apart from a service that was merely slow. With room to
+# finish, a closed port comes back as ConnectError, which is what DARK means.
+CONNECT_TIMEOUT_S = 5.0
 FEED_WINDOW_MS = 7 * 24 * 3600 * 1000
 EPISODE_WINDOW_MS = 48 * 3600 * 1000
 FEED_CAP = 60
@@ -701,6 +707,25 @@ def _note_failure(src: Source, exc: Exception) -> str:
     return src.last_error
 
 
+def _poll_failed(src: Source, exc: Exception) -> bool:
+    """Set a gate's lamp after a failed poll, and say whether it went dark.
+
+    A timeout means the service took the connection and did not answer in
+    time: it is running, just busy. Ground Station does this for minutes at a
+    stretch, and a DARK lamp over it told the reader to launch a second copy
+    onto a port that was already taken (19% of one night's first hour). So a
+    timeout keeps the gate OPEN under a "slow" note, the gate still opens the
+    service, and only a refused connection or a broken answer puts it out.
+    """
+    src.latency_ms = None
+    _note_failure(src, exc)
+    if isinstance(exc, httpx.TimeoutException):
+        src.state, src.note = "open", "slow"
+        return False
+    src.state, src.note = "dark", None
+    return True
+
+
 async def _timed_get(client: httpx.AsyncClient, url: str, **kw):
     t0 = time.perf_counter()
     resp = await client.get(url, **kw)
@@ -840,10 +865,7 @@ async def tick_autopilot(client: httpx.AsyncClient) -> None:
             pass  # keep the previous unresolved group
         await _ap_events(client)
     except Exception as exc:
-        src.state = "dark"
-        src.latency_ms = None
-        src.note = None
-        _note_failure(src, exc)
+        _poll_failed(src, exc)
         _ap_offline_fallback()
 
 
@@ -940,10 +962,7 @@ async def tick_groundstation(client: httpx.AsyncClient) -> None:
             save_cursors()
             _warmed.add("groundstation")
     except Exception as exc:
-        src.state = "dark"
-        src.latency_ms = None
-        src.note = None
-        _note_failure(src, exc)
+        _poll_failed(src, exc)
         _gs_offline_fallback()
 
 
@@ -1023,11 +1042,11 @@ async def tick_outreach(client: httpx.AsyncClient) -> None:
         resp, _ = await _timed_get(client, f"{OUTREACH_URL}/api/progress")
         progress = resp.json()
     except Exception as exc:
-        src.state = "dark"
-        src.latency_ms = None
-        _note_failure(src, exc)
         progress = _outreach_offline_progress()
-        src.note = "fallback" if progress else None
+        # A desk that is only slow keeps its "slow" note; "fallback" says the
+        # server is down, which is not true of one that took the connection.
+        if _poll_failed(src, exc) and progress:
+            src.note = "fallback"
 
     drafts_path = OUTREACH_DIR / "data" / "ai_drafts.json"
     try:
@@ -1083,10 +1102,8 @@ async def tick_arsenal(client: httpx.AsyncClient) -> None:
         ready = int(data.get("tools_ready") or 0)
         src.stat = {"tools": ready} if ready else {}
     except Exception as exc:
-        src.state = "dark"
-        src.latency_ms = None
-        src.stat = {}
-        _note_failure(src, exc)
+        if _poll_failed(src, exc):
+            src.stat = {}        # a slow gate keeps its last figure
 
 
 # --------------------------------------------------------------------------
@@ -1108,10 +1125,8 @@ async def tick_bourse(client: httpx.AsyncClient) -> None:
         src.groups["desk"] = bourse_events_to_dispatches(
             (d2.json() or {}).get("dispatches"), now_ms())
     except Exception as exc:
-        src.state = "dark"
-        src.latency_ms = None
-        src.stat = {}
-        _note_failure(src, exc)
+        if _poll_failed(src, exc):
+            src.stat = {}        # a slow gate keeps its last figure
 
 
 async def tick_pressroom(client: httpx.AsyncClient) -> None:
@@ -1136,10 +1151,7 @@ async def tick_pressroom(client: httpx.AsyncClient) -> None:
         src.groups["digest"] = press_status_to_dispatches(data)
         src.note_slow = "digest_stale" if data.get("stale") else None
     except Exception as exc:
-        src.state = "dark"
-        src.latency_ms = None
-        src.note = None
-        _note_failure(src, exc)
+        _poll_failed(src, exc)
 
 
 # --------------------------------------------------------------------------
@@ -1338,11 +1350,16 @@ def _report_lamps() -> None:
     for sid, src in SOURCES.items():
         if src.state == "checking":
             continue
-        seen = (src.state, src.last_error if src.state == "dark" else None)
+        # A slow gate is still lit, but it is a change worth one line: the
+        # timeouts that used to read as outages now leave their trace here.
+        slow = src.state == "open" and src.note == "slow"
+        seen = (src.state, src.last_error if src.state == "dark" or slow else None)
         if seen == _lamp_logged.get(sid):
             continue
         if src.state == "dark":
             log.warning("%s is dark: %s", sid, src.last_error or "no reason given")
+        elif slow:
+            log.info("%s is slow to answer: %s", sid, src.last_error)
         elif sid in _lamp_logged:
             log.info("%s is back", sid)
         # else: first sighting of a healthy gate. Recorded, not announced —
@@ -1352,7 +1369,8 @@ def _report_lamps() -> None:
 
 
 async def refresher() -> None:
-    async with httpx.AsyncClient(timeout=HTTP_TIMEOUT_S) as client:
+    timeout = httpx.Timeout(HTTP_TIMEOUT_S, connect=CONNECT_TIMEOUT_S)
+    async with httpx.AsyncClient(timeout=timeout) as client:
         tick_no = 0
         while True:
             fast = [tick_autopilot(client), tick_groundstation(client),

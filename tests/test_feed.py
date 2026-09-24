@@ -739,6 +739,39 @@ def test_a_dead_qbittorrent_yields_to_a_dead_daemon():
     assert out["autopilot:qb-down"]["kind"] == "autopilot.qb_down"
 
 
+class _FailingClient:
+    def __init__(self, exc):
+        self.exc = exc
+
+    async def get(self, url, **kw):
+        raise self.exc
+
+
+def test_a_slow_service_stays_lit_and_a_refused_one_goes_dark():
+    """A timeout means the service took the connection: it is running. DARK
+    told the reader to launch a second Ground Station onto a taken port."""
+    src = server.SOURCES["arsenal"]
+    saved = (src.state, src.latency_ms, src.note, dict(src.stat), src.last_error)
+    try:
+        src.state, src.stat = "open", {"tools": 3}
+        asyncio.run(server.tick_arsenal(
+            _FailingClient(server.httpx.ReadTimeout("slow"))))
+        assert (src.state, src.note, src.latency_ms) == ("open", "slow", None)
+        assert src.stat == {"tools": 3}      # a slow gate keeps its figure
+        asyncio.run(server.tick_arsenal(
+            _FailingClient(server.httpx.ConnectError("refused"))))
+        assert (src.state, src.note) == ("dark", None)
+        assert src.stat == {}
+    finally:
+        (src.state, src.latency_ms, src.note, src.stat, src.last_error) = saved
+
+
+def test_a_closed_port_has_time_to_be_refused():
+    """Windows refuses a closed local port only after ~2 s of retries. Inside
+    a 2 s connect budget that arrived as a timeout, which now means "slow"."""
+    assert server.CONNECT_TIMEOUT_S >= 2 * server.HTTP_TIMEOUT_S
+
+
 if __name__ == "__main__":
     failures = 0
     for name, fn in sorted(globals().items()):
