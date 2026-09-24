@@ -616,6 +616,8 @@ html[lang="zh"] .board .wk-slabel, html[lang="zh"] .board .al-strips .al-slabel 
   filter: drop-shadow(0 0.8px 0 rgba(0, 0, 0, 0.9));
 }
 .board .al-read[data-blank="yes"] .al-temp { background: none; color: var(--cab-faint); }
+/* The moment has lapsed and the day's figures stand: only the dash drains. */
+.board .al-read[data-blank="now"] .al-temp { background: none; color: var(--cab-faint); }
 .board .al-vlabel { color: var(--cab-gold); opacity: 0.85; }
 .board .al-sky { padding: 0.8cqw 0 0.4cqw; }
 .board .al-tape { margin-top: 0.4cqw; }

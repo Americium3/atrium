@@ -3111,13 +3111,28 @@ function almDeg(v) {
   return (v === null || v === undefined) ? '—' : Math.round(v) + '°';
 }
 
-function almVitals(w) {
+/* The high, the low and the chance of rain are the day's and stand for the
+   day. The temperature, the condition and the wind are one moment's, and a
+   hub that stopped answering kept that moment up as "now" for hours, beside
+   dials that had long since dropped to NO READING. The moment lapses at half
+   an hour: the hub's 15 min cache plus the 10 min poll (25 min) is the
+   oldest a healthy board ever shows. Its age is the hub's age_s when it was
+   read plus the time since; the minute sky tick redraws the reading. */
+var ALM_NOW_MS = 1800000;
+
+function almFresh(w) {
+  if (!w || !almReadAt) return false;
+  var held = almanac && typeof almanac.age_s === 'number' ? almanac.age_s * 1000 : 0;
+  return Date.now() - almReadAt + held <= ALM_NOW_MS;
+}
+
+function almVitals(w, fresh) {
   var rows = [
     ['almHigh', w ? almDeg(w.high_c) : '—'],
     ['almLow', w ? almDeg(w.low_c) : '—'],
     ['almPrecip', w && w.precip_prob !== null && w.precip_prob !== undefined
                   ? w.precip_prob + '%' : '—'],
-    ['almWind', w && w.wind_kmh !== null && w.wind_kmh !== undefined
+    ['almWind', fresh && w.wind_kmh !== null && w.wind_kmh !== undefined
                 ? t('almWindUnit', { n: Math.round(w.wind_kmh) }) : '—']
   ];
   var box = el('div', 'al-vitals');
@@ -3133,13 +3148,15 @@ function almVitals(w) {
 function buildRead(w) {
   var box = $('#al-read');
   box.textContent = '';
-  box.dataset.blank = w ? 'no' : 'yes';
+  var fresh = almFresh(w);
+  // "now": the day's figures stand, the moment's have lapsed.
+  box.dataset.blank = !w ? 'yes' : fresh ? 'no' : 'now';
   var now = el('div', 'al-now');
-  now.appendChild(el('span', 'al-temp num', w ? almDeg(w.now_c) : '—'));
+  now.appendChild(el('span', 'al-temp num', fresh ? almDeg(w.now_c) : '—'));
   now.appendChild(el('span', 'al-cond zh-sentence',
-    w ? (lang === 'zh' ? w.label_zh : w.label) : t('wkNoReading')));
+    fresh ? (lang === 'zh' ? w.label_zh : w.label) : t('wkNoReading')));
   box.appendChild(now);
-  box.appendChild(almVitals(w));
+  box.appendChild(almVitals(w, fresh));
   // Fahrenheit lives in the tooltip: this reader is standing in a country
   // that speaks it, in a hall that does not.
   box.title = w && w.high_f !== null && w.high_f !== undefined
@@ -3306,18 +3323,21 @@ function pollAlmanac() {
   if (!almanacVisible()) return Promise.resolve();
   if (almBusy) return Promise.resolve();
   almBusy = true;
+  var failed = false;
   return fetchJson('/api/almanac').then(function (a) {
     almanac = a;
     almReadAt = Date.now();
     renderAlmanac();
-  }).catch(function () { /* a restarting hub is not a forecast */ })
+  }).catch(function () { failed = true; /* a restarting hub is not a forecast */ })
     .then(function () {
       // Re-armed after a failed request as well as after a miss: armed only
       // on a reply, one retry that met a hub restart left NO READING up for
-      // the rest of the ten minutes.
+      // the rest of the ten minutes. A failure re-arms it with a forecast
+      // still on the board too, whose moment lapses (almFresh) and would
+      // otherwise wait out the ten minutes after the hub came back.
       almBusy = false;
       clearTimeout(almRetryT);
-      if (!almWeather()) almRetryT = setTimeout(pollAlmanac, ALM_RETRY_MS);
+      if (failed || !almWeather()) almRetryT = setTimeout(pollAlmanac, ALM_RETRY_MS);
     });
 }
 
