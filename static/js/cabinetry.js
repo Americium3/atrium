@@ -212,7 +212,7 @@ function lamp(kind, seed) {
 }
 
 /* The corner fans painted in gilt on the back of the door's black glass
-   (verre eglomise), one for each corner, turned to face inward. */
+   (verre eglomise), turned to face inward. */
 function fanCorner(corner) {
   var s = sv('svg', { viewBox: '0 0 30 30', 'aria-hidden': 'true' }, 'cs-fan cs-fan-' + corner);
   var d = '';
@@ -270,7 +270,10 @@ function dressCase(board) {
   if (door) {
     var glass = hx('div', 'cs-glass');
     glass.setAttribute('aria-hidden', 'true');
-    ['tl', 'tr', 'bl', 'br'].forEach(function (c) { glass.appendChild(fanCorner(c)); });
+    // Fans in the head corners only. The foot of the glass is where the
+    // ivorine strips are screwed, and a fan painted there showed three stray
+    // rays beside each strip end and the rest of it under the label.
+    ['tl', 'tr'].forEach(function (c) { glass.appendChild(fanCorner(c)); });
     glass.appendChild(hx('i', 'cs-pin'));
     door.insertBefore(glass, door.firstChild);
     frame(door);

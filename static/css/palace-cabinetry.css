@@ -303,15 +303,15 @@
     inset calc(var(--fw) + 1px) 0 8px -3px rgba(0, 0, 0, 0.6),
     inset calc(-1 * var(--fw) - 1px) 0 8px -3px rgba(0, 0, 0, 0.6);
 }
-/* The gilt pinstripe painted on the back of the glass, broken at each
-   corner by a fan. */
+/* The gilt pinstripe painted on the back of the glass: the head rule between
+   the two fans and the short returns beside them. Its foot brackets went
+   with the foot fans (cabinetry.js): they ran under the ivorine strips. */
 .cs-pin {
   position: absolute;
   inset: calc(var(--fw) + 1cqw);
   border: 1px solid rgba(214, 180, 104, 0.42);
   clip-path: polygon(4.6cqw 0, calc(100% - 4.6cqw) 0, calc(100% - 4.6cqw) 1.5px, 100% 1.5px, 100% 4.6cqw,
-    calc(100% - 1.5px) 4.6cqw, calc(100% - 1.5px) calc(100% - 4.6cqw), 100% calc(100% - 4.6cqw),
-    100% 100%, calc(100% - 4.6cqw) 100%, 4.6cqw 100%, 0 100%, 0 calc(100% - 4.6cqw), 1.5px calc(100% - 4.6cqw),
+    calc(100% - 1.5px) 4.6cqw, calc(100% - 1.5px) calc(100% - 1.5px), 1.5px calc(100% - 1.5px),
     1.5px 4.6cqw, 0 4.6cqw, 0 1.5px, 4.6cqw 1.5px);
 }
 .cs-fan {
@@ -321,8 +321,6 @@
 .cs-fan .fan-rule { stroke: rgba(214, 180, 104, 0.42); stroke-width: 0.9; }
 .cs-fan-tl { left: calc(var(--fw) + 1cqw); top: calc(var(--fw) + 1cqw); }
 .cs-fan-tr { right: calc(var(--fw) + 1cqw); top: calc(var(--fw) + 1cqw); transform: scaleX(-1); }
-.cs-fan-bl { left: calc(var(--fw) + 1cqw); bottom: calc(var(--fw) + 1cqw); transform: scaleY(-1); }
-.cs-fan-br { right: calc(var(--fw) + 1cqw); bottom: calc(var(--fw) + 1cqw); transform: scale(-1, -1); }
 
 /* The frame: a bolection moulding in the leaf, four mitred facets, each
    carrying the profile across its width (arris, crest, body, the step down
