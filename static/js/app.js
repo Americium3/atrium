@@ -2893,7 +2893,8 @@ function statText(svc) {
     if (s.tools > 0) return t('stat.tools', { n: s.tools });
   } else if (svc.id === 'bourse') {
     if (s.orders > 0) return t('stat.orders_await', { n: s.orders });
-    if (s.date) return t('stat.brief_of', { date: s.date });
+    // The same day the Ledger prints ("Sep 21"), not the wire's ISO date.
+    if (s.date) return t('stat.brief_of', { date: briefDay(s.date) || s.date });
   } else if (svc.id === 'outreach') {
     var parts = [];
     if (s.total > 0) parts.push(t('stat.queue', { done: s.ready || 0, total: s.total }));
