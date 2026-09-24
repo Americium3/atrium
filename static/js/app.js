@@ -5118,24 +5118,39 @@ var mq = matchMedia('(prefers-color-scheme: dark)');
    flip itself lands with every transition cut (.theme-cut), so the new hall
    is drawn once, finished, and nothing restyles per frame. Where a view
    transition is unavailable, or motion is reduced, the flip is simply
-   instant: still one picture, never half and half. */
+   instant: still one picture, never half and half.
+   The flip lands whatever was chosen last. A choice made while the old hall
+   is still being captured only retargets the flip on its way: compared
+   with data-theme, which that flip had not written yet, a second choice in
+   the window was taken as no change, and the hall stayed on the first. */
+var themeNext = null;   // what the flip on its way will write, until it lands
+var themeFade = null;   // the crossfade while it is on screen
+var themeGen = 0;
 function resolveTheme() {
   var pref = root.dataset.themePref || 'system';
   var dark = pref === 'onyx' || (pref === 'system' && mq.matches);
   var next = dark ? 'onyx' : 'ivory';
-  if (root.dataset.theme === next) return;
+  if ((themeNext || root.dataset.theme) === next) return;
+  var pending = themeNext !== null;
+  themeNext = next;
+  if (pending) return;
   themeBusy = true;
+  var gen = ++themeGen;
   var flip = function () {
     root.classList.add('theme-cut');
-    root.dataset.theme = next;
+    root.dataset.theme = themeNext;
+    themeNext = null;
   };
   var uncut = function () {
+    // A newer crossfade started over this one owns the cut now.
+    if (gen !== themeGen) return;
+    themeFade = null;
     root.classList.remove('theme-cut');
     themeBusy = false;
     if (afterTheme) { var f = afterTheme; afterTheme = null; f(); }
   };
   if (document.startViewTransition && root.dataset.motion !== 'reduced') {
-    var vt = document.startViewTransition(flip);
+    var vt = themeFade = document.startViewTransition(flip);
     // The cut is lifted when the fade has finished, not when it starts.
     // Lifting it restyles every element in the hall (the cut is a universal
     // rule), and at `ready` that restyle, 100-130ms at 3440, landed in the
@@ -5143,6 +5158,11 @@ function resolveTheme() {
     // changes nothing on screen. Nothing transitions until then, which is
     // why a throw asked for meanwhile waits for it (setWing).
     vt.finished.then(uncut, uncut);
+    // A second change after the flip, before the fade has begun, skips this
+    // transition, and its other promises reject. That is ordinary use of the
+    // Appearance control, not an error.
+    vt.ready.catch(function () {});
+    vt.updateCallbackDone.catch(function () {});
   } else {
     flip();
     void root.offsetWidth;   // the flip's style change happens under the cut
@@ -5156,6 +5176,34 @@ function setThemePref(pref) {
 }
 // Follow-system reacts live with the same crossfade.
 if (mq.addEventListener) mq.addEventListener('change', resolveTheme);
+
+/* The crossfade is a picture laid over a live hall, but Chrome hit-tests
+   the picture: for as long as it ran, every press landed on <html>, so
+   CLOSE, a language or a second theme ignored the click. A press now cuts
+   the fade short, and its click is handed to the control under it, with
+   its position and count, so the switchgear still reads where it landed. */
+var pressThrough = false;
+window.addEventListener('pointerdown', function (e) {
+  pressThrough = false;
+  if (!themeFade || e.target !== root) return;
+  themeFade.skipTransition();
+  pressThrough = true;
+}, true);
+window.addEventListener('click', function (e) {
+  if (!pressThrough) return;
+  pressThrough = false;
+  if (e.target !== root) return;   // it reached its control after all
+  var to = document.elementFromPoint(e.clientX, e.clientY);
+  if (!to || to === root) return;
+  e.stopImmediatePropagation();
+  var stop = to.closest('button, a[href], [tabindex]');
+  if (stop) stop.focus({ preventScroll: true });
+  to.dispatchEvent(new MouseEvent('click', {
+    bubbles: true, cancelable: true, view: window, detail: e.detail, button: e.button,
+    clientX: e.clientX, clientY: e.clientY, screenX: e.screenX, screenY: e.screenY,
+    ctrlKey: e.ctrlKey, shiftKey: e.shiftKey, altKey: e.altKey, metaKey: e.metaKey
+  }));
+}, true);
 
 function setLang(next) {
   lang = next === 'zh' ? 'zh' : 'en';
