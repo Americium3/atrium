@@ -169,7 +169,8 @@ both themes; only the hour changes.
     inner elements, with the moving transform on a parent. The clock is two
     sheets, a still dial painted once and a thin moving sheet, and each part
     on the moving sheet is its own layer turned by the compositor, so the
-    sweep costs the page no layout. The floor's SVGs carry no paint servers
+    sweep costs the page no layout. The Statistics needles turn the same
+    way, each a sheet over its dial. The floor's SVGs carry no paint servers
     (patterns or gradients): the inlays' figure and sheen are HTML layers
     over each inlay.
 
@@ -279,13 +280,20 @@ still work. A tap's click is swallowed along with it, so the tap that skips
 cannot also open the gate under the finger. From done-fade on the hall is
 what shows, so a click there lands the entrance and then does what it says.
 `?entrance=0` skips it. The curtain is dressed at once, but its clock starts
-only when the hall behind it has its first readings and has been drawn
-(at most 900 ms), so the hall's first raster happens under a still curtain
-and not during the footlights. A hall loaded in a tab nobody is looking at
-holds the curtain until the tab is first shown. Under reduced motion a load gets the 300 ms fade
-instead. PREFERENCES > REPLAY ENTRANCE sets a one-shot `sessionStorage` flag and
-reloads; the pre-paint script reads and clears it, so nothing sticks to the
-address bar, and under reduced motion a replay is the same quiet fade. The
+only when the hall behind it has its first readings and has been drawn, so
+the hall's first raster happens under a still curtain and not during the
+footlights. A hub slow to answer holds it 900 ms; after that the clock starts
+as soon as the frames run at the display's pace again (2.5 s at the most).
+In a new tab, or a browser restarted on a profile that has drawn the hall
+before, that is about 0.5 s after load at 1920 and 0.7 s at 3440. A profile
+with no shaders compiled yet, such as a new one, takes 2.3 to 3 s over the
+hall's and the curtain's first draws at either size, and holds the curtain
+the full 2.5 s. A clock started earlier runs through those draws: the
+footlights and the spot froze for 250 to 600 ms at a time. A hall loaded in a tab nobody is looking at holds the curtain until the
+tab is first shown. Under reduced
+motion a load gets the 300 ms fade instead. PREFERENCES > REPLAY ENTRANCE
+sets a one-shot `sessionStorage` flag and reloads; the pre-paint script
+reads and clears it, so nothing sticks to the address bar, and under reduced motion a replay is the same quiet fade. The
 entrance overlay is `aria-hidden`; the app is usable underneath once
 assembled.
 
@@ -1353,15 +1361,21 @@ picture, fades out over the new one, and the flip underneath lands with
 every transition cut (`.theme-cut`). Per-element transitions could not do
 it: the wall, floor and dado are gradients, which do not interpolate, and
 the ~1,100 colour transitions a flip started restyled the page every frame.
-The cut is lifted when the fade has finished: lifting it restyles every
-element, and at `ready` that landed inside the fade and stalled it.
+The fade waits on its first millisecond until the new hall has been drawn,
+then plays in full; the cut is lifted in that wait, where its restyle of
+every element is not seen. Lifted at `ready` it stalled the fade, and lifted
+after `finished` it froze the hall again once the fade was over.
 The lever's re-leaf lands in one frame. The fixtures it changes (the clock's
 gilt, the pilasters and the aisle walls, the marquee's channel, the frieze
 panels and the cornice, the stage rule, the console's leaf) carry no colour
 or filter transition: a fill fading on them re-rastered them on every frame
 of the throw, 70 ms a frame at 3440, and a room that eased half its gilt
-changed metal in two halves. The flip goes out first, and the lever and the
-arches start once it is on screen (`afterDrawn()`), so the sink is seen.
+changed metal in two halves. The wing's metal is set on the fixtures that
+carry it, never on `:root`, and they, the arches and the lamps are layers of
+their own. The lever moves from the key, a frame ahead of the re-leaf, and
+its drive advances by drawn frames, never by the clock. The arches start
+once the re-leaf is on screen (`afterDrawn()` waits out its heavy frame), so
+the sink is seen.
 Only the crossfade layers (the wordmark's nickel face, the crown) fade, by
 opacity. No universal `* { transition }`.
 Custom properties don't interpolate; the consuming elements transition.

@@ -456,20 +456,20 @@
 .board .wk-dial .d-serial path { stroke: var(--scale-ink); stroke-width: 0.45; stroke-linecap: round; }
 .board .wk-dial .d-zero { stroke: rgba(0, 0, 0, 0.5); stroke-width: 0.3; }
 .board .wk-dial .d-lip { pointer-events: none; }
-/* The needle. Both groups carry .g-needle, which the base sheet turns on
-   the spring settle; the shadow's group sits in a translated parent. */
-.board .wk-dial .g-needle { stroke: none; }
-.board .wk-dial .nd-shadow .g-needle { fill: var(--needle-sh); }
-.board .wk-dial .nd-lacq { fill: var(--needle); stroke: var(--needle-edge); stroke-width: 0.3; }
-.board .wk-dial .nd-tip { fill: var(--needle); }
-.board .wk-dial .nd-weight { fill: var(--br-2); stroke: var(--br-0); stroke-width: 0.35; }
-.board .wk-dial .nd-rivet { fill: var(--br-4); }
-.board .wk-dial .nd-hi { stroke: rgba(255, 255, 255, 0.5); stroke-width: 0.35; fill: none; }
-.board .wk-dial .d-hub { stroke: rgba(0, 0, 0, 0.6); stroke-width: 0.35; }
-.board .wk-dial .d-hubglint { fill: #fffbe8; opacity: 0.7; }
-.board .wk-dial .d-xtal { pointer-events: none; }
-.board .wk-dial .d-xtal-edge { stroke: rgba(255, 252, 240, 0.28); stroke-width: 0.6; }
-.board .wk-dial .d-glint { fill: #ffffff; opacity: 0.55; }
+/* The needle. Both of its sheets turn on the spring settle the base sheet
+   gives .wk-rotor; the shadow's sheet stands off ahead of the turn. */
+.board .wk-hands .g-needle { stroke: none; }
+.board .wk-hands .nd-shadow .g-needle { fill: var(--needle-sh); }
+.board .wk-hands .nd-lacq { fill: var(--needle); stroke: var(--needle-edge); stroke-width: 0.3; }
+.board .wk-hands .nd-tip { fill: var(--needle); }
+.board .wk-hands .nd-weight { fill: var(--br-2); stroke: var(--br-0); stroke-width: 0.35; }
+.board .wk-hands .nd-rivet { fill: var(--br-4); }
+.board .wk-hands .nd-hi { stroke: rgba(255, 255, 255, 0.5); stroke-width: 0.35; fill: none; }
+.board .wk-hands .d-hub { stroke: rgba(0, 0, 0, 0.6); stroke-width: 0.35; }
+.board .wk-hands .d-hubglint { fill: #fffbe8; opacity: 0.7; }
+.board .wk-hands .d-xtal { pointer-events: none; }
+.board .wk-hands .d-xtal-edge { stroke: rgba(255, 252, 240, 0.28); stroke-width: 0.6; }
+.board .wk-hands .d-glint { fill: #ffffff; opacity: 0.55; }
 /* In the red: the needle's tip takes the lacquer of the arc it has
    reached. One signal, no flashing. */
 .board .wk-cell[data-hot="yes"] .nd-tip { fill: var(--lacquer-red-hi); }
@@ -1204,7 +1204,7 @@ html[lang="zh"] #ledger :is(.pl-head, .pl-detail, .pl-time, .chip, .l-close-cap,
    the focus trap and Esc are unchanged underneath it. */
 :root[data-theme="onyx"] {
   --pn: #0b0908; --pn-refl: rgba(255, 244, 222, 0.06);
-  --pn-fillet: var(--lead-3); --pn-string: rgba(236, 226, 200, 0.28);
+  --pn-string: rgba(236, 226, 200, 0.28);
   --well: #2e2b24; --well-tex: 0.9; --well-rim: rgba(0, 0, 0, 0.7);
   --pn-ink: #eadfc4; --pn-faint: #cbbe9e; --pn-label: #dcbf72;
   --pk-0: #4a4640; --pk-1: #1a1816; --pk-2: #060505;
@@ -1222,6 +1222,9 @@ html[lang="zh"] #ledger :is(.pl-head, .pl-detail, .pl-time, .chip, .l-close-cap,
   --pilot-0: #ffe7b0; --pilot-1: #e0a040; --pilot-2: #a4600e; --pilot-3: #4a2a06;
   --pilot-glow: rgba(0, 0, 0, 0);
 }
+/* The night fillet is the wing's leaf, so it is taken on the sheet, where
+   the Bureau's nickel is set (atrium.css), not on :root. */
+:root[data-theme="onyx"] .p-sheet { --pn-fillet: var(--lead-3); }
 .pk-0 { stop-color: var(--pk-0); } .pk-1 { stop-color: var(--pk-1); } .pk-2 { stop-color: var(--pk-2); }
 /* The bat lever's nickel shaft. These were --pl-*, which is the plaster
    ramp's name in atrium.css: set on :root after it, they re-leafed the

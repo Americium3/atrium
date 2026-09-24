@@ -227,9 +227,10 @@
 .gate[data-velvet="iron"] { --velvet: var(--iron); }
 
 /* Wing metal — carried by exactly three surfaces:
-   lever needle, masthead underline, active gate frames + stage glow. */
-:root[data-wing="salon"]  { --metal: var(--gold); --metal-hi: var(--champagne); }
-:root[data-wing="bureau"] { --metal: var(--plat); --metal-hi: var(--plat-hi); }
+   lever needle, masthead underline, active gate frames + stage glow.
+   The Salon's is set here and never changes on :root; the Bureau's is set
+   on the fixtures that show it, with the leaf (--lead-*, further down). */
+:root { --metal: var(--gold); --metal-hi: var(--champagne); }
 
 :root {
   /* One stack for both languages. The CJK face sits second, so it sets every
@@ -246,7 +247,8 @@
      the module grows with the lettering (--ui): a 1720px diorama stranded in
      the middle of a 3440px screen is the thing this pass exists to end.
      --gate-vcap is the vertical budget's cap (budgetHall() in app.js): the
-     largest arch that still leaves the lever its floor under the stage. */
+     largest arch that still leaves the lever its floor under the stage. It
+     does not inherit (see the @property rules above). */
   --gate-w: clamp(182px, min(13.6vw, 26.5vh, var(--gate-vcap, 100vh)),
                   calc(296px * (0.62 + 0.38 * var(--ui))));
   /* The same module with no vertical cap: the arch as it would stand if the
@@ -277,6 +279,15 @@
    and every JS-side `* u` silently falls back to 1. */
 @property --ui { syntax: "<number>"; inherits: true; initial-value: 1; }
 @property --gate-free { syntax: "<length>"; inherits: true; initial-value: 0px; }
+/* Measurements the layout pass writes on every resize, each read only by
+   the element it is written on: the vertical cap (:root), the floor's
+   share (#concourse), an arch's slot (.gate) and the desk's room
+   (#signal-desk). Inherited, each new value restyled everything under its
+   element, some 11,000 elements per resize event at 1920 (MO-17). */
+@property --gate-vcap { syntax: "*"; inherits: false; }
+@property --floor-fit { syntax: "*"; inherits: false; }
+@property --slot-x { syntax: "*"; inherits: false; }
+@property --desk-room { syntax: "*"; inherits: false; }
 :root { --ui-auto: 1; --ui-user: 1; --ui: calc(var(--ui-auto) * var(--ui-user)); }
 @media (min-width: 1900px) { :root { --ui-auto: 1.12; } }
 @media (min-width: 2400px) { :root { --ui-auto: 1.24; } }
@@ -424,6 +435,7 @@ html[lang="zh"] .display { letter-spacing: 0.26em; }
 .sigil, #monogram, #prefs-btn svg,
 .medal, .medal .rim, .medal .m-sig, .chip,
 .wk-dial path, .wk-dial circle, .wk-dial line, .wk-dial text,
+.wk-hands path, .wk-hands circle,
 .wk-plate rect, .wk-plate circle, .wk-plate text,
 .lever-svg path, .lever-svg circle, .lever-svg rect, .lever-svg text,
 .lever-svg polygon, .lever-svg ellipse,
@@ -683,10 +695,12 @@ html[data-boot="suppressed"] #hall { animation: hall-fade 0.3s var(--ease-out) b
    shell is never clipped (steam must escape; clip-path kills shadows) —
    only the gear well clips, via overflow:hidden. One scalar --drive
    (0=salon, 1=bureau, written by the JS driver) derives the lever and both
-   gears. It lives on the movers (.desk-fx and #lever), not on :root and not
-   on the desk: a custom property restyles everything under the element it
-   changes on, and a console restyled every frame was repainted every frame.
+   gears. It lives on the four parts that read it, not on :root and not on
+   the desk, and it does not inherit: a custom property restyles everything
+   under the element it changes on, and a console restyled every frame was
+   repainted every frame.
    ========================================================================== */
+@property --drive { syntax: "<number>"; inherits: false; initial-value: 0; }
 #signal-desk {
   position: fixed; left: 0; right: 0; bottom: calc(10px * var(--ui));
   height: var(--desk-h);
@@ -708,8 +722,8 @@ html[data-boot="suppressed"] #signal-desk {
   animation: hall-fade 0.3s var(--ease-out) both;
 }
 /* Initial pose before the JS driver's first write. */
-:root[data-wing="salon"] :is(.desk-fx, #lever) { --drive: 0; }
-:root[data-wing="bureau"] :is(.desk-fx, #lever) { --drive: 1; }
+:root[data-wing="salon"] :is(.lever-svg, .gearA-svg, .gearB-svg, #lever .hit-arm) { --drive: 0; }
+:root[data-wing="bureau"] :is(.lever-svg, .gearA-svg, .gearB-svg, #lever .hit-arm) { --drive: 1; }
 
 .desk-core {
   position: relative;
@@ -1659,13 +1673,31 @@ html[data-boot="suppressed"] #signal-desk {
   font-size: 9px;
   font-variant-numeric: tabular-nums;
 }
-.wk-dial .g-needle {
-  stroke: var(--gold);
-  transform: rotate(calc(var(--gauge, -120) * 1deg));
-  transform-box: view-box;
-  transform-origin: 50px 50px;
-  transition: transform 0.9s var(--ease-spring), stroke 0.4s;
+/* The needle and what lies over it (hub, crystal) are sheets the size of
+   the dial, laid over it in its grid cell (cabinetry.js). The needle's two
+   sheets are layers the compositor turns: turning a group inside the dial
+   re-laid and re-rastered the case on every frame of the swing (MO-16).
+   The shadow's sheet stands off down the key light ahead of the turn. */
+.wk-cell > .wk-dial, .wk-cell > .wk-hands { grid-area: 1 / 1; }
+.wk-hands {
+  position: relative;
+  height: 100%; width: auto; max-width: 100%;
+  aspect-ratio: 1;
+  pointer-events: none;
 }
+.wk-hands > svg {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  overflow: visible;
+}
+.wk-hands .g-needle { stroke: var(--gold); transition: stroke 0.4s; }
+.wk-rotor {
+  transform: rotate(calc(var(--gauge, -120) * 1deg));
+  transform-origin: 50% 50%;
+  transition: transform 0.9s var(--ease-spring);
+  will-change: transform;
+}
+.wk-rotor.nd-shadow { transform: translate(1.3%, 2.1%) rotate(calc(var(--gauge, -120) * 1deg)); }
 .wk-dial .g-hub { fill: var(--bronze); stroke: none; }
 /* Past the red sector the needle takes the alarm tone. One signal, no
    flashing: a hall does not blink at its reader. */
@@ -2407,6 +2439,12 @@ html[lang="zh"] .g-name { letter-spacing: 0.17em; }
 /* the fanlight's streak on the floor goes down on the same beat (room.js) */
 :root[data-theme="onyx"] :is(.gate, .st-fan) { --gate-dim: 120ms; }
 .gate .lit { opacity: 0; transition: opacity 0.35s ease; }
+/* The arches and their lamps (and the fanlights' streaks, palace-room.css)
+   stand as layers, not as layers made when a throw starts: made then, every
+   sink and every lamp fading out got a new layer in the throw's first frame,
+   and the overlap made a hundred more around them, 173 layers rastered at
+   3440 while the lamps were meant to be going out (MO-1). */
+.gate, .gate .lit { will-change: opacity; }
 .gate.receded .lit { transition: opacity var(--gate-dim, 0ms) ease-in var(--slot-delay, 0ms); }
 :root[data-theme="onyx"] .gate.active[data-state="open"] .lit {
   opacity: 1;
@@ -3284,10 +3322,36 @@ html[lang="zh"] .g-name { letter-spacing: 0.17em; }
 .cyl.s0 { stop-color: var(--lead-0); } .cyl.s1 { stop-color: var(--lead-3); }
 .cyl.s2 { stop-color: var(--lead-4); } .cyl.s3 { stop-color: var(--lead-1); }
 .cyl.s4 { stop-color: var(--lead-0); }
+/* The wing's leaf and metal. The Salon's gold stands on :root and the lever
+   never changes it there: an inherited custom property changed on :root
+   restyles every element under it, and the flip restyled 10,400 of them
+   (~90ms at 3440) and laid the floor's 700 terrazzo chips out again for a
+   leaf they do not show (MO-1). The Bureau's nickel is set only on the
+   fixtures that carry the wing's metal, so a throw restyles those. The
+   gates lead their own leaf (.gate), and the marquee, the frieze and the
+   aisle walls ease theirs (palace-room.css). A new fixture that reads
+   --lead-* or --metal outside all of these joins this list. */
 :root { --lead-0: var(--au-0); --lead-1: var(--au-1); --lead-2: var(--au-2);
         --lead-3: var(--au-3); --lead-4: var(--au-4); --lead-5: var(--au-5); }
-:root[data-wing="bureau"] { --lead-0: var(--ag-0); --lead-1: var(--ag-1); --lead-2: var(--ag-2);
-        --lead-3: var(--ag-3); --lead-4: var(--ag-4); --lead-5: var(--ag-5); }
+:root[data-wing="bureau"] :where(#clock, .stage-glow, .wall-piers,
+    .fl-border, .fl-inlay, .fl-round, .fl-runner, .fl-rail, .fl-mirror,
+    .cs-top, .cs-door > .cf, .bd-title, #al-sky,
+    .m-crown, .mf-crest, .m-title, .m-underline,
+    .desk-art, .desk-fx, #keyplate, #ledger, .p-sheet, #cyl-lead) {
+  --lead-0: var(--ag-0); --lead-1: var(--ag-1); --lead-2: var(--ag-2);
+  --lead-3: var(--ag-3); --lead-4: var(--ag-4); --lead-5: var(--ag-5);
+  --metal: var(--plat); --metal-hi: var(--plat-hi);
+}
+/* And the fixtures the lever re-leafs are layers of their own. Painted into
+   the layer under them, each one's new leaf had that layer's tiles around it
+   rastered again (the terrazzo plane, the wall, a case door, the canopy),
+   and a flip took 440-490ms of GPU raster at 3440, which held back the
+   lever's first frames and ran into the sink (MO-1). Rastered alone, the
+   same leaf costs about 290ms. */
+:where(.fl-border, .fl-inlay, .fl-round, .wall-piers, .m-title, .m-underline,
+    .mf-crest, .cs-top, .cs-door > .cf, .bd-title, #al-sky, .desk-art .quadrant) {
+  will-change: transform;
+}
 :root[data-theme="onyx"] .alab.s0 { stop-color: #fff6e0; }
 :root[data-theme="onyx"] .alab.s1 { stop-color: #f6c783; }
 :root[data-theme="onyx"] .alab.s2 { stop-color: #8a4e1c; }

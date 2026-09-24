@@ -516,6 +516,10 @@ html[lang="zh"] .m-sub, html[lang="zh"] #dateline { -webkit-text-stroke: 0.35px 
    changed metal in two halves, and every frame of the fade re-rastered the
    aisle walls with their 90 blended, masked parts at 3440 (MO-21). Only
    the crossfade layers fade, by opacity: the wordmark's nickel face. */
+/* The aisle walls are layers of their own, so the frame the leaf swaps in
+   rasters the walls' own leaf and not the whole wall's tiles around them
+   (damask, dado and cornice). */
+.aisle-wall { will-change: transform; }
 
 /* ==========================================================================
    THE BACK WALL
@@ -852,7 +856,7 @@ html[lang="zh"] .m-sub, html[lang="zh"] #dateline { -webkit-text-stroke: 0.35px 
    0.35s curve from the throw every streak went down together, an inner
    bay's still at 41% when its lamp was out and an outer bay's a third gone
    before its lamp began to dim (MO-19). */
-.st-fan { --so: 0.36; opacity: 0; transition: opacity 0.35s ease; }
+.st-fan { --so: 0.36; opacity: 0; transition: opacity 0.35s ease; will-change: opacity; }
 .st-fan:not(.on) { transition: opacity var(--gate-dim, 0ms) ease-in var(--slot-delay, 0ms); }
 .st-fan.on[data-state="open"] {
   opacity: calc(var(--lamp-on) * var(--so));
@@ -899,14 +903,16 @@ html[data-entered="no"] #entrance.night.house ~ #hall .st-fan.on[data-state="ope
   --course-img: url('/static/assets/tex/stone-rouge.webp');
   --course-tint: linear-gradient(rgba(10, 4, 3, 0.42), rgba(10, 4, 3, 0.42));
   --course-blend: normal;
-  --course-strip: color-mix(in srgb, var(--lead-2) 55%, transparent);
 }
 :root[data-theme="ivory"] {
   --course-img: url('/static/assets/tex/terrazzo-ivory.webp');
   --course-tint: linear-gradient(#a57e74, #a57e74);
   --course-blend: multiply;
-  --course-strip: color-mix(in srgb, var(--lead-2) 75%, transparent);
 }
+/* The strips are the wing's leaf, taken on the course itself, where the
+   Bureau's nickel is set (atrium.css), not on :root. */
+:root[data-theme="onyx"] .fl-border { --course-strip: color-mix(in srgb, var(--lead-2) 55%, transparent); }
+:root[data-theme="ivory"] .fl-border { --course-strip: color-mix(in srgb, var(--lead-2) 75%, transparent); }
 /* The runner's wool (the tiles are baked with a cut pile and softened
    motifs, AR-11): down its centre lane the traffic has flattened the pile,
    which then gives back more of the room's light and less of its dye, and

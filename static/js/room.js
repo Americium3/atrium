@@ -345,9 +345,11 @@ function crown(host) {
    right half seen in a mirror, which is how a lobby's stone is set. Only the
    texture layer is flipped; joints, tone and light are laid over it. */
 function slabs(host, cls, pitch, name, axisX) {
+  // Measured before the old slabs come out: read after, it restyled and
+  // laid out the page again (MO-17). The slabs do not size their host.
+  var W = host.clientWidth;
   var old = host.querySelectorAll('.' + cls);
   for (var i = 0; i < old.length; i++) old[i].remove();
-  var W = host.clientWidth;
   if (!W || !(pitch > 20)) return;
   var axis = axisX == null ? W / 2 : axisX;
   var n = Math.ceil(Math.max(axis, W - axis) / pitch) + 1;
@@ -631,6 +633,12 @@ function layoutWall(g) {
               JSON.stringify(g.boards || [])].join('|');
   if (wall.dataset.roomKey === wkey) return;
   wall.dataset.roomKey = wkey;
+  // The wall and its pilasters are measured once, before anything below is
+  // written: each read after a write restyled and laid out the page again,
+  // three times a resize (MO-17). Nothing written here moves either.
+  var wr = wall.getBoundingClientRect();
+  var pilR = Array.prototype.map.call(wall.querySelectorAll('.aisle-wall .pilaster'),
+    function (n) { return n.getBoundingClientRect(); });
   var gh = r.gateW * 1.9, gateTop = H - gh;
   var ys = gateTop + gh * 162 / 570;               // the arches' springing line
   var crownY = gateTop + gh * 22 / 570;
@@ -678,11 +686,7 @@ function layoutWall(g) {
   var niche = r.half - r.gateW * 0.10;
   cuts.push(axis - niche, axis + niche, axis - reachEdge - 14 * u, axis + reachEdge + 14 * u);
   pierXs.forEach(function (p) { cuts.push(p.x); });
-  var pil = wall.querySelectorAll('.aisle-wall .pilaster');
-  for (var q = 0; q < pil.length; q++) {
-    var pr = pil[q].getBoundingClientRect(), wr0 = wall.getBoundingClientRect();
-    cuts.push(pr.left + pr.width / 2 - wr0.left);
-  }
+  pilR.forEach(function (pr) { cuts.push(pr.left + pr.width / 2 - wr.left); });
   cuts.push(0, W);
   cuts = cuts.filter(function (c) { return c >= 0 && c <= W; }).sort(function (a, b) { return a - b; });
   for (var c = 0; c < cuts.length - 1; c++) {
@@ -704,12 +708,9 @@ function layoutWall(g) {
     var old = corn.querySelectorAll('.cn-block');
     for (var ob = 0; ob < old.length; ob++) old[ob].remove();
     var at = pierXs.map(function (p) { return { x: p.x, w: 24 * u }; });
-    var pl = wall.querySelectorAll('.aisle-wall .pilaster');
-    var wr1 = wall.getBoundingClientRect();
-    for (var pq = 0; pq < pl.length; pq++) {
-      var b0 = pl[pq].getBoundingClientRect();
-      at.push({ x: b0.left + b0.width / 2 - wr1.left, w: b0.width * 0.8 });
-    }
+    pilR.forEach(function (b0) {
+      at.push({ x: b0.left + b0.width / 2 - wr.left, w: b0.width * 0.8 });
+    });
     at.forEach(function (c) {
       if (c.x < -20 || c.x > W + 20) return;
       var nm = 'console-' + (c.x < axis ? 'w' : 'e') + Math.round(Math.abs(c.x - axis) / (20 * u));
@@ -730,7 +731,6 @@ function layoutWall(g) {
   piers.textContent = '';
   var top = cornH + 12 * u, bottom = H - dadoH + 1;
   var headFoot = Math.min(ys - 4 * u, crownY + (ys - crownY) * 0.62);
-  var wr = wall.getBoundingClientRect();
   lastPiers = [];
   pierXs.forEach(function (p) {
     var name = 'pier-' + p.side + '-' + p.rank;
@@ -826,41 +826,48 @@ function layoutFloor() {
               JSON.stringify(lastPiers), document.querySelectorAll('#backwall .sconce').length,
               document.querySelectorAll('#gates .gate').length].join('|');
   if (host.dataset.key === fkey) { syncStreaks(); return; }
-  host.dataset.key = fkey;
-  host.textContent = '';
+  // Everything is measured before the first streak goes in. A streak
+  // written between two reads made the next read restyle and lay out the
+  // page again, eight times a resize (MO-17).
   var floorTop = fr.top;
-  // the torchieres
-  var sc = document.querySelectorAll('#backwall .sconce .sc-body');
-  for (var i = 0; i < sc.length; i++) {
-    var r = sc[i].getBoundingClientRect();
-    if (r.right < 0 || r.left > fr.width) continue;
-    streak(host, r.left + r.width / 2 - fr.left, r.width * 0.95, Math.min(H, (floorTop - r.top) * 0.95), 'torch');
-  }
-  // the pier lights
-  lastPiers.forEach(function (p) {
-    streak(host, p.x - fr.left, p.w * 1.5, Math.min(H, (floorTop - p.top) * 0.9), 'pier');
-  });
-  // each portal's fanlight, lit only while its wing stands and its lines are open
-  var stage = $('#stage');
-  if (stage) {
-    var sr = stage.getBoundingClientRect(), axis = sr.left + sr.width / 2;
+  var torches = Array.prototype.map.call(
+    document.querySelectorAll('#backwall .sconce .sc-body'),
+    function (n) { return n.getBoundingClientRect(); });
+  var stage = $('#stage'), sr = stage ? stage.getBoundingClientRect() : null;
+  var fans = [];
+  if (sr) {
     var gs = document.querySelectorAll('#gates .gate');
     for (var j = 0; j < gs.length; j++) {
       var a = gs[j];
       if (a.classList.contains('vacant') || !a.dataset.glass) continue;
       var sx = parseFloat(a.style.getPropertyValue('--slot-x'));
-      if (!isFinite(sx)) continue;
-      var gw = a.offsetWidth;
-      streak(host, axis + sx - fr.left, gw * 0.42, Math.min(H, gw * 1.2), 'fan', {
-        gate: a.id, wing: a.dataset.wing || '', glass: a.dataset.glass, state: a.dataset.state || ''
-      });
+      if (isFinite(sx)) fans.push({ a: a, sx: sx, gw: a.offsetWidth });
     }
   }
+  host.dataset.key = fkey;
+  host.textContent = '';
+  // the torchieres
+  torches.forEach(function (r) {
+    if (r.right < 0 || r.left > fr.width) return;
+    streak(host, r.left + r.width / 2 - fr.left, r.width * 0.95, Math.min(H, (floorTop - r.top) * 0.95), 'torch');
+  });
+  // the pier lights
+  lastPiers.forEach(function (p) {
+    streak(host, p.x - fr.left, p.w * 1.5, Math.min(H, (floorTop - p.top) * 0.9), 'pier');
+  });
+  // each portal's fanlight, lit only while its wing stands and its lines are open
+  if (sr) {
+    var axis = sr.left + sr.width / 2;
+    fans.forEach(function (f) {
+      var a = f.a;
+      streak(host, axis + f.sx - fr.left, f.gw * 0.42, Math.min(H, f.gw * 1.2), 'fan', {
+        gate: a.id, wing: a.dataset.wing || '', glass: a.dataset.glass, state: a.dataset.state || ''
+      });
+    });
+  }
   // the marquee's returns, the brightest things in the room
-  var tk = $('#ticker');
-  if (tk) {
-    var tr = tk.getBoundingClientRect();
-    [tr.left + 8 * u, tr.right - 8 * u].forEach(function (x) {
+  if (tk0) {
+    [tr0.left + 8 * u, tr0.right - 8 * u].forEach(function (x) {
       streak(host, x - fr.left, 22 * u, H, 'marquee');
     });
   }

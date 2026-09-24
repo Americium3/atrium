@@ -877,26 +877,43 @@ function dockEntrance() {
    Now that raster happens under a curtain that is standing still: the
    clock starts once the boot's first readings are in (the gates', and the
    cases' where they stand) and the frames that draw them have gone out. A
-   hub slow to answer holds the curtain ENTRANCE_HOLD ms at most. */
-var ENTRANCE_HOLD = 900;
+   hub slow to answer holds the curtain ENTRANCE_HOLD ms, and then the clock
+   starts as soon as the frames run at the display's pace again. It used to
+   start the moment the hold ran out, and a first raster can take longer
+   than that: the footlights and the spot began inside a 250-550ms freeze
+   (MO-8). A browser that has drawn the hall before (a new tab, or a restart
+   on the same profile) settles 0.45-0.85s after load, at 1920 and at 3440.
+   One with no shaders compiled yet (a new profile, as every probe launch
+   is) spends 2.3-3s on its first draws at either size, and there it is
+   ENTRANCE_HOLD_MAX that starts the clock, at 3440 into the last of them.
+   It is also for a renderer that never settles, and for a tab that draws
+   nothing. */
+var ENTRANCE_HOLD = 900, ENTRANCE_HOLD_MAX = 2500;
 /* Calls fn once what has been handed to the compositor is on screen. No
    callback says so, and a fixed two frames is not it: the main thread runs
    a frame or two ahead of the GPU, so its animation frames kept arriving on
    time while a heavy frame was still being rastered, and then stopped. So
-   this waits for the frames to run at the display's pace again, two short
-   intervals in a row: by then the heavy frame has gone out. "Short" is
-   under 25ms, or near the best this machine has shown, for a renderer that
-   never gets under it. */
+   this watches the frames for the heavy one, a gap of three frames or
+   more, and goes two short intervals after it: by then it has gone out.
+   With no heavy frame in CALM_RUN short intervals, nothing was heavy
+   enough to hold a frame back. "Short" is under 25ms, or near the best
+   this machine has shown, for a renderer that never gets under it. Two
+   short intervals from the start were not enough: at 3440 the GPU began a
+   flip's raster up to five frames after the flip, so the calm pair came
+   before it, and the throw's first frame went into the stall it was
+   waiting out (MO-1). */
+var CALM_RUN = 6;
 function afterDrawn(fn) {
-  var last = 0, best = Infinity, calm = 0;
+  var last = 0, best = Infinity, calm = 0, heavy = false;
   requestAnimationFrame(function tick(t) {
     if (last) {
       var dt = t - last;
       best = Math.min(best, dt);
-      calm = dt < Math.max(25, best * 1.5) ? calm + 1 : 0;
+      if (dt > Math.max(45, best * 2.7)) { heavy = true; calm = 0; }
+      else calm = dt < Math.max(25, best * 1.5) ? calm + 1 : 0;
     }
     last = t;
-    if (calm >= 2) fn(); else requestAnimationFrame(tick);
+    if (calm >= (heavy ? 2 : CALM_RUN)) fn(); else requestAnimationFrame(tick);
   });
 }
 /* The crest is hung, and the spot opened, where the dial stands behind the
@@ -944,7 +961,8 @@ function playEntrance(built) {
     runEntrance(day);
   }
   function arm() {
-    entranceTimers.push(setTimeout(start, ENTRANCE_HOLD));
+    entranceTimers.push(setTimeout(function () { afterDrawn(start); }, ENTRANCE_HOLD));
+    entranceTimers.push(setTimeout(start, ENTRANCE_HOLD_MAX));
     Promise.resolve(built).then(function () {
       afterDrawn(start);
     });
@@ -1210,13 +1228,17 @@ var deskRaf = null;
    a console restyled every frame is a console repainted every frame: its
    cast relief runs through a turbulence filter, and re-rastering it for
    each frame of the throw cost the GPU 60-150ms a frame at 3440 (MO-1).
-   On .desk-fx and #lever the console is never touched.
+   On .desk-fx and #lever the console is never touched. It is now written
+   on the four parts that read it, and it does not inherit (atrium.css):
+   on .desk-fx it still restyled the lever's and the gears' whole drawings,
+   some 180 nodes, on every frame of the throw.
    The value is also kept here. It used to be read back through
    getComputedStyle, and the throw read it straight after the wing flip, so
    every throw forced the flip's whole-hall restyle (8-10k elements, ~100ms)
    inside the key handler (MO-2). */
 var driveNow = 0;
-var driveEls = desk ? [$('.desk-fx', desk), $('#lever', desk)].filter(Boolean) : [];
+var driveEls = desk ? Array.prototype.slice.call(
+  desk.querySelectorAll('.lever-svg, .gearA-svg, .gearB-svg, #lever .hit-arm')) : [];
 function setDrive(v) {
   driveNow = v;
   var s = v.toFixed(4);
@@ -1226,23 +1248,33 @@ function getDrive() { return driveNow; }
 
 /* Interrupt-safe rAF driver: a re-toggle mid-throw reads the current
    --drive as its new start. Steam fires once past 55% of the throw
-   (latched). Reduced motion: snap — the gears stay correct for free. */
+   (latched). Reduced motion: snap — the gears stay correct for free.
+   The throw runs on drawn frames, not on the wall clock: no frame moves
+   the arm more than a sixteenth of its throw. Placed where the clock said
+   it should be, the arm skipped its swing whenever a frame came late: the
+   first frame after W carries the flip's re-leaf, 250-1,085ms of raster
+   at 3440, and the arm was first drawn at or past its end stop (MO-15).
+   After a late frame it now carries on from where it was drawn, and the
+   swing and the overshoot are always drawn in sixteen frames or more. */
 function deskDrive(target) {
   if (!desk) return;
   cancelAnimationFrame(deskRaf);
   // Hidden pages never fire rAF — land the mechanism instantly.
   if (root.dataset.motion === 'reduced' ||
       document.visibilityState === 'hidden') { setDrive(target); return; }
-  var from = getDrive(), t0 = performance.now(), DUR = 520;
+  var from = getDrive(), last = performance.now(), run = 0, DUR = 520;
+  var STEP = DUR / 16;
   var latched = false;
   var frame = function (now) {
     // The Motion preference can flip (or the tab hide) mid-throw — land it.
     if (root.dataset.motion === 'reduced' ||
         document.visibilityState === 'hidden') { setDrive(target); return; }
     // The first frame's timestamp is taken when the frame began, which can
-    // be before the click handler read t0; unclamped, that negative t
-    // kicked the lever back past its end stop for one frame.
-    var t = Math.max(0, Math.min(1, (now - t0) / DUR));
+    // be before the click handler read the clock; a negative step kicked
+    // the lever back past its end stop for one frame.
+    run += Math.max(0, Math.min(STEP, now - last));
+    last = Math.max(last, now);
+    var t = Math.min(1, run / DUR);
     var p = from + (target - from) * easeWeighty(t);
     setDrive(t === 1 ? target : p);
     var prog = target === 1 ? p : 1 - p;
@@ -2813,7 +2845,7 @@ var worksTimer = null;
 
 /* One instrument per reading. The drawing lives in cabinetry.js (bezel,
    enamel, scale, red arc, needle and crystal); the needle still turns on the
-   spring settle the CSS gives .g-needle, from the --gauge set below. */
+   spring settle the CSS gives .wk-rotor, from the --gauge set below. */
 function buildDial(key) {
   return window.Cabinet.dial(key);
 }
@@ -2941,7 +2973,13 @@ function syncWorks() {
     if (!cell) return;
     var r = dialRead(d.key, works);
     // A needle with no reading rests at zero rather than lying at a number.
-    cell.style.setProperty('--gauge', (-120 + (r ? r.pct : 0) * 2.4).toFixed(1));
+    // The angle goes on the needle's two sheets only: a custom property is
+    // inherited, and written on the cell it restyled the whole instrument,
+    // some 290 nodes, on every reading.
+    var gauge = (-120 + (r ? r.pct : 0) * 2.4).toFixed(1);
+    cell.querySelectorAll('.wk-rotor').forEach(function (n) {
+      n.style.setProperty('--gauge', gauge);
+    });
     cell.dataset.hot = r && r.pct >= 85 ? 'yes' : 'no';
     cell.dataset.blank = r ? 'no' : 'yes';
     var read = $('.wk-read', cell);
@@ -3870,25 +3908,39 @@ var lever = $('#lever');
 var themeBusy = false;   // a theme crossfade is running, under its cut
 var afterTheme = null;   // the lever re-light waiting for it
 
+var flipRaf = 0;
 function setWing(w) {
   wingPending = w;
   var apply = function () {
-    root.dataset.wing = w;
-    if (wingPending === w) wingPending = null;
     store('atrium.wing', w);
     lever.setAttribute('aria-checked', String(w === 'bureau'));
-    afterReleaf(throwWing);
+    // The lever answers the hand at once: it is its own layer, and its
+    // drive restyles only the lever and its gears. It used to wait with the
+    // arches for the re-leaf to be drawn, so nothing on the machine moved
+    // for 250-1,085ms after W (MO-15). Only the arches wait.
+    deskDrive(w === 'bureau' ? 1 : 0);
+    // The re-leaf goes out in the frame after the lever's first. In the
+    // same frame its raster (120-170ms at 3440) held that frame back, and
+    // the arm was first seen a fifth of a second after the key.
+    var flip = function () {
+      flipRaf = 0;
+      if (themeBusy) { afterTheme = flip; return; }
+      root.dataset.wing = w;
+      if (wingPending === w) wingPending = null;
+      afterReleaf(throwWing);
+    };
+    cancelAnimationFrame(flipRaf);
+    if (root.dataset.motion === 'reduced' || document.visibilityState === 'hidden') flip();
+    else flipRaf = requestAnimationFrame(function () { flipRaf = requestAnimationFrame(flip); });
   };
   // Serialize: the lever re-light queues until a theme crossfade finishes
   // and its cut is lifted; under the cut the throw would land in one frame.
   // The latest throw asked for is the one that runs.
   if (themeBusy) afterTheme = apply; else apply();
 }
-/* The moving parts of a throw: the lever and its gears, and the arches
-   changing places. They read the wing as it stands when they run, so two
-   quick throws land where the second one points. */
+/* The arches changing places. They read the wing as it stands when they
+   run, so two quick throws land where the second one points. */
 function throwWing() {
-  deskDrive(root.dataset.wing === 'bureau' ? 1 : 0);
   // The gates stay in the order they were built. The waiting wing is
   // inert, so Tab walks only the lit one, left to right, wherever the two
   // sit in the DOM. A 750ms re-append used to put the lit wing first, and
@@ -3919,15 +3971,15 @@ function sayWing() {
   }, Math.max(0, stageLands - performance.now()));
 }
 /* The flip re-leafs the whole hall: every gilt fixture off the arches
-   changes metal through --lead-* and --metal, which restyles the document
-   and re-rasters most of the screen. On the owner's 3440 display that frame
-   took 150-250ms of GPU raster, and a throw started in the same task ran on
-   the clock meanwhile: the 200ms sink was over before the next frame was
-   drawn, so nobody saw it, and the lever jumped (MO-1). So the flip goes
-   out on its own, and the lever and the arches start once it has been
-   drawn. (The fixtures change metal in that one frame, not over a 0.4s
-   colour fade: a fill fading on the clock and the pilasters re-rastered
-   them on every frame of the throw, 70ms a frame at 3440. Law 11.) */
+   changes metal through --lead-* and --metal, and each one is rastered
+   again. On the owner's 3440 display that frame took 150-250ms of GPU
+   raster, and a throw started in the same task ran on the clock meanwhile:
+   the 200ms sink was over before the next frame was drawn, so nobody saw
+   it (MO-1). So the flip goes out on its own, and the arches start once it
+   has been drawn. (The fixtures change metal in that one frame, not over a
+   0.4s colour fade: a fill fading on the clock and the pilasters
+   re-rastered them on every frame of the throw, 70ms a frame at 3440.
+   Law 11.) */
 var releafN = 0, releafT = 0;
 function afterReleaf(fn) {
   var n = ++releafN;
@@ -3938,8 +3990,10 @@ function afterReleaf(fn) {
     releafN++;
     fn();
   };
-  // A hidden tab draws nothing and fires no frames.
-  if (document.visibilityState === 'hidden') { go(); return; }
+  // A hidden tab draws nothing and fires no frames. Under reduced motion
+  // nothing sinks, so there is no sink to wait to be seen: the arches
+  // change with the re-leaf, in its frame.
+  if (document.visibilityState === 'hidden' || root.dataset.motion === 'reduced') { go(); return; }
   afterDrawn(go);
   releafT = setTimeout(go, 500);
 }
@@ -4818,7 +4872,7 @@ function closeLedger() {
   scrimEl.classList.remove('visible');
   ledgerBtnEl.setAttribute('aria-expanded', 'false');
   // The hall comes back into reach before focus is handed to it.
-  ['#hall', '#signal-desk'].forEach(function (s) { var n = $(s); if (n) n.inert = false; });
+  HALL_BEHIND.forEach(function (s) { var n = $(s); if (n) n.inert = false; });
   // A closed drawer is inert: off screen it still sat in the tab order, and
   // because focus marks a dispatch read, one pass of Tab through the page
   // struck the whole Ledger. Focus inside it goes back where it came from
@@ -4869,11 +4923,17 @@ function ledgerHandBack(hatch) {
    and a Tab pressed there threw it straight back in. The key plate stays in
    reach, since it is called up over the drawer and takes focus there. A
    shut drawer is inert. */
+/* What a layer puts out of reach: the masthead, the band, the stage and the
+   two cases, and the desk. The wall and the floor are left out: they are
+   aria-hidden, hold nothing to focus, and the layer covers them, and inert
+   on them made the whole terrazzo plane be rastered again for nothing
+   (MO-14). The live regions are in the stage, so they go with it. */
+var HALL_BEHIND = ['#masthead', '#ticker', '#works', '#stage', '#almanac', '#signal-desk'];
 function syncBehind() {
   var up = !prefs.hidden;
   var l = $('#ledger');
   var open = !!l && l.classList.contains('open');
-  ['#hall', '#signal-desk'].forEach(function (s) { var n = $(s); if (n) n.inert = up || open; });
+  HALL_BEHIND.forEach(function (s) { var n = $(s); if (n) n.inert = up || open; });
   ['#ledger-scrim', '#keyplate'].forEach(function (s) { var n = $(s); if (n) n.inert = up; });
   if (l) l.inert = up || !open;
   // The hall's live region was out of the tree while it was inert, so a
@@ -5428,19 +5488,34 @@ function prefsKeydown(e) {
 
 /* aria-modal promises the rest of the page is out of reach; inert makes
    it true for a screen reader's virtual cursor as well as for Tab
-   (syncBehind). */
+   (syncBehind). It goes inert in the frame after the sheet's first, not
+   in the key's task. inert restyles everything under it (7,600 elements
+   at 3440, ~37ms), and the focus() below forced that restyle inside the
+   key handler, ahead of the sheet: at 3440 the sheet was first seen
+   200-540ms after P (MO-14). Until then focus is in the sheet, Tab is held
+   there (prefsKeydown), no hall key acts while it is open and the
+   backdrop takes the pointer. */
+var prefsInertRaf = 0;
 function openPrefs() {
   layerMoved();
   lastFocus = document.activeElement;
   prefs.hidden = false;
-  syncBehind();
   syncPrefRadios();
   document.addEventListener('keydown', prefsKeydown);
   var first = prefs.querySelector('[role=radio][aria-checked=true]') ||
               prefs.querySelector('button');
   if (first) first.focus();
+  cancelAnimationFrame(prefsInertRaf);
+  prefsInertRaf = requestAnimationFrame(function () {
+    prefsInertRaf = requestAnimationFrame(function () {
+      prefsInertRaf = 0;
+      if (!prefs.hidden) syncBehind();
+    });
+  });
 }
 function closePrefs() {
+  cancelAnimationFrame(prefsInertRaf);
+  prefsInertRaf = 0;
   layerMoved();
   prefs.hidden = true;
   // Everything comes back as it stood, the open drawer's own reach included.
@@ -5769,32 +5844,54 @@ function resolveTheme() {
     root.dataset.theme = themeNext;
     themeNext = null;
   };
+  // A newer crossfade started over this one owns the cut now.
   var uncut = function () {
-    // A newer crossfade started over this one owns the cut now.
+    if (gen === themeGen) root.classList.remove('theme-cut');
+  };
+  var done = function () {
     if (gen !== themeGen) return;
     themeFade = null;
-    root.classList.remove('theme-cut');
+    uncut();
     themeBusy = false;
     if (afterTheme) { var f = afterTheme; afterTheme = null; f(); }
   };
   if (document.startViewTransition && root.dataset.motion !== 'reduced') {
     var vt = themeFade = document.startViewTransition(flip);
-    // The cut is lifted when the fade has finished, not when it starts.
-    // Lifting it restyles every element in the hall (the cut is a universal
-    // rule), and at `ready` that restyle, 100-130ms at 3440, landed in the
-    // middle of the 400ms fade and stalled it (MO-7). After `finished` it
-    // changes nothing on screen. Nothing transitions until then, which is
-    // why a throw asked for meanwhile waits for it (setWing).
-    vt.finished.then(uncut, uncut);
+    // The fade is held on its first millisecond until the new hall has been
+    // rastered, and the cut is lifted meanwhile. The fade starts at `ready`,
+    // before the new hall is drawn, and at 3440 that raster took 300-700ms:
+    // the fade ran out on the clock behind it and landed in two or three
+    // frames. Held at 1ms the new hall is on screen, too faint to see, so it
+    // is rastered, and the 400ms fade then plays in full. Lifting the cut
+    // restyles every element in the hall (88ms at 3440, and a 240ms raster
+    // after it); lifted after `finished` it froze the hall again once the
+    // fade was over (MO-7), so it goes in the frame after `ready`, inside
+    // the hold, when the flip is styled and nothing new is seen yet.
+    vt.ready.then(function () {
+      requestAnimationFrame(uncut);
+      var fades = document.getAnimations().filter(function (a) {
+        return a.effect && a.effect.pseudoElement &&
+          a.effect.pseudoElement.indexOf('::view-transition') === 0;
+      });
+      fades.forEach(function (a) { a.pause(); a.currentTime = 1; });
+      var go = function () {
+        clearTimeout(cap);
+        fades.forEach(function (a) { if (a.playState === 'paused') a.play(); });
+      };
+      var cap = setTimeout(go, 1200);
+      afterDrawn(go);
+    }, uncut);
+    // A throw asked for meanwhile still waits for the fade to finish
+    // (setWing): its arches would change places inside the picture.
+    vt.finished.then(done, done);
     // A second change after the flip, before the fade has begun, skips this
     // transition, and its other promises reject. That is ordinary use of the
     // Appearance control, not an error.
-    vt.ready.catch(function () {});
     vt.updateCallbackDone.catch(function () {});
   } else {
     flip();
     void root.offsetWidth;   // the flip's style change happens under the cut
-    uncut();
+    done();
   }
 }
 function setThemePref(pref) {
