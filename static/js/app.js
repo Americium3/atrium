@@ -162,6 +162,7 @@ var STR = {
     ariaWorks: 'Statistics: live readings from this machine',
     ariaAlmanac: 'Almanac: sun, moon and weather over this hall',
     salonWing: 'Play wing', bureauWing: 'Work wing',
+    wingLitSalon: 'The Salon is lit: {gates}', wingLitBureau: 'The Bureau is lit: {gates}',
     ledgerBtnLabel: 'LEDGER',
     keysTitle: 'KEYS',
     keyGates: 'Walk the gates', keyJump: 'Go to a gate', keyOpen: 'Open it',
@@ -305,6 +306,7 @@ var STR = {
     ariaWorks: '运转统计：本机实时读数',
     ariaAlmanac: '天象：本厅上空的日月与天气',
     salonWing: '沙龙翼（娱乐）', bureauWing: '事务翼（工作）',
+    wingLitSalon: '沙龙翼已点亮：{gates}', wingLitBureau: '事务翼已点亮：{gates}',
     ledgerBtnLabel: '消息总台',
     keysTitle: '按键',
     keyGates: '在门廊间移动', keyJump: '直达某扇门', keyOpen: '打开',
@@ -1459,6 +1461,8 @@ function gateClick(e, a, svc) {
    flank symmetrically. Transform-only (60 fps law). */
 var SWAP_OUT = 200, SWAP_GAP = 20, SWAP_STEP = 60;   // ms, see the throw below
 var SWAP_DIM = 120;   // ms, the house lights going down first (by night only)
+var SWAP_IN = 360;    // ms, an incoming arch's fade (.gate.active, atrium.css)
+var stageLands = 0;   // when the last throw's arches are all up (performance.now())
 var solved = null;   // the last solve's measurements, for a throw to reuse
 function layoutStage(initial) {
   var wrap = $('#gates');
@@ -1668,13 +1672,17 @@ function layoutStage(initial) {
   // its sink back by the same --gate-dim), so its bay is empty that much
   // later. By day nothing is lit and nothing waits for it.
   var dim = root.dataset.theme === 'onyx' ? SWAP_DIM : 0;
+  var lastRise = 0;
   swaps.forEach(function (s) {
     var delay = s.rank * SWAP_STEP;
     if (s.wait) delay += dim + SWAP_OUT + SWAP_GAP;
     s.delay = delay;
+    if (s.lit) lastRise = Math.max(lastRise, delay);
     s.a.classList.toggle('arriving', s.lit);
     role(s.a, s.lit, delay);
   });
+  // when the last arch of the throw is up, for sayWing()
+  stageLands = performance.now() + (swaps.length ? lastRise + SWAP_IN : 0);
 
   /* Focus rides the throw. When the reader is on an arch that is going out,
      focus stays on it while it sinks (it keeps its visibility while
@@ -3525,6 +3533,25 @@ function throwWing() {
   // whole hall, and every read after it used to force that restyle inside
   // the key handler (94-220ms) before the throw could start.
   layoutStage(false);
+  clearTimeout(wingSayT);
+  if (wingSay) { wingSay = false; sayWing(); }
+}
+/* W throws the lever from anywhere, and a throw replaces every arch in the
+   hall. Focus on an arch rides the throw to the arch rising into its bay,
+   and the lever says its own switch state, but from anywhere else (the
+   masthead, the band, the page, the open Ledger) the whole hall changed
+   without a word (AT-25). From there the wing and its gates are said once
+   the last of its arches is up. */
+var wingSay = false, wingSayT = 0;
+function sayWing() {
+  wingSayT = setTimeout(function () {
+    var names = litGates().map(function (g) {
+      var n = document.getElementById('gn-' + g.dataset.service);
+      return n ? n.textContent : '';
+    }).filter(Boolean);
+    sayGate(t(root.dataset.wing === 'bureau' ? 'wingLitBureau' : 'wingLitSalon',
+      { gates: names.join(t('list')) }));
+  }, Math.max(0, stageLands - performance.now()));
 }
 /* The flip re-leafs the whole hall: every gilt fixture off the arches
    changes metal through --lead-* and --metal, which restyles the document
@@ -5483,7 +5510,10 @@ document.addEventListener('keydown', function (e) {
     e.preventDefault();
     if (e.repeat) return;
     // Focus on an arch goes with the throw to the arch rising into the
-    // same bay (layoutStage), so nothing is aimed from here.
+    // same bay (layoutStage), so nothing is aimed from here. From anywhere
+    // but an arch or the lever, the new wing is said (sayWing).
+    var real = document.activeElement;
+    if (!(real === lever || (real && real.classList && real.classList.contains('gate')))) wingSay = true;
     toggleWing();
     if (keyplate && !keyplate.hidden) setTimeout(renderKeyplate, 700);
   } else if (k === 'l' || k === 'L') {
