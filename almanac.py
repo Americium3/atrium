@@ -182,6 +182,22 @@ async def fetch_weather(lat: float, lon: float) -> dict[str, Any] | None:
     }
 
 
+def for_another_day(weather: dict[str, Any] | None, now: float | None = None) -> bool:
+    """A forecast is for one local day at the place, and past that place's
+    midnight the cached one is yesterday's, however young the TTL says it is.
+    The day is read off its own sunrise and the offset the service reported,
+    so no timezone database is needed. No sunrise (a polar day) is no claim.
+    """
+    if not weather:
+        return False
+    day = str(weather.get("sunrise") or "")[:10]
+    off = weather.get("utc_offset_s")
+    if len(day) != 10 or not isinstance(off, (int, float)):
+        return False
+    t = time.time() if now is None else now
+    return day != time.strftime("%Y-%m-%d", time.gmtime(t + off))
+
+
 _weather: dict[str, Any] | None = None
 _weather_at = 0.0
 _weather_ttl = 0.0
@@ -200,7 +216,8 @@ async def snapshot(state_dir: Path) -> dict[str, Any]:
     where = place(state_dir)
     key = (where["lat"], where["lon"])
     async with _lock:
-        stale = (time.monotonic() - _weather_at) > _weather_ttl
+        stale = ((time.monotonic() - _weather_at) > _weather_ttl
+                 or for_another_day(_weather))
         if stale or _weather_for != key:
             _weather = await fetch_weather(where["lat"], where["lon"])
             _weather_at = time.monotonic()

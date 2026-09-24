@@ -2656,15 +2656,33 @@ function buildTape(sky, where) {
   box.appendChild(strips);
 }
 
+/* A forecast is for one local day at the place. Past the place's midnight
+   the last one read is yesterday's, and its sunrise, sunset, high and low
+   were engraved as today's until the next poll came round. The board takes
+   it as no forecast until today's lands: the plate falls back on its own
+   arithmetic and the reading on NO READING. */
+function almWeather() {
+  var w = almanac && almanac.weather;
+  var where = almanac && almanac.place;
+  if (!w || !where) return w || null;
+  var day = String(w.sunrise || '').slice(0, 10);
+  if (day.length !== 10) return w;   // a polar day has no sunrise to date it by
+  var here = localAt(where.timezone, new Date());
+  return day === here.year + '-' + pad2(here.month + 1) + '-' + pad2(here.day) ? w : null;
+}
+
+var almMidnightT = null;
+
 function renderAlmanac() {
   var sub = $('#al-sub');
   if (!sub) return;
   var where = almanac && almanac.place ? almanac.place : null;
+  var wx = almWeather();
   var host = $('#al-sky');
   // Measured BEFORE the old plate comes out: emptying the register first
   // collapses it to nothing, and the new plate would be inscribed in a box
   // of zero height.
-  var sky = buildSky(where, host, almanac ? almanac.weather : null);
+  var sky = buildSky(where, host, wx);
   host.textContent = '';
   host.appendChild(sky.svg);
   // The plate is a picture (aria-hidden); what it engraves is said here.
@@ -2673,8 +2691,12 @@ function renderAlmanac() {
   if (said) host.appendChild(el('p', 'sr-only', said));
   sub.textContent = where ? t('almSub', { place: almPlaceName(where) }) : '—';
   $('#al-station').textContent = where ? almStation(where) : '—';
-  buildRead(almanac ? almanac.weather : null);
+  buildRead(wx);
   buildTape(sky, where);
+  // The new day's forecast is read at the place's own midnight rather than
+  // whenever the ten-minute poll next comes round.
+  clearTimeout(almMidnightT);
+  if (sky.here) almMidnightT = setTimeout(pollAlmanac, (24 - sky.here.hours) * 3600000 + 2000);
 }
 
 /* On screen only: the board is display:none below 2200px, and a hidden panel
