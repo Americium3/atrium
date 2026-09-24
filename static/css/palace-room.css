@@ -489,6 +489,10 @@ html[lang="zh"] #masthead .p-caption { letter-spacing: 0.3em; }
               filter 0.45s ease;
 }
 .wall-cornice { transition: filter 0.45s ease; }
+/* The aisle walls are layers of their own, so each frame of the ease
+   rasters the walls' own leaf and not the whole wall's tiles around them
+   (damask, dado and cornice), which cost ~170ms of GPU per throw at 3440. */
+.aisle-wall { will-change: transform; }
 /* The pilasters' parts kept their own 0.4s fill and background transitions
    from before the wall eased. Inside an easing wall each frame's new leaf
    restarted them, so the capitals and shafts trailed the wall's leaf and
@@ -827,7 +831,7 @@ html[lang="zh"] #masthead .p-caption { letter-spacing: 0.3em; }
 /* A fanlight's streak is that lamp's own layer (syncStreaks copies its
    gate's state and beat): it comes up with the fanlight, after the arch has
    risen into its bay, and goes down with it, never ahead of it (MO-3). */
-.st-fan { --so: 0.36; opacity: 0; transition: opacity 0.35s ease; }
+.st-fan { --so: 0.36; opacity: 0; transition: opacity 0.35s ease; will-change: opacity; }
 .st-fan.on[data-state="open"] {
   opacity: calc(var(--lamp-on) * var(--so));
   transition: opacity 0.7s ease calc(var(--slot-delay, 0ms) + 420ms);

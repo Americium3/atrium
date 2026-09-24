@@ -2375,6 +2375,12 @@ html[lang="zh"] .g-name { letter-spacing: 0.17em; }
    gone. */
 :root[data-theme="onyx"] .gate { --gate-dim: 120ms; }
 .gate .lit { opacity: 0; transition: opacity 0.35s ease; }
+/* The arches and their lamps (and the fanlights' streaks, palace-room.css)
+   stand as layers, not as layers made when a throw starts: made then, every
+   sink and every lamp fading out got a new layer in the throw's first frame,
+   and the overlap made a hundred more around them, 173 layers rastered at
+   3440 while the lamps were meant to be going out (MO-1). */
+.gate, .gate .lit { will-change: opacity; }
 .gate.receded .lit { transition: opacity var(--gate-dim, 0ms) ease-in var(--slot-delay, 0ms); }
 :root[data-theme="onyx"] .gate.active[data-state="open"] .lit {
   opacity: 1;
@@ -3270,6 +3276,16 @@ html[lang="zh"] .g-name { letter-spacing: 0.17em; }
   --lead-0: var(--ag-0); --lead-1: var(--ag-1); --lead-2: var(--ag-2);
   --lead-3: var(--ag-3); --lead-4: var(--ag-4); --lead-5: var(--ag-5);
   --metal: var(--plat); --metal-hi: var(--plat-hi);
+}
+/* And the fixtures the lever re-leafs are layers of their own. Painted into
+   the layer under them, each one's new leaf had that layer's tiles around it
+   rastered again (the terrazzo plane, the wall, a case door, the canopy),
+   and a flip took 440-490ms of GPU raster at 3440, which held back the
+   lever's first frames and ran into the sink (MO-1). Rastered alone, the
+   same leaf costs about 290ms. */
+:where(.fl-border, .fl-inlay, .fl-round, .wall-piers, .m-title, .m-underline,
+    .mf-crest, .cs-top, .cs-door > .cf, .bd-title, #al-sky, .desk-art .quadrant) {
+  will-change: transform;
 }
 :root[data-theme="onyx"] .alab.s0 { stop-color: #fff6e0; }
 :root[data-theme="onyx"] .alab.s1 { stop-color: #f6c783; }
