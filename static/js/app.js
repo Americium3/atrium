@@ -1875,6 +1875,66 @@ function buildAisles() {
   if (window.Room) window.Room.layoutFloor();
 }
 
+/* The hall stands on one screen. The floor's reservation (--floor-min) was a
+   share of the viewport height, with a short-screen step at 860px, but the
+   masthead and the marquee above the stage grow with --ui and no height
+   query can see them: at SIGNBOARD on a 3440x900 screen they stood 190px
+   tall, the stage plus the reservation overran the screen by 11px, and
+   every height from 861 to 926 scrolled (LY-1). So the budget is solved
+   here, from the stage's real top.
+   The floor keeps what the screen leaves under the stage, and never less
+   than the desk needs at its short-screen scale (DESK_K_MIN, the 0.78 of
+   the 860px query). Below that the machine shrank to half size on the
+   same screens and its SALON and BUREAU plates came out at 6.6px (LY-8).
+   When the floor cannot have that much, the arch module gives up the
+   difference through --gate-vcap, which caps --gate-w: the order DESIGN
+   spends the height in is masthead, marquee, arches, floor, and the lever
+   is the one thing on the floor that has to work.
+   Every term is a layout value that the cap and the floor do not move
+   (the stage's top is the masthead's and the marquee's, the headroom is
+   the viewport's), so writing them cannot feed back into the solve. */
+var FLOOR_HARD = 62, DESK_K_MIN = 0.78;
+function budgetHall() {
+  var hall = $('#hall'), con = $('#concourse'), stage = $('#stage'), desk = $('#signal-desk');
+  if (!hall || !con || !stage || !stage.offsetHeight) return;
+  var H = window.innerHeight;
+  var top = 0;
+  for (var n = stage; n; n = n.offsetParent) top += n.offsetTop;
+  var foot = parseFloat(getComputedStyle(hall).paddingBottom) || 0;
+  var need = FLOOR_HARD, art = deskArt();
+  if (desk && art !== null) {
+    var k = H < 760 ? 0.62 : DESK_K_MIN;   // the 760px query's own scale
+    var deskFoot = parseFloat(getComputedStyle(desk).bottom) || 0;
+    need = Math.max(need, Math.ceil(deskFoot + DESK_GAP + (220 - art) * k - foot));
+  }
+  // The stage is the arch module plus the wall's headroom over it
+  // (--stage-h in atrium.css), so this is the largest arch that leaves
+  // the floor its need.
+  var headroom = Math.max(80, Math.min(100, H - 1080));
+  var cap = ((H - top - foot - need - headroom) / 1.9).toFixed(1) + 'px';
+  var was = root.style.getPropertyValue('--gate-vcap');
+  if (was !== cap) {
+    root.style.setProperty('--gate-vcap', cap);
+    // A cap that binds, or bound, moves the arch module under a row solved
+    // for the old one (the engraving size lands a frame before this runs),
+    // so the stage is re-solved against it.
+    var g = solved ? solved.g0 : Infinity;
+    if (parseFloat(cap) < g + 0.5 || parseFloat(was) < g + 0.5) layoutStage(true);
+  }
+  var room = Math.floor(H - top - stage.offsetHeight - foot);
+  var fit = Math.max(need, room) + 'px';
+  if (con.style.getPropertyValue('--floor-fit') !== fit) con.style.setProperty('--floor-fit', fit);
+}
+if (window.ResizeObserver) {
+  // The masthead wraps in Chinese and when its fonts land, and it and the
+  // marquee grow with the engraving size: each moves the stage's top.
+  // Observers run after layout and before paint, so a scrollbar never gets
+  // a frame. (The stage is not watched: the cap written here resizes it.)
+  var budgetRO = new ResizeObserver(function () { budgetHall(); });
+  ['#masthead', '#ticker'].forEach(function (s) { var n = $(s); if (n) budgetRO.observe(n); });
+}
+window.addEventListener('resize', budgetHall);
+
 /* The floor's perspective distance has to be a function of the floor's own
    height, and CSS cannot read a box's used height back into a calc. The
    plane is absolutely positioned, so writing --fh cannot feed back into the
@@ -3010,14 +3070,17 @@ deskCore.addEventListener('click', function (e) {
 var DESK_GAP = 8;         // clear stone between the sill and the vent cap
 var DESK_MIN = 0.5;       // below this the lever is too small to take
 var deskArtTop = null;    // highest drawn point, in assembly units
-function fitDesk() {
-  var stage = $('#stage'), desk = $('#signal-desk');
-  if (!stage || !desk) return;
+function deskArt() {
   if (deskArtTop === null) {
     // The quadrant draws 1:1 in the assembly's 360x220 units, and its vent
     // cap is the machine's highest point (the lever tip peaks 30 below it).
-    try { deskArtTop = $('.quadrant', desk).getBBox().y; } catch (err) { return; }
+    try { deskArtTop = $('#signal-desk .quadrant').getBBox().y; } catch (err) { return null; }
   }
+  return deskArtTop;
+}
+function fitDesk() {
+  var stage = $('#stage'), desk = $('#signal-desk');
+  if (!stage || !desk || deskArt() === null) return;
   var base = stage.offsetHeight;
   for (var n = stage; n; n = n.offsetParent) base += n.offsetTop;
   var foot = parseFloat(getComputedStyle(desk).bottom) || 0;

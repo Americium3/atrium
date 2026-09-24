@@ -232,8 +232,10 @@
   /* The stage now seats a clock between the arches — the gates give up some
      width so all three stand on one screen without crowding. On a wide wall
      the module grows with the lettering (--ui): a 1720px diorama stranded in
-     the middle of a 3440px screen is the thing this pass exists to end. */
-  --gate-w: clamp(182px, min(13.6vw, 26.5vh),
+     the middle of a 3440px screen is the thing this pass exists to end.
+     --gate-vcap is the vertical budget's cap (budgetHall() in app.js): the
+     largest arch that still leaves the lever its floor under the stage. */
+  --gate-w: clamp(182px, min(13.6vw, 26.5vh, var(--gate-vcap, 100vh)),
                   calc(296px * (0.62 + 0.38 * var(--ui))));
   --desk-h: 210px;         /* the signal desk's own standing height */
   --hall-foot: 30px;       /* #hall's bottom padding, shared with the floor */
@@ -956,7 +958,10 @@ html[data-boot="suppressed"] #signal-desk {
   --dado-h: calc(var(--gh2) * 0.19);
   --cornice-h: calc(30px * var(--ui));
   padding-top: var(--pad-top);
-  padding-bottom: var(--floor-min);
+  /* --floor-fit is what the screen actually leaves under the stage, written
+     by budgetHall() in app.js: the masthead and the marquee grow with --ui,
+     which no height query can see. */
+  padding-bottom: min(var(--floor-min), var(--floor-fit, 100vh));
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   grid-template-areas: "stage";
@@ -3009,7 +3014,7 @@ html[lang="zh"] .g-name { letter-spacing: 0.17em; }
    height for a composition whose stage alone wants 425 of it. */
 @media (max-height: 860px) {
   :root {
-    --gate-w: clamp(164px, min(13.6vw, 25vh),
+    --gate-w: clamp(164px, min(13.6vw, 25vh, var(--gate-vcap, 100vh)),
                     calc(268px * (0.62 + 0.38 * var(--ui))));
   }
   #hall { padding-top: 12px; }
