@@ -507,7 +507,7 @@ function portal(gid, id) {
    the left, and the parts of one tone share one path, so the whole bezel
    is a dozen nodes however many teeth and rivets it has. The domed crystal
    over the mark is drawn above it, in the face (see crystal()). */
-var BZ = { r: 43.5, knurl: 40, ring: 33.6, field: 32.4, rivet: 36.6 };
+var BZ = { r: 43.8, knurl: 39.2, ring: 33.4, field: 32.2, rivet: 36.3 };
 var KEY = Math.PI * 0.75;                     // up and to the left, y up
 function ringWedge(r0, r1, a0, a1) {
   function p(r, a) { return f2(CX + r * Math.cos(a)) + ' ' + f2(MARK_Y - r * Math.sin(a)); }
@@ -537,12 +537,13 @@ function cartouche(id) {
   });
   // The bezel's cast shadow on the plate, down and to the right.
   s += '<circle class="bz-shadow" cx="' + f2(CX + 1.4) + '" cy="' + f2(MARK_Y + 2.2) + '" r="' + (BZ.r + 0.6) + '"/>';
-  // Knurled rim: 72 teeth, lit on the lamp side, dark on the far side.
-  var teeth = ['', '', ''], n = 72;
+  // Knurled rim: 48 coarse teeth (a finer knurl blurred into a plain ring
+  // at 1920), lit on the lamp side, dark on the far side.
+  var teeth = ['', '', ''], n = 48;
   for (k = 0; k < n; k++) {
     a = 2 * Math.PI * k / n;
     var lit = Math.cos(a - KEY), cls = lit > 0.3 ? 0 : lit < -0.3 ? 2 : 1;
-    teeth[cls] += ringWedge(BZ.knurl, BZ.r, a - 0.022, a + 0.022);
+    teeth[cls] += ringWedge(BZ.knurl, BZ.r, a - 0.036, a + 0.036);
   }
   s += '<circle class="bz-rim" cx="' + CX + '" cy="' + MARK_Y + '" r="' + ((BZ.r + BZ.knurl) / 2) + '" stroke-width="' + f2(BZ.r - BZ.knurl) + '"/>' +
        '<path class="bz-kn bz-kn0" d="' + teeth[0] + '"/>' +
@@ -568,9 +569,9 @@ function cartouche(id) {
   for (k = 0; k < nr; k++) {
     a = Math.PI / 2 + 2 * Math.PI * (k + 0.5) / nr;
     var rx = CX + BZ.rivet * Math.cos(a), ry = MARK_Y - BZ.rivet * Math.sin(a);
-    rsh += circ(rx + 0.45, ry + 0.6, 1.45);
-    rb += circ(rx, ry, 1.3);
-    rl += circ(rx - 0.38, ry - 0.42, 0.52);
+    rsh += circ(rx + 0.55, ry + 0.75, 1.85);
+    rb += circ(rx, ry, 1.65);
+    rl += circ(rx - 0.5, ry - 0.55, 0.68);
   }
   s += '<path class="bz-rv-sh" d="' + rsh + '"/><path class="bz-rv" d="' + rb + '"/><path class="bz-rv-lt" d="' + rl + '"/>';
   // The enamel field, sunk: a lip of light on the far edge, shade on the
