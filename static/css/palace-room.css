@@ -542,7 +542,8 @@ html[lang="zh"] #masthead .p-caption { letter-spacing: 0.3em; }
 /* An aisle bay, with room to spare, has its panel framed in a gilt bead. */
 .wall-bay.framed::after {
   content: ""; position: absolute;
-  left: calc(10px * var(--ui)); right: calc(10px * var(--ui));
+  /* clear of the half pilaster standing at each end of the bay */
+  left: calc(26px * var(--ui)); right: calc(26px * var(--ui));
   top: calc(var(--cornice-h) + 18px * var(--ui)); bottom: calc(var(--dado-h) + 16px * var(--ui));
   border: calc(2px * var(--ui)) solid;
   border-color: var(--bay-frame-hi) var(--bay-frame-lo) var(--bay-frame-lo) var(--bay-frame-hi);
@@ -660,7 +661,7 @@ html[lang="zh"] #masthead .p-caption { letter-spacing: 0.3em; }
    By day the antique mirror read as a grey chrome pipe. It is gold-backed
    glass, as the palaces hung it for warmth, and it holds the cream room. */
 :root[data-theme="ivory"] {
-  --mirror-glass: #b8a785;
+  --mirror-glass: #c4b38f;
   --mirror-room: rgba(250, 238, 214, 0.62);
   --mirror-streak: rgba(255, 250, 236, 0.75);
 }
@@ -827,3 +828,21 @@ html[lang="zh"] #masthead .p-caption { letter-spacing: 0.3em; }
   clip-path: polygon(0 100%, 0 66%, 20% 66%, 20% 33%, 40% 33%, 40% 0, 60% 0, 60% 33%, 80% 33%, 80% 66%, 100% 66%, 100% 100%);
   box-shadow: none;
 }
+
+/* The pilasters' mirror is a flat sheet, not a pipe: no band down its
+   middle and no shading at its sides. It gives back the room as it is laid
+   out in front of it, the cornice dark at its head, the dado at its foot,
+   the nearest lamp as a soft spot, through the foxing of old silvering. */
+:root[data-theme="onyx"] { --mirror-head: rgba(0, 0, 0, 0.45); --mirror-foot: rgba(30, 14, 8, 0.55); }
+:root[data-theme="ivory"] { --mirror-head: rgba(96, 74, 40, 0.28); --mirror-foot: rgba(110, 90, 60, 0.30); }
+.pil-mirror {
+  background:
+    radial-gradient(46% 16% at var(--mx) var(--my), var(--mirror-streak), transparent 72%),
+    linear-gradient(180deg, var(--mirror-head) 0, transparent 14%, transparent 76%, var(--mirror-foot) 100%),
+    linear-gradient(100deg, transparent 0 30%, rgba(255, 244, 220, 0.06) 42%, transparent 60%),
+    url('/static/assets/tex/glass-mirror.webp') 0 0 / 180px auto,
+    var(--mirror-glass);
+  background-blend-mode: screen, normal, screen, soft-light, normal;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.5);
+}
+:root[data-theme="onyx"] .pil-mirror { background-blend-mode: screen, normal, screen, multiply, normal; }

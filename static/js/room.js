@@ -644,7 +644,7 @@ function layoutWall(g) {
     // named by its place counted out from the axis, so both halves of a
     // symmetric wall are named alike only in rank, never in side
     var nm = 'bay-' + (mid < axis ? 'w' : 'e') + Math.round(Math.abs(mid - axis) / (40 * u));
-    bays.appendChild(bay(a0, a1, nm, outside && a1 - a0 > 60 * u));
+    bays.appendChild(bay(a0, a1, nm, outside && a1 - a0 > 96 * u));
   }
 
   // Console blocks: the frieze is broken over every pier light and every
