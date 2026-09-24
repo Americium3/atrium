@@ -776,9 +776,11 @@ the lamp and takes the address line's place while it stands.
   champagne inside 240 ms, then `window.open(url, 'atrium-<serviceId>')`, a
   named window so each service reuses one tab. A modifier or middle click is
   left to the browser.
-- **DARK gate**: fanlight and coves off, tabs closed and the velvet in
-  shadow, the engraving at 35% (full strength under forced colours or more
-  contrast), the lamp a hollow diamond (extinguished, not alarmed, no red).
+- **DARK gate**: fanlight and coves off, tabs closed, and the velvet in
+  shadow below every open house's velvet, by day as by night and whatever
+  the two dyes. The engraving sits at 35% (full strength under forced
+  colours or more contrast), and the lamp is a hollow diamond
+  (extinguished, not alarmed, no red).
   Clicking pins a printed card on the curtain, a house notice headed DARK,
   with the service's launcher hint (from the registry) instead of opening a
   dead tab; a keyboard press pins it and says it every time. The path

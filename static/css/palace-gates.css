@@ -558,10 +558,15 @@ html[lang="zh"] .g-lamp { letter-spacing: 0.2em; }
    footlights, and with them out the cloth is mixed most of the way to one
    shadow tone, so every dye lands near the same dark value; a relative
    dimming (brightness 0.7) left a light dye as bright as an open house.
-   The hem keeps only a faint cold bounce off the stage. By day the
-   skylight still reaches the cloth, so the shade is lighter. */
+   The hem keeps only a faint cold bounce off the stage. By day the shade
+   goes as deep: an open house shows only its gathered tabs beside a lit
+   card, and a 72% day mix left the lighter dyes (peacock, emerald,
+   sapphire) brighter than a claret or plum house that was open. The day
+   velvets are a step lighter than the night ones, so the same depth of
+   shade lands them a touch above the night's dark houses, and every DARK
+   house sits well under the darkest open one in both themes. */
 :root[data-theme="onyx"] .gate[data-state="dark"] { --velvet-shade: color-mix(in srgb, var(--velvet) 34%, #0f0d0f); --tab-foot: rgba(150, 168, 190, 0.05); }
-:root[data-theme="ivory"] .gate[data-state="dark"] { --velvet-shade: color-mix(in srgb, var(--velvet) 72%, #1a1511); }
+:root[data-theme="ivory"] .gate[data-state="dark"] { --velvet-shade: color-mix(in srgb, var(--velvet) 28%, #110e0c); }
 .gate[data-state="dark"] .g-tab,
 .gate[data-state="dark"] .g-valance { background-color: var(--velvet-shade); }
 .gate[data-state="dark"] .mirror-art .mr-house { fill: color-mix(in srgb, var(--velvet-shade) 42%, #000); }
