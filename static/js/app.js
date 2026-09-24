@@ -1192,20 +1192,28 @@ function sparkAt(side, make) {
   sp.animate(make ? SPARK_MAKE : SPARK_BREAK, { duration: 150, easing: 'linear' });
 }
 
-/* Weighty throw: fast start → ~4.5% overshoot → damped clank settle.
-   C0-continuous at the seam; identical feel both directions. The overshoot
-   lives at the far end only: below 0 the cubic extrapolates backwards, so
-   t is pinned to the rest pose there rather than trusted to be >= 0. */
+/* Weighty throw, as a knife switch is thrown: for a moment the jaws' springs
+   hold the blades and the hand pulls against them (the first 36ms creep
+   3.5% of the way, and the break flashes as they let go); then the hand
+   carries the blades over, gathering speed, and they land in the other
+   jaws still moving (a Hermite curve that leaves at the grip's speed and
+   arrives at 1.6 times the mean); the springs throw them back out about 8
+   degrees once, and they fall in and stay, by 400ms of the 520. Past 1 the
+   value is the bounce: bounced() in setDrive
+   turns it back off the stop, and the needle takes it raw and swings
+   past. Identical feel both directions; C0 at every seam. */
 function easeWeighty(t) {
   if (t <= 0) return 0;
   if (t >= 1) return 1;
-  var MAIN = 0.78, OVER = 0.045;
-  if (t < MAIN) {
-    var u = t / MAIN;
-    return (1 + OVER) * (1 - Math.pow(1 - u, 3.1));
+  var GRIP = 0.07, LAND = 0.54, B1 = 0.77, PULL = 0.035;
+  if (t < GRIP) return PULL * (t / GRIP) * (t / GRIP);
+  if (t < LAND) {
+    var u = (t - GRIP) / (LAND - GRIP), a = 2 * PULL / GRIP * (LAND - GRIP) / (1 - PULL), b = 1.6;
+    var h = u * u * (3 - 2 * u) + a * (u * u * u - 2 * u * u + u) + b * (u * u * u - u * u);
+    return PULL + (1 - PULL) * h;
   }
-  var v = (t - MAIN) / (1 - MAIN);
-  return 1 + OVER * Math.cos(v * Math.PI * 2.2) * Math.exp(-4.5 * v);
+  if (t < B1) return 1 + 0.045 * Math.sin(Math.PI * (t - LAND) / (B1 - LAND));
+  return 1;
 }
 
 var deskRaf = null;
@@ -1279,11 +1287,13 @@ function deskDrive(target) {
     var t = Math.min(1, run / DUR);
     var p = from + (target - from) * easeWeighty(t);
     setDrive(t === 1 ? target : p);
-    // how far the blade stands off the jaws it left, and off the ones it
-    // is going to
+    // how far the blades stand off the jaws they left, and off the ones
+    // they are going to: they clear the spring leaves at about 14 degrees
+    // of their 180, and the arc is drawn as they part and struck as they
+    // meet
     var b = bounced(p), off = fromSide === 'salon' ? b : 1 - b, near = toSide === 'bureau' ? 1 - b : b;
-    if (!broke && fromSide !== toSide && off > 0.04) { broke = true; sparkAt(fromSide, false); }
-    if (!made && broke && near < 0.03) { made = true; sparkAt(toSide, true); }
+    if (!broke && fromSide !== toSide && off > 0.075) { broke = true; sparkAt(fromSide, false); }
+    if (!made && broke && near < 0.075) { made = true; sparkAt(toSide, true); }
     if (t < 1) deskRaf = requestAnimationFrame(frame);
   };
   deskRaf = requestAnimationFrame(frame);
