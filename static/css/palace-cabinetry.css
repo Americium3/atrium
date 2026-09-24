@@ -1641,6 +1641,10 @@ html[lang="zh"] [data-pref="theme"] .p-desc { font-size: max(10px, calc(10.5px *
   #ledger .plaque .pl-frame > a { background-color: Canvas !important; }
   #ledger .pl-frame > a::before { border-color: GrayText; }
   #ledger .plaque.new .pl-shadow-wrap { outline: 2px solid Highlight; outline-offset: 2px; }
+  /* The caret's ring stands clear of the unread one, and heavier. On the
+     same box the unread outline painted over it, and a walk that always
+     lands on unread cards could not tell the caret's card from the rest. */
+  #ledger .plaque:has(a:focus-visible) { outline: 3px solid CanvasText; outline-offset: 7px; }
   #ledger .spine { background: CanvasText; }
   .board .cs-door > .cs-glass { background: Canvas; }
 }

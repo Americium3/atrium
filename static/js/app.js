@@ -39,6 +39,7 @@ var STR = {
     linesOpen: 'LINES OPEN {n}/{m}',
     hubLost: 'NO WORD FROM THE HUB',
     ledgerUnreadable: 'The Ledger could not be read',
+    ledgerLoading: 'Reading the Ledger',
     ledgerStale: 'NO WORD SINCE {t}',
     'desc.autopilot': 'Season anime, fetched and shelved while you sleep.',
     'desc.groundstation': 'Workshop mods tracked, updates caught in orbit.',
@@ -186,6 +187,7 @@ var STR = {
     linesOpen: '线路畅通 {n}/{m}',
     hubLost: '中枢没有回音',
     ledgerUnreadable: '消息总台暂时读不出来',
+    ledgerLoading: '正在读取消息总台',
     ledgerStale: '{t} 之后没有回音',
     'desc.autopilot': '当季新番，睡着也替你追完入库。',
     'desc.groundstation': '创意工坊 Mod 尽在轨道监测之中。',
@@ -3899,6 +3901,14 @@ function updatePlaque(li, d) {
     n.textContent = t('list');
   });
   $('.pl-detail', li).textContent = h.detail || '';
+  ageCard(li, d);
+}
+
+/* A card's age is written twice, engraved for the eye and in words for a
+   screen reader (the engraving is aria-hidden), and always together: the
+   outage retimer once kept only the engraving counting, so a card that
+   showed "3 h ago" still said "1 hour ago". */
+function ageCard(li, d) {
   $('.pl-time', li).textContent = relTime(d.ts);
   $('.pl-said', li).textContent = relTime(d.ts, true);
 }
@@ -3907,7 +3917,7 @@ function updatePlaque(li, d) {
 function retimeLedger() {
   feed.forEach(function (d) {
     var li = plaqueEls[d.id];
-    if (li) $('.pl-time', li).textContent = relTime(d.ts);
+    if (li) ageCard(li, d);
   });
 }
 
@@ -3935,6 +3945,8 @@ function renderLedger() {
   // dispatches" over a feed that was still on its way.
   if (feedState === 'loading') {
     if (!ol.querySelector('.ghost')) renderGhosts();
+    var saying = ol.querySelector('li.sr-only.ghost');
+    if (saying) saying.textContent = t('ledgerLoading');   // a language switch meanwhile
     return;
   }
   var shown = feed.filter(function (d) {
@@ -4162,9 +4174,10 @@ function syncStamp() {
   btn.setAttribute('aria-disabled', String(idle));
   btn.classList.toggle('inert', idle);
   // "Nothing left to strike" is a claim about a window the hall has read.
-  // Before the first feed it claims nothing; with no feed it says why.
+  // Before the first feed it says only that the Ledger is being read, which
+  // is why it is idle; with no feed it says why.
   if (feedState === 'failed') btn.title = t('ledgerUnreadable');
-  else if (feedState === 'loading') btn.removeAttribute('title');
+  else if (feedState === 'loading') btn.title = t('ledgerLoading');
   else btn.title = idle ? t('markAllDone') : t('markAllHint');
   syncStale();
   // While a chip narrows the column, the stamp still clears both wings, and
@@ -4351,11 +4364,17 @@ function syncBehind() {
   if (!up && !open) setTimeout(sayLines, 150);
 }
 
+/* The ghosts are for the eye. To a screen reader they were a list of three
+   empty items and no word that anything was on its way, so they are hidden
+   from it, and one line it can read says the Ledger is being read. It goes
+   with the ghosts when the first feed lands. */
 function renderGhosts() {
   var ol = $('#plaques');
   ol.textContent = '';
+  ol.appendChild(el('li', 'ghost sr-only', t('ledgerLoading')));
   for (var i = 0; i < 3; i++) {
     var li = el('li', 'plaque ghost');
+    li.setAttribute('aria-hidden', 'true');
     li.appendChild(el('div', 'pl-in'));
     ol.appendChild(li);
   }
