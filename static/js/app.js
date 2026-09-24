@@ -1687,12 +1687,12 @@ function layoutStage(initial) {
   // A handoff still waiting is finished at once by a re-solve (the arch it
   // would leave focus on is about to go inert), and dropped by a second
   // throw, which brings that arch straight back.
-  if (handoffT) {
-    clearTimeout(handoffT);
-    handoffT = 0;
-    if (initial && handoffFn) handoffFn();
+  if (handoffFn) {
+    var pending = handoffFn;
+    handoffFn = null;
+    pending.cancel();
+    if (initial) pending();
   }
-  handoffFn = null;
   var ae = document.activeElement, leaving = null;
   swaps.forEach(function (s) { if (!s.lit && s.a === ae) leaving = s; });
   all.forEach(function (svc) {
@@ -1706,20 +1706,46 @@ function layoutStage(initial) {
   });
   if (leaving) {
     var into = swaps.filter(function (s) { return s.lit && Math.abs(s.x - leaving.x) < 0.5; })[0];
+    var to = into && !into.vacant ? into.a : nearestLit(leaving.x);
     var still = root.dataset.motion === 'reduced' || document.visibilityState === 'hidden';
-    var hand = handoffFn = function () {
-      handoffT = 0;
-      handoffFn = null;
+    /* The handoff waits for the arch taking focus to start rising: its
+       opacity transition's transitionstart, which fires as the fade's delay
+       runs out on the fade's own clock. A timer for the same delay ran on
+       wall time from the class change, and every frame late opened a gap:
+       focus reached the new arch 0.1 to 0.9s before it began to show, while
+       the old one still stood at full opacity, and no ring showed anywhere
+       (KB-2). gate-arrive's animationstart is no better: a composited fade
+       takes its start time a frame or more after a main-thread animation
+       started by the same class change (measured 167ms apart at 2560).
+       The timer stays as a net, well past any rise, for a fade that never
+       starts. */
+    var rise = function (e) {
+      if (e.target === to && e.propertyName === 'opacity') hand();
+    };
+    var hand = function () {
+      hand.cancel();
+      if (handoffFn === hand) handoffFn = null;
       var old = leaving.a;
-      if (document.activeElement === old) {
-        var to = into && !into.vacant ? into.a : nearestLit(leaving.x);
-        if (to) to.focus({ preventScroll: true });
-      }
+      if (document.activeElement === old && to) to.focus({ preventScroll: true });
       old.inert = true;
       old.setAttribute('aria-hidden', 'true');
     };
+    hand.cancel = function () {
+      clearTimeout(handoffT);
+      handoffT = 0;
+      if (to) to.removeEventListener('transitionstart', rise);
+    };
     if (still) hand();
-    else handoffT = setTimeout(hand, into ? into.delay : leaving.delay + SWAP_OUT - 40);
+    else {
+      handoffFn = hand;
+      var toSwap = swaps.filter(function (s) { return s.lit && s.a === to; })[0];
+      if (toSwap) {
+        to.addEventListener('transitionstart', rise);
+        handoffT = setTimeout(hand, toSwap.delay + HANDOFF_NET);
+      } else {
+        handoffT = setTimeout(hand, leaving.delay + SWAP_OUT - 40);
+      }
+    }
   }
 
   // How far the row actually reaches from the axis. The bays are cut against
@@ -1738,6 +1764,7 @@ function layoutStage(initial) {
   if (initial || !same) buildAisles();
 }
 var handoffT = 0, handoffFn = null;
+var HANDOFF_NET = 1500;   // ms past an arch's beat before focus stops waiting for its rise
 
 /* The aisles, past 2800px, open only where the row can stand at full size
    between two cases of at least AISLE_MIN, and the cases take no more than
