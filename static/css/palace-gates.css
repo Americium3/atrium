@@ -385,3 +385,62 @@ html[lang="zh"] .g-lamp { letter-spacing: 0.2em; }
     linear-gradient(180deg, #1c1814, #2e2822 70%, #4a3a2a);
 }
 
+/* ==========================================================================
+   VELVET AND GLASS
+   ==========================================================================
+   The house velvet and the fanlight glass each come a step toward the
+   Paramount's amber and green: no violet, no electric blue, no aqua. Every
+   gate keeps its own colour (the names stay as the hash's keys).
+   The fold map is new: broad rounded crests and deep soft valleys that
+   hang in their own weight, each crest lit on the footlights' side and
+   brighter toward the hem. It is laid in `multiply`, so --velvet is the
+   colour of the cloth at its brightest crest and the folds only take it
+   down: the highlights keep the velvet's own hue instead of going pastel. */
+:root[data-theme="onyx"] .gate[data-velvet="claret"]   { --velvet: #c42c3c; }
+:root[data-theme="onyx"] .gate[data-velvet="emerald"]  { --velvet: #2c8a5a; }
+:root[data-theme="onyx"] .gate[data-velvet="sapphire"] { --velvet: #3f5d6e; }
+:root[data-theme="onyx"] .gate[data-velvet="plum"]     { --velvet: #92304c; }
+:root[data-theme="onyx"] .gate[data-velvet="peacock"]  { --velvet: #6d823e; }
+:root[data-theme="onyx"] .gate[data-velvet="umber"]    { --velvet: #cf8b2b; }
+:root[data-theme="ivory"] .gate[data-velvet="claret"]   { --velvet: #c83a4a; }
+:root[data-theme="ivory"] .gate[data-velvet="emerald"]  { --velvet: #36906a; }
+:root[data-theme="ivory"] .gate[data-velvet="sapphire"] { --velvet: #56727f; }
+:root[data-theme="ivory"] .gate[data-velvet="plum"]     { --velvet: #9c4660; }
+:root[data-theme="ivory"] .gate[data-velvet="peacock"]  { --velvet: #7c8e52; }
+:root[data-theme="ivory"] .gate[data-velvet="umber"]    { --velvet: #cf9a44; }
+.g-tab {
+  background:
+    linear-gradient(180deg, rgba(0, 0, 0, 0.5), transparent 20%, transparent 78%, var(--tab-foot) 100%),
+    url('/static/assets/tex/fab-velvet-fold.webp') var(--fold-x) 0 / calc(1800% / var(--folds)) 100% repeat-x,
+    var(--velvet);
+  background-blend-mode: normal, multiply, normal;
+}
+.g-tab-r {
+  background-position: 0 0, calc(var(--fold-x) + 37%) 0, 0 0;
+}
+/* The swagged valance takes the same cloth, gathered: a finer pitch of the
+   same folds, shaded under each swag. */
+.g-valance {
+  background:
+    radial-gradient(60% 120% at 50% -10%, transparent 50%, rgba(0, 0, 0, 0.5) 100%) 0 0 / 33.34% 100%,
+    url('/static/assets/tex/fab-velvet-fold.webp') 0 70% / 11.1% 300%,
+    var(--velvet);
+  background-blend-mode: normal, multiply, normal;
+}
+/* The footlights warm the hem without bleaching it, and the projector's
+   spot no longer floods the tabs: the slide carries the light now. */
+:root[data-theme="onyx"] { --footlight: rgba(255, 158, 70, 0.34); --tab-foot: rgba(255, 170, 90, 0.10);
+  --spot: rgba(255, 220, 170, 0.10); --spot-edge: rgba(255, 206, 146, 0.04); }
+
+/* Fanlight glass, lit (hub to rim) and by day (greyed, unlit). */
+.fl-rose.s0 { stop-color: #fff2e2; } .fl-rose.s1 { stop-color: #f4c7a2; }
+.fl-rose.s2 { stop-color: #c4825c; } .fl-rose.s3 { stop-color: #5c2c1c; }
+.fl-celadon.s0 { stop-color: #f7fbe6; } .fl-celadon.s1 { stop-color: #d3e0a4; }
+.fl-celadon.s2 { stop-color: #87a25a; } .fl-celadon.s3 { stop-color: #2e4220; }
+.fl-aqua.s0 { stop-color: #f3f8ee; } .fl-aqua.s1 { stop-color: #c3d6bd; }
+.fl-aqua.s2 { stop-color: #6f977f; } .fl-aqua.s3 { stop-color: #22382d; }
+:root[data-theme="ivory"] .gate[data-glass="rose"]    { --glass-day: #dcc3b0; }
+:root[data-theme="ivory"] .gate[data-glass="celadon"] { --glass-day: #cad1ae; }
+:root[data-theme="ivory"] .gate[data-glass="aqua"]    { --glass-day: #bdcbbd; }
+/* The floor gives the house back as its shadowed body, not its lit crest. */
+.mirror-art .mr-house { fill: color-mix(in srgb, var(--velvet) 42%, #000); }
