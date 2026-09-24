@@ -3370,14 +3370,16 @@ html[lang="zh"] .g-name { letter-spacing: 0.17em; }
 .sc-body .sc-rim { fill: var(--lead-2); }
 .sc-body .sc-mouth { fill: #ffe9c0; opacity: var(--lamp-on); }
 :root[data-theme="ivory"] .sc-body .sc-mouth { opacity: 1; fill: #d8cdb6; }
-/* The uplight: a scalloped wash on the damask, ribbed by the bowl's
-   fluting, brightest just above the rim and dying up the wall. */
+/* The uplight: one soft cone on the damask, brightest just above the rim
+   and dying up the wall. The bowl's fluting scallops it only where the
+   light leaves the rim (::before). Ribs cut hard at 4 on and 5 off ran the
+   full height of the wash, and it read as a sunburst printed on the wall
+   (AR-28). */
 .sc-pool {
   position: absolute; left: 50%; top: calc(-250px * var(--scu));
   width: calc(210px * var(--scu)); height: calc(280px * var(--scu));
   transform: translateX(-50%);
   background:
-    repeating-conic-gradient(from -70deg at 50% 100%, var(--wash-ray) 0 4deg, transparent 4deg 9deg),
     radial-gradient(46% 100% at 50% 100%, var(--wash) 0%, color-mix(in srgb, var(--wash) 35%, transparent) 38%, transparent 72%);
   /* The cut edge of an uplight's cone on a wall is a hyperbola: as narrow
      as the bowl at the rim, opening upward, soft at its penumbra and fading
@@ -3392,6 +3394,15 @@ html[lang="zh"] .g-name { letter-spacing: 0.17em; }
   mask-composite: intersect;
   mix-blend-mode: screen;
   pointer-events: none;
+}
+/* The scallops: a few soft lobes fanning from the rim, gone within a hand's
+   width of it (the lowest quarter of the wash), inside the cone's mask. */
+.sc-pool::before {
+  content: ""; position: absolute; inset: 0;
+  background: repeating-conic-gradient(from -70deg at 50% 100%, transparent 0deg, color-mix(in srgb, var(--wash-ray) 40%, var(--wash)) 6deg, transparent 12deg);
+  -webkit-mask-image: linear-gradient(to top, rgba(0, 0, 0, 0.8) 0%, rgba(0, 0, 0, 0.4) 12%, transparent 25%);
+  mask-image: linear-gradient(to top, rgba(0, 0, 0, 0.8) 0%, rgba(0, 0, 0, 0.4) 12%, transparent 25%);
+  filter: blur(calc(2px * var(--scu)));
 }
 .sc-down {
   position: absolute; left: 50%; top: calc(26px * var(--scu));
