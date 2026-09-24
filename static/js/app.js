@@ -3499,14 +3499,17 @@ function tickerModel() {
     var txt = statText(s);
     if (txt) segs.push(txt);
   });
+  // A dispatch keeps its title and its detail apart: they are often in two
+  // scripts, and each is tagged for its own voice (AT-11).
   var fresh = feed.filter(isNew).slice(0, 6).map(function (d) {
     var h = headline(d);
-    return (h.head + ' · ' + h.detail);
+    return [h.head, h.detail];
   });
   var paged = root.dataset.motion === 'reduced';
   return {
     segs: segs, fresh: fresh, paged: paged,
-    key: [lang, paged ? 'r' : 'f', segs.join('\u0001'), fresh.join('\u0001')].join('\u0002')
+    key: [lang, paged ? 'r' : 'f', segs.join('\u0001'),
+          fresh.map(function (f) { return f.join(' · '); }).join('\u0001')].join('\u0002')
   };
 }
 
@@ -3555,16 +3558,27 @@ function applyTicker(m) {
     s.appendChild(el('span', 'sr-only', '; '));
     return s;
   }
-  function seg(s, cls) {
-    var n = el('span', cls || '', s);
-    // A CJK title in the English hall (or a Latin one in the Chinese) is
-    // tagged, so a screen reader switches voice instead of spelling it.
+  // A CJK title in the English hall (or a Latin one in the Chinese) is
+  // tagged, so a screen reader switches voice instead of spelling it.
+  function tag(n, s) {
     var cjk = /[\u3040-\u30ff\u3400-\u9fff]/.test(s);
     if (cjk !== (lang === 'zh')) n.lang = cjk ? 'zh' : 'en';
     return n;
   }
+  function seg(s, cls) { return tag(el('span', cls || '', s), s); }
+  // A dispatch is two runs, title and detail, each tagged on its own, as the
+  // Ledger's plaques are. Tagged whole, an English detail went to the
+  // Chinese voice with its title, and an English title in the Chinese hall
+  // went untagged because its detail was Chinese.
+  function dispatchSeg(f) {
+    var n = el('span', 't-new');
+    n.appendChild(tag(el('span', '', f[0]), f[0]));
+    n.appendChild(document.createTextNode(' \u00b7 '));
+    n.appendChild(tag(el('span', '', f[1]), f[1]));
+    return n;
+  }
   var items = m.segs.map(function (s) { return seg(s); })
-    .concat(m.fresh.map(function (s) { return seg(s, 't-new'); }));
+    .concat(m.fresh.map(dispatchSeg));
   if (!items.length) items = [seg('—')];
   items.forEach(function (n) {
     if (track.childNodes.length) track.appendChild(sep());
