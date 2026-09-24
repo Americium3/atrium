@@ -61,8 +61,9 @@
   --bronze: #6e522c;
   --machine-edge: #060504;   /* wells, slots, notches — darkest machine tone */
   --rivet: rgba(232, 220, 192, 0.34);
-  --steam-core: rgba(248, 240, 220, 0.60);
-  --steam-mid: rgba(248, 240, 220, 0.26);
+  --steam-core: rgba(248, 240, 220, 0.3);
+  --steam-mid: rgba(248, 240, 220, 0.2);
+  --steam-wisp: rgba(248, 240, 220, 0.12);
   /* Concourse fabric (v4) — plaster, stone and the light that falls on them.
      The wall must separate from the void behind the hall without becoming a
      second surface tone: these sit between --base and --surface. */
@@ -118,7 +119,8 @@
   --machine-edge: #57492f;
   --rivet: rgba(42, 36, 22, 0.30);
   --steam-core: rgba(42, 36, 22, 0.15);
-  --steam-mid: rgba(42, 36, 22, 0.07);
+  --steam-mid: rgba(42, 36, 22, 0.08);
+  --steam-wisp: rgba(42, 36, 22, 0.05);
   /* Ivory plaster is *darker* than the paper ground: on this theme the void
      behind the hall is the brightest thing on screen, so a wall lighter than
      --base would read as a hole rather than a plane. */
@@ -886,12 +888,19 @@ html[data-boot="suppressed"] #signal-desk {
   width: 0; height: 0;
   pointer-events: none; z-index: 3;
 }
+/* A puff is a wisp, not a ball: one round, evenly soft disc hung over the
+   stack like a lamp at night (VD-10). Four soft lobes of unequal size, set
+   off-centre and trailing upward, each sprite its own (steamBurst() writes
+   the offsets), with a thin core so the floor shows through it. The lobes
+   are painted once; only the sprite's transform and opacity move. */
 .puff {
-  position: absolute; left: -20px; top: -20px; width: 40px; height: 40px;
-  border-radius: 50%;
-  background: radial-gradient(circle at 50% 55%,
-      var(--steam-core), var(--steam-mid) 42%, transparent 70%);
-  filter: blur(6px);
+  position: absolute; left: -22px; top: -34px; width: 44px; height: 56px;
+  background:
+    radial-gradient(30% 24% at var(--p1, 44%) 74%, var(--steam-core), var(--steam-mid) 50%, transparent),
+    radial-gradient(22% 22% at var(--p2, 62%) 54%, var(--steam-mid), transparent),
+    radial-gradient(24% 16% at var(--p3, 34%) 38%, var(--steam-mid), transparent),
+    radial-gradient(12% 28% at var(--p4, 56%) 18%, var(--steam-wisp), transparent);
+  filter: blur(4px);
   will-change: transform, opacity;
   opacity: 0;
   animation: puff-rise both cubic-bezier(0.25, 0.6, 0.35, 1);

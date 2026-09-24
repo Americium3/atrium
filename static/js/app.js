@@ -868,6 +868,9 @@ function steamBurst(nozzleEl, n) {
       '--rise:' + Math.round(-(60 + Math.random() * 50)) + 'px;' +
       '--s:' + (2.2 + Math.random() * 0.8).toFixed(2) + ';' +
       '--rot:' + Math.round(Math.random() * 80 - 40) + 'deg;' +
+      // where each lobe of the wisp sits across the sprite
+      '--p1:' + Math.round(36 + Math.random() * 16) + '%;--p2:' + Math.round(52 + Math.random() * 18) + '%;' +
+      '--p3:' + Math.round(26 + Math.random() * 18) + '%;--p4:' + Math.round(40 + Math.random() * 26) + '%;' +
       'animation-duration:' + dur + 'ms;animation-delay:' + delay + 'ms;';
     p.addEventListener('animationend', function (e) { e.target.remove(); }, { once: true });
     (function (el, t) { setTimeout(function () { el.remove(); }, t); })(p, dur + delay + 120);
