@@ -645,8 +645,11 @@ function layoutWall(g) {
   piers.textContent = '';
   var top = cornH + 12 * u, bottom = H - dadoH + 1;
   var headFoot = Math.min(ys - 4 * u, crownY + (ys - crownY) * 0.62);
+  var wr = wall.getBoundingClientRect();
+  lastPiers = [];
   pierXs.forEach(function (p) {
     var name = 'pier-' + p.side + '-' + p.rank;
+    lastPiers.push({ x: wr.left + p.x, top: wr.top + top, w: Math.max(7 * u, Math.min(p.gap * 0.34, 20 * u)) + 5.2 * u });
     var spandrel;
     if (p.board) {
       spandrel = function () { return p.gap - 4 * u; };
@@ -658,10 +661,95 @@ function layoutWall(g) {
   });
 }
 
+/* ==========================================================================
+   THE FLOOR: every lamp in the room comes back off the wax
+   ==========================================================================
+   The portals and the clock carry their own reflections. Everything else
+   that gives light (the torchieres, the pier lights, each lit fanlight,
+   the marquee's returns) answers as a streak in the floor straight under
+   it: hung from the skirting, as wide as its source, broken into ripples by
+   the wax, brightest toward the viewer where its image would lie. They are
+   cheap screen-space layers, not copies of anything, and all of them are
+   lamps: opacity --lamp-on, so by day the floor gives back no light. */
+var lastPiers = [];
+function streak(host, x, w, len, kind, attrs) {
+  var s = el('div', 'fl-streak st-' + kind);
+  s.style.left = f2(x - w / 2) + 'px';
+  s.style.width = f2(w) + 'px';
+  s.style.height = f2(len) + 'px';
+  for (var k in attrs || {}) s.dataset[k] = attrs[k];
+  host.appendChild(s);
+  return s;
+}
+function syncStreaks() {
+  var host = $('#floorplane .fl-streaks');
+  if (!host) return;
+  var ss = host.querySelectorAll('.st-fan');
+  for (var i = 0; i < ss.length; i++) {
+    var g = document.getElementById(ss[i].dataset.gate);
+    if (g) ss[i].dataset.state = g.dataset.state || '';
+  }
+}
+function layoutFloor() {
+  var fp = $('#floorplane');
+  if (!fp) return;
+  var host = $('.fl-streaks', fp);
+  if (!host) {
+    host = el('div', 'fl-streaks');
+    host.setAttribute('aria-hidden', 'true');
+    var plane = $('.fl-plane', fp);
+    fp.insertBefore(host, plane ? plane.nextSibling : null);
+    var gates = $('#gates');
+    if (gates && window.MutationObserver) {
+      new MutationObserver(syncStreaks).observe(gates, { subtree: true, attributes: true, attributeFilter: ['data-state'] });
+    }
+  }
+  host.textContent = '';
+  var fr = fp.getBoundingClientRect();
+  var H = fr.height, u = ui();
+  if (!H) return;
+  var floorTop = fr.top;
+  // the torchieres
+  var sc = document.querySelectorAll('#backwall .sconce .sc-body');
+  for (var i = 0; i < sc.length; i++) {
+    var r = sc[i].getBoundingClientRect();
+    if (r.right < 0 || r.left > fr.width) continue;
+    streak(host, r.left + r.width / 2 - fr.left, r.width * 0.95, Math.min(H, (floorTop - r.top) * 0.95), 'torch');
+  }
+  // the pier lights
+  lastPiers.forEach(function (p) {
+    streak(host, p.x - fr.left, p.w * 1.5, Math.min(H, (floorTop - p.top) * 0.9), 'pier');
+  });
+  // each portal's fanlight, lit only while its wing stands and its lines are open
+  var stage = $('#stage');
+  if (stage) {
+    var sr = stage.getBoundingClientRect(), axis = sr.left + sr.width / 2;
+    var gs = document.querySelectorAll('#gates .gate');
+    for (var j = 0; j < gs.length; j++) {
+      var a = gs[j];
+      if (a.classList.contains('vacant') || !a.dataset.glass) continue;
+      var sx = parseFloat(a.style.getPropertyValue('--slot-x'));
+      if (!isFinite(sx)) continue;
+      var gw = a.offsetWidth;
+      streak(host, axis + sx - fr.left, gw * 0.42, Math.min(H, gw * 1.2), 'fan', {
+        gate: a.id, wing: a.dataset.wing || '', glass: a.dataset.glass, state: a.dataset.state || ''
+      });
+    }
+  }
+  // the marquee's returns, the brightest things in the room
+  var tk = $('#ticker');
+  if (tk) {
+    var tr = tk.getBoundingClientRect();
+    [tr.left + 8 * u, tr.right - 8 * u].forEach(function (x) {
+      streak(host, x - fr.left, 22 * u, H, 'marquee');
+    });
+  }
+}
+
 window.Room = {
   fnv1a: fnv1a, draw: draw, pick: pick,
   buildMasthead: buildMasthead, fitMasthead: fitMasthead,
-  layoutWall: layoutWall
+  layoutWall: layoutWall, layoutFloor: layoutFloor
 };
 
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', buildMasthead);

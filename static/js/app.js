@@ -1896,6 +1896,9 @@ function layoutStage(initial) {
   // How far the row actually reaches from the axis. The bays are cut against
   // THIS, not against the stage column, which is wider than the row.
   triptychHalf = half + (nSide ? gateW + (nSide - 1) * spacing : 0);
+  // The solved row, for the wall: the pier lights stand in the gaps between
+  // resting slots, never where an arch happens to be mid-throw.
+  rowGeom = { half: half, gateW: gateW, spacing: spacing, nSide: nSide };
   buildAisles();
 }
 
@@ -1914,6 +1917,7 @@ window.addEventListener('resize', function () { layoutStage(true); });
    own box rather than guessed from a breakpoint.
    ======================================================================== */
 var triptychHalf = 0;   // half-width the composition actually occupies
+var rowGeom = null;     // the row as layoutStage solved it (room.js reads it)
 var ROMAN = ['', 'I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X',
              'XI', 'XII'];
 function roman(n) { return ROMAN[n] || String(n); }
@@ -1952,11 +1956,13 @@ function pilaster(x, k) {
   cap.appendChild(svgEl('path', { d: 'M16 21 A4 4 0 0 1 24 21 Z' }, 'pc-boss'));
   var shaft = el('div', 'pil-shaft');
   shaft.appendChild(el('div', 'pil-mirror'));
-  var base = svgEl('svg', { viewBox: '0 0 40 22', 'aria-hidden': 'true' }, 'pil-base');
-  [['M4 0 H36 V3 H4 Z', 'pb-nose'], ['M4 0 H36 V1 H4 Z', 'pc-lit'],
-   ['M4 3 H36 V14 H4 Z', 'pb-block'], ['M0 14 H40 V17 H0 Z', 'pb-nose'],
-   ['M0 17 H40 V22 H0 Z', 'pb-block']
-  ].forEach(function (p) { base.appendChild(svgEl('path', { d: p[0] }, p[1])); });
+  // The base is a block of the dado's own stone under a gilt nosing, cut
+  // from its own part of the slab (the pilaster's hash), not a painted box.
+  var base = el('div', 'pil-base');
+  base.style.setProperty('--sx', (hash01((k || 0) * 37 + 3) * 100).toFixed(1) + '%');
+  base.style.setProperty('--sy', (hash01((k || 0) * 53 + 9) * 100).toFixed(1) + '%');
+  base.appendChild(el('div', 'pb-stone'));
+  base.appendChild(el('div', 'pb-plinth'));
   d.appendChild(cap); d.appendChild(shaft); d.appendChild(base);
   return d;
 }
@@ -2037,16 +2043,23 @@ function buildStanchions() {
 
 /* Lay a rhythm of bays across one clear stretch of wall, a pilaster at each
    end. Returns how many bays it used. */
-function fillSpan(node, x0, x1, firstBay) {
+function fillSpan(node, x0, x1, firstBay, edge) {
   var u = uiScale();
   var w = x1 - x0;
-  if (w < 40 * u) return 0;
+  if (w < 40 * u) {
+    // Too narrow for a bay, but the board beside it still wants a pilaster
+    // flush against its edge, or the case hangs on bare damask.
+    if (edge != null) node.appendChild(pilaster(edge, firstBay * 7));
+    return 0;
+  }
   var n = Math.max(1, Math.round(w / (300 * u)));
   var bay = w / n;
   for (var i = 0; i <= n; i++) node.appendChild(pilaster(x0 + i * bay, firstBay * 7 + i));
   // A bay narrower than a torchiere and its wash cannot be lit; anything
-  // wider is. (The old 90u floor left the owner's 3440 wall with no lamps.)
-  if (w < 70 * u) return 0;
+  // wider is. (The old 90u floor left the owner's 3440 wall with no lamps,
+  // and 70u still left 3440 dark once the pilasters stood clear of the
+  // boards.)
+  if (w < 52 * u) return 0;
   for (var j = 0; j < n; j++) {
     var mid = x0 + (j + 0.5) * bay;
     node.appendChild(sconce(mid));
@@ -2063,30 +2076,36 @@ function fillSpan(node, x0, x1, firstBay) {
    covered up. The bays go in the daylight either side instead, which also
    lands a pilaster hard against each edge of the board, so the board reads
    as set into the wall rather than stuck onto it. */
-function fillWall(node, width, hole, firstBay) {
+function fillWall(node, width, hole, firstBay, inner) {
   node.textContent = '';
   node.style.setProperty('--aw', Math.max(0, width) + 'px');
   if (width <= 0) return 0;
   var spans = [];
   if (hole && hole[1] > 0 && hole[0] < width) {
-    if (hole[0] > 0) spans.push([0, Math.min(hole[0], width)]);
-    if (hole[1] < width) spans.push([Math.max(0, hole[1]), width]);
+    // The stretch between a board and the arches is a pier light's
+    // (room.js), not a bay: only the outer side of a board is laid in bays.
+    if (hole[0] > 0 && inner !== 'left') spans.push([0, Math.min(hole[0], width), hole[0]]);
+    if (hole[1] < width && inner !== 'right') spans.push([Math.max(0, hole[1]), width, hole[1]]);
   } else {
-    spans.push([0, width]);
+    spans.push([0, width, null]);
   }
   var used = 0;
   spans.forEach(function (sp) {
-    used += fillSpan(node, sp[0], sp[1], firstBay + used);
+    used += fillSpan(node, sp[0], sp[1], firstBay + used, sp[2]);
   });
   return used;
 }
 
-/* Where a board sits, in its own wall's coordinate space. */
+/* Where a board sits, in its own wall's coordinate space, widened by half a
+   pilaster so the pilaster set against each edge stands clear of the case
+   instead of 17px behind it (LY-11). `inner` names the side that faces the
+   arches: that stretch belongs to a pier light. */
 function boardHole(board, originX) {
   if (!board || getComputedStyle(board).display === 'none') return null;
   var r = board.getBoundingClientRect();
   if (!r.width) return null;
-  return [r.left - originX - 9, r.right - originX + 9];
+  var half = 17 * uiScale();
+  return [r.left - originX - 9 - half, r.right - originX + 9 + half];
 }
 
 /* The wall is measured against the stage, not against a media query: the
@@ -2100,12 +2119,27 @@ function buildAisles() {
   var bw = wall.getBoundingClientRect();
   var sr = stage.getBoundingClientRect();
   if (!bw.width) return;
+  // The wall's dado and skirting are sized from the fitted arch module, so
+  // the concourse needs the row's --fit as well as the stage (LY-14).
+  var con = $('#concourse');
+  if (con) con.style.setProperty('--fit', stage.style.getPropertyValue('--fit') || '1');
   var axis = sr.left + sr.width / 2;
   var reach = (triptychHalf || sr.width / 2) + 28;
   var lw = Math.max(0, (axis - reach) - bw.left);
   var rw = Math.max(0, bw.right - (axis + reach));
-  var used = fillWall(wl, lw, boardHole($('#works'), bw.left), 1);
-  fillWall(wr, rw, boardHole($('#almanac'), axis + reach), used + 1);
+  var used = fillWall(wl, lw, boardHole($('#works'), bw.left), 1, 'right');
+  fillWall(wr, rw, boardHole($('#almanac'), axis + reach), used + 1, 'left');
+  // The room's own dressing: book-matched dado, pier lights between the
+  // arches, each bay's own damask. Laid from the solved row.
+  if (window.Room && rowGeom) {
+    window.Room.layoutWall({ axis: axis - bw.left, reach: reach, row: rowGeom,
+      boards: ['#works', '#almanac'].map(function (sel) {
+        var b = $(sel);
+        if (!b || getComputedStyle(b).display === 'none') return null;
+        var r = b.getBoundingClientRect();
+        return r.width ? [r.left - bw.left, r.right - bw.left] : null;
+      }) });
+  }
   sizeFloor();
   buildStanchions();
   // Repainted with everything that re-lays the wall: a resize, a wing

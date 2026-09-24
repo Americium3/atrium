@@ -418,3 +418,242 @@ html[lang="zh"] #masthead .p-caption { letter-spacing: 0.3em; }
   .l-badge { box-shadow: 0 0 0 1px CanvasText; }
 }
 
+/* ==========================================================================
+   THE BACK WALL
+   ========================================================================== */
+:root[data-theme="onyx"] {
+  --dentil-img: url('/static/assets/tex/room-dentil-night.webp');
+  --dado-stone: url('/static/assets/tex/room-portoro.webp');
+  --lot-oxblood: #2a0e0f; --lot-garnet: #2d0b13; --lot-wine: #240b11;
+  --lot-umber: #2b130e; --lot-claret: #310f15;
+  --pier-wash: rgba(255, 164, 82, 0.46);
+  --pier-halo: rgba(255, 190, 110, 0.55);
+  --bay-frame-hi: var(--au-2); --bay-frame-lo: var(--au-0);
+}
+:root[data-theme="ivory"] {
+  --dentil-img: url('/static/assets/tex/room-dentil-day.webp');
+  --dado-stone: url('/static/assets/tex/stone-calacatta.webp');
+  --lot-oxblood: #e4d6bd; --lot-garnet: #e6d4c2; --lot-wine: #e1d3c1;
+  --lot-umber: #e6d8ba; --lot-claret: #e9d5c3;
+  --pier-wash: rgba(255, 164, 82, 0);
+  --pier-halo: rgba(255, 190, 110, 0);
+  --bay-frame-hi: var(--au-3); --bay-frame-lo: var(--au-1);
+}
+
+/* The dado and the skirting stand on the arches' plinth nosing (536 of the
+   gate's 570 units), fitted with the row: --fit is mirrored onto the
+   concourse by the layout pass, so a fitted-down row no longer leaves the
+   skirting a few pixels off its plinths (LY-14). */
+#concourse {
+  --gh-fit: calc(var(--gate-w) * var(--fit, 1) * 1.9);
+  --skirt-h: calc(var(--gh-fit) * 34 / 570);
+  --dado-h: calc(var(--gh-fit) * 0.19);
+  --frieze-h: calc(36px * var(--ui));
+  --cornice-h: calc(var(--frieze-h) + 24px * var(--ui));
+}
+
+/* ----- The cornice ---------------------------------------------------------
+   Classical order, top to bottom: a rolled crown, the dentil course (each
+   block with its lit top, its shaded return and a deep gap), the bed mould
+   with the dentils' shadow cast on it, the relief frieze, and a fillet over
+   the lamp trough. The marquee's bulbs hang just above it, so by night the
+   dentils take their light from over their heads, as they do from the
+   skylight by day. */
+.wall-cornice {
+  background:
+    linear-gradient(180deg, var(--au-0) 0, var(--au-5) calc(1.2px * var(--ui)), var(--au-3) calc(2.2px * var(--ui)),
+      var(--au-2) calc(3.6px * var(--ui)), var(--au-1) calc(5px * var(--ui)), var(--au-0) calc(6px * var(--ui)), transparent calc(6px * var(--ui)))
+      0 0 / 100% 100% no-repeat,
+    linear-gradient(180deg, transparent calc(17px * var(--ui)), rgba(0, 0, 0, 0.62) calc(17px * var(--ui)), rgba(0, 0, 0, 0.30) calc(21px * var(--ui)), transparent calc(27px * var(--ui)))
+      0 0 / 100% 100% no-repeat,
+    linear-gradient(180deg, transparent calc(17px * var(--ui)), var(--au-1) calc(17px * var(--ui)), var(--au-4) calc(18.2px * var(--ui)), var(--au-2) calc(19.2px * var(--ui)), var(--au-0) calc(20px * var(--ui)), transparent calc(20px * var(--ui)))
+      0 0 / 100% 100% no-repeat,
+    linear-gradient(180deg, transparent calc(100% - 4px * var(--ui)), var(--au-0) calc(100% - 4px * var(--ui)), var(--au-5) calc(100% - 3.2px * var(--ui)), var(--au-2) calc(100% - 2px * var(--ui)), var(--au-0) 100%)
+      0 0 / 100% 100% no-repeat,
+    var(--dentil-img) 0 calc(6px * var(--ui)) / auto calc(11px * var(--ui)) repeat-x,
+    var(--frieze-img) 0 calc(20px * var(--ui)) / auto var(--frieze-h) repeat-x;
+  background-color: var(--au-0);
+  box-shadow: 0 calc(5px * var(--ui)) calc(9px * var(--ui)) rgba(0, 0, 0, 0.6);
+}
+:root[data-theme="ivory"] .wall-cornice { box-shadow: 0 calc(4px * var(--ui)) calc(8px * var(--ui)) rgba(80, 58, 24, 0.28); }
+
+/* ----- The damask, hung bay by bay ------------------------------------------
+   No two bays were cut from the same length: each takes its own phase of
+   the repeat and its own dye lot. By day a second pass of the weave, in
+   multiply, keeps the pattern from going to a rumour on cream. */
+.wall-field { background: var(--lot-oxblood); }
+.wall-bays { position: absolute; inset: 0; pointer-events: none; }
+.wall-bay {
+  position: absolute; top: 0; bottom: 0;
+  --lot: var(--lot-oxblood);
+  background:
+    url('/static/assets/tex/fab-damask.webp') var(--bx, 0) var(--by, 0) / calc(var(--bs, 128px) * var(--ui)) auto,
+    linear-gradient(var(--lot), var(--lot));
+  background-blend-mode: soft-light, normal;
+  box-shadow: inset 1px 0 0 rgba(0, 0, 0, 0.30);
+}
+.wall-bay[data-lot="garnet"] { --lot: var(--lot-garnet); }
+.wall-bay[data-lot="wine"] { --lot: var(--lot-wine); }
+.wall-bay[data-lot="umber"] { --lot: var(--lot-umber); }
+.wall-bay[data-lot="claret"] { --lot: var(--lot-claret); }
+:root[data-theme="ivory"] .wall-bay::before {
+  content: ""; position: absolute; inset: 0;
+  background: url('/static/assets/tex/fab-damask.webp') var(--bx, 0) var(--by, 0) / calc(var(--bs, 128px) * var(--ui)) auto;
+  mix-blend-mode: multiply; opacity: 0.18;
+}
+/* The light on the whole wall: the head in shade under the cornice, the
+   foot darkening toward the dado. */
+.wall-bays::after {
+  content: ""; position: absolute; inset: 0;
+  background: linear-gradient(to bottom, var(--wall-dim) 0%, transparent 42%, transparent 70%, color-mix(in srgb, var(--wall-dim) 60%, transparent) 100%);
+}
+/* An aisle bay, with room to spare, has its panel framed in a gilt bead. */
+.wall-bay.framed::after {
+  content: ""; position: absolute;
+  left: calc(10px * var(--ui)); right: calc(10px * var(--ui));
+  top: calc(var(--cornice-h) + 18px * var(--ui)); bottom: calc(var(--dado-h) + 16px * var(--ui));
+  border: calc(2px * var(--ui)) solid;
+  border-color: var(--bay-frame-hi) var(--bay-frame-lo) var(--bay-frame-lo) var(--bay-frame-hi);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.45), inset 0 0 0 1px rgba(0, 0, 0, 0.45), inset 0 0 calc(10px * var(--ui)) rgba(0, 0, 0, 0.35);
+  opacity: 0.9;
+}
+
+/* ----- The dado: book-matched stone ---------------------------------------- */
+.wall-dado { background: var(--skirt); opacity: 1; }
+.dado-slabs {
+  position: absolute; left: 0; right: 0;
+  top: calc(6px * var(--ui)); bottom: var(--skirt-h);
+  overflow: hidden;
+}
+.d-slab {
+  position: absolute; top: 0; bottom: 0; overflow: hidden;
+  box-shadow: inset 1px 0 0 rgba(0, 0, 0, 0.6), inset 2px 0 0 rgba(255, 236, 200, 0.08);
+}
+:root[data-theme="ivory"] .d-slab { box-shadow: inset 1px 0 0 rgba(90, 70, 40, 0.30), inset 2px 0 0 rgba(255, 255, 255, 0.65); }
+.d-slab .sl-tex {
+  position: absolute; inset: 0;
+  background: var(--dado-stone) var(--sx, 0) var(--sy, 0) / calc(560px * var(--ui)) auto;
+}
+.d-slab.mir .sl-tex { transform: scaleX(-1); }
+.d-slab .sl-tone { position: absolute; inset: 0; background: rgba(0, 0, 0, calc(0.10 + var(--tn, 0) * 0.22)); }
+:root[data-theme="ivory"] .d-slab .sl-tone { background: rgba(120, 94, 56, calc(0.03 + var(--tn, 0) * 0.08)); }
+/* polished stone: dark in the rail's shadow, a sheen low down where the
+   floor's light comes back up */
+.dado-slabs::after {
+  content: ""; position: absolute; inset: 0;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.55) 0, transparent calc(9px * var(--ui)), transparent 70%, rgba(255, 220, 170, 0.05) 100%);
+}
+:root[data-theme="ivory"] .dado-slabs::after {
+  background: linear-gradient(180deg, rgba(80, 60, 30, 0.28) 0, transparent calc(8px * var(--ui)), transparent 70%, rgba(255, 255, 255, 0.18) 100%);
+}
+/* The chair rail: a rolled gilt moulding. */
+.dado-rail {
+  position: absolute; left: 0; right: 0; top: 0; height: calc(7px * var(--ui));
+  background: linear-gradient(180deg, var(--au-0) 0, var(--au-5) 18%, var(--au-3) 32%, var(--au-2) 56%, var(--au-1) 80%, var(--au-0) 100%);
+}
+/* The skirting: black marble set with two channelled nickel strips, the
+   Paramount's channelled chromium. */
+.dado-skirt {
+  position: absolute; left: 0; right: 0; bottom: 0; height: var(--skirt-h);
+  background:
+    linear-gradient(to top, transparent calc(var(--skirt-h) * 0.30), var(--channel) 0, color-mix(in srgb, var(--channel) 40%, #000) calc(var(--skirt-h) * 0.30 + 2px), transparent 0),
+    linear-gradient(to top, transparent calc(var(--skirt-h) * 0.62), var(--channel) 0, color-mix(in srgb, var(--channel) 40%, #000) calc(var(--skirt-h) * 0.62 + 2px), transparent 0),
+    linear-gradient(180deg, rgba(0, 0, 0, 0.6), transparent 30%),
+    url('/static/assets/tex/room-portoro.webp') 0 0 / calc(420px * var(--ui)) auto,
+    var(--skirt);
+  background-blend-mode: normal, normal, normal, luminosity, normal;
+}
+
+/* ----- Pier lights ---------------------------------------------------------- */
+.wall-piers { position: absolute; inset: 0; z-index: 1; pointer-events: none; }
+.pier { position: absolute; inset: 0; }
+.pier .lamp { opacity: var(--lamp-on); }
+.pr-body { position: absolute; overflow: visible; }
+:root[data-theme="onyx"] .pr-body .on-day,
+:root[data-theme="ivory"] .pr-body .on-lit { display: none; }
+.pier[data-tint="honey"] .pr-body { filter: hue-rotate(9deg) saturate(0.92) brightness(1.06); }
+.pier[data-tint="rose"] .pr-body { filter: hue-rotate(-13deg) saturate(1.04); }
+.pier[data-tint="smoke"] .pr-body { filter: saturate(0.72) brightness(0.94); }
+.pr-cast { fill: rgba(0, 0, 0, 0.55); }
+:root[data-theme="ivory"] .pr-cast { fill: rgba(70, 48, 16, 0.24); }
+.pr-rim { fill: none; stroke: var(--lead-0); stroke-linejoin: miter; }
+.pr-frame { fill: none; stroke-linejoin: miter; }
+.prg.s0 { stop-color: var(--lead-1); } .prg.s1 { stop-color: var(--lead-5); } .prg.s2 { stop-color: var(--lead-3); }
+.prg.s3 { stop-color: var(--lead-2); } .prg.s4 { stop-color: var(--lead-0); }
+.pr-lamp { mix-blend-mode: screen; opacity: var(--lamp-on); }
+.prc.s0 { stop-color: #ffb45c; stop-opacity: 0; } .prc.s1 { stop-color: #ffd89a; stop-opacity: 0.34; }
+.prv.s0 { stop-color: #ffe2b0; stop-opacity: 0.20; } .prv.s1 { stop-color: #000; stop-opacity: 0; }
+.prv.s2 { stop-color: #000; stop-opacity: 0.42; } .prv.s3 { stop-color: #ffcf8a; stop-opacity: 0.30; }
+:root[data-theme="ivory"] .prv.s0 { stop-color: #fff; stop-opacity: 0.22; }
+:root[data-theme="ivory"] .prv.s1, :root[data-theme="ivory"] .prv.s2 { stop-color: #000; stop-opacity: 0.04; }
+:root[data-theme="ivory"] .prv.s3 { stop-color: #000; stop-opacity: 0.16; }
+.pr-glaze { fill: none; stroke: rgba(0, 0, 0, 0.65); }
+.pr-fillet { fill: var(--lead-2); }
+.pr-fillet-lt { fill: var(--lead-5); }
+.pr-abacus { fill: var(--lead-2); stroke: var(--lead-0); stroke-width: 0.6; }
+.pr-abacus-lt { fill: var(--lead-5); }
+.pr-trough { stroke: var(--lead-0); stroke-width: 0.8; }
+.pr-trough-lt { fill: #fff0cc; opacity: 0.8; }
+:root[data-theme="ivory"] .pr-trough-lt { fill: #fffaf0; opacity: 0.9; }
+.pr-trough-sh { fill: rgba(0, 0, 0, 0.5); }
+/* The light the onyx throws: most of the pier stands in the dark gap
+   between two portals, so what shows of its light is on the wall above the
+   arches and in the spandrels either side of its capital, and on the stone
+   of the dado under its trough. */
+.pr-wash {
+  position: absolute;
+  left: calc(var(--px) - var(--pw) * 3.4); width: calc(var(--pw) * 6.8);
+  top: calc(var(--ptop) - 40px); height: calc((var(--phead) - var(--ptop)) * 2.4 + 60px);
+  background:
+    radial-gradient(50% 50% at 50% 38%, var(--pier-wash), color-mix(in srgb, var(--pier-wash) 35%, transparent) 45%, transparent 78%);
+  mix-blend-mode: screen;
+}
+.pr-foot {
+  position: absolute;
+  left: calc(var(--px) - var(--pw) * 1.6); width: calc(var(--pw) * 3.2);
+  top: calc(var(--pbot) - 30px); height: 90px;
+  background: radial-gradient(50% 50% at 50% 30%, color-mix(in srgb, var(--pier-wash) 80%, transparent), transparent 75%);
+  mix-blend-mode: screen;
+}
+.pr-up {
+  position: absolute;
+  left: calc(var(--px) - var(--pw) * 1.2); width: calc(var(--pw) * 2.4);
+  top: calc(var(--ptop) - 16px); height: calc(var(--phead) - var(--ptop) + 30px);
+  background: radial-gradient(50% 50% at 50% 50%, var(--pier-halo), transparent 72%);
+  mix-blend-mode: screen;
+  filter: blur(calc(4px * var(--ui)));
+}
+
+/* ----- Pilasters: the mirror's warmth and the stone foot --------------------
+   By day the antique mirror read as a grey chrome pipe. It is gold-backed
+   glass, as the palaces hung it for warmth, and it holds the cream room. */
+:root[data-theme="ivory"] {
+  --mirror-glass: #b8a785;
+  --mirror-room: rgba(250, 238, 214, 0.62);
+  --mirror-streak: rgba(255, 250, 236, 0.75);
+}
+.pil-base {
+  position: relative; flex: none;
+  width: 100%; height: calc(26px * var(--ui));
+}
+.pb-stone, .pb-plinth {
+  position: absolute;
+  background: var(--dado-stone) var(--sx, 0) var(--sy, 0) / calc(300px * var(--ui)) auto;
+}
+.pb-stone {
+  left: 9%; right: 9%; top: 0; bottom: 34%;
+  border-top: calc(3px * var(--ui)) solid var(--lead-2);
+  box-shadow: inset 0 1px 0 var(--lead-5), inset 0 calc(-1px * var(--ui)) 0 rgba(0, 0, 0, 0.55),
+              inset 1px 0 0 rgba(255, 240, 210, 0.12), inset -1px 0 0 rgba(0, 0, 0, 0.5);
+}
+.pb-plinth {
+  left: 0; right: 0; bottom: 0; height: 34%;
+  border-top: calc(2.5px * var(--ui)) solid var(--lead-2);
+  box-shadow: inset 0 1px 0 var(--lead-5), 0 calc(-2px * var(--ui)) calc(3px * var(--ui)) rgba(0, 0, 0, 0.45),
+              inset 1px 0 0 rgba(255, 240, 210, 0.12), inset -1px 0 0 rgba(0, 0, 0, 0.5);
+}
+.pb-stone::after, .pb-plinth::after {
+  content: ""; position: absolute; inset: 0;
+  background: linear-gradient(90deg, rgba(0, 0, 0, 0.35), transparent 30%, transparent 70%, rgba(0, 0, 0, 0.45));
+}
+
