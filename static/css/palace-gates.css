@@ -954,6 +954,11 @@ html[lang="zh"] .g-notice .gx-say { -webkit-text-stroke: 0.45px currentColor; le
    4.3:1 over the whole card at 1920 even where its lines alone passed. */
 :root[data-theme="ivory"] .gate[data-state="open"] .g-desc { color: #160f06; font-weight: 620; }
 html[lang="zh"] .g-desc { font-size: clamp(11px, 5.4cqw, calc(14.5px * var(--ui))); }
+/* A Chinese description breaks between words, never inside one. Left to
+   itself the browser broke between any two characters (世|界, 轨|道, 小|工具)
+   and passed over the comma. Keep-all takes every break away, and the
+   strings put back the good ones as zero-width spaces (app.js STR). */
+html[lang="zh"] .g-desc { word-break: keep-all; }
 :root[data-theme="onyx"], :root[data-theme="ivory"] { --apron-gilt: #e8c677; }
 :root[data-theme="onyx"] .gate.vacant, :root[data-theme="ivory"] .gate.vacant { --plate-hi: #e6cf97; --plate: #cdb074; --plate-lo: #9d7f45; --plate-ink: #140d05; }
 /* The Chinese face has one weight and hairline strokes; where it is set
