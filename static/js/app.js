@@ -1555,16 +1555,34 @@ function pilaster(x, k) {
    damask (the cut edge of a cone on a wall is a hyperbola, which is what
    the wash's mask approximates), with a smaller pool below; by day the lamp
    is out and the bowl is just carved stone catching the street light. */
-function sconce(x) {
+function sconce(x, s) {
   var d = el('div', 'sconce');
   d.style.left = x + 'px';
+  // A narrow bay takes a smaller lamp: the fixture, its bracket and the
+  // light it throws all scale by s.
+  if (s < 1) d.style.setProperty('--sc', s.toFixed(3));
   d.appendChild(el('div', 'sc-pool'));
   d.appendChild(el('div', 'sc-down'));
   var svg = svgEl('svg', { viewBox: '0 0 46 72', 'aria-hidden': 'true' }, 'sc-body');
-  [['M18 26 H28 V60 H18 Z', 'sc-plate'], ['M16 34 H30 V38 H16 Z', 'sc-plate'],
-   ['M16 52 H30 V56 H16 Z', 'sc-plate'], ['M19.5 60 H26.5 L23 70 Z', 'sc-plate'],
-   ['M18 26 H19 V60 H18 Z', 'sc-lit'],
-   ['M23 38 C23 32 23 30 23 27', 'sc-stem'],
+  // The bracket is cast brass, turned: every part is drawn as the six tones
+  // across a round moulding (the lit lip, the crest, the body, the relief
+  // body, the shade and the glaze in the far edge), lit from up and to the
+  // left. It was one flat silhouette under a lit alabaster bowl (AR-20).
+  // A stepped plate fixes it to the wall; two collars and a turned drop
+  // finish the stem.
+  turned(svg, 14, 32, 41, 49, 'sc');
+  turned(svg, 15.6, 30.4, 42.2, 47.8, 'sc');
+  turned(svg, 18, 28, 26, 60, 'sc');
+  svg.appendChild(svgEl('path', { d: 'M21 39.5 V50.5 M25 39.5 V50.5' }, 'sc-groove'));
+  turned(svg, 15.5, 30.5, 33.5, 38.5, 'sc');
+  turned(svg, 15.5, 30.5, 51.5, 56.5, 'sc');
+  svg.appendChild(svgEl('path', { d: 'M15.5 33.5 H30.5 V34.2 H15.5 Z M15.5 51.5 H30.5 V52.2 H15.5 Z' }, 'sc-lit'));
+  svg.appendChild(svgEl('path', { d: 'M15.5 37.9 H30.5 V38.5 H15.5 Z M15.5 55.9 H30.5 V56.5 H15.5 Z' }, 'sc-shade'));
+  turned(svg, 19, 27, 60, 62.6, 'sc');
+  turned(svg, 20.4, 25.6, 62.6, 65, 'sc');
+  svg.appendChild(svgEl('path', { d: 'M20.8 65 H23 V71 Z' }, 'sc-t1'));
+  svg.appendChild(svgEl('path', { d: 'M23 65 H25.2 L23 71 Z' }, 'sc-t4'));
+  [['M23 38 C23 32 23 30 23 27', 'sc-stem'],
    ['M4 18 C6 30 14 36 23 36 C32 36 40 30 42 18 Z', 'sc-bowl'],
    ['M9 20 C11 29 16 33 23 33.5 M37 20 C35 29 30 33 23 33.5 M16 19 C17 28 20 32 23 33.5 M30 19 C29 28 26 32 23 33.5', 'sc-flute'],
    ['M3 16.5 H43 V19.5 H3 Z', 'sc-rim'], ['M3 16.5 H43 V17.3 H3 Z', 'sc-lit'],
@@ -1572,6 +1590,18 @@ function sconce(x) {
   ].forEach(function (p) { svg.appendChild(svgEl('path', { d: p[0] }, p[1])); });
   d.appendChild(svg);
   return d;
+}
+
+/* A turned brass part seen side on, from x0 to x1: six vertical strips in
+   the leaf's order across a round moulding, lip to glaze, the lit side on
+   the left. Plain fills in --lead-*, so the part re-leafs with the wall. */
+var TURN_AT = [0, 0.1, 0.28, 0.58, 0.78, 0.92, 1];
+function turned(svg, x0, x1, y0, y1, pre) {
+  for (var k = 0; k < 6; k++) {
+    var a = x0 + (x1 - x0) * TURN_AT[k], b = x0 + (x1 - x0) * TURN_AT[k + 1] + 0.05;
+    svg.appendChild(svgEl('rect', { x: a.toFixed(2), y: y0.toFixed(2), width: (b - a).toFixed(2), height: (y1 - y0).toFixed(2) },
+      pre + '-t' + k));
+  }
 }
 
 /* The picture-palace foyer keeps its crowd in line with velvet rope on brass
@@ -1586,36 +1616,73 @@ function buildStanchions() {
   var u = uiScale();
   var svg = svgEl('svg', { viewBox: '0 0 ' + W + ' ' + H, width: W, height: H,
                            'aria-hidden': 'true' });
+  // The post's reflection in the wax fades with depth; its stops are set by
+  // class (var() does not resolve in a stop's presentation attributes).
+  var defs = svgEl('defs');
+  defs.innerHTML = '<linearGradient id="st-refl-g" x1="0" y1="0" x2="0" y2="1">' +
+    '<stop offset="0" class="stref s0"/><stop offset="1" class="stref s1"/></linearGradient>' +
+    '<linearGradient id="st-ferrule" x1="0" y1="0" x2="0" y2="1">' +
+    '<stop offset="0" class="cyl s1"/><stop offset=".35" class="cyl s2"/>' +
+    '<stop offset=".7" class="cyl s3"/><stop offset="1" class="cyl s4"/></linearGradient>';
+  svg.appendChild(defs);
   var ropes = svgEl('g', {}, 'st-ropes'), posts = svgEl('g', {}, 'st-posts');
-  var pitch = 170 * u, top = H * 0.08, ropeY = H * 0.24, foot = H * 0.94;
+  var pitch = 170 * u, top = H * 0.08, ropeY = H * 0.24, foot = H * 0.9;
   var pw = Math.max(4, 6.5 * u);
+  var f1 = function (v) { return v.toFixed(1); };
   [[W * 0.012, W * 0.255], [W * 0.745, W * 0.988]].forEach(function (sp, side) {
     var n = Math.max(1, Math.round((sp[1] - sp[0]) / pitch));
     var xs = [];
     for (var i = 0; i <= n; i++) xs.push(sp[0] + (sp[1] - sp[0]) * i / n);
     for (i = 0; i < n; i++) {
-      var x0 = xs[i] + pw * 0.9, x1 = xs[i + 1] - pw * 0.9, sag = H * (0.20 + 0.05 * hash01(i * 13 + side * 7));
-      var dRope = 'M' + x0.toFixed(1) + ' ' + ropeY.toFixed(1) + ' C' +
-        (x0 + (x1 - x0) * 0.3).toFixed(1) + ' ' + (ropeY + sag).toFixed(1) + ' ' +
-        (x0 + (x1 - x0) * 0.7).toFixed(1) + ' ' + (ropeY + sag).toFixed(1) + ' ' +
-        x1.toFixed(1) + ' ' + ropeY.toFixed(1);
+      var x0 = xs[i] + pw * 1.6, x1 = xs[i + 1] - pw * 1.6, sag = H * (0.20 + 0.05 * hash01(i * 13 + side * 7));
+      var dRope = 'M' + f1(x0) + ' ' + f1(ropeY) + ' C' +
+        f1(x0 + (x1 - x0) * 0.3) + ' ' + f1(ropeY + sag) + ' ' +
+        f1(x0 + (x1 - x0) * 0.7) + ' ' + f1(ropeY + sag) + ' ' +
+        f1(x1) + ' ' + f1(ropeY);
+      // Velvet rope: its shadow on the stone, the body, the underside the
+      // light does not reach, the broad soft sheen of the pile along its
+      // top, and the pile itself, a fine broken nap in the sheen.
       ropes.appendChild(svgEl('path', { d: dRope, transform: 'translate(1.5 3)' }, 'st-rope-sh'));
       ropes.appendChild(svgEl('path', { d: dRope }, 'st-rope'));
-      ropes.appendChild(svgEl('path', { d: dRope, transform: 'translate(0 -1.2)' }, 'st-rope-lt'));
-      // the brass snap hooks at either end of the rope
-      [x0, x1].forEach(function (hx) {
-        posts.appendChild(svgEl('circle', { cx: hx.toFixed(1), cy: ropeY.toFixed(1), r: (2.6 * u).toFixed(1) }, 'st-hook'));
+      ropes.appendChild(svgEl('path', { d: dRope, transform: 'translate(0 ' + f1(1.1 * u) + ')' }, 'st-rope-dk'));
+      ropes.appendChild(svgEl('path', { d: dRope, transform: 'translate(0 ' + f1(-1.0 * u) + ')' }, 'st-rope-lt'));
+      ropes.appendChild(svgEl('path', { d: dRope, transform: 'translate(0 ' + f1(-0.9 * u) + ')' }, 'st-rope-nap'));
+      // Brass snap ends: a ferrule crimped on each end of the rope, laid
+      // along the rope's own line where it leaves the post, and its hook.
+      var fl = 3.4 * u, ft = 6 * u, ang = Math.atan2(sag * 0.75, (x1 - x0) * 0.3) * 180 / Math.PI;
+      [[x0, ang, -1], [x1, 180 - ang, 1]].forEach(function (e) {
+        var g = svgEl('g', { transform: 'translate(' + f1(e[0]) + ' ' + f1(ropeY) + ') rotate(' + e[1].toFixed(1) + ')' });
+        g.appendChild(svgEl('rect', { x: '0', y: f1(-ft / 2), width: f1(fl), height: f1(ft), rx: f1(0.8 * u), fill: 'url(#st-ferrule)' }, 'st-ferrule'));
+        g.appendChild(svgEl('rect', { x: f1(fl * 0.55), y: f1(-ft / 2), width: f1(0.7 * u), height: f1(ft) }, 'st-crimp'));
+        ropes.appendChild(g);
+        // the snap hook's ring, bridging the ferrule and the post's socket
+        posts.appendChild(svgEl('circle', { cx: f1(e[0] + e[2] * 0.4 * pw), cy: f1(ropeY), r: f1(0.42 * pw) }, 'st-hook'));
       });
     }
     xs.forEach(function (x) {
       var bw = pw * 3.2, g = svgEl('g', {}, 'st-post');
-      g.appendChild(svgEl('ellipse', { cx: (x + 3).toFixed(1), cy: (foot + 2).toFixed(1), rx: (bw * 1.4).toFixed(1), ry: (bw * 0.34).toFixed(1) }, 'st-cast'));
-      g.appendChild(svgEl('ellipse', { cx: x.toFixed(1), cy: foot.toFixed(1), rx: bw.toFixed(1), ry: (bw * 0.28).toFixed(1) }, 'st-base'));
-      g.appendChild(svgEl('ellipse', { cx: x.toFixed(1), cy: (foot - bw * 0.14).toFixed(1), rx: (bw * 0.82).toFixed(1), ry: (bw * 0.2).toFixed(1) }, 'st-base-top'));
-      g.appendChild(svgEl('rect', { x: (x - pw / 2).toFixed(1), y: (top + pw).toFixed(1), width: pw.toFixed(1), height: (foot - top - pw).toFixed(1) }, 'st-shaft'));
-      g.appendChild(svgEl('rect', { x: (x - pw * 0.85).toFixed(1), y: (ropeY - pw * 0.6).toFixed(1), width: (pw * 1.7).toFixed(1), height: (pw * 1.2).toFixed(1), rx: (pw * 0.3).toFixed(1) }, 'st-shaft'));
-      g.appendChild(svgEl('circle', { cx: x.toFixed(1), cy: (top + pw * 0.3).toFixed(1), r: (pw * 1.05).toFixed(1) }, 'st-ball'));
-      g.appendChild(svgEl('circle', { cx: (x - pw * 0.35).toFixed(1), cy: (top - pw * 0.05).toFixed(1), r: (pw * 0.3).toFixed(1) }, 'st-spec'));
+      g.appendChild(svgEl('ellipse', { cx: f1(x + 3), cy: f1(foot + 2), rx: f1(bw * 1.4), ry: f1(bw * 0.34) }, 'st-cast'));
+      // the base in the wax: its dome flipped under the foot, fading
+      g.appendChild(svgEl('path', { d: 'M' + f1(x - bw * 0.86) + ' ' + f1(foot + bw * 0.04) +
+        ' A' + f1(bw * 0.86) + ' ' + f1(bw * 0.5) + ' 0 0 0 ' + f1(x + bw * 0.86) + ' ' + f1(foot + bw * 0.04) + ' Z',
+        fill: 'url(#st-refl-g)' }, 'st-refl'));
+      // the weighted base: a broad foot and a low turned dome over it
+      g.appendChild(svgEl('ellipse', { cx: f1(x), cy: f1(foot), rx: f1(bw), ry: f1(bw * 0.28) }, 'st-base'));
+      g.appendChild(svgEl('path', { d: 'M' + f1(x - bw * 0.86) + ' ' + f1(foot - bw * 0.04) +
+        ' A' + f1(bw * 0.86) + ' ' + f1(bw * 0.5) + ' 0 0 1 ' + f1(x + bw * 0.86) + ' ' + f1(foot - bw * 0.04) + ' Z' }, 'st-dome'));
+      g.appendChild(svgEl('path', { d: 'M' + f1(x - bw * 0.62) + ' ' + f1(foot - bw * 0.3) +
+        ' A' + f1(bw * 0.62) + ' ' + f1(bw * 0.36) + ' 0 0 1 ' + f1(x - bw * 0.05) + ' ' + f1(foot - bw * 0.52) }, 'st-dome-lt'));
+      g.appendChild(svgEl('ellipse', { cx: f1(x), cy: f1(foot - bw * 0.52), rx: f1(pw * 0.95), ry: f1(pw * 0.32) }, 'st-collar'));
+      g.appendChild(svgEl('rect', { x: f1(x - pw / 2), y: f1(top + pw * 1.5), width: f1(pw), height: f1(foot - bw * 0.5 - top - pw * 1.5) }, 'st-shaft'));
+      g.appendChild(svgEl('rect', { x: f1(x - pw / 2 + pw * 0.14), y: f1(top + pw * 1.5), width: f1(Math.max(0.6, pw * 0.1)), height: f1(foot - bw * 0.5 - top - pw * 1.5) }, 'st-arris'));
+      // the rope socket
+      g.appendChild(svgEl('rect', { x: f1(x - pw * 0.85), y: f1(ropeY - pw * 0.6), width: f1(pw * 1.7), height: f1(pw * 1.2), rx: f1(pw * 0.3) }, 'st-shaft'));
+      // the turned finial: a collar, a neck, the ball and a knop on it
+      g.appendChild(svgEl('ellipse', { cx: f1(x), cy: f1(top + pw * 1.5), rx: f1(pw * 0.95), ry: f1(pw * 0.34) }, 'st-collar'));
+      g.appendChild(svgEl('rect', { x: f1(x - pw * 0.34), y: f1(top + pw * 0.9), width: f1(pw * 0.68), height: f1(pw * 0.6) }, 'st-shaft'));
+      g.appendChild(svgEl('circle', { cx: f1(x), cy: f1(top + pw * 0.2), r: f1(pw * 0.95) }, 'st-ball'));
+      g.appendChild(svgEl('circle', { cx: f1(x), cy: f1(top - pw * 1.0), r: f1(pw * 0.34) }, 'st-ball'));
+      g.appendChild(svgEl('circle', { cx: f1(x - pw * 0.33), cy: f1(top - pw * 0.12), r: f1(pw * 0.28) }, 'st-spec'));
       posts.appendChild(g);
     });
   });
@@ -1623,6 +1690,10 @@ function buildStanchions() {
   svg.appendChild(posts);
   rail.appendChild(svg);
 }
+
+/* The smallest a torchiere is cast, as a share of its full 44u: below it
+   the bowl no longer reads as alabaster, and the bay stands unlit. */
+var SCONCE_MIN = 0.45;
 
 /* Lay a rhythm of bays across one clear stretch of wall, a pilaster at each
    end. Returns how many bays it used. */
@@ -1638,19 +1709,35 @@ function fillSpan(node, x0, x1, firstBay, edge) {
   var n = Math.max(1, Math.round(w / (300 * u)));
   var bay = w / n;
   for (var i = 0; i <= n; i++) node.appendChild(pilaster(x0 + i * bay, firstBay * 7 + i));
-  // A bay narrower than a torchiere and its wash cannot be lit; anything
-  // wider is. (The old 90u floor left the owner's 3440 wall with no lamps,
-  // and 70u still left 3440 dark once the pilasters stood clear of the
-  // boards.)
-  if (w < 52 * u) return 0;
+  // What a bay holds has to stand clear inside it, between the shafts of
+  // the pilasters at its two ends (28u of shaft, half at each end). A
+  // torchiere is 44u wide; the bay plate is as wide as its lettering. The
+  // old test (a 52u span) hung both across the pilasters in the sliver bays
+  // at the screen's edges, and ran a plate off the screen at 3440 (LY-15,
+  // VD-6). Leaving those bays bare took the lamps and the numbers off the
+  // wall at 1280 to 1600 and at 3440, where the edge bay is the only one,
+  // so a narrow bay takes a smaller lamp, with 2u of wall either side of
+  // it, and a plate cut with the numeral alone when the full legend will
+  // not fit. Only a bay too narrow even for those stands bare, and the
+  // numbering runs on over the bays that carry a plate.
+  var clear = bay - 28 * u;
+  var lamp = Math.min(1, (clear - 4 * u) / (44 * u));
+  var numbered = 0;
   for (var j = 0; j < n; j++) {
     var mid = x0 + (j + 0.5) * bay;
-    node.appendChild(sconce(mid));
-    var plate = el('div', 'bay-plate display', t('bayLabel', { n: roman(firstBay + j) }));
+    if (lamp >= SCONCE_MIN) node.appendChild(sconce(mid, lamp));
+    var num = roman(firstBay + numbered);
+    var plate = el('div', 'bay-plate display', t('bayLabel', { n: num }));
     plate.style.left = mid + 'px';
     node.appendChild(plate);
+    if (plate.offsetWidth + 8 * u > clear) {
+      plate.textContent = num;
+      plate.classList.add('bay-num');
+    }
+    if (plate.offsetWidth + 4 * u > clear) node.removeChild(plate);
+    else numbered++;
   }
-  return n;
+  return numbered;
 }
 
 /* Fill one aisle wall, skipping the stretch a board is hung over. Spacing
@@ -1660,8 +1747,18 @@ function fillSpan(node, x0, x1, firstBay, edge) {
    lands a pilaster hard against each edge of the board, so the board reads
    as set into the wall rather than stuck onto it. */
 function fillWall(node, width, hole, firstBay, inner) {
+  // A throw of the lever re-solves the stage and lands here with the same
+  // wall. Rebuilt, every pilaster was new and took the Bureau's leaf in one
+  // frame, so its own fill transition never ran (MO-5); the same wall is
+  // left standing. The bay plates are lettered and measured, so the
+  // language and the face they are set in count.
+  var key = [width, hole ? hole.join(',') : '', firstBay, inner, uiScale(), lang,
+             document.fonts ? document.fonts.status : ''].join('|');
+  if (node.dataset.fill === key) return +node.dataset.used;
   node.textContent = '';
   node.style.setProperty('--aw', Math.max(0, width) + 'px');
+  node.dataset.fill = key;
+  node.dataset.used = '0';
   if (width <= 0) return 0;
   var spans = [];
   if (hole && hole[1] > 0 && hole[0] < width) {
@@ -1676,6 +1773,7 @@ function fillWall(node, width, hole, firstBay, inner) {
   spans.forEach(function (sp) {
     used += fillSpan(node, sp[0], sp[1], firstBay + used, sp[2]);
   });
+  node.dataset.used = String(used);
   return used;
 }
 
@@ -3667,15 +3765,18 @@ function tickerModel() {
     // with nothing on screen to say watching what.
     if (txt) segs.push({ hall: s.short || s.name, text: txt });
   });
+  // A dispatch keeps its title and its detail apart: they are often in two
+  // scripts, and each is tagged for its own voice (AT-11).
   var fresh = feed.filter(isNew).slice(0, 6).map(function (d) {
     var h = headline(d);
-    return (h.head + ' · ' + h.detail);
+    return [h.head, h.detail];
   });
   var paged = root.dataset.motion === 'reduced';
   var said = segs.map(function (g) { return g.hall ? g.hall + '\u0003' + g.text : g; });
   return {
     segs: segs, fresh: fresh, paged: paged,
-    key: [lang, paged ? 'r' : 'f', said.join('\u0001'), fresh.join('\u0001')].join('\u0002')
+    key: [lang, paged ? 'r' : 'f', said.join('\u0001'),
+          fresh.map(function (f) { return f.join(' · '); }).join('\u0001')].join('\u0002')
   };
 }
 
@@ -3692,13 +3793,14 @@ function renderTicker(now) {
 }
 
 /* Is somebody reading the band right now? A rolling band always is, until
-   its loop comes round; a still one is while the pointer or the focus is on
-   it; a paged one is between page turns. */
+   its loop comes round; a still one is while the pointer or the keyboard's
+   focus is on it (a click's focus is not a reader, PT-6); a paged one is
+   between page turns. */
 function tickerHeld(ticker) {
   var track = $('#ticker-track');
   if (ticker.classList.contains('rolling') && track.getAnimations &&
       track.getAnimations().some(function (a) { return a.playState !== 'finished'; })) return true;
-  if (ticker.matches(':hover, :focus-within')) return true;
+  if (ticker.matches(':hover, :focus-visible')) return true;
   return !!tickerPageT;
 }
 
@@ -3723,6 +3825,13 @@ function applyTicker(m) {
     s.appendChild(el('span', 'sr-only', '; '));
     return s;
   }
+  // A CJK title in the English hall (or a Latin one in the Chinese) is
+  // tagged, so a screen reader switches voice instead of spelling it.
+  function tag(n, s) {
+    var cjk = /[\u3040-\u30ff\u3400-\u9fff]/.test(s);
+    if (cjk !== (lang === 'zh')) n.lang = cjk ? 'zh' : 'en';
+    return n;
+  }
   function seg(s, cls) {
     if (s && s.hall) {
       // The hall's name is signage and stays English, so in the Chinese hall
@@ -3735,15 +3844,21 @@ function applyTicker(m) {
       g.appendChild(seg(s.text));
       return g;
     }
-    var n = el('span', cls || '', s);
-    // A CJK title in the English hall (or a Latin one in the Chinese) is
-    // tagged, so a screen reader switches voice instead of spelling it.
-    var cjk = /[\u3040-\u30ff\u3400-\u9fff]/.test(s);
-    if (cjk !== (lang === 'zh')) n.lang = cjk ? 'zh' : 'en';
+    return tag(el('span', cls || '', s), s);
+  }
+  // A dispatch is two runs, title and detail, each tagged on its own, as the
+  // Ledger's plaques are. Tagged whole, an English detail went to the
+  // Chinese voice with its title, and an English title in the Chinese hall
+  // went untagged because its detail was Chinese.
+  function dispatchSeg(f) {
+    var n = el('span', 't-new');
+    n.appendChild(tag(el('span', '', f[0]), f[0]));
+    n.appendChild(document.createTextNode(' \u00b7 '));
+    n.appendChild(tag(el('span', '', f[1]), f[1]));
     return n;
   }
   var items = m.segs.map(function (s) { return seg(s); })
-    .concat(m.fresh.map(function (s) { return seg(s, 't-new'); }));
+    .concat(m.fresh.map(dispatchSeg));
   if (!items.length) items = [seg('—')];
   items.forEach(function (n) {
     if (track.childNodes.length) track.appendChild(sep());
@@ -3822,7 +3937,7 @@ function turnTickerPage() {
     var ticker = $('#ticker');
     tickerPageT = null;
     // Pauses on hover and focus, like the crawl, and never turns unseen.
-    if (document.hidden || ticker.matches(':hover, :focus-within')) { turnTickerPage(); return; }
+    if (document.hidden || ticker.matches(':hover, :focus-visible')) { turnTickerPage(); return; }
     // A newer band comes in on a page turn, the paged band's loop boundary.
     if (tickerPending) { applyTicker(tickerPending); return; }
     var pages = Array.prototype.slice.call(document.querySelectorAll('#ticker-track .t-page'));
@@ -3852,15 +3967,24 @@ function turnTickerPage() {
   // Crawl or pages is a motion decision, and the pages are cut to the
   // band's width and the engraving: either changing re-sets the band now.
   window.addEventListener('atrium:motionchange', function () { renderTicker(true); });
+  function rebox() {
+    if (tickerKey !== null && ticker.clientWidth + '|' + uiScale() !== tickerBox) renderTicker(true);
+  }
   var resizeT = null;
-  window.addEventListener('resize', function () {
+  function reboxSoon() {
     clearTimeout(resizeT);
-    resizeT = setTimeout(function () {
-      if (tickerKey !== null && ticker.clientWidth + '|' + uiScale() !== tickerBox) {
-        renderTicker(true);
-      }
-    }, 200);
-  });
+    resizeT = setTimeout(rebox, 200);
+  }
+  window.addEventListener('resize', reboxSoon);
+  // The engraving size changes no window size, so the resize above never
+  // saw it, and a band cut for the old size ran on under the end cap (RC-4).
+  // Watched on the root, it re-sets the band from the Preferences radio and
+  // from another tab alike. Not on the next frame: under reduced motion
+  // every property still eases over 0.01ms, so the lettering is measured at
+  // its old size until a frame has passed.
+  if (window.MutationObserver) {
+    new MutationObserver(reboxSoon).observe(root, { attributes: true, attributeFilter: ['data-ui'] });
+  }
 })();
 
 /* ========================================================================

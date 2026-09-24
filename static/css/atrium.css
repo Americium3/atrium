@@ -624,8 +624,11 @@ html[data-boot="suppressed"] #hall { animation: hall-fade 0.3s var(--ease-out) b
   animation: marquee var(--t-dur, 40s) linear infinite;
   will-change: transform;
 }
+/* The hold for focus is for a keyboard reader. A mouse click also parks
+   focus on the band, and :focus-within kept it frozen, with no ring to say
+   why, until the reader clicked somewhere else (PT-6). */
 #ticker.rolling:hover .t-track,
-#ticker.rolling:focus-within .t-track { animation-play-state: paused; }
+#ticker.rolling:focus-visible .t-track { animation-play-state: paused; }
 #ticker.static { text-align: center; }
 @keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 /* Reduced motion: the band is set in pages stacked in one cell, and turns
@@ -2458,6 +2461,8 @@ html[lang="zh"] .g-name { letter-spacing: 0.17em; }
 #clock {
   position: absolute;
   left: 50%; bottom: 0;
+  /* the subdial captions ask how large the dial is drawn */
+  container: ck / inline-size;
   transform: translateX(-50%);
   z-index: 1;
   pointer-events: none;   /* the dial is scenery, never a click target */
@@ -2511,12 +2516,6 @@ html[lang="zh"] .g-name { letter-spacing: 0.17em; }
   fill: none; stroke: var(--machine-edge);
   stroke-width: 1; vector-effect: non-scaling-stroke;
 }
-.ck-step, .ck-span {
-  fill: none; stroke-width: 1.5; vector-effect: non-scaling-stroke;
-}
-.ck-step { stroke: var(--bronze); }
-.ck-span { stroke: var(--metal); }
-.ck-spanin { fill: var(--metal); }
 .ck-rivet { fill: var(--rivet); }
 .ck-knurl { fill: var(--bronze); }
 .ck-well {
@@ -2553,10 +2552,14 @@ html[lang="zh"] .g-name { letter-spacing: 0.17em; }
   stroke-width: 1; vector-effect: non-scaling-stroke;
 }
 .ck-subcap {
-  fill: var(--ink-faint); font-size: 19px; letter-spacing: 4px;
+  fill: var(--ink-faint); font-size: 26px; font-weight: 600; letter-spacing: 2px;
   font-family: var(--serif);
 }
 .ck-subboss { fill: var(--bronze); }
+/* A subdial caption is 26 units, which is 10px on a dial drawn at 450px, and
+   the niche is the dial over 0.8817. On a smaller dial it cannot be read, so
+   it is not engraved at all (LY-5). */
+@container ck (max-width: 510px) { .ck-subcap { display: none; } }
 .ck-moonwell, .ck-gearwell, .ck-gearhole { fill: var(--base); }
 .ck-moondisc { fill: var(--metal); }
 .ck-moonshade { fill: var(--base); }
@@ -2566,7 +2569,7 @@ html[lang="zh"] .g-name { letter-spacing: 0.17em; }
   stroke-width: 1.5; vector-effect: non-scaling-stroke;
 }
 .ck-datenum {
-  fill: var(--ink); font-size: 38px; font-weight: 540; font-family: var(--serif);
+  fill: var(--ink); font-size: 44px; font-weight: 540; font-family: var(--serif);
   font-variant-numeric: tabular-nums lining-nums;
 }
 .ck-gear { fill: var(--bronze); }
@@ -3138,7 +3141,10 @@ html[lang="zh"] .g-name { letter-spacing: 0.17em; }
   --rug-veil: rgba(8, 3, 3, 0.42);
   --rope: #6b1019; --rope-lt: rgba(255, 150, 140, 0.35);
   --fascia: #080706;
-  --glass-milk: #f2dcae; --glass-milk-hi: #fff4d8; --glass-milk-lo: #d9b777;
+  /* Backlit milk glass: the brightest and most even field on the masthead,
+     warm white with a hot core. Its ends were a sandy tan, no brighter than
+     the dead glass by day, and on that tan the frost read as grit (AR-14). */
+  --glass-milk: #fdf2dc; --glass-milk-hi: #fffaf0; --glass-milk-lo: #f8e7c6;
   --marquee-ink: #1b120a; --marquee-new: #8a1a14;
   --bulb: #ffe7b0; --bulb-core: #fffaf0; --bulb-glow: rgba(255, 196, 110, 0.55);
   --stone-a: #3b150f; --stone-b: #0c0a08; --stone-c: #5e4524; --stone-d: #6d665a;
@@ -3287,9 +3293,12 @@ html[lang="zh"] .g-name { letter-spacing: 0.17em; }
 /* Torchieres. */
 .sconce {
   top: calc(var(--cornice-h) + 20%);
-  width: calc(44px * var(--ui)); margin-left: calc(-22px * var(--ui));
+  /* --sc: a narrow bay's smaller lamp (fillSpan). The wash and the pool
+     below scale with it. */
+  --scu: calc(var(--ui) * var(--sc, 1));
+  width: calc(44px * var(--scu)); margin-left: calc(-22px * var(--scu));
 }
-.sc-body { position: relative; z-index: 2; filter: drop-shadow(0 calc(3px * var(--ui)) calc(3px * var(--ui)) rgba(0, 0, 0, 0.55)); }
+.sc-body { position: relative; z-index: 2; filter: drop-shadow(0 calc(3px * var(--scu)) calc(3px * var(--scu)) rgba(0, 0, 0, 0.55)); }
 .sc-body path { stroke: none; }
 .sc-body .sc-plate { fill: var(--lead-2); }
 .sc-body .sc-lit { fill: var(--lead-5); }
@@ -3302,8 +3311,8 @@ html[lang="zh"] .g-name { letter-spacing: 0.17em; }
 /* The uplight: a scalloped wash on the damask, ribbed by the bowl's
    fluting, brightest just above the rim and dying up the wall. */
 .sc-pool {
-  position: absolute; left: 50%; top: calc(-250px * var(--ui));
-  width: calc(210px * var(--ui)); height: calc(280px * var(--ui));
+  position: absolute; left: 50%; top: calc(-250px * var(--scu));
+  width: calc(210px * var(--scu)); height: calc(280px * var(--scu));
   transform: translateX(-50%);
   background:
     repeating-conic-gradient(from -70deg at 50% 100%, var(--wash-ray) 0 4deg, transparent 4deg 9deg),
@@ -3323,8 +3332,8 @@ html[lang="zh"] .g-name { letter-spacing: 0.17em; }
   pointer-events: none;
 }
 .sc-down {
-  position: absolute; left: 50%; top: calc(26px * var(--ui));
-  width: calc(90px * var(--ui)); height: calc(120px * var(--ui));
+  position: absolute; left: 50%; top: calc(26px * var(--scu));
+  width: calc(90px * var(--scu)); height: calc(120px * var(--scu));
   transform: translateX(-50%);
   background: radial-gradient(50% 50% at 50% 20%, color-mix(in srgb, var(--wash) 45%, transparent), transparent 75%);
   mix-blend-mode: screen;
@@ -3334,12 +3343,23 @@ html[lang="zh"] .g-name { letter-spacing: 0.17em; }
 .bay-plate {
   bottom: calc(var(--dado-h) - 22px * var(--ui));
   padding: calc(1px * var(--ui)) calc(7px * var(--ui));
-  font-size: calc(9px * var(--ui));
+  /* Lettering has a 10px floor here as on the gates, and the plate is cut
+     from the leaf's lit tones so the dark fill reads on it: on the body and
+     shade tones it measured 2.1 to 3.3:1 by night (LY-18). */
+  font-size: max(10px, calc(9px * var(--ui)));
   letter-spacing: 0.28em;
   color: #1a1206;
   opacity: 1;
-  background: linear-gradient(180deg, var(--lead-3), var(--lead-2) 45%, var(--lead-1));
+  background: linear-gradient(180deg, var(--lead-5), var(--lead-3) 40%, var(--lead-4));
   box-shadow: 0 0 0 1px var(--lead-0), 0 2px 3px rgba(0, 0, 0, 0.5);
+}
+/* The Chinese plate's hairline strokes need more body at this size. */
+html[lang="zh"] .bay-plate { font-weight: 700; letter-spacing: 0.16em; }
+/* A narrow bay's plate carries the numeral alone, set closer, with the
+   trailing tracking balanced by the left padding. */
+.aisle-wall .bay-plate.bay-num {
+  letter-spacing: 0.14em;
+  padding-left: calc(4px * var(--ui) + 0.14em); padding-right: calc(4px * var(--ui));
 }
 
 /* ----- The floor ---------------------------------------------------------
@@ -3447,12 +3467,32 @@ html[lang="zh"] .g-name { letter-spacing: 0.17em; }
 #ticker {
   margin-top: 12px;
   padding: calc(13px * var(--ui)) 0 calc(12px * var(--ui));
+  /* One line height for the band however its line moves. The crawl's line
+     box took the body's strut (24px at --ui 1) while the paged view took
+     the track's own 13px x 1.5, so switching motion moved the whole hall
+     5px (VD-11). As a length it is inherited as is, by the track and every
+     page alike. */
+  line-height: calc(24px * var(--ui));
   border: none;
   background:
     url('/static/assets/tex/grain-frost.webp') 0 0 / 160px,
     radial-gradient(60% 140% at 50% 50%, var(--glass-milk-hi), var(--glass-milk) 55%, var(--glass-milk-lo));
   background-blend-mode: soft-light, normal;
   box-shadow: 0 0 0 1px var(--lead-0), 0 0 0 3px var(--lead-2), 0 0 0 4px var(--lead-0),
+              0 6px 14px rgba(0, 0, 0, 0.6), 0 0 38px var(--bulb-glow);
+}
+/* ...and the crawl's inline-block stands on the top of that line, not on
+   its baseline, which added a pixel of the strut's descent under it. */
+#ticker .t-track { vertical-align: top; }
+/* The marquee's own focus ring. At the default 3px the ring lay on the
+   frame's dark outer bead and read as one more moulding line (1.2:1 in
+   Ivory), and under the band there is no wall to set it on, only the
+   cornice. It stands just clear of the frame on a bed of the base colour,
+   as the lever's does. */
+#ticker:focus-visible {
+  outline-offset: 5px;
+  box-shadow: 0 0 0 1px var(--lead-0), 0 0 0 3px var(--lead-2), 0 0 0 4px var(--lead-0),
+              0 0 0 9px var(--base),
               0 6px 14px rgba(0, 0, 0, 0.6), 0 0 38px var(--bulb-glow);
 }
 #ticker::before, #ticker::after { content: none; }
@@ -3475,7 +3515,13 @@ html[lang="zh"] .g-name { letter-spacing: 0.17em; }
    bulb at a time. One layer, translated in whole bulb pitches. */
 .t-chase {
   position: absolute; top: 0; bottom: 0; left: calc(-39px * var(--ui)); right: 0;
-  background: radial-gradient(circle, #fff 0 22%, rgba(255, 232, 180, 0.95) 34%, rgba(255, 200, 120, 0.35) 52%, transparent 62%) 0 50% / calc(39px * var(--ui)) 100% repeat-x;
+  /* The lit bulb is the same bulb burning brighter: the same 4.1-unit
+     radius and place as the first of every three in the row under it. At
+     the gradient's default size its white core was wider than the channel
+     is tall, and the channel cut it into a flat white bar (VD-3). */
+  background: radial-gradient(circle calc(4.1px * var(--ui)) at calc(6.5px * var(--ui)) 50%,
+    #fff 0 44%, rgba(255, 240, 206, 0.95) 68%, rgba(255, 206, 130, 0.45) 88%, transparent 100%)
+    0 50% / calc(39px * var(--ui)) 100% repeat-x;
   opacity: var(--lamp-on);
 }
 /* The chase steps one bulb pitch every 300 ms, driven by a timer that sets
@@ -3585,7 +3631,6 @@ html[lang="zh"] .g-name { letter-spacing: 0.17em; }
 .ck-facet.fc1 { fill: var(--lead-1); }
 .ck-facet.fc0 { fill: var(--lead-0); }
 .ck-caseline2, .ck-caseline { stroke: rgba(0, 0, 0, 0.6); }
-.ck-step { stroke: var(--lead-4); }
 .ck-rivet { fill: var(--lead-3); stroke: var(--lead-0); stroke-width: 1.5; vector-effect: non-scaling-stroke; }
 .ck-case2 { fill: var(--lead-1); stroke: var(--lead-0); }
 .ck-knurl.kn-lt { fill: var(--lead-3); }
@@ -3610,10 +3655,17 @@ html[lang="zh"] .g-name { letter-spacing: 0.17em; }
 .ck-minute { fill: #5a4a34; }
 .ck-num { fill: #22180c; }
 .ck-numq { fill: var(--lead-1); }
+/* On the unlit day dial the quarters are the leaf's glaze tone, deepened a
+   quarter of the way to the ink: the body tone read at 2:1 in Ivory and all
+   but vanished in the Bureau's nickel (LY-6). */
+:root[data-theme="ivory"] .ck-numq { fill: color-mix(in srgb, var(--lead-0) 75%, #22180c); }
 .ck-subring { stroke: var(--lead-1); }
 .ck-subring2 { stroke: rgba(60, 40, 14, 0.35); }
 .cks.s0 { stop-color: rgba(60, 40, 10, 0); } .cks.s1 { stop-color: rgba(60, 40, 10, 0.34); }
-.ck-subcap { fill: #6b5a40; }
+/* The captions: ink on the white date and seconds dials, the leaf's lit
+   tone on the dark moon and works wells (LY-5). */
+.ck-subcap { fill: #22180c; }
+.ck-subcap.on-well { fill: var(--lead-3); }
 .ck-subboss { fill: var(--lead-2); }
 .ck-moonwell { fill: #1c2b62; }
 .ck-moonshade { fill: #1c2b62; }
@@ -3815,13 +3867,17 @@ html[lang="zh"] .g-desc { font-size: clamp(10px, 5.2cqw, calc(14px * var(--ui)))
     radial-gradient(30% 60% at 50% 0%, rgba(255, 214, 160, 0.14), transparent 80%);
 }
 
-/* The moving sheet of the clock, over the still dial, in its own layer. */
-#clock svg.dial-hands {
+/* The moving sheet of the clock, over the still dial: a stack of layers the
+   size of the dial, one per moving part, each turned by the compositor
+   about its arbor (clock.js sets the origin). */
+#clock .dial-hands {
   position: absolute; left: var(--reveal); top: var(--reveal);
   width: var(--dial); height: var(--dial);
   z-index: 4; pointer-events: none;
-  will-change: transform;
 }
+.dh-sheet, .dh-rotor { position: absolute; inset: 0; }
+.dh-rotor { will-change: transform; }
+.dh-svg { display: block; width: 100%; height: 100%; overflow: visible; }
 .t-chase { will-change: transform; }
 
 /* A plaque says "unread" to a screen reader only while it is. */

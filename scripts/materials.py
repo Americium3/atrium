@@ -128,6 +128,14 @@ def save(name, rgb, q=84):
     return path
 
 
+def save_rgba(name, arr, q=84):
+    os.makedirs(OUT, exist_ok=True)
+    img = Image.fromarray(np.clip(arr, 0, 255).astype(np.uint8), "RGBA")
+    path = os.path.join(OUT, name + ".webp")
+    img.save(path, "WEBP", quality=q, method=6)
+    return path
+
+
 def save_gray(name, g, q=84):
     os.makedirs(OUT, exist_ok=True)
     img = Image.fromarray(np.clip(g * 255, 0, 255).astype(np.uint8), "L").convert("RGB")
@@ -604,10 +612,92 @@ def mosaic_gold(n=512, cell=16, seed=151):
     return rgb
 
 
+def _pile(h, w, seed, pitch=8):
+    """Cut pile seen from above, as a brightness map about 1. The tufts are
+    set in woven rows, each row half a tuft along from the last (the weave),
+    but no tuft stands exactly on its mark: each leans its own way, has its
+    own height, and frays into its neighbours, so the rows show only as a
+    faint grain and never as a grid (a grid shimmers when the floor's
+    perspective shrinks it). The top of a tuft catches the light on the side
+    the nap leans from, and the whole lies in slow patches where the pile was
+    brushed one way or the other. Periodic when w and h are multiples of the
+    pitch and the row count is even."""
+    rng = np.random.default_rng(seed)
+    rows, cols = h // pitch, w // pitch
+    y, x = np.mgrid[0:h, 0:w].astype(np.float64) + 0.5
+    row = np.floor(y / pitch)
+    xo = x + (row % 2) * pitch / 2
+    ri = row.astype(int) % rows
+    ci = np.floor(xo / pitch).astype(int) % cols
+    jx = rng.uniform(-0.22, 0.22, (rows, cols))[ri, ci]
+    jy = rng.uniform(-0.18, 0.18, (rows, cols))[ri, ci]
+    tall = rng.uniform(0.6, 1.4, (rows, cols))[ri, ci]
+    fx = (xo % pitch) / pitch - 0.5 - jx
+    fy = (y % pitch) / pitch - 0.5 - jy
+    dome = np.clip(1 - (fx * fx + (fy + 0.08) ** 2) * 3.0, 0, 1)
+    lit = np.clip(0.5 - fy * 1.4, 0, 1)
+    tuft = 0.92 + 0.11 * dome * tall + 0.04 * lit * dome
+    n = max(h, w)
+    lay = fbm(n, seed + 1, 2.1, (1.0, 1.8))[:h, :w] - 0.5
+    fuzz = fbm(n, seed + 2, 0.4)[:h, :w] - 0.5
+    return tuft * (1 + lay * 0.16 + fuzz * 0.20)
+
+
+def _wool(rgb, ground, seed):
+    """Turn a drawn pattern into wool. A knotted pile cannot hold a vector
+    edge: the motif's edges are wandered a tuft's width by noise and
+    softened, its contrast against the ground is taken down by a third (a
+    dyed yarn is never as far from its neighbour as a printed ink), and the
+    pile is laid over all of it."""
+    from scipy.ndimage import gaussian_filter, map_coordinates
+    h, w = rgb.shape[:2]
+    n = max(h, w)
+    yy, xx = np.mgrid[0:h, 0:w].astype(np.float64)
+    wx = (fbm(n, seed + 3, 1.2)[:h, :w] - 0.5) * 3.0
+    wy = (fbm(n, seed + 4, 1.2)[:h, :w] - 0.5) * 3.0
+    out = np.empty_like(rgb)
+    for c in range(3):
+        out[..., c] = map_coordinates(rgb[..., c], [yy + wy, xx + wx], order=1, mode="grid-wrap")
+    out = gaussian_filter(out, (1.3, 1.3, 0), mode="wrap")
+    g = np.array(ground, dtype=np.float64)[None, None, :]
+    out = g + (out - g) * 0.68
+    return out * _pile(h, w, seed + 5)[..., None]
+
+
+def carpet_fringe(w=96, h=48, seed=181):
+    """The knotted fringe at the runner's far end, as RGBA: the warp ends of
+    the weave, knotted in bunches under the heading and hanging free below
+    it in natural wool, each tassel its own length and a little crooked."""
+    from PIL import ImageDraw
+    S = 4
+    rng = np.random.default_rng(seed)
+    img = Image.new("RGBA", (w * S, h * S), (0, 0, 0, 0))
+    d = ImageDraw.Draw(img)
+    WOOL, SHADE, KNOT = (226, 206, 164, 255), (168, 142, 100, 255), (196, 170, 124, 255)
+    # the heading: the last weft rows the warp is knotted through
+    d.rectangle([0, 0, w * S, 6 * S], fill=(120, 34, 36, 255))
+    d.rectangle([0, 6 * S, w * S, 8 * S], fill=(70, 18, 20, 255))
+    pitch = 8
+    for k in range(w // pitch):
+        cx = k * pitch + pitch / 2
+        ln = h - 12 - rng.uniform(0, 8)
+        lean = rng.uniform(-1.4, 1.4)
+        for j in range(-2, 3):
+            x0 = cx + j * 1.1
+            col = SHADE if j in (-2, 2) else WOOL
+            d.line([(x0 * S, 11 * S), ((x0 + lean + j * 0.5) * S, (11 + ln) * S)], fill=col, width=int(1.2 * S))
+        d.ellipse([(cx - 2.6) * S, 7.5 * S, (cx + 2.6) * S, 12.5 * S], fill=KNOT)
+    arr = np.asarray(img.resize((w, h), Image.LANCZOS), dtype=np.float64)
+    tuft = fbm(max(w, h), seed + 1, 0.4)[:h, :w] - 0.5
+    arr[..., :3] *= (1 + tuft * 0.22)[..., None]
+    return arr
+
+
 def carpet(n=512, seed=161):
     """The runner: a picture-palace wool carpet, fans and stepped streamers on
-    claret, gold and black, one teal accent. Drawn at 4x, softened, then
-    given pile so it reads as wool rather than print."""
+    claret, gold and black, one teal accent. Drawn at 4x, then made wool
+    (_wool): wandered, softened, taken down a third, and given a woven cut
+    pile, so it reads as a carpet and not as a print (AR-11)."""
     from PIL import ImageDraw
     S = 4
     CLARET, DEEP, GOLD, OLDG, BLACK, TEAL, CREAM = (
@@ -655,11 +745,7 @@ def carpet(n=512, seed=161):
                 cx, cy = ox + n * px, oy + n * py
                 d.ellipse([(cx - 3.2) * S, (cy - 3.2) * S, (cx + 3.2) * S, (cy + 3.2) * S], fill=CREAM)
     rgb = np.asarray(img.resize((n, n), Image.LANCZOS), dtype=np.float64)
-    from scipy.ndimage import gaussian_filter
-    rgb = gaussian_filter(rgb, (0.9, 0.9, 0), mode="wrap")
-    tuft = fbm(n, seed, 0.3) - 0.5
-    lay = fbm(n, seed + 1, 1.6) - 0.5
-    return rgb * (1 + tuft * 0.28 + lay * 0.12)[..., None]
+    return _wool(rgb, CLARET, seed)
 
 
 def carpet_border(w=96, h=384, seed=171):
@@ -683,8 +769,7 @@ def carpet_border(w=96, h=384, seed=171):
         pts += [(w - 28 - j * 10, y0 + step / 2 + (j + 1) * step / 5) for j in range(4, -1, -1)]
         d.line([(px * S, py * S) for px, py in pts], fill=GOLD, width=int(3.2 * S))
     rgb = np.asarray(img.resize((w, h), Image.LANCZOS), dtype=np.float64)
-    tuft = fbm(max(w, h), seed, 0.3)[:h, :w] - 0.5
-    return rgb * (1 + tuft * 0.28)[..., None]
+    return _wool(rgb, (22, 12, 12), seed)
 
 
 PALACE = [
@@ -696,6 +781,7 @@ PALACE = [
     ("mosaic-gold", mosaic_gold, "rgb"),
     ("carpet-field", carpet, "rgb"),
     ("carpet-border", carpet_border, "rgb"),
+    ("carpet-fringe", carpet_fringe, "rgba"),
 ]
 
 
@@ -725,7 +811,10 @@ def main():
         bakes = PALACE
     for name, fn, kind in bakes:
         data = fn()
-        path = save(name, data) if kind == "rgb" else save_gray(name, data)
+        if kind == "rgba":
+            path = save_rgba(name, data)
+        else:
+            path = save(name, data) if kind == "rgb" else save_gray(name, data)
         written.append(path)
         print("%-24s %6.1f KB" % (name, os.path.getsize(path) / 1024))
     if "--sheet" in sys.argv:

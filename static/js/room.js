@@ -416,8 +416,16 @@ function fitMasthead() {
   // The crown is cast smaller, down to four fifths, before it gives up its
   // place: a tight masthead (1366 with the large engraving) keeps it.
   var room = 2 * Math.min(axis - tRight, rLeft - axis) - 2 * gap * 0.6;
-  var k = Math.min(1, room / (168 * u));
-  var crownFits = k >= 0.8;
+  var kH = Math.min(1, room / (168 * u));
+  // It must also stand under the fascia's crest moulding, and on screen:
+  // sized from the width alone, its spire ran up through the moulding and
+  // off the top of the page at every size (VD-5). Its foot is 1u above the
+  // masthead's, and the spire's needle is the top of its box.
+  var crest = $('.mf-crest', m);
+  var ceiling = Math.max(0, crest ? crest.getBoundingClientRect().bottom : mr.top) + 3 * u;
+  var kV = ((mr.bottom - u) - ceiling) / (88 * u);
+  var k = Math.min(kH, kV);
+  var crownFits = kH >= 0.8 && kV >= 0.6;
   cr.style.setProperty('--ck', crownFits ? k.toFixed(3) : '1');
   cr.classList.toggle('stowed', !crownFits);
   var cw = crownFits ? 168 * u * k : 0;
@@ -431,8 +439,13 @@ function fitMasthead() {
     f.style.width = f2(w) + 'px';
   }
   if (crownFits) {
-    hang(fl, tRight + gap, lo);
-    hang(fr, ro, rLeft - gap);
+    // The panels hang as a pair, each the width of the narrower stretch, so
+    // the canopy stays symmetric about the clock's axis: hung one at a time,
+    // a long English title stowed the left panel and left the right one
+    // hanging alone (VD-12).
+    var w = Math.min(lo - (tRight + gap), (rLeft - gap) - ro);
+    hang(fl, lo - w, lo);
+    hang(fr, ro, ro + w);
   } else {
     hang(fl, 0, -1);
     hang(fr, 0, -1);
@@ -753,13 +766,22 @@ function streak(host, x, w, len, kind, attrs) {
   host.appendChild(s);
   return s;
 }
+/* A fanlight's streak is that fanlight's lamp on the floor, so it follows
+   its own gate: lit while the gate stands in the hall with its line open,
+   rising and falling on the gate's own beat (--slot-delay, and --fan-i in
+   the entrance). Gated on the root's wing, every streak switched at once,
+   up to a second ahead of the lamp it stands for (MO-3). */
 function syncStreaks() {
   var host = $('#floorplane .fl-streaks');
   if (!host) return;
   var ss = host.querySelectorAll('.st-fan');
   for (var i = 0; i < ss.length; i++) {
-    var g = document.getElementById(ss[i].dataset.gate);
-    if (g) ss[i].dataset.state = g.dataset.state || '';
+    var s = ss[i], g = document.getElementById(s.dataset.gate);
+    if (!g) continue;
+    s.style.setProperty('--slot-delay', g.style.getPropertyValue('--slot-delay') || '0ms');
+    s.style.setProperty('--fan-i', g.style.getPropertyValue('--fan-i') || '0');
+    if (s.dataset.state !== (g.dataset.state || '')) s.dataset.state = g.dataset.state || '';
+    s.classList.toggle('on', g.classList.contains('active'));
   }
 }
 function layoutFloor() {
@@ -773,7 +795,13 @@ function layoutFloor() {
     fp.insertBefore(host, plane ? plane.nextSibling : null);
     var gates = $('#gates');
     if (gates && window.MutationObserver) {
-      new MutationObserver(syncStreaks).observe(gates, { subtree: true, attributes: true, attributeFilter: ['data-state'] });
+      // a gate's state, its place in the lit wing (class) and its beat
+      // (style); anything inside a gate is not the streak's business
+      new MutationObserver(function (ms) {
+        for (var i = 0; i < ms.length; i++) {
+          if (ms[i].target.classList && ms[i].target.classList.contains('gate')) { syncStreaks(); return; }
+        }
+      }).observe(gates, { subtree: true, attributes: true, attributeFilter: ['data-state', 'class', 'style'] });
     }
   }
   var fr = fp.getBoundingClientRect();
@@ -822,6 +850,7 @@ function layoutFloor() {
       streak(host, x - fr.left, 22 * u, H, 'marquee');
     });
   }
+  syncStreaks();
 }
 
 /* ==========================================================================

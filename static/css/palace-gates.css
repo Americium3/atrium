@@ -126,6 +126,18 @@
     linear-gradient(90deg, transparent calc(50% - 1px), rgba(0, 0, 0, 0.28) calc(50% - 1px) calc(50% + 0.5px), transparent calc(50% + 0.5px));
   box-shadow: inset 0 -2px 3px rgba(0, 0, 0, 0.35);
 }
+/* The gilt fillet on the plinth line: every arch's plinth nosing and the
+   wall's skirting meet at 536 of the gate's 570 units, and this carries that
+   rule across the niche (VD-17). It is its own element, the sill's full
+   width: drawn as the sill's ::after it took the place of the mirrored
+   right half of the slab, and the wall showed through the gap (AR-1). */
+.n-fillet {
+  position: absolute; left: 0; right: 0; z-index: 2; pointer-events: none;
+  bottom: calc(var(--gh) * 34 / 570 - var(--gh) * 2.6 / 570);
+  height: calc(var(--gh) * 2.6 / 570);
+  background: linear-gradient(180deg, var(--lead-5), var(--lead-2) 50%, var(--lead-0));
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.55);
+}
 :root[data-theme="onyx"] .n-sill { --sill-stone: url('/static/assets/tex/stone-portoro.webp'); --sill-y: 5%; }
 :root[data-theme="ivory"] .n-sill {
   --sill-stone: url('/static/assets/tex/stone-calacatta.webp'); --sill-y: 76%;
@@ -166,8 +178,30 @@
 .ckb.s4 { stop-color: #0a0602; stop-opacity: 0.34; }
 .ck-bevel-leaf { fill: url(#ck-leaf); mix-blend-mode: soft-light; opacity: 0.6; pointer-events: none; }
 .ck-caseline2, .ck-caseline { stroke: rgba(0, 0, 0, 0.7); }
-.ck-step { stroke: var(--sb-3); }
-.ck-span { stroke: var(--sb-3); }
+/* The casting and its wear over the patina: a signed tile in plain alpha,
+   darkening the islands and the pits and lifting the rubbed patches, so the
+   face reads as cast metal, not a painted plate (AR-7). */
+.ck-cast { fill: url(#ck-cast); opacity: 0.72; pointer-events: none; }
+/* The stepped shoulders under each diagonal bevel, cast with the case: a
+   shadow down and right, the relief body in the same patina, and each edge
+   lit, mid or dark by the way it faces the key. The edges toward the lamp
+   are rubbed bright, as the high spots of a handled bronze are. */
+.ck-sho-sh { fill: rgba(0, 0, 0, 0.55); }
+.ck-sho { fill: var(--sb-2); }
+.ck-sho-tex { fill: url(#ck-cast); opacity: 0.72; }
+.ck-sho-e-lt { fill: color-mix(in srgb, var(--sb-3) 65%, #ffe6b8); }
+.ck-sho-e-md { fill: var(--sb-4); }
+.ck-sho-e-dk { fill: var(--sb-0); }
+/* The bevel's arrises: the crest where each plane leaves the face and the
+   lip where it drops to the case side, lit or in shade by the plane's angle,
+   and the leaf rubbed through to the bronze along the lip. */
+.ck-wear { fill: url(#ck-cast); opacity: 0.6; }
+.ck-crest-lt { fill: var(--lead-5); }
+.ck-crest-md { fill: var(--lead-3); opacity: 0.55; }
+.ck-crest-dk { fill: var(--lead-0); opacity: 0.75; }
+.ck-lip-lt { fill: var(--lead-3); }
+.ck-lip-md { fill: var(--lead-1); }
+.ck-lip-dk { fill: rgba(0, 0, 0, 0.6); }
 .ck-rivet { fill: var(--sb-2); stroke: var(--sb-0); }
 .ck-rivet-sh { fill: rgba(0, 0, 0, 0.45); }
 .ck-rivet-lt { fill: var(--sb-3); }
@@ -182,15 +216,37 @@
 .ck-bezel-sh { stroke: rgba(20, 12, 4, 0.34); }
 #clock .ck-rivet-sh, #clock .ck-rivet-lt { transition: none; }
 
-/* The niche in the waxed floor: the bronze sides, the dark back, the sill. */
+/* The niche in the waxed floor: the bronze sides, the dark back, the sill,
+   and the dial's light, whose centre stands the sill and half the dial
+   above the floor line. Its sides fade into the wax the way a reflection's
+   do; cut square, they ran two hard vertical edges across the medallion,
+   like a strip of paper laid on the floor (AR-8). */
 .ck-mirror {
   background:
     linear-gradient(180deg, var(--cm-sill-c) 0, var(--cm-sill-c) calc(var(--cm-sill) - 3px), var(--sb-3) calc(var(--cm-sill) - 3px), var(--sb-1) var(--cm-sill), transparent var(--cm-sill)),
-    radial-gradient(circle calc(var(--dial) * 0.43) at 50% calc(var(--sill) + var(--reveal) + var(--dial) * 0.5), var(--cm-dial) 0 94%, var(--sb-2) 96%, transparent 100%),
+    radial-gradient(circle calc(var(--dial) * 0.43) at 50% calc(var(--sill) + var(--dial) * 0.5), var(--cm-dial) 0 94%, var(--sb-2) 96%, transparent 100%),
     linear-gradient(90deg, var(--nf-l) 0 calc(var(--st) * 3), var(--cm-back) calc(var(--st) * 3) calc(100% - var(--st) * 3), var(--nf-r) calc(100% - var(--st) * 3));
+  -webkit-mask-image:
+    linear-gradient(180deg, rgba(0, 0, 0, 0.95), rgba(0, 0, 0, 0.6) 20%, rgba(0, 0, 0, 0.3) 50%, transparent 76%),
+    linear-gradient(90deg, transparent, #000 16%, #000 84%, transparent);
+  -webkit-mask-composite: source-in;
+  mask-image:
+    linear-gradient(180deg, rgba(0, 0, 0, 0.95), rgba(0, 0, 0, 0.6) 20%, rgba(0, 0, 0, 0.3) 50%, transparent 76%),
+    linear-gradient(90deg, transparent, #000 16%, #000 84%, transparent);
+  mask-composite: intersect;
 }
 :root[data-theme="onyx"] #clock { --cm-back: #120b05; --cm-sill-c: #0a0807; }
-:root[data-theme="ivory"] #clock { --cm-back: #4a3a26; --cm-sill-c: #e8e2d6; }
+/* By day the floor gives back only the gilt and the screen (law 10), as
+   the portals' reflections do, at 1.5 times --mirror-a: the gilt lip of the
+   sill's nosing, the inner fillet's two sides and the pale dial in its gilt
+   bezel. The dark back and the bronze sides came back as a dark box. */
+:root[data-theme="ivory"] .ck-mirror {
+  opacity: calc(var(--mirror-a) * 1.5);
+  background:
+    linear-gradient(180deg, transparent calc(var(--cm-sill) - 3px), var(--lead-3) calc(var(--cm-sill) - 3px), var(--lead-1) var(--cm-sill), transparent var(--cm-sill)),
+    radial-gradient(circle calc(var(--dial) * 0.43) at 50% calc(var(--sill) + var(--dial) * 0.5), var(--cm-dial) 0 94%, var(--lead-2) 96%, transparent 100%),
+    linear-gradient(90deg, transparent calc(var(--st) * 2.2), var(--lead-2) calc(var(--st) * 2.2) calc(var(--st) * 2.65), transparent calc(var(--st) * 2.65) calc(100% - var(--st) * 2.65), var(--lead-2) calc(100% - var(--st) * 2.65) calc(100% - var(--st) * 2.2), transparent calc(100% - var(--st) * 2.2));
+}
 
 /* Corner blocks: the four mitres of the outer frame meet on cast bronze
    squares, each with a turned boss lit on the lamp side and a pin of leaf
@@ -518,9 +574,9 @@ html[lang="zh"] .g-lamp { letter-spacing: 0.2em; }
   .portal .p-focus { stroke: Highlight; stroke-width: 4; }
   .portal .p-focus-bulbs { display: none; }
 }
-/* The niche is scenery (the clock is aria-hidden and says the time in
-   text): under forced colours it keeps its own paint rather than being
-   redrawn as system lines. */
+/* The niche is scenery (its drawing is aria-hidden and the clock says the
+   time in text): under forced colours it keeps its own paint rather than
+   being redrawn as system lines. */
 @media (forced-colors: active) { .niche { forced-color-adjust: none; } }
 
 /* ==========================================================================

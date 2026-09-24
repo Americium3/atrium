@@ -367,9 +367,11 @@ html[lang="zh"] .m-sub { letter-spacing: 0.4em; }
   width: var(--med); height: var(--med);
   overflow: visible;
 }
+/* The captions are the two controls' only visible labels: never under the
+   10px floor, which 9.5px x --ui put them below on every laptop (LY-16). */
 #masthead .p-caption,
 #ledger-btn .p-caption, #prefs-btn .p-caption {
-  font-size: calc(9.5px * var(--ui)); letter-spacing: 0.24em; line-height: 1.2;
+  font-size: max(10px, calc(9.5px * var(--ui))); letter-spacing: 0.24em; line-height: 1.2;
   font-weight: 560; white-space: nowrap;
 }
 html[lang="zh"] #masthead .p-caption { letter-spacing: 0.3em; }
@@ -449,6 +451,51 @@ html[lang="zh"] #masthead .p-caption { letter-spacing: 0.3em; }
   .m-sub, #dateline, #masthead .p-caption { text-shadow: none; }
   .l-badge { box-shadow: 0 0 0 1px CanvasText; }
 }
+
+/* ==========================================================================
+   THE THROW: the room's leaf eases across with the wordmark
+   ==========================================================================
+   The lever re-leafs every fixture through --lead-*, and a custom property
+   swaps in one frame: the marquee's channel and returns, the frieze panels
+   and the aisle pilasters went from gold to nickel on the first frame of
+   the throw while the wordmark took 450ms and the arches 1.3s (MO-5). On
+   these containers the leaf is a registered colour that transitions, and
+   everything inside reads it as --lead-*, so the new leaf eases in with
+   the wordmark's crossfade. Only these small subtrees restyle while it
+   runs; the rest of the hall keeps the plain swap. */
+@property --eased-lead-0 { syntax: "<color>"; inherits: true; initial-value: #000; }
+@property --eased-lead-1 { syntax: "<color>"; inherits: true; initial-value: #000; }
+@property --eased-lead-2 { syntax: "<color>"; inherits: true; initial-value: #000; }
+@property --eased-lead-3 { syntax: "<color>"; inherits: true; initial-value: #000; }
+@property --eased-lead-4 { syntax: "<color>"; inherits: true; initial-value: #000; }
+@property --eased-lead-5 { syntax: "<color>"; inherits: true; initial-value: #000; }
+#ticker, .m-frieze, .aisle-wall {
+  --eased-lead-0: var(--au-0); --eased-lead-1: var(--au-1); --eased-lead-2: var(--au-2);
+  --eased-lead-3: var(--au-3); --eased-lead-4: var(--au-4); --eased-lead-5: var(--au-5);
+  --lead-0: var(--eased-lead-0); --lead-1: var(--eased-lead-1); --lead-2: var(--eased-lead-2);
+  --lead-3: var(--eased-lead-3); --lead-4: var(--eased-lead-4); --lead-5: var(--eased-lead-5);
+  transition: --eased-lead-0 0.45s ease, --eased-lead-1 0.45s ease, --eased-lead-2 0.45s ease,
+              --eased-lead-3 0.45s ease, --eased-lead-4 0.45s ease, --eased-lead-5 0.45s ease;
+}
+:root[data-wing="bureau"] :is(#ticker, .m-frieze, .aisle-wall) {
+  --eased-lead-0: var(--ag-0); --eased-lead-1: var(--ag-1); --eased-lead-2: var(--ag-2);
+  --eased-lead-3: var(--ag-3); --eased-lead-4: var(--ag-4); --eased-lead-5: var(--ag-5);
+}
+/* The frieze panels and the cornice are also taken down to nickel by a
+   filter over their baked gilt relief; the filter eases with the leaf. */
+.m-frieze {
+  transition: --eased-lead-0 0.45s ease, --eased-lead-1 0.45s ease, --eased-lead-2 0.45s ease,
+              --eased-lead-3 0.45s ease, --eased-lead-4 0.45s ease, --eased-lead-5 0.45s ease,
+              filter 0.45s ease;
+}
+.wall-cornice { transition: filter 0.45s ease; }
+/* The pilasters' parts kept their own 0.4s fill and background transitions
+   from before the wall eased. Inside an easing wall each frame's new leaf
+   restarted them, so the capitals and shafts trailed the wall's leaf and
+   settled at about 900ms instead of 450ms. The wall's leaf is the only
+   clock they need. */
+.aisle-wall .pil-cap :is(path, rect), .aisle-wall .pil-base :is(path, rect),
+.aisle-wall .pil-shaft { transition: none; }
 
 /* ==========================================================================
    THE BACK WALL
@@ -715,9 +762,45 @@ html[lang="zh"] #masthead .p-caption { letter-spacing: 0.3em; }
   background: linear-gradient(90deg, rgba(0, 0, 0, 0.35), transparent 30%, transparent 70%, rgba(0, 0, 0, 0.45));
 }
 
+/* ----- Torchieres: the bracket in cast brass --------------------------------
+   Every turned part of the bracket (the wall plate, the stem, its collars and
+   the drop) is six strips in the leaf's order across a round moulding (app.js
+   turned()), with a lit edge over each collar and its shade under it, and
+   two flutes cut in the stem between the collars (AR-20). */
+.sc-body .sc-t0 { fill: var(--lead-5); }
+.sc-body .sc-t1 { fill: var(--lead-3); }
+.sc-body .sc-t2 { fill: var(--lead-2); }
+.sc-body .sc-t3 { fill: var(--lead-4); }
+.sc-body .sc-t4 { fill: var(--lead-1); }
+.sc-body .sc-t5 { fill: var(--lead-0); }
+.sc-body .sc-shade { fill: var(--lead-0); opacity: 0.8; }
+.sc-body path.sc-groove { fill: none; stroke: var(--lead-0); stroke-width: 0.6; opacity: 0.75; }
+
 /* ==========================================================================
    THE FLOOR
    ========================================================================== */
+/* The stanchions: turned brass posts on weighted domed bases, a finial with
+   its collar and knop, a lit arris down the shaft, each post's stub
+   reflection in the wax; the rope is velvet, dark on its underside with a
+   soft broken nap in its sheen, crimped into brass ferrules at the ends. */
+.fl-rail .st-dome, .fl-rail .st-collar { fill: url(#cyl-lead); }
+.fl-rail .st-dome-lt { fill: none; stroke: var(--lead-5); stroke-width: calc(1px * var(--ui)); stroke-linecap: round; opacity: 0.7; }
+.fl-rail .st-arris { fill: var(--lead-5); opacity: 0.7; }
+.stref.s0 { stop-color: var(--lead-3); stop-opacity: 0.32; }
+.stref.s1 { stop-color: var(--lead-3); stop-opacity: 0; }
+:root[data-theme="onyx"] .stref.s0 { stop-opacity: 0.22; }
+.fl-rail .st-rope-dk {
+  fill: none; stroke: color-mix(in srgb, var(--rope) 50%, #000);
+  stroke-width: calc(2.2px * var(--ui)); stroke-linecap: round; opacity: 0.85;
+}
+.fl-rail .st-rope-lt { stroke-width: calc(2px * var(--ui)); opacity: 0.75; }
+.fl-rail .st-rope-nap {
+  fill: none; stroke: var(--rope-lt); stroke-width: calc(1px * var(--ui));
+  stroke-dasharray: 0.6 1.8; opacity: 0.6;
+}
+.fl-rail .st-ferrule { stroke: rgba(0, 0, 0, 0.35); stroke-width: 0.5; }
+.fl-rail .st-crimp { fill: var(--lead-0); opacity: 0.6; }
+.fl-rail .st-hook { fill: none; stroke: var(--lead-2); stroke-width: calc(1px * var(--ui)); }
 /* The streaks: each a warm column under its lamp, ripple-cut by the wax,
    screened onto the stone, faint at the skirting and brightest toward the
    viewer where its image would lie. */
@@ -741,18 +824,81 @@ html[lang="zh"] #masthead .p-caption { letter-spacing: 0.3em; }
 .st-torch { --sc: rgba(255, 184, 102, 0.62); --so: 0.75; }
 .st-pier { --sc: rgba(255, 168, 84, 0.58); --so: 0.8; }
 .st-marquee { --sc: rgba(255, 226, 170, 0.5); --so: 0.55; }
-.st-fan { --so: 0.36; }
+/* A fanlight's streak is that lamp's own layer (syncStreaks copies its
+   gate's state and beat): it comes up with the fanlight, after the arch has
+   risen into its bay, and goes down with it, never ahead of it (MO-3). */
+.st-fan { --so: 0.36; opacity: 0; transition: opacity 0.35s ease; }
+.st-fan.on[data-state="open"] {
+  opacity: calc(var(--lamp-on) * var(--so));
+  transition: opacity 0.7s ease calc(var(--slot-delay, 0ms) + 420ms);
+}
+/* The entrance holds the fanlights dark until the house lights come up, and
+   then lights them from the clock outward; their streaks with them. */
+html[data-entered="no"] #entrance.night:not(.house) ~ #hall .st-fan { opacity: 0; transition: none; }
+html[data-entered="no"] #entrance.night.house ~ #hall .st-fan.on[data-state="open"] {
+  transition: opacity 0.5s ease calc(140ms + var(--fan-i, 0) * 170ms);
+}
 .st-fan[data-glass="amber"] { --sc: rgba(255, 190, 110, 0.6); }
 .st-fan[data-glass="rose"] { --sc: rgba(246, 170, 146, 0.6); }
 .st-fan[data-glass="celadon"] { --sc: rgba(180, 222, 160, 0.55); }
 .st-fan[data-glass="opal"] { --sc: rgba(244, 226, 190, 0.55); }
 .st-fan[data-glass="honey"] { --sc: rgba(242, 206, 120, 0.6); }
 .st-fan[data-glass="aqua"] { --sc: rgba(150, 224, 212, 0.55); }
-/* a fanlight comes back only while its wing stands in the hall and its
-   lines are open */
-:root[data-wing="salon"] .st-fan[data-wing="bureau"],
-:root[data-wing="bureau"] .st-fan[data-wing="salon"],
-.st-fan:not([data-state="open"]) { opacity: 0; }
+
+/* The border course: a band of cut stone laid in the plane, 1.5% of its
+   width (the plane is a size container, so cqw is its width), with its own
+   aggregate, butted to the field with a thin brass strip in each joint. It
+   was a 3-4px border of flat slate, the darkest mark on the pale floor,
+   and it read as a painted court line (AR-19). By day it is a rouge
+   terrazzo at about half that value contrast; by night the same course in
+   oxblood stone, barely apart from the dark field. */
+.fl-plane { container-type: size; }
+.fl-border,
+:root[data-theme] .fl-border {
+  border: none; outline: none;
+  padding: 1.5cqw;
+  background: var(--course-tint), var(--course-img) 0 0 / calc(var(--fh, 320px) * 0.36) auto;
+  background-blend-mode: var(--course-blend, multiply), normal;
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+  box-shadow: inset 0 0 0 2px var(--course-strip);
+}
+.fl-border::after,
+:root[data-theme] .fl-border::after {
+  inset: 1.5cqw; border: none;
+  box-shadow: 0 0 0 2px var(--course-strip);
+}
+:root[data-theme="onyx"] {
+  --course-img: url('/static/assets/tex/stone-rouge.webp');
+  --course-tint: linear-gradient(rgba(10, 4, 3, 0.42), rgba(10, 4, 3, 0.42));
+  --course-blend: normal;
+  --course-strip: color-mix(in srgb, var(--lead-2) 55%, transparent);
+}
+:root[data-theme="ivory"] {
+  --course-img: url('/static/assets/tex/terrazzo-ivory.webp');
+  --course-tint: linear-gradient(#a57e74, #a57e74);
+  --course-blend: multiply;
+  --course-strip: color-mix(in srgb, var(--lead-2) 75%, transparent);
+}
+/* The runner's wool (the tiles are baked with a cut pile and softened
+   motifs, AR-11): down its centre lane the traffic has flattened the pile,
+   which then gives back more of the room's light and less of its dye, and
+   the far end carries a knotted fringe, the warp ends tied in bunches under
+   the heading, hanging away from the rug. */
+.fl-runner::before {
+  background-image:
+    linear-gradient(90deg, transparent 24%, rgba(255, 236, 214, 0.075) 40%, rgba(255, 236, 214, 0.075) 60%, transparent 76%),
+    linear-gradient(to top, rgba(0, 0, 0, 0.35) 0%, transparent 30%, rgba(255, 220, 170, 0.10) 100%),
+    linear-gradient(var(--rug-veil), var(--rug-veil));
+}
+.fl-runner::after {
+  top: calc(var(--fh, 320px) * -0.085); height: calc(var(--fh, 320px) * 0.085);
+  background: url('/static/assets/tex/carpet-fringe.webp') 0 0 / auto 100% repeat-x;
+  transform: scaleY(-1);
+  opacity: 1;
+}
+:root[data-theme="onyx"] .fl-runner::after { filter: brightness(0.62); }
 /* The inlays: cut stone with its own figure, under the floor's wax. HTML
    layers over the inlay's SVG (the circle is r 474 of 1000 on the
    medallion, 190 of 400 on a roundel), so they raster once and stay. */
@@ -779,6 +925,15 @@ html[lang="zh"] #masthead .p-caption { letter-spacing: 0.3em; }
 /* ==========================================================================
    THE MARQUEE
    ========================================================================== */
+/* At night the lamps behind the glass show through it as a faint banding,
+   brighter over each lamp, a shade warmer between. */
+:root[data-theme="onyx"] #ticker {
+  background:
+    repeating-linear-gradient(90deg, transparent 0, rgba(196, 146, 72, 0.07) calc(60px * var(--ui)), transparent calc(120px * var(--ui))),
+    url('/static/assets/tex/grain-frost.webp') 0 0 / 160px,
+    radial-gradient(72% 170% at 50% 50%, var(--glass-milk-hi), var(--glass-milk) 55%, var(--glass-milk-lo));
+  background-blend-mode: normal, soft-light, normal;
+}
 /* With nothing new on the board the chaser stops and every bulb burns
    evenly; the chase layer only shows while it runs. */
 #ticker:not([data-chase]) .t-chase { opacity: 0; }
@@ -812,18 +967,8 @@ html[lang="zh"] #masthead .p-caption { letter-spacing: 0.3em; }
 /* ==========================================================================
    FINDINGS ON NEIGHBOURING SURFACES (smallest fixes; see notes-room.md)
    ========================================================================== */
-/* VD-17: the wall's skirting and every arch's plinth nosing meet at 536 of
-   the gate's 570 units; the niche's sill carried its only nosing 19px
-   higher. A gilt fillet on the sill at the same line carries the rule
-   across the clock. */
-.n-sill::after {
-  content: ""; position: absolute; left: 0; right: 0;
-  bottom: calc(var(--gh) * 34 / 570 - var(--gh) * 2.6 / 570);
-  height: calc(var(--gh) * 2.6 / 570);
-  background: linear-gradient(180deg, var(--lead-5), var(--lead-2) 50%, var(--lead-0));
-  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.55);
-  pointer-events: none;
-}
+/* VD-17's gilt fillet on the sill lives with the niche now (.n-fillet in
+   palace-gates.css). */
 /* VD-19: the maker's plate lettering was sized in --ui inside a viewBox
    that already scales with --ui, so it grew as --ui squared and ran into
    the corner rivets at 3440. Plain user units inside the plate. */
