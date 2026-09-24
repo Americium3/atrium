@@ -148,7 +148,7 @@ function planeXf(p0, ex, ey) {
    the ray it sends back: the floor and the dark house low down, the lit
    wall and its arches as a band a little above the horizon, the ceiling. */
 var LIGHT = vnorm([-0.45, 0.72, 0.62]);
-var ENV = [[-1, 0.05], [-0.4, 0.12], [-0.05, 0.16], [0.08, 0.3], [0.2, 0.62], [0.34, 0.66], [0.5, 0.5], [0.75, 0.66], [1, 0.8]];
+var ENV = [[-1, 0.05], [-0.4, 0.12], [-0.05, 0.16], [0.08, 0.3], [0.2, 0.6], [0.34, 0.7], [0.5, 0.78], [0.62, 0.66], [0.8, 0.7], [1, 0.8]];
 function interp(tab, x) {
   if (x <= tab[0][0]) return tab[0][1];
   for (var i = 1; i < tab.length; i++) {
@@ -163,18 +163,23 @@ function interp(tab, x) {
    (glaze, shade, body, crest, relief, lip), so by brightness the crest
    comes last. */
 var MAT = {
-  cu:   { ramp: ['--kc-0', '--kc-1', '--kc-2', '--kc-3', '--kc-4', '--kc-5'], env: 0.66, diff: 0.3, spec: 0.6, pow: 40 },
-  sb:   { ramp: ['--sb-oil', '--sb-0', '--sb-1', '--sb-2', '--sb-3', '--sb-4', '--sb-5'], env: 0.36, diff: 0.62, spec: 0.3, pow: 16, tex: 'hb-patina' },
+  cu:   { ramp: ['--kc-0', '--kc-1', '--kc-2', '--kc-3', '--kc-4', '--kc-5'], env: 0.66, diff: 0.3, spec: 0.6, pow: 40, tex: 'hb-brush', texOp: '--cu-tex' },
+  sb:   { ramp: ['--sb-oil', '--sb-0', '--sb-1', '--sb-2', '--sb-3', '--sb-4', '--sb-5'], env: 0.55, diff: 0.36, spec: 0.55, pow: 18, tex: 'hb-patina', texOp: '--sb-tex' },
   bz:   { ramp: ['--bz-0', '--bz-1', '--bz-2', '--bz-3', '--bz-4'], env: 0.62, diff: 0.34, spec: 0.5, pow: 30 },
   lead: { ramp: ['--lead-0', '--lead-1', '--lead-2', '--lead-4', '--lead-5', '--lead-3'], env: 0.6, diff: 0.36, spec: 0.45, pow: 24 },
   eb:   { ramp: ['--eb-0', '--eb-1', '--eb-2', '--eb-3'], env: 0.4, diff: 0.3, spec: 0, pow: 1 },
   pt:   { ramp: ['--pt-0', '--pt-1', '--pt-2', '--pt-3'], env: 0.3, diff: 0.7, spec: 0.1, pow: 8 }
 };
+/* The room by the ray's height, plus the hall's lit side walls for a ray
+   sent off sideways and the lit arches for one sent back toward the stage. */
+function envT(r) {
+  return interp(ENV, r[1]) + 0.24 * Math.max(0, Math.abs(r[0]) - 0.25) + 0.1 * Math.max(0, -r[2]);
+}
 function shadeT(n, p, m) {
   var v = viewAt(p), nv = vdot(n, v);
   var r = vsub(vmul(n, 2 * nv), v);
   var d = Math.max(0, vdot(n, LIGHT)), s = Math.max(0, vdot(r, LIGHT));
-  return clamp01(m.env * interp(ENV, r[1]) + m.diff * (0.08 + 0.72 * d) + m.spec * Math.pow(s, m.pow));
+  return clamp01(m.env * envT(r) + m.diff * (0.08 + 0.72 * d) + m.spec * Math.pow(s, m.pow));
 }
 function tone(m, t) {
   var n = m.ramp.length - 1, x = clamp01(t) * n, i = Math.min(n - 1, Math.floor(x)), f = x - i;
@@ -192,14 +197,14 @@ Faces.prototype.push = function (pts, n, m, o) {
   c = vmul(c, 1 / pts.length);
   if (vdot(n, viewAt(c)) <= 1e-3) return null;
   var t = shadeT(n, c, m) + ((o && o.bias) || 0);
-  var f = { d: path3(pts), w: proj(c)[2], fill: tone(m, t), tex: o && o.tex !== undefined ? o.tex : m.tex };
+  var f = { d: path3(pts), w: proj(c)[2], fill: tone(m, t), tex: o && o.tex !== undefined ? o.tex : m.tex, texOp: m.texOp };
   this.list.push(f);
   return f;
 };
 Faces.prototype.flush = function (g) {
   this.list.sort(function (a, b) { return a.w - b.w; }).forEach(function (f) {
     add(g, 'path', { d: f.d, style: F(f.fill) });
-    if (f.tex) add(g, 'path', { d: f.d, fill: U(f.tex), style: 'opacity:var(--sb-tex)' });
+    if (f.tex) add(g, 'path', { d: f.d, fill: U(f.tex), style: 'opacity:var(' + (f.texOp || '--sb-tex') + ')' });
   });
   this.list = [];
 };
@@ -376,7 +381,8 @@ var SLAB = [[-PX, PY0], [PX, PY0], [PX, PY1], [SX1, PY1], [SX1, SY1], [SX2, SY1]
 /* The bolection moulding, as (outward from the marble's edge, out of the
    panel): it laps the stone, rises to a rounded crest and falls to a
    square outer edge that runs back past the slab. */
-var FPROF = [[-2.6, 0.4], [-1.2, 2.2], [0.8, 4.1], [3.2, 5.3], [5.4, 5.1], [7.3, 3.8], [8.6, 2], [9, 0.8], [9, -PT - 1.5]];
+var FPROF = [[-2.6, 0.3], [-1.8, 1.4], [-0.6, 2.6], [0.8, 3.6], [2.4, 4.4], [4, 4.8], [5.4, 4.7], [6.6, 4.2], [7.6, 3.4],
+             [8.4, 2.4], [8.9, 1.3], [9, 0.4], [9, -4]];
 var FANR = 15, FANY = SY2 + FW;                      // the finial
 var MY = 227, MR = 16;                               // the ammeter
 var JWX = 95, JWY = 192, JR = 6.3;                   // the pilots
@@ -405,7 +411,7 @@ var HANDLE = [                                       // the handle, turned: [t, 
 var H_FER = 5;                                       // HANDLE[0..H_FER] is the brass ferrule
 var H_END = HANDLE[HANDLE.length - 1][0];
 var LEG_X = 138;
-var PLX = 172, PLY = 8, PLZ0 = -30, PLZ1 = 24;       // the plinth
+var PLX = 166, PLY = 7, PLZ0 = -24, PLZ1 = 18;       // the plinth
 var ART_TOP = Math.floor(proj([0, FANY + FANR + 8, 3])[1]);
 
 /* ------------------------------------------------------------ defs */
@@ -417,6 +423,7 @@ function buildDefs(svg) {
   pattern(defs, 'hb-marble', '/static/assets/tex/stone-bardiglio.webp', 300,
           'translate(' + Math.round(rnd('board-slab', 1) * 300) + ' ' + Math.round(rnd('board-slab', 2) * 300) + ')');
   pattern(defs, 'hb-portoro', '/static/assets/tex/stone-portoro.webp', 190);
+  pattern(defs, 'hb-brush', '/static/assets/tex/brush-copper.webp', 26);
   castFilter(defs);
   add(add(defs, 'filter', { id: 'hb-soft', x: '-20%', y: '-40%', width: '140%', height: '180%' }),
       'feGaussianBlur', { stdDeviation: 1.6 });
@@ -428,8 +435,9 @@ function buildDefs(svg) {
   var t0 = proj([0, SY2, 0]), t1 = proj([0, PY0, 0]);
   lin(defs, 'hb-veil', 0, t0[1], 0, t1[1], [[0, 'var(--slab-top)'], [0.45, 'var(--slab-mid)'], [1, 'var(--slab-bot)']]);
   var b0 = proj([-PX, SY2, 0]), b1 = proj([PX * 0.6, PY0, 0]);
-  lin(defs, 'hb-polish', b0[0], b0[1], b1[0], b1[1], [[0, 'var(--slab-spec)', 0], [0.34, 'var(--slab-spec)', 0], [0.4, 'var(--slab-spec)', 0.9],
-      [0.43, 'var(--slab-spec)', 0.35], [0.5, 'var(--slab-spec)', 0.6], [0.56, 'var(--slab-spec)', 0], [1, 'var(--slab-spec)', 0]]);
+  lin(defs, 'hb-polish', b0[0], b0[1], b1[0], b1[1], [[0, 'var(--slab-spec)', 0], [0.33, 'var(--slab-spec)', 0], [0.38, 'var(--slab-spec)', 0.75],
+      [0.42, 'var(--slab-spec)', 1], [0.45, 'var(--slab-spec)', 0.3], [0.5, 'var(--slab-spec)', 0.55], [0.54, 'var(--slab-spec)', 0.1],
+      [0.62, 'var(--slab-spec)', 0], [1, 'var(--slab-spec)', 0]]);
   grad(defs, 'hb-cu-dome', true, { cx: 0.36, cy: 0.3, r: 0.8 }, [[0, 'var(--kc-5)'], [0.45, 'var(--kc-3)'], [1, 'var(--kc-0)']]);
   grad(defs, 'hb-br-dome', true, { cx: 0.36, cy: 0.3, r: 0.8 }, [[0, 'var(--bz-4)'], [0.45, 'var(--bz-2)'], [1, 'var(--bz-0)']]);
   grad(defs, 'hb-sb-dome', true, { cx: 0.36, cy: 0.3, r: 0.8 }, [[0, 'var(--sb-5)'], [0.4, 'var(--sb-3)'], [1, 'var(--sb-0)']]);
@@ -465,39 +473,63 @@ function buildPlinth(q) {
   lin(q.querySelector('defs'), 'hb-toe', t0[0], 0, t1[0], 0, [[0, 'var(--lead-3)', 0], [0.3, 'var(--lead-5)', 0.8], [0.5, 'var(--lead-3)', 1], [0.7, 'var(--lead-5)', 0.8], [1, 'var(--lead-3)', 0]]);
   add(g, 'path', { d: 'M' + n2(t0[0]) + ' ' + n2(t0[1]) + 'H' + n2(t1[0]), style: 'fill:none;stroke:url(#hb-toe);stroke-width:1.1' });
 }
+function chevronPath(cx, by, w, h) {
+  // a lightning chevron, the house's electric sign, cast
+  var t = h * 0.3;
+  return 'M' + n2(cx - w / 2) + ' ' + n2(by) + 'L' + n2(cx) + ' ' + n2(by - h) + 'L' + n2(cx + w / 2) + ' ' + n2(by) +
+         'L' + n2(cx + w / 2 - t) + ' ' + n2(by) + 'L' + n2(cx) + ' ' + n2(by - h + t * 1.3) + 'L' + n2(cx - w / 2 + t) + ' ' + n2(by) + 'Z';
+}
+/* The standard: two reeded bronze legs on stepped feet, corbelled out under
+   the frame, an apron of cast fans and lightning between them and a
+   stretcher low down with a sunburst on it. */
 function buildStand(q) {
   var g = add(q, 'g', null, 'hb-ped');
   var fc = new Faces();
-  var capTop = PY0 - FW + 0.5;
+  var capTop = PY0 - FW + 0.5, inner = LEG_X - 15;
   // The stretcher first: the legs' inner faces stand in front of its ends.
-  boxZ(fc, -LEG_X + 12, LEG_X - 12, 26, 33, -14, -2, 1.2, MAT.sb);
+  boxZ(fc, -inner, inner, 21, 27, -12, -3, 1.1, MAT.sb);
   fc.flush(g);
-  // its sunburst, cast on a bronze disc
-  turned(fc, [0, 36, -1], Z3, X3, Y3, [[-1, 11], [0.6, 11], [1.6, 10], [2, 0]], 36, MAT.sb);
+  turned(fc, [0, 30, -3], Z3, X3, Y3, [[-1, 10], [0.6, 10], [1.6, 9], [2, 0]], 36, MAT.sb);
   fc.flush(g);
-  var ray = add(g, 'g', { transform: planeXf([0, 36, 1.2], X3, DN), filter: U('hb-cast') });
-  add(ray, 'path', { d: fanPath(0, 3.4, 8.8, 11, Math.PI, 2 * Math.PI) + 'M-2.9 3.4A2.9 2.9 0 0 1 2.9 3.4Z', style: F('var(--sb-3)') });
+  var ray = add(g, 'g', { transform: planeXf([0, 30, -0.8], X3, DN), filter: U('hb-cast') });
+  add(ray, 'path', { d: fanPath(0, 3, 8, 11, Math.PI, 2 * Math.PI) + 'M-2.6 3A2.6 2.6 0 0 1 2.6 3Z', style: F('var(--sb-3)') });
+  // the apron under the frame's foot, set back from it
+  var ay0 = capTop - 9, ay1 = capTop;
+  boxZ(fc, -inner, inner, ay0, ay1, -9, -1.5, 0.8, MAT.sb);
+  fc.flush(g);
+  var fr = add(g, 'g', { transform: planeXf([0, ay0, -1.4], X3, DN), filter: U('hb-cast') });
+  var dFan = '', dChev = '', n = 13, pitch = (2 * inner - 16) / (n - 1);
+  for (var i = 0; i < n; i++) {
+    var x = -inner + 8 + i * pitch;
+    if (i % 2 === 0) dFan += fanPath(x, -1.2, 6, 7, Math.PI, 2 * Math.PI);
+    else dChev += chevronPath(x, -1.4, 8, 6.2);
+  }
+  add(fr, 'path', { d: dFan + dChev, style: F('var(--sb-3)') });
+  var al = proj([-inner, ay1 - 0.4, -1.5]), ar = proj([inner, ay1 - 0.4, -1.5]);
+  add(g, 'path', { d: 'M' + n2(al[0]) + ' ' + n2(al[1]) + 'L' + n2(ar[0]) + ' ' + n2(ar[1]), style: S('var(--sb-oil)', 1.4, 'opacity:.8') });
   [-1, 1].forEach(function (sg) {
     var x = sg * LEG_X;
     // the foot: a stepped block, its toe rubbed to the leaf
-    boxY(fc, x - 24, x + 24, PLY, PLY + 8, -30, 16, 1.6, MAT.sb);
-    boxY(fc, x - 19, x + 19, PLY + 8, PLY + 12, -24, 11, 1.2, MAT.sb);
+    boxY(fc, x - 22, x + 22, PLY, PLY + 6, -20, 12, 1.5, MAT.sb);
+    boxY(fc, x - 17.5, x + 17.5, PLY + 6, PLY + 9, -16, 8.5, 1.1, MAT.sb);
     fc.flush(g);
-    var t0 = proj([x - 18, PLY + 8, 16]), t1 = proj([x + 18, PLY + 8, 16]);
-    add(g, 'path', { d: 'M' + n2(t0[0]) + ' ' + n2(t0[1]) + 'H' + n2(t1[0]), style: S('var(--lead-5)', 0.9, 'opacity:.8') });
+    var t0 = proj([x - 16, PLY + 6, 12]), t1 = proj([x + 16, PLY + 6, 12]);
+    add(g, 'path', { d: 'M' + n2(t0[0]) + ' ' + n2(t0[1]) + 'L' + n2(t1[0]) + ' ' + n2(t1[1]), style: S('var(--lead-5)', 0.9, 'opacity:.85') });
     // the shaft: reeded on its face, a half round per reed
-    var y0 = PLY + 12, y1 = capTop - 6;
-    boxZ(fc, x - 14, x + 14, y0, y1, -18, 4, 0, MAT.sb);
+    var y0 = PLY + 9, y1 = capTop - 7;
+    boxZ(fc, x - 13, x + 13, y0, y1, -14, 3, 0, MAT.sb);
     fc.flush(g);
     for (var r = 0; r < 5; r++) {
-      var rx = x - 14 + 2.8 * (2 * r + 1);
-      turned(fc, [rx, y0, 4], Y3, X3, Z3, [[0, 0], [0.01, 2.5], [y1 - y0 - 0.01, 2.5], [y1 - y0, 0]], 12, MAT.sb, { tex: null });
+      var rx = x - 13 + 2.6 * (2 * r + 1);
+      turned(fc, [rx, y0, 3], Y3, X3, Z3, [[0, 0], [0.01, 2.3], [y1 - y0 - 0.01, 2.3], [y1 - y0, 0]], 12, MAT.sb, { tex: null });
       fc.flush(g);
     }
-    // the capital under the frame
-    boxY(fc, x - 19, x + 19, y1, y1 + 3, -22, 8, 1, MAT.sb);
-    boxY(fc, x - 16, x + 16, y1 + 3, capTop, -20, 6, 1, MAT.sb);
+    // the corbel under the frame, stepping out in two courses
+    boxY(fc, x - 16, x + 16, y1, y1 + 3.2, -17, 5.5, 1, MAT.sb);
+    boxY(fc, x - 20, x + 20, y1 + 3.2, capTop, -20, 7.5, 1, MAT.sb);
     fc.flush(g);
+    var c0 = proj([x - 19, capTop, 7.5]), c1 = proj([x + 19, capTop, 7.5]);
+    add(g, 'path', { d: 'M' + n2(c0[0]) + ' ' + n2(c0[1]) + 'L' + n2(c1[0]) + ' ' + n2(c1[1]), style: S('var(--lead-3)', 0.8, 'opacity:.6') });
   });
 }
 
@@ -802,7 +834,7 @@ function buildFocus(q) {
   [[SX2 + FW, SY2 + FW], [SX2 + FW, SY1 + FW], [SX1 + FW, SY1 + FW], [SX1 + FW, PY1 + FW], [PX + FW, PY1 + FW], [PX + FW, PY0 - FW]].forEach(function (p) {
     pts.push([p[0], p[1], z]);
   });
-  pts.push([LEG_X + 24, PY0 - FW, z], [LEG_X + 24, PLY, 16], [PLX, PLY, PLZ1], [PLX, 0, PLZ1]);
+  pts.push([LEG_X + 22, PY0 - FW, z], [LEG_X + 22, PLY, 12], [PLX, PLY, PLZ1], [PLX, 0, PLZ1]);
   for (var i = pts.length - 1; i >= 2; i--) pts.push([-pts[i][0], pts[i][1], pts[i][2]]);
   pts.push([-FANR - 6, FANY + FANR, z]);
   pts = pts.slice(0, -1).map(proj);

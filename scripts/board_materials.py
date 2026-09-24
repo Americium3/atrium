@@ -22,6 +22,9 @@ noise, fixed seeds, byte-stable output.
   member, and the metal shows a few pits. Signed alpha, as the statuary
   tile: light where the patina is thin, dark where it is thick, so it
   relights any bronze with no blend mode.
+- brush-copper.webp: the draw marks on rolled copper and brass: fine
+  streaks along the bar, a few heavier ones, in signed alpha. The swing's
+  poses lay it along each blade, so the grain turns with the blade.
 
 Usage:  python scripts/board_materials.py
 """
@@ -97,7 +100,7 @@ def patina_board(n=384):
         spot = np.exp(-(xx * xx + yy * yy) / (2 * r * r))
         ys, xs = (np.arange(y - 4, y + 5) % n), (np.arange(x - 4, x + 5) % n)
         pits[np.ix_(ys, xs)] = np.maximum(pits[np.ix_(ys, xs)], spot)
-    g = 0.5 + mottle * 0.34 + fine * 0.16 - islands * 0.16 + rub * 0.12 + st * 0.07 - pits * 0.3
+    g = 0.5 + mottle * 0.34 + fine * 0.16 - islands * 0.16 + rub * 0.12 + st * 0.025 - pits * 0.3
     d = np.clip(g, 0, 1) - 0.5
     light = np.array([255, 226, 188], dtype=np.float64)
     dark = np.array([8, 4, 2], dtype=np.float64)
@@ -109,11 +112,38 @@ def patina_board(n=384):
     return path
 
 
+def _signed(name, g, gain, cap):
+    d = np.clip(g, 0, 1) - 0.5
+    light = np.array([255, 236, 214], dtype=np.float64)
+    dark = np.array([10, 5, 2], dtype=np.float64)
+    rgb = np.where(d[..., None] > 0, light[None, None, :], dark[None, None, :])
+    a = np.clip(np.abs(d) * gain, 0, cap)
+    arr = np.concatenate([rgb, a[..., None] * 255], axis=-1)
+    path = os.path.join(OUT, name + ".webp")
+    Image.fromarray(np.clip(arr, 0, 255).astype(np.uint8), "RGBA").save(path, "WEBP", quality=86, method=6)
+    return path
+
+
+def brush_copper(n=256):
+    from scipy.ndimage import gaussian_filter
+    fine = fbm(n, 421, 1.7, (1.0, 40.0))
+    fine = fine - gaussian_filter(fine, (8, 0), mode="wrap")
+    fine = fine / (np.abs(fine).max() + 1e-9)
+    heavy = fbm(n, 422, 2.0, (1.0, 16.0))
+    heavy = heavy - gaussian_filter(heavy, (14, 0), mode="wrap")
+    heavy = heavy / (np.abs(heavy).max() + 1e-9)
+    # the grain runs along x: stretch the streaks that way
+    g = 0.5 + (fine * 0.3 + heavy * 0.22).T
+    return _signed("brush-copper", g, 2.2, 0.7)
+
+
 def main():
     p = save("stone-bardiglio", bardiglio(), q=86)
     print("%-24s %6.1f KB" % ("stone-bardiglio", os.path.getsize(p) / 1024))
     p = patina_board()
     print("%-24s %6.1f KB" % ("patina-board", os.path.getsize(p) / 1024))
+    p = brush_copper()
+    print("%-24s %6.1f KB" % ("brush-copper", os.path.getsize(p) / 1024))
 
 
 if __name__ == "__main__":
