@@ -451,6 +451,11 @@ function armDwell(node, id) {
     timer = setTimeout(function () {
       timer = null;
       node.classList.remove('reading');
+      // A dwell that ran its course on a card still in the column stands,
+      // even with a poll in flight that will drop the dispatch: the reader
+      // rested on what the hall showed, for the whole dwell. Holding the
+      // mark until the answer lands would leave a drained rim on an unread
+      // card for as long as the hub takes (up to FETCH_MS).
       if (node.isConnected) markRead(id);
     }, DWELL_MS);
   });
