@@ -876,6 +876,11 @@
 
 /* ----- The programme cards ----------------------------------------------- */
 #ledger .plaque { margin: 0 0 calc(14px * var(--ui)); --pl-off: 0px; --n: calc(7px * var(--ui)); }
+/* The holder and the cartouche are in the metal of the dispatch's own wing,
+   whichever wing the lever has lit: gold leaf for the Salon, aluminium for
+   the Bureau, as the old medallion rims were. */
+#ledger .plaque { --cm-0: var(--au-0); --cm-1: var(--au-1); --cm-2: var(--au-2); --cm-3: var(--au-3); --cm-4: var(--au-4); --cm-5: var(--au-5); }
+#ledger .plaque:has(.medal.m-bureau) { --cm-0: var(--ag-0); --cm-1: var(--ag-1); --cm-2: var(--ag-2); --cm-3: var(--ag-3); --cm-4: var(--ag-4); --cm-5: var(--ag-5); }
 #ledger .plaque:nth-child(even) { --pl-off: 0px; }
 #ledger .plaque .pl-shadow-wrap { position: relative; }
 #ledger .plaque:not(.ghost) .pl-shadow-wrap {
@@ -891,7 +896,7 @@
   padding: calc(3px * var(--ui));
   background:
     url('/static/assets/tex/grain-gilt.webp') 0 0 / 50px,
-    linear-gradient(170deg, var(--lead-5), var(--lead-3) 18%, var(--lead-2) 46%, var(--lead-4) 70%, var(--lead-1));
+    linear-gradient(170deg, var(--cm-5), var(--cm-3) 18%, var(--cm-2) 46%, var(--cm-4) 70%, var(--cm-1));
   background-blend-mode: soft-light, normal;
 }
 #ledger .pl-frame > a, #ledger .pl-frame > .pl-in {
@@ -954,15 +959,15 @@
   filter: drop-shadow(1px 2px 1.5px rgba(0, 0, 0, 0.7));
 }
 #ledger .medal svg { width: 100%; height: 100%; }
-#ledger .medal .c-outer.fa-tl, #ledger .medal .c-mid.fa-br { fill: var(--lead-5); }
-#ledger .medal .c-outer.fa-tr, #ledger .medal .c-mid.fa-bl { fill: var(--lead-3); }
-#ledger .medal .c-outer.fa-bl, #ledger .medal .c-mid.fa-tr { fill: var(--lead-2); }
-#ledger .medal .c-outer.fa-br, #ledger .medal .c-mid.fa-tl { fill: var(--lead-1); }
-#ledger .medal .c-field { fill: #0c0a08; stroke: var(--lead-0); stroke-width: 0.4; }
+#ledger .medal .c-outer.fa-tl, #ledger .medal .c-mid.fa-br { fill: var(--cm-5); }
+#ledger .medal .c-outer.fa-tr, #ledger .medal .c-mid.fa-bl { fill: var(--cm-3); }
+#ledger .medal .c-outer.fa-bl, #ledger .medal .c-mid.fa-tr { fill: var(--cm-2); }
+#ledger .medal .c-outer.fa-br, #ledger .medal .c-mid.fa-tl { fill: var(--cm-1); }
+#ledger .medal .c-field { fill: #0c0a08; stroke: var(--cm-0); stroke-width: 0.4; }
 #ledger .medal .c-screw { fill: var(--br-3); stroke: var(--br-0); stroke-width: 0.25; }
 #ledger .medal .c-slot { stroke: var(--br-0); stroke-width: 0.35; }
 #ledger .medal .m-mark { transform: translate(10.4px, 10.4px) scale(0.2); }
-#ledger .medal .m-sig:not(.m-mark) { color: var(--lead-3); transform: translate(10.4px, 10.4px) scale(0.2); }
+#ledger .medal .m-sig:not(.m-mark) { color: var(--cm-3); transform: translate(10.4px, 10.4px) scale(0.2); }
 
 /* The unread jewel: a cabochon set in the holder's corner. Lit champagne at
    night (it is a lamp), gold glass by day. A dwell drains it over the 420ms
@@ -988,6 +993,16 @@
 #ledger .plaque.new.reading .pl-jewel-lit { animation: jewel-drain 420ms linear both; }
 @keyframes jewel-drain { from { opacity: 1; } to { opacity: 0; } }
 #ledger .plaque.ghost .pl-jewel { display: none; }
+
+/* A new dispatch drops into its holder and settles on the felt: a short
+   fall, a two-pixel bounce, still. Transform and opacity only. */
+#ledger .plaque.arrive { animation: card-drop 0.5s cubic-bezier(0.3, 0.9, 0.4, 1) both; }
+@keyframes card-drop {
+  0% { opacity: 0; transform: translateY(-14px); }
+  55% { opacity: 1; transform: translateY(2px); }
+  78% { transform: translateY(-0.6px); }
+  100% { opacity: 1; transform: none; }
+}
 
 /* Loading: blank cards in their holders, breathing. */
 #ledger .plaque.ghost { animation: ghost-card 1.4s ease-in-out infinite; }
@@ -1447,7 +1462,13 @@ html[lang="zh"] .p-name { letter-spacing: 0.1em; }
   #ledger .chip { border: 1px solid CanvasText; }
   #ledger .chip[aria-checked="true"] { border: 2px solid Highlight; color: Highlight; }
   .pl-jewel, .p-knife, .p-rotary, .p-bat, .l-close-knob, .l-stamp-ico { forced-color-adjust: none; }
-  #ledger .plaque.new .pl-frame { outline: 2px solid Highlight; }
+  #ledger .plaque .pl-frame, #ledger .plaque .pl-frame > a, #ledger .plaque .pl-frame > .pl-in { background-image: none !important; }
+  #ledger .plaque .pl-frame { background-color: CanvasText !important; }
+  #ledger .plaque .pl-frame > a { background-color: Canvas !important; }
+  #ledger .pl-frame > a::before { border-color: GrayText; }
+  #ledger .plaque.new .pl-shadow-wrap { outline: 2px solid Highlight; outline-offset: 2px; }
+  #ledger .spine { background: CanvasText; }
+  .board .cs-door > .cs-glass { background: Canvas; }
 }
 
 /* Reduced motion: the switchgear snaps. */
