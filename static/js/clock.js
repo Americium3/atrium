@@ -70,22 +70,41 @@ function arris(a, b, w, cls) {
    copy down and right, the body in its patina, and each edge lit or in
    shade by the way it faces (AR-16: they were a stepped hairline laid
    across the leaf and out over the smalti). Local frame: the diagonal points
-   straight up and its bevel's inner edge lies at y = -20. */
+   straight up and its bevel's inner edge lies at y = -20.
+   A block standing proud of the face: its body a step lighter and warmer
+   than the face (it faces the lamp, and hands rub its high points), its
+   risers 4.5 units, and a soft shadow cast well down and right onto the
+   face. In the face's own patina with 2.2-unit edges it read as a stepped
+   wire bent on the face (AR-41). */
 function shoulders() {
   var local = [[430, -19], [570, -19], [570, -3], [548, -3], [548, 13], [526, 13],
                [526, 29], [474, 29], [474, 13], [452, 13], [452, -3], [430, -3]];
   var s = '', i, k;
   for (i = 0; i < 4; i++) {
     var P = local.map(function (p) { return rot(p, i * 90 + 45); });
-    var sh = P.map(function (p) { return [p[0] + 2.5, p[1] + 3.5]; });
-    s += '<polygon class="ck-sho-sh" points="' + pts(sh) + '"/>' +
+    var sh = P.map(function (p) { return [p[0] + 5, p[1] + 7]; });
+    s += '<polygon class="ck-sho-sh" filter="url(#ck-soft)" points="' + pts(sh) + '"/>' +
          '<polygon class="ck-sho" points="' + pts(P) + '"/>' +
-         '<polygon class="ck-sho-tex" points="' + pts(P) + '"/>';
+         '<polygon class="ck-sho-tex" points="' + pts(P) + '"/>' +
+         '<polygon class="ck-sho-lit" points="' + pts(P) + '" fill="url(#ck-sho-g)"/>';
     // every edge but the one the block hangs from takes the light (the
     // outline runs clockwise)
-    for (k = 1; k < P.length; k++) s += arris(P[k], P[(k + 1) % P.length], 2.2, 'ck-sho-e');
+    for (k = 1; k < P.length; k++) s += arris(P[k], P[(k + 1) % P.length], 4.5, 'ck-sho-e');
   }
   return s;
+}
+
+/* The patina keeps to the recesses, as a waxed bronze's does: a shade laid
+   inside the bevel's foot and round the bezel, where the wax is never
+   rubbed and the dark stays. The flat face between stays the even waxed
+   brown (AR-29: dark clouds lay in the middle of the flat faces, and the
+   case read as sooty cast iron). */
+function recesses() {
+  return '<g clip-path="url(#ck-face-clip)" class="ck-recess">' +
+    '<path class="ck-rc ck-rc-a" d="' + octagon(24) + '"/>' +
+    '<path class="ck-rc ck-rc-b" d="' + octagon(24) + '"/>' +
+    '<path class="ck-rc ck-rc-c" d="' + octagon(24) + '"/>' +
+    '<circle class="ck-rc-bz" cx="500" cy="500" r="470" fill="url(#ck-bz-g)"/></g>';
 }
 
 function rivets() {
@@ -314,6 +333,16 @@ function dialDefs() {
       '<stop offset="1" class="ckb s4"/></linearGradient>' +
     '<radialGradient id="ck-lift-g" gradientUnits="userSpaceOnUse" cx="250" cy="230" r="420">' +
       '<stop offset="0" class="ckl s0"/><stop offset="1" class="ckl s1"/></radialGradient>' +
+    // A shoulder's face takes the lamp from up and to the left, brightest
+    // on the block nearest it; the shade round the bezel is a ring just
+    // outside the dial's own radius (0.855 of 499).
+    '<linearGradient id="ck-sho-g" gradientUnits="userSpaceOnUse" x1="180" y1="120" x2="820" y2="900">' +
+      '<stop offset="0" class="ckh s0"/><stop offset="1" class="ckh s1"/></linearGradient>' +
+    '<radialGradient id="ck-bz-g" gradientUnits="userSpaceOnUse" cx="500" cy="500" r="480">' +
+      '<stop offset=".885" class="ckz s0"/><stop offset=".9" class="ckz s1"/>' +
+      '<stop offset=".96" class="ckz s2"/><stop offset="1" class="ckz s3"/></radialGradient>' +
+    '<clipPath id="ck-face-clip"><path d="' + octagon(24) + '"/></clipPath>' +
+    '<filter id="ck-soft" x="-10%" y="-10%" width="120%" height="120%"><feGaussianBlur stdDeviation="3.5"/></filter>' +
     '<pattern id="ck-leaf" patternUnits="userSpaceOnUse" width="290" height="290">' +
       '<image href="/static/assets/tex/grain-gilt.webp" width="290" height="290"/></pattern>' +
     // The turned bezel: a lathe leaves concentric brushing, so the ring
@@ -467,6 +496,7 @@ function markup() {
     '<path class="ck-patina" d="' + octagon(24) + '"/>' +
     '<path class="ck-cast" d="' + octagon(24) + '"/>' +
     '<path class="ck-lift" d="' + octagon(24) + '" fill="url(#ck-lift-g)"/>' +
+    recesses() +
     '<path class="ck-sheen" d="' + octagon(24) + '" fill="url(#ck-sheen-g)"/>' +
     facets() +
     '<path class="ck-bevel-leaf" fill-rule="evenodd" d="' + octagon(0) + ' ' + octagon(24) + '"/>' +
