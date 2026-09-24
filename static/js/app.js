@@ -30,6 +30,7 @@ var STR = {
     today: 'TODAY', earlier: 'EARLIER',
     empty: 'No dispatches',
     darkNotice: 'Dark. Launch with: {hint}',
+    darkLaunch: 'Launch with',
     lampOpen: 'Reachable', lampDark: 'Offline', lampChecking: 'Checking',
     justNow: 'just now', minAgo: '{n} min ago', hAgo: '{n} h ago', dAgo: '{n} d ago',
     linesOpen: 'LINES OPEN {n}/{m}',
@@ -167,6 +168,7 @@ var STR = {
     today: '今日', earlier: '更早',
     empty: '暂无快讯',
     darkNotice: '未点亮。用此脚本启动：{hint}',
+    darkLaunch: '用此脚本启动',
     lampOpen: '已点亮', lampDark: '离线', lampChecking: '检查中',
     justNow: '刚刚', minAgo: '{n} 分钟前', hAgo: '{n} 小时前', dAgo: '{n} 天前',
     linesOpen: '线路畅通 {n}/{m}',
@@ -1034,6 +1036,8 @@ function renderGates() {
     a.style.setProperty('--folds', String(id.folds || 9));
     a.style.setProperty('--fold-x', (id.foldX || 0) + '%');
     a.style.setProperty('--swag', String(id.swag || 0));
+    // The DARK card is pinned by hand, a little off true, the gate's own way.
+    a.style.setProperty('--card-tilt', (id.cardTilt || 0).toFixed(2) + 'deg');
 
     // 3D chain: pose (static wing tilt) > shell (pointer parallax) > flat
     // children — the intra-gate z-index stack survives inside the shell.
@@ -1186,18 +1190,26 @@ function descKey(svc) {
   return STR.en[key] !== undefined ? key : 'desc.fallback';
 }
 
-/* The notice is lettered with a break opportunity after every path
-   separator, so a launcher path wraps at a folder, not mid-name. A <wbr>
-   is not text: a copied path comes out exactly as the registry has it. */
+/* The notice is printed like a house notice: DARK in the display caps
+   between two rules, what to do, then the launcher path in the address
+   face. The path is lettered with a break opportunity after every
+   separator, so it wraps at a folder, not mid-name. A <wbr> is not text:
+   a copied path comes out exactly as the registry has it. */
 function letterNotice(n, svc) {
-  var text = t('darkNotice', { hint: svc.launch_hint || svc.url });
+  var hint = svc.launch_hint || svc.url;
   n.textContent = '';
-  text.split(/(?<=[\\/_])/).forEach(function (part, i) {
-    if (i) n.appendChild(document.createElement('wbr'));
-    n.appendChild(document.createTextNode(part));
+  var head = el('span', 'gx-head display', 'DARK');
+  head.lang = 'en';                  // signage, like the lamp word
+  n.appendChild(head);
+  n.appendChild(el('span', 'gx-say', t('darkLaunch')));
+  var path = el('span', 'gx-path');
+  hint.split(/(?<=[\\/_])/).forEach(function (part, i) {
+    if (i) path.appendChild(document.createElement('wbr'));
+    path.appendChild(document.createTextNode(part));
   });
+  n.appendChild(path);
   var sr = $('.g-notice-sr', n.parentNode);
-  if (sr) sr.textContent = text;
+  if (sr) sr.textContent = t('darkNotice', { hint: hint });
   // The card has to stand inside the house whatever the path's length and
   // however small the arch: it is set tighter, a step at a time, until it
   // fits, and set again whenever the house changes size.

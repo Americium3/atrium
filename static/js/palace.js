@@ -16,7 +16,8 @@
      crest             the small cast ornament riding the crown (unique
                        within a wing)
      card              the border of the day screen's title card (unique
-                       within a wing)
+                       within a wing), and the tilt a DARK gate's notice is
+                       pinned at
      velvet            the house curtain's colour, fold pitch and phase, and
                        which three of the four baked swags its valance hangs
 
@@ -103,7 +104,8 @@ function identities(list) {
       foldX: Math.round(draw(h, 10) * 100),         // fold phase, %
       tilt: (draw(h, 11) - 0.5) * 0.6,              // cartouche screw slots, deg/10
       rivets: [8, 10, 12][Math.floor(draw(h, 13) * 3)],  // round the bezel
-      swag: pickUnique([0, 1, 2, 3], h, 14, wingS)        // which three swags hang
+      swag: pickUnique([0, 1, 2, 3], h, 14, wingS),       // which three swags hang
+      cardTilt: Math.round((draw(h, 15) - 0.5) * 150) / 100  // the DARK card, deg (under 0.75)
     };
   });
   return out;
