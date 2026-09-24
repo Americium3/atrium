@@ -178,9 +178,13 @@
 }
 :root[data-theme="ivory"] {
   --au-0: #6a5220; --au-1: #94763a; --au-2: #c4a45e; --au-3: #fdf0c8; --au-4: #d6b772; --au-5: #f1dea4;
-  --ag-0: #6b6456; --ag-1: #9c9382; --ag-2: #cac1ad; --ag-3: #fdfbf4; --ag-4: #ddd4bf; --ag-5: #f6f2e8;
+  --ag-0: #3c4046; --ag-1: #6e747b; --ag-2: #aab0b6; --ag-3: #f6f8fa; --ag-4: #c6cbd0; --ag-5: #e4e8ec;
   --cu-0: #4a3620; --cu-1: #6c5133; --cu-2: #92714a; --cu-3: #e6c79c; --cu-4: #aa895e; --cu-5: #caa77b;
-  --pl-0: #aea593; --pl-1: #c7bfae; --pl-2: #dad3c4; --pl-3: #f8f5ee; --pl-4: #e5dfd3; --pl-5: #efeae1;
+  --pl-0: #bdb6a8; --pl-1: #cec8bb; --pl-2: #dbd5c9; --pl-3: #e8e3d8; --pl-4: #e0dbcf; --pl-5: #e5e0d5;
+  /* Nickel by day is cool and polished, a dark reflection band beside a
+     white crest; plaster is chalky, a narrow ramp with no specular crest.
+     The two used to be the same warm cream, and a lit Bureau arch read as
+     the reserved gate's bare stock. */
   --relief-shadow: rgba(62, 45, 20, 0.46);
   --glaze: rgba(58, 40, 16, 0.55);
   --portal-well: #3b3024;

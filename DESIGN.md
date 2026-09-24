@@ -113,8 +113,11 @@ both themes; only the hour changes.
    in the reveal, shade, body, the crest turned to the light, relief body,
    the lip. Per theme: `--au-*` gold leaf; `--ag-*` nickel silver, the
    Bureau's leaf (Onyx `#17140f #463d2f #938670 #f4e8c8 #b9a987 #dccaa2`,
-   Ivory `#6b6456 #9c9382 #cac1ad #fdfbf4 #ddd4bf #f6f2e8`); `--cu-*` warm
-   bronze; `--pl-*` bare plaster, for the reserved gate; `--sb-*` statuary
+   Ivory `#3c4046 #6e747b #aab0b6 #f6f8fa #c6cbd0 #e4e8ec`: cool and
+   polished by day, a dark reflection band beside a white crest, so it never
+   reads as plaster or as pale gold); `--cu-*` warm bronze; `--pl-*` bare
+   plaster, for the reserved gate, chalky and matte (by day a narrow ramp
+   with no specular crest); `--sb-*` statuary
    bronze, for the niche, the clock case and the signal desk; `--br-*` a
    fixed brass for fittings that never follow the wing (bezels, lamps,
    screws, the dater, the switchgear).
