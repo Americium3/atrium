@@ -768,10 +768,26 @@ function playEntrance(built) {
     started = true;
     runEntrance(day);
   }
-  entranceTimers.push(setTimeout(start, ENTRANCE_HOLD));
-  Promise.resolve(built).then(function () {
-    afterDrawn(start);
-  });
+  function arm() {
+    entranceTimers.push(setTimeout(start, ENTRANCE_HOLD));
+    Promise.resolve(built).then(function () {
+      afterDrawn(start);
+    });
+  }
+  // A hall loaded where nobody can see it (a tab opened in the background,
+  // a restored session) holds the curtain until the tab is first shown. The
+  // hold's fallback timer used to start the curtain anyway, and the hidden
+  // tab's throttled timers ran the whole timeline to the end, so the reader
+  // arrived at a finished hall and never saw the curtain (RC-19).
+  if (document.visibilityState === 'hidden') {
+    document.addEventListener('visibilitychange', function shown() {
+      if (document.visibilityState !== 'visible') return;
+      document.removeEventListener('visibilitychange', shown);
+      arm();
+    });
+  } else {
+    arm();
+  }
   armEntranceSkip();
 }
 

@@ -278,7 +278,8 @@ what shows, so a click there lands the entrance and then does what it says.
 `?entrance=0` skips it. The curtain is dressed at once, but its clock starts
 only when the hall behind it has its first readings and has been drawn
 (at most 900 ms), so the hall's first raster happens under a still curtain
-and not during the footlights. Under reduced motion a load gets the 300 ms fade
+and not during the footlights. A hall loaded in a tab nobody is looking at
+holds the curtain until the tab is first shown. Under reduced motion a load gets the 300 ms fade
 instead. PREFERENCES > REPLAY ENTRANCE sets a one-shot `sessionStorage` flag and
 reloads; the pre-paint script reads and clears it, so nothing sticks to the
 address bar, and under reduced motion a replay is the same quiet fade. The
