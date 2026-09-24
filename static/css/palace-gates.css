@@ -216,15 +216,37 @@
 .ck-bezel-sh { stroke: rgba(20, 12, 4, 0.34); }
 #clock .ck-rivet-sh, #clock .ck-rivet-lt { transition: none; }
 
-/* The niche in the waxed floor: the bronze sides, the dark back, the sill. */
+/* The niche in the waxed floor: the bronze sides, the dark back, the sill,
+   and the dial's light, whose centre stands the sill and half the dial
+   above the floor line. Its sides fade into the wax the way a reflection's
+   do; cut square, they ran two hard vertical edges across the medallion,
+   like a strip of paper laid on the floor (AR-8). */
 .ck-mirror {
   background:
     linear-gradient(180deg, var(--cm-sill-c) 0, var(--cm-sill-c) calc(var(--cm-sill) - 3px), var(--sb-3) calc(var(--cm-sill) - 3px), var(--sb-1) var(--cm-sill), transparent var(--cm-sill)),
-    radial-gradient(circle calc(var(--dial) * 0.43) at 50% calc(var(--sill) + var(--reveal) + var(--dial) * 0.5), var(--cm-dial) 0 94%, var(--sb-2) 96%, transparent 100%),
+    radial-gradient(circle calc(var(--dial) * 0.43) at 50% calc(var(--sill) + var(--dial) * 0.5), var(--cm-dial) 0 94%, var(--sb-2) 96%, transparent 100%),
     linear-gradient(90deg, var(--nf-l) 0 calc(var(--st) * 3), var(--cm-back) calc(var(--st) * 3) calc(100% - var(--st) * 3), var(--nf-r) calc(100% - var(--st) * 3));
+  -webkit-mask-image:
+    linear-gradient(180deg, rgba(0, 0, 0, 0.95), rgba(0, 0, 0, 0.6) 20%, rgba(0, 0, 0, 0.3) 50%, transparent 76%),
+    linear-gradient(90deg, transparent, #000 16%, #000 84%, transparent);
+  -webkit-mask-composite: source-in;
+  mask-image:
+    linear-gradient(180deg, rgba(0, 0, 0, 0.95), rgba(0, 0, 0, 0.6) 20%, rgba(0, 0, 0, 0.3) 50%, transparent 76%),
+    linear-gradient(90deg, transparent, #000 16%, #000 84%, transparent);
+  mask-composite: intersect;
 }
 :root[data-theme="onyx"] #clock { --cm-back: #120b05; --cm-sill-c: #0a0807; }
-:root[data-theme="ivory"] #clock { --cm-back: #4a3a26; --cm-sill-c: #e8e2d6; }
+/* By day the floor gives back only the gilt and the screen (law 10), as
+   the portals' reflections do, at 1.5 times --mirror-a: the gilt lip of the
+   sill's nosing, the inner fillet's two sides and the pale dial in its gilt
+   bezel. The dark back and the bronze sides came back as a dark box. */
+:root[data-theme="ivory"] .ck-mirror {
+  opacity: calc(var(--mirror-a) * 1.5);
+  background:
+    linear-gradient(180deg, transparent calc(var(--cm-sill) - 3px), var(--lead-3) calc(var(--cm-sill) - 3px), var(--lead-1) var(--cm-sill), transparent var(--cm-sill)),
+    radial-gradient(circle calc(var(--dial) * 0.43) at 50% calc(var(--sill) + var(--dial) * 0.5), var(--cm-dial) 0 94%, var(--lead-2) 96%, transparent 100%),
+    linear-gradient(90deg, transparent calc(var(--st) * 2.2), var(--lead-2) calc(var(--st) * 2.2) calc(var(--st) * 2.65), transparent calc(var(--st) * 2.65) calc(100% - var(--st) * 2.65), var(--lead-2) calc(100% - var(--st) * 2.65) calc(100% - var(--st) * 2.2), transparent calc(100% - var(--st) * 2.2));
+}
 
 /* Corner blocks: the four mitres of the outer frame meet on cast bronze
    squares, each with a turned boss lit on the lamp side and a pin of leaf
