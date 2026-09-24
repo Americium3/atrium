@@ -1249,6 +1249,10 @@ html[lang="zh"] .p-name { letter-spacing: 0.1em; }
 }
 [data-pref="theme"] .p-plaque { justify-content: flex-start; height: 100%; }
 [data-pref="theme"] .p-name { white-space: normal; text-align: center; line-height: 1.25; }
+[data-pref="theme"] .p-plaque { padding-left: calc(2px * var(--ui)); padding-right: calc(2px * var(--ui)); }
+/* A seven-character description (与操作系统一致) has to stand on one line
+   under its jewel: balanced, CJK splits it mid-word. */
+html[lang="zh"] [data-pref="theme"] .p-desc { font-size: calc(10.5px * 1.06 * var(--ui)); }
 .p-rotary {
   position: absolute; z-index: 1;
   left: 50%; bottom: calc(8px * var(--ui));
