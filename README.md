@@ -407,7 +407,9 @@ quarter-chevrons, engraved subject, crown gem) and writes each one out as
 `icon.svg`, `favicon.ico`, three PNGs, a maskable tile and a manifest into that
 service's own repository, then inlines all of them into the generated block in
 `static/index.html`. The hall therefore shows the identical artwork each app's
-own favicon shows.
+own favicon shows. Bourse is the exception: `gen.py` does not draw its mark,
+so `#mark-bourse` is kept by hand just after the block's END sentinel, where
+a run cannot reach it.
 
 A service that also carries its mark inline in its own page, so its masthead
 does not pay for a second request, lists that page in `SYMBOL_TARGETS`, and the
@@ -427,7 +429,8 @@ python icons/gen.py autopilot    # one directory, then the hall's defs
 
 The generated block is rewritten wholesale on every run, so a mark left out of
 `APPS` is a mark deleted from the concourse. Add new services to that dict,
-never to the block by hand.
+never to the block by hand. A mark drawn anywhere else goes outside the
+sentinels, as Bourse's does.
 
 ## Debug URL parameters
 
