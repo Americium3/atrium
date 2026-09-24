@@ -3557,8 +3557,16 @@ function closePrefs() {
 }
 prefsBtn.addEventListener('click', openPrefs);
 $('#prefs-close').addEventListener('click', closePrefs);
+/* Only a click that starts and ends on the backdrop closes the sheet. A
+   press in the sheet released on the backdrop (or the other way round) is
+   dispatched to #prefs, their common ancestor, and used to close it. */
+var prefsPress = { down: null, up: null };
+prefs.addEventListener('pointerdown', function (e) { prefsPress.down = e.target; });
+prefs.addEventListener('pointerup', function (e) { prefsPress.up = e.target; });
 prefs.addEventListener('click', function (e) {
-  if (e.target === prefs) closePrefs();
+  if (e.target === prefs && prefsPress.down === prefs && prefsPress.up === prefs) {
+    closePrefs();
+  }
 });
 
 /* ========================================================================
