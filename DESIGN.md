@@ -211,7 +211,8 @@ both themes; only the hour changes.
 - **The floor**: polished terrazzo; the medallion and roundels poured into
   it; a red wool runner; brass stanchions with velvet rope along the near
   flanks, each rope's sag its own.
-- **The cases** (Statistics, Almanac, 2800px and up): wall cases in
+- **The cases** (Statistics, Almanac, 2800px and up, on an aisle tall
+  enough to hang them): wall cases in
   book-matched veneer with crossbanding and stringing (macassar ebony for
   Statistics, figured walnut for the Almanac), a gilt bolection frame round
   a black glass door, a cast crest on the top rail and a brass picture lamp
@@ -515,7 +516,7 @@ daylight either side also lands a pilaster hard against each edge of the
 board, so the board reads as set into the wall rather than stuck onto it.
 
 **Boards.** `STATISTICS` (left) is an instrument case reading the machine the
-hub runs on: four needle dials (processor, memory, graphics, traffic) on
+hub runs on: four needle dials (processor, memory, the card's VRAM, traffic) on
 one 240° scale with a red sector over the last fifth, a tape of hours run
 and store remaining, and the maker's plate off the retired rail at its foot.
 It replaced a `DIRECTORY` that listed every service's mark, name, address
@@ -535,7 +536,27 @@ A flexed replaced box with an aspect ratio resolves off its intrinsic width
 and shrinks to a thumbnail the moment the case is short, taking its own
 caption out under the cell's clip. Captions run at 1.15 leading for the same
 reason: the default 1.5 under two stacked lines costs the dial above them a
-third of its face.
+third of its face. The four cells share one grid (subgrid), so a reading that
+takes a second line makes its row's reading track taller and never takes the
+height out of its own dial; the dial tracks are equal, and the four dials
+always match.
+
+**Hanging the pair.** A case hangs from the cornice to the chair rail, and
+the head and the tape keep their size while the dials and the sky plate take
+what is left. On a short aisle that was nothing: captions over dials of 0px,
+a sky plate with no height, and the Almanac's tape running out under its
+station plate. `fitCases()` measures the pair as laid out, and when a dial
+would be drawn under 80px or the sky plate under 90px, both cases fold away
+(`data-fold="away"`) and the aisle walls take their bays. They fold as a pair,
+because one case hanging in a symmetric hall reads as the other having fallen
+off. At 3440 wide they hang from about 1200px of height at FINE and STANDARD,
+and from about 1300 at SIGNBOARD. The same pass hands each dial its drawn
+size, and the scale's figures and unit are cut from it at 7.4px x `--ui`,
+never under 10px: a larger engraving size only ever makes them larger. The
+traffic dial is engraved in MB/s (0 to 125, a saturated gigabit line), the
+unit its window reads, so the window holds the two figures and the face
+states its own full scale. The head of the glass carries the two corner fans;
+the foot is where the ivorine strips are screwed, so it carries none.
 
 **The works poll.** `/api/works` on a 4s cadence of its own, because instruments
 read live or they are decoration, but only while the board is genuinely on
@@ -546,7 +567,9 @@ at a time (a tick is skipped while one is), and a reading whose `generated`
 is older than the one on the dials is dropped: overlapping replies used to
 land out of order and swing a needle back. A board that has heard nothing
 for 10 s drops every needle to NO READING instead of holding the last figure
-as if it were live.
+as if it were live. That holds for a reading kept while the board could not
+poll (a hidden tab, a narrow window, a folded case): it comes down before the
+next one is asked for, and a tab coming back asks at once.
 
 **Floor (v4.2), cut rather than drawn.** One plane hinged on its NEAR edge,
 `transform-origin: bottom center` with `rotateX(58deg)`, so the hall recedes
@@ -669,7 +692,7 @@ the sky untouched, the same law as a dial with no reading resting at zero.
 **The plate is a horizon dial, not a dome.** The sun runs one ellipse
 through the whole 24 hours (the circle of its own path, seen edge-on) with
 the horizon cutting across it: solid above, dotted below, the two crossings
-engraved RISE and SET with their times at the plate's outer edges (an ellipse
+engraved RISE and SET with their times just outside the bezel (an ellipse
 drawn to the full width leaves the only lettering on the instrument nowhere
 to stand but on the curve). Elapsed daylight is inked in gold as far as the
 day has got. After sunset that is all of it, because the plate reports
@@ -728,7 +751,13 @@ letterboxes the plate into a third of its register or balloons out of it,
 and a void inside a lit case reads as a board that failed to draw. `skyBox()`
 reads the register and inscribes the ellipse in it, measuring BEFORE the old
 plate is removed (emptying the register first collapses it to nothing and
-the new plate is inscribed in a box of zero height).
+the new plate is inscribed in a box of zero height). A register wider than
+the plate's own 2:1 widens the plate to match instead of letterboxing it. The
+lettering at the crossings is cut in plate units at 10px or more on screen,
+larger with the engraving size, and the ellipse gives up width before the
+lettering gives up size. A register that changes size (a resize, a new
+engraving size or language) re-cuts the plate at once instead of on the next
+sky tick.
 
 **The moon is a real terminator.** An ellipse, not a chord and not a second
 circle offset sideways. Both shortcuts get gibbous phases visibly wrong,
@@ -761,7 +790,17 @@ while the case was hidden and the 60 s tick used to leave a blank plate for
 up to a minute; the tick stays as the fallback. A payload with no weather
 is the hub reporting a miss, and the board asks again 121 s later, just past
 the hub's own 120 s retry, rather than keeping NO READING up for the whole
-ten-minute poll.
+ten-minute poll. A request that fails outright re-arms the same retry.
+
+A forecast is for one local day at the place. Past the place's midnight the
+one on the board is yesterday's, so the board takes it as no forecast (the
+plate falls back on its own arithmetic, the reading on NO READING) and asks
+for the new day's at that midnight. The ask is set for that midnight once and
+stays set: the minute tick redraws the plate without moving it, and a machine
+that slept through midnight asks as it wakes. If the ten-minute poll is still
+out at that moment, the ask waits for it to come back and then goes. The hub
+fetches again as well: a cached forecast dated for another day is stale
+whatever its TTL says.
 
 ## Gates (R9)
 
@@ -1041,7 +1080,7 @@ Endpoints:
   orders}`. A source not read yet is `{}`, and so are Arsenal and Bourse
   while dark. The page prints no figure on a dark gate either way.
 - `GET /api/works`: host instrumentation for the west board:
-  `{cpu:{pct,cores}, mem:{pct,used_gb,total_gb}, gpu:{pct,used_gb,total_gb,
+  `{cpu:{pct,cores,threads}, mem:{pct,used_gb,total_gb}, gpu:{pct,used_gb,total_gb,
   util_pct,name}, net:{pct,down_mbs,up_mbs}, disk:{pct,free_gb,total_gb,
   label}, hub_uptime_s, host_uptime_s}`. Every member is nullable. No
   `psutil`, no NVIDIA card and no throughput baseline yet are all normal
@@ -1053,9 +1092,11 @@ Endpoints:
   timezone}, weather:{code, label, label_zh, now_c/f, high_c/f, low_c/f,
   precip_prob, wind_kmh, sunrise, sunset, utc_offset_s}|null, age_s,
   generated}`. `weather` is nullable and the board is built for it; `place`
-  never is, because the sun and the moon are drawn from it alone. Open-Meteo,
-  no key, one GET per 15 min, or 120 s after a miss, since a service that is
-  down stays down past one board poll, serialized on a lock.
+  never is, because the sun and the moon are drawn from it alone. `wind_kmh`
+  is the wind now, printed beside the temperature now. Open-Meteo, no key,
+  one GET per 15 min, or 120 s after a miss, since a service that is down
+  stays down past one board poll, or at once when the cached forecast is
+  dated for another local day; serialized on a lock.
 
 **Time contract**: feed `ts` is **epoch milliseconds**. Normalization:
 Ground Station `ts*1000`; Autopilot ledger `ts*1000` (epoch seconds on the

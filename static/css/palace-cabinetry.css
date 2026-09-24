@@ -130,6 +130,11 @@
 }
 :root[data-theme="ivory"] .board { --wood-tint: rgba(255, 244, 222, 0.06); }
 .board:hover .bd-glass::after { animation: none; }
+/* An aisle too short to hang the pair: fitCases() in app.js measured a dial
+   under its smallest legible face, or a sky plate under its smallest, and
+   the wall's bays take the aisle instead of a case with its instruments
+   squeezed out of it. */
+.board[data-fold="away"] { display: none; }
 
 /* The case's own shadow on the wall. The carcass is chamfered with a
    clip-path, which would eat a shadow, so the shadow is a filter on this
@@ -273,6 +278,10 @@
   display: flex; flex-direction: column;
   margin: var(--top) var(--st) 0;
   padding: calc(var(--fw) + 1.3cqw) calc(var(--fw) + 2.6cqw) calc(var(--fw) + 1.2cqw);
+  /* Whatever the door holds stays behind its glass. fitCases() folds the
+     cases before anything would need this, so it is the backstop, not the
+     layout: the tape used to run out under the station plate. */
+  overflow: clip;
   color: var(--cab-ink);
   --ink: var(--cab-ink);
   --ink-faint: var(--cab-faint);
@@ -294,15 +303,15 @@
     inset calc(var(--fw) + 1px) 0 8px -3px rgba(0, 0, 0, 0.6),
     inset calc(-1 * var(--fw) - 1px) 0 8px -3px rgba(0, 0, 0, 0.6);
 }
-/* The gilt pinstripe painted on the back of the glass, broken at each
-   corner by a fan. */
+/* The gilt pinstripe painted on the back of the glass: the head rule between
+   the two fans and the short returns beside them. Its foot brackets went
+   with the foot fans (cabinetry.js): they ran under the ivorine strips. */
 .cs-pin {
   position: absolute;
   inset: calc(var(--fw) + 1cqw);
   border: 1px solid rgba(214, 180, 104, 0.42);
   clip-path: polygon(4.6cqw 0, calc(100% - 4.6cqw) 0, calc(100% - 4.6cqw) 1.5px, 100% 1.5px, 100% 4.6cqw,
-    calc(100% - 1.5px) 4.6cqw, calc(100% - 1.5px) calc(100% - 4.6cqw), 100% calc(100% - 4.6cqw),
-    100% 100%, calc(100% - 4.6cqw) 100%, 4.6cqw 100%, 0 100%, 0 calc(100% - 4.6cqw), 1.5px calc(100% - 4.6cqw),
+    calc(100% - 1.5px) 4.6cqw, calc(100% - 1.5px) calc(100% - 1.5px), 1.5px calc(100% - 1.5px),
     1.5px 4.6cqw, 0 4.6cqw, 0 1.5px, 4.6cqw 1.5px);
 }
 .cs-fan {
@@ -312,8 +321,6 @@
 .cs-fan .fan-rule { stroke: rgba(214, 180, 104, 0.42); stroke-width: 0.9; }
 .cs-fan-tl { left: calc(var(--fw) + 1cqw); top: calc(var(--fw) + 1cqw); }
 .cs-fan-tr { right: calc(var(--fw) + 1cqw); top: calc(var(--fw) + 1cqw); transform: scaleX(-1); }
-.cs-fan-bl { left: calc(var(--fw) + 1cqw); bottom: calc(var(--fw) + 1cqw); transform: scaleY(-1); }
-.cs-fan-br { right: calc(var(--fw) + 1cqw); bottom: calc(var(--fw) + 1cqw); transform: scale(-1, -1); }
 
 /* The frame: a bolection moulding in the leaf, four mitred facets, each
    carrying the profile across its width (arris, crest, body, the step down
@@ -386,7 +393,18 @@
    The turned brass of the bezel is the svg's own background: a conic
    brushing (two bright wedges facing each other across the ring, the way a
    lathe-turned surface takes a light) over the fine turning lines. */
-.board .wk-dials { gap: 0.8cqw 2.6cqw; padding: 0.8cqw 0 0.4cqw; }
+/* One grid for all four instruments: each cell's dial, caption and reading
+   sit on tracks the pair in its row shares (subgrid). A reading that takes a
+   second line then makes its whole row's reading track taller, instead of
+   taking the height out of its own dial and lifting its caption out of line
+   with its neighbour's; the two dial tracks are equal fractions, so the four
+   dials always match. */
+.board .wk-dials {
+  grid-template-rows: minmax(0, 1fr) auto auto 0.8cqw minmax(0, 1fr) auto auto;
+  gap: 0 2.6cqw; padding: 0.8cqw 0 0.4cqw;
+}
+.board .wk-cell { grid-row: 1 / span 3; grid-template-rows: subgrid; }
+.board .wk-cell:nth-child(n + 3) { grid-row: 5 / span 3; }
 .board .wk-dial { overflow: visible; }
 .board .wk-dial .d-brass {
   width: 100%; height: 100%;
@@ -417,8 +435,15 @@
   font-weight: 600;
   font-variant-numeric: lining-nums tabular-nums;
 }
-.board .wk-dial .d-num text { font-size: 7.4px; }
-.board .wk-dial .d-legend { font-size: 4.6px; letter-spacing: 0.4px; opacity: 0.8; font-weight: 500; }
+/* The figures and the unit are sized from the dial as it is drawn: --dpu is
+   its pixels per unit, which app.js's fitCases() writes on #wk-dials. They
+   ask for 7.4px x --ui and never less than 10px, so a larger engraving size
+   only ever makes them larger. 13 units is the most a figure can take before
+   it reaches the ticks; the cases fold away before a dial is too small to
+   carry 10px at that. (Inside the dial px are user units, hence the divide.) */
+.board .wk-dials { --num: max(10px, calc(7.4px * var(--ui))); }
+.board .wk-dial .d-num text { font-size: clamp(7.4px, calc(var(--num) / var(--dpu, 1)), 13px); }
+.board .wk-dial .d-legend { font-size: clamp(7.4px, calc(var(--num) / var(--dpu, 1)), 13px); letter-spacing: 0.04em; }
 .board .wk-dial .d-serial { font-size: 3.4px; letter-spacing: 0.5px; opacity: 0.55; font-weight: 500; }
 .board .wk-dial .d-zero { stroke: rgba(0, 0, 0, 0.5); stroke-width: 0.3; }
 .board .wk-dial .d-lip { pointer-events: none; }
@@ -454,6 +479,8 @@
 }
 .board .wk-read {
   margin-top: 0.5cqw;
+  /* first lines level across a row, whichever reading takes two */
+  align-self: start;
   padding: 0.1em 0.45em 0.05em;
   /* a long reading takes a second line in its window rather than losing
      its tail to an ellipsis */
@@ -480,7 +507,10 @@
 .board .wk-strip, .board .al-strips .al-strip {
   position: relative;
   margin: 0.8cqw 0.4cqw 0;
-  padding: 0.18em 1.6em 0.12em;
+  /* the screws sit 5px in and are 6px across; the lettering keeps clear of
+     them by half an em, and no more, so STORE's value keeps to one line in a
+     300px aisle at the standard size */
+  padding: 0.18em calc(11px + 0.5em) 0.12em;
   background:
     linear-gradient(180deg, rgba(0, 0, 0, 0.14), transparent 30%),
     url('/static/assets/tex/grain-card.webp') 0 0 / 120px,
@@ -500,7 +530,18 @@
 }
 .board .wk-strip::before, .board .al-strips .al-strip::before { left: 5px; }
 .board .wk-strip::after, .board .al-strips .al-strip::after { right: 5px; }
-.board .wk-slabel, .board .al-slabel { color: #5a4c34; }
+/* A strip too narrow for its label and its value side by side (STORE at
+   SIGNBOARD in a 300px aisle) sets the value under the label, still to the
+   right. On one line it ran past the strip and under the screw. */
+.board .wk-strip, .board .al-strips .al-strip { flex-wrap: wrap; row-gap: 0; }
+.board .wk-sval, .board .al-strips .al-sval { margin-left: auto; }
+/* The label ink is dark enough to hold 4.5:1 on the ivorine once the grain
+   and the holder's shade are laid over it; #5a4c34 painted at 3.8. */
+.board .wk-slabel, .board .al-slabel { color: #43381f; }
+/* The Chinese face has one weight and hairline strokes, which the tracking
+   thins further (2.6:1 painted in that ink); a trace of its own ink round
+   every stroke brings it up to strength, as on the gates' day cards. */
+html[lang="zh"] .board .wk-slabel, html[lang="zh"] .board .al-strips .al-slabel { -webkit-text-stroke: 0.6px currentColor; }
 .board .wk-sval, .board .al-sval { color: var(--ivorine-ink); font-weight: 600; }
 
 /* ----- The apron and the maker's plate ------------------------------------ */
@@ -601,7 +642,12 @@
 .board .al-arc .a-h-night { stroke: #1a1006; opacity: 0.5; stroke-width: 1; }
 .board .al-arc .a-foot { stroke: var(--leaf-2); }
 .board .al-arc text { fill: var(--cab-faint); }
-.board .al-arc .a-lab { fill: var(--cab-gold); opacity: 0.85; }
+/* Full strength: at the plate's lettering size a dimmed leaf painted under
+   4.5:1 on the glass. The Chinese labels take a trace of stroke for the
+   same reason as the tape's; --ppu (pixels per plate unit) keeps it at a
+   third of a pixel on screen whatever the plate is drawn at. */
+.board .al-arc .a-lab { fill: var(--cab-gold); }
+html[lang="zh"] .board .al-arc .a-lab { stroke: var(--cab-gold); stroke-width: calc(0.35px / var(--ppu, 1)); }
 .board .al-arc .a-time { fill: var(--cab-ink); }
 .board .al-arc .a-polar { fill: var(--cab-gold); }
 .board .al-arc .sk-bead-sh { fill: rgba(0, 0, 0, 0.55); }

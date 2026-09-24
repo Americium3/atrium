@@ -11,6 +11,7 @@ import asyncio
 import json
 import sys
 import tempfile
+import time
 import traceback
 from pathlib import Path
 
@@ -103,14 +104,19 @@ def _stub(monkeypatched_payload, boom=None):
     almanac.httpx = _Httpx
 
 
+# The forecast's own day at the place (UTC-4 here, as utc_offset_seconds
+# says): a fixture dated some other day now reads as yesterday's and is
+# fetched again on every call, which is what the midnight check is for.
+TODAY = time.strftime("%Y-%m-%d", time.gmtime(time.time() - 14400))
+
 FORECAST = {
     "daily": {
         "weather_code": [95, 0], "temperature_2m_max": [29.9, 1],
         "temperature_2m_min": [14.1, 0], "precipitation_probability_max": [40, 0],
         "wind_speed_10m_max": [18.4, 0],
-        "sunrise": ["2026-08-28T06:45"], "sunset": ["2026-08-28T20:01"],
+        "sunrise": [TODAY + "T06:45"], "sunset": [TODAY + "T20:01"],
     },
-    "current": {"temperature_2m": 25.2, "weather_code": 3},
+    "current": {"temperature_2m": 25.2, "weather_code": 3, "wind_speed_10m": 9.7},
     "utc_offset_seconds": -14400,
 }
 
@@ -130,7 +136,20 @@ def test_reads_one_day_out_of_the_daily_arrays():
     # 29.9C is 85.8F — printed in the tooltip for a reader who lives in a
     # country that speaks Fahrenheit and stands in a hall that does not.
     assert w["high_f"] == 85.8
-    assert w["precip_prob"] == 40 and w["wind_kmh"] == 18.4
+    # The wind printed beside the temperature now is the wind now, not the
+    # day's peak (18.4 in the daily block).
+    assert w["precip_prob"] == 40 and w["wind_kmh"] == 9.7
+
+
+def test_no_current_wind_prints_a_dash_not_the_days_peak():
+    real = almanac.httpx
+    try:
+        doc = {**FORECAST, "current": {"temperature_2m": 25.2, "weather_code": 3}}
+        _stub(doc)
+        w = asyncio.run(almanac.fetch_weather(40.4406, -79.9959))
+    finally:
+        almanac.httpx = real
+    assert w["wind_kmh"] is None
 
 
 def test_the_daily_code_stands_in_when_the_current_one_is_missing():
@@ -195,6 +214,31 @@ def test_the_boards_poll_is_not_the_services_request_rate():
         _reset()
 
 
+def test_yesterdays_forecast_is_fetched_again_past_midnight():
+    """The TTL is fifteen minutes, but a forecast cached at 23:55 is
+    yesterday's at 00:01, and the board would engrave its sunrise, high and
+    low as today's until the TTL ran out."""
+    w = {"sunrise": "2026-09-24T07:09", "utc_offset_s": -14400}
+    before = 1790308800 - 60        # 2026-09-24 23:59 at UTC-4
+    after = 1790308800 + 60         # 2026-09-25 00:01
+    assert not almanac.for_another_day(w, before)
+    assert almanac.for_another_day(w, after)
+    assert not almanac.for_another_day({"sunrise": None, "utc_offset_s": 0}, after)
+    assert not almanac.for_another_day(None, after)
+    real = almanac.httpx
+    try:
+        _stub(FORECAST)
+        _reset()
+        d = _tmpdir("day")
+        asyncio.run(almanac.snapshot(d))
+        almanac._weather = dict(almanac._weather, sunrise="2000-01-01T07:00")
+        asyncio.run(almanac.snapshot(d))
+        assert _Client.calls == 2, _Client.calls
+    finally:
+        almanac.httpx = real
+        _reset()
+
+
 def _app_js():
     return (Path(__file__).resolve().parent.parent
             / "static" / "js" / "app.js").read_text(encoding="utf-8")
@@ -207,7 +251,8 @@ def test_every_almanac_string_is_in_both_languages():
     keys = ["almSub", "almHigh", "almLow", "almPrecip", "almWind",
             "almRise", "almSet", "almPolarDay", "almPolarNight",
             "almAge", "almDaylight", "almLonger", "almShorter",
-            "almDays", "almWindUnit", "almFahrenheit", "almTitle", "ariaAlmanac"]
+            "almDays", "almWindUnit", "almFahrenheit", "ariaAlmanac",
+            "almSrLonger", "almSrShorter"]
     keys += ["almPhase%d" % i for i in range(8)]
     for key in keys:
         assert js.count(key + ":") == 2, key

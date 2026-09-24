@@ -35,11 +35,14 @@ Atrium serves `http://127.0.0.1:8769` and currently fronts:
   either side of the stage under one continuous wall and standing on one
   continuous floor. Below 2800px the aisles fold away, because two of them
   cost the stage about 680px and the arches would have to shrink by a
-  quarter to make room.
+  quarter to make room. The two cases hang only where the aisle is tall
+  enough for them (at 3440 wide, from about 1200px of height): on a shorter
+  wall a dial would have no face left, so the pair folds away together and
+  the aisles keep their bays.
 - **Statistics** (left aisle). A wall case in macassar ebony with a gilt
   frame round a black glass door, reading the machine all of this runs on:
-  four brass-bezelled needle dials for processor, memory, graphics and
-  traffic, each on a 240° scale with a red lacquer arc over the last fifth,
+  four brass-bezelled needle dials for processor, memory, the card's VRAM
+  and traffic, each on a 240° scale with a red lacquer arc over the last fifth,
   plus hours run, store remaining and a cast maker's plate. A brass picture
   lamp over it is lit at night. Readings come from `/api/works` on a 4s
   cadence, and only while the case is actually on screen. (The route and the
@@ -52,7 +55,8 @@ Atrium serves `http://127.0.0.1:8769` and currently fronts:
   cutting across it as a chord, so the lit arc is daylight's true share of
   the day: fat in June, a shallow cap in December, cut in half only at an
   equinox. `scripts/dial.py` measures that back out of the drawing. Above
-  it, the reading: temperature, condition, high/low, precipitation and wind;
+  it, the reading: temperature, condition, high/low, precipitation and the
+  wind now;
   below it, the moon as a shaded ball under its own crystal with a real
   elliptical terminator, its age, the length of the day and how much it has
   gained or lost since yesterday.
@@ -200,7 +204,7 @@ server.py            FastAPI on 127.0.0.1:8769
   /api/feed          merged dispatches {id, origin, wing, kind, params, ts, url}
   /api/stats         per-gate live stats
   /api/works         host readings for the instrument case: processor,
-                     memory, graphics, traffic, store, hours run. Sampled
+                     memory, VRAM, traffic, store, hours run. Sampled
                      lazily behind a TTL, so an unopened panel spawns
                      nothing; every reading is optional and nulls through.
   /api/almanac       where the hall stands, and the weather over it
@@ -326,7 +330,7 @@ against the times engraved on the plate's own crossings.
 Python 3.11 with `fastapi`, `uvicorn`, `httpx` (all present on the global
 interpreter). `psutil` is optional and only feeds the instrument case.
 Without it the processor, memory, traffic and store dials simply read
-nothing. Graphics comes from `nvidia-smi` if there is one on `PATH`; a
+nothing. VRAM comes from `nvidia-smi` if there is one on `PATH`; a
 machine with no NVIDIA card is a normal machine and that dial rests at zero.
 
 Keepalive: `scripts/concierge.vbs` runs `concierge.ps1` at logon **and every

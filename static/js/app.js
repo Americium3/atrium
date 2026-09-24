@@ -101,15 +101,17 @@ var STR = {
     'k.bourse.allclear': 'Every canary healthy, back on offense',
     dayTime: '{day}, {time}',
     worksSub: 'Readings from the engine room',
-    wkCpu: 'PROCESSOR', wkMem: 'MEMORY', wkGpu: 'GRAPHICS', wkNet: 'TRAFFIC',
+    wkCpu: 'PROCESSOR', wkMem: 'MEMORY', wkGpu: 'VRAM', wkNet: 'TRAFFIC',
     wkHours: 'HOURS RUN', wkDisk: 'STORE', wkFree: '{n} FREE',
-    runD: 'd', runH: 'h', runM: 'm', wkRate: 'MB/s', join: ': ', list: ', ',
+    runD: 'd', runH: 'h', runM: 'm', join: ': ', list: ', ',
     runSrDays: '{d} {d|day|days} {h} {h|hour|hours}', runSrMinutes: '{m} {m|minute|minutes}',
     /* No English tooltip where it would only repeat the engraving above it
        (RESERVED, STATISTICS, ALMANAC). The Chinese one is the translation. */
     vacantName: '', vacantLamp: 'Not in service',
     wkNoReading: 'NO READING',
-    wkCores: '{n} cores', wkOf: '{a} of {b} GB',
+    wkCores: '{n} {n|core|cores}', wkThreads: '{n} {n|thread|threads}',
+    wkCpuCount: '{c} {c|core|cores}, {t} {t|thread|threads}',
+    wkOf: '{a} of {b} GB', wkLoad: 'GPU load {n}%',
     wkDown: '{d} down · {u} up MB/s',
     almSub: 'The sky over {place}',
     almHigh: 'HIGH', almLow: 'LOW', almPrecip: 'PRECIP', almWind: 'WIND',
@@ -151,14 +153,14 @@ var STR = {
     wkHot: 'in the red',
     almSrTimes: 'Sunrise {rise}, sunset {set}.',
     almSrHours: '{h} {h|hour|hours} {m} {m|minute|minutes}',
-    almSrMinutes: '{m} {m|minute|minutes} {s} {s|second|seconds}',
+    almSrLonger: 'Longer than yesterday by {m} {m|minute|minutes} {s} {s|second|seconds}',
+    almSrShorter: 'Shorter than yesterday by {m} {m|minute|minutes} {s} {s|second|seconds}',
     leverDesc: 'Off lights the Salon, the play wing. On lights the Bureau, the work wing.',
     ariaFilter: 'Filter dispatches', ariaClose: 'Close',
     ariaLedgerClose: 'Close the Ledger',
     ariaGates: 'Gates', ariaLedger: 'Ledger: dispatch timeline',
     ariaWorks: 'Statistics: live readings from this machine',
     ariaAlmanac: 'Almanac: sun, moon and weather over this hall',
-    worksTitle: '', almTitle: '',
     salonWing: 'Play wing', bureauWing: 'Work wing',
     ledgerBtnLabel: 'LEDGER',
     keysTitle: 'KEYS',
@@ -246,13 +248,15 @@ var STR = {
     'k.bourse.allclear': '金丝雀全数安好，恢复进攻',
     dayTime: '{day} {time}',
     worksSub: '本机运转实况',
-    wkCpu: '处理器', wkMem: '内存', wkGpu: '显卡', wkNet: '网络',
+    wkCpu: '处理器', wkMem: '内存', wkGpu: '显存', wkNet: '网络',
     wkHours: '已运转', wkDisk: '存储', wkFree: '余 {n}',
-    runD: ' 天 ', runH: ' 时 ', runM: ' 分', wkRate: 'MB/s', join: '：', list: '，',
+    runD: ' 天 ', runH: ' 时 ', runM: ' 分', join: '：', list: '，',
     runSrDays: '{d} 天 {h} 小时', runSrMinutes: '{m} 分钟',
     vacantName: '预留', vacantLamp: '未启用',
     wkNoReading: '无读数',
-    wkCores: '{n} 核', wkOf: '{a} / {b} GB',
+    wkCores: '{n} 核', wkThreads: '{n} 线程',
+    wkCpuCount: '{c} 核 {t} 线程',
+    wkOf: '{a} / {b} GB', wkLoad: 'GPU 负载 {n}%',
     wkDown: '下 {d} · 上 {u} MB/s',
     almSub: '{place}上空的天象',
     almHigh: '高', almLow: '低', almPrecip: '降水', almWind: '风',
@@ -292,14 +296,14 @@ var STR = {
     wkHot: '已入红区',
     almSrTimes: '日出 {rise}，日落 {set}。',
     almSrHours: '{h} 小时 {m} 分',
-    almSrMinutes: '{m} 分 {s} 秒',
+    almSrLonger: '比昨日长 {m} 分 {s} 秒',
+    almSrShorter: '比昨日短 {m} 分 {s} 秒',
     leverDesc: '关：点亮沙龙翼（娱乐）。开：点亮事务翼（工作）。',
     ariaFilter: '筛选快讯', ariaClose: '关闭',
     ariaLedgerClose: '合上消息总台',
     ariaGates: '门廊', ariaLedger: '消息总台：快讯时间轴',
     ariaWorks: '运转统计：本机实时读数',
     ariaAlmanac: '天象：本厅上空的日月与天气',
-    worksTitle: '运转统计', almTitle: '天象',
     salonWing: '沙龙翼（娱乐）', bureauWing: '事务翼（工作）',
     ledgerBtnLabel: '消息总台',
     keysTitle: '按键',
@@ -2216,7 +2220,11 @@ function renderWorks() {
     var cell = el('div', 'wk-cell');
     cell.dataset.dial = d.key;
     cell.appendChild(buildDial(d.key));
-    cell.appendChild(el('span', 'wk-name display', t(d.name)));
+    // The engraved name is for the eye; the cell's spoken line (syncWorks)
+    // starts with the same name, and a reader heard it twice.
+    var name = el('span', 'wk-name display', t(d.name));
+    name.setAttribute('aria-hidden', 'true');
+    cell.appendChild(name);
     cell.appendChild(el('span', 'wk-read num', '—'));
     box.appendChild(cell);
   });
@@ -2228,6 +2236,9 @@ function renderWorks() {
     row.appendChild(el('span', 'wk-sval num', '—'));
     tape.appendChild(row);
   });
+  // A dial's drawn size moves without its register moving (the captions
+  // settle once the faces load), and its figures are sized from it.
+  if (casesRO) casesRO.observe($('.wk-dial', box));
   syncWorks();
 }
 
@@ -2254,25 +2265,51 @@ function tera(gb) {
   return gb >= 1024 ? (gb / 1024).toFixed(1) + ' TB' : Math.round(gb) + ' GB';
 }
 
-/* Needle position plus what the caption under it says. Every reading is
-   optional: a machine with no NVIDIA card is a normal machine. */
+/* "16 cores, 32 threads": the hub sends the two counts apart, because the
+   one count psutil gives by default is the logical one, and the dial called
+   a 16-core, 32-thread part "32 cores". */
+function cpuCount(d) {
+  var c = d.cores, n = d.threads;
+  var has = function (v) { return v !== null && v !== undefined; };
+  if (has(c) && has(n) && n !== c) return t('wkCpuCount', { c: c, t: n });
+  if (has(c)) return t('wkCores', { n: c });
+  return has(n) ? t('wkThreads', { n: n }) : '';
+}
+
+/* Needle position, the figure in the dial's window (text), what is said
+   after the dial's name (said) and what its tooltip adds (title). Every
+   reading is optional: a machine with no NVIDIA card is a normal machine.
+   Each figure is said once: the spoken line used to give the window's
+   "58.3 / 126 GB" and then "58.3 of 125.6 GB" after it. */
 function dialRead(key, w) {
   var d = w && w[key];
   if (!d || d.pct === null || d.pct === undefined) return null;
   if (key === 'cpu') {
+    var count = cpuCount(d);
     return { pct: d.pct, text: Math.round(d.pct) + '%',
-             title: t('wkCores', { n: d.cores }) };
+             said: Math.round(d.pct) + '%' + (count ? t('list') + count : ''),
+             title: count };
   }
   if (key === 'mem' || key === 'gpu') {
+    var of = t('wkOf', { a: d.used_gb.toFixed(1), b: d.total_gb.toFixed(1) });
+    // The VRAM needle is the card's memory. How hard the card is working is
+    // a different figure, and it is said beside it rather than dropped.
+    var more = key === 'gpu'
+      ? (d.util_pct !== null && d.util_pct !== undefined
+          ? t('list') + t('wkLoad', { n: Math.round(d.util_pct) }) : '') +
+        (d.name ? t('list') + d.name : '')
+      : '';
     return { pct: d.pct,
              text: d.used_gb.toFixed(1) + ' / ' + Math.round(d.total_gb) + ' GB',
-             title: key === 'gpu' ? d.name : t('wkOf', { a: d.used_gb, b: d.total_gb }) };
+             said: of + more, title: of + more };
   }
+  var rate = t('wkDown', { d: d.down_mbs, u: d.up_mbs });
   return { pct: d.pct,
-           // No-break spaces keep each figure with its arrow when a narrow
-           // window takes the reading onto a second line.
-           text: d.down_mbs.toFixed(1) + ' ↓  ' + d.up_mbs.toFixed(1) + ' ↑  ' + t('wkRate'),
-           title: t('wkDown', { d: d.down_mbs, u: d.up_mbs }) };
+           // The unit is engraved on the face (MB/s), which keeps the window
+           // to one line in a 300px aisle. No-break spaces hold each figure
+           // to its arrow if a narrow window still takes two.
+           text: d.down_mbs.toFixed(1) + ' ↓  ' + d.up_mbs.toFixed(1) + ' ↑',
+           said: rate, title: rate };
 }
 
 function syncWorks() {
@@ -2294,10 +2331,7 @@ function syncWorks() {
     var sr = $('.wk-sr', cell);
     if (!sr) { sr = el('span', 'sr-only wk-sr'); cell.appendChild(sr); }
     sr.textContent = t(d.name) + t('join') +
-      (r ? (d.key === 'net' ? t('wkDown', { d: works.net.down_mbs, u: works.net.up_mbs }) : r.text) +
-           (r.title && d.key !== 'net' ? t('list') + r.title : '') +
-           (r.pct >= 85 ? t('list') + t('wkHot') : '')
-         : t('wkNoReading'));
+      (r ? r.said + (r.pct >= 85 ? t('list') + t('wkHot') : '') : t('wkNoReading'));
   });
   var tape = $('#wk-tape');
   if (!tape) return;
@@ -2339,8 +2373,8 @@ function relabelWorks() {
   syncWorks();
 }
 
-/* On screen only: the board is display:none below 2200px, and a hidden
-   panel must not keep the host sampling. */
+/* On screen only: the board is display:none below 2800px and when the
+   cases are folded, and a hidden panel must not keep the host sampling. */
 function worksVisible() {
   var b = $('#works');
   return !!b && getComputedStyle(b).display !== 'none' &&
@@ -2359,6 +2393,14 @@ var WORKS_STALE_MS = 10000;
 
 function pollWorks() {
   if (!worksVisible() || worksBusy) return Promise.resolve();
+  // A reading that sat on the dials past the stale mark while the board could
+  // not poll (a background tab, a narrow window, a folded case) is not live.
+  // It comes down before the next one is asked for; it used to stand as the
+  // current figure until the next beat landed.
+  if (works && Date.now() - worksOkAt > WORKS_STALE_MS) {
+    works = null;
+    syncWorks();
+  }
   worksBusy = true;
   return fetchJson('/api/works').then(function (w) {
     // An older reading never replaces a newer one.
@@ -2534,18 +2576,59 @@ function moonDisc(phase, r) {
    loose from the curve. */
 var SKY_TICK_HOURS = 24;
 
+/* The register the plate is inscribed in: its content box, which is what the
+   svg's 100% fills. */
+function skyRoom(host) {
+  if (!host || !host.clientWidth) return { w: 300, h: 150 };
+  var cs = getComputedStyle(host);
+  return { w: host.clientWidth,
+           h: host.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom) };
+}
+
+/* The plate's lettering in screen pixels: 10px at the least, and more with
+   the engraving size, never less. It used to be cut at fixed plate units,
+   which on a short case drew RISE at 5px and made SIGNBOARD (whose taller
+   head and tape shrink the plate) print it smaller than FINE. */
+function skyLetterPx() {
+  var ui = uiScale();
+  // 10.1: a tenth over the floor, so a register that settles a fraction of a
+  // pixel shorter after the plate is cut does not land the lettering under it.
+  return { lab: Math.max(10.1, 7 * ui), time: Math.max(10.1, 8.5 * ui) };
+}
+
 function skyBox(host) {
-  var w = (host && host.clientWidth) || 300;
-  var h = (host && host.clientHeight) || 150;
+  var room = skyRoom(host);
+  var w = room.w || 300, h = room.h > 0 ? room.h : 150;
   var H = Math.max(150, Math.min(300, Math.round(300 * h / Math.max(w, 1))));
+  // A register wider than the plate's own 2:1 widens the plate to match
+  // rather than letterboxing a 300-unit plate in the middle of it, so a short
+  // case can keep its ellipse and still have room for the lettering beside it.
+  var W = Math.max(300, Math.round(H * w / Math.max(h, 1)));
+  // Pixels per plate unit as drawn (the svg meets its box), so the lettering
+  // can be cut in units at the size it has to read at.
+  var ppu = Math.min(w / W, h / H) || 1;
+  var px = skyLetterPx();
+  var lab = px.lab / ppu, time = px.time / ppu;
+  // The widest word at a crossing, RISE or 07:09 (tracking included), and
+  // room for it beside the bezel: the ellipse gives up width before the
+  // lettering gives up size.
+  var word = Math.max(2.3 * lab + 6, 2.4 * time + 3);
+  var cx = W / 2;
+  var rx = Math.max(64, Math.min(104, cx - 4 - word - 6.5 - 4));
+  // The lettering stands just outside the bezel, as it did on the 300-unit
+  // plate, not out at the edges of a widened one.
+  var xL = Math.max(4, cx - rx - 6.5 - 4 - word);
   return {
     // The ellipse stops well short of the plate edge on purpose: the two
     // crossings are where the only lettering on the instrument lives, and an
     // ellipse drawn to the full width leaves it nowhere to stand but on the
     // curve itself.
-    W: 300, H: H, cx: 150, cy: H / 2, rx: 104,
+    W: W, H: H, cx: cx, cy: H / 2, rx: rx,
     // Flatter than it is wide, always: a diurnal circle seen edge-on.
-    ry: Math.max(38, Math.min(66, H / 2 - 26))
+    ry: Math.max(38, Math.min(66, H / 2 - 26)),
+    lab: lab, time: time, xL: xL, xR: W - xL, ppu: ppu,
+    // What the plate was cut for; a register of another size re-cuts it.
+    key: Math.round(w) + 'x' + Math.round(h) + '@' + px.lab.toFixed(2)
   };
 }
 
@@ -2572,10 +2655,12 @@ function ringArc(g, from, to) {
        + p1.x.toFixed(2) + ' ' + p1.y.toFixed(2);
 }
 
-function skyText(x, y, cls, text, anchor) {
+function skyText(x, y, cls, text, anchor, size) {
   var n = svgEl('text', {
     x: x.toFixed(1), y: y.toFixed(1), 'text-anchor': anchor || 'middle'
   }, cls);
+  // In plate units, so it is set inline: the sheet's sizes are the fallback.
+  if (size) n.style.fontSize = size.toFixed(2) + 'px';
   n.textContent = text;
   return n;
 }
@@ -2620,13 +2705,15 @@ function buildSky(where, host, weather) {
     viewBox: '0 0 ' + g.W + ' ' + g.H, preserveAspectRatio: 'xMidYMid meet',
     'aria-hidden': 'true'
   }, 'al-arc');
+  // For a stroke the sheet sets in screen pixels (the zh labels' weight).
+  svg.style.setProperty('--ppu', g.ppu.toFixed(3));
   // Nothing has arrived yet: a bare horizon still reads as an instrument,
   // where a blank panel reads as a case with its glass knocked out.
   var plateSeed = window.Cabinet.fnv1a('sky');
   if (!where) {
     window.Cabinet.skyPlate(svg, g, g.cy, plateSeed);
     svg.appendChild(svgEl('line', {
-      x1: 6, y1: g.cy, x2: g.W - 6, y2: g.cy, 'stroke-width': 1
+      x1: g.xL + 2, y1: g.cy, x2: g.xR - 2, y2: g.cy, 'stroke-width': 1
     }, 'a-horizon'));
     return { svg: svg, sun: null };
   }
@@ -2639,10 +2726,10 @@ function buildSky(where, host, weather) {
   if (sun.polar) {
     window.Cabinet.skyPlate(svg, g, g.cy, plateSeed);
     svg.appendChild(svgEl('line', {
-      x1: 6, y1: g.cy, x2: g.W - 6, y2: g.cy, 'stroke-width': 1
+      x1: g.xL + 2, y1: g.cy, x2: g.xR - 2, y2: g.cy, 'stroke-width': 1
     }, 'a-horizon'));
     svg.appendChild(skyText(g.cx, g.cy - 12, 'a-polar',
-      t(sun.polar === 'day' ? 'almPolarDay' : 'almPolarNight')));
+      t(sun.polar === 'day' ? 'almPolarDay' : 'almPolarNight'), 'middle', g.time));
     return { svg: svg, sun: sun, here: here, at: at, tz: tzh };
   }
 
@@ -2664,7 +2751,7 @@ function buildSky(where, host, weather) {
     d: ringArc(g, -half, half), fill: 'none', 'stroke-width': 1
   }, 'a-track'));
   svg.appendChild(svgEl('line', {
-    x1: 6, y1: horizonY.toFixed(2), x2: g.W - 6, y2: horizonY.toFixed(2),
+    x1: g.xL + 2, y1: horizonY.toFixed(2), x2: g.xR - 2, y2: horizonY.toFixed(2),
     'stroke-width': 1
   }, 'a-horizon'));
 
@@ -2694,18 +2781,21 @@ function buildSky(where, host, weather) {
   }
   svg.appendChild(hours);
 
-  // The crossings: label engraved above the horizon, time below it, both at
-  // the plate's outer edges where the curve cannot reach them.
-  [[-half, 4, 'start', 'almRise', shown.rise],
-   [half, g.W - 4, 'end', 'almSet', shown.set]]
+  // The crossings: label engraved above the horizon, time below it, both
+  // outside the bezel where the curve cannot reach them. The gaps to the
+  // horizon grow with the lettering (7 and 17 units at the old 8 and 12).
+  [[-half, g.xL, 'start', 'almRise', shown.rise],
+   [half, g.xR, 'end', 'almSet', shown.set]]
   .forEach(function (foot) {
     var p = spot(g, foot[0]);
     svg.appendChild(svgEl('line', {
       x1: p.x.toFixed(2), y1: (p.y - 4).toFixed(2),
       x2: p.x.toFixed(2), y2: (p.y + 5).toFixed(2), 'stroke-width': 1.5
     }, 'a-foot'));
-    svg.appendChild(skyText(foot[1], horizonY - 7, 'a-lab', t(foot[3]), foot[2]));
-    svg.appendChild(skyText(foot[1], horizonY + 17, 'a-time', hhmm(foot[4]), foot[2]));
+    svg.appendChild(skyText(foot[1], horizonY - 3 - 0.5 * g.lab, 'a-lab',
+      t(foot[3]), foot[2], g.lab));
+    svg.appendChild(skyText(foot[1], horizonY + 8.6 + 0.7 * g.time, 'a-time',
+      hhmm(foot[4]), foot[2], g.time));
   });
 
   var s = spot(g, phi);
@@ -2774,14 +2864,18 @@ function buildRead(w) {
     : '';
 }
 
-function almStrip(label, value, spoken) {
+/* `spoken` stands in for the value; with `whole` it stands in for the
+   label as well, for a strip whose label is only half a sentence. */
+function almStrip(label, value, spoken, whole) {
   var row = el('div', 'al-strip');
-  row.appendChild(el('span', 'al-slabel display', label));
+  var l = el('span', 'al-slabel display', label);
+  row.appendChild(l);
   var v = el('span', 'al-sval num', value);
   row.appendChild(v);
   // "12:10" and "2'39"" are engraving, not speech.
   if (spoken) {
     v.setAttribute('aria-hidden', 'true');
+    if (whole) l.setAttribute('aria-hidden', 'true');
     row.appendChild(el('span', 'sr-only', spoken));
   }
   return row;
@@ -2826,36 +2920,87 @@ function buildTape(sky, where) {
     // LABEL carries the direction — this hall does not signal with colour.
     var ds = Math.round((sun.hours - yest.hours) * 3600);
     var abs = Math.abs(ds);
+    // The engraved English label is SHORTER on its own, as an almanac sets
+    // it; spoken, it carries its comparison ("than yesterday"), as the
+    // Chinese label does on the strip.
     strips.appendChild(almStrip(t(ds >= 0 ? 'almLonger' : 'almShorter'),
       Math.floor(abs / 60) + '\u2032' + pad2(abs % 60) + '\u2033',
-      t('almSrMinutes', { m: Math.floor(abs / 60), s: abs % 60 })));
+      t(ds >= 0 ? 'almSrLonger' : 'almSrShorter', { m: Math.floor(abs / 60), s: abs % 60 }),
+      true));
   }
   box.appendChild(strips);
+}
+
+/* A forecast is for one local day at the place. Past the place's midnight
+   the last one read is yesterday's, and its sunrise, sunset, high and low
+   were engraved as today's until the next poll came round. The board takes
+   it as no forecast until today's lands: the plate falls back on its own
+   arithmetic and the reading on NO READING. */
+function almWeather() {
+  var w = almanac && almanac.weather;
+  var where = almanac && almanac.place;
+  if (!w || !where) return w || null;
+  var day = String(w.sunrise || '').slice(0, 10);
+  if (day.length !== 10) return w;   // a polar day has no sunrise to date it by
+  var here = localAt(where.timezone, new Date());
+  return day === here.year + '-' + pad2(here.month + 1) + '-' + pad2(here.day) ? w : null;
+}
+
+/* The new day's forecast is read at the place's own midnight rather than
+   whenever the ten-minute poll next comes round. The ask is pinned to that
+   midnight once armed. Every render used to re-arm it from its own clock,
+   and the sky tick renders once a minute: a tick in the seconds between the
+   midnight and its ask (or on waking a machine that slept through both)
+   measured the NEXT midnight from a day that had just turned, and put the
+   ask off by a whole day. */
+var almMidnightT = null;
+var almMidnightAt = 0;   // when the pending ask is due; 0 once it has run
+
+function almArmMidnight(due) {
+  // An ask still to come stands against any later one. An earlier due (the
+  // day of a clock change, a place further east) takes its place.
+  if (almMidnightAt && almMidnightAt <= due) return;
+  clearTimeout(almMidnightT);
+  almMidnightAt = due;
+  almMidnightT = setTimeout(almAskAtMidnight, Math.max(0, due - Date.now()));
+}
+
+function almAskAtMidnight() {
+  almMidnightAt = 0;
+  // A poll still out from before midnight comes back with yesterday's, and
+  // pollAlmanac() declines while one is out: ask again once it is back.
+  if (almBusy) { almArmMidnight(Date.now() + 2000); return; }
+  pollAlmanac();
 }
 
 function renderAlmanac() {
   var sub = $('#al-sub');
   if (!sub) return;
   var where = almanac && almanac.place ? almanac.place : null;
+  var wx = almWeather();
   var host = $('#al-sky');
   // Measured BEFORE the old plate comes out: emptying the register first
   // collapses it to nothing, and the new plate would be inscribed in a box
   // of zero height.
-  var sky = buildSky(where, host, almanac ? almanac.weather : null);
+  var sky = buildSky(where, host, wx);
   host.textContent = '';
   host.appendChild(sky.svg);
+  // fitCases() re-cuts the plate when the register changes size under it.
+  host.dataset.plate = skyBox(host).key;
   // The plate is a picture (aria-hidden); what it engraves is said here.
   var said = sky.shown ? t('almSrTimes', { rise: hhmm(sky.shown.rise), set: hhmm(sky.shown.set) })
     : sky.sun && sky.sun.polar ? t(sky.sun.polar === 'day' ? 'almPolarDay' : 'almPolarNight') : '';
   if (said) host.appendChild(el('p', 'sr-only', said));
   sub.textContent = where ? t('almSub', { place: almPlaceName(where) }) : '—';
   $('#al-station').textContent = where ? almStation(where) : '—';
-  buildRead(almanac ? almanac.weather : null);
+  buildRead(wx);
   buildTape(sky, where);
+  if (sky.here) almArmMidnight(sky.at.getTime() + (24 - sky.here.hours) * 3600000 + 2000);
 }
 
-/* On screen only: the board is display:none below 2200px, and a hidden panel
-   must never keep the hub calling out to a weather service. */
+/* On screen only: the board is display:none below 2800px (and when the case
+   is folded), and a hidden panel must never keep the hub calling out to a
+   weather service. */
 function almanacVisible() {
   var b = $('#almanac');
   return !!b && getComputedStyle(b).display !== 'none' &&
@@ -2869,29 +3014,44 @@ function almanacVisible() {
 var ALM_RETRY_MS = 121000;   // just past the hub's 120 s, so the retry is real
 var almRetryT = null;
 var almReadAt = 0;
+// One request at a time: the boot poll and the cases' first hanging both ask,
+// and a retry chain armed by each would run twice.
+var almBusy = false;
 
 function pollAlmanac() {
   if (!almanacVisible()) return Promise.resolve();
+  if (almBusy) return Promise.resolve();
+  almBusy = true;
   return fetchJson('/api/almanac').then(function (a) {
     almanac = a;
     almReadAt = Date.now();
-    clearTimeout(almRetryT);
-    if (!a.weather) almRetryT = setTimeout(pollAlmanac, ALM_RETRY_MS);
     renderAlmanac();
-  }).catch(function () { /* a restarting hub is not a forecast */ });
+  }).catch(function () { /* a restarting hub is not a forecast */ })
+    .then(function () {
+      // Re-armed after a failed request as well as after a miss: armed only
+      // on a reply, one retry that met a hub restart left NO READING up for
+      // the rest of the ten minutes.
+      almBusy = false;
+      clearTimeout(almRetryT);
+      if (!almWeather()) almRetryT = setTimeout(pollAlmanac, ALM_RETRY_MS);
+    });
+}
+
+/* Read the cases the moment they can be seen again: the boot poll declined
+   while they were hidden, and a reading kept from before is as old as the
+   time they spent away. pollWorks() takes a stale reading down itself. */
+function readCases() {
+  if (!works || Date.now() - worksOkAt > WORKS_STALE_MS) pollWorks();
+  if (!almWeather() || Date.now() - almReadAt > ALM_POLL_MS) pollAlmanac();
 }
 
 /* The boards open at 2800px, so a window that grows past that shows a case
-   that has never read anything: the boot poll declined while it was hidden,
-   and the Almanac waited out a minute of blank plate for its sky tick. Read
-   the moment the case opens. */
+   that has never read anything, and the Almanac waited out a minute of blank
+   plate for its sky tick. */
 var boardsT = null;
 window.addEventListener('resize', function () {
   clearTimeout(boardsT);
-  boardsT = setTimeout(function () {
-    if (!works) pollWorks();
-    if (!almanac || !almanac.weather || Date.now() - almReadAt > ALM_POLL_MS) pollAlmanac();
-  }, 150);
+  boardsT = setTimeout(readCases, 150);
 });
 
 function startAlmanac() {
@@ -2907,6 +3067,72 @@ function startAlmanac() {
     renderAlmanac();
   }, SKY_TICK_MS);
   pollAlmanac();
+}
+
+/* ----- Hanging the cases -------------------------------------------------
+   A case hangs from the cornice to the chair rail, so a short screen gives it
+   a short door, and the head and the tape keep their size while the
+   instruments take what is left. On a short enough wall that was nothing:
+   four captions over dials of 0px, a sky plate of no height, and the
+   Almanac's tape running out under the station plate. So the pair is
+   measured as laid out, and when a dial would be drawn smaller than its
+   figures can be read at, or the sky plate lower than its crossings can be
+   lettered in, both cases fold away and the aisle walls take their bays.
+   They go as a pair: one case left hanging in a symmetric hall reads as the
+   other one having fallen off.
+
+   The same pass hands the dials their drawn size (--dpu, which sizes their
+   figures) and re-cuts the sky plate when its register has changed size;
+   it used to keep the old register's proportions for up to a minute and
+   then change shape by itself on the next sky tick. */
+var DIAL_MIN_PX = 80;   // the figures are 13 units at most: 10px needs 77px
+var SKY_MIN_PX = 90;    // RISE and 07:09 at 10px beside a readable ellipse
+var casesHung = null;   // null: below 2800px, where there is no aisle
+var casesRO = null;     // set below; renderWorks() adds the dials to it
+
+function fitCases() {
+  var boards = [$('#works'), $('#almanac')];
+  var dials = $('#wk-dials'), host = $('#al-sky');
+  if (!boards[0] || !boards[1] || !dials || !host) return;
+  // Measured unfolded and folded again in this one task, so an unfolded
+  // frame is never painted.
+  boards.forEach(function (b) { delete b.dataset.fold; });
+  var open = getComputedStyle(boards[0]).display !== 'none';
+  var hung = null, dpu = 1;
+  if (open) {
+    var d = $('.wk-dial', dials), r = d ? d.getBoundingClientRect() : null;
+    var dialPx = r ? Math.min(r.width, r.height) : 0;
+    dpu = dialPx / 100;
+    hung = dialPx >= DIAL_MIN_PX && skyRoom(host).h >= SKY_MIN_PX;
+  }
+  if (hung === false) boards.forEach(function (b) { b.dataset.fold = 'away'; });
+  if (hung) {
+    // Rounded down, so the figures round up: never a hair under their size.
+    dials.style.setProperty('--dpu', (Math.floor(dpu * 1000) / 1000).toFixed(3));
+    if (host.dataset.plate !== skyBox(host).key) renderAlmanac();
+  }
+  var was = casesHung;
+  casesHung = hung;
+  if (was === hung) return;
+  // The wall was laid against the old answer: re-lay its bays around the
+  // cases, or across the aisle where they were.
+  buildAisles();
+  if (hung) readCases();
+}
+
+if (window.ResizeObserver) {
+  // The stage answers a new window size, the doors and the two flexing
+  // registers a new language, engraving size or reading's height.
+  casesRO = new ResizeObserver(function () { fitCases(); });
+  ['#stage', '#works .cs-door', '#almanac .cs-door', '#wk-dials', '#al-sky']
+    .forEach(function (sel) { var n = $(sel); if (n) casesRO.observe(n); });
+}
+// A folded case has no box to report a change of engraving size or language
+// with, and the stage does not always move for one, so the pair stayed folded
+// at a size it would now fit. Those two are asked about directly.
+if (window.MutationObserver) {
+  new MutationObserver(function () { fitCases(); })
+    .observe(root, { attributes: true, attributeFilter: ['data-ui', 'lang'] });
 }
 
 /* Pointer parallax: one rAF writer. It writes each gate shell's transform
@@ -4181,6 +4407,9 @@ document.addEventListener('visibilitychange', function () {
   // The bead goes at most a minute stale while the tab is hidden, but the
   // reading behind it can be an hour old — both are re-read on the way back.
   pollAlmanac();
+  // So are the dials, which otherwise showed the reading from before the tab
+  // was hidden as live until the next beat.
+  pollWorks();
 });
 
 /* ========================================================================
