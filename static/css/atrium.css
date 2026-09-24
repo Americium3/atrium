@@ -3129,7 +3129,10 @@ html[lang="zh"] .g-name { letter-spacing: 0.17em; }
   --rug-veil: rgba(8, 3, 3, 0.42);
   --rope: #6b1019; --rope-lt: rgba(255, 150, 140, 0.35);
   --fascia: #080706;
-  --glass-milk: #f2dcae; --glass-milk-hi: #fff4d8; --glass-milk-lo: #d9b777;
+  /* Backlit milk glass: the brightest and most even field on the masthead,
+     warm white with a hot core. Its ends were a sandy tan, no brighter than
+     the dead glass by day, and on that tan the frost read as grit (AR-14). */
+  --glass-milk: #fdf2dc; --glass-milk-hi: #fffaf0; --glass-milk-lo: #f8e7c6;
   --marquee-ink: #1b120a; --marquee-new: #8a1a14;
   --bulb: #ffe7b0; --bulb-core: #fffaf0; --bulb-glow: rgba(255, 196, 110, 0.55);
   --stone-a: #3b150f; --stone-b: #0c0a08; --stone-c: #5e4524; --stone-d: #6d665a;

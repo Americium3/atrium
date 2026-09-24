@@ -779,6 +779,15 @@ html[lang="zh"] #masthead .p-caption { letter-spacing: 0.3em; }
 /* ==========================================================================
    THE MARQUEE
    ========================================================================== */
+/* At night the lamps behind the glass show through it as a faint banding,
+   brighter over each lamp, a shade warmer between. */
+:root[data-theme="onyx"] #ticker {
+  background:
+    repeating-linear-gradient(90deg, transparent 0, rgba(196, 146, 72, 0.07) calc(60px * var(--ui)), transparent calc(120px * var(--ui))),
+    url('/static/assets/tex/grain-frost.webp') 0 0 / 160px,
+    radial-gradient(72% 170% at 50% 50%, var(--glass-milk-hi), var(--glass-milk) 55%, var(--glass-milk-lo));
+  background-blend-mode: normal, soft-light, normal;
+}
 /* With nothing new on the board the chaser stops and every bulb burns
    evenly; the chase layer only shows while it runs. */
 #ticker:not([data-chase]) .t-chase { opacity: 0; }
