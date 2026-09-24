@@ -1462,6 +1462,11 @@ function renderGates() {
     a.appendChild(notice);
 
     if (!svc.vacant) {
+      // Where the press began, for gateClick: a drag that selects the
+      // notice's text and is released on the arch still ends in a click.
+      a.addEventListener('pointerdown', function (e) {
+        a._pressInNotice = notice.contains(e.target);
+      });
       a.addEventListener('click', function (e) { gateClick(e, a, svc); });
       // Middle-click never fires 'click', so the browser used to open a DARK
       // gate's dead address in a new tab. It gets the launch notice instead.
@@ -1504,6 +1509,10 @@ function gateClick(e, a, svc) {
   e.preventDefault();
   if (dark) {
     var n = $('.g-notice', a);
+    // The notice is there to be read and copied. A click on it, or a drag
+    // that began in it (selecting the path), is not asking for it to close.
+    // Keyboard clicks carry detail 0 and no press of their own.
+    if (n.contains(e.target) || (e.detail > 0 && a._pressInNotice)) return;
     // A double-click is two clicks, and a plain toggle ended it hidden.
     // Only the first click of a run toggles; the rest leave it showing.
     if (e.detail > 1 || n.hidden) showNotice(a, svc);

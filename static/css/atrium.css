@@ -217,6 +217,10 @@ button {
   font: inherit; color: inherit; background: none; border: none; cursor: pointer;
 }
 svg { display: block; }
+/* The hall is signage and scenery. A stray drag across it painted the
+   browser's blue selection boxes over the engraved gate faces. Text worth
+   copying (a DARK gate's launcher path) opts back in where it is drawn. */
+#masthead, #ticker, #concourse, #signal-desk { user-select: none; }
 /* Wing-neutral (the wing metal is reserved for exactly three surfaces). */
 :focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; }
 /* The lever's ring sits on bronze, which on ivory is a dark mid-tone the
@@ -2043,7 +2047,16 @@ html[lang="zh"] .al-arc text {
   padding: 8px 10px;
   letter-spacing: 0.03em;
   word-break: break-all;
+  /* The launcher path is the one line here worth copying, so the notice is
+     the one thing on a gate a drag can select. It rides the arch's lift. */
+  user-select: text;
+  cursor: text;
+  transform: translateY(var(--lift, 0px));
+  transition: transform 0.6s var(--ease-stage);
 }
+/* A DARK gate's link leads to a dead tab, and while the link can be dragged
+   a press on the notice starts a link drag instead of a text selection. */
+.gate[data-state="dark"] { -webkit-user-drag: none; }
 
 /* ==========================================================================
    THE CONCOURSE CLOCK
