@@ -50,6 +50,7 @@ var STR = {
     'note.qb_down': 'qBittorrent unreachable, downloads paused',
     'note.daemon_stale': 'Sync daemon looks stalled',
     'note.fallback': 'Reading state files directly (server down)',
+    'note.digest_stale': 'This edition is more than a day old',
     'k.anime.premiere': 'Premiered',
     'k.anime.premiere.promoted': 'Premiered and auto-subscribed',
     'k.anime.completed': 'Finished, all {eps} {eps|episode|episodes} watched',
@@ -78,7 +79,7 @@ var STR = {
     'k.outreach.invites': '{n} of {target} sent',
     'k.outreach.error.head': 'Drafter hit an error',
     'k.outreach.error': 'Check the Outreach Desk',
-    'k.press.digest_ready.head': "Today's edition is out",
+    'k.press.digest_ready.head': 'The edition is out',
     'k.press.digest_ready': '{stories} {stories|story|stories} across {sections} {sections|section|sections}',
     'k.bourse.briefing.head': 'The morning brief is out',
     'k.bourse.briefing': '{orders} {orders|order awaits|orders await} your review',
@@ -90,6 +91,8 @@ var STR = {
     worksSub: 'Readings from the engine room',
     wkCpu: 'PROCESSOR', wkMem: 'MEMORY', wkGpu: 'GRAPHICS', wkNet: 'TRAFFIC',
     wkHours: 'HOURS RUN', wkDisk: 'STORE', wkFree: '{n} FREE',
+    runD: 'd', runH: 'h', runM: 'm', wkRate: 'MB/s', join: ': ',
+    vacantName: 'Reserved', vacantLamp: 'Not in service',
     wkNoReading: 'NO READING',
     wkCores: '{n} cores', wkOf: '{a} of {b} GB',
     wkDown: '{d} down · {u} up MB/s',
@@ -158,7 +161,7 @@ var STR = {
     darkNotice: '未点亮。用此脚本启动：{hint}',
     lampOpen: '已点亮', lampDark: '离线', lampChecking: '检查中',
     justNow: '刚刚', minAgo: '{n} 分钟前', hAgo: '{n} 小时前', dAgo: '{n} 天前',
-    linesOpen: '线路 {n}/{m}',
+    linesOpen: '线路畅通 {n}/{m}',
     'desc.autopilot': '当季新番，睡着也替你追完入库。',
     'desc.groundstation': '创意工坊 Mod 尽在轨道监测之中。',
     'desc.outreach': '今日的引荐名单，已备好草稿待发。',
@@ -172,10 +175,11 @@ var STR = {
     'stat.queue': '队列 {done}/{total}', 'stat.invited': '已发 {n}/{target}',
     'stat.stories': '{n} 条 · {m} 栏', 'stat.stale': '早报未更新',
     'stat.tools': '架上 {n} 件工具',
-    'stat.orders_await': '{n} 条指令候审', 'stat.brief_of': '晨报 {date}',
+    'stat.orders_await': '{n} 条指令候审', 'stat.brief_of': '证券所晨报 {date}',
     'note.qb_down': 'qBittorrent 不可达，下载已暂停',
     'note.daemon_stale': '同步守护进程疑似卡住',
     'note.fallback': '服务器离线，正在直读状态文件',
+    'note.digest_stale': '这一期晨报已超过一天未更新',
     'k.anime.premiere': '开播',
     'k.anime.premiere.promoted': '开播，已自动订阅',
     'k.anime.completed': '完结，全 {eps} 话看完',
@@ -204,7 +208,7 @@ var STR = {
     'k.outreach.invites': '已发出 {n}/{target}',
     'k.outreach.error.head': '草稿引擎出错',
     'k.outreach.error': '请到 Outreach Desk 查看',
-    'k.press.digest_ready.head': '今日晨报已出版',
+    'k.press.digest_ready.head': '晨报已出版',
     'k.press.digest_ready': '{sections} 个版面 · {stories} 条',
     'k.bourse.briefing.head': '证券所晨报已付印',
     'k.bourse.briefing': '{orders} 条指令候您审阅',
@@ -216,6 +220,8 @@ var STR = {
     worksSub: '本机运转实况',
     wkCpu: '处理器', wkMem: '内存', wkGpu: '显卡', wkNet: '网络',
     wkHours: '已运转', wkDisk: '存储', wkFree: '余 {n}',
+    runD: ' 天 ', runH: ' 时 ', runM: ' 分', wkRate: 'MB/s', join: '：',
+    vacantName: '预留', vacantLamp: '未启用',
     wkNoReading: '无读数',
     wkCores: '{n} 核', wkOf: '{a} / {b} GB',
     wkDown: '下 {d} · 上 {u} MB/s',
@@ -1409,6 +1415,7 @@ function renderGates() {
       : svgUse('sigil', '0 0 96 96', '#sig-fallback'));
     var gname = el('h3', 'g-name display', svc.name);
     gname.id = 'gn-' + svc.id;
+    if (svc.vacant) gname.title = t('vacantName');
     gname.lang = 'en';                 // signage stays English in both languages
     face.appendChild(gname);
     var gdesc = el('p', 'g-desc', t(descKey(svc)));
@@ -1422,6 +1429,7 @@ function renderGates() {
     var lamp = el('div', 'g-lamp');
     lamp.appendChild(el('span', 'lamp-d'));
     var lampT = el('span', 'lamp-t display', svc.vacant ? 'SHUT' : '…');
+    if (svc.vacant) lampT.title = t('vacantLamp');
     lampT.lang = 'en';
     lampT.setAttribute('aria-hidden', 'true');
     lamp.appendChild(lampT);
@@ -2092,7 +2100,10 @@ function runFor(s) {
   if (s === null || s === undefined) return '—';
   var d = Math.floor(s / 86400), h = Math.floor((s % 86400) / 3600);
   var m = Math.floor((s % 3600) / 60);
-  return d ? d + 'd ' + pad2(h) + 'h' : h ? h + 'h ' + pad2(m) + 'm' : m + 'm';
+  var D = t('runD'), H = t('runH'), M = t('runM');
+  // Units come from the table: the Chinese hall printed "已运转 22m".
+  return (d ? d + D.trimEnd() + ' ' + pad2(h) + H :
+          h ? h + H.trimEnd() + ' ' + pad2(m) + M : m + M).trim();
 }
 function tera(gb) {
   return gb >= 1024 ? (gb / 1024).toFixed(1) + ' TB' : Math.round(gb) + ' GB';
@@ -2113,7 +2124,7 @@ function dialRead(key, w) {
              title: key === 'gpu' ? d.name : t('wkOf', { a: d.used_gb, b: d.total_gb }) };
   }
   return { pct: d.pct,
-           text: d.down_mbs.toFixed(1) + ' ↓  ' + d.up_mbs.toFixed(1) + ' ↑',
+           text: d.down_mbs.toFixed(1) + ' ↓  ' + d.up_mbs.toFixed(1) + ' ↑  ' + t('wkRate'),
            title: t('wkDown', { d: d.down_mbs, u: d.up_mbs }) };
 }
 
@@ -2131,11 +2142,11 @@ function syncWorks() {
     var read = $('.wk-read', cell);
     read.textContent = r ? r.text : t('wkNoReading');
     read.setAttribute('aria-hidden', 'true');
-    cell.title = t(d.name) + (r && r.title ? ': ' + r.title : '');
+    cell.title = t(d.name) + (r && r.title ? t('join') + r.title : '');
     // The caption's arrows and the red sector say nothing aloud; this does.
     var sr = $('.wk-sr', cell);
     if (!sr) { sr = el('span', 'sr-only wk-sr'); cell.appendChild(sr); }
-    sr.textContent = t(d.name) + ': ' +
+    sr.textContent = t(d.name) + t('join') +
       (r ? (d.key === 'net' ? t('wkDown', { d: works.net.down_mbs, u: works.net.up_mbs }) : r.text) +
            (r.title && d.key !== 'net' ? ', ' + r.title : '') +
            (r.pct >= 85 ? ', ' + t('wkHot') : '')
@@ -2144,7 +2155,11 @@ function syncWorks() {
   var tape = $('#wk-tape');
   if (!tape) return;
   var hours = tape.querySelector('[data-strip="hours"] .wk-sval');
-  if (hours) hours.textContent = runFor(works && works.hub_uptime_s);
+  // The machine's uptime, as the board promises; the hub's own uptime reset
+  // to minutes on every restart. It stands in only when the host's is null.
+  if (hours) hours.textContent = runFor(works &&
+    (works.host_uptime_s !== null && works.host_uptime_s !== undefined
+      ? works.host_uptime_s : works.hub_uptime_s));
   var disk = tape.querySelector('[data-strip="disk"] .wk-sval');
   if (disk) {
     disk.textContent = works && works.disk
@@ -2208,8 +2223,6 @@ function startWorks() {
 var ALM_POLL_MS = 600000;    // the forecast — behind a 15 min TTL at the hub
 var SKY_TICK_MS = 60000;     // the bead — the one live thing on the board
 var RAD = Math.PI / 180;
-var SYNODIC = 29.530588853;                       // mean lunar month, days
-var MOON_EPOCH = Date.UTC(2000, 0, 6, 18, 14);    // a known new moon
 
 var almanac = null;          // last payload from /api/almanac
 var almTimer = null, skyTimer = null;
@@ -2287,14 +2300,20 @@ function sunTimes(lat, lon, date, tzHours) {
   return { rise: rise, set: set, noon: noon, hours: (w / RAD) * 2 / 15 };
 }
 
+/* The true moon, from clock.js (Meeus), so the Almanac and the clock's
+   aperture read the same sky. The eight names follow the light rather than
+   eight equal slices of the month: a quarter is a half-lit disc, so the
+   principal names only stand near their instant, and "Last quarter · 64%"
+   can no longer be printed. */
 function moonPhase(at) {
-  var age = fmod((at.getTime() - MOON_EPOCH) / 86400000, SYNODIC);
-  return {
-    age: age,
-    lit: (1 - Math.cos(2 * Math.PI * age / SYNODIC)) / 2,
-    waxing: age < SYNODIC / 2,
-    idx: Math.round(age / SYNODIC * 8) % 8
-  };
+  var m = window.AtriumMoon.at(at);
+  var lit = m.lit, idx;
+  if (lit <= 0.03) idx = 0;
+  else if (lit >= 0.97) idx = 4;
+  else if (Math.abs(lit - 0.5) <= 0.06) idx = m.waxing ? 2 : 6;
+  else if (lit < 0.5) idx = m.waxing ? 1 : 7;
+  else idx = m.waxing ? 3 : 5;
+  return { age: m.age, lit: lit, waxing: m.waxing, idx: idx };
 }
 
 /* The terminator is an ELLIPSE. Drawing it as a straight chord, or as a
@@ -2624,8 +2643,10 @@ function buildTape(sky, where) {
   // The same figure the crossings were engraved with, or the tape and the
   // dial print two different day lengths a centimetre apart.
   var dayLen = (sky.shown || sun).hours;
-  var h = Math.floor(dayLen);
-  var mins = Math.round((dayLen - h) * 60);
+  // Rounded as a whole, never field by field: rounding only the minutes
+  // printed "10:60" on the days the forecast was missing.
+  var total = Math.round(dayLen * 60);
+  var h = Math.floor(total / 60), mins = total % 60;
   strips.appendChild(almStrip(t('almDaylight'), h + ':' + pad2(mins),
     t('almSrHours', { h: h, m: mins })));
 
@@ -2809,7 +2830,7 @@ function applyStatuses() {
     var sr = $('.lamp-sr', a);
     if (sr) sr.textContent = t(state === 'open' ? 'srOpen' : state === 'dark' ? 'srDark' : 'srChecking');
     if (state !== 'dark') $('.g-notice', a).hidden = true;
-    var note = st && st.note ? t('note.' + st.note) : '';
+    var note = st && st.note && STR.en['note.' + st.note] !== undefined ? t('note.' + st.note) : '';
     $('.g-lamp', a).title = note || lampT.title;
     var noteEl = $('.g-note', a);
     if (noteEl) { noteEl.textContent = note; noteEl.hidden = !note; }
@@ -2831,6 +2852,12 @@ function applyStatuses() {
 
 function statText(svc) {
   var s = stats[svc.id] || {};
+  var st = statuses[svc.id];
+  // A dark gate says nothing: three services used to keep their last figure
+  // on a dark gate and in the ticker, two dropped it, and nothing said which
+  // was which.
+  if (st && st.state === 'dark') return '';
+  if (svc.id === 'pressroom' && st && st.note === 'digest_stale') return t('stat.stale');
   if (svc.id === 'autopilot') {
     if (s.airing > 0) return t('stat.airing', { n: s.airing });
     if (s.watching !== undefined) return t('stat.watching', { n: s.watching });
@@ -2902,7 +2929,7 @@ function headline(d) {
     case 'autopilot.qb_down':
       return { head: t('k.autopilot.qb_down.head'), detail: t('k.autopilot.qb_down'), warn: true };
     case 'mods.updated':
-      return { head: p.title, detail: t('k.mods.updated', p) + (p.note ? ' — ' + p.note : '') };
+      return { head: p.title, detail: t('k.mods.updated', p) + (p.note ? ' · ' + p.note : '') };
     case 'mods.removed':
       return { head: p.title, detail: t('k.mods.removed'), warn: true };
     case 'mods.banned':
@@ -3624,7 +3651,12 @@ function setLang(next) {
   renderDateline();
   slots().forEach(function (svc) {
     var a = $('#gate-' + svc.id);
-    if (a) $('.g-desc', a).textContent = t(descKey(svc));
+    if (!a) return;
+    $('.g-desc', a).textContent = t(descKey(svc));
+    if (svc.vacant) {
+      $('.g-name', a).title = t('vacantName');
+      $('.lamp-t', a).title = t('vacantLamp');
+    }
   });
   applyStatuses();
   applyStats();

@@ -124,12 +124,24 @@ def test_reads_one_day_out_of_the_daily_arrays():
         w = asyncio.run(almanac.fetch_weather(40.4406, -79.9959))
     finally:
         almanac.httpx = real
-    assert w["label"] == "Thunderstorm" and w["label_zh"] == "雷阵雨"
+    # The condition is the current one (3, overcast), not the day's worst.
+    assert w["label"] == "Overcast"
     assert (w["high_c"], w["low_c"]) == (29.9, 14.1)
     # 29.9C is 85.8F — printed in the tooltip for a reader who lives in a
     # country that speaks Fahrenheit and stands in a hall that does not.
     assert w["high_f"] == 85.8
     assert w["precip_prob"] == 40 and w["wind_kmh"] == 18.4
+
+
+def test_the_daily_code_stands_in_when_the_current_one_is_missing():
+    real = almanac.httpx
+    try:
+        doc = {**FORECAST, "current": {"temperature_2m": 25.2}}
+        _stub(doc)
+        w = asyncio.run(almanac.fetch_weather(40.4406, -79.9959))
+    finally:
+        almanac.httpx = real
+    assert w["label"] == "Thunderstorm" and w["label_zh"] == "雷阵雨"
 
 
 def test_an_unknown_code_still_prints_a_plate():

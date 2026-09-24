@@ -148,7 +148,13 @@ async def fetch_weather(lat: float, lon: float) -> dict[str, Any] | None:
 
     daily = doc.get("daily") or {}
     current = doc.get("current") or {}
-    code = _first(daily.get("weather_code"))
+    # The condition printed beside the current temperature is the current
+    # one. The daily code is the day's most severe condition, so a clear
+    # morning with an evening storm used to read "Thunderstorm" all day. It
+    # stands in only when the current block has no code.
+    code = current.get("weather_code")
+    if code is None:
+        code = _first(daily.get("weather_code"))
     if code is None:
         return None
     label, label_zh = WMO.get(int(code), ("Unknown", "—"))
