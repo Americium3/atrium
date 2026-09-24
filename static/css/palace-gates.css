@@ -377,10 +377,25 @@ html[lang="zh"] .g-lamp { letter-spacing: 0.2em; }
 
 /* ----- The house's budget -------------------------------------------------
    A shallower valance and a tighter sign give the house back the height the
-   apron now spends on 10px type. */
+   apron now spends on 10px type.
+   Inside the house the height gives way before a word does. A service note
+   under a two-line status (Ground Station's "server down" at 1280) grew
+   the apron, and with the description hung at a fixed drop the house cut
+   the slide's last line in half, or the day card's foot. The valance now
+   hangs in the house's own column, and it and the gap under it are what
+   shrink: the swags draw up shallower (down to 5cqw), the gap down to
+   the slide's own margin, and the words keep their size and stay clear of
+   the hem. The slide's field reaches 2.4cqw past the words, so the column
+   keeps that much room under them as well. */
 .g-sign { padding: 2.9cqw 2.4cqw 2.6cqw; }
-.g-valance { height: 11.5cqw; }
-.g-desc { margin-top: 15.5cqw; }
+.g-valance {
+  position: relative; left: auto; right: auto; top: auto; height: auto;
+  flex: 0 1 11.5cqw; min-height: 5cqw;
+  margin: 0 -3%;
+}
+.g-house::before { content: ""; order: 1; flex: 0 1 4cqw; min-height: 2.4cqw; }
+.gate.vacant .g-house::before { display: none; }
+.g-desc { order: 2; margin-top: 0; margin-bottom: 2.4cqw; }
 
 /* ----- The lantern slide ----------------------------------------------------
    At night the description is a lantern slide thrown on the closed tabs: a
@@ -453,11 +468,14 @@ html[lang="zh"] .g-lamp { letter-spacing: 0.2em; }
    The card is the description's own box. It never shrinks below its words
    (a squeezed card let the first line ride up over its own top ornament at
    1280), so its margins and padding are what give way: the tie-backs take
-   a tenth of the house each side, and the card stands just inside them. */
-:root[data-theme="ivory"] .gate[data-state="open"] .g-house { padding-top: 10.5cqw; }
+   a tenth of the house each side, and the card stands just inside them.
+   It stands a hair under the valance's hem, and when the house is short
+   the valance draws up rather than the card losing its foot. */
+:root[data-theme="ivory"] .gate[data-state="open"] .g-house { padding-top: 0; }
+:root[data-theme="ivory"] .gate[data-state="open"] .g-house::before { flex-basis: 1cqw; min-height: 0; }
 :root[data-theme="ivory"] .gate[data-state="open"] .g-desc {
   min-height: auto;
-  margin: 2cqw 10.5cqw 2cqw;
+  margin: 0 10.5cqw 2cqw;
   padding: 2.4cqw 2.6cqw 2.2cqw;
 }
 :root[data-theme="ivory"] .gate[data-state="open"] .g-desc::after { margin-top: 1.3cqw; }
