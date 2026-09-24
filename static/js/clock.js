@@ -147,7 +147,7 @@ function moonDial(cx, cy, r) {
     '<circle class="ck-moonwell" cx="' + cx + '" cy="' + cy + '" r="' + (r - 12) + '"/>' +
     stars +
     '<circle class="ck-moondisc" cx="' + (cx - 4) + '" cy="' + (cy - 2) + '" r="26"/>' +
-    '<circle class="ck-moonshade" id="ck-shade" cx="' + (cx - 26) + '" cy="' + (cy - 2) + '" r="25"/>' +
+    '<path class="ck-moonshade" id="ck-shade" data-cx="' + (cx - 4) + '" data-cy="' + (cy - 2) + '" d=""/>' +
     '<text class="ck-subcap" x="' + cx + '" y="' + (cy + r - 20) + '" text-anchor="middle">LUNA</text>';
 }
 
@@ -252,14 +252,72 @@ function markup() {
 }
 
 /* ---- moon phase ----------------------------------------------------------
-   Age in days since a known new moon, modulo the synodic month. Precise to
-   a few hours over decades, which is well past what an 88-unit aperture can
-   show. Reference new moon: 2000-01-06 18:14 UTC. */
-var SYNODIC = 29.530588853;
-function moonAge(d) {
-  var days = (d.getTime() - Date.UTC(2000, 0, 6, 18, 14)) / 86400000;
-  return ((days % SYNODIC) + SYNODIC) % SYNODIC;
+   The true moon, not the mean one. A mean synodic month from a reference new
+   moon drifts by up to 17 hours in age and 9 points of illumination, which
+   the Almanac prints to 0.1 d and a percent. This finds the actual new moons
+   either side of `d` (Meeus, Astronomical Algorithms, ch. 49, periodic terms
+   for the new moon) and the illuminated fraction from the moon's phase
+   angle (ch. 48, low-precision form): minutes and a fraction of a percent.
+   Shared with the Almanac through window.AtriumMoon so the clock's aperture
+   and the east board can never disagree. */
+var RAD = Math.PI / 180;
+function jdOf(d) { return d.getTime() / 86400000 + 2440587.5; }
+function newMoonJde(k) {
+  var T = k / 1236.85, T2 = T * T, T3 = T2 * T, T4 = T3 * T;
+  var jde = 2451550.09766 + 29.530588861 * k + 0.00015437 * T2 -
+            0.00000015 * T3 + 0.00000000073 * T4;
+  var E = 1 - 0.002516 * T - 0.0000074 * T2;
+  var M = (2.5534 + 29.1053567 * k - 0.0000014 * T2 - 0.00000011 * T3) * RAD;
+  var Mp = (201.5643 + 385.81693528 * k + 0.0107582 * T2 + 0.00001238 * T3 -
+            0.000000058 * T4) * RAD;
+  var F = (160.7108 + 390.67050284 * k - 0.0016118 * T2 - 0.00000227 * T3 +
+           0.000000011 * T4) * RAD;
+  var O = (124.7746 - 1.56375588 * k + 0.0020672 * T2 + 0.00000215 * T3) * RAD;
+  var sin = Math.sin;
+  return jde - 0.4072 * sin(Mp) + 0.17241 * E * sin(M) + 0.01608 * sin(2 * Mp) +
+    0.01039 * sin(2 * F) + 0.00739 * E * sin(Mp - M) - 0.00514 * E * sin(Mp + M) +
+    0.00208 * E * E * sin(2 * M) - 0.00111 * sin(Mp - 2 * F) -
+    0.00057 * sin(Mp + 2 * F) + 0.00056 * E * sin(2 * Mp + M) -
+    0.00042 * sin(3 * Mp) + 0.00042 * E * sin(M + 2 * F) +
+    0.00038 * E * sin(M - 2 * F) - 0.00024 * E * sin(2 * Mp - M) -
+    0.00017 * sin(O) - 0.00007 * sin(Mp + 2 * M) + 0.00004 * sin(2 * Mp - 2 * F) +
+    0.00004 * sin(3 * M) + 0.00003 * sin(Mp + M - 2 * F) +
+    0.00003 * sin(2 * Mp + 2 * F) - 0.00003 * sin(Mp + M + 2 * F) +
+    0.00003 * sin(Mp - M + 2 * F) - 0.00002 * sin(Mp - M - 2 * F) -
+    0.00002 * sin(3 * Mp + M) + 0.00002 * sin(4 * Mp);
 }
+function moonAt(d) {
+  var jd = jdOf(d);
+  // JDE is dynamical time; the ~70 s offset from UT is far under 0.1 d.
+  var k = Math.floor((jd - 2451550.09766) / 29.530588861);
+  while (newMoonJde(k) > jd) k--;
+  while (newMoonJde(k + 1) <= jd) k++;
+  var prev = newMoonJde(k), next = newMoonJde(k + 1);
+  var T = (jd - 2451545) / 36525;
+  var D = (297.8501921 + 445267.1114034 * T) * RAD;
+  var Ms = (357.5291092 + 35999.0502909 * T) * RAD;
+  var Mm = (134.9633964 + 477198.8675055 * T) * RAD;
+  var i = 180 - D / RAD - 6.289 * Math.sin(Mm) + 2.1 * Math.sin(Ms) -
+          1.274 * Math.sin(2 * D - Mm) - 0.658 * Math.sin(2 * D) -
+          0.214 * Math.sin(2 * Mm) - 0.11 * Math.sin(D);
+  var lit = (1 + Math.cos(i * RAD)) / 2;
+  var age = jd - prev, length = next - prev;
+  return { age: age, length: length, fraction: age / length,
+           lit: lit, waxing: age < length / 2 };
+}
+/* The dark part of a disc of radius r at (cx, cy): the limb on the dark side
+   and the terminator, an ellipse of vertical radius r and horizontal radius
+   |1 - 2 lit| r. Waxing is lit on the right, as the moon stands from the
+   northern hemisphere. At new moon it is the whole disc, at full moon none. */
+function moonDarkPath(lit, waxing, cx, cy, r) {
+  var rx = Math.abs(1 - 2 * lit) * r;
+  var top = cx + ' ' + (cy - r), bottom = cx + ' ' + (cy + r);
+  var limb = waxing ? 0 : 1;                      // sweep of the dark-side limb
+  var bulge = (lit < 0.5) === waxing ? 0 : 1;     // terminator bows into the lit side when lit < half
+  return 'M ' + top + ' A ' + r + ' ' + r + ' 0 0 ' + limb + ' ' + bottom +
+         ' A ' + rx.toFixed(2) + ' ' + r + ' 0 0 ' + bulge + ' ' + top + ' Z';
+}
+window.AtriumMoon = { at: moonAt, darkPath: moonDarkPath };
 
 /* ---- the niche -----------------------------------------------------------
    The recess the dial is set into: a stepped deco surround on a 200x260 box,
@@ -312,7 +370,7 @@ function build(host) {
     gB: svg.querySelector('.ck-gB'), date: svg.querySelector('#ck-date'),
     shade: svg.querySelector('#ck-shade'),
   };
-  var lastDate = -1, lastShade = -1, lastMinute = -1;
+  var lastDate = -1, lastShade = '', lastMinute = -1, moonMinute = -1;
 
   function paint(now, deadbeat) {
     var ms = deadbeat ? 0 : now.getMilliseconds();
@@ -343,12 +401,19 @@ function build(host) {
       lastDate = dom;
       parts.date.textContent = dom < 10 ? '0' + dom : String(dom);
     }
-    /* The shade sweeps 295 -> 725 across the 12 o'clock aperture; new moon
-       covers the disc, full moon parks it clear. Only rewritten when the
-       rounded position actually moves — a synodic month is 2.5M seconds. */
-    var phase = moonAge(now) / SYNODIC;
-    var cx = Math.round(474 + Math.cos(phase * 2 * Math.PI) * 26);
-    if (cx !== lastShade) { lastShade = cx; parts.shade.setAttribute('cx', cx); }
+    /* The shade is the dark part of the disc, drawn as a path from the
+       true phase: new moon covers it all, a waning moon is lit on the left.
+       (It was a circle slid across the disc, which drew every waning phase
+       as its waxing twin and left a crescent lit at new moon.) Computed once
+       a minute and written only when the path changes. */
+    var minute = Math.floor(now.getTime() / 60000);
+    if (minute !== moonMinute) {
+      moonMinute = minute;
+      var m = moonAt(now);
+      var d = moonDarkPath(Math.round(m.lit * 200) / 200, m.waxing,
+        +parts.shade.dataset.cx, +parts.shade.dataset.cy, 26.4);
+      if (d !== lastShade) { lastShade = d; parts.shade.setAttribute('d', d); }
+    }
   }
 
   return paint;
