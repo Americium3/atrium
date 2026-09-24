@@ -193,7 +193,7 @@ SERVICES = [
         "addr": "127.0.0.1:8765",
         "sigil": "pressroom",
         "desc_key": "pressroom",
-        "launch_hint": r"X:\Github\yorha-news\scripts\run_server.py",
+        "launch_hint": r"X:\Github\yorha-news\scripts\run_server_hidden.vbs",
         "order": 4,
     },
     {
