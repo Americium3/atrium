@@ -407,9 +407,13 @@ function bossAndCrystal() {
     '<circle class="ck-boss-lt" cx="492" cy="492" r="9"/>' +
     // The crystal: a domed glass over all of it. One long soft reflection of
     // the room's brightest source, one short sharp one, and the lit edge.
+    // The sharp one lies in the field inside the numerals: laid on the
+    // chapter ring it ran straight through XI and took it to 3.7:1, and no
+    // light crosses lettering.
     '<g class="ck-crystal">' +
       '<ellipse class="ck-dome" cx="400" cy="300" rx="330" ry="210" transform="rotate(-32 400 300)"/>' +
-      '<path class="ck-glint" d="M254 260 A300 300 0 0 1 430 128 A320 320 0 0 0 272 282 Z"/>' +
+      '<path class="ck-glint" d="M' + pts([pt(295, 312)]) + ' A312 312 0 0 1 ' + pts([pt(340, 312)]) +
+        ' A330 330 0 0 0 ' + pts([pt(297, 290)]) + ' Z"/>' +
       '<circle class="ck-crys-edge" cx="500" cy="500" r="466"/>' +
       '<path class="ck-crys-lo" d="M150 700 A400 400 0 0 0 850 700"/>' +
     '</g>';

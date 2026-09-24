@@ -3709,6 +3709,15 @@ html[lang="zh"] .bay-plate { font-weight: 700; letter-spacing: 0.16em; }
    quarter of the way to the ink: the body tone read at 2:1 in Ivory and all
    but vanished in the Bureau's nickel (LY-6). */
 :root[data-theme="ivory"] .ck-numq { fill: color-mix(in srgb, var(--lead-0) 75%, #22180c); }
+/* The quarters are gilt laid in a cut, and the cut's dark wall rings each
+   figure. At 1280 a numeral is 11.6px and its hairlines never fill a pixel,
+   so leaf alone read at 3.6-4.1:1 while the inked figures beside it held 7:1
+   (LY-6, still reproducing). The ring is a hairline in the ink at every
+   size, so the leaf still shows inside it on a large dial. */
+.ck-numq {
+  stroke: color-mix(in srgb, #22180c 85%, transparent); stroke-width: 1.4;
+  vector-effect: non-scaling-stroke; paint-order: stroke; stroke-linejoin: round;
+}
 .ck-subring { stroke: var(--lead-1); }
 .ck-subring2 { stroke: rgba(60, 40, 14, 0.35); }
 .cks.s0 { stop-color: rgba(60, 40, 10, 0); } .cks.s1 { stop-color: rgba(60, 40, 10, 0.34); }
