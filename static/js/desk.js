@@ -437,10 +437,10 @@ var MY = 227, MR = 16;                               // the ammeter
 var JWX = 95, JWY = 192, JR = 7;                     // the pilots
 /* the switch */
 var PL = 108, PU = 146, HY = (PL + PU) / 2;          // the two poles and the handle's axis
-var BL = 118, WB = 22, TB = 8, ZB = 22;              // blade length, width, thickness, stand-off
+var BL = 118, WB = 26, TB = 10, ZB = 22;             // blade length, width, thickness, stand-off
 var JX = 100, PLATE_T = 79;                          // the jaws' centres, the plates' top edge
 var LEAF = 2.8, LEAF_Z = ZB + WB / 2 + 2, JAW_W = 8.5; // the jaws' spring leaves
-var XB0 = BL - 6, XB1 = BL + 3, XBQ = 8, XBY = 5;    // the crossbar: along, across, past the blades
+var XB0 = BL - 6, XB1 = BL + 3, XBQ = 10, XBY = 5;   // the crossbar: along, across, past the blades
 var HANDLE = [                                       // the handle, turned: [t, r]
   [0, 8.6], [2.4, 8.6], [2.4, 6.9], [11, 6.9], [11.8, 7.8], [13.4, 7.8], [13.4, 6.3], [15, 6.5]
 ];
@@ -829,7 +829,7 @@ function jaw(g, jx, yp, id) {
    heel, an upright pin through them and a nut on the pin. A cheek's
    outline is taken in (x, -z) and swept up the pin. */
 var CHEEK_OL = (function () {
-  var r = 9, ol = [[-r, -5.5], [r, -5.5]];
+  var r = 12, ol = [[-r, -5.5], [r, -5.5]];
   for (var i = 0; i <= 10; i++) { var a = i / 10 * Math.PI; ol.push([r * Math.cos(a), -ZB - r * Math.sin(a)]); }
   return ol.reverse();
 })();
@@ -914,7 +914,7 @@ function buildSwitch(q) {
   });
   [PL, PU].forEach(function (yp, k) {
     castBox(sh, -17, 17, yp - 13.5, yp + 13.5, 5.5);
-    castBox(sh, -9, 9, yp - TB / 2 - LEAF, yp + TB / 2 + LEAF, ZB + 9);
+    castBox(sh, -12, 12, yp - TB / 2 - LEAF, yp + TB / 2 + LEAF, ZB + 12);
     hinge(gear, yp, 'board-hinge-' + k);
   });
   // the maker's plate under the hinge
@@ -1107,6 +1107,18 @@ function buildPose(i) {
     lin(defs, bid, h0[0], h0[1], h1[0], h1[1], [[0, 'var(--kc-0)', 0.3], [0.2, 'var(--kc-5)', 0], [0.66, 'var(--kc-5)', 0.06], [0.76, 'var(--kc-5)', 0.4],
         [0.88, 'var(--kc-5)', 0.5], [0.96, 'var(--kc-5)', 0.14], [1, 'var(--kc-5)', 0]]);
     add(g, 'path', { d: top, fill: U(bid) });
+    // The hot lip: the chamfer along the long arris nearest the eye takes
+    // the key as one hard line, brightest over the middle of the run where
+    // the grip's hand never reaches, and gone where the arris turns away.
+    var sg = vdot(F3.b, viewAt(at(F3, BL / 2, 0, 0))) >= 0 ? 1 : -1, bq = sg * (WB / 2 - 0.95);
+    var fn = vnorm(vadd(vmul(F3.b, sg), F3.c)), vl = vdot(fn, viewAt(at(F3, BL / 2, bq, TB / 2)));
+    if (vl > 0.15) {
+      var l0 = proj(at(F3, 7, bq, TB / 2 - 0.95)), l1 = proj(at(F3, BL - 2.5, bq, TB / 2 - 0.95));
+      lin(defs, bid + 'l', l0[0], l0[1], l1[0], l1[1], [[0, 'var(--kc-5)', 0.25], [0.3, 'var(--kc-5)', 0.85], [0.62, 'var(--kc-5)', 1],
+          [0.9, 'var(--kc-5)', 0.7], [1, 'var(--kc-5)', 0.3]]);
+      add(g, 'path', { d: 'M' + n2(l0[0]) + ' ' + n2(l0[1]) + 'L' + n2(l1[0]) + ' ' + n2(l1[1]),
+                       style: 'fill:none;stroke:url(#' + bid + 'l);stroke-width:1.1;stroke-linecap:round;opacity:' + n2(clamp01((vl - 0.15) * 2.2)) });
+    }
   });
   // the crossbar joins the tips, riveted through
   var g = P[2], defs = add(g, 'defs');
