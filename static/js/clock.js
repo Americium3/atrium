@@ -134,6 +134,17 @@ function numerals() {
   }).join('');
 }
 
+/* A subdial's caption: 26 units, set on a baseline 60 below the arbor,
+   under the moon, the aperture and the works and inside the batons. It is
+   light on the dark moon and works wells and ink on the white dials, and it
+   is engraved only where the dial draws it at 10px or more (atrium.css).
+   WORKS is set close to fit the well's chord. */
+function subcap(cx, cy, word, well) {
+  return '<text class="ck-subcap' + (well ? ' on-well' : '') + '" x="' + cx + '" y="' + (cy + 60) +
+    '" text-anchor="middle"' + (word.length > 4 ? ' textLength="88" lengthAdjust="spacingAndGlyphs"' : '') +
+    '>' + word + '</text>';
+}
+
 function subframe(cx, cy, r) {
   return '<circle class="ck-subsink" cx="' + cx + '" cy="' + cy + '" r="' + r + '" fill="url(#ck-sink)"/>' +
          '<circle class="ck-subring" cx="' + cx + '" cy="' + cy + '" r="' + r + '"/>' +
@@ -157,7 +168,7 @@ function moonDial(cx, cy, r) {
     stars +
     '<circle class="ck-moondisc" cx="' + (cx - 4) + '" cy="' + (cy - 2) + '" r="26"/>' +
     '<path class="ck-moonshade" id="ck-shade" data-cx="' + (cx - 4) + '" data-cy="' + (cy - 2) + '" d=""/>' +
-    '<text class="ck-subcap" x="' + cx + '" y="' + (cy + r - 20) + '" text-anchor="middle">LUNA</text>';
+    subcap(cx, cy, 'LUNA', true);
 }
 
 /* 3 — date, read through an aperture on a 31-step ring. */
@@ -171,10 +182,12 @@ function dateDial(cx, cy, r) {
          '" transform="rotate(' + (i * (360 / 31)) + ' ' + cx + ' ' + cy + ')"/>';
   }
   return subframe(cx, cy, r) + t +
-    '<rect class="ck-datewin" x="' + (cx - 34) + '" y="' + (cy - 20) + '" width="68" height="40"/>' +
+    // the aperture is cut for a numeral of 44 units, 10px on the smallest
+    // dial the hall draws (1280x800)
+    '<rect class="ck-datewin" x="' + (cx - 37) + '" y="' + (cy - 23) + '" width="74" height="46"/>' +
     '<text class="ck-datenum" id="ck-date" x="' + cx + '" y="' + (cy + 1) +
     '" text-anchor="middle" dominant-baseline="central">00</text>' +
-    '<text class="ck-subcap" x="' + cx + '" y="' + (cy + r - 20) + '" text-anchor="middle">DATE</text>';
+    subcap(cx, cy, 'DATE', false);
 }
 
 /* 6 — small seconds. Taking the seconds off the centre keeps the main dial
@@ -189,7 +202,7 @@ function secondsDial(cx, cy, r) {
          '" transform="rotate(' + (i * 6) + ' ' + cx + ' ' + cy + ')"/>';
   }
   return subframe(cx, cy, r) + t +
-    '<text class="ck-subcap" x="' + cx + '" y="' + (cy + r - 20) + '" text-anchor="middle">SEC</text>';
+    subcap(cx, cy, 'SEC', false);
 }
 /* The small seconds' baton, standing at XII about its arbor. */
 function secPoints(cx, cy, r) {
@@ -214,7 +227,7 @@ function wheel(R, n, cls, id) {
 function worksDial(cx, cy, r) {
   return subframe(cx, cy, r) +
     '<circle class="ck-gearwell" cx="' + cx + '" cy="' + cy + '" r="' + (r - 12) + '"/>' +
-    '<text class="ck-subcap" x="' + cx + '" y="' + (cy + r - 20) + '" text-anchor="middle">WORKS</text>';
+    subcap(cx, cy, 'WORKS', true);
 }
 
 function hand(cls, len, tail, w, pomme, pommeAt, twin) {
@@ -348,8 +361,9 @@ function dialMoving() {
     rotor('s', 500, 705, '<g class="ck-ss"><polygon class="ck-sec" points="' + sp + '"/>' +
       '<circle class="ck-secring" cx="500" cy="729" r="8"/></g>') +
     sheet('<circle class="ck-subboss" cx="500" cy="705" r="7"/>') +
-    rotor('gA', 279, 494, '<g transform="translate(279,494)">' + wheel(30, 14, 'ck-gear', 'ck-gA') + '</g>') +
-    rotor('gB', 321, 520, '<g transform="translate(321,520)">' + wheel(19, 9, 'ck-gear2', 'ck-gB') + '</g>') +
+    // the works stand a little high in their well, clear of its caption
+    rotor('gA', 279, 488, '<g transform="translate(279,488)">' + wheel(30, 14, 'ck-gear', 'ck-gA') + '</g>') +
+    rotor('gB', 321, 514, '<g transform="translate(321,514)">' + wheel(19, 9, 'ck-gear2', 'ck-gB') + '</g>') +
     rotor('h', 500, 500, '<g class="ck-hsh ck-sh-h">' + hand('', 288, 80, 20, 36, 228, true) + '</g>', SHADOW.h) +
     rotor('m', 500, 500, '<g class="ck-hsh ck-sh-m">' + hand('', 396, 96, 11, 24, 338, false) + '</g>', SHADOW.m) +
     rotor('h', 500, 500, hand('ck-h', 288, 80, 20, 36, 228, true)) +

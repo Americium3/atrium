@@ -2454,6 +2454,8 @@ html[lang="zh"] .g-name { letter-spacing: 0.17em; }
 #clock {
   position: absolute;
   left: 50%; bottom: 0;
+  /* the subdial captions ask how large the dial is drawn */
+  container: ck / inline-size;
   transform: translateX(-50%);
   z-index: 1;
   pointer-events: none;   /* the dial is scenery, never a click target */
@@ -2549,10 +2551,14 @@ html[lang="zh"] .g-name { letter-spacing: 0.17em; }
   stroke-width: 1; vector-effect: non-scaling-stroke;
 }
 .ck-subcap {
-  fill: var(--ink-faint); font-size: 19px; letter-spacing: 4px;
+  fill: var(--ink-faint); font-size: 26px; font-weight: 600; letter-spacing: 2px;
   font-family: var(--serif);
 }
 .ck-subboss { fill: var(--bronze); }
+/* A subdial caption is 26 units, which is 10px on a dial drawn at 450px, and
+   the niche is the dial over 0.8817. On a smaller dial it cannot be read, so
+   it is not engraved at all (LY-5). */
+@container ck (max-width: 510px) { .ck-subcap { display: none; } }
 .ck-moonwell, .ck-gearwell, .ck-gearhole { fill: var(--base); }
 .ck-moondisc { fill: var(--metal); }
 .ck-moonshade { fill: var(--base); }
@@ -2562,7 +2568,7 @@ html[lang="zh"] .g-name { letter-spacing: 0.17em; }
   stroke-width: 1.5; vector-effect: non-scaling-stroke;
 }
 .ck-datenum {
-  fill: var(--ink); font-size: 38px; font-weight: 540; font-family: var(--serif);
+  fill: var(--ink); font-size: 44px; font-weight: 540; font-family: var(--serif);
   font-variant-numeric: tabular-nums lining-nums;
 }
 .ck-gear { fill: var(--bronze); }
@@ -3598,10 +3604,17 @@ html[lang="zh"] .g-name { letter-spacing: 0.17em; }
 .ck-minute { fill: #5a4a34; }
 .ck-num { fill: #22180c; }
 .ck-numq { fill: var(--lead-1); }
+/* On the unlit day dial the quarters are the leaf's glaze tone, deepened a
+   quarter of the way to the ink: the body tone read at 2:1 in Ivory and all
+   but vanished in the Bureau's nickel (LY-6). */
+:root[data-theme="ivory"] .ck-numq { fill: color-mix(in srgb, var(--lead-0) 75%, #22180c); }
 .ck-subring { stroke: var(--lead-1); }
 .ck-subring2 { stroke: rgba(60, 40, 14, 0.35); }
 .cks.s0 { stop-color: rgba(60, 40, 10, 0); } .cks.s1 { stop-color: rgba(60, 40, 10, 0.34); }
-.ck-subcap { fill: #6b5a40; }
+/* The captions: ink on the white date and seconds dials, the leaf's lit
+   tone on the dark moon and works wells (LY-5). */
+.ck-subcap { fill: #22180c; }
+.ck-subcap.on-well { fill: var(--lead-3); }
 .ck-subboss { fill: var(--lead-2); }
 .ck-moonwell { fill: #1c2b62; }
 .ck-moonshade { fill: #1c2b62; }
