@@ -1252,7 +1252,8 @@ function renderGates() {
   wrap.textContent = '';
   if (cutRO) cutRO.disconnect();
   // One identity per gate, off a fixed hash of its id (palace.js): the
-  // archivolts, the relief programme, the fanlight and the velvet.
+  // archivolts, the relief programme, the fanlight and the velvet's folds
+  // and swags. The velvet's colour is the mark's (velvetFor).
   var idents = window.Palace ? window.Palace.identities(slots()) : {};
   gateDomOrder().forEach(function (svc) {
     // A reserved gate opens onto nothing, so it is not a link and not a tab

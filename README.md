@@ -474,8 +474,9 @@ colours. Each mark is an enamelled badge cut from one die (a turned gilt
 lip, translucent enamel over engine turning and a stone at the crown)
 holding one subject drawn from photographs of the real object and cut into
 flat planes of tone along the hall's key light. Each has a small cut for
-the Ledger, for a gate whose mark comes to under 56 screen pixels (the
-halls from 1280 to 1920 on an ordinary screen) and for a future favicon.
+the Ledger, for a gate whose mark comes to under 56 screen pixels (every
+hall up to 2200 wide on an ordinary screen; from 2560 up the gates show
+the full cut) and for a future favicon.
 `HUE` holds each app's enamel beside the dye of the velvet its gate hangs
 (per theme) and the ink its day card is printed in, so the house follows
 the mark. The fanlight's glass is still picked by the gate's hash. DESIGN.md, "App marks (v7)",
@@ -494,8 +495,11 @@ Building an app's own brand directory (favicon, PNGs, maskable tile,
 manifest) is opt-in. `--brand` refuses app names it does not know, refuses
 any directory outside this repository unless `--allow-outside-repo` is
 given, and rasterises through `icons/raster.js`, which runs only under the
-Atrium kit's Playwright shim. The owner syncs the apps after signing off on
-the marks.
+Atrium kit's Playwright shim. For Autopilot, `--allow-outside-repo` without
+`--out` also rewrites the inline `<symbol id="applogo">` in
+`anime-rss-auto/static/index.html`, between its sentinels. Builds under
+`icons/_build/` stay out of git. The owner syncs the apps after signing off
+on the marks.
 
 ```
 NODE_PATH=/x/Github/atrium-wt/_kit/shim python icons/gen.py --brand autopilot --out icons/_build/autopilot
@@ -505,9 +509,13 @@ NODE_PATH=/x/Github/atrium-wt/_kit/shim python icons/gen.py --brand autopilot --
 `tests/test_web_assets.py` checks that the page carries what the generator
 draws, and that every velvet, as the sheets serve it, stays in the colour
 family of the ground its mark is drawn on in the page, under the leaf's
-luminance and apart from its wing's other cloths, open or dark. It also
-fails if any rule or script hangs a gate in a cloth by another road than
-the generated dyes and `velvetFor`.
+luminance and apart from its wing's other cloths, open or dark, and a
+little apart from the other wing's. It also fails if any rule or script
+hangs a gate in a cloth by another road than the generated dyes and
+`velvetFor`: a layer of colour over the velvet, a rule that singles out
+one gate for anything but its custom properties, a filter or blend that
+turns a house's hue, or a property name spelled in escapes or built from
+pieces. No mark, cloth or card ink may be the clock's sapphire.
 
 ## Debug URL parameters
 
