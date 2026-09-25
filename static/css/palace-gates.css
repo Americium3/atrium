@@ -696,12 +696,13 @@ html[lang="zh"] .g-lamp { letter-spacing: 0.2em; }
    The hem keeps only a faint cold bounce off the stage. By day the shade
    goes as deep: an open house shows only its gathered tabs beside a lit
    card, and a 72% day mix left the lighter dyes (olive gold, emerald,
-   slate) brighter than a claret or plum house that was open. The day
-   velvets are a step lighter than the night ones, so the same depth of
-   shade lands them a touch above the night's dark houses, and every DARK
-   house sits well under the darkest open one in both themes. */
-:root[data-theme="onyx"] .gate[data-state="dark"] { --velvet-shade: color-mix(in srgb, var(--velvet) 34%, #0f0d0f); --tab-foot: rgba(150, 168, 190, 0.05); }
-:root[data-theme="ivory"] .gate[data-state="dark"] { --velvet-shade: color-mix(in srgb, var(--velvet) 28%, #110e0c); }
+   slate) brighter than a claret or plum house that was open. The mix still
+   keeps enough of each dye that, under the fold map's multiply, two dark
+   houses of one wing stay two cloths (a CIEDE2000 of 10 as rendered; at a
+   third of the dye they came to 5 or 6 and read as one brown), and every
+   DARK house sits under the darkest open one in both themes. */
+:root[data-theme="onyx"] .gate[data-state="dark"] { --velvet-shade: color-mix(in srgb, var(--velvet) 55%, #0f0d0f); --tab-foot: rgba(150, 168, 190, 0.05); }
+:root[data-theme="ivory"] .gate[data-state="dark"] { --velvet-shade: color-mix(in srgb, var(--velvet) 48%, #110e0c); }
 .gate[data-state="dark"] .g-tab,
 .gate[data-state="dark"] .g-valance { background-color: var(--velvet-shade); }
 .gate[data-state="dark"] .mirror-art .mr-house { fill: color-mix(in srgb, var(--velvet-shade) 42%, #000); }

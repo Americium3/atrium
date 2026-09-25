@@ -254,10 +254,15 @@ VELVET_HUE_TOLERANCE = 30.0
 NEUTRAL_CHROMA = 12.0
 NEUTRAL_VELVET_CHROMA = 10.0
 # Two gates of one wing must not read as the same cloth (CIEDE2000), open or
-# with the house dark (the shade mixes in palace-gates.css).
+# with the house dark (the shade mixes in palace-gates.css), measured as the
+# cloth renders: the dye multiplied by the fold map, whose mean is FOLD (the
+# mean of static/assets/tex/fab-velvet-pile.webp; the pile's grain is laid
+# in soft light at its neutral grey and moves nothing). Measured on the dyes
+# alone the dark houses passed at 15 and rendered at 5 to 7.
 WING_MIN_DE = 15.0
-WING_MIN_DE_DARK = 15.0
-DARK_MIX = {"onyx": (0.34, "#0f0d0f"), "ivory": (0.28, "#110e0c")}
+WING_MIN_DE_DARK = 10.0
+FOLD = 0.431
+DARK_MIX = {"onyx": (0.55, "#0f0d0f"), "ivory": (0.48, "#110e0c")}
 
 
 def _page_marks() -> dict[str, str]:
@@ -442,8 +447,13 @@ def _mix(c: str, k: float, base: str) -> str:
 def test_the_gates_of_one_wing_hang_different_cloth():
     """Two gates side by side must not hang what reads as one cloth, with
     the house open or dark (the dark shade is each dye mixed toward black,
-    as palace-gates.css mixes it). Read from the stylesheets as served."""
+    as palace-gates.css mixes it), as the cloth renders under its fold map.
+    And a dark house has to read as dark: every DARK house in a theme stays
+    under the darkest open one. Read from the stylesheets as served."""
     hue, wings, velvets = _literal("HUE"), _wings(), _shipped_velvets()
+
+    def folded(c):
+        return _mix(c, FOLD, "#000000")
     bad = []
     for theme in ("onyx", "ivory"):
         k, base = DARK_MIX[theme]
@@ -452,12 +462,17 @@ def test_the_gates_of_one_wing_hang_different_cloth():
             for i, a in enumerate(apps):
                 for b in apps[i + 1:]:
                     va, vb = velvets[(theme, a)], velvets[(theme, b)]
-                    de = _de2000(va, vb)
+                    de = _de2000(folded(va), folded(vb))
                     if de < WING_MIN_DE:
                         bad.append(f"{theme} {wing}: {a} and {b} differ by only {de:.1f}")
-                    dd = _de2000(_mix(va, k, base), _mix(vb, k, base))
+                    dd = _de2000(folded(_mix(va, k, base)), folded(_mix(vb, k, base)))
                     if dd < WING_MIN_DE_DARK:
                         bad.append(f"{theme} {wing}: dark {a} and {b} differ by only {dd:.1f}")
+        darkest_open = min(_luminance(folded(velvets[(theme, a)])) for a in hue)
+        for a in hue:
+            lum = _luminance(folded(_mix(velvets[(theme, a)], k, base)))
+            if lum >= darkest_open:
+                bad.append(f"{theme}: dark {a} is as light as an open house")
     assert not bad, "; ".join(bad)
 
 
