@@ -165,20 +165,23 @@ start, slight overshoot, damped clank settle. It never filters the Ledger.
 
 ### Entrance
 
-You arrive from the street and walk in. At night the palace is dark but for
-its lit doors; ATRIUM comes on in bulbs letter by letter, the canopy's
-downlights follow row by row and the border bulbs chase. The centre doors
-swing in as you come up to them, you walk under the canopy, and through the
-etched glass and the open doorway you see the foyer, whose far wall is the
-hall. It comes up to full light as you cross the threshold, its fanlights
-lighting from the clock outward and the marquee chasing once. By day the
-street starts under a cloud; the sun comes out, a glint runs along the gilt
-letters, the swinging glass flashes, and the low sun follows you in through
-the doors while your eye adjusts to the foyer.
-It plays on every load and takes about 3.5 s by night and 3.2 s by day. Any
-click, tap, wheel or keypress cuts it short (browser shortcuts such as F5
-still work), `?entrance=0` suppresses it, and reduced motion collapses it to
-a fade.
+You arrive from the street and walk in. The street comes into focus as the
+page opens. At night the palace is dark but for its lit doors; ATRIUM comes
+on in bulbs letter by letter, the canopy's downlights follow row by row and
+the border bulbs chase. The centre doors swing in as you come up to them,
+you walk under the canopy, and through the etched glass and the open doorway
+you see the foyer, whose far wall is the hall. It comes up to full light as
+you cross the threshold, its fanlights lighting from the clock outward and
+the marquee chasing once. By day the street starts under a cloud; the sun
+comes out, a glint runs along the gilt letters, the swinging glass flashes,
+and the low sun follows you in through the doors while your eye adjusts to
+the foyer.
+It plays on every load and takes about 3.5 s from the page's first frame to
+the lit hall. Any click, tap, wheel or keypress cuts it short (browser keys
+such as F5, Back and Ctrl+R still work), and so does a change of theme,
+language or wing. `?entrance=0` suppresses it, and reduced motion collapses
+it to a fade. Under Chinese the posters by the doors are lettered in
+Chinese.
 
 ### Depth
 
