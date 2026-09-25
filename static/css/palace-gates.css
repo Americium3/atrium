@@ -642,18 +642,18 @@ html[lang="zh"] .g-lamp { letter-spacing: 0.2em; }
    live beside the enamel in icons/gen.py HUE and are written here by it;
    edit them there. A service with no mark hangs the house claret. */
 :root[data-theme="onyx"] .gate[data-velvet="autopilot"] { --velvet: #92304c; }  /* mulberry */
-:root[data-theme="onyx"] .gate[data-velvet="groundstation"] { --velvet: #8a4f22; }  /* cognac */
+:root[data-theme="onyx"] .gate[data-velvet="groundstation"] { --velvet: #885020; }  /* cognac */
 :root[data-theme="onyx"] .gate[data-velvet="outreach"] { --velvet: #1f5066; }  /* prussian */
 :root[data-theme="onyx"] .gate[data-velvet="pressroom"] { --velvet: #24754b; }  /* emerald */
 :root[data-theme="onyx"] .gate[data-velvet="arsenal"] { --velvet: #44545f; }  /* gunmetal */
-:root[data-theme="onyx"] .gate[data-velvet="bourse"] { --velvet: #6b692c; }  /* olive gold */
+:root[data-theme="onyx"] .gate[data-velvet="bourse"] { --velvet: #73662b; }  /* olive gold */
 :root[data-theme="onyx"] .gate[data-velvet="house"] { --velvet: #c22b3b; }  /* claret */
 :root[data-theme="ivory"] .gate[data-velvet="autopilot"] { --velvet: #9c4660; }  /* mulberry */
-:root[data-theme="ivory"] .gate[data-velvet="groundstation"] { --velvet: #a0622a; }  /* cognac */
-:root[data-theme="ivory"] .gate[data-velvet="outreach"] { --velvet: #2d5d74; }  /* prussian */
+:root[data-theme="ivory"] .gate[data-velvet="groundstation"] { --velvet: #9f6322; }  /* cognac */
+:root[data-theme="ivory"] .gate[data-velvet="outreach"] { --velvet: #33576b; }  /* prussian */
 :root[data-theme="ivory"] .gate[data-velvet="pressroom"] { --velvet: #37905f; }  /* emerald */
 :root[data-theme="ivory"] .gate[data-velvet="arsenal"] { --velvet: #5a6a74; }  /* gunmetal */
-:root[data-theme="ivory"] .gate[data-velvet="bourse"] { --velvet: #8e8c4a; }  /* olive gold */
+:root[data-theme="ivory"] .gate[data-velvet="bourse"] { --velvet: #9b8848; }  /* olive gold */
 :root[data-theme="ivory"] .gate[data-velvet="house"] { --velvet: #c83a4a; }  /* claret */
 /* END generated velvets */
 /* The fold map is shaded as velvet: the crests' cores dark where the pile
@@ -1120,7 +1120,7 @@ html[lang="zh"] .gate.vacant .g-desc { -webkit-text-stroke: 0.45px currentColor;
    fans, steps or lozenge drawn in 1px lines nobody could see from across
    the room, so the three cards of a wing were twins. It is printed now, as
    a picture palace's title cards were: a deco border band in the gate's
-   own ink (oxblood, bottle green or navy), a hairline inside the band, the
+   own ink (oxblood, bottle green, navy or sepia), a hairline inside the band, the
    gate's corner motif printed solid in the same ink, a headpiece over the
    words and the rule under them, on the gate's own card stock (cream, bone
    or buff) with a lithographic grain. The ink is the mark's (HUE's ink in
@@ -1130,6 +1130,7 @@ html[lang="zh"] .gate.vacant .g-desc { -webkit-text-stroke: 0.45px currentColor;
 .gate[data-ink="oxblood"] { --card-ink: #6a1d19; --ink-loz: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'%3E%3Cpath d='M5 0L10 5L5 10L0 5Z' fill='%236a1d19'/%3E%3C/svg%3E"); }
 .gate[data-ink="bottle"]  { --card-ink: #1d4633; --ink-loz: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'%3E%3Cpath d='M5 0L10 5L5 10L0 5Z' fill='%231d4633'/%3E%3C/svg%3E"); }
 .gate[data-ink="navy"]    { --card-ink: #1c2b4c; --ink-loz: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'%3E%3Cpath d='M5 0L10 5L5 10L0 5Z' fill='%231c2b4c'/%3E%3C/svg%3E"); }
+.gate[data-ink="sepia"]   { --card-ink: #4e3413; --ink-loz: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'%3E%3Cpath d='M5 0L10 5L5 10L0 5Z' fill='%234e3413'/%3E%3C/svg%3E"); }
 .gate[data-stock="cream"] { --card-stock: #f3ead3; }
 .gate[data-stock="bone"]  { --card-stock: #f6f1e3; }
 .gate[data-stock="buff"]  { --card-stock: #f3e6cb; }

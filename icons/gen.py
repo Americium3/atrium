@@ -62,16 +62,17 @@ RASTER_JS = ROOT / 'icons' / 'raster.js'
 # --------------------------------------------------------------------------
 # The one source. Per app:
 #   deep / field / lit   the translucent enamel at its rim, its body and where
-#            it lies thinnest over the turning. The field is what a reader
-#            matches the curtain against, and every mark draws it.
+#            it lies thinnest over the turning. Every mark draws its ground
+#            in these, and the curtain is matched against that ground as
+#            the page draws it (tests/test_web_assets.py measures it).
 #   pop      the crown stone
 #   velvet   the gate's house curtain: an honest name and the dye at its
 #            brightest crest, per theme. Every crest stays a quarter darker
 #            than the leaf's body (--au-2) and inside the field's family;
-#            tests/test_web_assets.py holds both. Bourse's tray band is fired
-#            in this same dye, read from here.
+#            tests/test_web_assets.py holds both. The rim of Bourse's perch
+#            foot is fired in this same dye, read from here.
 #   ink      the day screen's title card is printed in this ink (one of
-#            oxblood, bottle, navy; no two alike in a wing)
+#            INKS; no two alike in a wing), the one nearest the house
 # --------------------------------------------------------------------------
 HUE = {
     'autopilot': {
@@ -83,13 +84,13 @@ HUE = {
     'groundstation': {
         'name': 'Ground Station', 'short': 'Ground Stn',
         'deep': '#5a2f08', 'field': '#c8781f', 'lit': '#eea24c', 'pop': '#ffb454',
-        'velvet': {'name': 'cognac', 'onyx': '#8a4f22', 'ivory': '#a0622a'},
-        'ink': 'bottle',
+        'velvet': {'name': 'cognac', 'onyx': '#885020', 'ivory': '#9f6322'},
+        'ink': 'sepia',
     },
     'outreach': {
         'name': 'Outreach Desk', 'short': 'Outreach',
         'deep': '#0a2230', 'field': '#1c4a5f', 'lit': '#3a6e86', 'pop': '#e8c968',
-        'velvet': {'name': 'prussian', 'onyx': '#1f5066', 'ivory': '#2d5d74'},
+        'velvet': {'name': 'prussian', 'onyx': '#1f5066', 'ivory': '#33576b'},
         'ink': 'navy',
     },
     'pressroom': {
@@ -107,12 +108,12 @@ HUE = {
     'bourse': {
         'name': 'Bourse', 'short': 'Bourse',
         'deep': '#141305', 'field': '#4a4616', 'lit': '#7a742c', 'pop': '#e6a817',
-        'velvet': {'name': 'olive gold', 'onyx': '#6b692c', 'ivory': '#8e8c4a'},
-        'ink': 'oxblood',
+        'velvet': {'name': 'olive gold', 'onyx': '#73662b', 'ivory': '#9b8848'},
+        'ink': 'sepia',
     },
 }
 # The inks a day card can be printed in, as palace-gates.css draws them.
-INKS = {'oxblood': '#6a1d19', 'bottle': '#1d4633', 'navy': '#1c2b4c'}
+INKS = {'oxblood': '#6a1d19', 'bottle': '#1d4633', 'navy': '#1c2b4c', 'sepia': '#4e3413'}
 
 # The house cloth for a gate whose service has no mark of its own yet: the
 # claret of the entrance curtain.
