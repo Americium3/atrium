@@ -1836,8 +1836,11 @@ function buildSun(G) {
     var tw = -zw / -LIGHT[2], yw = [0, DOOR_H].map(function (y) { return y + LIGHT[1] * tw; });
     var dx = LIGHT[0] * tw;
     if (yw[1] > 0) {
-      wallArt += '<path d="M' + f3(xa + dx) + ' ' + f3(-Math.max(0, yw[0])) + 'L' + f3(xb + dx) + ' ' + f3(-Math.max(0, yw[0])) +
-        'L' + f3(xb + dx) + ' ' + f3(-yw[1]) + 'L' + f3(xa + dx) + ' ' + f3(-yw[1]) + 'Z" fill="' + fillA(a * 0.7) + '"/>';
+      // up the wall it grazes and thins toward the lintel's soft shadow
+      wallArt += '<defs><linearGradient id="e-wb' + Math.round(xa * 100) + '" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="0" y2="' + f3(-yw[1]) + '">' +
+        '<stop offset="0" stop-color="' + fillA(a * 0.7) + '"/><stop offset="0.7" stop-color="' + fillA(a * 0.45) + '"/><stop offset="1" stop-color="' + fillA(0) + '"/></linearGradient></defs>' +
+        '<path d="M' + f3(xa + dx) + ' ' + f3(-Math.max(0, yw[0])) + 'L' + f3(xb + dx) + ' ' + f3(-Math.max(0, yw[0])) +
+        'L' + f3(xb + dx) + ' ' + f3(-yw[1]) + 'L' + f3(xa + dx) + ' ' + f3(-yw[1]) + 'Z" fill="url(#e-wb' + Math.round(xa * 100) + ')"/>';
     }
   };
   // the side pairs' etched glass: a softer beam, broken by the bars
@@ -2324,6 +2327,7 @@ E.dress = function (host, opts) {
   [sc.fworld, sc.sworld].forEach(function (w) { if (w) w.style.visibility = 'hidden'; });
   return Promise.all([texReady, fontsReady()]).then(function () {
     if (S !== my) return false;
+    S.fontsOk = !document.fonts || FACES.every(function (f) { return document.fonts.check(f); });
     var p = paint(sc.parts.filter(function (q) { return q.lastSeen >= 0; }), cam, P);
     S.stats = p.stats;
     S.plan = p;
@@ -2436,7 +2440,7 @@ E.frozen = function () { return !!(S && S.frozen); };
 E.stats = function () {
   if (!S) return null;
   var c = S.cam;
-  return { paint: S.stats, peak: S.stats && S.stats.peak, speed: c.walk.speed, path: c.walk.len, z0: c.z0, zEnd: c.zEnd, pitch0: c.pitch0, f: c.f, G: S.G };
+  return { fonts: S.fontsOk, paint: S.stats, peak: S.stats && S.stats.peak, speed: c.walk.speed, path: c.walk.len, z0: c.z0, zEnd: c.zEnd, pitch0: c.pitch0, f: c.f, G: S.G };
 };
 /* The camera at ms, for checks. */
 E.cameraAt = function (ms) { return S ? S.cam.at(ms) : null; };
