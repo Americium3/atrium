@@ -1,0 +1,132 @@
+/* ===========================================================================
+   THE PICTURE PALACE: the entrance, through the doors
+
+   The street in front of the palace and the foyer behind its doors, dressed
+   by static/js/entrance.js. Every piece is drawn once into canvases and
+   moved only by transform and opacity (Web Animations), so the walk runs on
+   the compositor. This sheet only places the pieces, stacks the inside
+   under the street, and colours the few plain planes; the drawing and the
+   light live in the script.
+
+   Four layers, bottom to top, all over the hall:
+     #e-foyer  the foyer's floor, ceiling and side walls, which meet the hall
+     #e-veil   the inside as the street sees it: dimmer by night, and by day
+               dim and cool to an eye that has been in the sun (multiplied)
+     #e-sun    by day, the sun through the doors on the foyer's floor and
+               up its far wall (screened on)
+     #entrance the street: the facade, the canopy, the doors, the pavement,
+               and over all of it, until the clock starts, the plate
+   =========================================================================== */
+#entrance {
+  position: fixed; inset: 0; z-index: 100;
+  overflow: hidden;
+  pointer-events: none;
+}
+#e-foyer, #e-veil, #e-sun {
+  position: fixed; inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+#e-foyer { z-index: 97; }
+#e-veil { z-index: 98; mix-blend-mode: multiply; opacity: 0; }
+/* Screen, not colour dodge: a colour dodge (and the cloud's multiply) was
+   a blend the GPU had never drawn on a new profile, and at 3440 its first
+   frame held the walk's start for most of a second. */
+#e-sun { z-index: 99; mix-blend-mode: screen; }
+:root[data-theme="onyx"] #e-sun { display: none; }
+html[data-entered="no"] #entrance { pointer-events: auto; cursor: pointer; }
+html[data-entered="yes"] :is(#entrance, #e-foyer, #e-veil, #e-sun) { display: none; }
+html[data-entered="no"] #entrance.done-fade { pointer-events: none; cursor: auto; }
+/* The plate: until the street is painted and the clock starts, the street
+   as its first frame shows it, out of focus (Entrance.sketch draws it
+   small, the screen enlarges it), stands over the street, so no frame
+   shows the hall bare or the street half painted. It is a hair short of
+   opaque. Under an opaque plate the compositor leaves what it covers
+   undrawn, and all of it would then be drawn for the first time in the
+   walk's first frames. It lifts over the clock's first 200 ms and the
+   street comes into focus (entrance.js). A browser can paint before the
+   script has drawn the sketch, so under it the plate carries a rougher one
+   of its own: the canopy's underside, the fanlights and the doors where
+   the first frame has them (their sizes follow the screen's height, since
+   the lens does). */
+#entrance .e-plate {
+  position: absolute; inset: 0; z-index: 1;
+  opacity: 0.996;
+  background:
+    radial-gradient(64vh 30vh at 50% 82%, rgba(214, 180, 126, 0.95) 55%, rgba(214, 180, 126, 0) 100%),
+    radial-gradient(56vh 6vh at 50% 55%, rgba(200, 138, 76, 0.8) 40%, rgba(200, 138, 76, 0) 100%),
+    linear-gradient(180deg, transparent 29%, #211810 33%, #211810 47%, transparent 51%),
+    #0a0807;
+}
+:root[data-theme="ivory"] #entrance .e-plate {
+  background:
+    radial-gradient(64vh 30vh at 50% 82%, rgba(106, 118, 132, 0.95) 55%, rgba(106, 118, 132, 0) 100%),
+    radial-gradient(56vh 6vh at 50% 55%, rgba(111, 127, 144, 0.8) 40%, rgba(111, 127, 144, 0) 100%),
+    linear-gradient(180deg, #7d8082 27%, #56575b 33%, #56575b 47%, transparent 51%),
+    #6a6c71;
+}
+#entrance .e-plate canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+
+/* The inside as the street sees it. By night the foyer is lit but not yet
+   at full light; by day it is dim and cool to an eye that has been in the
+   sun. Both lift as the reader crosses the threshold. */
+:root[data-theme="onyx"] #e-veil { background: rgb(158, 134, 108); }
+:root[data-theme="ivory"] #e-veil {
+  background: linear-gradient(180deg, rgb(112, 120, 142), rgb(136, 143, 162) 40%, rgb(156, 161, 176));
+}
+
+#entrance .e-world,
+#e-foyer .e-world,
+#e-sun .e-world { position: absolute; inset: 0; overflow: hidden; }
+.e-piece { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
+.e-piece .e-layer { position: absolute; }
+.e-piece .e-tile { position: absolute; display: block; }
+
+/* The hall, posed by the entrance: its boxes turn about their own corner,
+   and are kept as layers drawn at the size they land at while the street
+   stands (html.e-hold), so the walk moves textures and draws nothing. A
+   measurement taken while the walk runs lifts the pose for its length
+   (html.e-rest, window.atRest in palace.js). */
+html.e-hold :is(#masthead, #ticker, #backwall, #floorplane, #works, #stage, #almanac, #signal-desk) {
+  will-change: transform;
+  transform-origin: 0 0;
+}
+html.e-rest :is(#masthead, #ticker, #backwall, #floorplane, #works, #stage, #almanac, #signal-desk) {
+  transform: none !important;
+}
+
+/* ----- By day ------------------------------------------------------------ */
+/* A cloud's shade over the street, sliding off to the left as the sun
+   comes out from behind it; its trailing edge is soft. A plain cool shade,
+   not a multiply (see #e-sun). */
+#entrance .e-cloud {
+  position: absolute; left: 0; top: 0; height: 100%;
+  background: linear-gradient(270deg, rgba(0, 16, 44, 0) 0, rgba(0, 16, 44, 0.45) 22%, rgba(0, 16, 44, 0.45) 100%);
+}
+/* The leaves' shadows on the foyer's floor and wall: two frames whose soft
+   edges are the shadows of the leaves' free edges; only they move. */
+.e-win { position: absolute; overflow: hidden; transform-origin: 0 0; }
+.e-win-in { position: absolute; left: 0; top: 0; width: 0; height: 0; transform-origin: 0 0; }
+.e-win-a {
+  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 26px);
+  mask-image: linear-gradient(90deg, transparent 0, #000 26px);
+}
+.e-win-b {
+  -webkit-mask-image: linear-gradient(270deg, transparent 0, #000 26px);
+  mask-image: linear-gradient(270deg, transparent 0, #000 26px);
+}
+
+/* ----- The marquee's one chase (the hall's own, at the landing) ------------ */
+.e-marquee { position: absolute; overflow-x: clip; overflow-y: visible; }
+/* Sized and moved in whole bulb pitches, from the bulbs' own origin
+   (marqueeChase() in entrance.js writes the lengths and the steps). */
+.e-chase {
+  position: absolute; left: 0; width: var(--ec-w, 24%);
+  height: calc(21px * var(--ui));
+  background:
+    radial-gradient(circle, #fff 0 24%, rgba(255, 238, 196, 0.95) 38%, rgba(255, 200, 120, 0.45) 56%, transparent 66%) 0 50% / calc(13px * var(--ui)) calc(9px * var(--ui)) repeat-x,
+    radial-gradient(50% 50% at 50% 50%, rgba(255, 196, 110, 0.5), transparent 100%);
+  opacity: 0;
+}
+.e-chase-t { top: calc(-6px * var(--ui)); }
+.e-chase-b { bottom: calc(-6px * var(--ui)); }

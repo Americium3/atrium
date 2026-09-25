@@ -1059,6 +1059,11 @@ html[data-boot="suppressed"] #signal-desk {
   position: absolute;
   left: calc(50% - 50vw); width: 100vw;
   top: calc(var(--pad-top) + var(--stage-h));
+  /* On a whole pixel: the entrance draws the floor as its own layer while it
+     walks the reader in, and a layer moved by a transform starts on a whole
+     pixel. From a fractional top (757.81 at 1920x1080) the floor stepped up
+     a pixel as the hall landed. */
+  top: round(calc(var(--pad-top) + var(--stage-h)), 1px);
   bottom: calc(-1 * var(--hall-foot));   /* under the hall's foot, to the edge */
   z-index: 0;
   pointer-events: none;
@@ -2971,8 +2976,7 @@ html[lang="zh"] .g-name { letter-spacing: 0.17em; }
 }
 
 /* ==========================================================================
-   ENTRANCE: the house curtain. Its rules, and the hall's entrance-only
-   rules, are in palace-desk.css.
+   ENTRANCE: through the doors. Its rules are in palace-entrance.css.
    ========================================================================== */
 
 /* ==========================================================================
