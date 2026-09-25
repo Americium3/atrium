@@ -1289,7 +1289,7 @@ AUTOPILOT_ROW = [
     {'lean': 13.0, 't': 8.6, 'h': 38.5, 'd': 25.5, 'cloth': 'vellum', 'frame': True,
      'labels': ((0.68, 0.82, 'red'),), 'labels_s': ((0.66, 0.84, 'red'),)},
 ]
-AUTOPILOT_PLACE = (19.0, 67.4)  # where the row's front left foot stands, in the mark
+AUTOPILOT_PLACE = (19.0, 71.2)  # where the row's front left foot stands, in the mark
 AUTOPILOT_SCALE = 1.075        # mark units to a world unit: the charge fills its circle
 
 
@@ -1416,9 +1416,22 @@ def autopilot_volume(v, project, light, small=False):
     # the back, in its planes
     for b0, b1, c in runs(lambda b: tone((math.sin(b), 0, math.cos(b)))):
         face(strip(b0, b1, 0.0, H), c)
-    # the headcap: the leather turned over the headband, facing up
-    bs = [-B + 2 * B * k / 8 for k in range(9)]
-    cap = [arc(b, H) for b in bs]
+    # the headcap: the leather turned over the headband and set, a rolled
+    # bead standing a little proud of the back and rising in a shallow arch
+    # over the round, above the boards at the head: its upper half turns to
+    # the lamp, its lower half to the reader
+    bs = [-B + 2 * B * k / 10 for k in range(11)]
+    rise = 0.0 if small else 0.55
+
+    def cap_y(b):
+        return H + rise * math.cos(b / B * math.pi / 2)
+    if not small:
+        roll = [(arc(b, H - 0.7, 0.05), arc(b, cap_y(b) - 0.35, 0.28), arc(b, cap_y(b), 0.1)) for b in bs]
+        lower = [P(a) for a, _, _ in roll] + [P(m_) for _, m_, _ in roll[::-1]]
+        face(lower, tone((0, 0.2, 1)))
+        upper = [P(m_) for _, m_, _ in roll] + [P(c) for _, _, c in roll[::-1]]
+        face(upper, tone((0, 0.85, 0.5)))
+    cap = [arc(b, cap_y(b), 0.1 if not small else 0.0) for b in bs]
     face([P(p) for p in cap] + [P((x, y, z - 0.9)) for x, y, z in cap[::-1]], top)
     # labels: leather onlays, flush with the back
     for y0, y1, name in get('labels'):
@@ -2686,7 +2699,7 @@ SUBJECTS = {
 # Each charge sits inside a circle of about 39 units, so the enamel shows
 # all round it and nothing is cropped by the fillet. A charge can be laid by
 # a scale about a centre here: (scale, centre).
-FIT = {'autopilot': (0.92, 48.0, 40.0)}
+FIT = {'autopilot': (0.88, 48.0, 46.0)}
 
 
 def lay_subject(m, app, h, small=False):
