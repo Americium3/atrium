@@ -1298,11 +1298,13 @@ def subject_outreach(m, h, small=False):
 # long arm and run on through the short arm into a horn that reads a
 # depression. The limb is open inside, as the real ones are. A gusset
 # stiffens the inside corner, and the plumb line hangs from the pin across
-# the limb to a turned bob. Local units with the pin at the origin, y up;
-# the charge is fitted to the badge afterwards.
+# the limb to a turned bob. On the museum pieces the limb's radius is about
+# a quarter of the long arm; here it is nearly half, so the limb that says
+# quadrant still reads at the gate's 32 px. Local units with the pin at the
+# origin, y up; the charge is fitted to the badge afterwards.
 ARSENAL = {
     'elev': 30.0,                    # the elevation the plumb line reads, degrees
-    'long': 62.0, 'short': 35.0,     # the arms, from the pin
+    'long': 62.0, 'short': 40.0,     # the arms, from the pin
     'r1': 28.5, 'r0': 20.5,          # the limb: outer and inner radius
     'w': 5.6, 'taper': 0.6,          # the arms' width at the corner; the long arm's at its foot, over w
     'horn': 16.0,                    # degrees the limb runs on past the short arm
