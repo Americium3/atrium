@@ -950,15 +950,16 @@ and its form is then cut into three or four flat planes of tone along the
 hall's one key light, up and to the left, the way a woodcut or a Deco
 poster cuts it. There is no gradient inside a plane and no outline round
 one. `icons/solid.py` projects the solids (bound volumes, a paraboloid
-dish on its tower, a sphere and its graticule, turned stands and bobs) and
+dish on its tower, a sphere, a gun barrel turned from its profile, turned
+stands and bobs) and
 traces the boundary between two planes as an isoline of the form's
 lighting. The hand and the canary are traced from photographs, and each
 one's volume is solved from its own outline, so no ellipse is laid in by
 hand. Nothing on a mark glows and nothing carries a gloss band: the domed
 crystal over the gate gives it the one reflection glass is allowed. Each
 charge stays within about 39 units of the centre, so the enamel shows all
-round it; Outreach's hand is couped below its cuff, as a heraldic hand is,
-and keeps to that circle too. Every crown is the same round cabochon in
+round it; Outreach's arm is couped square below its sleeve, as a heraldic
+cubit arm is, and keeps to that circle too. Every crown is the same round cabochon in
 its own stone. No two marks share a motif.
 
 - Anime Autopilot: the season's shelf. Five bindings stand on a mahogany
@@ -987,47 +988,57 @@ its own stone. No two marks share a motif.
   counterweight. The beam rides an azimuth turret on a railed gallery at
   the head of a squat concrete cone that flares to the ground. Amber enamel
   over a lined turning; an amber stone.
-- Outreach Desk: an introduction held up to be seen. A blank calling card
-  with a gilt edge is gripped at its lower corner, traced from a photograph
-  of a hand holding up a card: the thumb presses from behind, and the four
-  fingers curl round onto its face, each with its nail, a crease at its
-  last joint and two at the knuckle. The desk briefs every introduction
-  overnight and never sends one; the owner delivers each himself. The hand
-  is cut as five layers of relief (the back of the hand, then the little,
-  ring, middle and index fingers, each lying over the one below), each
-  rounded at its edges, so its planes turn from the key light. It comes
-  from a plain starched cuff and is couped below it. Prussian blue enamel
-  over a basket weave; a citrine.
+- Outreach Desk: an introduction held up to be seen. The desk briefs every
+  introduction overnight and never sends one; the owner delivers each
+  himself, so the charge is his hand, drawn as a heraldic cubit arm erect
+  holding up one blank calling card. The palm faces the reader, the four
+  fingers stand behind the card with their tips over its top edge, and the
+  thumb is opposed across its foot with its nail toward the reader. The
+  pose is traced from a photograph of a hand holding up a blank card, and
+  the anatomy from one of a right palm with the thumb across it. Each
+  finger, the palm and the thumb is one outline of a real hand, inflated
+  into a single skin that swells at the finger pads and the ball of the
+  thumb and dips at the creases, so a finger turns from the lamp pad by pad
+  instead of as one tube. The card has a bevelled gilt edge and its lower
+  corner turned down, the old sign of a card left in person. The sleeve is
+  gold cloth, metal on colour as a crest's arm is, and couped square; a
+  white cuff is turned back over it with a rolled edge. Prussian blue
+  enamel over a basket weave; a citrine.
 - The Press Room: the world at an equinox sunrise, seen a little above the
-  equator, with the morning's paper round it. The dawn line runs from pole
-  to pole down the Atlantic: Europe and Africa are in morning and the
-  Americas still lie in night. Night and dawn are printed on the globe by
-  where the sun stands, and its roundness takes the hall's key light like
-  every other charge, the morning's brightest plane kept clear of the dawn
-  line. The globe is printed in the paper's colours: by day the sea takes
-  the page's green and the land its bone paper, and by night the ocean is
-  an olive ink, light enough that the globe still reads as a whole round
-  against the enamel, with the Americas in dim ochre and a line of the
-  page's olive along the dark limb. Dawn is one narrow band of rose copper.
-  Round the equator runs a folded band of newsprint ruled in columns, five
-  on the side the reader sees, one for each desk, with no lettering; it is
-  paper, so the night is not printed on it, and it crosses the dark side
-  unbroken. The coasts are Natural Earth's 1:110m land simplified to 1.2
-  degrees, and the graticule is engraved every thirty degrees. Green enamel
-  over a halftone screen; an olive cabochon.
-- Arsenal: a gunner's quadrant, the instrument that first turned a gun's
-  elevation into a number, after the two attributed to Christoph Schissler
-  in the Museo Galileo (inv. 2529 and 2637) and Diego Ufano's 1628 plate of
-  one set in a mortar's muzzle. It is one brass casting: a solid quarter
-  plate with the long arm running on from its upper edge to a notched toe,
-  laid as it sits in the bore with the arm falling gently toward the
-  breech, so no corner of it stands up as an apex. The rim's twelve points
-  are cut alternately in black wax, as Tartaglia's woodcut shows them, the
-  face is ruled in the shadow square's grid, and the arm carries the scale
-  of calibres as closed cells, every other one filled. An index pivoted on
-  the corner pin lies across the face and reads the elevation off the rim,
-  as the Ballistic Computer reads one off the range. Gunmetal enamel over
-  perlage; a signal-red stone.
+  equator, with nothing round it. Drawn from the GOES-East and Meteosat
+  pictures of an equinox, the dawn line runs from pole to pole, almost
+  straight, down the Atlantic and just over Africa's western bulge: Europe
+  and Africa are in morning and the Americas still lie in night. The night
+  is one dark field with the land showing through in olive, and a line of
+  the page's olive runs along the dark limb. The first light lies past the
+  line in one warm plane, rose copper on the sea and apricot on the land,
+  narrow where the key light already reaches and wider below. The morning
+  takes the key light in three planes. Its sea is the green of the Daily
+  News lobby globe (Raymond Hood, 1930) and its land the bone of the
+  paper. There is no graticule, ring or band: seams on a sphere make a
+  ball of it, and a ring makes a planet. The coasts are Natural Earth's
+  1:50m land simplified to 0.4 degrees. Green enamel over a halftone
+  screen; an olive cabochon.
+- Arsenal: the gun laid for range with the gunner's square in its muzzle,
+  after Tartaglia's woodcut of a piece raised to 45 degrees (Nova Scientia,
+  1537). An iron muzzle-loader of the Blomefield pattern, drawn without its
+  carriage as heraldry carries a cannon barrel, is laid at 45 degrees and
+  turned a little so its muzzle and the dark of the bore face the reader.
+  It is turned from the real profile, read off a labelled elevation of the
+  gun on Martello Tower No. 24: the cascabel's knob and neck, the base
+  ring, the two reinforces and their rings, the chase girdle and chase, the
+  muzzle astragal, and the swell of the muzzle to its lip, with the near
+  trunnion a boss a little under the axis. Its radii are drawn fuller than
+  the long gun's, near the proportion of the short guns of that pattern,
+  so it reads as a gun at the size of a gate. The long arm of a flat brass
+  square lies on the bottom of the bore and the short arm hangs square to
+  the gun beyond the muzzle. From the inner corner a turned brass bob on a
+  hemp cord crosses the quarter arc at its sixth point of twelve, the
+  gun's elevation, and the points are filled alternately in black wax
+  between two ruled edges, as the woodcut shows them. The iron is black
+  with a cold blue on its lit back; a weak light thrown back off the enamel
+  keeps the belly's edge clear of its shadow. Gunmetal enamel, a step
+  paler than the gun, over perlage; a signal-red stone.
 - Bourse: the canary the desk keeps on watch, traced from a photograph of a
   perched domestic canary and turned to face the light, its breast full and
   carried forward of the throat. Its planes are canary yellow, cool lemon
@@ -1041,9 +1052,10 @@ its own stone. No two marks share a motif.
 Each mark also has a small cut, `#mark-<id>-s`, drawn from the same
 geometry with fewer planes and its struts and legs drawn heavier: nothing
 in it is stroked finer than three units, a pixel on the 32px gate. It
-drops the fine engraving; Arsenal keeps its points as coarse blocks, two
-points to a block, because the chequered rim is how the quadrant reads at
-25px. The Ledger's medal (20 to 35px) wears it, and so does the gate
+drops the fine engraving and the finger creases. Arsenal keeps the
+square's points as three coarse blocks, two points to a block, and draws
+its barrel heavier; the Press Room fills the Mediterranean and the Black
+Sea and widens its dawn so the first light still shows at 25px. The Ledger's medal (20 to 35px) wears it, and so does the gate
 wherever its cartouche comes to under 56 of the screen's own pixels. The
 gate mounts one cut, and `markCut` in `app.js` picks it from the
 cartouche's width times the screen's density, and picks again whenever the
@@ -1055,7 +1067,7 @@ or 48px favicon.
 
 The page carries every path to a tenth of a unit, in relative steps where
 those are shorter, which keeps the six marks and their small cuts to about
-230 KB of `index.html`. They stay inline, so they are drawn in the page's
+300 KB of `index.html`, a third of it Arsenal's turned gun. They stay inline, so they are drawn in the page's
 first frame. The hall is served on 127.0.0.1 only, where the bytes cost
 nothing and a compressor's time does, so the page goes out as it is.
 
