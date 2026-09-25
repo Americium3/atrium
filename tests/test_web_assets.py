@@ -263,6 +263,10 @@ NEUTRAL_VELVET_CHROMA = 10.0
 # alone the dark houses passed at 15 and rendered at 5 to 7.
 WING_MIN_DE = 15.0
 WING_MIN_DE_DARK = 10.0
+# Across the hall (the lever shows one wing where the other stood) no two
+# gates may hang what reads as one cloth either, by a smaller margin.
+HALL_MIN_DE = 8.0
+HALL_MIN_DE_DARK = 4.0
 FOLD = 0.431
 DARK_MIX = {"onyx": (0.55, "#0f0d0f"), "ivory": (0.48, "#110e0c")}
 
@@ -507,9 +511,14 @@ def _mix(c: str, k: float, base: str) -> str:
 def test_the_gates_of_one_wing_hang_different_cloth():
     """Two gates side by side must not hang what reads as one cloth, with
     the house open or dark (the dark shade is each dye mixed toward black,
-    as palace-gates.css mixes it), as the cloth renders under its fold map.
-    And a dark house has to read as dark: every DARK house in a theme stays
-    under the darkest open one. Read from the stylesheets as served."""
+    as palace-gates.css mixes it), as the cloth renders under its fold map;
+    two gates of different wings must not either, by a smaller margin. And
+    the dark shade is darker than any open dye: every DARK house's dye under
+    the fold map stays under the darkest open one's. That is a rule about
+    the dye. As rendered by day the pile and the day's light can bring a
+    dark house level with the darkest open one; there the unlit slide
+    beside a lit card is what says DARK. Read from the stylesheets as
+    served."""
     hue, wings, velvets = _literal("HUE"), _wings(), _shipped_velvets()
 
     def folded(c):
@@ -528,6 +537,18 @@ def test_the_gates_of_one_wing_hang_different_cloth():
                     dd = _de2000(folded(_mix(va, k, base)), folded(_mix(vb, k, base)))
                     if dd < WING_MIN_DE_DARK:
                         bad.append(f"{theme} {wing}: dark {a} and {b} differ by only {dd:.1f}")
+        apps = list(hue)
+        for i, a in enumerate(apps):
+            for b in apps[i + 1:]:
+                if wings.get(a) == wings.get(b):
+                    continue
+                va, vb = velvets[(theme, a)], velvets[(theme, b)]
+                de = _de2000(folded(va), folded(vb))
+                if de < HALL_MIN_DE:
+                    bad.append(f"{theme}: {a} and {b}, in two wings, differ by only {de:.1f}")
+                dd = _de2000(folded(_mix(va, k, base)), folded(_mix(vb, k, base)))
+                if dd < HALL_MIN_DE_DARK:
+                    bad.append(f"{theme}: dark {a} and {b}, in two wings, differ by only {dd:.1f}")
         darkest_open = min(_luminance(folded(velvets[(theme, a)])) for a in hue)
         for a in hue:
             lum = _luminance(folded(_mix(velvets[(theme, a)], k, base)))
@@ -544,6 +565,14 @@ def test_the_dark_mix_is_the_one_the_sheet_uses():
         assert re.search(pat, css), f"{theme}'s dark mix is not {want}"
 
 
+def _css_plain(css: str) -> str:
+    """A sheet as the browser reads its names: comments gone and escapes
+    decoded, so `--vel\\76 et` is `--velvet` here as it is there."""
+    css = re.sub(r"/\*.*?\*/", "", css, flags=re.S)
+    css = re.sub(r"\\([0-9a-fA-F]{1,6})[ \t\n]?", lambda m: chr(int(m.group(1), 16)), css)
+    return re.sub(r"\\(.)", r"\1", css)
+
+
 def test_only_the_generator_dyes_a_velvet():
     """A hand-written --velvet anywhere else (a later rule, a later sheet)
     would re-hang a gate in the wrong cloth with every other test green. The
@@ -556,7 +585,7 @@ def test_only_the_generator_dyes_a_velvet():
         if name == "palace-gates.css":
             head, rest = css.split("/* BEGIN generated velvets (icons/gen.py) */", 1)
             css = head + rest.split("/* END generated velvets */", 1)[1]
-        css = re.sub(r"/\*.*?\*/", "", css, flags=re.S)
+        css = _css_plain(css)
         for m in re.finditer(r"([^{};]*)\{[^{}]*--velvet\s*:", css):
             sel = " ".join(m.group(1).split())
             if sel != '.gate[data-velvet="iron"]':
@@ -578,7 +607,9 @@ def test_the_cloth_is_only_ever_painted_in_its_velvet():
     paints a gate's tabs or valance directly, in a later sheet or a later
     line, and never touches --velvet. Every paint laid on the cloth, in
     every sheet, is the velvet (or its dark shade, the day screen it opens
-    on, or the reserved gate's iron)."""
+    on, or the reserved gate's iron), and every other layer of it is
+    neutral: an opaque layer laid over the velvet that still names it would
+    hang another cloth."""
     cloth = re.compile(r"\.(%s)(?![\w-])" % "|".join(CLOTH))
     ok = ("var(--velvet)", "var(--velvet-shade)", "var(--screen)", "var(--iron)")
     paint = r"(?:^|;)\s*(background|background-color|background-image|fill)\s*:\s*([^;]+)"
@@ -591,7 +622,7 @@ def test_the_cloth_is_only_ever_painted_in_its_velvet():
                         r"navy|purple|orange|gold|maroon)\b", re.I)
     bad = []
     for name, css in css_sources():
-        css = re.sub(r"/\*.*?\*/", "", css, flags=re.S)
+        css = _css_plain(css)
         for m in re.finditer(r"([^{};]*)\{([^{}]*)\}", css):
             sels = [" ".join(x.split()) for x in m.group(1).split(",")]
             hit = [x for x in sels if cloth.search(x)]
@@ -607,8 +638,13 @@ def test_the_cloth_is_only_ever_painted_in_its_velvet():
             plain = [x for x in hit if ":before" not in x and ":after" not in x]
             for d in re.finditer(paint, body):
                 val = " ".join(d.group(2).split())
+                rest = neutral.sub("", val)
+                for v in ok:
+                    rest = rest.replace(v, "")
                 if plain and not any(v in val for v in ok):
                     bad.append(f"{name}: {plain[0]} {{ {d.group(1)}: {val[:60]} }}")
+                elif plain and colour.search(rest):
+                    bad.append(f"{name}: {plain[0]} {{ {d.group(1)}: {val[:60]} }} lays a colour over the velvet")
                 elif not plain:
                     # a pseudo-element over the cloth may shade it and carry
                     # the gilt fringe, but never lay a colour of its own
@@ -616,6 +652,37 @@ def test_the_cloth_is_only_ever_painted_in_its_velvet():
                     if colour.search(rest):
                         bad.append(f"{name}: {hit[0]} {{ {d.group(1)}: {val[:60]} }} lays a colour on the cloth")
     assert not bad, "cloth painted in something other than its velvet: " + "; ".join(bad)
+
+
+def test_no_gate_is_singled_out_but_to_set_its_own_values():
+    """A rule that names one gate (by its service, velvet, ink, stock or
+    glass, or its id) may set that gate's custom properties and nothing
+    else: a filter, a blend, an opacity or a paint on one gate would hang it
+    in another colour with every dye still right. And no rule at all turns
+    the hue of a house or anything round it (a hue-rotate, sepia,
+    saturate, grayscale or invert filter, or a colour-taking blend)."""
+    one_gate = re.compile(r"\[data-(service|velvet|ink|stock|glass)=|#gate-")
+    house = re.compile(r"\.(gate|face|g-house|g-tab|g-tab-l|g-tab-r|g-valance|mr-house|mirror-art)(?![\w-])")
+    turns = re.compile(r"\b(hue-rotate|sepia|saturate|grayscale|invert)\(")
+    blends = ("color", "hue", "saturation", "luminosity", "difference", "exclusion")
+    bad = []
+    for name, css in css_sources():
+        css = _css_plain(css)
+        for m in re.finditer(r"([^{};]*)\{([^{}]*)\}", css):
+            sel = " ".join(m.group(1).split())
+            decls = [(d.group(1).strip(), d.group(2).strip())
+                     for d in re.finditer(r"(?:^|;)\s*([\w-]+)\s*:\s*([^;]+)", m.group(2))]
+            if one_gate.search(sel):
+                for prop, val in decls:
+                    if not prop.startswith("--"):
+                        bad.append(f"{name}: {sel[:60]} {{ {prop}: {val[:40]} }}")
+            if house.search(sel):
+                for prop, val in decls:
+                    if prop in ("filter", "backdrop-filter", "-webkit-backdrop-filter") and turns.search(val):
+                        bad.append(f"{name}: {sel[:60]} {{ {prop}: {val[:40]} }}")
+                    if prop == "mix-blend-mode" and val in blends:
+                        bad.append(f"{name}: {sel[:60]} {{ mix-blend-mode: {val} }}")
+    assert not bad, "a gate is recoloured on its own: " + "; ".join(bad)
 
 
 def test_no_gate_is_lit_on_its_own():
@@ -658,7 +725,9 @@ def test_only_velvetfor_chooses_a_cloth():
                         r"setAttribute(?:NS)?\(\s*(?:[^,]*,\s*)?['\"`]data-velvet|"
                         r"Object\.assign\([^)]*dataset|"
                         r"setProperty\(\s*['\"`]--velvet|--velvet\s*:|data-velvet=|"
-                        r"velvetFor\s*=(?!=)")
+                        r"velvetFor\s*=(?!=)|"
+                        r"['\"`]-{1,2}v(?:e(?:l(?:v(?:e(?:t)?)?)?)?)?['\"`]\s*\+|"
+                        r"setProperty\(\s*[^'\"`\s]")
     decls = 0
     for js in scripts():
         text = js.read_text(encoding="utf-8").replace("\r\n", "\n")
@@ -776,9 +845,10 @@ def test_the_die_carries_no_bead_ring():
 
 def test_no_mark_or_curtain_is_a_sapphire():
     """The name Sapphire and a sapphire blue belong to the hall's clock. No
-    velvet or palette is called sapphire, and any blue a mark or a curtain
-    wears stays quiet (an ink or Prussian blue, never a saturated royal to
-    cornflower)."""
+    velvet or palette is called sapphire, and any blue a mark, a curtain or
+    a day card's ink wears stays quiet (an ink or Prussian blue, never a
+    saturated royal to cornflower) and clear of the clock's own moon and
+    hands."""
     hue = _literal("HUE")
     assert "sapphire" not in GEN.read_text(encoding="utf-8").lower(), "icons/gen.py names a sapphire"
     css = (STATIC / "css" / "palace-gates.css").read_text(encoding="utf-8").lower()
@@ -798,9 +868,23 @@ def test_no_mark_or_curtain_is_a_sapphire():
     # chroma to speak of), and none a near neighbour of the clock's own blues
     sys.path.insert(0, str(ROOT / "icons"))
     import gen
-    clock = re.findall(r"\.ck-moon(?:well|shade) \{ fill: (#[0-9a-fA-F]{6}); \}",
-                       (STATIC / "css" / "atrium.css").read_text(encoding="utf-8"))
-    assert clock, "the clock's moon blues are not where this test looks for them"
+    atrium_css = (STATIC / "css" / "atrium.css").read_text(encoding="utf-8")
+    clock = re.findall(r"\.ck-moon(?:well|shade) \{ fill: (#[0-9a-fA-F]{6}); \}", atrium_css)
+    clock += re.findall(r"\.ck-hand, \.ck-pomme \{ fill: (#[0-9a-fA-F]{6});", atrium_css)
+    assert len(clock) >= 3, "the clock's moon and hand blues are not where this test looks for them"
+    # the day card is the largest coloured shape in a house by day, so no
+    # ink it can be printed in is the clock's blue either
+    inks = _literal("INKS")
+    for app, h in hue.items():
+        if h["ink"] not in inks:
+            loud.append(f"{app} prints its card in {h['ink']}, which is not one of INKS")
+    for name, c in inks.items():
+        _, ch, hh = _lch(c)
+        if 255 <= hh <= 320 and ch > 20:
+            loud.append(f"the {name} card ink {c} (hue {hh:.0f}, chroma {ch:.0f})")
+        near = min(_de2000(c, k) for k in clock)
+        if near < 10 and ch > 15:
+            loud.append(f"the {name} card ink {c}, {near:.1f} from the clock's blue")
     for app in hue:
         for body in (gen.emblem(app), gen.emblem_small(app)):
             for c in set(re.findall(r'(?:fill|stroke|stop-color)="(#[0-9a-fA-F]{6})"', body)):

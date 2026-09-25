@@ -701,7 +701,11 @@ html[lang="zh"] .g-lamp { letter-spacing: 0.2em; }
    keeps enough of each dye that, under the fold map's multiply, two dark
    houses of one wing stay two cloths (a CIEDE2000 of 10 as rendered; at a
    third of the dye they came to 5 or 6 and read as one brown), and every
-   DARK house sits under the darkest open one in both themes. */
+   DARK shade, under the fold map, sits under the darkest open dye in both
+   themes. That holds for the dye, not always for the cloth as the page
+   paints it: by day the pile and the light can bring a dark house level
+   with the darkest open one, and there the unlit slide beside a lit card
+   is what marks it DARK. */
 :root[data-theme="onyx"] .gate[data-state="dark"] { --velvet-shade: color-mix(in srgb, var(--velvet) 55%, #0f0d0f); --tab-foot: rgba(150, 168, 190, 0.05); }
 :root[data-theme="ivory"] .gate[data-state="dark"] { --velvet-shade: color-mix(in srgb, var(--velvet) 48%, #110e0c); }
 .gate[data-state="dark"] .g-tab,
