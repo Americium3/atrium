@@ -616,9 +616,9 @@ function scaleTrack(g, r) {
    of it. The rest, seen largest only as it leaves the top or the bottom of
    the screen, are painted a little under it, which keeps the canvases near
    the memory the owner accepted. */
-var SHARP = { 'e-nfloor': 0.5, 'e-ceiling': 0.5, 'e-fwall': 0.6, 'e-upper': 0.55, 'e-fascia': 0.8,
-  'e-soffit': 0.75, 'e-wall': 0.8, 'e-ground': 0.8, 'e-mirror': 0.8, 'e-reveal': 0.8, 'e-shade': 0.35 };
-var TILE_PX = 1.0e6;        // a tile worth splitting, in canvas pixels
+var SHARP = { 'e-nfloor': 0.55, 'e-ceiling': 0.6, 'e-fwall': 0.6, 'e-upper': 0.7, 'e-fascia': 0.9,
+  'e-soffit': 0.8, 'e-wall': 0.9, 'e-ground': 0.9, 'e-mirror': 0.8, 'e-shade': 0.35 };
+var TILE_PX = 0.5e6;        // a tile worth splitting, in canvas pixels
 var CANVAS_MAX = 8192;
 var KMAX = 1;   // two levels: the finest and its half
 /* A layer cut into tiles, each with its levels. A tile is split while the
@@ -2078,7 +2078,7 @@ var E_CHASE_STEPS = 28;
 function marqueeChase(host, total, at) {
   var tk = $('#ticker'), mq = $('.e-marquee', host);
   if (!tk || !mq) return;
-  var r = tk.getBoundingClientRect();
+  var r = (window.restRect || function (e) { return e.getBoundingClientRect(); })(tk);
   mq.style.left = r.left + 'px'; mq.style.top = r.top + 'px';
   mq.style.width = r.width + 'px'; mq.style.height = r.height + 'px';
   var ui = parseFloat(getComputedStyle(tk).getPropertyValue('--ui')) || 1;
@@ -2317,10 +2317,8 @@ function pose0() {
   // size it lands at. Parked with no backward fill.
   var ht = samples(cam.walkEnd);
   S.hall.forEach(function (h) {
-    var place = hallPlace(h, cam, S.G), frames = ht.map(function (ms) {
-      return [ms, { transform: 'translate(' + f2(-h.L) + 'px,' + f2(-h.T) + 'px) ' + cam.css(cam.at(ms)) + ' ' + place + ' translate(' + f2(h.L) + 'px,' + f2(h.T) + 'px)' }];
-    });
-    run(h.el, frames, total, 'forwards');
+    h.place = hallPlace(h, cam, S.G);
+    run(h.el, ht.map(function (ms) { return [ms, { transform: hallAt(h, cam.at(ms)) }]; }), total, 'forwards');
   });
   // The inside seen from the sunlit (day) or dark (night) street: dimmer
   // until the reader is in it.
@@ -2328,6 +2326,9 @@ function pose0() {
   if (veil) fade(veil, S.P.night ? [[0, 1], [t.veil[0], 1], [t.veil[1], 0, 'ease-in-out']] : [[0, 1], [t.veil[0], 1], [t.veil[1], 0, 'ease-in-out']], total);
   lights(sc, S.P, t, total, cam);
   park();
+}
+function hallAt(h, c) {
+  return 'translate(' + f2(-h.L) + 'px,' + f2(-h.T) + 'px) ' + S.cam.css(c) + ' ' + h.place + ' translate(' + f2(h.L) + 'px,' + f2(h.T) + 'px)';
 }
 function park() {
   var now = document.timeline.currentTime || 0;
@@ -2339,9 +2340,22 @@ function park() {
    again. */
 E.measure = function (yEnd) {
   if (!S || S.started) return false;
-  var fp = $('#floorplane'), yf = fp ? fp.getBoundingClientRect().top : 0;
+  var fp = $('#floorplane'), yf = fp ? (window.restRect || function (e) { return e.getBoundingClientRect(); })(fp).top : 0;
   var was = S.hall.filter(function (h) { return h.kind === 'floor'; })[0];
   if (Math.abs(yEnd - S.cam.Py) < 0.5 && (!was || Math.abs(was.T - yf) < 0.5)) return false;
+  return true;
+};
+
+/* The hall's first pose, drawn while the street still stands: the hall is
+   drawn at rest first (the size it lands at, kept by html.e-hold), then
+   posed where the walk begins, so the clock starts with nothing of the hall
+   left to draw for the first time. It shows behind the haze on the glass. */
+E.prepose = function () {
+  if (!S || S.started || S.preposed || !S.ready) return false;
+  S.preposed = true;
+  root.classList.add('e-posed');
+  var c = S.cam.at(0);
+  S.hall.forEach(function (h) { h.el.style.transform = hallAt(h, c); });
   return true;
 };
 
@@ -2379,6 +2393,7 @@ E.seek = function (ms) {
 /* Everything off: the hall at rest, the street gone. */
 E.clear = function () {
   Levels.stop();
+  if (S && S.hall) S.hall.forEach(function (h) { h.el.style.removeProperty('transform'); });
   anims.forEach(function (a) { try { a.cancel(); } catch (e) { /* gone */ } });
   anims = [];
   $$('.lit, .st-fan').forEach(function (e) { if (e.__eLit) e.__eLit = false; });

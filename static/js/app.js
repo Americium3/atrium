@@ -629,14 +629,20 @@ function afterDrawn(fn) {
   });
 }
 
-/* Calls fn at the first two frames in a row that come on time (under 40ms
-   apart): the clock may start late, but not in the middle of a freeze. */
+/* Calls fn once CALM_RUN frames in a row have come on time: the clock may
+   start late, but not between two freezes of a browser still drawing for
+   the first time (two calm frames were not enough: a new profile froze
+   again 300ms later). */
 function afterCalm(fn) {
-  var last = 0, calm = 0;
+  var last = 0, calm = 0, best = Infinity;
   requestAnimationFrame(function tick(t) {
-    if (last) calm = t - last < 40 ? calm + 1 : 0;
+    if (last) {
+      var dt = t - last;
+      best = Math.min(best, dt);
+      calm = dt < Math.max(25, best * 1.5) ? calm + 1 : 0;
+    }
     last = t;
-    if (calm >= 2) fn(); else requestAnimationFrame(tick);
+    if (calm >= CALM_RUN) fn(); else requestAnimationFrame(tick);
   });
 }
 
@@ -695,23 +701,28 @@ function playEntrance(built) {
     runEntrance();
   }
   // Each way in waits for the street to be painted; the frames after that
-  // are the ones afterDrawn() watches.
+  // are the ones afterDrawn() watches. Once they have gone out the hall
+  // takes its first pose behind the glass (Entrance.prepose), and the clock
+  // starts once that has been drawn too.
+  function settleThenStart() {
+    afterDrawn(function () {
+      window.Entrance.prepose();
+      afterDrawn(start);
+    });
+  }
   function arm() {
-    entranceTimers.push(setTimeout(function () { whenStreet(function () { afterDrawn(start); }); }, ENTRANCE_HOLD));
+    entranceTimers.push(setTimeout(function () { whenStreet(settleThenStart); }, ENTRANCE_HOLD));
     // Past the longest hold the clock starts anyway, but never inside a
     // stall: a browser drawing for the first time (a new profile compiling
     // its shaders) froze the page for up to 1.6s at about this point, and a
     // clock started by the timer alone spent the walk's first 650ms in it.
-    entranceTimers.push(setTimeout(function () { whenStreet(function () { afterCalm(start); }); }, ENTRANCE_HOLD_MAX));
-    Promise.resolve(built).then(function () {
-      whenStreet(function () { afterDrawn(start); });
-    });
-    // A street that could not be painted lands the hall rather than
-    // holding the screen; one that stands painted on a page that never
-    // runs calm starts its clock here anyway.
+    entranceTimers.push(setTimeout(function () { whenStreet(function () { window.Entrance.prepose(); afterCalm(start); }); }, ENTRANCE_HOLD_MAX));
+    Promise.resolve(built).then(function () { whenStreet(settleThenStart); });
+    // A street that could not be painted, or a page that never runs calm,
+    // lands the hall rather than holding the screen: a walk started inside
+    // a freeze would spend its first second in it.
     entranceTimers.push(setTimeout(function () {
-      if (started) return;
-      if (window.Entrance.ready()) start(); else finishEntrance();
+      if (!started) finishEntrance();
     }, ENTRANCE_GIVE_UP));
   }
   // A hall loaded where nobody can see it (a tab opened in the background,
