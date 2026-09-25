@@ -7,9 +7,11 @@ turning under it and the stone are each app's own.
 
 Inside the die each app carries one charge, seen from the same place (level
 with it or a few degrees above) and lit by the one key light, up and to the
-left: a globe, a dish, a shelf of bound volumes, a card held out by hand,
-a gunner's quadrant, a canary in its cage. Each is drawn from the real
-object's geometry and proportions, never pieced together from circles and
+left: a globe at dawn, an earth station's dish, a shelf of bound volumes, a
+card held out by hand, a gunner's quadrant, a canary on its perch. The
+globe's night and dawn are printed on it; its roundness takes the same
+lamp as the rest. Each is drawn from the real object, its geometry and
+proportions taken from photographs, never pieced together from circles and
 rectangles, and never lettered. Its form is then cut into three or four flat
 planes of tone along the key light, the way a woodcut or a Deco poster cuts
 it: no gradient inside a plane and no outline round it (icons/solid.py
@@ -19,8 +21,9 @@ band: the domed crystal the gate's bezel holds over it supplies the one
 reflection glass is allowed.
 
 Every mark also has a small cut (#mark-<id>-s), drawn from the same geometry
-with fewer planes, no engraving, and its struts, wires and cords drawn
-heavier, for the Ledger, the gate on a laptop and a future favicon.
+with fewer planes, no fine engraving (Arsenal keeps its scale as coarse
+blocks), and its struts, legs and cords drawn heavier, for the Ledger, the
+gate wherever its mark is under 56 screen pixels, and a future favicon.
 
 HUE below is the one source of truth. Each entry carries the mark's enamel,
 the dye of the velvet its gate hangs (per theme) and the ink its gate's day
@@ -2562,7 +2565,9 @@ SUBJECTS = {
     'bourse': (ground_lattice, subject_bourse, 'round'),
 }
 # Each charge sits inside a circle of about 39 units, so the enamel shows
-# all round it and nothing is cropped by the fillet: (scale, centre).
+# all round it and nothing is cropped by the fillet, bar Outreach's sleeve,
+# which issues from the rim as an arm from the edge of a heraldic field.
+# Two charges are laid by a scale about a centre here: (scale, centre).
 FIT = {'autopilot': (0.92, 48.0, 40.0), 'outreach': (0.98, 48.0, 48.0)}
 
 

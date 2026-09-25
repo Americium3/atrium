@@ -464,12 +464,13 @@ its next poll once the hub has restarted. A service taken out of
 `icons/gen.py` draws every service's badge and is the one source for its
 colours. Each mark is an enamelled badge cut from one die (a turned gilt
 lip, translucent enamel over engine turning and a stone at the crown)
-holding one subject drawn from the real object and cut into flat planes of
-tone along the hall's key light. Each has a small cut for the Ledger, for a
-gate on a laptop-sized hall and for a future favicon. `HUE` holds each
-app's enamel beside the dye of the velvet its gate hangs (per theme) and
-the ink its day card is printed in, so the house follows the mark.
-DESIGN.md, "App marks (v7)", describes the six.
+holding one subject drawn from photographs of the real object and cut into
+flat planes of tone along the hall's key light. Each has a small cut for
+the Ledger, for a gate whose mark comes to under 56 screen pixels (the
+halls from 1280 to 1920) and for a future favicon. `HUE` holds each app's
+enamel beside the dye of the velvet its gate hangs (per theme) and the ink
+its day card is printed in, so the house follows the mark. DESIGN.md, "App
+marks (v7)", describes the six.
 
 A plain run writes only this repository: the generated block of marks in
 `static/index.html` and the generated velvet rules in
@@ -493,8 +494,11 @@ NODE_PATH=/x/Github/atrium-wt/_kit/shim python icons/gen.py --brand autopilot --
 ```
 
 `tests/test_web_assets.py` checks that the page carries what the generator
-draws and that every velvet stays in its mark's colour family, under the
-leaf's luminance and apart from its wing's other cloths.
+draws, and that every velvet, as the sheets serve it, stays in the colour
+family of the ground its mark is drawn on in the page, under the leaf's
+luminance and apart from its wing's other cloths, open or dark. It also
+fails if any rule or script hangs a gate in a cloth by another road than
+the generated dyes and `velvetFor`.
 
 ## Debug URL parameters
 
