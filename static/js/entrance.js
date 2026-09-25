@@ -1716,37 +1716,6 @@ function buildMirror() {
   return piece('face', 'e-mirror', R(-hw, hw, -2.8, 0.02), [lay('e-base', '<g filter="url(#e-streak)">' + g + '</g>', null, { res: 0.5, alpha: true })], { z: 0 });
 }
 
-/* By day the glass of the right leaf, swinging, throws the sun back out
-   onto the pavement: a bright patch that sweeps across the stone as the
-   leaf turns, gone once the leaf has turned past it. A level piece just
-   over the paving holds it; the patch is the leaf's pane cast along the
-   reflected sun, an affine picture of the pane, one transform a frame. */
-function buildGlint() {
-  // held to the paving between the doors and the canopy's edge, in front
-  // of the reader all the while it shows
-  var p = piece('plane', 'e-glintfloor', R(-8, 8, 0, CAN.z), [], { h: 0.004 });
-  var holder = div('e-glint', p.el), inner = div('e-glint-in', holder);
-  inner.style.width = f2(0.83 * U) + 'px'; inner.style.height = f2(2.29 * U) + 'px';
-  p.glint = holder;
-  return p;
-}
-/* The four corners of the right leaf's pane cast on the pavement along the
-   sun it reflects, at swing angle s (degrees); null once it no longer
-   lands in front of the doors. */
-function glintAt(s) {
-  var a = s * D2R, N = [-Math.sin(a), 0, Math.cos(a)];
-  var LN = LIGHT[0] * N[0] + LIGHT[2] * N[2];
-  var Rv = [LIGHT[0] - 2 * LN * N[0], LIGHT[1], LIGHT[2] - 2 * LN * N[2]];
-  if (Rv[2] <= 0.05) return null;
-  var pane = [[0.085, 2.59], [0.915, 2.59], [0.915, 0.3], [0.085, 0.3]];
-  return pane.map(function (q) {
-    var r = OPEN - q[0];            // from the hinge
-    var P0 = [OPEN - r * Math.cos(a), q[1], -r * Math.sin(a)];
-    var t = P0[1] / -Rv[1];
-    return [P0[0] + Rv[0] * t, P0[2] + Rv[2] * t];
-  });
-}
-
 /* =========================================================================
    The foyer, between the doors and the hall. Its floor, ceiling and side
    walls are sized to the hall, so the far wall they meet is the hall's own
@@ -1978,7 +1947,6 @@ function build(host, P, cam, T, G) {
   var dusk = P.night ? add(buildDusk(T)) : null;
   if (P.night) { add(buildMirrorGround()); add(buildMirror()); }
   var rows = buildGround(P, G.rows).map(add);
-  var glint = !P.night ? add(buildGlint()) : null;
   var stanchions = add(buildStanchions(P));
   var soffit = buildSoffit(P).reverse().map(add);
   var fascia = add(buildFascia(P));
@@ -1990,7 +1958,7 @@ function build(host, P, cam, T, G) {
   return {
     world: world, fworld: fworld, sworld: sworld, parts: parts, leaves: leaves, uppers: uppers, walls: walls, sides: sides,
     transom: transom, dusk: dusk, shade: shade, rows: rows, soffit: soffit, fascia: fascia, stanchions: stanchions,
-    glint: glint, cloud: cloud
+    cloud: cloud
   };
 }
 
@@ -2211,8 +2179,8 @@ function day(sc, t, total, cam) {
     fadeAll(layersOf(p, 'e-glare'), [[0, 0.25], [t.sun[0], 0.25], [t.sun[1], 1, 'ease-out']], total);
   });
   // The right leaf flashes as it swings through the angle that throws the
-  // sun at the reader, and casts the sun back across the pavement.
-  var flash = layersOf(sc.leaves[1], 'e-flash')[0], fpts = [], gpts = [], opts = [];
+  // sun at the reader.
+  var flash = layersOf(sc.leaves[1], 'e-flash')[0], fpts = [];
   var T0 = t.doors + t.doorLag, T1 = T0 + t.doorsDur;
   for (var ms = T0; ms <= T1; ms += STEP) {
     var s = swing(t, ms, 1), c = cam.at(ms);
@@ -2221,23 +2189,9 @@ function day(sc, t, total, cam) {
     var ctr = [OPEN - 0.5 * Math.cos(aa), 1.45, -0.5 * Math.sin(aa)], toEye = norm([c.x - ctr[0], c.y - ctr[1], c.z - ctr[2]]);
     // horizontally only: the leaf turns about an upright hinge
     var hR = Math.atan2(Rv[0], Rv[2]), hE = Math.atan2(toEye[0], toEye[2]), dh = (hR - hE) / D2R;
-    fpts.push([ms, Math.exp(-dh * dh / 30)]);
-    var g = glintAt(s);
-    if (g && sc.glint) {
-      // the pane (0.83 x 2.29 m, drawn at U px a metre) to its cast on the
-      // floor: an affine map in the floor piece's px (x right, y away)
-      var bx = sc.glint.box, P0 = g[0], P1 = g[1], P3 = g[3];
-      var px = function (p) { return [(p[0] - bx.a0) * U, (bx.b1 - p[1]) * U]; };
-      var o = px(P0), ex = px(P1), ey = px(P3), w = 0.83 * U, h = 2.29 * U;
-      gpts.push([ms, { transform: 'matrix(' + [(ex[0] - o[0]) / w, (ex[1] - o[1]) / w, (ey[0] - o[0]) / h, (ey[1] - o[1]) / h, o[0], o[1]].map(f4).join(',') + ')' }]);
-      opts.push([ms, clamp01(Math.sin(Math.min(1, s / 34) * Math.PI)) * 0.85]);
-    }
+    fpts.push([ms, Math.exp(-dh * dh / 110)]);
   }
   if (flash) fade(flash, [[0, 0]].concat(fpts.map(function (p) { return [p[0], p[1]]; })).concat([[T1 + 40, 0]]), total);
-  if (sc.glint && gpts.length) {
-    run(sc.glint.glint, gpts, total);
-    fade(sc.glint.glint, [[0, 0]].concat(opts).concat([[opts[opts.length - 1][0] + STEP, 0]]), total);
-  }
   // The sun through the doors: the foyer's bands come up as the cloud goes,
   // the leaves' shadows draw back as the doors open, and the bands settle
   // as the eye adjusts.

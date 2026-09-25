@@ -396,9 +396,9 @@ Day, a low sun 15 degrees up behind the reader's left shoulder:
   crossing its letter in 300 ms: gold taking the sun, never giving light.
   In the Bureau the glint is cool white on nickel silver.
 - 680 ms: the centre pair swings in. As the right leaf turns through the
-  angle that throws the sun at the reader its glass flashes, and it casts a
-  patch of sun back across the paving. The leaves' shadows draw back across
-  the bands on the foyer's floor and wall as they open.
+  angle that throws the sun at the reader, its glass flashes. The leaves'
+  shadows draw back across the bands on the foyer's floor and wall as they
+  open.
 - The street's reflection thins in the glass as the reader comes close.
 - 1950 ms: stepping out of the sun, the eye adjusts: the foyer, dim and cool
   at first, comes up to its own light, and the sun's bands settle out.

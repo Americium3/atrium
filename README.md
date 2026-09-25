@@ -173,8 +173,8 @@ etched glass and the open doorway you see the foyer, whose far wall is the
 hall. It comes up to full light as you cross the threshold, its fanlights
 lighting from the clock outward and the marquee chasing once. By day the
 street starts under a cloud; the sun comes out, a glint runs along the gilt
-letters, the swinging glass throws the sun across the paving, and the low
-sun follows you in through the doors while your eye adjusts to the foyer.
+letters, the swinging glass flashes, and the low sun follows you in through
+the doors while your eye adjusts to the foyer.
 It plays on every load and takes about 3.5 s by night and 3.2 s by day. Any
 click, tap, wheel or keypress cuts it short (browser shortcuts such as F5
 still work), `?entrance=0` suppresses it, and reduced motion collapses it to
