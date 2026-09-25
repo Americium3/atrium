@@ -454,8 +454,12 @@ the rope: two tiles painted at different sizes meet up to a pixel apart,
 and across a fine line that shows. Each tile
 also keeps a copy at half size, shown until the tile has grown past it, so
 the compositor never shrinks a texture by more than half (it samples without
-mipmaps, and a fine line shrunk further breaks into steps). Every level is
-let go once it is done with. Textures are inlined for the SVG, and every
+mipmaps, and a fine line shrunk further breaks into steps). Each layer's SVG
+is parsed once and drawn into each of its tiles at the tile's own size, and
+the paint takes about 0.4 s at 1920 and 0.6 s at 3440 on this machine's GPU.
+Nothing is freed until the hall lands: freeing canvases as their pieces
+left the screen made the page's thread wait on the GPU in the walk.
+Textures are inlined for the SVG, and every
 face the canvases set type in is loaded first (1.5 s at most). The canvases
 come to about 300 MB at 3440 (298 by night, 296 by day) and 136 MB at 1920. Painting a tile during the
 walk was tried and dropped: on the GPU it held the GPU's own thread for

@@ -690,9 +690,8 @@ function planTiles(part, l, cam, times, dpr) {
    level from its SVG, its coarser one halved from it. Painting a tile while
    the walk ran cost the walk its frames: on the GPU it held the GPU's own
    thread for 60-200ms a tile; on this thread, the page's frames. Each level
-   shows in its own stretch of the walk and is let go when the next one
-   takes over or its piece leaves the screen. Returns the paint's promise and
-   the plan the clock runs (see Levels). */
+   shows in its own stretch of the walk. Returns the paint's promise and the
+   plan the clock runs (see Levels). */
 function paint(parts, cam, P) {
   var D = defsMap(P), dpr = Math.min(3, window.devicePixelRatio || 1);
   var times = [], tp = performance.now();
@@ -829,18 +828,12 @@ function halve(from, to) {
   c.drawImage(from.cv, 0, 0, to.w, to.h);
   to.painted = true;
 }
-function release(L) {
-  if (!L || !L.cv.width) return;
-  L.cv.width = 0; L.cv.height = 0;
-  L.painted = false;
-}
 /* The levels on the clock. Each level's canvas shows in its own stretch of
    the walk by an opacity animation on the entrance's clock, so the
    compositor switches them and the page's thread does nothing at the
-   moment of the switch. Live, every level is let go once it is done with
-   (its piece has left the screen, or the next level has taken over), which
-   frees its pixels without touching the page's layers. Stopped (seek),
-   whatever was let go is painted again. */
+   moment of the switch. Nothing is let go until the hall lands: freeing a
+   canvas as its piece left the screen made the page's thread wait on the
+   GPU, 100 to 1200ms at a time at 3440 on a busy machine, in the walk. */
 var Levels = {
   timers: [],
   animate: function (plan, total) {
@@ -853,12 +846,7 @@ var Levels = {
       run(L.cv, fr, total);
     });
   },
-  start: function (plan) {
-    var self = this, t0 = performance.now();
-    plan.all.forEach(function (L) {
-      if (isFinite(L.to)) self.timers.push(setTimeout(function () { release(L); }, Math.max(0, L.to + 60 - (performance.now() - t0))));
-    });
-  },
+  start: function () {},
   seek: function (plan) {
     this.stop();
     var pend = [];
