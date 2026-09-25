@@ -692,8 +692,9 @@ colour. All strokes carry `vector-effect: non-scaling-stroke`, so the 1 /
 - Engraving (v7). SAPPHIRE is cut into the dial where a complicated watch
   sets the maker's name when twelve carries the moon: on the axis between
   the moon and the arbor. Two lines are engraved on the inner flange just
-  inside the gilt rule, either side of six, 11 units high, so from across
-  the room they read as a fine engraved band. Their glyphs are outlines
+  inside the gilt rule, set as one run centred under six with a space of two
+  characters between them, 11 units high, so from across the room they read
+  as a fine engraved band. Their glyphs are outlines
   baked from Yu Mincho Demibold into `clock.js` (the generated
   `DEDICATION` block), so they draw the same in every language with no
   face loaded. Every cut is filled, and its far wall shows as a lit hair on
