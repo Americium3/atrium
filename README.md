@@ -450,7 +450,8 @@ its next poll once the hub has restarted. A service taken out of
 - Add `desc.<key>` strings to both `STR` tables in `static/js/app.js`.
   Without them the gate shows the generic description.
 - Give it its mark: add the service to `HUE` in `icons/gen.py` (its
-  enamel and its velvet dye for both themes), draw its subject and its
+  enamel, its velvet dye for both themes, its card ink and its fanlight
+  glass), draw its subject and its
   small cut, run `python icons/gen.py` so `#mark-<id>`, `#mark-<id>-s` and
   its velvet rules land in the generated blocks, and add the id to
   `KNOWN_SIGILS` in `app.js`. The gate and its Ledger medallions use the
@@ -467,10 +468,11 @@ lip, translucent enamel over engine turning and a stone at the crown)
 holding one subject drawn from photographs of the real object and cut into
 flat planes of tone along the hall's key light. Each has a small cut for
 the Ledger, for a gate whose mark comes to under 56 screen pixels (the
-halls from 1280 to 1920) and for a future favicon. `HUE` holds each app's
-enamel beside the dye of the velvet its gate hangs (per theme) and the ink
-its day card is printed in, so the house follows the mark. DESIGN.md, "App
-marks (v7)", describes the six.
+halls from 1280 to 1920 on an ordinary screen) and for a future favicon.
+`HUE` holds each app's enamel beside the dye of the velvet its gate hangs
+(per theme), the ink its day card is printed in and the glass of its
+fanlight, so the house follows the mark. DESIGN.md, "App marks (v7)",
+describes the six.
 
 A plain run writes only this repository: the generated block of marks in
 `static/index.html` and the generated velvet rules in
