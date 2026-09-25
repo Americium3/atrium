@@ -617,7 +617,7 @@ function scaleTrack(g, r) {
    the screen, are painted a little under it, which keeps the canvases near
    the memory the owner accepted. */
 var SHARP = { 'e-nfloor': 0.55, 'e-ceiling': 0.6, 'e-fwall': 0.6, 'e-upper': 0.7, 'e-fascia': 0.9,
-  'e-soffit': 0.8, 'e-wall': 0.9, 'e-ground': 0.9, 'e-mirror': 0.8, 'e-shade': 0.35 };
+  'e-soffit': 0.75, 'e-wall': 0.9, 'e-ground': 0.9, 'e-mirror': 0.8, 'e-shade': 0.35, 'e-leaf': 0.8 };
 var TILE_PX = 0.5e6;        // a tile worth splitting, in canvas pixels
 var CANVAS_MAX = 8192;
 var KMAX = 1;   // two levels: the finest and its half
@@ -716,6 +716,13 @@ function paint(parts, cam, P) {
         var qc = [tl.res[0] / Math.pow(2, kMax), tl.res[1] / Math.pow(2, kMax)], bl = l.alpha ? 0 : 2;
         var job = { l: l, used: used, x0: r.a0 - (r.a0 > sub.a0 + 1e-6 ? bl / qc[0] : 0), x1: r.a1 + (r.a1 < sub.a1 - 1e-6 ? bl / qc[0] : 0),
           y0: r.b0 - (r.b0 > sub.b0 + 1e-6 ? bl / qc[1] : 0), y1: r.b1 + (r.b1 < sub.b1 - 1e-6 ? bl / qc[1] : 0), levels: [] };
+        // A whole number of pixels at every level, the tile grown by under a
+        // pixel to fit: a canvas rounded to its size draws its picture a
+        // fraction off scale, and two tiles met with a step between them.
+        var mk = Math.pow(2, kMax);
+        var cw = Math.min(CANVAS_MAX, Math.max(mk, Math.ceil((job.x1 - job.x0) * tl.res[0] / mk - 1e-6) * mk));
+        var chh = Math.min(CANVAS_MAX, Math.max(mk, Math.ceil((job.y1 - job.y0) * tl.res[1] / mk - 1e-6) * mk));
+        job.x1 = job.x0 + cw / tl.res[0]; job.y0 = job.y1 - chh / tl.res[1];
         tl.levels.forEach(function (lv, i) {
           var q = [tl.res[0] / Math.pow(2, lv.k), tl.res[1] / Math.pow(2, lv.k)];
           var cv = document.createElement('canvas');
@@ -725,8 +732,8 @@ function paint(parts, cam, P) {
           cv.style.width = f2((job.x1 - job.x0) * U) + 'px'; cv.style.height = f2((job.y1 - job.y0) * U) + 'px';
           l.el.appendChild(cv);
           var L = { cv: cv, job: job, k: lv.k, from: lv.from, to: Math.min(lv.to, gone), gone: gone, prev: null, next: null,
-            w: Math.max(2, Math.min(CANVAS_MAX, Math.round((job.x1 - job.x0) * q[0]))),
-            h: Math.max(2, Math.min(CANVAS_MAX, Math.round((job.y1 - job.y0) * q[1]))), painted: false, multi: tl.levels.length > 1 };
+            w: Math.max(1, Math.round(cw / Math.pow(2, lv.k))), h: Math.max(1, Math.round(chh / Math.pow(2, lv.k))),
+            painted: false, multi: tl.levels.length > 1 };
           if (i) { L.prev = job.levels[i - 1]; job.levels[i - 1].next = L; }
           job.levels.push(L);
           all.push(L);
@@ -1031,7 +1038,10 @@ function buildFascia(P) {
   });
 
   var box = R(x0, x1, y0, y1);
-  var layers = [lay('e-base', base + cr)];
+  var fc = [['b', yb + mh / 2], ['b', yt - mh / 2], ['b', yt + 0.05]];
+  boxes.forEach(function (bx, k) { if (k) fc.push(['a', (boxes[k - 1].a1 + bx.a0) / 2]); });
+  [-4.5, -3.2, 3.2, 4.5, -CAN.half, CAN.half].forEach(function (x) { fc.push(['a', x]); });
+  var layers = [lay('e-base', base + cr, null, { cuts: fc })];
   if (h) {
     layers.push(lay('e-dark', '', null, { solid: 'rgba(3,2,5,0.66)' }));
     layers.push(lay('e-wash', wash, R(-CAN.half, CAN.half, yb, yt), { res: 0.25, alpha: true }));
@@ -1267,7 +1277,9 @@ function buildTransom(P) {
   frame += member(x0, HEAD - 0.08, x1 - x0, HEAD + 0.02, P, false);
   s += frame;
   if (P.night) lit += frame;
-  var layers = [lay('e-base', s)];
+  var tc = [['b', DOOR_H + 0.04], ['b', HEAD - 0.03]];
+  [-SIDE, -1.06, 1.06, SIDE].forEach(function (mx) { tc.push(['a', mx]); });
+  var layers = [lay('e-base', s, null, { cuts: tc })];
   if (lit) layers.push(lay('e-lit', lit, null, { res: 0.6, alpha: true }));
   return piece('face', 'e-transom', R(x0, x1, y0, y1), layers, { z: 0 });
 }
@@ -1429,7 +1441,9 @@ function buildSide(side, P) {
   [x0 + SL.st / 2, x0 + w + 0.05, x1 - SL.st / 2].forEach(function (x) { cuts.push(['a', x]); });
   [SL.br / 2, (SL.lr0 + SL.lr1) / 2, (SL.mu0 + SL.mu1) / 2, DOOR_H - SL.tr / 2].forEach(function (y) { cuts.push(['b', y]); });
   var box = R(x0, x1, -0.06, DOOR_H + 0.02);
-  var layers = [lay('e-tint', la.tint + lb.tint, null, { res: 0.12, alpha: true }), lay('e-base', s)];
+  // cut only along the bars: two tiles painted at different sizes meet a
+  // pixel apart, and across a line of the etching that shows
+  var layers = [lay('e-tint', la.tint + lb.tint, null, { res: 0.12, alpha: true }), lay('e-base', s, null, { cuts: cuts })];
   var clearPanes = function (fn) {
     var out = '';
     [[x0, w], [x0 + w + 0.1, w]].forEach(function (lf) {
@@ -1606,11 +1620,14 @@ function buildStanchions(P) {
   var box = R(-3.55, 3.55, -0.06, hgt + 0.08);
   var dark = P.night ? '<g filter="url(#e-dim)">' + s + '</g>' : s;
   var L = R(-3.55, -1.1, box.b0, box.b1), Rr = R(1.1, 3.55, box.b0, box.b1);
-  var early = P.night ? { when: [0, 760] } : null;
+  // cut at the posts and below the rope, never across it
+  var sc = [['b', 0.5], ['b', 0.25]];
+  posts.forEach(function (px) { sc.push(['a', px], ['a', -px]); });
+  var early = P.night ? { when: [0, 760], cuts: sc } : { cuts: sc };
   var layers = [lay('e-base', dark, L, early), lay('e-base', dark, Rr, early)];
   if (lit) {
-    layers.push(lay('e-lit', s + lit, L));
-    layers.push(lay('e-lit', s + lit, Rr));
+    layers.push(lay('e-lit', s + lit, L, { cuts: sc }));
+    layers.push(lay('e-lit', s + lit, Rr, { cuts: sc }));
   }
   return piece('face', 'e-stanchions', box, layers, { z: z });
 }

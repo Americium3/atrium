@@ -445,13 +445,19 @@ screen's `devicePixelRatio`, read off the camera over the whole walk (the
 foyer's tiles only where the doorway or the glass shows them). The pieces
 the reader comes closest to (the doors, their frames and reveal, the rope)
 are painted for all of that. The rest, seen largest only as they leave the
-top or the bottom of the screen, are painted for 55 to 90% of it. Each tile
+top or the bottom of the screen, are painted for 55 to 90% of it, and the
+centre pair, largest when folded behind the side pairs' glass, for 80%.
+Every canvas is a whole number of pixels at each of its levels, the tile
+grown by under a pixel to fit, and the side pairs, the transom, the fascia
+and the rope are cut only along their bars, between their letters or below
+the rope: two tiles painted at different sizes meet up to a pixel apart,
+and across a fine line that shows. Each tile
 also keeps a copy at half size, shown until the tile has grown past it, so
 the compositor never shrinks a texture by more than half (it samples without
 mipmaps, and a fine line shrunk further breaks into steps). Every level is
 let go once it is done with. Textures are inlined for the SVG, and every
 face the canvases set type in is loaded first (1.5 s at most). The canvases
-come to about 290 MB at 3440 and 145 MB at 1920. Painting a tile during the
+come to about 300 MB at 3440 (298 by night, 296 by day) and 136 MB at 1920. Painting a tile during the
 walk was tried and dropped: on the GPU it held the GPU's own thread for
 60 to 200 ms a tile, and on the page's thread it cost the walk its frames.
 
