@@ -553,33 +553,26 @@ var entranceTimers = [];
 
 /* The walk ends with the horizon on the clock's dial, the hall's own eye
    point, where its floor runs to. Read when the street is dressed and again
-   whenever the stage is solved while it stands (the gates arriving), so the
-   hall lands where it will rest. */
+   whenever the stage is solved while it stands, so the hall lands where it
+   will rest. */
 function entranceEye() {
   var dial = $('#clock .dial');
   var r = dial && window.restRect(dial);
   // the hall stands at rest until the clock starts, so this is its own box
   return r && r.height ? r.top + r.height / 2 : window.innerHeight * 0.45;
 }
+/* The foyer is sized to the hall. The dial and the floor line are laid out
+   from the page's first frame and stay where they are as the gates and
+   the cases come in (measured from 1280x800 to 3440x1440), so the street
+   is dressed at once; a stage solved later that does move them has it
+   dressed again. Returns true when it did. */
 function entranceMeasure() {
-  if (root.dataset.entered !== 'no' || !window.Entrance) return;
-  // The foyer is sized to the hall, so the street is dressed once the stage
-  // is solved (the gates are in), and a hall that moves after that while
-  // the street stands has it dressed again.
-  if (!streetAsked) { if (entranceArmed) dressSoon(); return; }
-  if (window.Entrance.measure(entranceEye())) dressStreet();
+  if (root.dataset.entered !== 'no' || !window.Entrance || !streetAsked) return false;
+  if (!window.Entrance.measure(entranceEye())) return false;
+  dressStreet();
+  return true;
 }
-/* The stage is solved more than once as the hall comes in (the gates, then
-   the cases beside them), and each can move the dial; the street is dressed
-   once it has been still for a moment, or 900ms after it was first solved. */
-var streetAsked = false, entranceArmed = false, dressT = 0, firstSolved = 0;
-function dressSoon() {
-  var now = performance.now();
-  if (!firstSolved) firstSolved = now;
-  clearTimeout(dressT);
-  dressT = setTimeout(dressOnce, Math.max(0, Math.min(260, firstSolved + 900 - now)));
-  entranceTimers.push(dressT);
-}
+var streetAsked = false;
 function dressOnce() {
   if (streetAsked || root.dataset.entered !== 'no') return;
   streetAsked = true;
@@ -587,20 +580,22 @@ function dressOnce() {
 }
 
 /* The street is dressed at once, but its clock starts only when the hall
-   behind the doors is built and drawn. The hall is seen through the glass
+   behind the doors is built and drawn: the hall is seen through the glass
    from the first beat, and its first raster at 3440 froze the page twice
-   in its first 400ms; that raster now happens while the street stands
-   still. The clock starts once the boot's first readings are in (the
-   gates', and the cases' where they stand) and the frames that draw them
-   have gone out. A hub slow to answer holds the street ENTRANCE_HOLD ms,
-   and then the clock starts as soon as the frames run at the display's
-   pace again. A browser that has drawn the hall before (a new tab, or a
-   restart on the same profile) settles 0.45-0.85s after load, at 1920 and
-   at 3440. One with no shaders compiled yet (a new profile, as every probe
-   launch is) spends 2.3-3s on its first draws at either size, and there it
-   is ENTRANCE_HOLD_MAX that starts the clock. It is also for a renderer
-   that never settles, and for a tab that draws nothing. */
-var ENTRANCE_HOLD = 900, ENTRANCE_HOLD_MAX = 2500;
+   in its first 400ms. That raster happens while the street is painted,
+   under the plate. The clock starts once the street is painted, the boot's
+   first readings are in (the gates', and the cases' where they stand) and
+   the frames that draw them have gone out. A hub slow to answer holds it
+   ENTRANCE_HOLD ms at most. A browser with no shaders compiled yet (a new
+   profile) can take 2-3s over its first draws, and there it is
+   ENTRANCE_HOLD_MAX that starts the clock, as soon as the frames run at
+   the display's pace again. A page that never gets there lands the hall
+   at ENTRANCE_GIVE_UP. */
+var ENTRANCE_HOLD = 900, ENTRANCE_HOLD_MAX = 2500, ENTRANCE_GIVE_UP = 6000;
+/* The clock is handed its start this far ahead, so the frames that carry
+   the start of every animation to the compositor (a few, and heavy at
+   3440) go out while nothing moves yet. */
+var ENTRANCE_LEAD = 56;
 /* Calls fn once what has been handed to the compositor is on screen. No
    callback says so, and a fixed two frames is not it: the main thread runs
    a frame or two ahead of the GPU, so its animation frames kept arriving on
@@ -609,14 +604,18 @@ var ENTRANCE_HOLD = 900, ENTRANCE_HOLD_MAX = 2500;
    more, and goes two short intervals after it: by then it has gone out.
    With no heavy frame in CALM_RUN short intervals, nothing was heavy
    enough to hold a frame back. "Short" is under 25ms, or near the best
-   this machine has shown, for a renderer that never gets under it. Two
-   short intervals from the start were not enough: at 3440 the GPU began a
-   flip's raster up to five frames after the flip, so the calm pair came
-   before it, and the throw's first frame went into the stall it was
-   waiting out (MO-1). */
-var CALM_RUN = 6;
-function afterDrawn(fn) {
-  var last = 0, best = Infinity, calm = 0, heavy = false;
+   this machine has shown, for a renderer that never gets under it. The
+   street's paint waits for the GPU to finish its drawing (Entrance.dress
+   reads a pixel back), so a short run is enough here. */
+var CALM_RUN = 3;
+/* On a GPU drawing for the first time (Entrance.coldGpu) the hall's first
+   raster comes in waves after the street's paint, 350-550ms each and a
+   frame or two apart; two short intervals fell between two waves, and the
+   next one froze the walk's first 300ms (3440, a new profile, by day). There
+   the clock waits for a longer calm. */
+var CALM_COLD = 16;
+function afterDrawn(fn, run) {
+  var last = 0, best = Infinity, calm = 0, heavy = false, need = run || CALM_RUN;
   requestAnimationFrame(function tick(t) {
     if (last) {
       var dt = t - last;
@@ -625,7 +624,7 @@ function afterDrawn(fn) {
       else calm = dt < Math.max(25, best * 1.5) ? calm + 1 : 0;
     }
     last = t;
-    if (calm >= (heavy ? 2 : CALM_RUN)) fn(); else requestAnimationFrame(tick);
+    if (calm >= (heavy ? Math.max(2, need - CALM_RUN) : need)) fn(); else requestAnimationFrame(tick);
   });
 }
 
@@ -635,25 +634,23 @@ function afterDrawn(fn) {
    first time (a new profile froze for up to 1.6s here, and a clock started
    by the timer alone spent the walk's first 650ms in it). Asked for the
    display's own pace here, a busy machine never started at all. */
-function afterCalm(fn) {
+function afterCalm(fn, run) {
   var last = 0, calm = 0;
   requestAnimationFrame(function tick(t) {
     if (last) calm = t - last < 50 ? calm + 1 : 0;
     last = t;
-    if (calm >= 4) fn(); else requestAnimationFrame(tick);
+    if (calm >= (run || 4)) fn(); else requestAnimationFrame(tick);
   });
 }
 
-/* The street is painted into its canvases while it stands (a few hundred
-   ms at 3440); until then the overlay's own dark (or the day's stone) holds
-   the screen. */
+/* The street is painted into its canvases under the plate, which shows
+   the street out of focus (Entrance.sketch) from the page's first frame. */
 var streetReady = Promise.resolve(false);
-var ENTRANCE_GIVE_UP = 6000;
 function dressStreet() {
   entrance.classList.remove('dressed');
-  var p = streetReady = window.Entrance.dress(entrance, {
-    theme: root.dataset.theme, wing: root.dataset.wing, yEnd: entranceEye()
-  }).then(function (ok) {
+  var opts = { theme: root.dataset.theme, wing: root.dataset.wing, yEnd: entranceEye() };
+  window.Entrance.sketch(entrance, opts);
+  var p = streetReady = window.Entrance.dress(entrance, opts).then(function (ok) {
     if (ok && p === streetReady) entrance.classList.add('dressed');
     return ok && p === streetReady;
   });
@@ -666,10 +663,47 @@ function whenStreet(fn) {
     else if (ok) fn();
   });
 }
+/* SVG text laid out while the hall stands posed is laid out for the pose:
+   Chrome sizes its glyphs for the scale they are drawn at, and the pose
+   going back to none does not lay them out again, so a resize in the walk
+   left the clock's numerals a pixel wider and shorter than a fresh load
+   draws them. A resize under the pose, or anything that re-letters an SVG
+   in the posed hall, marks it, and the landing sets that text again at
+   rest (the next frame lays it out; nothing else moves). */
+var HALL_POSED = '#masthead, #ticker, #backwall, #floorplane, #works, #stage, #almanac, #signal-desk';
+var posedText = false, posedMO = null;
+function watchPosedText() {
+  if (!window.MutationObserver) return;
+  posedMO = new MutationObserver(function (ms) {
+    if (posedText || !root.classList.contains('e-posed')) return;
+    for (var i = 0; i < ms.length && !posedText; i++) {
+      var n = ms[i].target, el = n.nodeType === 1 ? n : n.parentNode;
+      if (el && el.closest && el.closest('svg')) posedText = true;
+      Array.prototype.forEach.call(ms[i].addedNodes, function (a) {
+        if (a.nodeType === 1 && (a.tagName.toLowerCase() === 'svg' || a.querySelector('svg text'))) posedText = true;
+      });
+    }
+  });
+  document.querySelectorAll(HALL_POSED).forEach(function (e) {
+    posedMO.observe(e, { subtree: true, childList: true, characterData: true });
+  });
+}
+function relayPosedText() {
+  if (posedMO) { posedMO.disconnect(); posedMO = null; }
+  if (!posedText) return;
+  posedText = false;
+  document.querySelectorAll(HALL_POSED).forEach(function (h) {
+    h.querySelectorAll('svg text, svg tspan').forEach(function (t) {
+      if (!t.children.length) t.textContent = t.textContent;
+    });
+  });
+}
+
 /* A resize while the street stands dresses it again for the new screen;
    once the walk has begun it lands the hall instead. */
 function entranceResize() {
   if (root.dataset.entered !== 'no') return;
+  if (root.classList.contains('e-posed')) posedText = true;
   if (window.Entrance.running()) finishEntrance();
   else if (streetAsked) dressStreet();
 }
@@ -686,41 +720,59 @@ function playEntrance(built) {
     return;
   }
   entrance.classList.add(root.dataset.theme === 'ivory' ? 'day' : 'night');
-  // Dressed as soon as the stage stands (entranceMeasure), or after a short
-  // wait for a hub slow to send the gates.
-  entranceArmed = true;
-  if ($('#gates .gate')) dressSoon();
-  else entranceTimers.push(setTimeout(dressOnce, 1100));
+  watchPosedText();
+  // The plate's sketch goes in before the page's first frame; the street's
+  // paint starts once that frame is out, so it does not hold it back.
+  window.Entrance.sketch(entrance, { theme: root.dataset.theme, wing: root.dataset.wing, yEnd: entranceEye() });
+  requestAnimationFrame(function () { entranceTimers.push(setTimeout(dressOnce, 0)); });
   window.addEventListener('resize', entranceResize);
   var started = false;
   function start() {
     if (started || root.dataset.entered !== 'no' || !window.Entrance.ready()) return;
+    // the stage may have been solved again since the street was dressed
+    if (entranceMeasure()) { whenStreet(settleThenStart); return; }
     started = true;
     runEntrance();
   }
-  // Each way in waits for the street to be painted; the frames after that
-  // are the ones afterDrawn() watches. Once they have gone out the hall
-  // takes its first pose behind the glass (Entrance.prepose), and the clock
-  // starts once that has been drawn too.
-  function settleThenStart() {
-    afterDrawn(function () {
-      window.Entrance.prepose();
-      afterDrawn(start);
-    });
+  // Once the hall is built it takes its first pose behind the glass
+  // (Entrance.prepose; SVG text laid out after that would be laid out for
+  // the pose), the fanlights' cues are laid on the clock (Entrance.prime,
+  // which measures the gates at rest), and the clock starts once that is
+  // drawn.
+  function settleThenStart(pastMax) {
+    var E = window.Entrance, cold;
+    E.prepose();
+    E.prime();
+    cold = E.coldGpu();
+    var go = function () {
+      if (pastMax) afterCalm(start, cold ? CALM_COLD : 4);
+      else afterDrawn(start, cold ? CALM_COLD : CALM_RUN);
+    };
+    if (cold) E.warm(go); else go();
   }
   function arm() {
-    entranceTimers.push(setTimeout(function () { whenStreet(settleThenStart); }, ENTRANCE_HOLD));
+    var hallIn = false, waited = false;
+    var go = function () {
+      if (!hallIn && !waited) return;
+      window.Entrance.prepose();
+      whenStreet(settleThenStart);
+    };
+    Promise.resolve(built).then(function () { hallIn = true; window.__entranceBuilt = performance.now(); go(); });
+    entranceTimers.push(setTimeout(function () { waited = true; go(); }, ENTRANCE_HOLD));
     // Past the longest hold the clock starts anyway, but never inside a
     // stall: a browser drawing for the first time (a new profile compiling
     // its shaders) froze the page for up to 1.6s at about this point, and a
     // clock started by the timer alone spent the walk's first 650ms in it.
-    entranceTimers.push(setTimeout(function () { whenStreet(function () { window.Entrance.prepose(); afterCalm(start); }); }, ENTRANCE_HOLD_MAX));
-    Promise.resolve(built).then(function () { whenStreet(settleThenStart); });
+    entranceTimers.push(setTimeout(function () {
+      whenStreet(function () { settleThenStart(true); });
+    }, ENTRANCE_HOLD_MAX));
     // A street that could not be painted, or a page that never runs calm,
     // lands the hall rather than holding the screen: a walk started inside
     // a freeze would spend its first second in it.
     entranceTimers.push(setTimeout(function () {
-      if (!started) finishEntrance();
+      if (started) return;
+      try { performance.mark('entrance-give-up'); } catch (e) { /* old engine */ }
+      finishEntrance();
     }, ENTRANCE_GIVE_UP));
   }
   // A hall loaded where nobody can see it (a tab opened in the background,
@@ -742,20 +794,19 @@ function playEntrance(built) {
 
 function runEntrance() {
   var E = window.Entrance;
-  // the gates may have been solved since the street was dressed
-  entranceMeasure();
-  window.__entranceT0 = performance.now();   // read by the frame-capture scripts
-  E.start();
+  var t0 = E.start(ENTRANCE_LEAD);
+  if (t0 == null) return;
+  window.__entranceT0 = t0;   // the clock's zero, read by the frame-capture scripts
   entrance.classList.add('play');
-  var b = E.beats();
+  var b = E.beats(), wait = Math.max(0, t0 - performance.now());
   // From done-fade the hall is what shows, so the overlay stops taking the
   // pointer; a click there lands the entrance and does what it says.
-  entranceTimers.push(setTimeout(function () { entrance.classList.add('done-fade'); }, b.doneFade));
+  entranceTimers.push(setTimeout(function () { entrance.classList.add('done-fade'); }, wait + b.doneFade));
   // A frame capture that has stopped the clock (Entrance.seek) keeps the
   // street standing until it is done.
   entranceTimers.push(setTimeout(function () {
     if (!E.frozen()) finishEntrance();
-  }, b.total));
+  }, wait + b.total));
 }
 
 /* Armed with the street, before its clock starts: a skip during the hold
@@ -771,9 +822,15 @@ function armEntranceSkip() {
   entranceSkip = function (e) {
     var type = e ? e.type : '';
     if (type === 'keydown') {
-      // Only the keys the hall itself would act on are swallowed: F5,
-      // Ctrl+R and the like keep working.
-      if (!e.ctrlKey && !e.metaKey && !e.altKey && !/^F\d+$/.test(e.key)) e.preventDefault();
+      // Only the keys the hall itself acts on are swallowed, and before
+      // anything in the hall sees them (a focused lever used to throw itself
+      // on the Enter that landed the entrance). Every other key lands it and
+      // goes on: F5, Ctrl+R, Back, the context-menu key and the media keys
+      // keep working.
+      if (!e.ctrlKey && !e.metaKey && !e.altKey && HALL_KEYS.test(e.key)) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
     } else if (type === 'pointerdown' && entrance.contains(e.target)) {
       e.preventDefault();
       swallowNextClick();
@@ -783,11 +840,14 @@ function armEntranceSkip() {
     finishEntrance();
   };
   window.addEventListener('pointerdown', entranceSkip, true);
-  window.addEventListener('keydown', entranceSkip);
+  window.addEventListener('keydown', entranceSkip, true);
   window.addEventListener('wheel', entranceSkip, { passive: true });
 }
 
 var entranceSkip = null;
+/* The keys the hall acts on (see "Keys: the hall by keyboard"), and Tab,
+   which walks it. */
+var HALL_KEYS = /^(Enter| |Spacebar|Tab|Escape|Home|End|PageUp|PageDown|Arrow(Up|Down|Left|Right)|[0-9]|[wWlLpP?])$/;
 
 /* A gate drawn again, or come alight, while the walk runs joins the
    fanlights' cascade rather than lighting at once. Its floor streak follows
@@ -819,6 +879,14 @@ function swallowNextClick() {
   window.addEventListener('pointercancel', soon, true);
 }
 
+/* A change to the whole hall (its theme, its language, its wing) or a
+   gate opened without a press lands the entrance first: the street was
+   dressed for the hall as it stood, and the hall re-lettered or re-lit
+   under its pose would land with its text laid out for the pose. */
+function landEntrance() {
+  if (root.dataset.entered === 'no') finishEntrance();
+}
+
 /* Lands the hall, wherever the entrance had got to: every animation of the
    street, the hall's scale, its lamps and the marquee's chase is cancelled
    at once, so the hall stands at rest with its lamps as the room has them,
@@ -829,7 +897,7 @@ function finishEntrance() {
   entranceTimers = [];
   if (entranceSkip) {
     window.removeEventListener('pointerdown', entranceSkip, true);
-    window.removeEventListener('keydown', entranceSkip);
+    window.removeEventListener('keydown', entranceSkip, true);
     window.removeEventListener('wheel', entranceSkip);
     entranceSkip = null;
   }
@@ -838,6 +906,15 @@ function finishEntrance() {
   // the way in read it at rest (window.atRest), so it lands as it stands:
   // nothing is laid out again.
   if (window.Entrance) window.Entrance.clear();
+  relayPosedText();
+  // A lamp still coming up by its own transition (a gate that lit just
+  // before the skip) is finished too: the hall lands with every lamp where
+  // the room has it.
+  document.querySelectorAll('.lit, .st-fan').forEach(function (l) {
+    if (l.getAnimations) l.getAnimations().forEach(function (a) {
+      if (a.transitionProperty === 'opacity' && a.playState === 'running') a.finish();
+    });
+  });
   window.__entranceLanded = performance.now();   // read by the frame-timing scripts
   entrance.style.display = 'none';
   // data-boot stays 'played', so the suppressed-load hall-fade does NOT
@@ -847,8 +924,10 @@ function finishEntrance() {
   var lb = $('#ledger-btn');
   if (lb) lb.disabled = false;
   // Relay: motion transfers from the overlay to the hall. The gear train
-  // twitches one tooth: the machine exhales as the overlay clears.
-  deskNudge();
+  // twitches one tooth: the machine exhales as the overlay clears, once the
+  // frame that lets go of the street (100-180ms of raster at 3440) is out,
+  // so its first frames are not lost in it.
+  afterDrawn(deskNudge);
 }
 
 /* Desk nudge: the handle lifts a hair and drops back into its jaws after
@@ -1467,6 +1546,8 @@ var NEW_TAB_KEY = /mac|iphone|ipad|ipod/i.test(
   navigator.platform || '') ? 'metaKey' : 'ctrlKey';
 
 function gateClick(e, a, svc) {
+  // a click that never pressed (assistive tech's) lands the entrance first
+  landEntrance();
   var dark = actsDark(a);
   // The new-tab modifier and Shift are the browser's own new-tab and
   // new-window gestures, and middle-click already gets them. Any other
@@ -3670,6 +3751,7 @@ var afterTheme = null;   // the lever re-light waiting for it
 
 var flipRaf = 0;
 function setWing(w) {
+  landEntrance();
   wingPending = w;
   var apply = function () {
     store('atrium.wing', w);
@@ -5596,6 +5678,7 @@ function resolveTheme() {
   var dark = pref === 'onyx' || (pref === 'system' && mq.matches);
   var next = dark ? 'onyx' : 'ivory';
   if ((themeNext || root.dataset.theme) === next) return;
+  landEntrance();
   var pending = themeNext !== null;
   themeNext = next;
   if (pending) return;
@@ -5693,6 +5776,7 @@ window.addEventListener('click', function (e) {
 }, true);
 
 function setLang(next) {
+  landEntrance();
   lang = next === 'zh' ? 'zh' : 'en';
   root.lang = lang;
   store('atrium.lang', lang);

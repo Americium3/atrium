@@ -119,8 +119,8 @@ var WALL = 15;          // half the facade's width, cut to the screen (dress)
 var UPPER = 11;         // top of the facade we ever see, likewise
 var SPLIT = 6.55;       // where the wall's near and far pieces meet
 var FK = 0.95;          // the lens: focal length in screen heights
-var Z0 = 6.0;           // where the reader stands, out from the doors
-var STRIDE = 1.0;       // one step of a brisk walk
+var Z0 = 5.7;           // where the reader stands, out from the doors
+var STRIDE = 1.1;       // one step of a brisk walk
 var BOB = 0.03, SWAY = 0.022, ROLL = 0.3, NOD = 0.2;   // m, m, deg, deg
 /* By day a low sun stands behind the reader's left shoulder, 15 degrees up;
    this is the way to it. */
@@ -128,37 +128,42 @@ var SUN = norm([-0.4, 0.26, 0.88]);
 var LIGHT = [-SUN[0], -SUN[1], -SUN[2]];
 
 /* ----- The timeline, ms from the start of the clock ---------------------- */
+/* The clock starts as the street is uncovered: until then a plate of the
+   street's own dark (by day, its stone) holds the screen while the street
+   is painted under it, and it lifts over the first `reveal` ms. */
 var STEP = 25;
 var EASE_TILT = bezier(0.45, 0.0, 0.3, 1);
 var EASE_SWING = bezier(0.42, 0.0, 0.24, 1);
 var TIMES = {
   onyx: {
-    letters: 0, letterGap: 78,
-    haze: [40, 560],
-    posters: 300,
-    soffit: 360, soffitGap: 70,
-    chase: 600, chaseStep: 105,
-    walk: [180, 2980],
-    tilt: [240, 2560],
-    doors: 760, doorsDur: 1000, doorLag: 70,
-    spill: [800, 1560],
-    veil: [2420, 2940],
-    house: 2600, marquee: 2820,
-    doneFade: 3000
+    reveal: [0, 200],
+    letters: 130, letterGap: 68,
+    haze: [150, 610],
+    posters: 340,
+    soffit: 400, soffitGap: 60,
+    chase: 600, chaseStep: 100,
+    walk: [210, 2660],
+    tilt: [270, 2290],
+    doors: 680, doorsDur: 900, doorLag: 60,
+    spill: [720, 1380],
+    veil: [2110, 2600],
+    house: 2130, bayGap: 115, lampUp: 360, marquee: 2250,
+    doneFade: 2640
   },
   ivory: {
-    cloud: [80, 940],
-    shadow: [240, 900],
-    sheen: 430, sheenGap: 74, sheenDur: 300,
-    haze: [0, 560],
-    walk: [160, 2880],
-    tilt: [220, 2480],
-    doors: 680, doorsDur: 1000, doorLag: 60,
-    sun: [300, 980],
-    sunOut: [2380, 3120],
-    veil: [1950, 3060],
-    doneFade: 3000,
-    end: 3200
+    reveal: [0, 200],
+    cloud: [40, 480],
+    shadow: [150, 620],
+    sheen: 320, sheenGap: 38, sheenDur: 200,
+    haze: [100, 620],
+    walk: [340, 2640],
+    tilt: [400, 2280],
+    doors: 640, doorsDur: 900, doorLag: 55,
+    sun: [220, 760],
+    sunOut: [2120, 2680],
+    veil: [1760, 2640],
+    doneFade: 2620,
+    end: 2700
   }
 };
 
@@ -171,41 +176,42 @@ var BIG = 1e7;          // how far ahead a held animation's start is parked
    Textures: fetched once and inlined, since an SVG drawn as an image may
    not load anything from outside itself.
    ========================================================================= */
-var TEX_FILES = ['stone-portoro.webp', 'stone-calacatta.webp', 'terrazzo-onyx.webp', 'terrazzo-ivory.webp',
-  'grain-frost.webp', 'relief-frieze-night.webp', 'relief-frieze-day.webp'];
-var TEX = {};
-/* The frost's grain lies at a sixth of its strength over etching seen at
-   most a metre and a half wide: a small copy of it is inlined, since every
-   tile of the side doors carries its own. */
-var TEX_SMALL = { 'grain-frost.webp': 256 };
-var texReady = Promise.all(TEX_FILES.map(function (f) {
-  return fetch('/static/assets/tex/' + f).then(function (r) { return r.ok ? r.blob() : null; }).then(function (b) {
-    if (!b) return null;
-    if (TEX_SMALL[f] && window.createImageBitmap) {
-      var n = TEX_SMALL[f];
-      return createImageBitmap(b, { resizeWidth: n, resizeHeight: n, resizeQuality: 'high' }).then(function (bm) {
-        var c = document.createElement('canvas');
-        c.width = n; c.height = n;
-        c.getContext('2d').drawImage(bm, 0, 0);
-        TEX[f] = c.toDataURL('image/webp', 0.8);
+var TEX_FILES = {
+  onyx: ['stone-portoro.webp', 'terrazzo-onyx.webp', 'grain-frost-small.webp', 'relief-frieze-night.webp', 'carpet-field.webp', 'carpet-border.webp'],
+  ivory: ['stone-calacatta.webp', 'terrazzo-ivory.webp', 'grain-frost-small.webp', 'relief-frieze-day.webp', 'carpet-field.webp', 'carpet-border.webp']
+};
+var TEX = {}, TEX_P = {};
+/* Fetched when the plate is first sketched, and only this theme's: a load
+   the entrance does not play for (?entrance=0, reduced motion) fetches
+   none of them. The frost's grain lies at a sixth of its strength over
+   etching seen at most a metre and a half wide, so it comes baked at half
+   size (grain-frost-small.webp): made small in the page, the first
+   encode held the paint back 1.4s on a new profile. */
+function texFile(f) {
+  if (!TEX_P[f]) {
+    TEX_P[f] = fetch('/static/assets/tex/' + f).then(function (r) { return r.ok ? r.blob() : null; }).then(function (b) {
+      if (!b) return null;
+      return new Promise(function (res) {
+        var fr = new FileReader();
+        fr.onload = function () { TEX[f] = fr.result; res(); };
+        fr.onerror = function () { res(); };
+        fr.readAsDataURL(b);
       });
-    }
-    return new Promise(function (res) {
-      var fr = new FileReader();
-      fr.onload = function () { TEX[f] = fr.result; res(); };
-      fr.onerror = function () { res(); };
-      fr.readAsDataURL(b);
-    });
-  }).catch(function () { return null; });
-}));
+    }).catch(function () { return null; });
+  }
+  return TEX_P[f];
+}
+function texReady(theme) { return Promise.all(TEX_FILES[theme].map(texFile)); }
 
 /* Every face the canvases set text in, loaded before anything is painted
    (a caption painted in the fallback face would stay in it). A font that
    has not come in 1.5s is given up on. */
 var FACES = ['500 20px "EB Garamond"', '560 20px "EB Garamond"'];
+var FACES_ZH = ['500 20px "LXGW Heart Serif"'];
+function faces() { return root.lang === 'zh' ? FACES.concat(FACES_ZH) : FACES; }
 function fontsReady() {
   if (!document.fonts || !document.fonts.load) return Promise.resolve();
-  var all = Promise.all(FACES.map(function (f) { return document.fonts.load(f); }));
+  var all = Promise.all(faces().map(function (f) { return document.fonts.load(f); }));
   return Promise.race([all, new Promise(function (r) { setTimeout(r, 1500); })]).catch(function () { return null; });
 }
 
@@ -247,7 +253,7 @@ function Camera(o) {
   // Looking up at the sign: the fascia's top moulding just under the top
   // of the screen.
   var aTop = Math.atan((CAN.y1 + 0.06 - EYE) / (o.z0 - CAN.z)), aScreen = Math.atan(0.98 * o.Py / o.f);
-  this.pitch0 = Math.max(3, Math.min(20, (aTop - aScreen) / D2R));
+  this.pitch0 = Math.max(3, Math.min(21, (aTop - aScreen) / D2R));
 }
 /* Where the eye is at ms, and which way it looks. At the end of the walk it
    stands at zEnd, level, still: the hall's own eye point. */
@@ -348,10 +354,12 @@ function piece(kind, cls, box, layers, o) {
   layers.forEach(function (l) {
     var sub = l.sub || box;
     var w = div('e-layer ' + l.cls, e);
+    w.__layer = true;
+    w.__solid = !!l.solid;
     w.style.left = f2((sub.a0 - box.a0) * U) + 'px'; w.style.top = f2((box.b1 - sub.b1) * U) + 'px';
     w.style.width = f2((sub.a1 - sub.a0) * U) + 'px'; w.style.height = f2((sub.b1 - sub.b0) * U) + 'px';
     if (l.solid) w.style.background = l.solid;
-    l.el = w; l.sub = sub;
+    l.el = w; l.sub = sub; w.__sub = sub;
     var key = l.cls.split(' ')[0];
     if (!part.layers[key]) part.layers[key] = w;
   });
@@ -459,10 +467,20 @@ function palette(theme, wing) {
     stone: night ? 'url(#e-portoro)' : 'url(#e-calacatta)',
     stoneVeil: night ? 'rgba(6, 4, 3, 0.52)' : 'rgba(255, 252, 245, 0.08)',
     joint: night ? 'rgba(0, 0, 0, 0.75)' : 'rgba(96, 82, 60, 0.42)',
-    // the foyer inside, as the hall's own floor has it where it meets the
-    // reader (sampled off the hall at rest)
-    floor: night ? { base: '#0f0d0b', far: '#141110', runner: '#220f10', edge: '#3d1a12', brass: '#5e4822' }
-      : { base: '#7a7466', far: '#86806f', runner: '#5b2928', edge: '#7e3f2c', brass: '#937638' }
+    // the foyer's floor, in the hall's own floor's tokens: its grade where
+    // it meets the reader (the plane's near tone, then the room's shade),
+    // its strips and its runner
+    floor: {
+      base: tok('--floor-base') || (night ? '#15120e' : '#ddd3bf'),
+      // by night the hall's floor is lighter a hand's breadth in from its
+      // very edge than the plane's own tones say (its lamps are in it):
+      // the foyer takes that, and darkens toward the doors
+      near: night ? 'rgba(0,0,0,0.3)' : (tok('--floor-near') || 'rgba(90,70,40,0.1)'),
+      shade: night ? ['rgba(0,0,0,0.12)', 'rgba(0,0,0,0.42)'] : [tok('--shade') || 'rgba(42,36,22,0.3)', tok('--shade') || 'rgba(42,36,22,0.3)'],
+      strip: tok('--strip') || 'rgba(196,150,74,0.34)', stripLt: tok('--strip-lt') || 'rgba(255,226,160,0.2)',
+      rug: tok('--rug') || (night ? '#4a0f14' : '#6d1820'), rugVeil: tok('--rug-veil') || 'rgba(8,3,3,0.42)',
+      fringe: night ? '#3d1a12' : '#7e3f2c', brass: night ? '#5e4822' : '#937638'
+    }
   };
 }
 
@@ -484,7 +502,12 @@ function defsMap(P) {
   tex('e-portoro', 'stone-portoro.webp', 1.6, 1.2, true);
   tex('e-calacatta', 'stone-calacatta.webp', 1.6, 1.2, true);
   tex('e-terrazzo', n ? 'terrazzo-onyx.webp' : 'terrazzo-ivory.webp', 1.4, 1.4, false);
-  tex('e-frost', 'grain-frost.webp', 0.5, 0.5, false);
+  // the foyer's floor and runner, at the size the hall's floor has them
+  // where the two meet
+  tex('e-ftz', n ? 'terrazzo-onyx.webp' : 'terrazzo-ivory.webp', P.tz || 0.8, P.tz || 0.8, false);
+  tex('e-rugf', 'carpet-field.webp', P.rt || 0.5, P.rt || 0.5, false);
+  tex('e-rugb', 'carpet-border.webp', P.rb || 0.1, 2 * (P.rb || 0.1), false);
+  tex('e-frost', 'grain-frost-small.webp', 0.5, 0.5, false);
   tex('e-frieze', n ? 'relief-frieze-night.webp' : 'relief-frieze-day.webp', 1.1, 0.55, false);
   D['e-bulb'] = '<radialGradient id="e-bulb" cx="0.42" cy="0.4" r="0.62">' +
     '<stop offset="0" stop-color="#ffffff"/><stop offset="0.35" stop-color="#fff6de"/>' +
@@ -537,8 +560,8 @@ function defsMap(P) {
   D['e-dusk-g'] = '<radialGradient id="e-dusk-g" gradientUnits="userSpaceOnUse" cx="0" cy="-1.4" r="7.5">' +
     '<stop offset="0" stop-color="rgba(3,2,5,0.18)"/><stop offset="0.32" stop-color="rgba(3,2,5,0.5)"/>' +
     '<stop offset="1" stop-color="rgba(3,2,5,0.78)"/></radialGradient>';
-  D['e-dim'] = '<filter id="e-dim" x="0" y="0" width="1" height="1"><feComponentTransfer>' +
-    '<feFuncR type="linear" slope="0.34"/><feFuncG type="linear" slope="0.3"/><feFuncB type="linear" slope="0.3"/></feComponentTransfer></filter>';
+  // the brass before the canopy lights it: its own shape, in the dark
+  D['e-unlit'] = '<filter id="e-unlit" x="-0.1" y="-0.1" width="1.2" height="1.2"><feColorMatrix type="matrix" values="0 0 0 0 0.012 0 0 0 0 0.008 0 0 0 0 0.006 0 0 0 0.7 0"/></filter>';
   D['e-softer'] = '<filter id="e-softer" filterUnits="userSpaceOnUse" x="-2" y="-4" width="5" height="6"><feGaussianBlur stdDeviation="0.12"/></filter>';
   D['e-soft'] = '<filter id="e-soft" filterUnits="userSpaceOnUse" x="-20" y="-20" width="40" height="40"><feGaussianBlur stdDeviation="0.05"/></filter>';
   D['e-sunedge'] = '<filter id="e-sunedge" filterUnits="userSpaceOnUse" x="-20" y="-20" width="40" height="40"><feGaussianBlur stdDeviation="0.08"/></filter>';
@@ -586,6 +609,7 @@ function sampleLayer(part, sub, cam, times) {
         if (p[0] < -m || p[0] > W + m || p[1] < -m || p[1] > H + m) continue;
         if (cam.view(c, w)[2] < 0.25) continue;
         if (inside && !throughOpening(c, w)) continue;
+        if (part.skip && part.skip(a, b)) continue;
         var k = (ia * nb + ib) * nt + i;
         sA[k] = qa; sB[k] = qb;
       }
@@ -616,8 +640,8 @@ function scaleTrack(g, r) {
    of it. The rest, seen largest only as it leaves the top or the bottom of
    the screen, are painted a little under it, which keeps the canvases near
    the memory the owner accepted. */
-var SHARP = { 'e-nfloor': 0.55, 'e-ceiling': 0.6, 'e-fwall': 0.6, 'e-upper': 0.7, 'e-fascia': 0.9,
-  'e-soffit': 0.75, 'e-wall': 0.9, 'e-ground': 0.9, 'e-mirror': 0.8, 'e-shade': 0.35, 'e-leaf': 0.8 };
+var SHARP = { 'e-nfloor': 0.7, 'e-ceiling': 0.6, 'e-fwall': 0.6, 'e-upper': 0.6, 'e-fascia': 0.82,
+  'e-soffit': 0.66, 'e-wall': 0.78, 'e-ground': 0.9, 'e-mirror': 0.8, 'e-shade': 0.35, 'e-leaf': 0.8, 'e-side': 0.94 };
 var TILE_PX = 0.5e6;        // a tile worth splitting, in canvas pixels
 var CANVAS_MAX = 8192;
 var KMAX = 1;   // two levels: the finest and its half
@@ -693,21 +717,19 @@ function planTiles(part, l, cam, times, dpr) {
    shows in its own stretch of the walk. Returns the paint's promise and the
    plan the clock runs (see Levels). */
 function paint(parts, cam, P) {
-  var D = defsMap(P), dpr = Math.min(3, window.devicePixelRatio || 1);
+  var dpr = Math.min(3, window.devicePixelRatio || 1);
   var times = [], tp = performance.now();
   GRIDS = {};
   for (var t = 0; t <= cam.walkEnd + 200; t += 80) times.push(t);
-  var hold = [], all = [], stats = { canvases: 0, bytes: 0, pieces: {} };
+  var hold = [], all = [], layers = [], stats = { canvases: 0, bytes: 0, pieces: {} };
   parts.forEach(function (part) {
     var key = part.el.className.replace('e-piece ', '').split(' ')[0];
     var gone = part.lastSeen >= 0 && part.lastSeen < cam.walkEnd ? part.lastSeen + 80 : Infinity;
     (part.spec || []).forEach(function (l) {
       if (l.solid || !l.markup) return;
-      var ids = {}, used = '', m, re = /url\(#([\w-]+)\)/g;
-      while ((m = re.exec(l.markup))) ids[m[1]] = 1;
-      Object.keys(ids).forEach(function (id) { if (D[id]) used += D[id]; });
       var sub = l.sub;
-      l.used = used; l.imgP = null; l.pending = 0;
+      l.used = ''; l.imgP = null; l.pending = 0;
+      layers.push(l);
       planTiles(part, l, cam, times, dpr).forEach(function (tl) {
         l.pending++;
         var r = tl.r, kMax = Math.max.apply(null, tl.levels.map(function (lv) { return lv.k; }));
@@ -715,7 +737,7 @@ function paint(parts, cam, P) {
         // neighbour, so no seam shows between tiles; the layer's own edges
         // stay where they are.
         var qc = [tl.res[0] / Math.pow(2, kMax), tl.res[1] / Math.pow(2, kMax)], bl = l.alpha ? 0 : 2;
-        var job = { l: l, used: used, x0: r.a0 - (r.a0 > sub.a0 + 1e-6 ? bl / qc[0] : 0), x1: r.a1 + (r.a1 < sub.a1 - 1e-6 ? bl / qc[0] : 0),
+        var job = { l: l, x0: r.a0 - (r.a0 > sub.a0 + 1e-6 ? bl / qc[0] : 0), x1: r.a1 + (r.a1 < sub.a1 - 1e-6 ? bl / qc[0] : 0),
           y0: r.b0 - (r.b0 > sub.b0 + 1e-6 ? bl / qc[1] : 0), y1: r.b1 + (r.b1 < sub.b1 - 1e-6 ? bl / qc[1] : 0), levels: [] };
         // A whole number of pixels at every level, the tile grown by under a
         // pixel to fit: a canvas rounded to its size draws its picture a
@@ -774,7 +796,20 @@ function paint(parts, cam, P) {
       for (var i = 1; i < ls.length; i++) halve(ls[i - 1], ls[i]);
     }).then(next);
   };
-  return { done: Promise.all([next(), next(), next(), next()]), stats: stats, all: all };
+  // The plan needs only the camera; the drawing waits for the textures
+  // and the faces (draw()).
+  return { stats: stats, all: all, layers: layers, draw: function () {
+    var D = defsMap(P);
+    layers.forEach(function (l) { l.used = defsFor(l.markup, D); });
+    return Promise.all([next(), next(), next(), next()]);
+  } };
+}
+/* The shared paint a layer's markup asks for, by id. */
+function defsFor(markup, D) {
+  var ids = {}, used = '', m, re = /url\(#([\w-]+)\)/g;
+  while ((m = re.exec(markup))) ids[m[1]] = 1;
+  Object.keys(ids).forEach(function (id) { if (D[id]) used += D[id]; });
+  return used;
 }
 /* One picture a layer: its SVG parsed once and drawn into each of its tiles
    at the tile's own size (an SVG drawn to a canvas is drawn again from its
@@ -787,12 +822,16 @@ function layerImage(l) {
     var src = '<svg xmlns="http://www.w3.org/2000/svg" width="' + w + '" height="' + h + '" viewBox="' +
       f5(s.a0) + ' ' + f5(-s.b1) + ' ' + f5(s.a1 - s.a0) + ' ' + f5(s.b1 - s.b0) + '" preserveAspectRatio="none"><defs>' + l.used + '</defs>' + l.markup + '</svg>';
     var url = URL.createObjectURL(new Blob([src], { type: 'image/svg+xml' }));
-    var img = new Image();
+    var img = l.img = new Image();
     img.src = url;
     l.imgW = w; l.imgH = h;
     l.imgP = img.decode().then(function () { URL.revokeObjectURL(url); return img; }, function () { URL.revokeObjectURL(url); return null; });
   }
   return l.imgP;
+}
+function dropImage(l) {
+  if (l.img) { l.img.removeAttribute('src'); l.img = null; }
+  l.imgP = null;
 }
 function drawLevel(L) {
   var job = L.job, l = job.l, cv = L.cv;
@@ -807,7 +846,7 @@ function drawLevel(L) {
       l.texts.forEach(function (tx) {
         ctx.save();
         ctx.scale(sx / sy, 1);
-        ctx.font = (tx.weight || 500) + ' ' + f2(tx.size * sy) + 'px "EB Garamond", Georgia, serif';
+        ctx.font = (tx.weight || 500) + ' ' + f2(tx.size * sy) + 'px ' + (tx.face || '"EB Garamond", Georgia, serif');
         if ('letterSpacing' in ctx) ctx.letterSpacing = f2(tx.spacing * sy) + 'px';
         ctx.textAlign = 'center';
         ctx.fillStyle = tx.color;
@@ -817,7 +856,7 @@ function drawLevel(L) {
     }
     L.painted = true;
     // the layer's picture goes once its last tile is drawn
-    if (--l.pending <= 0) { l.imgP = null; l.pending = 0; }
+    if (--l.pending <= 0) { dropImage(l); l.pending = 0; }
   });
 }
 function halve(from, to) {
@@ -833,7 +872,67 @@ function halve(from, to) {
    compositor switches them and the page's thread does nothing at the
    moment of the switch. Nothing is let go until the hall lands: freeing a
    canvas as its piece left the screen made the page's thread wait on the
-   GPU, 100 to 1200ms at a time at 3440 on a busy machine, in the walk. */
+   GPU, 100 to 1200ms at a time at 3440 on a busy machine, in the walk.
+
+   A layer's own fade (a lamp coming up, the haze burning off) is carried
+   by its canvases too, never by the layer: an opacity animated on a layer
+   of several canvases has the compositor draw them into a surface of their
+   own at the layer's CSS size, 100 px a metre, and then enlarge it, and
+   the rope at the reader's knees came out in steps. */
+var EASE_KW = { ease: bezier(0.25, 0.1, 0.25, 1), 'ease-in': bezier(0.42, 0, 1, 1), 'ease-out': bezier(0, 0, 0.58, 1),
+  'ease-in-out': bezier(0.42, 0, 0.58, 1) };
+function easeFn(e) {
+  if (!e || e === 'linear') return function (x) { return x; };
+  if (/^steps/.test(e)) return function (x) { return x < 1 ? 0 : 1; };
+  var m = /cubic-bezier\(([^)]*)\)/.exec(e);
+  if (m) { var a = m[1].split(',').map(parseFloat); return bezier(a[0], a[1], a[2], a[3]); }
+  return EASE_KW[e] || function (x) { return x; };
+}
+/* A fade (points [ms, value, easing to the next]) seen only while its level
+   is on (sw: [ms, on] switches, on0 before the first): the fade's own
+   points where the level is on, a lamp that is out (0.004) where it is
+   off. An eased stretch a switch falls inside is followed in short straight
+   pieces, so the fade keeps its shape either side of the switch. */
+function combine(pts, on0, sw) {
+  var P = pts && pts.length ? pts : [[0, 1]];
+  var cuts = sw.map(function (q) { return q[0]; }), Q = [];
+  var at = function (ms) {
+    if (ms <= P[0][0]) return P[0][1];
+    for (var i = 0; i < P.length - 1; i++) {
+      var a = P[i], b = P[i + 1];
+      if (ms < b[0]) return a[1] + (b[1] - a[1]) * easeFn(a[2])((ms - a[0]) / (b[0] - a[0]));
+    }
+    return P[P.length - 1][1];
+  };
+  P.forEach(function (a, i) {
+    var b = P[i + 1];
+    var inside = b ? cuts.filter(function (c) { return c > a[0] && c < b[0]; }) : [];
+    if (!inside.length || a[1] === b[1] || (a[2] && /^steps/.test(a[2]))) { Q.push([a[0], a[1], a[2]]); return; }
+    var n = Math.max(2, Math.ceil((b[0] - a[0]) / 16));
+    for (var k = 0; k < n; k++) { var ms = a[0] + (b[0] - a[0]) * k / n; Q.push([ms, at(ms), null]); }
+  });
+  // the value just before a switch, under the stretch it ends
+  var out = [], on = on0, j = 0, sws = sw.slice().sort(function (u, v) { return u[0] - v[0]; });
+  var val = function (v, o) { return o ? Math.max(0.004, v) : 0.004; };
+  var emitSwitches = function (upTo) {
+    while (j < sws.length && sws[j][0] < upTo) {
+      var c = sws[j][0], v = at(c);
+      out.push([c, val(v, on), null]);
+      on = sws[j][1];
+      // the stretch after the switch runs on as the fade's does
+      var e = null;
+      for (var q = Q.length - 1; q >= 0; q--) { if (Q[q][0] <= c) { e = Q[q][2]; break; } }
+      out.push([c, val(v, on), e]);
+      j++;
+    }
+  };
+  Q.forEach(function (k) {
+    emitSwitches(k[0]);
+    out.push([k[0], val(k[1], on), k[2]]);
+  });
+  emitSwitches(Infinity);
+  return out;
+}
 var Levels = {
   timers: [],
   // A level out of its stretch stands at 0.004, not 0, like a lamp that is
@@ -842,11 +941,19 @@ var Levels = {
   // thread in the walk, up to 850ms on a browser drawing for the first time).
   animate: function (plan, total) {
     plan.all.forEach(function (L) {
-      if (!L.multi) return;
-      var fr = [[0, { opacity: L.from > 0 ? 0.004 : 1, easing: 'steps(1, end)' }]];
-      if (L.from > 0) fr.push([L.from, { opacity: 1, easing: 'steps(1, end)' }]);
-      var end = L.next ? L.next.from : Infinity;
-      if (isFinite(end)) fr.push([end, { opacity: 0.004 }]);
+      var f = L.job.l.el.__fade;
+      if (!L.multi && !f) return;
+      var sw = [];
+      if (L.multi) {
+        if (L.from > 0) sw.push([L.from, true]);
+        if (L.next) sw.push([L.next.from, false]);
+      }
+      var on0 = !L.multi || !(L.from > 0);
+      var fr = combine(f, on0, sw).map(function (k) {
+        var o = { opacity: k[1] };
+        if (k[2]) o.easing = k[2];
+        return [k[0], o];
+      });
       run(L.cv, fr, total);
     });
   },
@@ -1054,7 +1161,7 @@ function buildFascia(P) {
   if (h) {
     layers.push(lay('e-dark', '', null, { solid: 'rgba(3,2,5,0.66)' }));
     layers.push(lay('e-wash', wash, R(-CAN.half, CAN.half, yb, yt), { res: 0.25, alpha: true }));
-    layers.push(lay('e-crest-lit', fan + glaze, R(-0.6, 0.6, yt + 0.16, yt + 0.7)));
+    layers.push(lay('e-crest-lit', fan + glaze, R(-0.6, 0.6, yt + 0.16, yt + 0.7), { alpha: true }));
     layers.push(lay('e-returns', returns, R(x0, -CAN.half + 0.02, yb, yt), { alpha: true }));
     layers.push(lay('e-returns', returns, R(CAN.half - 0.02, x1, yb, yt), { alpha: true }));
     letters.forEach(function (l, k) { layers.push(lay('e-letter e-l' + k, l, boxes[k], { alpha: true })); });
@@ -1134,12 +1241,15 @@ function pilaster(cx, y0, y1, P) {
   s += member(cx - w / 2 - 0.03, y0, w + 0.06, y0 + 0.2, P, false);
   return s;
 }
+/* The bills in the cases: the hall's own rooms. Under Chinese they are
+   lettered in Chinese, the rooms by the names the hall gives them. */
 var BILLS = [
-  { name: 'THE SALON', sky: ['#4a0f18', '#8c2330', '#d2733c'], art: 'sun' },
-  { name: 'THE BUREAU', sky: ['#0e1b2c', '#1f3d5c', '#8aa3b8'], art: 'towers' },
-  { name: 'THE LEDGER', sky: ['#0b2622', '#1d5148', '#c9b87a'], art: 'fan' },
-  { name: 'THE ALMANAC', sky: ['#0a0f24', '#23305e', '#e7d49a'], art: 'moon' }
+  { name: 'THE SALON', zh: '沙龙翼', sky: ['#4a0f18', '#8c2330', '#d2733c'], art: 'sun' },
+  { name: 'THE BUREAU', zh: '事务翼', sky: ['#0e1b2c', '#1f3d5c', '#8aa3b8'], art: 'towers' },
+  { name: 'THE LEDGER', zh: '消息总台', sky: ['#0b2622', '#1d5148', '#c9b87a'], art: 'fan' },
+  { name: 'THE ALMANAC', zh: '天象', sky: ['#0a0f24', '#23305e', '#e7d49a'], art: 'moon' }
 ];
+var ZH_FACE = '"LXGW Heart Serif", "EB Garamond", serif';
 var billN = 0;
 function bill(x0, y0, w, h, b, P, texts) {
   var s = '', n = billN++, id = 'e-bill-' + n, clip = 'e-bclip-' + n, xm = x0 + w / 2;
@@ -1178,8 +1288,13 @@ function bill(x0, y0, w, h, b, P, texts) {
   s += '</g>';
   s += rect(x0, y0, w, y0 + h * 0.2, '#0c0906');
   s += rect(x0, y0 + h * 0.2, w, y0 + h * 0.2 + 0.012, P.leaf[3]);
-  texts.push({ x: xm, y: y0 + h * 0.105, size: 0.1, spacing: 0.02, weight: 560, color: P.leaf[3], str: b.name });
-  texts.push({ x: xm, y: y0 + h * 0.035, size: 0.046, spacing: 0.012, weight: 500, color: '#cdbf9e', str: 'NOW SHOWING' });
+  if (root.lang === 'zh') {
+    texts.push({ x: xm, y: y0 + h * 0.1, size: 0.1, spacing: 0.03, weight: 500, color: P.leaf[3], str: b.zh, face: ZH_FACE });
+    texts.push({ x: xm, y: y0 + h * 0.03, size: 0.052, spacing: 0.02, weight: 500, color: '#cdbf9e', str: '正在上映', face: ZH_FACE });
+  } else {
+    texts.push({ x: xm, y: y0 + h * 0.105, size: 0.1, spacing: 0.02, weight: 560, color: P.leaf[3], str: b.name });
+    texts.push({ x: xm, y: y0 + h * 0.035, size: 0.046, spacing: 0.012, weight: 500, color: '#cdbf9e', str: 'NOW SHOWING' });
+  }
   return s;
 }
 function posterCase(cx, P, b, texts) {
@@ -1592,8 +1707,20 @@ function buildLeaf(side, P) {
     lay('e-gsheen', rect(gx0, gy0, gw, gy1, 'url(#e-sheen)', ' opacity="' + (P.night ? 0.07 : 0.18) + '"'), R(gx0, gx0 + gw, gy0, gy1), { res: 0.2, alpha: true }),
     lay('e-base', leafFace(x0, OPEN, P, side < 0 ? 1 : -1, side < 0 ? 1 : -1))];
   if (!P.night && side > 0) {
-    layers.push(lay('e-flash', '<ellipse cx="' + f3(gx0 + gw * 0.42) + '" cy="-1.55" rx="' + f3(gw * 0.75) + '" ry="1.2" fill="url(#e-refl)"/>' +
-      rect(gx0, gy0, gw, gy1, 'url(#e-glare)'), R(gx0, gx0 + gw, gy0, gy1), { res: 0.4, alpha: true, when: [600, 1500] }));
+    // the sun in the glass: a broad glare, a white-hot core and a short
+    // star of light off it
+    var fx = gx0 + gw * 0.42, fy = 1.55, star = '';
+    [[0.62, 0.012], [0.34, 0.009]].forEach(function (a, k) {
+      [0, 90].forEach(function (deg) {
+        var r = k ? a[0] * 0.8 : a[0];
+        star += '<ellipse cx="' + f3(fx) + '" cy="' + f3(-fy) + '" rx="' + f3(r) + '" ry="' + f3(a[1]) + '" fill="url(#e-refl)" transform="rotate(' + (deg + (k ? 45 : 0)) + ' ' + f3(fx) + ' ' + f3(-fy) + ')"/>';
+      });
+    });
+    layers.push(lay('e-flash', '<ellipse cx="' + f3(fx) + '" cy="' + f3(-fy) + '" rx="' + f3(gw * 0.75) + '" ry="1.2" fill="url(#e-refl)"/>' +
+      rect(gx0, gy0, gw, gy1, 'url(#e-glare)') +
+      '<ellipse cx="' + f3(fx) + '" cy="' + f3(-fy) + '" rx="0.2" ry="0.16" fill="url(#e-refl)"/>' +
+      '<ellipse cx="' + f3(fx) + '" cy="' + f3(-fy) + '" rx="0.07" ry="0.06" fill="#fffef8"/>' + star,
+      R(gx0, gx0 + gw, gy0, gy1), { res: 0.4, alpha: true, when: [600, 1500] }));
   }
   return piece('leaf', 'e-leaf e-leaf-' + (side < 0 ? 'l' : 'r'), box, layers, { side: side });
 }
@@ -1627,16 +1754,18 @@ function buildStanchions(P) {
     });
   });
   var box = R(-3.55, 3.55, -0.06, hgt + 0.08);
-  var dark = P.night ? '<g filter="url(#e-dim)">' + s + '</g>' : s;
   var L = R(-3.55, -1.1, box.b0, box.b1), Rr = R(1.1, 3.55, box.b0, box.b1);
   // cut at the posts and below the rope, never across it
   var sc = [['b', 0.5], ['b', 0.25]];
   posts.forEach(function (px) { sc.push(['a', px], ['a', -px]); });
-  var early = P.night ? { when: [0, 760], cuts: sc } : { cuts: sc };
-  var layers = [lay('e-base', dark, L, early), lay('e-base', dark, Rr, early)];
-  if (lit) {
-    layers.push(lay('e-lit', s + lit, L, { cuts: sc }));
-    layers.push(lay('e-lit', s + lit, Rr, { cuts: sc }));
+  // The brass as the canopy's lamps light it, and by night, before they
+  // come up, the dark over it: a see-through layer that goes as they do, so
+  // no two opaque tiles are ever faded across each other.
+  var layers = [lay('e-base', s + lit, L, { cuts: sc }), lay('e-base', s + lit, Rr, { cuts: sc })];
+  if (P.night) {
+    var dark = '<g filter="url(#e-unlit)">' + s + '</g>';
+    layers.push(lay('e-unlit', dark, L, { alpha: true, when: [0, 820] }));
+    layers.push(lay('e-unlit', dark, Rr, { alpha: true, when: [0, 820] }));
   }
   return piece('face', 'e-stanchions', box, layers, { z: z });
 }
@@ -1777,27 +1906,56 @@ function buildFoyer(P, G) {
   out.push(piece('sideL', 'e-fwall e-fwall-l', R(0, len, 0, yc), [lay('e-base', wallArt(len, 71))], { xs: -xw, host: 'foyer' }));
   out.push(piece('sideR', 'e-fwall e-fwall-r', R(zw, 0, 0, yc), [lay('e-base', '<g transform="translate(' + f3(zw) + ' 0)">' + wallArt(len, 83) + '</g>')], { xs: xw, host: 'foyer' }));
 
-  // The floor, from the threshold to where the hall's own floor takes over:
-  // terrazzo in the hall's tones, darkest near the doors as the hall's floor
-  // is at its near edge, a brass strip at the threshold, and the hall's
-  // runner coming out to meet the reader. The hall's floor, seen through
-  // the doorway, is the rest of it: a trapezoid, cut out of this one.
-  var F = P.floor, zn = G.zNear, run = G.runner;
+  // The floor, from the threshold to where the hall's own floor takes over
+  // (G.zNear, where the hall's floor leaves the bottom of the screen at
+  // rest). It is the hall's floor carried out to the doors: the same
+  // terrazzo at the size the hall's floor shows it along that line, the
+  // same grade (by night the dark of the reader's side of the room), its
+  // strips, and the hall's runner, woven the same, coming out to meet the
+  // reader. The hall's floor, seen through the doorway, is the rest of it:
+  // a trapezoid cut out of this one along a soft edge, so the two meet on
+  // no line and the lamps in the hall's wax fade into it.
+  var F = P.floor, zn = G.zNear, run = G.runner, fe = G.feather;
+  var slope = G.half / G.f, sp = fe * Math.sqrt(1 + slope * slope);
   var hole = function (z) { return G.half * (G.zEnd - z) / G.f; };
-  var fl = '<defs><linearGradient id="e-nf" gradientUnits="userSpaceOnUse" x1="0" y1="' + f3(-zn) + '" x2="0" y2="0">' +
-    '<stop offset="0" stop-color="' + F.far + '"/><stop offset="0.35" stop-color="' + F.base + '"/><stop offset="1" stop-color="' + F.base + '"/></linearGradient></defs>';
-  var outline = pathD([[-xw, 0], [xw, 0], [xw, zw], [hole(zw), zw], [hole(zn), zn], [-hole(zn), zn], [-hole(zw), zw], [-xw, zw]]);
-  fl += '<path d="' + outline + '" fill="url(#e-terrazzo)"/>';
-  fl += '<path d="' + outline + '" fill="' + F.base + '" opacity="' + (n ? 0.82 : 0.55) + '"/>';
-  fl += rect(-xw, zn, 2 * xw, 0, 'url(#e-nf)', ' opacity="0.6"');
-  // the runner and its border, and a fringe where it starts
-  fl += rect(-run - 0.06, zn, 2 * run + 0.12, -0.35, F.edge) + rect(-run, zn, 2 * run, -0.35, F.runner);
-  for (var ch = zn + 0.2; ch < -0.5; ch += 0.24) fl += '<path d="M' + f3(-run - 0.06) + ' ' + f3(-ch) + 'l0.06 -0.06l-0.06 -0.06M' + f3(run + 0.06) + ' ' + f3(-ch) + 'l-0.06 -0.06l0.06 -0.06" fill="none" stroke="' + F.brass + '" stroke-width="0.012" opacity="0.7"/>';
-  for (var fr = -run; fr <= run; fr += 0.03) fl += rect(fr, -0.35, 0.012, -0.28, F.edge, ' opacity="0.8"');
+  // the hole, drawn in by s across its edges (and past the far wall)
+  var inner = function (s) {
+    var zb = zn - s, w0 = Math.max(0, hole(zw - 1) - s * sp / fe), w1 = Math.max(0, hole(zb) - s * sp / fe);
+    return pathD([[-w0, zw - 1], [w0, zw - 1], [w1, zb], [-w1, zb]]);
+  };
+  var fl = '<defs><filter id="e-nff" filterUnits="userSpaceOnUse" x="-50" y="-50" width="100" height="100"><feGaussianBlur stdDeviation="' + f3(fe / 4) + '"/></filter>' +
+    '<mask id="e-nfm" maskUnits="userSpaceOnUse" x="-50" y="-50" width="100" height="100"><rect x="-50" y="-50" width="100" height="100" fill="#fff"/>' +
+    '<path d="' + inner(fe / 2) + '" fill="#000" filter="url(#e-nff)"/></mask></defs><g mask="url(#e-nfm)">';
+  fl += rect(-xw, zw - 0.02, 2 * xw, 0, F.base) + rect(-xw, zw - 0.02, 2 * xw, 0, 'url(#e-ftz)');
+  // the slabs' strips
+  var jx = '', jz = '';
+  for (var sx = -Math.floor(xw / G.slab) * G.slab; sx <= xw; sx += G.slab) jx += rect(sx - 0.004, zw, 0.008, 0, F.strip) + rect(sx + 0.004, zw, 0.004, 0, F.stripLt);
+  for (var sz = zn; sz < -0.1; sz += G.slab * 0.8) jz += rect(-xw, sz - 0.004, 2 * xw, sz + 0.004, F.strip) + rect(-xw, sz + 0.004, 2 * xw, sz + 0.008, F.stripLt);
+  for (var sz2 = zn - G.slab * 0.8; sz2 > zw; sz2 -= G.slab * 0.8) jz += rect(-xw, sz2 - 0.004, 2 * xw, sz2 + 0.004, F.strip) + rect(-xw, sz2 + 0.004, 2 * xw, sz2 + 0.008, F.stripLt);
+  fl += jx + jz;
+  // the plane's own near tone
+  fl += rect(-xw, zw - 0.02, 2 * xw, 0, F.near);
+  // the runner, bound in its border, its pile darker toward the reader, and
+  // a fringe where it starts
+  var bw = run * 2 * 0.11, rz0 = zw - 0.02, rz1 = -0.35;
+  fl += rect(-run - 0.03, rz0, 2 * run + 0.06, rz1, 'rgba(0,0,0,0.4)');
+  fl += rect(-run, rz0, 2 * run, rz1, F.rug) + rect(-run, rz0, 2 * run, rz1, 'url(#e-rugf)');
+  fl += '<g transform="translate(' + f3(-run) + ' 0)">' + rect(0, rz0, bw, rz1, 'url(#e-rugb)') + '</g>';
+  fl += '<g transform="translate(' + f3(run - bw) + ' 0)">' + rect(0, rz0, bw, rz1, 'url(#e-rugb)') + '</g>';
+  fl += rect(-run, rz0, 2 * run, rz1, F.rugVeil) + rect(-run, rz0, 2 * run, rz1, P.night ? 'rgba(96,74,52,0.22)' : 'rgba(0,0,0,0.2)');
+  for (var fr = -run; fr <= run; fr += 0.03) fl += rect(fr, -0.35, 0.012, -0.28, F.fringe, ' opacity="0.8"');
+  // the room's shade on the reader's side, over all of it
+  fl += '<linearGradient id="e-nfs" gradientUnits="userSpaceOnUse" x1="0" y1="' + f3(-zn) + '" x2="0" y2="0">' +
+    '<stop offset="0" stop-color="' + F.shade[0] + '"/><stop offset="1" stop-color="' + F.shade[1] + '"/></linearGradient>';
+  fl += rect(-xw, zw - 0.02, 2 * xw, 0, 'url(#e-nfs)');
+  fl += '</g>';
+  // the threshold's brass strip
   fl += rect(-xw, -0.08, 2 * xw, 0, F.brass) + rect(-xw, -0.1, 2 * xw, -0.08, 'rgba(0,0,0,0.4)');
-  // the shade near the doors, as the hall's floor has it at its near edge
-  fl += '<path d="' + outline + '" fill="rgba(0,0,0,' + (n ? 0.35 : 0.12) + ')"/>';
-  out.push(piece('plane', 'e-nfloor', R(-xw, xw, zw, 0), [lay('e-base', fl)], { h: 0, host: 'foyer' }));
+  var nf = piece('plane', 'e-nfloor', R(-xw, xw, zw, 0), [lay('e-base', fl)], { h: 0, host: 'foyer' });
+  // Where the hall's floor shows through the cut the canvases hold nothing,
+  // so they are not planned there.
+  nf.skip = function (a, b) { return b < zn - fe - 0.02 && Math.abs(a) < hole(b) - sp - 0.02; };
+  out.push(nf);
   return out;
 }
 
@@ -1817,7 +1975,7 @@ function buildSun(G) {
     var f = [castFloor(xa, 0, 0), castFloor(xb, 0, 0), castFloor(xb, DOOR_H, 0), castFloor(xa, DOOR_H, 0)];
     return { floor: f, strength: strength };
   };
-  var fillA = function (a) { return 'rgba(176,144,100,' + a + ')'; };
+  var fillA = function (a) { return 'rgba(255,226,178,' + a + ')'; };
   var floorArt = '', wallArt = '';
   var add = function (xa, xb, a) {
     var b = beam(xa, xb, a);
@@ -1845,6 +2003,10 @@ function buildSun(G) {
     centreFloor = floorArt; centreWall = wallArt;
     floorArt = save[0]; wallArt = save[1];
   })();
+  // what the centre beam covers, with room for its soft edge: the leaves'
+  // shadow frames need cover no more than this
+  var cb = beam(-OPEN, OPEN, 0).floor, cxs = cb.map(function (q) { return q[0]; });
+  var twc = -zw / -LIGHT[2], dxc = LIGHT[0] * twc;
   // the bars of the side pairs' shadows across their beams
   var bars = '';
   [-1, 1].forEach(function (sd) {
@@ -1858,12 +2020,15 @@ function buildSun(G) {
   var soft = function (m) { return '<g filter="url(#e-sunedge)">' + m + '</g>'; };
   var sides = piece('plane', 'e-sunfloor', floorBox, [lay('e-sun-side', soft('<mask id="e-sm"><rect x="-50" y="-50" width="100" height="100" fill="#fff"/>' + bars.replace(/rgba\(0,0,0,1\)/g, '#000') + '</mask><g mask="url(#e-sm)">' + floorArt + '</g>'), null, { res: 0.3, alpha: true })], { h: 0.002, host: 'sun' });
   out.push(sides);
-  var centre = piece('plane', 'e-sunfloor-c', floorBox, [lay('e-sun-centre', soft(centreFloor), null, { res: 0.3, alpha: true })], { h: 0.003, host: 'sun' });
+  var cSub = R(Math.max(floorBox.a0, Math.min.apply(null, cxs) - 0.45), Math.min(floorBox.a1, Math.max.apply(null, cxs) + 0.45), zw, 0.05);
+  var centre = piece('plane', 'e-sunfloor-c', floorBox, [lay('e-sun-centre', soft(centreFloor), cSub, { res: 0.3, alpha: true })], { h: 0.003, host: 'sun' });
   out.push(centre);
   var wx0 = -SIDE + LIGHT[0] * (-zw / -LIGHT[2]) - 0.6, wx1 = SIDE + LIGHT[0] * (-zw / -LIGHT[2]) + 0.6;
-  var wallPiece = piece('face', 'e-sunwall', R(Math.max(-G.Xw, wx0), Math.min(G.Xw, wx1), 0, DOOR_H), [
+  var wBox = R(Math.max(-G.Xw, wx0), Math.min(G.Xw, wx1), 0, DOOR_H);
+  var wSub = R(Math.max(wBox.a0, -OPEN + dxc - 0.45), Math.min(wBox.a1, OPEN + dxc + 0.45), 0, DOOR_H);
+  var wallPiece = piece('face', 'e-sunwall', wBox, [
     lay('e-sun-side', soft(wallArt), null, { res: 0.3, alpha: true }),
-    lay('e-sun-centre', soft(centreWall), null, { res: 0.3, alpha: true })
+    lay('e-sun-centre', soft(centreWall), wSub.a1 > wSub.a0 ? wSub : null, { res: 0.3, alpha: true })
   ], { z: zw + 0.01, host: 'sun' });
   out.push(wallPiece);
   // The leaves' shadows: a window over the centre beam whose two edges are
@@ -1880,14 +2045,12 @@ function windowFrames(part, kind) {
   var layer = part.layers['e-sun-centre'];
   if (!layer) return null;
   var host = layer.parentNode, box = part.box;
-  var W = (box.a1 - box.a0) * U, H = (box.b1 - box.b0) * U, BIGW = 2.2 * Math.hypot(W, H);
   // The frames' x axis runs across the leaves' shadow edges. On the floor
   // an edge runs along the sun's way (in the piece's px: x right, y away,
   // so (L.x, -L.z)); on the wall it stands upright.
   var ang = kind === 'floor' ? Math.atan2(-LIGHT[0], -LIGHT[2]) : 0;
   var mk = function (cls, rightEdge) {
     var f = div('e-win ' + cls);
-    f.style.width = BIGW + 'px'; f.style.height = BIGW + 'px';
     f.style.left = '0px'; f.style.top = '0px';
     var inner = div('e-win-in', f);
     return { f: f, inner: inner, right: rightEdge };
@@ -1896,7 +2059,7 @@ function windowFrames(part, kind) {
   host.replaceChild(A.f, layer);
   A.inner.appendChild(B.f);
   B.inner.appendChild(layer);
-  return { A: A, B: B, ang: ang, BIGW: BIGW, kind: kind, part: part };
+  return { A: A, B: B, ang: ang, kind: kind, part: part, layer: layer };
 }
 
 /* =========================================================================
@@ -2011,6 +2174,11 @@ function run(el, frames, total, fill) {
 /* A lamp that is out stands at 0.004, not 0: invisible, but a layer the
    compositor still draws, so its first light is not also its first draw. */
 function fade(el, pts, total) {
+  // a layer of canvases carries its fade on each canvas (Levels.animate)
+  if (el && el.__layer && !el.__solid) {
+    el.__fade = pts.map(function (p) { return [p[0], Math.max(0.004, p[1]), p[2] || null]; });
+    return null;
+  }
   return run(el, pts.map(function (p) {
     var o = { opacity: Math.max(0.004, p[1]) };
     if (p[2]) o.easing = p[2];
@@ -2084,9 +2252,9 @@ function lightBay(b, total, t) {
     var to = lampTarget(el);
     if (!(to > 0.01)) return;
     el.__eLit = true;
-    var at = t.house + 110 + Math.min(2, b.i) * 150;
-    var a = fade(el, [[0, 0], [at, 0], [at + 440, to]], total);
-    if (a && S && S.started && !S.frozen) a.startTime = S.startTime;
+    var at = t.house + 110 + Math.min(2, b.i) * t.bayGap;
+    var a = fade(el, [[0, 0], [at, 0], [at + t.lampUp, to]], total);
+    if (a && S && S.started && !S.frozen && S.startTime != null) a.startTime = S.startTime;
     else if (a && S && S.frozen) a.currentTime = S.frozenAt;
   };
   $$('.lit', b.g).forEach(light);
@@ -2143,12 +2311,12 @@ function lights(sc, P, t, total, cam) {
       var r = sc.soffit.length - 1 - i, at = t.soffit + r * t.soffitGap;
       fadeAll(layersOf(row, 'e-srow'), [[0, 0], [at, 0], [at + 40, 0.8], [at + 70, 0.5], [at + 140, 1]], total);
     });
-    sc.uppers.concat(sc.walls, [sc.transom, sc.stanchions]).forEach(function (p) {
+    sc.uppers.concat(sc.walls, [sc.transom]).forEach(function (p) {
       fadeAll(layersOf(p, 'e-lit'), [[0, 0], [t.posters, 0], [t.soffit + 300, 1, 'ease-out']], total);
     });
-    // the brass in the dark, painted only for the start, goes once the lit
-    // brass is up over it
-    fadeAll(layersOf(sc.stanchions, 'e-base'), [[0, 1], [t.soffit + 320, 1, 'steps(1, end)'], [t.soffit + 340, 0]], total);
+    // the brass in the dark, painted only for the start, goes as the lamps
+    // come up on it
+    fadeAll(layersOf(sc.stanchions, 'e-unlit'), [[0, 1], [t.posters, 1], [t.soffit + 300, 0, 'ease-out']], total);
     // the canopy's lamps come up in the side doors' glass with the soffit
     sc.sides.forEach(function (p) {
       fadeAll(layersOf(p, 'e-refl'), [[0, 0.1], [t.soffit, 0.1], [t.soffit + 260, 1, 'ease-out']], total);
@@ -2168,12 +2336,13 @@ function lights(sc, P, t, total, cam) {
 
 /* The day: a cloud over the sun, and then the sun. */
 function day(sc, t, total, cam) {
-  // The cloud's shade lies over the street and slides off to the right as
-  // the sun comes out from behind it.
+  // The cloud's shade lies over the street and slides off to the left as
+  // the sun comes out from behind it, the other way from the glint that
+  // follows it along the letters.
   if (sc.cloud) {
     var W = cam.W;
-    run(sc.cloud, [[0, { transform: 'translateX(' + f2(-0.35 * W) + 'px)' }], [t.cloud[0], { transform: 'translateX(' + f2(-0.35 * W) + 'px)', easing: 'cubic-bezier(0.4, 0, 0.5, 1)' }],
-      [t.cloud[1], { transform: 'translateX(' + f2(1.05 * W) + 'px)' }]], total);
+    run(sc.cloud, [[0, { transform: 'translateX(' + f2(-1.25 * W) + 'px)' }], [t.cloud[0], { transform: 'translateX(' + f2(-1.25 * W) + 'px)', easing: 'cubic-bezier(0.4, 0, 0.5, 1)' }],
+      [t.cloud[1], { transform: 'translateX(' + f2(-2.65 * W) + 'px)' }]], total);
   }
   // the canopy's shadow: soft, then sharp, settling a little down the wall
   fadeAll(layersOf(sc.shade, 'e-shade-soft'), [[0, 1], [t.shadow[0], 1], [t.shadow[1], 0, 'ease-in-out']], total);
@@ -2208,9 +2377,9 @@ function day(sc, t, total, cam) {
     var ctr = [OPEN - 0.5 * Math.cos(aa), 1.45, -0.5 * Math.sin(aa)], toEye = norm([c.x - ctr[0], c.y - ctr[1], c.z - ctr[2]]);
     // horizontally only: the leaf turns about an upright hinge
     var hR = Math.atan2(Rv[0], Rv[2]), hE = Math.atan2(toEye[0], toEye[2]), dh = (hR - hE) / D2R;
-    fpts.push([ms, Math.exp(-dh * dh / 110)]);
+    fpts.push([ms, Math.min(1, 1.15 * Math.exp(-dh * dh / 800)) * clamp01((ms - T0) / 100)]);
   }
-  if (flash) fade(flash, [[0, 0]].concat(fpts.map(function (p) { return [p[0], p[1]]; })).concat([[T1 + 40, 0]]), total);
+  if (flash) fade(flash, [[0, 0], [T0, 0]].concat(fpts.map(function (p) { return [p[0], p[1]]; })).concat([[T1 + 40, 0]]), total);
   // The sun through the doors: the foyer's bands come up as the cloud goes,
   // the leaves' shadows draw back as the doors open, and the bands settle
   // as the eye adjusts.
@@ -2222,10 +2391,11 @@ function day(sc, t, total, cam) {
 /* Where the free edge of each centre leaf casts its shadow, across the
    window's frame, frame by frame. */
 function sunWindow(w, t, total) {
-  var box = w.part.box, fa = [], fb = [], ia = [], ib = [];
+  var box = w.part.box, fa = [], fb = [], ia = [], ib = [], dAs = [], dBs = [];
   var T0 = t.doors, T1 = t.doors + t.doorLag + t.doorsDur;
-  var ca = Math.cos(w.ang), sa = Math.sin(w.ang), B = w.BIGW, rot = 'rotate(' + f4(w.ang / D2R) + 'deg) ', un = ' rotate(' + f4(-w.ang / D2R) + 'deg)';
-  for (var ms = T0 - STEP; ms <= T1 + STEP; ms += STEP) {
+  var ca = Math.cos(w.ang), sa = Math.sin(w.ang), rot = 'rotate(' + f4(w.ang / D2R) + 'deg) ', un = ' rotate(' + f4(-w.ang / D2R) + 'deg)';
+  var ms;
+  for (ms = T0 - STEP; ms <= T1 + STEP; ms += STEP) {
     var sl = swing(t, ms, -1) * D2R, sr = swing(t, ms, 1) * D2R;
     var eL = [-OPEN + OPEN * Math.cos(sl), -OPEN * Math.sin(sl)], eR = [OPEN - OPEN * Math.cos(sr), -OPEN * Math.sin(sr)];
     // how far across the frames' axis a leaf's free edge casts its shadow
@@ -2234,7 +2404,26 @@ function sunWindow(w, t, total) {
       var px = (e[0] - box.a0) * U, py = (box.b1 - e[1]) * U;
       return px * ca + py * sa;
     };
-    var dA = off(eL), dB = off(eR);
+    dAs.push([ms, off(eL)]); dBs.push([ms, off(eR)]);
+  }
+  // The frames need cover only the beam's own box (they were once cut
+  // twice the piece's diagonal square, 3700 px at 3440, and rastered again
+  // every frame they moved): across the edges' axis, from the furthest the
+  // left edge goes to the beam's far side, and so for the right; along it,
+  // the beam's reach either way.
+  var sub = w.layer.__sub || box, xs = [], ys = [];
+  [[sub.a0, sub.b1], [sub.a1, sub.b1], [sub.a1, sub.b0], [sub.a0, sub.b0]].forEach(function (q) {
+    var px = (q[0] - box.a0) * U, py = (box.b1 - q[1]) * U;
+    xs.push(px * ca + py * sa); ys.push(-px * sa + py * ca);
+  });
+  var minA = Math.min.apply(null, dAs.map(function (q) { return q[1]; })), maxB = Math.max.apply(null, dBs.map(function (q) { return q[1]; }));
+  var B = Math.ceil(Math.max(Math.max.apply(null, xs) - minA, maxB - Math.min.apply(null, xs),
+    2 * Math.max.apply(null, ys.map(Math.abs))) + 60);
+  [w.A.f, w.B.f].forEach(function (f) { f.style.width = B + 'px'; f.style.height = B + 'px'; });
+  w.size = B;
+  for (var k = 0; k < dAs.length; k++) {
+    ms = dAs[k][0];
+    var dA = dAs[k][1], dB = dBs[k][1];
     // frame A holds what lies past the left leaf's edge, frame B what lies
     // short of the right leaf's; each content is carried back to the piece
     fa.push([ms, { transform: rot + 'translate(' + f2(dA) + 'px,' + f2(-B / 2) + 'px)' }]);
@@ -2251,19 +2440,85 @@ function sunWindow(w, t, total) {
    ========================================================================= */
 var E = window.Entrance = {};
 
+/* The camera for this theme and screen. yEnd is the eye point in the hall
+   (the clock's dial), where the horizon lands. */
+function stageFor(opts) {
+  var theme = opts.theme === 'ivory' ? 'ivory' : 'onyx';
+  var W = window.innerWidth, H = window.innerHeight, t = TIMES[theme];
+  var Py = opts.yEnd || H * 0.45, f = FK * H;
+  var zEnd = f * OPEN / (0.51 * W) - REVEAL;
+  var cam = new Camera({ W: W, H: H, Py: Py, f: f, t: t, zEnd: zEnd, z0: Math.max(Z0, zEnd + 4.2) });
+  return { theme: theme, W: W, H: H, t: t, Py: Py, f: f, zEnd: zEnd, cam: cam };
+}
+
+/* The plate, until the street is painted: the street as the first frame
+   will show it, out of focus. Its big shapes and its light (by night the
+   dark front and the lit doors, by day the stone under a cloud and the
+   cool glass) are drawn where the camera will see them, on a canvas an
+   eighth of the screen's size and blurred, and the screen enlarges it.
+   It is drawn in a few ms, before the page's first frame, so the first
+   thing the reader sees is the street coming into focus, never a flat
+   colour. The textures and faces the paint needs are asked for now. */
+var SKETCH = {
+  onyx: { bg: '#0a0807', fascia: '#16110c', soffit: '#21180f', bay: '#3a2a1a', frame: '#5c4329', fan: '#d9954e',
+    side: '#caa06a', centre: '#dab884', pave: '#120e0b', spill: 'rgba(196,140,80,0.55)', sky: null },
+  ivory: { bg: '#6a6c71', fascia: '#7d8082', soffit: '#56575b', bay: '#48443f', frame: '#5a524a', fan: '#6f7f90',
+    side: '#5f6873', centre: '#6a7684', pave: '#5e5c63', spill: null, sky: '#8793a0' }
+};
+E.sketch = function (host, opts) {
+  var plate = $('.e-plate', host);
+  var st = stageFor(opts);
+  texReady(st.theme); fontsReady();
+  if (!plate) return;
+  var k = 1 / 8, cw = Math.ceil(st.W * k), ch = Math.ceil(st.H * k);
+  var cv = $('canvas', plate) || plate.appendChild(document.createElement('canvas'));
+  cv.width = cw; cv.height = ch;
+  var x = cv.getContext('2d'), C = SKETCH[st.theme], cam = st.cam, c0 = cam.at(0);
+  if (!x) return;
+  if ('filter' in x) x.filter = 'blur(1.6px)';
+  x.scale(k, k);
+  x.fillStyle = C.bg; x.fillRect(-40, -40, st.W + 80, st.H + 80);
+  var poly = function (pts, fill) {
+    var q = pts.map(function (p) { return cam.project(c0, p); });
+    if (q.some(function (p) { return !p; })) return;
+    x.beginPath();
+    q.forEach(function (p, i) { if (i) x.lineTo(p[0], p[1]); else x.moveTo(p[0], p[1]); });
+    x.closePath(); x.fillStyle = fill; x.fill();
+  };
+  var face = function (x0, x1, y0, y1, z, fill) { poly([[x0, y0, z], [x1, y0, z], [x1, y1, z], [x0, y1, z]], fill); };
+  var level = function (x0, x1, z0, z1, y, fill) { poly([[x0, y, z0], [x1, y, z0], [x1, y, z1], [x0, y, z1]], fill); };
+  var near = c0.z - 1.5;
+  // the pavement, and by night the doors' light spilt on the wet stone
+  level(-WALL, WALL, 0, near, 0, C.pave);
+  if (C.spill) poly([[-SIDE, 0, 0], [SIDE, 0, 0], [SIDE + 1.6, 0, Math.min(near, 3.4)], [-SIDE - 1.6, 0, Math.min(near, 3.4)]], C.spill);
+  // the bay: its bronze, the fanlights, the six doors' glass
+  face(-BAY, BAY, 0, HEAD, 0, C.bay);
+  [-2.08, 0, 2.08].forEach(function (cx) {
+    var r = (cx ? 0.9 : 1) * 0.62, pts = [];
+    for (var i = 0; i <= 10; i++) { var a = Math.PI * i / 10; pts.push([cx - Math.cos(a) * r * 1.45, DOOR_H + 0.1 + Math.sin(a) * r * 0.75, 0]); }
+    poly(pts, C.fan);
+  });
+  face(-SIDE, SIDE, 0, DOOR_H, 0, C.frame);
+  [-1, 1].forEach(function (sd) {
+    var a = sd * (OPEN + JAMB + 0.09), b = sd * (SIDE - 0.09);
+    face(Math.min(a, b), Math.max(a, b), 0.3, DOOR_H - 0.12, 0, C.side);
+  });
+  face(-OPEN + 0.09, OPEN - 0.09, 0.3, DOOR_H - 0.12, 0, C.centre);
+  if (C.sky) face(-OPEN + 0.09, OPEN - 0.09, 1.9, DOOR_H - 0.12, 0, C.sky);
+  // the canopy: its underside and its fascia
+  level(-CAN.half, CAN.half, 0, CAN.z, CAN.y0, C.soffit);
+  face(-CAN.half - 0.24, CAN.half + 0.24, CAN.y0 - 0.02, CAN.crest, CAN.z, C.fascia);
+};
+
 /* Dress the street for this theme and screen, every piece in its first
    pose, the clock parked: nothing moves until start(). yEnd is the eye
    point in the hall (the clock's dial), where the horizon lands. Returns a
    promise that settles once every piece is painted. */
 E.dress = function (host, opts) {
-  E.clear();
-  var theme = opts.theme === 'ivory' ? 'ivory' : 'onyx';
-  var W = window.innerWidth, H = window.innerHeight;
-  var t = TIMES[theme];
+  E.clear(true);
+  var st = stageFor(opts);
+  var theme = st.theme, W = st.W, H = st.H, t = st.t, Py = st.Py, f = st.f, zEnd = st.zEnd, cam = st.cam;
   var P = palette(theme, opts.wing);
-  var Py = opts.yEnd || H * 0.45, f = FK * H;
-  var zEnd = f * OPEN / (0.51 * W) - REVEAL;
-  var cam = new Camera({ W: W, H: H, Py: Py, f: f, t: t, zEnd: zEnd, z0: Math.max(Z0, zEnd + 4.2) });
   // The foyer, sized to the hall: its far wall is the hall's own wall, the
   // floor line on the floor, the top of the screen at rest where the
   // ceiling meets it.
@@ -2274,7 +2529,15 @@ E.dress = function (host, opts) {
   var G = { zEnd: zEnd, D: D, zWall: zEnd - D, Xw: (W / 2) * D / f, Yc: EYE + Py * D / f, half: W / 2, f: f };
   G.Dnear = f * EYE / Math.max(20, H - Py); G.zNear = zEnd - G.Dnear;
   G.Ddesk = dk ? Math.max(1.5, Math.min(D, f * EYE / Math.max(20, dk.B - Py))) : D;
-  G.runner = 0.12 * W * G.Dnear / f;
+  // The hall's floor where it meets the foyer, in metres: its terrazzo (a
+  // tile 0.9 of the floor box's height across, in the plane's px, which are
+  // screen px along that line), its runner (12.5% of a plane twice the
+  // screen's width) and the runner's weave, and the soft edge between them.
+  var fh = fp ? Math.max(40, fp.B - fp.T) : H * 0.3, mpp = G.Dnear / f;
+  P.tz = 0.9 * fh * mpp; P.rt = 0.62 * fh * mpp;
+  G.runner = 0.1275 * W * mpp; P.rb = 2 * G.runner * 0.11;
+  G.slab = 0.2 * W * mpp;
+  G.feather = Math.max(0.25, Math.min(0.45, 60 * mpp));
   // how much of the street the first frame shows
   var c0 = cam.at(0), ext = { x: 0, y: 0 };
   [[0, 0], [W, 0], [0, H], [W, H]].forEach(function (q) {
@@ -2294,33 +2557,65 @@ E.dress = function (host, opts) {
   billN = 0;
   var sc = build(host, P, cam, t, G);
   var my = S = { host: host, sc: sc, cam: cam, P: P, t: t, theme: theme, W: W, H: H, G: G, ready: false, hall: hall };
-  S.total = theme === 'ivory' ? t.end : t.house + 110 + 2 * 150 + 460;
+  S.total = theme === 'ivory' ? t.end : t.house + 110 + 2 * t.bayGap + t.lampUp;
   var t0 = performance.now();
   pose0();
   root.classList.add('e-hold');
-  sc.world.style.visibility = 'hidden';
-  [sc.fworld, sc.sworld].forEach(function (w) { if (w) w.style.visibility = 'hidden'; });
-  return Promise.all([texReady, fontsReady()]).then(function () {
+  // The hall is drawn at rest as layers (html.e-hold), so it is rastered
+  // at the size it lands at; it takes its first pose (prepose) once it is
+  // built. All of it, the street too, is drawn under the plate, which is a
+  // hair short of opaque so that nothing under it is left undrawn: whatever
+  // is drawn for the first time is drawn now, not in the walk's first
+  // frames.
+  S.times = { dress: Math.round(t0) };
+  var assets = Promise.all([texReady(theme), fontsReady()]);
+  // The tiles are planned while the textures and the faces come in; each
+  // level shows in its own stretch, parked with the rest until the clock
+  // starts.
+  var p = S.plan = paint(sc.parts.filter(function (q) { return q.lastSeen >= 0; }), cam, P);
+  S.stats = p.stats;
+  var n0 = anims.length;
+  Levels.animate(p, S.total);
+  var now0 = document.timeline.currentTime || 0;
+  for (var i = n0; i < anims.length; i++) anims[i].startTime = now0 + BIG;
+  S.times.planned = Math.round(performance.now());
+  return assets.then(function () {
     if (S !== my) return false;
-    S.fontsOk = !document.fonts || FACES.every(function (f) { return document.fonts.check(f); });
-    var p = paint(sc.parts.filter(function (q) { return q.lastSeen >= 0; }), cam, P);
-    S.stats = p.stats;
-    S.plan = p;
-    // each level shows in its own stretch, parked with the rest until the
-    // clock starts
-    var n0 = anims.length;
-    Levels.animate(p, S.total);
-    var now = document.timeline.currentTime || 0;
-    for (var i = n0; i < anims.length; i++) anims[i].startTime = now + BIG;
-    return p.done;
+    S.times.assets = Math.round(performance.now());
+    S.fontsOk = !document.fonts || faces().every(function (f) { return document.fonts.check(f); });
+    return p.draw();
   }).then(function (ok) {
     if (S !== my || ok === false) return false;
-    [sc.world, sc.fworld, sc.sworld].forEach(function (w) { if (w) w.style.removeProperty('visibility'); });
-    S.ready = true;
-    window.__entrancePaintMs = Math.round(performance.now() - t0);
-    return true;
+    // The canvases' drawing is queued for the GPU and run there in order;
+    // reading a pixel back waits until all of it has run, so the walk does
+    // not begin with the GPU still at it (it ran into the walk's first
+    // second on a new profile at 3440). Read in the frame after the last
+    // draw, once every canvas has handed its drawing over.
+    S.times.drawn = Math.round(performance.now());
+    return nextFrame(1).then(function () {
+      if (S !== my) return false;
+      drain(S.plan);
+      S.times.drained = Math.round(performance.now());
+      S.drainMs = S.times.drained - S.times.drawn;
+      S.ready = true;
+      S.paintMs = Math.round(performance.now() - t0);
+      window.__entrancePaintMs = S.paintMs;
+      return true;
+    });
   });
 };
+function nextFrame(n) {
+  return new Promise(function (res) {
+    var k = n || 1;
+    requestAnimationFrame(function tick() { if (--k <= 0) res(); else requestAnimationFrame(tick); });
+  });
+}
+function drain(plan) {
+  var L = null;
+  for (var i = plan.all.length - 1; i >= 0 && !L; i--) if (plan.all[i].painted && plan.all[i].cv.width) L = plan.all[i];
+  if (!L) return;
+  try { L.cv.getContext('2d').getImageData(0, 0, 1, 1); } catch (e) { /* nothing to wait for */ }
+}
 
 /* Pose everything for the walk: the camera's pieces, the hall, the lights. */
 function pose0() {
@@ -2337,13 +2632,28 @@ function pose0() {
   var ht = samples(cam.walkEnd);
   S.hall.forEach(function (h) {
     h.place = hallPlace(h, cam, S.G);
-    run(h.el, ht.map(function (ms) { return [ms, { transform: hallAt(h, cam.at(ms)) }]; }), total, 'forwards');
+    var fr = ht.map(function (ms) { return [ms, { transform: hallAt(h, cam.at(ms)) }]; });
+    // The last pose is the identity as a 3D matrix; drawn through it the
+    // floor stood a pixel off where it rests. The walk ends on the identity
+    // itself, as the reader comes to a stop.
+    fr[fr.length - 1][1].easing = 'steps(1, end)';
+    fr.push([cam.walkEnd + 1, { transform: 'none' }]);
+    h.anim = run(h.el, fr, total, 'forwards');
   });
   // The inside seen from the sunlit (day) or dark (night) street: dimmer
   // until the reader is in it.
+  // The plate over the street lifts as the clock starts.
+  var plate = $('.e-plate', S.host);
+  if (plate) run(plate, [[0, { opacity: 0.996, easing: 'cubic-bezier(0.3, 0, 0.45, 1)' }], [t.reveal[1], { opacity: 0 }]], total);
   var veil = $('#e-veil');
   if (veil) fade(veil, S.P.night ? [[0, 1], [t.veil[0], 1], [t.veil[1], 0, 'ease-in-out']] : [[0, 1], [t.veil[0], 1], [t.veil[1], 0, 'ease-in-out']], total);
   lights(sc, S.P, t, total, cam);
+  // The foyer's floor goes as the reader reaches the threshold: by then
+  // only its soft edge over the hall's floor is on the screen, and the hall
+  // lands without it.
+  sc.parts.forEach(function (p) {
+    if (p.el.classList.contains('e-nfloor')) fadeAll(layersOf(p, 'e-base'), [[0, 1], [cam.walkEnd - 320, 1], [cam.walkEnd - 20, 0, 'ease-in']], total);
+  });
   park();
 }
 function hallAt(h, c) {
@@ -2368,35 +2678,112 @@ E.measure = function (yEnd) {
 /* The hall's first pose, drawn while the street still stands: the hall is
    drawn at rest first (the size it lands at, kept by html.e-hold), then
    posed where the walk begins, so the clock starts with nothing of the hall
-   left to draw for the first time. It shows behind the haze on the glass. */
+   left to draw for the first time. It shows behind the haze on the glass.
+   Called once the hall is built: SVG text laid out under the pose is laid
+   out for it (Chrome sizes the glyphs for the scale they are drawn at). */
 E.prepose = function () {
-  if (!S || S.started || S.preposed || !S.ready) return false;
+  if (!S || S.started || S.preposed) return false;
   S.preposed = true;
   root.classList.add('e-posed');
   var c = S.cam.at(0);
-  S.hall.forEach(function (h) { h.el.style.transform = hallAt(h, c); });
+  // Held there by an animation, not a style: one that runs on to the
+  // hall's own pose at rest over a thousand years, so it does not move,
+  // and the compositor draws the hall as a transform animation from here
+  // on. Posed by a style, the hall was drawn again at the scale the walk
+  // reaches (the floor's plane, 7000px wide at 3440) in the frame the walk
+  // started, and on a new profile that froze the walk's first 300-500ms.
+  S.hall.forEach(function (h) { if (h.anim) h.anim.effect.updateTiming({ fill: 'both' }); });
   return true;
 };
 
-E.start = function () {
-  if (!S || S.started || !S.ready) return false;
+/* A GPU drawing for the first time (coldGpu) builds what it draws the hall
+   with at each new size the first time it meets it, and the walk's first
+   step met them all at once (300-500ms at 3440). So there, under the
+   plate, the hall is run for a few frames at points along the walk and put
+   back, and the walk finds them built. Calls fn once it has. */
+E.warm = function (fn) {
+  if (!S || S.started || !S.hall || S.warmed) { fn(); return; }
+  if (S.warming) { S.warming.push(fn); return; }
+  var my = S, waiting = S.warming = [fn];
+  var hall = S.hall.filter(function (h) { return h.anim; }), pts = [0.35, 0.7, 1], k = 0;
+  var done = function () {
+    if (my.warming === waiting) { my.warming = null; my.warmed = true; }
+    waiting.forEach(function (f) { f(); });
+  };
+  var step = function () {
+    if (S !== my || S.started) { done(); return; }
+    var now = document.timeline.currentTime || performance.now();
+    if (k < pts.length) {
+      var at = pts[k++] * S.cam.walkEnd;
+      hall.forEach(function (h) { h.anim.startTime = now - at; });
+      nextFrame(3).then(step);
+      return;
+    }
+    hall.forEach(function (h) { h.anim.startTime = now + BIG; });
+    done();
+  };
+  step();
+};
+
+/* Everything the walk's first frame would otherwise measure, measured
+   now: the fanlights' bays and the marquee, read at rest (one lift of the
+   pose for all of it), and their cues laid on the clock. Called a few
+   frames before start(), so the clock's first frame only starts it. */
+E.prime = function () {
+  if (!S || S.started || S.primed || !S.ready) return false;
+  S.primed = true;
   if (S.P.night) {
-    hallLamps(S.total, S.t);
-    marqueeChase(S.host, S.total, S.t.marquee);
+    var atRest = window.atRest || function (fn) { return fn(); };
+    atRest(function () {
+      hallLamps(S.total, S.t);
+      marqueeChase(S.host, S.total, S.t.marquee);
+    });
+    var now = document.timeline.currentTime || 0;
+    anims.forEach(function (a) { if (a.playState === 'paused') a.startTime = now + BIG; });
   }
-  S.started = true;
-  root.classList.add('e-posed');
-  var now = document.timeline.currentTime;
-  S.startTime = now;
-  anims.forEach(function (a) { a.startTime = now; });
-  if (S.plan) Levels.start(S.plan);
   return true;
 };
+
+/* The clock starts `lead` ms from now: every animation is handed its start
+   time at once, and the frames that carry that to the compositor (a few,
+   and heavy at 3440) go out while the street still stands at its first
+   pose. Returns the clock's zero, on the page's clock. */
+E.start = function (lead) {
+  if (!S || S.started || !S.ready) return null;
+  E.prime();
+  S.started = true;
+  root.classList.add('e-posed');
+  E.prepose();
+  var now = document.timeline.currentTime;
+  if (now == null) now = performance.now();
+  S.startTime = now + Math.max(0, lead || 0);
+  anims.forEach(function (a) { a.startTime = S.startTime; });
+  // the hall's own track takes over from its hold at the clock's zero
+  holdUntil(S.startTime);
+  if (S.plan) Levels.start(S.plan);
+  return S.startTime;
+};
+
+/* The hold on the hall's first pose lets go a little after the clock
+   starts: until the walk's first step the hall's track holds that same
+   pose, so the hand-over shows nothing, and the hall is a transform
+   animation throughout. Or at once, when the street is cleared. */
+var holdTimer = 0;
+function holdUntil(t) {
+  clearTimeout(holdTimer);
+  holdTimer = setTimeout(dropHold, Math.max(0, t - performance.now()) + 150);
+}
+function dropHold() {
+  clearTimeout(holdTimer);
+  if (!S || !S.holdAnims) return;
+  S.holdAnims.forEach(function (a) { try { a.cancel(); } catch (e) { /* gone */ } });
+  S.holdAnims = null;
+}
 
 /* A gate drawn again while the walk runs joins the fanlights' cascade on
    the clock, where its bay stands in it. */
 E.adopt = function () {
-  if (!S || !S.started || !S.P.night) return;
+  if (!S || !(S.started || S.primed) || !S.P.night) return;
   bayOrder().forEach(function (b) { lightBay(b, S.total, S.t); });
 };
 
@@ -2405,14 +2792,17 @@ E.seek = function (ms) {
   if (!S) return Promise.resolve();
   if (!S.started) E.start();
   S.frozen = true; S.frozenAt = ms;
+  dropHold();
   anims.forEach(function (a) { a.pause(); a.currentTime = ms; });
   return S.plan ? Levels.seek(S.plan) : Promise.resolve();
 };
 
-/* Everything off: the hall at rest, the street gone. */
-E.clear = function () {
+/* Everything off: the hall at rest, the street gone (the plate's sketch
+   too, unless the street is only being dressed again). */
+E.clear = function (keepSketch) {
   Levels.stop();
   if (S && S.hall) S.hall.forEach(function (h) { h.el.style.removeProperty('transform'); });
+  dropHold();
   anims.forEach(function (a) { try { a.cancel(); } catch (e) { /* gone */ } });
   anims = [];
   $$('.lit, .st-fan').forEach(function (e) { if (e.__eLit) e.__eLit = false; });
@@ -2420,17 +2810,30 @@ E.clear = function () {
   if (S && S.sc) {
     [S.sc.world, S.sc.fworld, S.sc.sworld, S.sc.cloud].forEach(function (w) { if (w && w.parentNode) w.parentNode.removeChild(w); });
   }
+  // Out of the page, the canvases still held their pixels (300 MB at 3440)
+  // until the next full collection, seconds later. Emptied now, they go at
+  // once, and so do the layers' pictures.
+  if (S && S.plan) {
+    S.plan.all.forEach(function (L) { L.cv.width = 0; L.cv.height = 0; });
+    S.plan.layers.forEach(function (l) { dropImage(l); });
+  }
+  if (!keepSketch) $$('.e-plate canvas').forEach(function (c) { c.width = 0; c.height = 0; });
   S = null;
 };
 
 E.beats = function () { return S ? { doneFade: S.t.doneFade, total: S.total } : null; };
 E.running = function () { return !!(S && S.started); };
+/* The GPU is drawing for the first time (a new profile, its shaders not
+   yet built): its drawing of the street took more than a quarter second
+   to run (under 110ms on a GPU that has drawn the hall before). The hall's first raster then comes in waves for a second or more
+   after it, a frame or two apart. */
+E.coldGpu = function () { return !!(S && S.drainMs > 250); };
 E.ready = function () { return !!(S && S.ready); };
 E.frozen = function () { return !!(S && S.frozen); };
 E.stats = function () {
   if (!S) return null;
   var c = S.cam;
-  return { fonts: S.fontsOk, paint: S.stats, peak: S.stats && S.stats.peak, speed: c.walk.speed, path: c.walk.len, z0: c.z0, zEnd: c.zEnd, pitch0: c.pitch0, f: c.f, G: S.G };
+  return { fonts: S.fontsOk, times: S.times, paint: S.stats, peak: S.stats && S.stats.peak, speed: c.walk.speed, path: c.walk.len, z0: c.z0, zEnd: c.zEnd, pitch0: c.pitch0, f: c.f, G: S.G };
 };
 /* The camera at ms, for checks. */
 E.cameraAt = function (ms) { return S ? S.cam.at(ms) : null; };

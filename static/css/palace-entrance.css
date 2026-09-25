@@ -13,8 +13,9 @@
      #e-veil   the inside as the street sees it: dimmer by night, and by day
                dim and cool to an eye that has been in the sun (multiplied)
      #e-sun    by day, the sun through the doors on the foyer's floor and
-               up its far wall (screened on, colour dodge)
-     #entrance the street: the facade, the canopy, the doors, the pavement
+               up its far wall (screened on)
+     #entrance the street: the facade, the canopy, the doors, the pavement,
+               and over all of it, until the clock starts, the plate
    =========================================================================== */
 #entrance {
   position: fixed; inset: 0; z-index: 100;
@@ -28,16 +29,30 @@
 }
 #e-foyer { z-index: 97; }
 #e-veil { z-index: 98; mix-blend-mode: multiply; opacity: 0; }
-#e-sun { z-index: 99; mix-blend-mode: color-dodge; }
+/* Screen, not colour dodge: a colour dodge (and the cloud's multiply) was
+   a blend the GPU had never drawn on a new profile, and at 3440 its first
+   frame held the walk's start for most of a second. */
+#e-sun { z-index: 99; mix-blend-mode: screen; }
 :root[data-theme="onyx"] #e-sun { display: none; }
 html[data-entered="no"] #entrance { pointer-events: auto; cursor: pointer; }
 html[data-entered="yes"] :is(#entrance, #e-foyer, #e-veil, #e-sun) { display: none; }
 html[data-entered="no"] #entrance.done-fade { pointer-events: none; cursor: auto; }
-/* Until the script has dressed the street, the street's own dark (or the
-   day's pale stone) stands in for it, so no first frame shows the hall
-   bare and at full size. */
-html[data-entered="no"] #entrance:not(.dressed) { background: #07060a; }
-:root[data-theme="ivory"][data-entered="no"] #entrance:not(.dressed) { background: #d9d4c8; }
+/* The plate: until the street is painted and the clock starts, the street
+   as its first frame shows it, out of focus (Entrance.sketch draws it
+   small, the screen enlarges it), stands over the street, so no frame
+   shows the hall bare or the street half painted. It is a hair short of
+   opaque. Under an opaque plate the compositor leaves what it covers
+   undrawn, and all of it would then be drawn for the first time in the
+   walk's first frames. It lifts over the clock's first 200 ms and the
+   street comes into focus (entrance.js). The colour under the sketch is
+   the street's dark by night and its stone by day. */
+#entrance .e-plate {
+  position: absolute; inset: 0; z-index: 1;
+  opacity: 0.996;
+  background: #0a0807;
+}
+:root[data-theme="ivory"] #entrance .e-plate { background: #6a6c71; }
+#entrance .e-plate canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
 
 /* The inside as the street sees it. By night the foyer is lit but not yet
    at full light; by day it is dim and cool to an eye that has been in the
@@ -68,12 +83,12 @@ html.e-rest :is(#masthead, #ticker, #backwall, #floorplane, #works, #stage, #alm
 }
 
 /* ----- By day ------------------------------------------------------------ */
-/* A cloud's shade over the street, multiplied in, sliding off to the right
-   as the sun comes out from behind it; its trailing edge is soft. */
+/* A cloud's shade over the street, sliding off to the left as the sun
+   comes out from behind it; its trailing edge is soft. A plain cool shade,
+   not a multiply (see #e-sun). */
 #entrance .e-cloud {
   position: absolute; left: 0; top: 0; height: 100%;
-  mix-blend-mode: multiply;
-  background: linear-gradient(90deg, rgba(70, 84, 112, 0) 0, rgba(70, 84, 112, 0.62) 22%, rgba(70, 84, 112, 0.62) 100%);
+  background: linear-gradient(270deg, rgba(0, 16, 44, 0) 0, rgba(0, 16, 44, 0.45) 22%, rgba(0, 16, 44, 0.45) 100%);
 }
 /* The leaves' shadows on the foyer's floor and wall: two frames whose soft
    edges are the shadows of the leaves' free edges; only they move. */
