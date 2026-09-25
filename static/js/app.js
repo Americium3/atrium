@@ -1098,9 +1098,8 @@ function slots() {
 }
 
 /* Gates are absolutely positioned, so DOM order is free. They are built
-   lit-wing-first so the entrance's rise stagger (--gi) runs across the arches
-   that are actually showing. Tab order does not depend on it: the waiting
-   wing is inert. */
+   lit-wing-first. Tab order does not depend on it: the waiting wing is
+   inert. */
 function gateDomOrder() {
   var wing = root.dataset.wing;
   return slots().sort(function (a, b) {
@@ -1116,7 +1115,7 @@ function renderGates() {
   // One identity per gate, off a fixed hash of its id (palace.js): the
   // archivolts, the relief programme, the fanlight and the velvet.
   var idents = window.Palace ? window.Palace.identities(slots()) : {};
-  gateDomOrder().forEach(function (svc, i) {
+  gateDomOrder().forEach(function (svc) {
     // A reserved gate opens onto nothing, so it is not a link and not a tab
     // stop, and a screen reader has nothing to be told about it.
     var a = el(svc.vacant ? 'div' : 'a', 'gate' + (svc.vacant ? ' vacant' : ''));
@@ -1143,7 +1142,6 @@ function renderGates() {
     a.dataset.card = id.card || 'fans';
     a.dataset.ink = id.ink || 'oxblood';
     a.dataset.stock = id.stock || 'cream';
-    a.style.setProperty('--gi', String(i));
     a.style.setProperty('--folds', String(id.folds || 9));
     a.style.setProperty('--fold-x', (id.foldX || 0) + '%');
     a.style.setProperty('--swag', String(id.swag || 0));

@@ -769,8 +769,8 @@ function streak(host, x, w, len, kind, attrs) {
 }
 /* A fanlight's streak is that fanlight's lamp on the floor, so it follows
    its own gate: lit while the gate stands in the hall with its line open,
-   rising and falling on the gate's own beat (--slot-delay, and --fan-i in
-   the entrance). Gated on the root's wing, every streak switched at once,
+   rising and falling on the gate's own beat (--slot-delay; the entrance
+   lights it with its bay). Gated on the root's wing, every streak switched at once,
    up to a second ahead of the lamp it stands for (MO-3). */
 function syncStreaks() {
   var host = $('#floorplane .fl-streaks');
@@ -780,7 +780,6 @@ function syncStreaks() {
     var s = ss[i], g = document.getElementById(s.dataset.gate);
     if (!g) continue;
     s.style.setProperty('--slot-delay', g.style.getPropertyValue('--slot-delay') || '0ms');
-    s.style.setProperty('--fan-i', g.style.getPropertyValue('--fan-i') || '0');
     if (s.dataset.state !== (g.dataset.state || '')) s.dataset.state = g.dataset.state || '';
     s.classList.toggle('on', g.classList.contains('active'));
   }
