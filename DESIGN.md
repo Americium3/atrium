@@ -445,13 +445,13 @@ screen's `devicePixelRatio`, read off the camera over the whole walk (the
 foyer's tiles only where the doorway or the glass shows them). The pieces
 the reader comes closest to (the doors, their frames and reveal, the rope)
 are painted for all of that. The rest, seen largest only as they leave the
-top or the bottom of the screen, are painted for 50 to 85% of it. Each tile
+top or the bottom of the screen, are painted for 55 to 90% of it. Each tile
 also keeps a copy at half size, shown until the tile has grown past it, so
 the compositor never shrinks a texture by more than half (it samples without
 mipmaps, and a fine line shrunk further breaks into steps). Every level is
 let go once it is done with. Textures are inlined for the SVG, and every
 face the canvases set type in is loaded first (1.5 s at most). The canvases
-come to about 300 MB at 3440 and 140 MB at 1920. Painting a tile during the
+come to about 290 MB at 3440 and 145 MB at 1920. Painting a tile during the
 walk was tried and dropped: on the GPU it held the GPU's own thread for
 60 to 200 ms a tile, and on the page's thread it cost the walk its frames.
 
@@ -461,16 +461,19 @@ The street is dressed once the stage is solved (the gates are in) and has
 held still for a moment, 900 ms after it was first solved at the most, and
 dressed again if the hall moves while it stands. Until it is painted the
 overlay holds the screen in the street's own dark (by day, its stone). The
-hall stands at rest behind the doors all through the hold, kept as layers
-(`html.e-hold`, `will-change: transform`), so it is drawn at the size it
-lands at before the clock starts; the haze on the glass hides it. The clock
-starts only when the street is painted and the hall has its first readings
-and has been drawn. A hub slow to answer holds it 900 ms, after which the
-clock starts as soon as the frames run at the display's pace again; past
-2.5 s it starts at the first two frames in a row that come on time, never in
-the middle of a freeze (a new profile compiling its shaders froze the page
-for up to 1.6 s at about that point). At 6 s a painted street starts anyway
-and an unpainted one lands the hall. A hall loaded in a tab nobody is
+hall stands at rest behind the doors while the street is painted, kept as
+layers (`html.e-hold`, `will-change: transform`), so it is drawn at the size
+it lands at. Once the street is painted, the hall has its first readings and
+those frames have gone out, the hall takes its first pose behind the glass
+(`Entrance.prepose`, behind the haze), and the clock starts once that has
+been drawn too: the walk begins with nothing of the hall left to draw for
+the first time. A hub slow to answer holds it 900 ms, after which the clock
+starts as soon as the frames run at the display's pace again; past 2.5 s it
+starts at the first six frames in a row that come on time, never between
+two freezes (a new profile compiling its shaders froze the page for up to
+1.6 s at about that point). A street that has not started by 6 s lands the
+hall, since a walk started inside a freeze would spend its first second in
+it. A hall loaded in a tab nobody is
 looking at holds the street until the tab is first shown. A resize while the
 street stands dresses it again for the new screen; once the walk has begun,
 a resize lands the hall.
