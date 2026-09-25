@@ -674,6 +674,30 @@ colour. All strokes carry `vector-effect: non-scaling-stroke`, so the 1 /
 - Subdial captions (LUNA, DATE, SEC, WORKS) are engraved only where the
   dial draws them at 10px or more: light on the dark moon and works wells,
   ink on the white dials.
+- Stones and steel (v7). The moon's disc is polished sapphire: a deep blue
+  body, darkest at its rim, with rutile silk running three ways at 60
+  degrees, the light it gathers low on the right, and a still reflection of
+  the key light at its upper left. The dial behind it lets a little light
+  through by night; by day it is seen by reflection only. The moon and the
+  stars on it stay in the wing's leaf. A star sapphire cabochon sits in a
+  rub-over bezel of the wing's leaf at the head of the case, its six-rayed
+  star fixed where the dome faces the key light (the hall's one moving
+  highlight is the sheen across the gates, so the star never moves). The
+  hour and minute hands are heat-blued steel ground to a ridge: each flank
+  takes one of six blued tones (`--bs-0` to `--bs-5`, deep blue to a
+  cornflower flash) from the angle the hand stands at, set with the drive's
+  re-sets, and the ridge is polished. None of these colours comes from the
+  leaf, so a throw changes the metal round them and never them
+  (`test_the_clock_stones_do_not_change_with_the_wing`).
+- Engraving (v7). SAPPHIRE is cut into the dial where a complicated watch
+  sets the maker's name when twelve carries the moon: on the axis between
+  the moon and the arbor. Two lines are engraved on the inner flange just
+  inside the gilt rule, either side of six, 11 units high, so from across
+  the room they read as a fine engraved band. Their glyphs are outlines
+  baked from Yu Mincho Demibold into `clock.js` (the generated
+  `DEDICATION` block), so they draw the same in every language with no
+  face loaded. Every cut is filled, and its far wall shows as a lit hair on
+  the side away from the light.
 
 ### Composition
 
