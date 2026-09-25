@@ -469,9 +469,9 @@ those frames have gone out, the hall takes its first pose behind the glass
 been drawn too: the walk begins with nothing of the hall left to draw for
 the first time. A hub slow to answer holds it 900 ms, after which the clock
 starts as soon as the frames run at the display's pace again; past 2.5 s it
-starts at the first six frames in a row that come on time, never between
-two freezes (a new profile compiling its shaders froze the page for up to
-1.6 s at about that point). A street that has not started by 6 s lands the
+starts once four frames in a row come under 50 ms apart, never inside a
+freeze (a new profile compiling its shaders froze the page for up to 1.6 s
+at about that point). A street that has not started by 6 s lands the
 hall, since a walk started inside a freeze would spend its first second in
 it. A hall loaded in a tab nobody is
 looking at holds the street until the tab is first shown. A resize while the

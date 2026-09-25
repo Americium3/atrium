@@ -629,20 +629,18 @@ function afterDrawn(fn) {
   });
 }
 
-/* Calls fn once CALM_RUN frames in a row have come on time: the clock may
-   start late, but not between two freezes of a browser still drawing for
-   the first time (two calm frames were not enough: a new profile froze
-   again 300ms later). */
+/* Calls fn once the page is drawing again rather than frozen: four frames
+   in a row under 50ms apart. Past the longest hold the clock may start on a
+   busy machine, but not inside a freeze of a browser still drawing for the
+   first time (a new profile froze for up to 1.6s here, and a clock started
+   by the timer alone spent the walk's first 650ms in it). Asked for the
+   display's own pace here, a busy machine never started at all. */
 function afterCalm(fn) {
-  var last = 0, calm = 0, best = Infinity;
+  var last = 0, calm = 0;
   requestAnimationFrame(function tick(t) {
-    if (last) {
-      var dt = t - last;
-      best = Math.min(best, dt);
-      calm = dt < Math.max(25, best * 1.5) ? calm + 1 : 0;
-    }
+    if (last) calm = t - last < 50 ? calm + 1 : 0;
     last = t;
-    if (calm >= CALM_RUN) fn(); else requestAnimationFrame(tick);
+    if (calm >= 4) fn(); else requestAnimationFrame(tick);
   });
 }
 
