@@ -519,21 +519,9 @@ def enamel_close(m):
 
 
 def crown(m, stone, shape='round'):
-    """The crown stone in its collet, riding the top of the rim."""
+    """The crown stone in its collet, riding the top of the rim: a round
+    cabochon on every mark."""
     cx, cy = 48.0, 5.4
-    if shape == 'kite':
-        # the Press Room's ◆: a notched lozenge with its two trailing dots
-        outer = [(cx, cy - 5.2), (cx + 5.2, cy), (cx, cy + 5.2), (cx - 5.2, cy)]
-        inner = [(cx, cy - 3.3), (cx + 3.3, cy), (cx, cy + 3.3), (cx - 3.3, cy)]
-        m.add('<path d="%s" fill="#000" fill-opacity=".6" transform="translate(.5 .75)"/>' % poly_d(outer))
-        m.add(facet_poly(outer, inner))
-        g = m.lin('stone', [(0, lighten(stone, 0.35)), (0.5, stone), (1, darken(stone, 0.45))], cx - 3, cy - 3, cx + 3, cy + 3)
-        m.add('<path d="%s" fill="%s"/>' % (poly_d(inner), g))
-        m.add('<path d="M%s %s L%s %s L%s %s Z" fill="%s" fill-opacity=".55"/>'
-              % (f(cx - 3.3), f(cy), f(cx), f(cy - 3.3), f(cx + 0.9), f(cy - 0.9), darken(stone, 0.5)))
-        m.add('<circle cx="%s" cy="%s" r="1" fill="%s"/><circle cx="%s" cy="%s" r="1" fill="%s"/>'
-              % (f(cx + 7.4), f(cy + 0.4), GILT[4], f(cx + 10.2), f(cy + 0.4), GILT[4]))
-        return
     m.add('<circle cx="%s" cy="%s" r="5.3" fill="#000" fill-opacity=".6"/>' % (f(cx + 0.5), f(cy + 0.75)))
     m.add(faceted_ring(cx, cy, 3.5, 5.1, +1, n=24))
     # four claws
@@ -646,23 +634,33 @@ def smooth_d(points, closed=True, tension=1.0):
 # The Press Room: the world at dawn, printed in the paper's own colours
 # --------------------------------------------------------------------------
 # The Earth as it stands at sunrise on an equinox, seen from the family's
-# eye, a little above the equator. The dawn line runs from pole to pole down
-# the Atlantic: Europe and Africa are in morning and the Americas still lie
-# in night. Night and dawn are printed on the globe, the way the paper prints
-# them (bone paper, the page's olive, ink for the night), and the globe's own
-# roundness is lit by the hall's key light like every other charge: the
-# morning side takes its lit plane up and to the left and its shade down and
-# to the right. So the night falls on the lamp's side, where no shading could
-# put it, and reads as night. The coasts are Natural Earth's 1:110m land,
-# simplified to a degree and a bit: the true shapes with the small wiggles
-# left out, as an engraver cuts them for a masthead globe.
+# eye, a little above the equator, with the morning's paper wrapped round it.
+# The dawn line runs from pole to pole down the Atlantic: Europe and Africa
+# are in morning and the Americas still lie in night. Night and dawn are
+# printed on the globe the way a paper prints them: the sea in the page's
+# green, the land in its bone paper, and the night in an olive ink dark
+# enough to read as night and light enough that the globe still closes as a
+# round against the enamel, with the land showing through it in dim ochre.
+# The dawn is one narrow band of rose copper. The globe's roundness is lit by
+# the hall's key light like every other charge, up and to the left, in two
+# planes. Round the equator runs the edition itself, a folded broadsheet
+# band in newsprint, ruled in five columns for the paper's five desks and
+# carrying no lettering; it is paper and not printed with the night, so it
+# crosses the dark side unbroken and ties the two halves into one sphere.
+# The coasts are Natural Earth's 1:110m land, simplified to a degree and a
+# bit: the true shapes with the small wiggles left out, as an engraver cuts
+# them for a masthead globe.
 PRESSROOM_GLOBE = {'cx': 48.0, 'cy': 49.0, 'r': 31.0, 'lean': -23.4, 'tip': PITCH,
-                   'dawn': -30.0, 'front': 0.3}
-#                  night      dawn, deep and risen  morning: shade, body, lit
-PRESSROOM_SEA = ['#15130d', '#6e3a2c', '#b8743f', '#d8c58e', '#e9ddac', '#f7f0c9']
-PRESSROOM_LAND = ['#534c2e', '#4e3322', '#6a4524', '#66702f', '#768d43', '#97ac5b']
-PRESSROOM_DAWN = [-0.13, -0.05, 0.03]   # where deep dawn, risen dawn and morning begin (n . sun)
-PRESSROOM_KEY = [0.05, 0.6]             # where the morning's body and its lit plane begin (n . key light)
+                   'dawn': -30.0, 'front': 0.3, 'sash': 6.5}
+#                  night      dawn       morning: shade, body, lit
+PRESSROOM_SEA = ['#2d3121', '#9b5a3c', '#3f6446', '#5b8160', '#7fa07c']
+PRESSROOM_LAND = ['#5d5232', '#a2673f', '#b8a77a', '#d8cb9d', '#efe5c3']
+PRESSROOM_DAWN = [-0.04, 0.0]           # where the dawn band and the morning begin (n . sun)
+PRESSROOM_KEY = [0.12, 0.62]            # where the morning's body and its lit plane begin (n . key light)
+PRESSROOM_SASH = ['#8d8468', '#bdb393', '#dcd4b6', '#f1ecd6']        # newsprint: its fold, shade, body, lit
+PRESSROOM_SASH_CUTS = [0.12, 0.42, 0.74]
+PRESSROOM_RULE = '#2f2c21'              # the column rules, in the paper's ink
+PRESSROOM_LIMB = '#8e9a66'              # the night's limb, drawn so the round closes
 # Natural Earth 1:110m land (public domain), the loops that face the
 # Atlantic, simplified to 1.2 degrees; (longitude, latitude).
 PRESSROOM_COAST = [
@@ -734,6 +732,12 @@ PRESSROOM_COAST = [
     [(-67.8, -53.9), (-65, -54.7), (-68.1, -55.6), (-72.3, -54.5), (-74.7, -52.8)],
     [(57.5, 70.7), (51.5, 72), (57.9, 75.6), (68.9, 76.5), (58.5, 74.3), (55.4, 72.4)],
     [(-72.6, 19.9), (-69.2, 19.3), (-68.7, 18.2), (-70.7, 18.4), (-74.5, 18.3)],
+]
+# The small cut fills the Mediterranean and the Black Sea, so Europe and
+# Africa join as one land and no sliver of sea turns to two light dashes
+PRESSROOM_SMALL_SEAS = [
+    [(-7, 35.2), (-2, 34.4), (10, 32.6), (20, 29.6), (33, 30.4), (36.5, 35), (42, 40.5), (41.8, 47.6),
+     (33, 47.4), (27, 45.6), (19, 44), (12, 46.4), (4, 44.4), (-2, 38.8), (-8, 38.2)],
 ]
 # The Caspian, which the 1:110m land leaves filled
 PRESSROOM_LAKES = [
@@ -831,11 +835,13 @@ def pressroom_line(pts, fr):
 
 
 def subject_pressroom(m, h, small=False):
-    """The world at dawn: night, dawn in two bands and the morning are
-    printed on the globe by where the sun stands, and the morning is cut
-    into the three planes the hall's key light lays on a sphere. Sea and land
-    each take their own colour, with the graticule engraved as a printed
-    globe carries it, in ink by day and in pale lines across the night."""
+    """The world at dawn with the morning's paper round it: night, a narrow
+    dawn and the morning are printed on the globe by where the sun stands,
+    and the morning is cut into the planes the hall's key light lays on a
+    sphere. Sea and land each take their own colour, the graticule is
+    engraved as a printed globe carries it, and the broadsheet band round the
+    equator takes the key light alone. The small cut keeps the night, the
+    morning in two planes, one land, and the band as one pale field."""
     g = PRESSROOM_GLOBE
     fr = pressroom_frame()
     cx, cy, R, sun = g['cx'], g['cy'], g['r'], fr['sun']
@@ -854,20 +860,24 @@ def subject_pressroom(m, h, small=False):
     def key(x, y):                   # the hall's lamp on the globe's roundness
         return S.dot(normal(x, y), S.KEY)
 
+    def lat(x, y):                   # degrees from the equator
+        return math.degrees(math.asin(max(-1.0, min(1.0, S.dot(normal(x, y), fr['axis'])))))
+
     disc = circle_d(cx, cy, R)
     box = (cx - R - 1, cy - R - 1, cx + R + 1, cy + R + 1)
-    step = 0.6 if small else 0.35
+    step = 0.5 if small else 0.35
     dawn, lamp = PRESSROOM_DAWN, PRESSROOM_KEY
     sea, land = PRESSROOM_SEA, PRESSROOM_LAND
     # each plane from the night up, as the region it covers (f < 0 inside)
     rise = [lambda x, y, t=t: t - light(x, y) for t in dawn]
-    morning = [lambda x, y, t=t: max(dawn[-1] - light(x, y), t - key(x, y)) for t in lamp]
+    # the morning's lit plane keeps its distance from the dawn line: where
+    # the sun is still low the page prints the morning in its body tone
+    morning = [lambda x, y, t=t, lo=lo: max(lo - light(x, y), t - key(x, y)) for t, lo in zip(lamp, (dawn[-1], 0.3))]
     fns = rise + morning
     if small:
-        # the small cut keeps night, one band of dawn, and the morning in
-        # its shade and its body
-        fns = [rise[1], rise[2], morning[0]]
-        sea, land = [sea[0], sea[2], sea[3], sea[4]], [land[0], land[2], land[3], land[4]]
+        # the small cut: night, then the morning in its shade and its body
+        fns = [rise[1], morning[0]]
+        sea, land = [sea[0], sea[2], sea[3]], [land[0], land[2], land[3]]
 
     def cut(name, tones):
         body = ''.join('<path d="%s" fill="%s" fill-rule="evenodd"/>' % (d, col)
@@ -879,33 +889,64 @@ def subject_pressroom(m, h, small=False):
     # the land
     eps = 0.45 if small else 0.12
     loops = []
-    for coast in PRESSROOM_COAST:
+    for coast in PRESSROOM_COAST + (PRESSROOM_SMALL_SEAS if small else []):
         face = pressroom_face(coast, fr)
         if face and abs(S.area(face)) > (4.0 if small else 0.4):
+            if S.area(face) < 0:
+                face = face[::-1]            # one winding, so the filled seas join the land
             loops.append(S.pts_d(S.rdp(face, eps)))
     land_d = ' '.join(loops)
     lclip = m.clip('land', '<path d="%s"/>' % land_d)
     m.add('<g clip-path="%s">%s</g>' % (lclip, cut('landp', land)))
+    dclip = m.clip('disc', '<path d="%s"/>' % disc)
+    night = S.region_d(lambda x, y: light(x, y) - dawn[0], box, step, 0.1)
     if not small:
         lakes = [pressroom_face(lake, fr) for lake in PRESSROOM_LAKES]
         lake_d = ' '.join(S.pts_d(lk) for lk in lakes if lk)
         if lake_d:
             m.add('<g clip-path="%s">%s</g>' % (m.clip('lake', '<path d="%s"/>' % lake_d), cut('lakep', sea)))
         # the graticule every thirty degrees, the equator a shade heavier
-        grat = [pressroom_line([(lon, lat) for lat in range(-90, 91, 3)], fr) for lon in range(0, 360, 30)]
-        grat += [pressroom_line([(lon, lat) for lon in range(0, 361, 3)], fr) for lat in (-60, -30, 30, 60)]
-        equator = pressroom_line([(lon, 0) for lon in range(0, 361, 3)], fr)
+        grat = [pressroom_line([(lon, lat_) for lat_ in range(-90, 91, 3)], fr) for lon in range(0, 360, 30)]
+        grat += [pressroom_line([(lon, lat_) for lon in range(0, 361, 3)], fr) for lat_ in (-60, -30, 30, 60)]
         day = S.region_d(lambda x, y: dawn[0] - light(x, y), box, step, 0.1)
-        night = S.region_d(lambda x, y: light(x, y) - dawn[0], box, step, 0.1)
-        dclip = m.clip('disc', '<path d="%s"/>' % disc)
         m.add('<g clip-path="%s"><g clip-path="%s">'
-              '<path d="%s" stroke="#1a170c" stroke-width=".25" stroke-opacity=".14" fill="none"/>'
-              '<path d="%s" stroke="#1a170c" stroke-width=".4" stroke-opacity=".3" fill="none"/></g></g>'
-              % (dclip, m.clip('day', '<path d="%s"/>' % day), ' '.join(grat), equator))
+              '<path d="%s" stroke="#1a170c" stroke-width=".25" stroke-opacity=".22" fill="none"/></g></g>'
+              % (dclip, m.clip('day', '<path d="%s"/>' % day), ' '.join(grat)))
         m.add('<g clip-path="%s"><g clip-path="%s">'
-              '<path d="%s" stroke="#f6efc8" stroke-width=".25" stroke-opacity=".1" fill="none"/>'
-              '<path d="%s" stroke="#f6efc8" stroke-width=".4" stroke-opacity=".16" fill="none"/></g></g>'
-              % (dclip, m.clip('night', '<path d="%s"/>' % night), ' '.join(grat), equator))
+              '<path d="%s" stroke="#f6efc8" stroke-width=".25" stroke-opacity=".14" fill="none"/></g></g>'
+              % (dclip, m.clip('night', '<path d="%s"/>' % night), ' '.join(grat)))
+    # the night's limb, a line of the page's olive round the dark half, so
+    # the globe reads as a whole round against the enamel at every size
+    lw = 2.2 if small else 0.9
+    m.add('<g clip-path="%s"><g clip-path="%s"><circle cx="%s" cy="%s" r="%s" fill="none" stroke="%s" '
+          'stroke-width="%s"/></g></g>' % (dclip, m.clip('nlimb', '<path d="%s"/>' % night), f(cx), f(cy),
+                                            f(R), PRESSROOM_LIMB, f(2 * lw)))
+    # the edition round the equator: a band of newsprint laid on the globe,
+    # lifted a hair (its shadow falls below it), cut by the key light alone
+    hw = g['sash'] * (1.2 if small else 1.0)
+    band = S.region_d(lambda x, y: abs(lat(x, y)) - hw, box, step, 0.1)
+    under = S.region_d(lambda x, y: max(-hw - (3.2 if small else 2.4) - lat(x, y), lat(x, y) + hw), box, step, 0.1)
+    m.add('<g clip-path="%s"><path d="%s" fill="#000" fill-opacity=".34"/></g>' % (dclip, under))
+    tones = PRESSROOM_SASH
+    cuts = PRESSROOM_SASH_CUTS if not small else [PRESSROOM_SASH_CUTS[0], 9.0, 9.0]
+    body = ''.join('<path d="%s" fill="%s" fill-rule="evenodd"/>' % (d, col)
+                   for d, col in ((S.region_d(lambda x, y, t=t: t - key(x, y), box, step, 0.12), col)
+                                  for t, col in zip(cuts, tones[1:])) if d)
+    # the band is a sheet folded along its length: its lower leaf turns a
+    # little from the lamp and takes a shade over whatever plane it is in
+    fold = S.region_d(lambda x, y: max(lat(x, y), -hw - lat(x, y)), box, step, 0.1)
+    m.add('<g clip-path="%s"><path d="%s" fill="%s"/><g clip-path="%s">%s<path d="%s" fill="%s" fill-opacity=".16"/></g></g>'
+          % (dclip, band, tones[0], m.clip('sash', '<path d="%s"/>' % band), body, fold, PRESSROOM_RULE))
+    if not small:
+        # its ruled edges, and its column rules, one every thirty-six degrees
+        # of longitude, so the half of it the reader sees carries five columns,
+        # one for each of the paper's desks
+        edges = [pressroom_line([(lon, e_) for lon in range(0, 361, 3)], fr) for e_ in (hw - 0.8, -hw + 0.8)]
+        cols = [pressroom_line([(lon, e_ * 0.5) for e_ in range(-int(2 * hw) + 2, int(2 * hw) - 1)], fr)
+                for lon in range(-14, 346, 36)]
+        m.add('<g clip-path="%s"><path d="%s" stroke="%s" stroke-width=".35" stroke-opacity=".7" fill="none"/>'
+              '<path d="%s" stroke="%s" stroke-width=".28" stroke-opacity=".6" fill="none"/></g>'
+              % (dclip, ' '.join(edges), PRESSROOM_RULE, ' '.join(cols), PRESSROOM_RULE))
 
 
 # --------------------------------------------------------------------------
@@ -2503,7 +2544,7 @@ SUBJECTS = {
     'autopilot': (ground_barleycorn, subject_autopilot, 'round'),
     'groundstation': (ground_lined, subject_groundstation, 'round'),
     'outreach': (ground_basket, subject_outreach, 'round'),
-    'pressroom': (ground_halftone, subject_pressroom, 'kite'),
+    'pressroom': (ground_halftone, subject_pressroom, 'round'),
     'arsenal': (ground_perlage, subject_arsenal, 'round'),
     'bourse': (ground_lattice, subject_bourse, 'round'),
 }
