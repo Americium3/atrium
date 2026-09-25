@@ -450,8 +450,10 @@ pieces as a plane at the foyer's far wall, `#floorplane` as the foyer's
 floor, its picture taken back through the lens that drew it (a fixed
 `matrix3d`), and the board as a plane standing on the floor. The walk's last
 keyframe is the identity itself, so every one of those transforms is none
-as the reader stops and the hall lands without laying itself out again
-(drawn through the identity as a 3D matrix, the floor stood a pixel off).
+as the reader stops and the hall lands without laying itself out again.
+The floor's top is on a whole pixel (`round()` in atrium.css): a layer moved
+by a transform starts on a whole pixel, and from its fractional top the
+floor stepped up a pixel as the hall landed.
 While the walk runs, anything that measures the hall to lay it out (the
 band, the cases, the aisles, the masthead, the floor's streaks) reads it at
 rest: `window.atRest` lifts the pose for the length of the measurement

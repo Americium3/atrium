@@ -2633,9 +2633,10 @@ function pose0() {
   S.hall.forEach(function (h) {
     h.place = hallPlace(h, cam, S.G);
     var fr = ht.map(function (ms) { return [ms, { transform: hallAt(h, cam.at(ms)) }]; });
-    // The last pose is the identity as a 3D matrix; drawn through it the
-    // floor stood a pixel off where it rests. The walk ends on the identity
-    // itself, as the reader comes to a stop.
+    // The walk ends on the identity itself, not the last pose computed (the
+    // identity as a 3D matrix), as the reader comes to a stop. (The floor's
+    // pixel step at the landing was its fractional top: atrium.css puts it
+    // on a whole pixel.)
     fr[fr.length - 1][1].easing = 'steps(1, end)';
     fr.push([cam.walkEnd + 1, { transform: 'none' }]);
     h.anim = run(h.el, fr, total, 'forwards');
