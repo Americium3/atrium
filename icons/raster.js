@@ -14,7 +14,15 @@ if (!/atrium-wt\/_kit\/shim/.test(shim)) {
   console.error('refusing to launch a browser: set NODE_PATH=/x/Github/atrium-wt/_kit/shim');
   process.exit(2);
 }
-const { chromium } = require('playwright');   // the shim's wrapper, never a bare install
+// require() looks in node_modules up the directory tree before NODE_PATH, so
+// a stray install beside this repo would win over the shim. Refuse unless the
+// module that resolves is the shim's own.
+const resolved = require.resolve('playwright').replace(/\\/g, '/');
+if (!/atrium-wt\/_kit\/shim\//.test(resolved)) {
+  console.error('refusing to launch a browser: playwright resolves to ' + resolved + ', not the kit shim');
+  process.exit(2);
+}
+const { chromium } = require(resolved);   // the shim's wrapper, never a bare install
 
 (async () => {
   const jobs = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));

@@ -1123,8 +1123,9 @@ html[lang="zh"] .gate.vacant .g-desc { -webkit-text-stroke: 0.45px currentColor;
    own ink (oxblood, bottle green or navy), a hairline inside the band, the
    gate's corner motif printed solid in the same ink, a headpiece over the
    words and the rule under them, on the gate's own card stock (cream, bone
-   or buff) with a lithographic grain. Ink, stock and motif each come from
-   the hash, unique within a wing. The headpiece is the first thing to give
+   or buff) with a lithographic grain. The ink is the mark's (HUE's ink in
+   icons/gen.py, read by app.js); stock and motif come from the hash; all
+   three are unique within a wing. The headpiece is the first thing to give
    way when the house is short; the words never do. */
 .gate[data-ink="oxblood"] { --card-ink: #6a1d19; --ink-loz: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'%3E%3Cpath d='M5 0L10 5L5 10L0 5Z' fill='%236a1d19'/%3E%3C/svg%3E"); }
 .gate[data-ink="bottle"]  { --card-ink: #1d4633; --ink-loz: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'%3E%3Cpath d='M5 0L10 5L5 10L0 5Z' fill='%231d4633'/%3E%3C/svg%3E"); }

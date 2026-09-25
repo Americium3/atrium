@@ -2007,6 +2007,15 @@ svg.portal {
   overflow: visible;
 }
 .sigil.mark { transition: none; }
+/* The cartouche carries both cuts of the mark. Its width is 18.67% of the
+   gate's, so under a 214px gate (a 40px mark, the hall on a laptop) the
+   small cut shows: the same subject in its biggest planes, drawn for that
+   size, where the full one would turn to mush. */
+.sigil .cut-small { display: none; }
+@container (max-width: 214px) {
+  .sigil .cut-full { display: none; }
+  .sigil .cut-small { display: inline; }
+}
 .medal .m-mark { transition: none; }
 
 /* The sign: verre eglomise. Leaf laid behind black glass, a front veil with

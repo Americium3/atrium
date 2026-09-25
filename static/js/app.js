@@ -378,6 +378,21 @@ var chipFilter = 'all';   // session-only, resets to ALL on every load (R11)
 var ledgerOpening = false;    // true only during openLedger() render pass
 var cascadeIndex = 0;         // counter for --ci stamps in cascading pass
 var KNOWN_SIGILS = { autopilot: 1, groundstation: 1, outreach: 1, pressroom: 1, arsenal: 1, bourse: 1 };
+/* The house curtain is the mark's own cloth: icons/gen.py HUE writes each
+   dye into palace-gates.css keyed on the service id, so a gate with a mark
+   hangs its own id. A service with no mark hangs the house claret, and the
+   reserved gate its iron. tests/test_web_assets.py runs this under node. */
+function velvetFor(svc) {
+  if (svc.vacant) return 'iron';
+  return KNOWN_SIGILS[svc.sigil] ? svc.sigil : 'house';
+}
+/* The day card's ink comes from the mark too (HUE's ink, carried on the
+   mark's own group in the page's defs); only a gate without a mark keeps
+   the hashed one. */
+function inkFor(svc, id) {
+  var mk = KNOWN_SIGILS[svc.sigil] ? document.getElementById('mark-' + svc.sigil) : null;
+  return (mk && mk.getAttribute('data-ink')) || id.ink || 'oxblood';
+}
 
 /* ========================================================================
    Read state — the cursor is what reads
@@ -1396,14 +1411,11 @@ function renderGates() {
     a.dataset.service = svc.id;
     a.dataset.state = svc.vacant ? 'vacant' : 'checking';
     a.dataset.wing = svc.wing;
-    // The house curtain is the mark's own cloth (icons/gen.py HUE writes the
-    // dyes, keyed on the service); a service with no mark hangs the house
-    // claret, and the reserved gate its iron.
-    a.dataset.velvet = svc.vacant ? 'iron' : (KNOWN_SIGILS[svc.sigil] ? svc.sigil : 'house');
+    a.dataset.velvet = velvetFor(svc);
     a.dataset.glass = id.glass || 'amber';
     // The day screen's title card: an intertitle border, the gate's own.
     a.dataset.card = id.card || 'fans';
-    a.dataset.ink = id.ink || 'oxblood';
+    a.dataset.ink = inkFor(svc, id);
     a.dataset.stock = id.stock || 'cream';
     a.style.setProperty('--gi', String(i));
     a.style.setProperty('--folds', String(id.folds || 9));
@@ -1433,9 +1445,19 @@ function renderGates() {
     // taskbar tile and its own masthead show. One identity per service. It
     // is mounted on the cartouche at the fanlight's hub.
     var sig = KNOWN_SIGILS[svc.sigil] ? svc.sigil : null;
-    face.appendChild(sig
+    var sigil = sig
       ? svgUse('sigil mark', '0 0 96 96', '#mark-' + sig)
-      : svgUse('sigil', '0 0 96 96', '#sig-fallback'));
+      : svgUse('sigil', '0 0 96 96', '#sig-fallback');
+    // Both cuts ride in the cartouche; the gate's own width picks one. Under
+    // 40px (a laptop's hall) the small cut shows, drawn for that size.
+    if (sig) {
+      sigil.firstChild.setAttribute('class', 'cut-full');
+      var cut = document.createElementNS(ns, 'use');
+      cut.setAttribute('href', '#mark-' + sig + '-s');
+      cut.setAttribute('class', 'cut-small');
+      sigil.appendChild(cut);
+    }
+    face.appendChild(sigil);
     // The domed crystal the bezel holds over the mark (palace.js).
     if (window.Palace) {
       var crys = document.createElementNS(ns, 'svg');

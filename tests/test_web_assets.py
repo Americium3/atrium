@@ -11,6 +11,7 @@ on the PATH; every other check is plain Python and always runs.
 """
 from __future__ import annotations
 
+import json
 import re
 import shutil
 import subprocess
@@ -227,12 +228,17 @@ def _wings() -> dict[str, str]:
 
 
 # A curtain belongs to its mark when its hue sits within this of the mark's
-# livery (CIELAB hue angle, degrees). A neutral livery (chroma under 12, a
-# steel) takes a neutral cloth instead.
+# enamel field (CIELAB hue angle, degrees). A neutral field (chroma under 12,
+# a steel) takes a neutral cloth instead: chroma 10 at most, and where the
+# cloth shows any colour at all (chroma over 6) it is the field's own hue.
 VELVET_HUE_TOLERANCE = 30.0
 NEUTRAL_CHROMA = 12.0
-# Two gates of one wing must not read as the same cloth (CIEDE2000).
+NEUTRAL_VELVET_CHROMA = 10.0
+# Two gates of one wing must not read as the same cloth (CIEDE2000), open or
+# with the house dark (the shade mixes in palace-gates.css).
 WING_MIN_DE = 15.0
+WING_MIN_DE_DARK = 10.0
+DARK_MIX = {"onyx": (0.34, "#0f0d0f"), "ivory": (0.28, "#110e0c")}
 
 
 def test_every_velvet_stays_a_quarter_under_the_leaf():
@@ -249,34 +255,156 @@ def test_every_velvet_stays_a_quarter_under_the_leaf():
 
 
 def test_every_velvet_is_its_marks_colour_family():
-    """The owner's rule: whatever colour a mark takes, its curtain matches."""
+    """The owner's rule: whatever colour a mark takes, its curtain matches.
+    The reference is the enamel field, which every mark is fired in (the
+    next test holds the drawing to it)."""
     bad = []
     for app, h in _literal("HUE").items():
-        _, lc, lh = _lch(h["livery"])
+        _, lc, lh = _lch(h["field"])
         for theme in ("onyx", "ivory"):
             _, vc, vh = _lch(h["velvet"][theme])
-            if lc < NEUTRAL_CHROMA:
-                if vc > 20:
-                    bad.append(f"{app} {theme}: a neutral mark under a coloured cloth (chroma {vc:.0f})")
-                continue
             dh = abs((vh - lh + 180) % 360 - 180)
+            if lc < NEUTRAL_CHROMA:
+                if vc > NEUTRAL_VELVET_CHROMA:
+                    bad.append(f"{app} {theme}: a steel mark under a coloured cloth (chroma {vc:.0f})")
+                elif vc > 6 and dh > VELVET_HUE_TOLERANCE:
+                    bad.append(f"{app} {theme}: a steel mark under a {dh:.0f} degree tinted cloth")
+                continue
             if vc < NEUTRAL_CHROMA or dh > VELVET_HUE_TOLERANCE:
-                bad.append(f"{app} {theme}: velvet {h['velvet'][theme]} is {dh:.0f} degrees off its mark {h['livery']}")
+                bad.append(f"{app} {theme}: velvet {h['velvet'][theme]} is {dh:.0f} degrees off its mark {h['field']}")
     assert not bad, "; ".join(bad)
+
+
+def test_every_mark_is_fired_in_its_own_enamel():
+    """The curtain is matched against HUE's field, so the drawing has to be
+    fired in it: every cut of every mark lays its enamel as HUE's lit, field
+    and deep. A ground painted into the drawing by hand, the way a sky once
+    was, would slip past the colour test above; this one catches it."""
+    sys.path.insert(0, str(ROOT / "icons"))
+    import gen
+    bad = []
+    for app_id, h in gen.HUE.items():
+        for suffix, body in (("", gen.emblem(app_id)), ("-s", gen.emblem_small(app_id))):
+            grad = re.search(r'<radialGradient id="mk-%s%s-enamel"[^>]*>(.*?)</radialGradient>' % (app_id, suffix), body)
+            if not grad:
+                bad.append(f"{app_id}{suffix}: no enamel")
+                continue
+            stops = re.findall(r'stop-color="(#[0-9a-fA-F]{6})"', grad.group(1))
+            if [c.lower() for c in stops] != [h["lit"], h["field"], h["deep"]]:
+                bad.append(f"{app_id}{suffix}: enamel fired in {stops}, not HUE's")
+            if 'fill="url(#mk-%s%s-enamel)"' % (app_id, suffix) not in body:
+                bad.append(f"{app_id}{suffix}: the enamel is defined but never laid")
+            for fn in ("paint", "sky", "dusk", "cone"):
+                if f'id="mk-{app_id}{suffix}-{fn}' in body:
+                    bad.append(f"{app_id}{suffix}: a painted ground ({fn}) over the enamel")
+    assert not bad, "; ".join(bad)
+
+
+def _mix(c: str, k: float, base: str) -> str:
+    """CSS color-mix(in srgb, c k, base): the encoded components, blended."""
+    a, b = _rgb(c), _rgb(base)
+    return "#%02x%02x%02x" % tuple(round((x * k + y * (1 - k)) * 255) for x, y in zip(a, b))
 
 
 def test_the_gates_of_one_wing_hang_different_cloth():
     hue, wings = _literal("HUE"), _wings()
     bad = []
     for theme in ("onyx", "ivory"):
+        k, base = DARK_MIX[theme]
         for wing in set(wings.values()):
             apps = [a for a in hue if wings.get(a) == wing]
             for i, a in enumerate(apps):
                 for b in apps[i + 1:]:
-                    de = _de2000(hue[a]["velvet"][theme], hue[b]["velvet"][theme])
+                    va, vb = hue[a]["velvet"][theme], hue[b]["velvet"][theme]
+                    de = _de2000(va, vb)
                     if de < WING_MIN_DE:
                         bad.append(f"{theme} {wing}: {a} and {b} differ by only {de:.1f}")
+                    dd = _de2000(_mix(va, k, base), _mix(vb, k, base))
+                    if dd < WING_MIN_DE_DARK:
+                        bad.append(f"{theme} {wing}: dark {a} and {b} differ by only {dd:.1f}")
     assert not bad, "; ".join(bad)
+
+
+def test_the_dark_mix_is_the_one_the_sheet_uses():
+    css = (STATIC / "css" / "palace-gates.css").read_text(encoding="utf-8")
+    for theme, (k, base) in DARK_MIX.items():
+        want = f"color-mix(in srgb, var(--velvet) {round(k * 100)}%, {base})"
+        pat = r':root\[data-theme="%s"\] \.gate\[data-state="dark"\] \{ --velvet-shade: %s;' % (theme, re.escape(want))
+        assert re.search(pat, css), f"{theme}'s dark mix is not {want}"
+
+
+def test_only_the_generator_dyes_a_velvet():
+    """A hand-written --velvet anywhere else (a later rule, a later sheet)
+    would re-hang a gate in the wrong cloth with every other test green. The
+    generated block is the only place a dye is set, bar the reserved gate's
+    iron."""
+    stray = []
+    for sheet in sheets():
+        css = sheet.read_text(encoding="utf-8").replace("\r\n", "\n")
+        if sheet.name == "palace-gates.css":
+            head, rest = css.split("/* BEGIN generated velvets (icons/gen.py) */", 1)
+            css = head + rest.split("/* END generated velvets */", 1)[1]
+        css = re.sub(r"/\*.*?\*/", "", css, flags=re.S)
+        for m in re.finditer(r"([^{};]*)\{[^{}]*--velvet\s*:", css):
+            sel = " ".join(m.group(1).split())
+            if sel != '.gate[data-velvet="iron"]':
+                stray.append(f"{sheet.name}: {sel}")
+    assert not stray, "velvets dyed outside icons/gen.py's block: " + "; ".join(stray)
+
+
+def test_a_gate_hangs_its_own_marks_cloth():
+    """The binding itself: app.js's velvetFor, run under node, gives each
+    marked service its own id (the key the generated dyes use), the house
+    claret to a service with no mark and the iron to the reserved gate. And
+    every service in the registry with a mark is its own sigil."""
+    app = (STATIC / "js" / "app.js").read_text(encoding="utf-8").replace("\r\n", "\n")
+    assert "a.dataset.velvet = velvetFor(svc);" in app, "the gate no longer takes its velvet from velvetFor"
+    wings = _wings()
+    src = (ROOT / "server.py").read_text(encoding="utf-8")
+    sigils = dict(re.findall(r'"id":\s*"([\w-]+)",.*?"sigil":\s*"([\w-]+)"', src, flags=re.S))
+    hue = _literal("HUE")
+    for app_id in hue:
+        assert app_id in wings, f"{app_id} is not in server.py's registry"
+        assert sigils.get(app_id) == app_id, f"{app_id}'s sigil is {sigils.get(app_id)!r}, not its own id"
+    node = shutil.which("node")
+    if not node:
+        print("  (node is not on the PATH; velvetFor not run)")
+        return
+    known = re.search(r"var KNOWN_SIGILS = \{[^}]*\};", app).group(0)
+    fn = re.search(r"function velvetFor\(svc\) \{.*?\n\}", app, flags=re.S).group(0)
+    cases = [{"sigil": a} for a in hue] + [{"sigil": "somethingnew"}, {"sigil": "autopilot", "vacant": True}]
+    script = known + "\n" + fn + "\nconsole.log(JSON.stringify(%s.map(velvetFor)));" % json.dumps(cases)
+    out = subprocess.run([node, "-e", script], capture_output=True, text=True, check=True).stdout
+    assert json.loads(out) == list(hue) + ["house", "iron"], out
+
+
+def test_every_day_card_takes_its_marks_ink():
+    """By day the title card is the largest coloured shape in a house, so
+    its ink comes from the mark (HUE's ink, carried on the mark's group in
+    the page) instead of a hash that put an oxblood card in a green house.
+    No two gates of a wing share one."""
+    hue, wings = _literal("HUE"), _wings()
+    inks = _literal("INKS")
+    css = (STATIC / "css" / "palace-gates.css").read_text(encoding="utf-8")
+    for name, hex_ in inks.items():
+        assert re.search(r'\.gate\[data-ink="%s"\]\s*\{ --card-ink: %s;' % (name, hex_), css), f"no {name} card ink {hex_}"
+    for wing in set(wings.values()):
+        used = [hue[a]["ink"] for a in hue if wings.get(a) == wing]
+        assert len(used) == len(set(used)), f"{wing} prints two cards in one ink: {used}"
+    page = PAGE.read_text(encoding="utf-8")
+    for app_id, h in hue.items():
+        assert f'<g id="mark-{app_id}" data-ink="{h["ink"]}">' in page, f"#mark-{app_id} does not carry its ink"
+    app = (STATIC / "js" / "app.js").read_text(encoding="utf-8")
+    assert "a.dataset.ink = inkFor(svc, id);" in app and "getAttribute('data-ink')" in app
+
+
+def test_the_gate_carries_both_cuts():
+    """On a laptop the cartouche holds the mark at 33px, the small cut's
+    size; the gate mounts both cuts and its own width picks one."""
+    app = (STATIC / "js" / "app.js").read_text(encoding="utf-8")
+    assert "cut.setAttribute('href', '#mark-' + sig + '-s');" in app
+    css = (STATIC / "css" / "atrium.css").read_text(encoding="utf-8")
+    assert re.search(r"@container \(max-width: 214px\) \{\s*\.sigil \.cut-full \{ display: none; \}", css)
 
 
 def test_no_mark_or_curtain_is_a_sapphire():
@@ -290,7 +418,7 @@ def test_no_mark_or_curtain_is_a_sapphire():
     assert "sapphire" not in css, "palace-gates.css names a sapphire"
     loud = []
     for app, h in hue.items():
-        for key in ("field", "lit", "livery", "pop"):
+        for key in ("field", "lit", "pop"):
             _, c, hh = _lch(h[key])
             if 225 <= hh <= 315 and c > 30:
                 loud.append(f"{app}.{key} {h[key]} (chroma {c:.0f})")

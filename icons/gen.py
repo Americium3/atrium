@@ -1,24 +1,31 @@
 """The six app marks and their house curtains, from one source.
 
-Each mark is a 1930s enamelled badge cut from one die: a cast gilt lip, a
-ring of beads sunk in a groove, translucent enamel fired over an
-engine-turned ground, and a stone in a collet at the crown. The die is
-shared; the enamel, the turning under it and the stone are each app's own.
+Each mark is a 1930s enamelled badge cut from one die: a plain turned gilt
+lip with one groove, translucent enamel fired over an engine-turned ground,
+and a stone in a collet at the crown. The die is shared; the enamel, the
+turning under it and the stone are each app's own.
 
-Inside the die each app keeps a subject drawn from the real object, never
-pieced together from circles and rectangles, and never lettered: a dish, a
-globe, a cage, a salver, a shelf of bound volumes, a forged spanner. The
-round forms come from icons/solid.py, which projects the object's true
-geometry and shades each plane by its angle to the hall's key light (up and
-to the left); forged outlines are traced from distance fields; the canary
-runs on a spline through landmarks taken from the living bird. Colour is
-laid in as the eye remembers the thing. Nothing on a mark glows and nothing
-carries a gloss band: the domed crystal the gate's bezel holds over it
-supplies the one reflection glass is allowed.
+Inside the die each app carries one charge, seen from the same place (level
+with it or a few degrees above) and lit by the one key light, up and to the
+left: a globe, a dish, a shelf of bound volumes, three calling cards, a
+gunner's quadrant, a canary in its cage. Each is drawn from the real
+object's geometry and proportions, never pieced together from circles and
+rectangles, and never lettered. Its form is then cut into three or four flat
+planes of tone along the key light, the way a woodcut or a Deco poster cuts
+it: no gradient inside a plane and no outline round it (icons/solid.py
+projects the solids and traces the planes). Colour is laid in as the eye
+remembers the thing. Nothing on a mark glows and nothing carries a gloss
+band: the domed crystal the gate's bezel holds over it supplies the one
+reflection glass is allowed.
 
-HUE below is the one source of truth. Each entry carries the mark's enamel
-and the dye of the velvet its gate hangs, per theme, so the curtain follows
-the mark in code and not by eye. The script writes both into the hall:
+Every mark also has a small cut (#mark-<id>-s), drawn from the same geometry
+with fewer planes and nothing under two units, for the Ledger, the gate on a
+laptop and a future favicon.
+
+HUE below is the one source of truth. Each entry carries the mark's enamel,
+the dye of the velvet its gate hangs (per theme) and the ink its gate's day
+card is printed in, so the house follows the mark in code and not by eye.
+The script writes them into the hall:
 
     python icons/gen.py            # the hall's defs and the velvet CSS, in this repo
 
@@ -53,55 +60,58 @@ RASTER_JS = ROOT / 'icons' / 'raster.js'
 
 # --------------------------------------------------------------------------
 # The one source. Per app:
-#   enamel   deep / field / lit: the translucent enamel at its rim, its body
-#            and where it lies thinnest over the turning
-#   livery   the colour a reader matches the curtain against (the field for
-#            most; Bourse's field is black, so its livery is the canary)
+#   deep / field / lit   the translucent enamel at its rim, its body and where
+#            it lies thinnest over the turning. The field is what a reader
+#            matches the curtain against, and every mark draws it.
 #   pop      the crown stone
 #   velvet   the gate's house curtain: an honest name and the dye at its
 #            brightest crest, per theme. Every crest stays a quarter darker
-#            than the leaf's body (--au-2) and inside the livery's family;
-#            tests/test_web_assets.py holds both.
-#   beads    the rim's bead count
+#            than the leaf's body (--au-2) and inside the field's family;
+#            tests/test_web_assets.py holds both. Bourse's tray band is fired
+#            in this same dye, read from here.
+#   ink      the day screen's title card is printed in this ink (one of
+#            oxblood, bottle, navy; no two alike in a wing)
 # --------------------------------------------------------------------------
 HUE = {
     'autopilot': {
         'name': 'Anime Autopilot', 'short': 'Autopilot',
-        'deep': '#24060d', 'field': '#621925', 'lit': '#983446',
-        'livery': '#621925', 'pop': '#fff4d2', 'beads': 36,
+        'deep': '#24060d', 'field': '#621925', 'lit': '#983446', 'pop': '#fff4d2',
         'velvet': {'name': 'mulberry', 'onyx': '#92304c', 'ivory': '#9c4660'},
+        'ink': 'oxblood',
     },
     'groundstation': {
         'name': 'Ground Station', 'short': 'Ground Stn',
-        'deep': '#5a2f08', 'field': '#c8781f', 'lit': '#eea24c',
-        'livery': '#c8781f', 'pop': '#ffb454', 'beads': 32,
+        'deep': '#5a2f08', 'field': '#c8781f', 'lit': '#eea24c', 'pop': '#ffb454',
         'velvet': {'name': 'cognac', 'onyx': '#8a4f22', 'ivory': '#a0622a'},
+        'ink': 'bottle',
     },
     'outreach': {
         'name': 'Outreach Desk', 'short': 'Outreach',
-        'deep': '#0a2230', 'field': '#1c4a5f', 'lit': '#3a6e86',
-        'livery': '#1c4a5f', 'pop': '#e8c968', 'beads': 20,
+        'deep': '#0a2230', 'field': '#1c4a5f', 'lit': '#3a6e86', 'pop': '#e8c968',
         'velvet': {'name': 'prussian', 'onyx': '#1f5066', 'ivory': '#2d5d74'},
+        'ink': 'navy',
     },
     'pressroom': {
         'name': 'The Press Room', 'short': 'Press Room',
-        'deep': '#0b2616', 'field': '#1e6a40', 'lit': '#3f9463',
-        'livery': '#1e6a40', 'pop': '#5a8040', 'beads': 30,
+        'deep': '#0b2616', 'field': '#1e6a40', 'lit': '#3f9463', 'pop': '#5a8040',
         'velvet': {'name': 'emerald', 'onyx': '#24754b', 'ivory': '#36906a'},
+        'ink': 'bottle',
     },
     'arsenal': {
         'name': 'Arsenal', 'short': 'Arsenal',
-        'deep': '#161c22', 'field': '#46535e', 'lit': '#72808b',
-        'livery': '#46535e', 'pop': '#b03a2e', 'beads': 24,
+        'deep': '#161c22', 'field': '#46535e', 'lit': '#72808b', 'pop': '#b03a2e',
         'velvet': {'name': 'gunmetal', 'onyx': '#44545f', 'ivory': '#5a6a74'},
+        'ink': 'navy',
     },
     'bourse': {
         'name': 'Bourse', 'short': 'Bourse',
-        'deep': '#0f0e05', 'field': '#35320f', 'lit': '#5e5a22',
-        'livery': '#6b6526', 'pop': '#e6a817', 'beads': 36,
+        'deep': '#0f0e05', 'field': '#35320f', 'lit': '#5e5a22', 'pop': '#e6a817',
         'velvet': {'name': 'olive gold', 'onyx': '#6b692c', 'ivory': '#8e8c4a'},
+        'ink': 'oxblood',
     },
 }
+# The inks a day card can be printed in, as palace-gates.css draws them.
+INKS = {'oxblood': '#6a1d19', 'bottle': '#1d4633', 'navy': '#1c2b4c'}
 
 # The house cloth for a gate whose service has no mark of its own yet: the
 # claret of the entrance curtain.
@@ -112,7 +122,6 @@ HOUSE_VELVET = {'name': 'claret', 'onyx': '#c22b3b', 'ivory': '#c83a4a'}
 ATRIUM = {'field': '#c9a227', 'deep': '#8a6c12', 'ink': '#1a1409', 'pop': '#fff8e1'}
 
 MARKS = list(HUE)                       # registry order
-APPS = MARKS + ['atrium']
 
 # Brand directories in the apps' own repositories. Written only with
 # --brand ... --allow-outside-repo, after the owner has signed off.
@@ -137,9 +146,6 @@ SPLASH_BG = {'atrium': '#0c0a07'}
 # Six tones: glaze, shade, body, crest, relief body, lip.
 # --------------------------------------------------------------------------
 GILT = ['#271806', '#5a4019', '#9a7430', '#f8e3a2', '#c69c48', '#ebcd82']
-STEEL = ['#111518', '#2b3238', '#5a646b', '#e4e9ec', '#88939a', '#b7c0c6']
-BLUED = ['#0d1114', '#22292f', '#475159', '#b3bdc3', '#6b767e', '#909ba2']
-BRONZE = ['#1e1206', '#4a2c10', '#83552a', '#e9b98a', '#a8703c', '#cf9864']
 LX, LY = -0.7071, -0.7071                # toward the key light, y down
 
 
@@ -261,8 +267,9 @@ def relief(d, body, lit=GILT[3], shade='#0a0603', dx=0.55, dy=0.8, sh_op=0.7, lo
 def faceted_ring(cx, cy, r0, r1, facing, pal=GILT, n=72, bias=0.0):
     """A turned or cast ring in six tones. facing=+1: the face looks out
     (lit on the lamp side); -1: it looks in (lit on the far side); 0: flat
-    top, lit a little toward the lamp. One path per tone."""
-    paths = {}
+    top, lit a little toward the lamp. Neighbouring facets of one tone are
+    cut as one arc; one path per tone."""
+    tones = []
     for k in range(n):
         a = 2 * math.pi * (k + 0.5) / n
         nx, ny = math.cos(a), math.sin(a)
@@ -270,10 +277,22 @@ def faceted_ring(cx, cy, r0, r1, facing, pal=GILT, n=72, bias=0.0):
             lit = 0.55 * (nx * LX + ny * LY) + 0.35 + bias
         else:
             lit = facing * (nx * LX + ny * LY) + bias
-        col = tone(lit, pal)
-        a0, a1 = 2 * math.pi * k / n - 0.004, 2 * math.pi * (k + 1) / n + 0.004
-        paths.setdefault(col, []).append(wedge_d(cx, cy, r0, r1, a0, a1))
-    return ''.join('<path d="%s" fill="%s"/>' % (' '.join(v), c) for c, v in paths.items())
+        tones.append(tone(lit, pal))
+    # start the walk where the tone changes, so no run wraps past zero
+    start = next((k for k in range(n) if tones[k] != tones[k - 1]), 0)
+    paths, k0 = {}, start
+    for i in range(1, n + 1):
+        k = (start + i) % n
+        if i == n or tones[k] != tones[k0]:
+            span = (k - k0) % n or n
+            a0 = 2 * math.pi * k0 / n - 0.004
+            a1 = 2 * math.pi * (k0 + span) / n + 0.004
+            if span == n:
+                paths.setdefault(tones[k0], []).append(circle_d(cx, cy, r1) + ' ' + circle_d(cx, cy, r0))
+            else:
+                paths.setdefault(tones[k0], []).append(wedge_d(cx, cy, r0, r1, a0, a1))
+            k0 = k
+    return ''.join('<path d="%s" fill="%s" fill-rule="evenodd"/>' % (' '.join(v), c) for c, v in paths.items())
 
 
 def facet_poly(outer, inner, pal=GILT, shade_all=0.0):
@@ -292,42 +311,23 @@ def facet_poly(outer, inner, pal=GILT, shade_all=0.0):
     return ''.join(out)
 
 
-def ngon(cx, cy, r, n, start):
-    return [pt(cx, cy, r, start + 2 * math.pi * k / n) for k in range(n)]
-
-
 # --------------------------------------------------------------------------
 # The die: shared by all six
 # --------------------------------------------------------------------------
-R_LIP, R_GROOVE, R_FIELD = 47.4, 44.2, 40.4
+R_LIP, R_GROOVE, R_FIELD = 47.4, 43.6, 42.2
 C = 48.0
 
 
 def die_back(m, h):
-    """Everything under the field: the badge's cast shadow, the lip, the
-    groove and its beads, the fillet round the enamel."""
+    """Everything under the field: the badge's cast shadow, a plain turned
+    lip, the one groove cut inside it, and the fillet the enamel is poured
+    to. No beads and no rivets: the gate's bezel owns the rivet ring."""
     m.add('<circle cx="%s" cy="%s" r="%s" fill="#000" fill-opacity=".55"/>' % (f(C + 0.9), f(C + 1.3), f(R_LIP)))
     m.add(faceted_ring(C, C, 46.0, R_LIP, +1, n=48))      # outer bevel of the lip
-    m.add(faceted_ring(C, C, 45.2, 46.0, 0, n=48))        # its crown, turned flat
-    m.add(faceted_ring(C, C, R_GROOVE, 45.2, -1, n=48))   # the inner bevel, down into the groove
+    m.add(faceted_ring(C, C, 44.6, 46.0, 0, n=48))        # its crown, turned flat
+    m.add(faceted_ring(C, C, R_GROOVE, 44.6, -1, n=48))   # the inner bevel, down into the groove
     m.add('<circle cx="48" cy="48" r="%s" fill="%s"/>' % (f(R_GROOVE), GILT[0]))
-    beads(m, h)
-    m.add(faceted_ring(C, C, R_FIELD, 41.2, -1, n=48))    # the fillet the enamel is poured to
-
-
-def beads(m, h):
-    n, r = h['beads'], 42.75
-    sh, bd, lt = [], [], []
-    br = 1.2
-    for k in range(n):
-        a = -math.pi / 2 + 2 * math.pi * (k + 0.5) / n
-        x, y = pt(C, C, r, a)
-        sh.append(circle_d(x + 0.35, y + 0.5, br))
-        bd.append(circle_d(x, y, br))
-        lt.append(circle_d(x - 0.42, y - 0.46, br * 0.42))
-    m.add('<path d="%s" fill="#000" fill-opacity=".6"/>' % ' '.join(sh))
-    m.add('<path d="%s" fill="%s"/>' % (' '.join(bd), GILT[4]))
-    m.add('<path d="%s" fill="%s"/>' % (' '.join(lt), GILT[3]))
+    m.add(faceted_ring(C, C, R_FIELD, 42.9, -1, n=48))    # the fillet the enamel is poured to
 
 
 def enamel_open(m, h, paint=None):
@@ -401,197 +401,59 @@ def darken(c, k):
 
 
 # --------------------------------------------------------------------------
-# Shared drawing helpers for the subjects
+
 # --------------------------------------------------------------------------
+# Drawing the subjects: true forms, cut into planes
+# --------------------------------------------------------------------------
+# Every subject is one charge on the enamel, seen from the same place: level
+# with it or a few degrees above (the hall's eye), lit from the one key light
+# up and to the left. A form is first drawn as its true silhouette, then cut
+# into three or four flat planes of tone along that light, the way a woodcut
+# or a Deco poster cuts it: no gradient inside a plane, no outline round it.
+# Colour is laid in as the eye remembers the thing.
+PITCH = 8.0                                  # degrees above level, for every mark
+
+
 def lines_path(segs):
     return ' '.join('M%s %sL%s %s' % (f(a), f(b), f(c), f(d)) for a, b, c, d in segs)
 
 
-def cyl_grad(m, name, x0, y0, x1, y1, cols, n=9, amb=0.2, shine=0.0):
-    """A linear gradient across a cylinder's width, from edge (x0,y0) to edge
-    (x1,y1): every stop is the colour of the strip whose normal turns from
-    one edge to the other, lit by the key light."""
-    dx, dy = x1 - x0, y1 - y0
-    ln = math.hypot(dx, dy) or 1
-    ax, ay = dx / ln, -dy / ln          # the across direction, y up
-    stops = []
-    for k in range(n):
-        t = k / (n - 1)
-        th = math.pi * (t - 0.5)          # -90 .. 90 degrees round the barrel
-        nv = (ax * math.sin(th), ay * math.sin(th), math.cos(th))
-        val = S.lambert(nv, amb)
-        if shine:
-            val = min(1.0, val + shine * S.spec(nv, 14))
-        stops.append((t, S.ramp(cols, val)))
-    return m.lin(name, stops, x0, y0, x1, y1)
-
-
-def shadow(d, dx=0.8, dy=1.2, op=0.55, extra=''):
+def shadow(d, dx=0.8, dy=1.2, op=0.5, extra=''):
+    """The charge's own shadow on the enamel, cast down and right."""
     return ('<path d="%s" fill="#000" fill-opacity="%s" transform="translate(%s %s)"%s/>'
             % (d, f(op), f(dx), f(dy), extra))
 
 
-def solid_cylinder(fc, v, c0, c1, r0, r1, n, cols, back=0.0, amb=0.2, cap=True):
-    """A vertical (world y) turned solid from c0 up to c1, its visible
-    facets shaded by the key light."""
-    for k in range(n):
-        p0, p1 = 2 * math.pi * k / n, 2 * math.pi * (k + 1) / n
-        pm = (p0 + p1) / 2
-        nv = v.nrm((math.cos(pm), (r0 - r1) / max(0.01, abs(c1[1] - c0[1])), math.sin(pm)))
-        if nv[2] <= 0:
-            continue
-        q = [v.proj((c0[0] + r0 * math.cos(p0), c0[1], c0[2] + r0 * math.sin(p0))),
-             v.proj((c0[0] + r0 * math.cos(p1), c0[1], c0[2] + r0 * math.sin(p1))),
-             v.proj((c1[0] + r1 * math.cos(p1), c1[1], c1[2] + r1 * math.sin(p1))),
-             v.proj((c1[0] + r1 * math.cos(p0), c1[1], c1[2] + r1 * math.sin(p0)))]
-        fc.add([(x, y) for x, y, _ in q], sum(z for _, _, z in q) / 4 - back, S.ramp(cols, S.lambert(nv, amb)))
-    if cap:
-        top = [v.proj((c1[0] + r1 * math.cos(2 * math.pi * k / n), c1[1], c1[2] + r1 * math.sin(2 * math.pi * k / n)))
-               for k in range(n)]
-        fc.add([(x, y) for x, y, _ in top], sum(z for _, _, z in top) / n - back - 0.5,
-               S.ramp(cols, S.lambert(v.nrm((0, 1, 0)), amb)))
+def planes(m, name, sil, lit, box, tones, cuts, step=0.4, eps=0.12):
+    """Cut a form into flat planes. `sil` is its silhouette (path data),
+    `lit(x, y)` how squarely the surface under (x, y) faces the key light,
+    `tones` its colours from the darkest up and `cuts` the light at which
+    each next plane begins. The silhouette is laid in the darkest tone and
+    each lighter plane over it, clipped to the silhouette."""
+    out = ['<path d="%s" fill="%s"/>' % (sil, tones[0])]
+    body = []
+    for t, col in zip(cuts, tones[1:]):
+        d = S.region_d(lambda x, y, t=t: t - lit(x, y), box, step, eps)
+        if d:
+            body.append('<path d="%s" fill="%s" fill-rule="evenodd"/>' % (d, col))
+    if body:
+        clip = m.clip(name, '<path d="%s"/>' % sil)
+        out.append('<g clip-path="%s">%s</g>' % (clip, ''.join(body)))
+    return ''.join(out)
 
 
-# --------------------------------------------------------------------------
-# Ground Station: the earth station at dusk
-# --------------------------------------------------------------------------
-GS_AXIS = S.norm((0.66, 0.54, 0.52))      # where the dish looks: up, right, out
+def facet(lit, tones, cuts):
+    """The tone of one flat face whose light is `lit`."""
+    k = 0
+    for i, t in enumerate(cuts):
+        if lit >= t:
+            k = i + 1
+    return tones[k]
 
 
-def ground_dusk(m, h):
-    """The station's sky: amber enamel fired thin at the horizon and deep
-    overhead, over a lined engine turning."""
-    sky = m.lin('sky', [(0, '#0e1218'), (0.22, '#1c1e24'), (0.42, '#4a2c16'), (0.6, '#96501a'), (0.76, '#d98832'),
-                        (0.86, '#f2b65a'), (0.9, '#f8cf88')], 0, 8, 0, 71)
-    m.add('<rect x="0" y="0" width="96" height="96" fill="%s"/>' % sky)
-    lined = m.pattern('turn', 8, 1.25, '<rect width="8" height=".32" fill="#ffd79a" fill-opacity=".16"/>')
-    m.add('<rect x="0" y="7" width="96" height="65" fill="%s"/>' % lined)
-    stars = [(30, 18, .55), (38, 13, .4), (22, 30, .45), (57, 12, .5), (64, 19, .35), (27, 23, .3), (47, 10, .35)]
-    m.add('<path d="%s" fill="#fbe6c0" fill-opacity=".8"/>' % ' '.join(circle_d(x, y, r) for x, y, r in stars))
-
-
-def subject_groundstation(m, h):
-    """A parabolic dish on its mount, cut against the dusk the way a 1930s
-    poster would cut an earth station: the bowl turned up toward the one
-    star it is tracking. Every panel of the bowl takes its own angle to the
-    key light."""
-    v = S.View(0, 0, 21.0, yaw=0, pitch=-5)
-    a = GS_AXIS
-    u, w, _ = S.basis(a)
-    F = 0.62
-    depth = 1.0 / (4 * F)
-    rc = v.proj(S.mul(a, depth))
-    v.cx, v.cy = 43 - rc[0], 42 - rc[1]
-    # the ground: a low rise, dark, catching the afterglow on its crest
-    hz = 70.4
-    ridge = 'M0 %s C20 %s 70 %s 96 %s' % (f(hz + 1.2), f(hz - 1.6), f(hz - 1.2), f(hz + 1.4))
-    m.add('<path d="%s V96 H0 Z" fill="%s"/>'
-          % (ridge, m.lin('earth', [(0, '#3a1c08'), (0.25, '#1e0e05'), (1, '#0e0703')], 0, hz - 2, 0, 90)))
-    m.add('<path d="%s" stroke="#e8a050" stroke-opacity=".55" stroke-width=".5" fill="none"/>' % ridge)
-    fc = S.Faces()
-    tower = ['#140903', '#3a1c0a', '#6e3a16', '#a8662e', '#d89a58']
-    gy = -1.72
-    # a turned tower on a stepped round plinth, reeded near its head, a
-    # turntable on top and the king post rising to the dish's back
-    solid_cylinder(fc, v, (0.1, gy, -0.5), (0.1, gy + 0.1, -0.5), 0.7, 0.68, 32, tower, back=2)
-    solid_cylinder(fc, v, (0.1, gy + 0.1, -0.5), (0.1, gy + 0.2, -0.5), 0.52, 0.5, 32, tower, back=2)
-    solid_cylinder(fc, v, (0.1, gy + 0.2, -0.5), (0.1, -0.98, -0.5), 0.34, 0.27, 28, tower, back=2)
-    for yb in (-0.98, -0.9):
-        solid_cylinder(fc, v, (0.1, yb, -0.5), (0.1, yb + 0.05, -0.5), 0.31, 0.31, 28, tower, back=2)
-    solid_cylinder(fc, v, (0.1, -0.85, -0.5), (0.1, -0.8, -0.5), 0.28, 0.28, 28, tower, back=2)
-    solid_cylinder(fc, v, (0.1, -0.8, -0.5), (0.1, -0.7, -0.5), 0.46, 0.46, 32, tower, back=2)
-    solid_cylinder(fc, v, (0.05, -0.7, -0.45), (0.0, -0.1, -0.3), 0.2, 0.13, 20, tower, back=2.5, cap=False)
-    rings = [0.0, 0.18, 0.36, 0.54, 0.72, 0.88, 1.0]
-    NP = 32
-    inner = ['#2e1606', '#6a3410', '#b0621e', '#e2994a', '#f6c888', '#fff0d6']
-    backc = ['#120803', '#2c1507', '#51290e', '#7c4418']
-
-    def P(r, ph):
-        return S.add(S.add(S.mul(u, r * math.cos(ph)), S.mul(w, r * math.sin(ph))), S.mul(a, r * r / (4 * F)))
-
-    def n_in(r, ph):
-        radial = S.add(S.mul(u, math.cos(ph)), S.mul(w, math.sin(ph)))
-        return S.norm(S.sub(a, S.mul(radial, r / (2 * F))))
-    for i in range(len(rings) - 1):
-        r0, r1 = rings[i], rings[i + 1]
-        for k in range(NP):
-            p0, p1 = 2 * math.pi * k / NP, 2 * math.pi * (k + 1) / NP
-            q = [v.proj(p) for p in (P(r0, p0), P(r0, p1), P(r1, p1), P(r1, p0))]
-            nin = v.nrm(n_in((r0 + r1) / 2, (p0 + p1) / 2))
-            if nin[2] > 0:
-                t = S.lambert(nin, 0.16, wrap=0.15)
-                t = min(1.0, t + 0.12 * max(0.0, nin[1]))
-                col = S.ramp(inner, t)
-            else:
-                col = S.ramp(backc, S.lambert(S.mul(nin, -1), 0.2))
-            fc.add([(x, y) for x, y, _ in q], sum(z for _, _, z in q) / 4, col)
-    NR = 64
-    lipc = ['#1a0c04', '#5a2e10', '#b06a2c', '#f2c080', '#fff4dc']
-    for k in range(NR):
-        p0, p1 = 2 * math.pi * k / NR, 2 * math.pi * (k + 1) / NR
-        pm = (p0 + p1) / 2
-        radial = S.add(S.mul(u, math.cos(pm)), S.mul(w, math.sin(pm)))
-        quad = [P(1.0, p0), P(1.0, p1), S.add(P(1.0, p1), S.mul(a, -0.07)), S.add(P(1.0, p0), S.mul(a, -0.07))]
-        q = [v.proj(p) for p in quad]
-        nv = v.nrm(radial)
-        if nv[2] > -0.2:
-            fc.add([(x, y) for x, y, _ in q], sum(z for _, _, z in q) / 4 + 0.01,
-                   S.ramp(lipc, S.lambert(nv, 0.15) + 0.4 * S.spec(nv, 10)))
-    rim_pts = [v.proj(P(1.0, 2 * math.pi * k / 96)) for k in range(96)]
-    m.add(shadow(S.pts_d([(x, y) for x, y, _ in rim_pts]), 1.0, 1.4, 0.35))
-    m.add(fc.svg())
-    # the feed: four struts from the rim to the focus, and the horn
-    focus = S.mul(a, 0.98)
-    fp = v.proj(focus)
-    struts = [(v.proj(P(1.0, math.radians(d))), fp) for d in (40, 130, 220, 310)]
-    for (x0, y0, _), (x1, y1, _) in struts:
-        m.add('<path d="M%s %s L%s %s" stroke="#1a0c04" stroke-width="1.05" stroke-linecap="round"/>'
-              % (f(x0 + .25), f(y0 + .35), f(x1 + .25), f(y1 + .35)))
-    for (x0, y0, _), (x1, y1, _) in struts:
-        m.add('<path d="M%s %s L%s %s" stroke="#6a3814" stroke-width=".8" stroke-linecap="round"/>' % (f(x0), f(y0), f(x1), f(y1)))
-        m.add('<path d="M%s %s L%s %s" stroke="#e8a860" stroke-width=".32" stroke-linecap="round" transform="translate(-.22 -.22)"/>'
-              % (f(x0), f(y0), f(x1), f(y1)))
-    hc = S.Faces()
-    hornc = ['#1a0c04', '#6a3814', '#c07a38', '#f8d49a']
-
-    def ring(ph, r, t):
-        return S.add(S.add(focus, S.mul(a, t)), S.add(S.mul(u, r * math.cos(ph)), S.mul(w, r * math.sin(ph))))
-    for k in range(20):
-        p0, p1 = 2 * math.pi * k / 20, 2 * math.pi * (k + 1) / 20
-        pm = (p0 + p1) / 2
-        nv = v.nrm(S.add(S.mul(u, math.cos(pm)), S.mul(w, math.sin(pm))))
-        if nv[2] <= 0:
-            continue
-        q = [v.proj(p) for p in (ring(p0, 0.075, -0.1), ring(p1, 0.075, -0.1), ring(p1, 0.1, 0.1), ring(p0, 0.1, 0.1))]
-        hc.add([(x, y) for x, y, _ in q], sum(z for _, _, z in q) / 4, S.ramp(hornc, S.lambert(nv, 0.2)))
-    cap = [v.proj(ring(2 * math.pi * k / 20, 0.1, 0.1)) for k in range(20)]
-    hc.add([(x, y) for x, y, _ in cap], 99, S.ramp(hornc, S.lambert(v.nrm(a), 0.2)))
-    m.add(hc.svg(0.12))
-    # the star it is tracking, on the dish's own line of sight
-    k = 1.2
-    while math.hypot(v.proj(S.mul(a, k))[0] - 48, v.proj(S.mul(a, k))[1] - 48) < 31 and k < 6:
-        k += 0.05
-    sx, sy = v.proj(S.mul(a, k))[:2]
-    star = [(sx, sy - 3.4), (sx + .55, sy - .55), (sx + 3.4, sy), (sx + .55, sy + .55),
-            (sx, sy + 3.4), (sx - .55, sy + .55), (sx - 3.4, sy), (sx - .55, sy - .55)]
-    m.add('<path d="%s" fill="#fff4d8"/>' % poly_d(star))
-    m.add('<circle cx="%s" cy="%s" r="1" fill="%s"/>' % (f(sx), f(sy), h['pop']))
-
-
-# --------------------------------------------------------------------------
-# Bourse: the canary on watch in its cage
-# --------------------------------------------------------------------------
-def ground_lattice(m, h):
-    """Olive-gold enamel, deepest at the rim, over the lozenge lattice of
-    Bourse's own page (a diamond in a diamond on a fine repeat)."""
-    grad = m.rad('enamel', [(0, h['lit']), (0.6, h['field']), (1, h['deep'])], 44, 40, 46, 40, 34)
-    m.add('<circle cx="48" cy="48" r="%s" fill="%s"/>' % (f(R_FIELD), grad))
-    q = 1.2
-    dia = ' '.join(poly_d([(cx, cy - q), (cx + q, cy), (cx, cy + q), (cx - q, cy)])
-                   for cx, cy in ((3, 0), (0, 3), (6, 3), (3, 6)))
-    tile = ('<path d="M0 0 L6 6 M6 0 L0 6" stroke="#d8c060" stroke-width=".4" stroke-opacity=".22"/>'
-            '<path d="%s" stroke="#d8c060" stroke-width=".3" stroke-opacity=".3" fill="none"/>' % dia)
-    m.add('<circle cx="48" cy="48" r="%s" fill="%s"/>' % (f(R_FIELD), m.pattern('turn', 6, 6, tile, 'translate(48 51)')))
+def lam(n):
+    """How squarely a view-space normal faces the key light, 0..1."""
+    return max(0.0, S.dot(S.norm(n), S.KEY))
 
 
 def smooth_d(points, closed=True, tension=1.0):
@@ -615,489 +477,6 @@ def smooth_d(points, closed=True, tension=1.0):
     return ' '.join(out) + (' Z' if closed else '')
 
 
-# The canary, drawn from the living bird: a short conical bill, a round
-# crown running without a break into the nape, the breast carried full and
-# forward, the folded wing lying along the back with its primaries reaching
-# over the base of the tail, the tail long, straight and notched, the whole
-# bird sitting up at about fifty degrees on its perch. Coordinates are the
-# bird's own, its feet on the perch at the origin, facing the key light.
-CANARY = {
-    'body': [(-10.5, -17.95, 1), (-8.3, -19.3, 1), (-7.3, -20.5), (-4.8, -21.7), (-2.0, -21.4), (-0.1, -19.9),
-             (1.5, -17.6), (3.1, -14.4), (4.3, -10.6), (5.2, -6.8), (5.9, -3.6), (6.6, -1.0), (8.4, 3.9),
-             (10.3, 8.8, 1), (9.2, 8.3, 1), (8.1, 9.2, 1), (6.1, 4.6), (4.0, 0.6), (2.3, -0.9), (-0.2, -1.4),
-             (-3.4, -2.2), (-6.6, -4.8), (-8.6, -8.8), (-8.9, -12.6), (-8.25, -15.3), (-8.3, -16.75, 1)],
-    'shade': [(-8.9, -11.5), (-8.6, -8.8), (-6.6, -4.8), (-3.4, -2.2), (-0.2, -1.4), (2.3, -0.9), (4.0, 0.6),
-              (6.1, 4.6), (8.1, 9.2, 1), (9.2, 8.3, 1), (10.3, 8.8, 1), (8.4, 3.9), (6.6, -1.0), (4.8, -2.0),
-              (1.4, -3.4), (-2.4, -5.0), (-5.6, -7.4), (-7.6, -10.0)],
-    'wing': [(-4.6, -14.9, 1), (-1.9, -16.7), (1.1, -16.4), (3.0, -13.2), (4.4, -8.6), (5.7, -3.4),
-             (7.2, 1.2, 1), (4.3, -1.6), (0.9, -4.0), (-2.3, -7.2), (-4.3, -10.9)],
-    'coverts': [(-4.6, -14.9, 1), (-1.9, -16.7), (1.1, -16.4), (3.0, -13.2), (3.7, -11.0, 1), (1.8, -10.5),
-                (-0.8, -10.7), (-3.0, -11.6), (-4.4, -12.8)],
-    'primaries': [(3.4, -11.0), (4.4, -8.6), (5.7, -3.4), (7.2, 1.2, 1), (4.3, -1.6), (2.3, -3.0, 1),
-                  (2.6, -6.6)],
-    'bill': [(-8.2, -19.35, 1), (-9.5, -18.9), (-10.6, -17.95, 1), (-9.5, -17.1), (-8.2, -16.7, 1)],
-    'gape': [(-10.3, -17.95), (-9.2, -17.85), (-8.1, -18.0)],
-    'eye': (-6.1, -19.0),
-    'feet': ('M-1.6 -1.7 L-1.3 0 M-1.3 0 C-1.9 0.1 -2.4 0.5 -2.5 1.0 M-1.3 0 C-0.9 0.4 -1.0 0.9 -1.3 1.2 '
-             'M0.8 -1.5 L1.0 0 M1.0 0 C0.5 0.2 0.3 0.7 0.4 1.1 M1.0 0 C1.6 0.1 1.9 0.6 1.8 1.0'),
-}
-
-
-def canary(m, x, y, s, rot=0.0):
-    """Lay the bird with its feet at (x, y), scale s, turned rot degrees.
-    Colour by impression: the lemon of a clear canary, lit on the crown and
-    breast, ochre on its shadow side, the wing in planes of deeper gold, a
-    horn bill and a dark eye."""
-    g = 'translate(%s %s) rotate(%s) scale(%s)' % (f(x), f(y), f(rot), f(s))
-    body = m.rad('cn-body', [(0, '#fff6c2'), (0.2, '#fbe46a'), (0.5, '#f2c936'), (0.8, '#dca722'), (1, '#b07c12')],
-                 -6.0, -18.5, 26, -7.2, -19.4)
-    shade = m.lin('cn-shade', [(0, '#c28e16', 0), (0.3, '#b27e12', 0.7), (1, '#6e4a0c', 0.95)], -6, -12, 6, 8)
-    wing = m.lin('cn-wing', [(0, '#ecc43c'), (0.5, '#d6a426'), (1, '#9c6e14')], -4, -16, 7, 2)
-    cov = m.lin('cn-cov', [(0, '#fbe37a'), (1, '#e8bf3a')], -4, -16, 2, -10)
-    prim = m.lin('cn-prim', [(0, '#c08c1c'), (1, '#80580e')], 3, -8, 7, 2)
-    bill = m.lin('cn-bill', [(0, '#f6dcc6'), (1, '#c8927a')], -10.5, -19, -8.5, -16.8)
-    bd = smooth_d(CANARY['body'])
-    out = ['<g transform="%s">' % g]
-    out.append('<path d="%s" fill="#000" fill-opacity=".45" transform="translate(.6 .8)"/>' % bd)
-    out.append('<path d="%s" fill="%s"/>' % (bd, body))
-    out.append('<path d="%s" fill="%s"/>' % (smooth_d(CANARY['shade']), shade))
-    wd = smooth_d(CANARY['wing'])
-    out.append('<path d="%s" fill="#5a3c08" fill-opacity=".3" transform="translate(.25 .35)"/>' % wd)
-    out.append('<path d="%s" fill="%s"/>' % (wd, wing))
-    out.append('<path d="%s" fill="%s"/>' % (smooth_d(CANARY['coverts']), cov))
-    out.append('<path d="%s" fill="%s"/>' % (smooth_d(CANARY['primaries']), prim))
-    out.append('<path d="%s" stroke="#a8705a" stroke-width=".45" fill="none" stroke-linecap="round"/>' % CANARY['feet'])
-    out.append('<path d="%s" fill="%s"/>' % (smooth_d(CANARY['bill']), bill))
-    out.append('<path d="%s" stroke="#8a5440" stroke-width=".18" fill="none" stroke-linecap="round"/>'
-               % smooth_d(CANARY['gape'], closed=False))
-    ex, ey = CANARY['eye']
-    out.append('<circle cx="%s" cy="%s" r=".62" fill="#1c1108"/><circle cx="%s" cy="%s" r=".15" fill="#fff2d0"/>'
-               % (f(ex), f(ey), f(ex - .2), f(ey - .2)))
-    out.append('</g>')
-    return ''.join(out)
-
-
-def subject_bourse(m, h):
-    """The canary the desk keeps on watch, calm on its perch in a gilded
-    dome cage whose door stands open: it could go, and it stays. The wires
-    are computed round a real drum and dome, the far ones passing behind the
-    bird and the near ones in front."""
-    v = S.View(48, 0, 1.0, yaw=0, pitch=9)
-    R, yb, ys, H = 17.5, -68.0, -32.0, 18.5      # radius; base, spring, dome height (y up)
-    NW = 14
-    door = (math.radians(90 - 30), math.radians(90 + 30))   # the opening, front and centre
-    wire_col = [GILT[1], GILT[2], GILT[4], GILT[5], GILT[3]]
-
-    def drum(ph, y0, y1, n=10):
-        return [(R * math.cos(ph), y0 + (y1 - y0) * k / n, R * math.sin(ph)) for k in range(n + 1)]
-
-    def dome(ph):
-        pts = []
-        for k in range(0, 15):
-            t = (math.pi / 2) * k / 14
-            r = R * math.cos(t)
-            pts.append((r * math.cos(ph), ys + H * math.sin(t) ** 0.85, r * math.sin(ph)))
-        return pts
-
-    def hoop(y, a0=0.0, a1=2 * math.pi, n=72):
-        return [(R * math.cos(a0 + (a1 - a0) * k / n), y, R * math.sin(a0 + (a1 - a0) * k / n)) for k in range(n + 1)]
-
-    def line(pts, col, wdt, extra=''):
-        d = 'M' + ' L'.join('%s %s' % (f(p[0]), f(p[1])) for p in [v.proj(q) for q in pts])
-        return ('<path d="%s" stroke="%s" stroke-width="%s" fill="none" stroke-linecap="round" '
-                'stroke-linejoin="round"%s/>' % (d, col, f(wdt), extra))
-
-    def wire(pts, lit, wdt=0.9):
-        return (line(pts, '#000', wdt + 0.15, ' stroke-opacity=".45" transform="translate(.35 .5)"')
-                + line(pts, S.ramp(wire_col, lit), wdt))
-    back, front = [], []
-    for k in range(NW):
-        ph = 2 * math.pi * (k + 0.5) / NW
-        lit = S.lambert(v.nrm((math.cos(ph), 0, math.sin(ph))), 0.25)
-        if math.sin(ph) < 0:
-            back.append(line(drum(ph, yb, ys) + dome(ph)[1:], S.ramp([GILT[0], GILT[1], GILT[2]], lit), 0.7))
-        elif door[0] < ph < door[1]:
-            front.append(wire(dome(ph), lit))                      # over the door, only the dome
-        else:
-            front.append(wire(drum(ph, yb, ys) + dome(ph)[1:], lit))
-    # the base: a turned tray, its drum banded in the curtain's own olive gold
-    fc = S.Faces()
-    tray = [GILT[0], GILT[1], GILT[2], GILT[4], GILT[5], GILT[3]]
-    band = ['#1c1a08', '#3e3c16', '#6b692c', '#8e8c4a', '#b8b470']
-    solid_cylinder(fc, v, (0, yb - 6.6, 0), (0, yb - 5.4, 0), R + 3.8, R + 3.8, 48, tray)
-    solid_cylinder(fc, v, (0, yb - 5.4, 0), (0, yb - 1.2, 0), R + 2.3, R + 2.3, 48, band)
-    solid_cylinder(fc, v, (0, yb - 1.2, 0), (0, yb, 0), R + 2.9, R + 2.6, 48, tray)
-    foot = [v.proj(((R + 3.8) * math.cos(t), yb - 6.6, (R + 3.8) * math.sin(t)))[:2] for t in
-            [2 * math.pi * k / 48 for k in range(48)]]
-    m.add(shadow(S.pts_d(foot), 1.0, 1.4, 0.5))
-    m.add(fc.svg())
-    m.add(''.join(back))
-    for y, wdt in ((yb + 0.4, 1.4), (ys, 1.4)):
-        m.add(line(hoop(y, math.pi, 2 * math.pi), GILT[1], wdt * 0.7))
-    # the perch across the cage, a turned dowel
-    py = v.proj((0, -58.6, 0))[1]
-    m.add('<rect x="31.4" y="%s" width="33.2" height="1.9" fill="%s"/>'
-          % (f(py - 0.95), cyl_grad(m, 'perch', 0, py - 0.95, 0, py + 0.95, BRONZE)))
-    m.add(canary(m, 47.6, py - 0.5, 1.04, rot=0))
-    # near halves of the hoops: the base ring whole, the spring ring over the
-    # door, the waist ring broken by the opening
-    m.add(wire(hoop(yb + 0.4, 0, math.pi), 0.8, 1.4))
-    m.add(wire(hoop(ys, 0, math.pi), 0.8, 1.4))
-    for a0, a1 in ((0, door[0]), (door[1], math.pi)):
-        m.add(wire(hoop(-50.0, a0, a1, 24), 0.7, 0.8))
-    m.add(''.join(front))
-    # the door, hinged on the left of the opening and swung wide
-    hx, hz = R * math.cos(door[1]), R * math.sin(door[1])
-    wdt = 2 * R * math.sin((door[1] - door[0]) / 2)
-    sw = math.radians(142)
-    dx, dz = math.cos(sw), math.sin(sw)
-    y0, y1 = yb + 1.2, ys - 1.6
-
-    def dp(t, y):
-        return (hx + dx * wdt * t, y, hz + dz * wdt * t)
-    for t in (0.0, 1 / 3.0, 2 / 3.0, 1.0):
-        m.add(wire([dp(t, y0), dp(t, y1)], 0.55 if t else 0.8, 0.75))
-    for y in (y0, (y0 + y1) / 2, y1):
-        m.add(wire([dp(0, y), dp(1, y)], 0.7, 0.75))
-    # the crown of the dome: a turned finial and the ring it hangs by
-    ax, ay = v.proj((0, ys + H, 0))[:2]
-    fin = ('M%s %s C%s %s %s %s %s %s C%s %s %s %s %s %s Z'
-           % (f(ax - 3.2), f(ay + 1.2), f(ax - 2.6), f(ay - 1.6), f(ax - 0.8), f(ay - 2.6), f(ax), f(ay - 3.4),
-              f(ax + 0.8), f(ay - 2.6), f(ax + 2.6), f(ay - 1.6), f(ax + 3.2), f(ay + 1.2)))
-    m.add(relief(fin, cyl_grad(m, 'finial', ax - 3.2, 0, ax + 3.2, 0, GILT)))
-    m.add(relief(circle_d(ax, ay - 4.2, 1.2), GILT[4]))
-    m.add('<ellipse cx="%s" cy="%s" rx="2.6" ry="2.3" fill="none" stroke="#000" stroke-opacity=".5" '
-          'stroke-width="1.1" transform="translate(.35 .5)"/>'
-          '<ellipse cx="%s" cy="%s" rx="2.6" ry="2.3" fill="none" stroke="%s" stroke-width="1"/>'
-          '<path d="M%s %s A2.6 2.3 0 0 1 %s %s" stroke="%s" stroke-width=".45" fill="none"/>'
-          % (f(ax), f(ay - 7.4), f(ax), f(ay - 7.4), GILT[4], f(ax - 2.6), f(ay - 7.4), f(ax + 0.4), f(ay - 9.7), GILT[3]))
-
-
-# --------------------------------------------------------------------------
-# Anime Autopilot: the season shelf under the lamp
-# --------------------------------------------------------------------------
-PITCH_AP = math.radians(16)                 # the shelf seen a little from above
-
-CLOTH = {
-    'morocco': ['#260607', '#561313', '#8a2a22', '#b64638', '#e07c64'],
-    'bottle':  ['#07170e', '#143522', '#28583a', '#468458', '#86b48c'],
-    'vellum':  ['#4e4430', '#8e7e5c', '#cbbc96', '#e9dec2', '#fdf6e2'],
-    'navy':    ['#060d16', '#0f263a', '#1e4560', '#386a86', '#76a4c0'],
-    'calf':    ['#281505', '#58320f', '#95622c', '#c49052', '#ebc488'],
-}
-PAGES = ['#6e6250', '#b8aa88', '#e6dcc0', '#f6efdc']
-MAHOGANY = ['#140703', '#361709', '#643017', '#9c5429', '#d28a55']
-
-
-def ground_lamp(m, h):
-    """Oxblood enamel under the reading lamp: the crown's opal is the lamp,
-    and its light falls in a soft cone onto the shelf, over a fine
-    barleycorn turning."""
-    base = m.rad('enamel', [(0, h['lit']), (0.5, h['field']), (1, h['deep'])], 48, 30, 50, 48, 14)
-    m.add('<circle cx="48" cy="48" r="%s" fill="%s"/>' % (f(R_FIELD), base))
-    cone = m.rad('cone', [(0, '#f6b69a', 0.42), (0.35, '#c2584e', 0.22), (1, h['field'], 0)], 48, 8, 58, 48, 6)
-    m.add('<path d="M40 6 L14 70 Q48 80 82 70 L56 6 Z" fill="%s"/>' % cone)
-    line = '<rect width=".3" height="10" fill="%s" fill-opacity=".22"/>' % h['lit']
-    for k, turn in enumerate((-60, 60)):
-        m.add('<circle cx="48" cy="48" r="%s" fill="%s"/>'
-              % (f(R_FIELD), m.pattern('turn%d' % k, 1.2, 10, line, 'rotate(%d 48 48)' % turn)))
-
-
-def volume(m, name, x0, w, h, cloth, bands=(), label=None, gilt_head=False, lean=0.0, pivot=None,
-           floor=64.0, depth=None, headband='#b5362c'):
-    """One bound volume standing on the shelf, drawn as the real object:
-    the rounded back lit across its barrel, raised cords that catch the
-    lamp on their upper slope, a leather label onlay, and the head seen
-    from a little above (the boards' edges, the page block between them,
-    the leather turned over the cap). `bands` and `label` are measured up
-    from the shelf."""
-    ramp = CLOTH[cloth]
-    D = depth or h * 0.7
-    hd = D * math.sin(PITCH_AP)                # how much of the head shows
-    top = floor - h * math.cos(PITCH_AP)
-    x1 = x0 + w
-    out = []
-    # the head: boards' edges either side, the page block between them,
-    # the cap's crescent at the front
-    head = [(x0, top), (x1, top), (x1, top - hd), (x0, top - hd)]
-    out.append('<path d="%s" fill="%s"/>' % (poly_d(head), ramp[3]))
-    bt = min(0.7, w * 0.09)
-    blk = [(x0 + bt, top - 0.5), (x1 - bt, top - 0.5), (x1 - bt, top - hd + 0.25), (x0 + bt, top - hd + 0.25)]
-    pages = [GILT[2], GILT[4], GILT[5]] if gilt_head else PAGES[1:]
-    out.append('<path d="%s" fill="%s"/>' % (poly_d(blk), m.lin(name + '-blk', [(0, pages[-1]), (1, pages[0])],
-                                                                  x0, top - hd, x0, top)))
-    out.append('<path d="M%s %s L%s %s" stroke="%s" stroke-width=".25"/>'
-               % (f(x0 + bt), f(top - hd + 0.3), f(x1 - bt), f(top - hd + 0.3), ramp[1]))
-    cap = 'M%s %s Q%s %s %s %s L%s %s Q%s %s %s %s Z' % (
-        f(x0), f(top), f((x0 + x1) / 2), f(top + 0.9), f(x1), f(top), f(x1), f(top - 1.0),
-        f((x0 + x1) / 2), f(top - 0.3), f(x0), f(top - 1.0))
-    out.append('<path d="%s" fill="%s"/>' % (cap, m.lin(name + '-cap', [(0, ramp[4]), (0.5, ramp[3]), (1, ramp[1])], x0, 0, x1, 0)))
-    if headband:
-        out.append('<path d="M%s %s Q%s %s %s %s" stroke="%s" stroke-width=".55" fill="none"/>'
-                   % (f(x0 + 0.8), f(top - 0.55), f((x0 + x1) / 2), f(top - 0.1), f(x1 - 0.8), f(top - 0.55), headband))
-    # the back: a barrel, lit on the lamp's side
-    back = 'M%s %s Q%s %s %s %s L%s %s L%s %s Z' % (
-        f(x0), f(top), f((x0 + x1) / 2), f(top + 0.9), f(x1), f(top), f(x1), f(floor), f(x0), f(floor))
-    g = cyl_grad(m, name, x0, 0, x1, 0, ramp, n=11, amb=0.22, shine=0.35)
-    out.append('<path d="%s" fill="%s"/>' % (back, g))
-    # the joints: the boards' hinges either side of the back, in shade
-    out.append('<path d="M%s %s V%s M%s %s V%s" stroke="%s" stroke-width=".35" stroke-opacity=".7"/>'
-               % (f(x0 + 0.35), f(top + 0.6), f(floor), f(x1 - 0.35), f(top + 0.6), f(floor), ramp[0]))
-    # raised cords, each a small ridge: lit upper slope, shaded under
-    for yb in bands:
-        y = floor - yb * math.cos(PITCH_AP)
-        out.append('<path d="M%s %s H%s V%s H%s Z" fill="%s"/>' % (f(x0), f(y - 0.75), f(x1), f(y), f(x0), ramp[4]))
-        out.append('<path d="M%s %s H%s V%s H%s Z" fill="%s"/>' % (f(x0), f(y), f(x1), f(y + 0.75), f(x0), ramp[0]))
-        out.append('<path d="M%s %s H%s" stroke="%s" stroke-width=".28" stroke-opacity=".8"/>' % (f(x0), f(y - 1.25), f(x1), GILT[5]))
-    if label:
-        y0, y1, col = label
-        ly0, ly1 = floor - y1 * math.cos(PITCH_AP), floor - y0 * math.cos(PITCH_AP)
-        lg = cyl_grad(m, name + '-lab', x0 + 0.6, 0, x1 - 0.6, 0, col, n=7, amb=0.25, shine=0.3)
-        out.append('<path d="M%s %s H%s V%s H%s Z" fill="%s"/>' % (f(x0 + 0.6), f(ly0), f(x1 - 0.6), f(ly1), f(x0 + 0.6), lg))
-        out.append('<path d="M%s %s H%s V%s H%s Z" fill="none" stroke="%s" stroke-width=".32"/>'
-                   % (f(x0 + 1.1), f(ly0 + 0.5), f(x1 - 1.1), f(ly1 - 0.5), f(x0 + 1.1), GILT[5]))
-    # the rounding carried over the cords and the label: shade the far edge
-    shade = m.lin(name + '-rnd', [(0, '#000', 0), (0.55, '#000', 0), (1, '#000', 0.45)], x0, 0, x1, 0)
-    out.append('<path d="%s" fill="%s"/>' % (back, shade))
-    body = ''.join(out)
-    sil = 'M%s %s L%s %s L%s %s L%s %s Z' % (f(x0), f(top - hd), f(x1), f(top - hd), f(x1), f(floor), f(x0), f(floor))
-    if lean:
-        px, py = pivot
-        t = ' transform="rotate(%s %s %s)"' % (f(-lean), f(px), f(py))
-        return '<g%s>%s%s</g>' % (t, shadow(sil, 0.9, 0.3, 0.5), body)
-    return shadow(sil, 0.9, 0.3, 0.5) + body
-
-
-def subject_autopilot(m, h):
-    """The season shelf, the page's 開架: a cast bookend and five volumes of
-    uneven height and cloth, standing as a real shelf stands, the last one
-    tipped against its neighbour where tonight's volume will go. The lamp
-    over it is the crown's opal."""
-    floor = 63.6
-    pl, pr = 17.0, 79.0
-    pd = 4.2 * math.sin(PITCH_AP) * 3.2      # the plank's top as seen
-    # brackets: cast brass, a drop and a brace scrolled under the plank
-    for bx, s_ in ((27.0, 1), (69.0, -1)):
-        d = ('M%s %s H%s V%s C%s %s %s %s %s %s H%s Z'
-             % (f(bx - s_ * 1.4), f(floor + 3.4), f(bx + s_ * 7.2), f(floor + 4.6),
-                f(bx + s_ * 3.4), f(floor + 5.4), f(bx + s_ * 1.6), f(floor + 8.2), f(bx + s_ * 1.4), f(floor + 12.4),
-                f(bx - s_ * 1.4)))
-        m.add(relief(d, cyl_grad(m, 'brk%d' % s_, bx - 1.4, 0, bx + 1.4, 0, [GILT[0], GILT[1], GILT[2], GILT[4], GILT[5], GILT[3]])))
-    # the plank: its top in the lamp's pool, a bullnose on the front
-    m.add('<path d="M%s %s H%s L%s %s H%s Z" fill="%s"/>'
-          % (f(pl + 1.2), f(floor - pd), f(pr - 1.2), f(pr), f(floor), f(pl),
-             m.lin('plank-top', [(0, MAHOGANY[2]), (0.5, MAHOGANY[4]), (1, MAHOGANY[2])], pl, 0, pr, 0)))
-    m.add('<rect x="%s" y="%s" width="%s" height="3.6" fill="#000" fill-opacity=".5" transform="translate(.6 .9)"/>'
-          % (f(pl), f(floor), f(pr - pl)))
-    m.add('<rect x="%s" y="%s" width="%s" height="3.6" fill="%s"/>'
-          % (f(pl), f(floor), f(pr - pl), cyl_grad(m, 'bull', 0, floor, 0, floor + 3.6, MAHOGANY, amb=0.25)))
-    m.add('<path d="M%s %s h1.2 v3.6 h-1.2 Z" fill="%s"/>' % (f(pl), f(floor), MAHOGANY[1]))
-    # at the left end, two volumes lying flat, the way a real shelf ends:
-    # the spine toward us with its cords standing up, the upper board seen
-    # from a little above, the page block showing at head and tail
-    bx = 31.0
-
-    def lying(name, x0, x1, y1, th, cloth, cords):
-        ramp = CLOTH[cloth]
-        y0 = y1 - th
-        bd = th * 1.2 * math.sin(PITCH_AP) * 2.2           # the upper board, foreshortened
-        board = [(x0 + 0.6, y0 - bd), (x1 - 0.6, y0 - bd), (x1, y0), (x0, y0)]
-        m.add(shadow(poly_d([(x0, y0 - bd), (x1, y0 - bd), (x1, y1), (x0, y1)]), 0.8, 0.5, 0.5))
-        m.add('<path d="%s" fill="%s"/>' % (poly_d(board), m.lin(name + '-bd', [(0, ramp[3]), (1, ramp[2])], x0, y0 - bd, x0, y0)))
-        # the page block at the tail end, between the boards
-        m.add('<path d="%s" fill="%s"/>' % (poly_d([(x1 - 0.55, y0 - bd + 0.5), (x1 - 0.1, y0 - 0.2), (x1 - 0.1, y1 - 0.5),
-                                                    (x1 - 0.55, y1 - 0.5)]), PAGES[2]))
-        back = 'M%s %s Q%s %s %s %s L%s %s Q%s %s %s %s Z' % (
-            f(x0), f(y0), f(x0 - 0.8), f((y0 + y1) / 2), f(x0), f(y1), f(x1), f(y1), f(x1 + 0.8), f((y0 + y1) / 2), f(x1), f(y0))
-        m.add('<path d="%s" fill="%s"/>' % (back, cyl_grad(m, name, 0, y0, 0, y1, ramp, n=9, amb=0.22, shine=0.3)))
-        for cx_ in cords:
-            m.add('<path d="M%s %s V%s H%s V%s Z" fill="%s"/>' % (f(cx_ - 0.7), f(y0), f(y1), f(cx_), f(y0), ramp[4]))
-            m.add('<path d="M%s %s V%s H%s V%s Z" fill="%s"/>' % (f(cx_), f(y0), f(y1), f(cx_ + 0.7), f(y0), ramp[0]))
-            m.add('<path d="M%s %s V%s" stroke="%s" stroke-width=".26" stroke-opacity=".8"/>' % (f(cx_ - 1.2), f(y0 + 0.2), f(y1 - 0.2), GILT[5]))
-        rnd = m.lin(name + '-rnd', [(0, '#000', 0), (0.6, '#000', 0), (1, '#000', 0.4)], 0, y0, 0, y1)
-        m.add('<path d="%s" fill="%s"/>' % (back, rnd))
-    lying('l1', 17.0, 30.6, floor, 5.6, 'bottle', (20.4, 27.0))
-    lying('l2', 18.4, 29.4, floor - 5.6 - 1.0, 4.6, 'calf', (21.4, 26.4))
-    x = bx
-    m.add(volume(m, 'v1', x, 7.0, 25.5, 'vellum', bands=(4.5, 19.0), label=(13.0, 17.4, CLOTH['bottle'])))
-    x += 7.0
-    m.add(volume(m, 'v2', x, 6.2, 22.0, 'bottle', bands=(3.8, 6.0, 16.8)))
-    x += 6.2
-    m.add(volume(m, 'v3', x, 9.6, 31.0, 'morocco', bands=(4.6, 10.6, 19.8, 25.6), label=(12.4, 18.2, ['#0a0605', '#1d1410', '#3a2a22', '#5e483c', '#8a7060']),
-                 gilt_head=True))
-    x += 9.6
-    m.add(volume(m, 'v4', x, 5.6, 20.6, 'navy', bands=(3.6, 16.4), headband='#3a7a4b'))
-    x += 5.6
-    # the last volume tipped against its neighbour: its left foot is the
-    # pivot, its face rests on the neighbour's shoulder
-    g = 4.8
-    theta = math.degrees(math.atan2(g, 20.6))
-    m.add(volume(m, 'v5', x + g, 8.0, 25.0, 'calf', bands=(4.2, 9.2, 18.8), label=(11.4, 16.6, ['#200806', '#46120c', '#6e2016', '#9a3a28', '#c46048']),
-                 lean=theta, pivot=(x + g, floor)))
-
-
-# --------------------------------------------------------------------------
-# Outreach Desk: a calling card presented on a salver
-# --------------------------------------------------------------------------
-SILVER = ['#06111a', '#142838', '#304a5a', '#688494', '#a8bcc6', '#dde7ec', '#f8fbfc']
-
-
-def ground_basket(m, h):
-    """Prussian blue enamel over a basket-weave turning, the ground of a
-    silver card case."""
-    grad = m.rad('enamel', [(0, h['lit']), (0.55, h['field']), (1, h['deep'])], 42, 34, 50, 40, 30)
-    m.add('<circle cx="48" cy="48" r="%s" fill="%s"/>' % (f(R_FIELD), grad))
-    segs, s = [], 4.4
-    for i in range(2):
-        for j in range(2):
-            x0, y0 = i * s, j * s
-            for t in (0.9, 2.2, 3.5):
-                if (i + j) % 2 == 0:
-                    segs.append((x0 + 0.4, y0 + t, x0 + s - 0.4, y0 + t))
-                else:
-                    segs.append((x0 + t, y0 + 0.4, x0 + t, y0 + s - 0.4))
-    tile = '<path d="%s" stroke="%s" stroke-width=".42" stroke-opacity=".38"/>' % (lines_path(segs), h['lit'])
-    m.add('<circle cx="48" cy="48" r="%s" fill="%s"/>' % (f(R_FIELD), m.pattern('turn', 8.8, 8.8, tile, 'translate(48 48)')))
-
-
-def subject_outreach(m, h):
-    """A calling card on a silver salver, the way a 1930s foyer sent a
-    caller's name in: the salver's well, its cavetto and its rolled rim
-    computed as the turned and chased object they are, the card laid on it
-    with one corner turned up, which said it was left by hand."""
-    v = S.View(48, 53, 33.0, yaw=0, pitch=40)
-    WELL, CAV = 0.76, 0.86
-
-    def height(r, ph):
-        if r <= WELL:
-            return 0.0
-        if r <= CAV:
-            t = (r - WELL) / (CAV - WELL)
-            return 0.07 * (1 - math.cos(math.pi * t)) / 2
-        t = (r - CAV) / (1 - CAV)
-        return 0.07 + 0.05 * math.sin(math.pi * t) ** 0.8
-
-    def P(r, ph):
-        return (r * math.cos(ph), height(r, ph), r * math.sin(ph))
-
-    def normal(r, ph):
-        e = 0.004
-        hr = (height(r + e, ph) - height(r - e, ph)) / (2 * e)
-        hp = (height(r, ph + e) - height(r, ph - e)) / (2 * e) / max(r, 0.05)
-        radial = (math.cos(ph), 0, math.sin(ph))
-        tang = (-math.sin(ph), 0, math.cos(ph))
-        return S.norm(S.sub((0, 1, 0), S.add(S.mul(radial, hr), S.mul(tang, hp))))
-
-    def silver(nv, k=1.0):
-        return S.ramp(SILVER, min(1.0, S.lambert(nv, 0.1) * 0.72 * k + 0.42 * S.spec(nv, 14)))
-    fc = S.Faces()
-    # the rim's outer wall, down to the foot ring, seen on the near side
-    NS = 64
-    for k in range(NS):
-        p0, p1 = 2 * math.pi * k / NS, 2 * math.pi * (k + 1) / NS
-        pm = (p0 + p1) / 2
-        nv = v.nrm((math.cos(pm), -0.25, math.sin(pm)))
-        if nv[2] <= 0:
-            continue
-        q = [v.proj(p) for p in ((math.cos(p0), 0.07, math.sin(p0)), (math.cos(p1), 0.07, math.sin(p1)),
-                                 (0.95 * math.cos(p1), -0.06, 0.95 * math.sin(p1)),
-                                 (0.95 * math.cos(p0), -0.06, 0.95 * math.sin(p0)))]
-        fc.add([(x, y) for x, y, _ in q], sum(z for _, _, z in q) / 4 - 0.3,
-               S.ramp(SILVER, S.lambert(nv, 0.1) * 0.62))
-    # the cavetto rising from the well, and the rolled border, turned smooth
-    border = [CAV + (1 - CAV) * k / 4 for k in range(5)]
-    for r0, r1, flat in [(WELL, (WELL + CAV) / 2, False), ((WELL + CAV) / 2, CAV, False)] +             [(border[i], border[i + 1], False) for i in range(4)]:
-        for k in range(NS):
-            p0, p1 = 2 * math.pi * k / NS, 2 * math.pi * (k + 1) / NS
-            if flat:
-                q = [v.proj(p) for p in ((r0 * math.cos(p0), 0.075, r0 * math.sin(p0)), (r0 * math.cos(p1), 0.075, r0 * math.sin(p1)),
-                                         (r1 * math.cos(p1), 0.075, r1 * math.sin(p1)), (r1 * math.cos(p0), 0.075, r1 * math.sin(p0)))]
-                col = SILVER[1]
-            else:
-                q = [v.proj(p) for p in (P(r0, p0), P(r0, p1), P(r1, p1), P(r1, p0))]
-                nv = v.nrm(normal((r0 + r1) / 2, (p0 + p1) / 2))
-                col = S.ramp(SILVER, min(1.0, S.lambert(nv, 0.1) * 0.78 + 0.5 * S.spec(nv, 16)))
-            fc.add([(x, y) for x, y, _ in q], sum(z for _, _, z in q) / 4, col)
-    outer = [v.proj((math.cos(2 * math.pi * k / 96), -0.06, math.sin(2 * math.pi * k / 96)))[:2] for k in range(96)]
-    m.add(shadow(S.pts_d(outer), 1.3, 2.0, 0.6))
-    m.add(fc.svg(0.16))
-    # the well: flat and polished, giving back the room: pale toward the lamp,
-    # darkening to the blue of the enamel it stands over
-    well = [v.proj((WELL * math.cos(2 * math.pi * k / 96), 0, WELL * math.sin(2 * math.pi * k / 96)))[:2] for k in range(96)]
-    wx0, wy0 = well[48]
-    wx1, wy1 = well[0]
-    wl = m.lin('well', [(0, '#c6d6de'), (0.3, '#7e98a6'), (0.62, '#2e4a5a'), (1, '#10202c')], wx0, wy0 - 10, wx1, wy1 + 10)
-    m.add('<path d="%s" fill="%s"/>' % (S.pts_d(well), wl))
-    # a band of bright-cut engraving round the well: short facets cut into
-    # the silver, each one throwing the light back or not as it faces
-    lit_cuts, dark_cuts = [], []
-    for k in range(72):
-        t = 2 * math.pi * (k + 0.5) / 72
-        a0 = v.proj((0.66 * math.cos(t), 0, 0.66 * math.sin(t)))
-        a1 = v.proj((0.715 * math.cos(t + 0.03), 0, 0.715 * math.sin(t + 0.03)))
-        (lit_cuts if math.cos(t + 2.3) > 0 else dark_cuts).append((a0[0], a0[1], a1[0], a1[1]))
-    m.add('<path d="%s" stroke="#e8f0f4" stroke-width=".32" stroke-opacity=".75"/>' % lines_path(lit_cuts))
-    m.add('<path d="%s" stroke="#0a1620" stroke-width=".32" stroke-opacity=".6"/>' % lines_path(dark_cuts))
-    ring = [v.proj((0.64 * math.cos(2 * math.pi * k / 72), 0, 0.64 * math.sin(2 * math.pi * k / 72)))[:2] for k in range(72)]
-    m.add('<path d="%s" fill="none" stroke="#dfe8ec" stroke-width=".25" stroke-opacity=".55"/>' % S.pts_d(ring))
-    # the day's cards, fanned on the well from one corner the way they are
-    # dealt, the top one with its corner turned up: left by hand
-    W, Hc, T = 0.47, 0.29, 0.014
-
-    def card(k, ang_deg, px, pz, lift_y, fold, faces):
-        ang = math.radians(ang_deg)
-
-        def cp(x, z, y=0.0):
-            # pivot at the card's lower left corner
-            x, z = x + W, z - Hc
-            return (px + x * math.cos(ang) - z * math.sin(ang), T + lift_y + y, pz + x * math.sin(ang) + z * math.cos(ang))
-        if fold:
-            corners = [(-W, -Hc), (W, -Hc), (W, Hc - fold), (W - fold, Hc), (-W, Hc)]
-        else:
-            corners = [(-W, -Hc), (W, -Hc), (W, Hc), (-W, Hc)]
-        c2 = [v.proj(cp(x, z))[:2] for x, z in corners]
-        m.add(shadow(S.pts_d(c2), 0.7, 1.0, 0.45))
-        edge = [v.proj(cp(x, z, -T))[:2] for x, z in corners]
-        m.add('<path d="%s" fill="%s"/>' % (S.pts_d(edge), GILT[1]))
-        m.add('<path d="%s" fill="%s"/>' % (S.pts_d(c2), m.lin('card%d' % k, faces, c2[0][0], c2[0][1], c2[2][0], c2[2][1])))
-        m.add('<path d="%s" fill="none" stroke="%s" stroke-width=".55"/>' % (S.pts_d(c2), GILT[4]))
-        ins = 0.04
-        if fold:
-            rim_ = [(-W + ins, -Hc + ins), (W - ins, -Hc + ins), (W - ins, Hc - fold - ins * 0.6),
-                    (W - fold - ins * 0.6, Hc - ins), (-W + ins, Hc - ins)]
-        else:
-            rim_ = [(-W + ins, -Hc + ins), (W - ins, -Hc + ins), (W - ins, Hc - ins), (-W + ins, Hc - ins)]
-        m.add('<path d="%s" fill="none" stroke="%s" stroke-width=".22" stroke-opacity=".7"/>'
-              % (S.pts_d([v.proj(cp(x, z))[:2] for x, z in rim_]), GILT[2]))
-        return cp
-    px, pz = -0.24, 0.46
-    card(0, -46, px, pz, 0.0, 0, [(0, '#efe6d0'), (1, '#b8ac92')])
-    card(1, -28, px, pz, 0.014, 0, [(0, '#f6efdc'), (1, '#c6bba2')])
-    fold = 0.15
-    cp = card(2, -10, px, pz, 0.028, fold, [(0, '#fffdf6'), (0.5, '#f4efe2'), (1, '#d6ccb4')])
-    # the turned corner: the flap stands up off its fold
-    a0, b0 = cp(W, Hc - fold), cp(W - fold, Hc)
-    corner = cp(W, Hc)
-    mid = ((a0[0] + b0[0]) / 2, a0[1], (a0[2] + b0[2]) / 2)
-    out_ = S.sub(corner, mid)
-    lift = math.radians(115)
-    tip = S.add(mid, S.add(S.mul(out_, math.cos(lift)), (0, S.dot(out_, out_) ** 0.5 * math.sin(lift), 0)))
-    flap = [v.proj(p)[:2] for p in (a0, b0, tip)]
-    fn = S.norm(S.cross(S.sub(b0, a0), S.sub(tip, a0)))
-    fv = v.nrm(fn)
-    if fv[2] < 0:
-        fv = S.mul(fv, -1)
-    m.add('<path d="%s" fill="#000" fill-opacity=".3" transform="translate(.6 .5)"/>' % S.pts_d(flap))
-    m.add('<path d="%s" fill="%s"/>' % (S.pts_d(flap), S.ramp(['#7e725a', '#c8bca2', '#ece4d0', '#fffcf2'], S.lambert(fv, 0.3))))
-    m.add('<path d="M%s %s L%s %s" stroke="%s" stroke-width=".5"/>'
-          % (f(flap[0][0]), f(flap[0][1]), f(flap[1][0]), f(flap[1][1]), GILT[2]))
-
-
-# --------------------------------------------------------------------------
-# The Press Room: the world, half in night and half in morning
-# --------------------------------------------------------------------------
-# Coastlines, coarse, in (longitude, latitude): the hemisphere the globe
-# turns toward the reader, Europe to the Pacific.
 LAND = {
     'eurasia': [(25, 71), (44, 68), (60, 69), (70, 73), (100, 77), (130, 72), (160, 70), (180, 66), (163, 60),
                 (160, 55), (157, 51), (152, 58), (140, 58), (135, 54), (140, 48), (132, 43), (129, 36),
@@ -1176,194 +555,1191 @@ LAKES = {
     'caspian': [(47, 45), (49.5, 46.6), (51.4, 47), (53.2, 45.4), (51.3, 44.5), (52.9, 41), (54, 37.4),
                 (50.8, 37), (49, 38.2), (49.6, 40.6), (47.8, 42.8)],
 }
-GLOBE = {'lon0': 88.0, 'lat0': 22.0, 'tilt': 23.4, 'cx': 48.0, 'cy': 41.5, 'r': 24.0,
-         'sun': S.norm((-0.8, 0.58, 0.12))}
 
 
-def globe_xyz(lon, lat):
+# --------------------------------------------------------------------------
+# The Press Room: the world on a desk globe, half of it in night, girdled
+# by the paper's own staff
+# --------------------------------------------------------------------------
+GLOBE = {'cx': 48.0, 'cy': 43.0, 'r': 25.5, 'lean': 23.4, 'ring_yaw': 64.0, 'lon0': 60.0,
+         'sun': S.norm((-0.84, 0.46, 0.28))}
+SEA = ['#0a2a1d', '#9c7446', '#2c7058', '#5c9f82', '#a6d4b8']      # night, twilight, shade, body, lit
+LANDC = ['#1f3220', '#c49658', '#8a7a44', '#c6b274', '#f0e2ae']
+BONE = ['#34331f', '#c8a878', '#9a9270', '#d6cea4', '#f6f0c6']
+DAY = [0.0, 0.075, 0.36, 0.72]                                    # where each plane begins (n . sun)
+
+
+def _globe_frame():
     g = GLOBE
-    lo, la = math.radians(lon - g['lon0']), math.radians(lat)
-    x, y, z = math.cos(la) * math.sin(lo), math.sin(la), math.cos(la) * math.cos(lo)
-    c, s = math.cos(math.radians(g['lat0'])), math.sin(math.radians(g['lat0']))
-    y, z = y * c - z * s, y * s + z * c
-    t = math.radians(-g['tilt'])                  # the axis leans, north to the right
-    x, y = x * math.cos(t) - y * math.sin(t), x * math.sin(t) + y * math.cos(t)
+    t, ph = math.radians(g['lean']), math.radians(g['ring_yaw'])
+    h = (math.cos(ph), 0.0, math.sin(ph))                  # the ring plane's level direction
+    axis = S.norm(S.add(S.mul((0.0, 1.0, 0.0), math.cos(t)), S.mul(h, math.sin(t))))
+    nr = S.norm(S.cross((0.0, 1.0, 0.0), h))               # the ring plane's normal
+    b1 = nr
+    b2 = S.cross(b1, axis)                                  # east runs to the right, seen from outside
+    view = S.View(g['cx'], g['cy'], g['r'], yaw=0, pitch=PITCH)
+    # turn the globe so that lon0 faces the reader
+    vz = _unview(view, (0.0, 0.0, 1.0))
+    alpha = math.atan2(S.dot(vz, b1), S.dot(vz, b2))
+    spin = math.radians(g['lon0']) - alpha
+    return view, axis, h, nr, b1, b2, spin
+
+
+def _unview(view, n):
+    """A view-space direction back into the world (the View's inverse)."""
+    x, y, z = n
+    y, z = y * view.cp_ + z * view.sp_, -y * view.sp_ + z * view.cp_
+    x, z = x * view.cy_ - z * view.sy_, x * view.sy_ + z * view.cy_
     return (x, y, z)
 
 
-def globe_pt(p, clamp=True):
-    g = GLOBE
-    x, y, z = p
+def globe_world(lon, lat, fr):
+    view, axis, h, nr, b1, b2, spin = fr
+    lo, la = math.radians(lon) - spin, math.radians(lat)
+    return S.add(S.mul(S.add(S.mul(b2, math.cos(lo)), S.mul(b1, math.sin(lo))), math.cos(la)),
+                 S.mul(axis, math.sin(la)))
+
+
+def globe_screen(p, fr, clamp=True):
+    view = fr[0]
+    x, y, z = view.proj(p)
     if z < 0 and clamp:
-        ln = math.hypot(x, y) or 1
-        x, y = x / ln, y / ln
-    return (g['cx'] + g['r'] * x, g['cy'] - g['r'] * y)
+        dx, dy = x - view.cx, y - view.cy
+        k = view.s / (math.hypot(dx, dy) or 1)
+        x, y = view.cx + dx * k, view.cy + dy * k
+    return (x, y, z)
+
+
+def subject_pressroom(m, h, small=False):
+    """The world as a cast desk globe, turned to the hemisphere the paper
+    reads, Europe to the Pacific. The sun rakes it from the key light's side,
+    so half of it lies in night, with a band of twilight at the terminator.
+    Round its equator runs the paper's own staff, the rule with its dashes
+    and its hung triples of dots, printed in bone as a globe prints its
+    graduated equator. A gilt meridian ring holds it by the poles and it
+    stands on a turned foot."""
+    g = GLOBE
+    fr = _globe_frame()
+    view, axis, hdir, nr, b1, b2, spin = fr
+    cx, cy, R = g['cx'], g['cy'], g['r']
+    sun = g['sun']
+
+    def nview(x, y):
+        X, Y = (x - cx) / R, -(y - cy) / R
+        q = X * X + Y * Y
+        if q >= 0.998:
+            k = math.sqrt(0.998 / q)
+            X, Y, q = X * k, Y * k, 0.998
+        return (X, Y, math.sqrt(1 - q))
+
+    def light(x, y):
+        return S.dot(nview(x, y), sun)
+
+    disc = circle_d(cx, cy, R)
+    box = (cx - R - 1, cy - R - 1, cx + R + 1, cy + R + 1)
+    step = 0.7 if small else 0.42
+    # -- the meridian ring, the stand -----------------------------------------
+    r_o, r_i = 1.15, 1.08
+
+    def ring_pts(rr, th0, th1, n=36):
+        return [S.mul(S.add(S.mul(axis, math.cos(th0 + (th1 - th0) * k / n)),
+                            S.mul(S.cross(nr, axis), math.sin(th0 + (th1 - th0) * k / n))), rr) for k in range(n + 1)]
+    side = S.cross(nr, axis)
+    front_sign = 1 if view.rot(side)[2] > 0 else -1
+
+    def ring_half(front):
+        th0, th1 = (0, math.pi) if (front_sign > 0) == front else (math.pi, 2 * math.pi)
+        o = [view.proj(p)[:2] for p in ring_pts(r_o, th0, th1)]
+        i = [view.proj(p)[:2] for p in ring_pts(r_i, th0, th1)]
+        return S.pts_d(o + i[::-1]), o, i
+    ring_face = view.nrm(nr if view.rot(nr)[2] > 0 else S.mul(nr, -1))
+    face_lit = lam(ring_face)
+    # the stand: stem from the ring's lowest point, a turned foot
+    low = view.proj((0.0, -r_o, 0.0))
+    fc = S.Faces()
+    sv = S.View(low[0], low[1], R, yaw=0, pitch=PITCH)
+    gilt4 = [GILT[1], GILT[2], GILT[4], GILT[5], GILT[3]]
+    # a turned foot, a baluster stem and a knop taking the ring, bottom up
+    foot = [(-0.46, -0.41, 0.46, 0.46), (-0.41, -0.37, 0.46, 0.37), (-0.37, -0.34, 0.31, 0.29),
+            (-0.34, -0.22, 0.1, 0.075), (-0.22, -0.11, 0.075, 0.05), (-0.11, -0.065, 0.05, 0.088),
+            (-0.065, -0.02, 0.088, 0.05), (-0.02, 0.03, 0.042, 0.042)]
+    for y0, y1, r0, r1 in foot:
+        n = 24 if small else 40
+        for k in range(n):
+            p0, p1 = 2 * math.pi * k / n, 2 * math.pi * (k + 1) / n
+            pm = (p0 + p1) / 2
+            nv = sv.nrm((math.cos(pm), (r0 - r1) / max(0.01, y1 - y0), math.sin(pm)))
+            if nv[2] <= 0:
+                continue
+            q = [sv.proj((r0 * math.cos(p0), y0, r0 * math.sin(p0))), sv.proj((r0 * math.cos(p1), y0, r0 * math.sin(p1))),
+                 sv.proj((r1 * math.cos(p1), y1, r1 * math.sin(p1))), sv.proj((r1 * math.cos(p0), y1, r1 * math.sin(p0)))]
+            fc.add([(a, b) for a, b, _ in q], sum(z for _, _, z in q) / 4, facet(lam(nv), gilt4, [0.18, 0.45, 0.7, 0.9]))
+        top = [sv.proj((r1 * math.cos(2 * math.pi * k / n), y1, r1 * math.sin(2 * math.pi * k / n))) for k in range(n)]
+        fc.add([(a, b) for a, b, _ in top], sum(z for _, _, z in top) / n - 0.5,
+               facet(lam(sv.nrm((0, 1, 0))), gilt4, [0.18, 0.45, 0.7, 0.9]))
+    base = [sv.proj((0.46 * math.cos(2 * math.pi * k / 40), -0.46, 0.46 * math.sin(2 * math.pi * k / 40)))[:2]
+            for k in range(40)]
+    m.add(shadow(poly_d(base), 1.0, 1.0, 0.45))
+    m.add(fc.svg(seam=0.12))
+    # the ring's far half, behind the globe
+    back, _, _ = ring_half(False)
+    m.add('<path d="%s" fill="%s"/>' % (back, GILT[1]))
+    # -- the globe --------------------------------------------------------------
+    m.add(shadow(disc, 1.4, 2.0, 0.45))
+    m.add(planes(m, 'sea', disc, light, box, SEA, DAY, step))
+    shapes = []
+    for name, pts in LAND.items():
+        if len(pts) < 3:
+            continue
+        xyz = [globe_world(lo, la, fr) for lo, la in pts]
+        scr = [globe_screen(p, fr) for p in xyz]
+        if max(z for _, _, z in scr) <= 0:
+            continue
+        shapes.append(S.pts_d(S.rdp([(x, y) for x, y, _ in scr], 0.3 if small else 0.15)))
+    land_d = ' '.join(shapes)
+    lclip = m.clip('land', '<path d="%s"/>' % land_d)
+    dclip = m.clip('disc', '<path d="%s"/>' % disc)
+    m.add('<g clip-path="%s"><g clip-path="%s">%s</g></g>' % (dclip, lclip, planes(m, 'landp', disc, light, box, LANDC, DAY, step)))
+    lakes = [poly_d([globe_screen(globe_world(lo, la, fr), fr)[:2] for lo, la in pts]) for pts in LAKES.values()]
+    if not small:
+        m.add(planes(m, 'lake', ' '.join(lakes), light, box, SEA, DAY, step))
+    # the graticule, engraved: meridians every thirty degrees, the tropics
+    # and the polar circles (the equator carries the staff)
+    if not small:
+        lines = []
+        for lon in range(0, 360, 30):
+            cur = []
+            for k in range(0, 181, 4):
+                p = globe_screen(globe_world(lon, -90 + k, fr), fr, clamp=False)
+                if p[2] > 0:
+                    cur.append(p[:2])
+                elif cur:
+                    lines.append(cur)
+                    cur = []
+            if cur:
+                lines.append(cur)
+        for lat in (-66.5, -23.4, 23.4, 66.5):
+            cur = []
+            for k in range(0, 361, 4):
+                p = globe_screen(globe_world(k, lat, fr), fr, clamp=False)
+                if p[2] > 0:
+                    cur.append(p[:2])
+                elif cur:
+                    lines.append(cur)
+                    cur = []
+            if cur:
+                lines.append(cur)
+        gd = ' '.join('M' + ' L'.join('%s %s' % (f(x), f(y)) for x, y in ln_) for ln_ in lines if len(ln_) > 1)
+        m.add('<path d="%s" stroke="#0c1c12" stroke-width=".42" stroke-opacity=".3" fill="none"/>' % gd)
+    # -- the staff round the equator ------------------------------------------
+    half = 3.4
+
+    def lat_at(x, y):
+        n = _unview(view, nview(x, y))
+        return math.degrees(math.asin(max(-1.0, min(1.0, S.dot(n, axis)))))
+
+    def band_fn(x, y):
+        if (x - cx) ** 2 + (y - cy) ** 2 > (R - 0.05) ** 2:
+            return 1.0
+        return abs(lat_at(x, y)) - half
+    band = S.region_d(band_fn, box, step, 0.1)
+    if band:
+        m.add(planes(m, 'staff', band, light, box, BONE, DAY, step))
+        if not small:
+            ink = []
+            rule = []
+            for k in range(0, 361, 3):
+                p = globe_screen(globe_world(k, 0.9, fr), fr, clamp=False)
+                rule.append(p)
+            seg, segs = [], []
+            for p in rule:
+                if p[2] > 0.05:
+                    seg.append(p[:2])
+                elif seg:
+                    segs.append(seg)
+                    seg = []
+            if seg:
+                segs.append(seg)
+            ink.append('<path d="%s" stroke="#1a170c" stroke-width=".42" stroke-opacity=".75" fill="none"/>'
+                       % ' '.join('M' + ' L'.join('%s %s' % (f(x), f(y)) for x, y in s_) for s_ in segs if len(s_) > 1))
+            dash, dots = [], []
+            for lon in range(0, 360, 12):
+                a = globe_screen(globe_world(lon, 2.3, fr), fr, clamp=False)
+                b = globe_screen(globe_world(lon, -0.5, fr), fr, clamp=False)
+                if min(a[2], b[2]) > 0.12:
+                    dash.append((a[0], a[1], b[0], b[1]))
+                for dl, dt in ((5.2, -1.3), (6.8, -1.3), (6.0, -2.5)):
+                    q = globe_screen(globe_world(lon + dl, dt, fr), fr, clamp=False)
+                    if q[2] > 0.12:
+                        dots.append('M%s %sh.01' % (S.fmt(q[0]), S.fmt(q[1])))
+            ink.append('<path d="%s" stroke="#1a170c" stroke-width=".4" stroke-opacity=".75"/>' % lines_path(dash))
+            ink.append('<path d="%s" stroke="#1a170c" stroke-opacity=".7" stroke-width=".52" stroke-linecap="round"/>' % ''.join(dots))
+            m.add('<g clip-path="%s">%s</g>' % (m.clip('staffink', '<path d="%s"/>' % band), ''.join(ink)))
+    # -- the ring's near half and its pivots -----------------------------------
+    near, o, i = ring_half(True)
+    m.add(shadow(near, 0.6, 0.9, 0.45))
+    m.add('<path d="%s" fill="%s"/>' % (near, facet(face_lit, gilt4, [0.18, 0.45, 0.7, 0.9])))
+    # its outer edge: the ring's thickness, lit where it faces up and left
+    edge = []
+    for k in range(len(o) - 1):
+        (x0, y0), (x1, y1) = o[k], o[k + 1]
+        nx, ny = (y1 - y0), -(x1 - x0)
+        mx, my = (x0 + x1) / 2 - cx, (y0 + y1) / 2 - cy
+        if nx * mx + ny * my < 0:
+            nx, ny = -nx, -ny
+        ln = math.hypot(nx, ny) or 1
+        edge.append((x0, y0, x1, y1, lam((nx / ln, -ny / ln, 0.35))))
+    for tone in sorted(set(facet(e[4], gilt4, [0.18, 0.45, 0.7, 0.9]) for e in edge)):
+        segs = [(a, b, c, d) for a, b, c, d, l in edge if facet(l, gilt4, [0.18, 0.45, 0.7, 0.9]) == tone]
+        m.add('<path d="%s" stroke="%s" stroke-width=".7" stroke-linecap="round"/>' % (lines_path(segs), tone))
+    if not small:
+        ticks = []
+        th0 = 0 if front_sign > 0 else math.pi
+        for k in range(1, 18):
+            th = th0 + math.pi * k / 18
+            p = S.add(S.mul(axis, math.cos(th)), S.mul(side, math.sin(th)))
+            a, b = view.proj(S.mul(p, r_o - 0.005)), view.proj(S.mul(p, r_i + (0.035 if k % 3 else 0.005)))
+            ticks.append((a[0], a[1], b[0], b[1]))
+        m.add('<path d="%s" stroke="%s" stroke-width=".35"/>' % (lines_path(ticks), GILT[1]))
+    for sgn in (1, -1):
+        p = view.proj(S.mul(axis, sgn * (r_i - 0.01)))
+        q = view.proj(S.mul(axis, sgn * 1.0))
+        if p[2] > -0.2:
+            m.add('<path d="M%s %s L%s %s" stroke="%s" stroke-width="1.1" stroke-linecap="round"/>'
+                  % (f(p[0]), f(p[1]), f(q[0]), f(q[1]), GILT[2]))
+            m.add(relief(circle_d(p[0], p[1], 1.25), GILT[4], dx=0.35, dy=0.5))
+
+
+# --------------------------------------------------------------------------
+# Ground Station: the earth station's dish, turned up to the sky it listens to
+# --------------------------------------------------------------------------
+DISH = {'vx': 41.0, 'vy': 41.5, 'r': 27.0, 'F': 0.6, 'el': 42.0, 'az': 28.0}
+PAINT = ['#5d5f60', '#9d9a92', '#d6d0c2', '#f6f0e2']       # white-painted steel: dark, shade, body, lit
+PAINT_CUTS = [0.22, 0.5, 0.8]
+
+
+def dish_frame():
+    d = DISH
+    el, az = math.radians(d['el']), math.radians(d['az'])
+    a = (math.cos(el) * math.cos(az), math.sin(el), math.cos(el) * math.sin(az))   # world, y up
+    v = S.View(0, 0, 1.0, yaw=0, pitch=PITCH)
+    A = S.norm(v.rot(a))                                    # view space, y up, z to the reader
+    U, W, _ = S.basis(A)
+    return A, U, W
+
+
+def subject_groundstation(m, h, small=False):
+    """An earth station's dish, the object the app is named for: a deep
+    paraboloid of white-painted steel turned up and to the right, its bowl
+    cut into planes by the key light (lit where it faces up and left, in
+    shade where it turns away), four struts carrying the subreflector at the
+    focus, and an elevation yoke on a turned pedestal. Nothing in the sky:
+    the dish says it is listening."""
+    d = DISH
+    A, U, W = dish_frame()
+    Rd, Fp = d['r'], d['F'] * d['r']
+    V = (d['vx'], -d['vy'], 0.0)                           # the vertex, view space (y up)
+
+    def hit(x, y):
+        """The dish surface under screen point (x, y), nearest the reader:
+        (lit, facing the reader with its inside, signed edge value). The
+        edge value is negative on the dish and changes sign smoothly both at
+        the rim and where the bowl's back turns away, so the outline traces
+        clean."""
+        D0 = (x - V[0], -y - V[1], -V[2])
+        du, dw, da = S.dot(D0, U), S.dot(D0, W), S.dot(D0, A)
+        a2 = U[2] ** 2 + W[2] ** 2
+        b = 2 * (du * U[2] + dw * W[2] - 2 * Fp * A[2])
+        c = du * du + dw * dw - 4 * Fp * da
+        disc = b * b - 4 * a2 * c
+        k = 1.0 / (4 * Fp * Rd)
+        if disc < 0:
+            return None, math.sqrt(-disc) * k
+        best, edge = None, 1e9
+        for t in ((-b + math.sqrt(disc)) / (2 * a2), (-b - math.sqrt(disc)) / (2 * a2)):
+            qu, qw = du + t * U[2], dw + t * W[2]
+            rho = (qu * qu + qw * qw) / (Rd * Rd)
+            edge = min(edge, rho - 1.0)
+            if rho <= 1.0 and (best is None or t > best[0]):
+                best = (t, qu, qw)
+        if best is None:
+            return None, edge
+        _, qu, qw = best
+        n = S.norm(S.add(S.add(S.mul(U, -qu / (2 * Fp)), S.mul(W, -qw / (2 * Fp))), A))
+        inside = n[2] > 0
+        if not inside:
+            n = S.mul(n, -1)
+        return (lam(n), inside), max(edge, -math.sqrt(disc) * k)
+
+    def sil(x, y):
+        return hit(x, y)[1]
+
+    def light(x, y):
+        r = hit(x, y)[0]
+        if r is None:
+            return 0.0
+        return r[0] if r[1] else r[0] * 0.55
+
+    def proj(p):
+        return (p[0], -p[1])
+
+    def dish_pt(u, w, a_off=0.0):
+        qa = (u * u + w * w) / (4 * Fp) + a_off
+        return S.add(S.add(S.add(V, S.mul(U, u)), S.mul(W, w)), S.mul(A, qa))
+
+    rim = [proj(dish_pt(Rd * math.cos(2 * math.pi * k / 72), Rd * math.sin(2 * math.pi * k / 72))) for k in range(72)]
+    xs, ys = [p[0] for p in rim], [p[1] for p in rim]
+    box = (min(xs) - 3, min(ys) - 3, max(xs) + 3, max(ys) + 3)
+    step = 0.7 if small else 0.4
+    # -- the mount: a turned pedestal, a turntable and the elevation yoke ------
+    base_y = 81.5
+    px = d['vx'] - 1.0
+    fc = S.Faces()
+    sv = S.View(px, base_y, 1.0, yaw=0, pitch=PITCH)
+    prof = [(0.0, 2.0, 11.0, 11.0), (2.0, 3.3, 11.0, 8.8), (3.3, 4.6, 7.0, 7.0),
+            (4.6, 23.0, 5.8, 4.4), (23.0, 25.4, 7.4, 7.4)]
+    cuts = [0.22, 0.5, 0.8]
+    for y0, y1, r0, r1 in prof:
+        n = 20 if small else 36
+        for k in range(n):
+            p0, p1 = 2 * math.pi * k / n, 2 * math.pi * (k + 1) / n
+            pm = (p0 + p1) / 2
+            nv = sv.nrm((math.cos(pm), (r0 - r1) / max(0.01, y1 - y0), math.sin(pm)))
+            if nv[2] <= 0:
+                continue
+            q = [sv.proj((r0 * math.cos(p0), y0, r0 * math.sin(p0))), sv.proj((r0 * math.cos(p1), y0, r0 * math.sin(p1))),
+                 sv.proj((r1 * math.cos(p1), y1, r1 * math.sin(p1))), sv.proj((r1 * math.cos(p0), y1, r1 * math.sin(p0)))]
+            fc.add([(a, b) for a, b, _ in q], sum(z for _, _, z in q) / 4, facet(lam(nv), PAINT, cuts))
+        top = [sv.proj((r1 * math.cos(2 * math.pi * k / n), y1, r1 * math.sin(2 * math.pi * k / n))) for k in range(n)]
+        fc.add([(a, b) for a, b, _ in top], sum(z for _, _, z in top) / n - 0.5, facet(lam(sv.nrm((0, 1, 0))), PAINT, cuts))
+    foot = [sv.proj((11 * math.cos(2 * math.pi * k / 40), 0, 11 * math.sin(2 * math.pi * k / 40)))[:2] for k in range(40)]
+    m.add(shadow(poly_d(foot), 1.2, 1.0, 0.45))
+    m.add(fc.svg(seam=0.12))
+    # the yoke: a cast block rising from the turntable to the elevation
+    # axle behind the bowl, its lit face toward the key light
+    ty = sv.proj((0, 25.4, 0))[1]
+    axle = proj(S.add(V, S.mul(A, -1.5)))
+    x0l, x0r, x1l, x1r = px - 6.2, px + 6.2, axle[0] - 4.2, axle[0] + 4.2
+    mid0, mid1 = px - 1.2, axle[0] - 0.8
+    block = 'M%s %s L%s %s L%s %s L%s %s Z' % (f(x0l), f(ty + 0.6), f(x1l), f(axle[1]), f(x1r), f(axle[1]), f(x0r), f(ty + 0.6))
+    m.add(shadow(block, 0.8, 1.0, 0.45))
+    m.add('<path d="%s" fill="%s"/>' % (block, PAINT[1]))
+    m.add('<path d="M%s %s L%s %s L%s %s L%s %s Z" fill="%s"/>'
+          % (f(x0l), f(ty + 0.6), f(x1l), f(axle[1]), f(mid1), f(axle[1]), f(mid0), f(ty + 0.6), PAINT[3]))
+    # -- the bowl ----------------------------------------------------------------
+    outline = S.region_d(sil, box, step, 0.1)
+    m.add(shadow(outline, 1.6, 2.2, 0.5))
+    m.add(planes(m, 'bowl', outline, light, box, PAINT, PAINT_CUTS, step))
+    # the rim: a rolled lip, lit where its edge faces up and left
+    lip = []
+    for k in range(72):
+        (x0, y0), (x1, y1) = rim[k], rim[(k + 1) % 72]
+        mx, my = (x0 + x1) / 2, (y0 + y1) / 2
+        c = (sum(xs) / 72, sum(ys) / 72)
+        nx, ny = mx - c[0], my - c[1]
+        ln = math.hypot(nx, ny) or 1
+        lip.append((x0, y0, x1, y1, facet(lam((nx / ln, -ny / ln, 0.45)), PAINT, PAINT_CUTS)))
+    for tone in sorted(set(e[4] for e in lip)):
+        m.add('<path d="%s" stroke="%s" stroke-width="%s" stroke-linecap="round" fill="none"/>'
+              % (lines_path([e[:4] for e in lip if e[4] == tone]), tone, '1.6' if small else '1.1'))
+    # the feed horn at the vertex and the subreflector at the focus on four struts
+    foc = S.add(V, S.mul(A, Fp * 0.92))
+    fp = proj(foc)
+    if not small:
+        horn0, horn1 = proj(S.add(V, S.mul(A, 0.8))), proj(S.add(V, S.mul(A, 4.2)))
+        m.add('<path d="M%s %s L%s %s" stroke="%s" stroke-width="2.6" stroke-linecap="butt"/>'
+              % (f(horn0[0]), f(horn0[1]), f(horn1[0]), f(horn1[1]), PAINT[1]))
+    legs = []
+    for deg in (45, 135, 225, 315):
+        t = math.radians(deg)
+        p = proj(dish_pt(Rd * 0.97 * math.cos(t), Rd * 0.97 * math.sin(t)))
+        legs.append((p[0], p[1], fp[0], fp[1]))
+    m.add('<path d="%s" stroke="#000" stroke-opacity=".35" stroke-width="%s" transform="translate(.5 .7)"/>'
+          % (lines_path(legs), '2' if small else '1.1'))
+    m.add('<path d="%s" stroke="%s" stroke-width="%s" stroke-linecap="round"/>'
+          % (lines_path(legs), PAINT[2], '1.7' if small else '0.9'))
+    # the subreflector: a small convex disc facing back into the bowl; we see its back
+    sub = [proj(S.add(foc, S.add(S.mul(U, 3.4 * math.cos(2 * math.pi * k / 32)), S.mul(W, 3.4 * math.sin(2 * math.pi * k / 32)))))
+           for k in range(32)]
+    m.add(shadow(poly_d(sub), 0.6, 0.9, 0.45))
+    m.add('<path d="%s" fill="%s"/>' % (poly_d(sub), facet(lam(A), PAINT, PAINT_CUTS)))
+    if not small:
+        sub2 = [((x - fp[0]) * 0.55 + fp[0] - 0.4, (y - fp[1]) * 0.55 + fp[1] - 0.4) for x, y in sub]
+        m.add('<path d="%s" fill="%s"/>' % (poly_d(sub2), PAINT[3]))
+
+
+# --------------------------------------------------------------------------
+# Anime Autopilot: the season's shelf, bound volumes on a mahogany plank
+# --------------------------------------------------------------------------
+# Book cloths as the eye remembers them, each in four planes: dark, shade,
+# body and lit.
+CLOTHS = {
+    'vellum':  ['#6a5a40', '#a8966e', '#d8c8a0', '#f4e8c6'],
+    'bottle':  ['#0c2016', '#1a4430', '#2c6a48', '#5a9a72'],
+    'morocco': ['#3c0c0a', '#7c2218', '#b23c2c', '#e27a5c'],
+    'navy':    ['#0a1622', '#16324a', '#27526e', '#4c7c9a'],
+    'calf':    ['#3a2210', '#6e4420', '#a26c36', '#d69e62'],
+}
+LEAF = ['#8a7a5a', '#cfc2a0', '#efe4c6']                 # the page block's top: shade, body, lit
+PLANK = ['#2c1107', '#5c2b12', '#8e4c24', '#c27a46']
+SPINE_CUTS = [0.14, 0.44, 0.66]
+SHELF = {'x0': 19.0, 'x1': 78.0, 'y': 72.5, 'face': 5.0, 'depth': 30.0, 'setback': 10.0}
+
+
+def spine_columns(w, groove):
+    """Where the rounded back turns from one plane to the next, left to
+    right: (x0, x1, tone index). The back's normal swings from 65 degrees
+    left to 65 degrees right across it."""
+    inner0, inner1 = groove, w - groove
+    cols, cur, start = [], None, inner0
+    n = 60
+    for k in range(n + 1):
+        x = inner0 + (inner1 - inner0) * k / n
+        s = (x - w / 2) / ((inner1 - inner0) / 2)
+        ph = math.asin(max(-1.0, min(1.0, s * math.sin(math.radians(65)))))
+        t = 0
+        l_ = lam((math.sin(ph), 0.0, math.cos(ph)))
+        for i, c in enumerate(SPINE_CUTS):
+            if l_ >= c:
+                t = i + 1
+        if cur is None:
+            cur = t
+        elif t != cur:
+            cols.append((start, x, cur))
+            start, cur = x, t
+    cols.append((start, inner1, cur))
+    return cols
+
+
+def volume(m, x0, yb, w, hgt, cloth, bands=(), label=None, rules=False, lean=0.0, small=False):
+    """One bound volume standing on the shelf, spine out: the rounded back in
+    its planes between the two joints, the board edges, raised cords with
+    their lit upper and shaded lower faces, a leather label onlay, and the
+    head seen a little from above (the boards' top edges, the page block set
+    down between them, the headcap turned over at the front). Local frame:
+    (x0, yb) is the bottom left of the spine; lean turns the volume about its
+    bottom right corner, in degrees."""
+    T = CLOTHS[cloth]
+    depth = 18.0
+    hp = depth * math.sin(math.radians(PITCH))          # the head, seen from a little above
+    groove = 0.0 if small else min(0.95, w * 0.12)
+    out = []
+    # the head: boards' top edges, the page block set down between them
+    out.append('<path d="M0 %s H%s V%s H0 Z" fill="%s"/>' % (f(-hgt), f(w), f(-hgt - hp), T[2]))
+    if not small:
+        tb = max(0.6, w * 0.1)
+        out.append('<path d="M%s %s H%s V%s H%s Z" fill="%s"/>' % (f(tb), f(-hgt - 0.1), f(w - tb), f(-hgt - hp + 0.5), f(tb), LEAF[2]))
+        out.append('<path d="M%s %s H%s V%s H%s Z" fill="%s"/>' % (f(w * 0.62), f(-hgt - 0.1), f(w - tb), f(-hgt - hp + 0.5), f(w * 0.62), LEAF[1]))
+        out.append('<path d="M%s %s Q%s %s %s %s V%s Q%s %s %s %s Z" fill="%s"/>'
+                   % (f(tb * 0.6), f(-hgt), f(w / 2), f(-hgt - 1.6), f(w - tb * 0.6), f(-hgt),
+                      f(-hgt + 0.2), f(w / 2), f(-hgt - 0.9), f(tb * 0.6), f(-hgt + 0.2), T[3]))
+    else:
+        out.append('<path d="M%s %s H%s V%s H%s Z" fill="%s"/>' % (f(w * 0.15), f(-hgt - 0.2), f(w * 0.85), f(-hgt - hp + 0.4), f(w * 0.15), LEAF[2]))
+    # the spine: board edges, the joints, the rounded back in its planes
+    out.append('<path d="M0 0 H%s V%s H0 Z" fill="%s"/>' % (f(w), f(-hgt), T[0]))
+    cols = [(0.0, w, 2)] if small and w < 7 else spine_columns(w, groove)
+    if small:
+        cols = [(0.0, w * 0.4, 3), (w * 0.4, w * 0.78, 2), (w * 0.78, w, 1)]
+    for a, b, t in cols:
+        out.append('<path d="M%s 0 H%s V%s H%s Z" fill="%s"/>' % (f(a), f(b), f(-hgt), f(a), T[t]))
+    if groove:
+        out.append('<path d="M0 0 H%s V%s H0 Z" fill="%s"/>' % (f(groove * 0.55), f(-hgt), T[2]))
+        out.append('<path d="M%s 0 H%s V%s H%s Z" fill="%s"/>' % (f(w - groove * 0.55), f(w), f(-hgt), f(w - groove * 0.55), T[1]))
+    # raised cords: each a ridge, its upper face lit, its lower face in shade
+    for y in bands:
+        yy = -hgt * y
+        if small:
+            out.append('<path d="M0 %s H%s V%s H0 Z" fill="%s"/>' % (f(yy), f(w), f(yy - 2.2), T[3]))
+            continue
+        for a, b, t in cols:
+            out.append('<path d="M%s %s H%s V%s H%s Z" fill="%s"/>' % (f(a), f(yy - 0.75), f(b), f(yy - 1.5), f(a), T[min(3, t + 1)]))
+            out.append('<path d="M%s %s H%s V%s H%s Z" fill="%s"/>' % (f(a), f(yy), f(b), f(yy - 0.75), f(a), T[max(0, t - 2)]))
+        out.append('<path d="M%s %s H%s M%s %s H%s" stroke="%s" stroke-width=".32" stroke-opacity=".85"/>'
+                   % (f(groove), f(yy - 1.95), f(w - groove), f(groove), f(yy + 0.45), f(w - groove), GILT[5]))
+    if label and not small:
+        y0, y1, col = label
+        ya, yb2 = -hgt * y0, -hgt * y1
+        lc = [darken(col, 0.55), darken(col, 0.25), col]
+        out.append('<path d="M%s %s H%s V%s H%s Z" fill="%s"/>' % (f(groove + 0.3), f(ya), f(w - groove - 0.3), f(yb2), f(groove + 0.3), lc[1]))
+        out.append('<path d="M%s %s H%s V%s H%s Z" fill="%s"/>' % (f(groove + 0.3), f(ya), f(w * 0.45), f(yb2), f(groove + 0.3), lc[2]))
+        out.append('<path d="M%s %s H%s V%s H%s Z" fill="%s"/>' % (f(w * 0.8), f(ya), f(w - groove - 0.3), f(yb2), f(w * 0.8), lc[0]))
+        out.append('<path d="M%s %s H%s V%s H%s Z" fill="none" stroke="%s" stroke-width=".3" stroke-opacity=".9"/>'
+                   % (f(groove + 0.9), f(ya - 0.6), f(w - groove - 0.9), f(yb2 + 0.6), f(groove + 0.9), GILT[5]))
+    if rules and not small:
+        for y in (0.08, 0.92):
+            yy = -hgt * y
+            out.append('<path d="M%s %s H%s M%s %s H%s" stroke="%s" stroke-width=".35" stroke-opacity=".8"/>'
+                       % (f(groove), f(yy), f(w - groove), f(groove), f(yy - 0.9), f(w - groove), GILT[5]))
+    body = ''.join(out)
+    tf = 'translate(%s %s)' % (f(x0), f(yb))
+    if lean:
+        tf += ' rotate(%s %s 0)' % (f(lean), f(w))
+    sil = 'M0 0 H%s V%s H0 Z' % (f(w), f(-hgt - hp))
+    return ('<g transform="%s"><path d="%s" fill="#000" fill-opacity=".45" transform="translate(.7 .3)"/>%s</g>'
+            % (tf, sil, body))
+
+
+def lying(m, x0, yb, length, th, cloth, small=False):
+    """A volume lying flat, spine out: its rounded back in horizontal planes
+    (the upper half turned to the light), and its top board seen from a
+    little above."""
+    T = CLOTHS[cloth]
+    hp = 18.0 * math.sin(math.radians(PITCH))
+    out = ['<path d="M%s %s H%s V%s H%s Z" fill="#000" fill-opacity=".45" transform="translate(.7 .5)"/>'
+           % (f(x0), f(yb), f(x0 + length), f(yb - th - hp), f(x0))]
+    out.append('<path d="M%s %s H%s V%s H%s Z" fill="%s"/>' % (f(x0), f(yb - th), f(x0 + length), f(yb - th - hp), f(x0), T[2]))
+    bands = [(0.0, 0.3, 0), (0.3, 0.62, 1), (0.62, 0.86, 2), (0.86, 1.0, 3)] if not small else [(0, 0.45, 1), (0.45, 1, 3)]
+    for a, b, t in bands:
+        out.append('<path d="M%s %s H%s V%s H%s Z" fill="%s"/>' % (f(x0), f(yb - th * a), f(x0 + length), f(yb - th * b), f(x0), T[t]))
+    if not small:
+        for fx in (0.16, 0.84):
+            out.append('<path d="M%s %s V%s" stroke="%s" stroke-width=".35" stroke-opacity=".8"/>'
+                       % (f(x0 + length * fx), f(yb - 0.5), f(yb - th + 0.5), GILT[5]))
+    return ''.join(out)
+
+
+def subject_autopilot(m, h, small=False):
+    """The season's shelf: bound volumes standing on a mahogany plank, the
+    way the app shelves a season while the owner sleeps. A tall red morocco
+    volume leads, with its cords and label; vellum, bottle-green cloth and
+    navy buckram stand beside it at their own heights; the last volume in
+    calf leans on its neighbour, and two lie flat at the end. Each spine is
+    a rounded back cut into planes by the key light, with its head seen from
+    a little above."""
+    sh = SHELF
+    sb = sh['setback'] * math.sin(math.radians(PITCH))
+    top_back = sh['y'] - sh['depth'] * math.sin(math.radians(PITCH))
+    yb = sh['y'] - sb                                   # where the volumes stand
+    x0, x1 = sh['x0'], sh['x1']
+    # the plank: its top seen from a little above, a bullnose front
+    m.add(shadow('M%s %s H%s V%s H%s Z' % (f(x0), f(top_back), f(x1), f(sh['y'] + sh['face']), f(x0)), 1.2, 1.6, 0.5))
+    m.add('<path d="M%s %s H%s V%s H%s Z" fill="%s"/>' % (f(x0), f(top_back), f(x1), f(sh['y']), f(x0), PLANK[2]))
+    m.add('<path d="M%s %s H%s V%s H%s Z" fill="%s"/>' % (f(x0), f(sh['y']), f(x1), f(sh['y'] + sh['face'] * 0.45), f(x0), PLANK[3]))
+    m.add('<path d="M%s %s H%s V%s H%s Z" fill="%s"/>'
+          % (f(x0), f(sh['y'] + sh['face'] * 0.45), f(x1), f(sh['y'] + sh['face']), f(x0), PLANK[1]))
+    if not small:
+        m.add('<path d="M%s %s H%s" stroke="%s" stroke-width=".4"/>' % (f(x0), f(sh['y'] + sh['face'] - 0.2), f(x1), PLANK[0]))
+    # the volumes, left to right
+    lean = 12.0
+    books = [  # x, width, height, cloth, cords, label, rules
+        (29.4, 9.4, 42.0, 'vellum', (), (0.8, 0.9, '#6e2a20'), False),
+        (38.8, 7.8, 35.5, 'bottle', (), None, True),
+        (46.6, 12.2, 50.0, 'morocco', (0.18, 0.38, 0.58, 0.8), (0.62, 0.76, '#1c1410'), False),
+        (58.8, 8.6, 39.0, 'navy', (), (0.72, 0.84, '#8a2a22'), True),
+    ]
+    lh, lw = 37.0, 8.2
+    px = books[0][0] - lh * math.sin(math.radians(lean)) - 0.2
+    m.add(volume(m, px - lw, yb, lw, lh, 'calf', (0.22, 0.46, 0.7), None, False, lean=lean, small=small))
+    for x, w, hh, cloth, cords, label, rules in books:
+        m.add(volume(m, x, yb, w, hh, cloth, cords, label, rules, small=small))
+    m.add(bookend(m, 67.4, yb, 10.4, 24.0, small))
+
+
+BRASS = [GILT[1], GILT[2], GILT[4], GILT[5], GILT[3]]
+
+
+def bookend(m, x0, yb, w, hgt, small=False):
+    """The brass bookend the app's opening sets down before any volume
+    rises: a cast quarter fan, its flat back to the books and its sweep to
+    the open shelf, fluted from the heel."""
+    n = 28
+    arc = [(x0 + w * math.sin(math.pi / 2 * k / n), yb - hgt * math.cos(math.pi / 2 * k / n)) for k in range(n + 1)]
+    sil = 'M%s %s L%s Z' % (f(x0), f(yb), ' L'.join('%s %s' % (f(x), f(y)) for x, y in arc))
+    out = [shadow(sil, 0.9, 0.6, 0.45), '<path d="%s" fill="%s"/>' % (sil, BRASS[2])]
+    # the lip round the sweep, lit where it turns up to the key light
+    inner = [(x0 + (x - x0) * 0.86, yb - (yb - y) * 0.86) for x, y in arc]
+    for k in range(n):
+        a = math.pi / 2 * (k + 0.5) / n
+        nx, ny = math.sin(a) * hgt, -math.cos(a) * w
+        ln = math.hypot(nx, ny)
+        t = facet(lam((nx / ln, -ny / ln, 0.5)), BRASS, [0.18, 0.45, 0.7, 0.9])
+        out.append('<path d="%s" fill="%s"/>' % (poly_d([arc[k], arc[k + 1], inner[k + 1], inner[k]]), t))
+    if not small:
+        # flutes from the heel, each a groove: its shaded wall and its lit wall
+        for a in (18, 36, 54, 72):
+            t = math.radians(a)
+            ex, ey = x0 + w * 0.84 * math.sin(t), yb - hgt * 0.84 * math.cos(t)
+            hx, hy = x0 + w * 0.22 * math.sin(t), yb - hgt * 0.22 * math.cos(t)
+            out.append('<path d="M%s %s L%s %s" stroke="%s" stroke-width=".8"/>' % (f(hx), f(hy), f(ex), f(ey), BRASS[0]))
+            out.append('<path d="M%s %s L%s %s" stroke="%s" stroke-width=".45"/>'
+                       % (f(hx + 0.55), f(hy + 0.2), f(ex + 0.55), f(ey + 0.2), BRASS[4]))
+        out.append('<path d="M%s %s H%s" stroke="%s" stroke-width=".9"/>' % (f(x0), f(yb - 0.45), f(x0 + w), BRASS[1]))
+    return ''.join(out)
+
+
+# --------------------------------------------------------------------------
+# Outreach Desk: the day's introductions, three calling cards dealt in a fan
+# --------------------------------------------------------------------------
+# The page grades every person P1, P2 or P3, and prints the grades as a gold
+# badge, a sky-blue badge and an outlined one. The cards take those stocks:
+# each as face, shade (the turned flap, its underside) and the bevel's dark.
+STOCKS = {  # face, a shade for the turned flap, the plate mark's shadow, its light
+    'p1': ['#f8f3e6', '#d8ceb4', '#b8ab8c', '#ffffff'],     # the first call: ivory, gilt-edged
+    'p2': ['#dcecf6', '#a8c8dc', '#8aaec6', '#f4fbff'],     # the second: sky
+    'p3': ['#ece2c8', '#cdbf9c', '#b0a27e', '#fbf5e6'],     # the third: plain bone
+}
+FAN = {'px': 28.0, 'py': 71.5, 'w': 49.0, 'h': 28.5, 'angles': (-40.0, -23.0, -6.0)}
+
+
+def card(m, name, stock, ang, gilt=0.0, fold=False, portrait=False, small=False):
+    """One engraved calling card: square cornered, blank, its engraved plate
+    pressed into the stock as a sunk panel (lit on its lower and right walls,
+    shaded on its upper and left), and, on the finest, a gilt bevel round the
+    edge. With fold, its lower right corner is turned up across a real
+    crease: the flap shows the card's underside and throws a shadow on the
+    face."""
+    fa = FAN
+    T = STOCKS[stock]
+    w, hh = fa['w'], fa['h']
+    x0, y0, x1, y1 = -4.0, -hh + 4.0, w - 4.0, 4.0        # local: pivot at the origin, y down
+    c = 9.0                                            # the fold's leg
+    if fold:
+        face = [(x0, y0), (x1, y0), (x1, y1 - c), (x1 - c, y1), (x0, y1)]
+    else:
+        face = [(x0, y0), (x1, y0), (x1, y1), (x0, y1)]
+    a = math.radians(ang)
+
+    def lit_of(nx, ny, nz=0.6):
+        rx, ry = nx * math.cos(a) - ny * math.sin(a), nx * math.sin(a) + ny * math.cos(a)
+        return lam((rx, -ry, nz))
+    out = [shadow(poly_d(face), 1.1, 1.5, 0.42)]
+    # the stock's thickness, a hair below and right of the face
+    out.append('<path d="%s" fill="%s" transform="translate(.35 .45)"/>' % (poly_d(face), T[2]))
+    out.append('<path d="%s" fill="%s"/>' % (poly_d(face), T[0]))
+    inner_parts = []
+    if not small:
+        if gilt:
+            bw = gilt
+            inner = [(x0 + bw, y0 + bw), (x1 - bw, y0 + bw), (x1 - bw, y1 - bw), (x0 + bw, y1 - bw)]
+            outer = [(x0, y0), (x1, y0), (x1, y1), (x0, y1)]
+            normals = [(0, -1), (1, 0), (0, 1), (-1, 0)]
+            gold = [GILT[1], GILT[2], GILT[4], GILT[5], GILT[3]]
+            for k in range(4):
+                nx, ny = normals[k]
+                t = facet(lit_of(nx, ny), gold, [0.18, 0.45, 0.7, 0.9])
+                inner_parts.append('<path d="%s" fill="%s"/>' % (poly_d([outer[k], outer[(k + 1) % 4], inner[(k + 1) % 4], inner[k]]), t))
+    elif gilt:
+        inner_parts.append('<path d="%s" fill="none" stroke="%s" stroke-width="2.2"/>' % (poly_d([(x0, y0), (x1, y0), (x1, y1), (x0, y1)]), GILT[4]))
+    if inner_parts:
+        out.append('<g clip-path="%s">%s</g>' % (m.clip(name + '-face', '<path d="%s"/>' % poly_d(face)), ''.join(inner_parts)))
+    if portrait:
+        out.append(sitter(m, name, x0 + 3.6, y0 + 3.4, 19.5, small))
+    if fold:
+        # the flap: the corner turned up over the face, its underside showing
+        flap = [(x1 - c, y1), (x1, y1 - c), (x1 - c, y1 - c)]
+        out.append('<path d="%s" fill="#000" fill-opacity=".3" transform="translate(1 1.3)"/>' % poly_d(flap))
+        out.append('<path d="%s" fill="%s"/>' % (poly_d(flap), T[1]))
+        if gilt and not small:
+            out.append('<path d="M%s %s L%s %s L%s %s" stroke="%s" stroke-width="%s" fill="none"/>'
+                       % (f(x1 - c), f(y1), f(x1 - c), f(y1 - c), f(x1), f(y1 - c), GILT[2], f(gilt)))
+        out.append('<path d="M%s %s L%s %s" stroke="%s" stroke-width="%s" stroke-linecap="round"/>'
+                   % (f(x1 - c), f(y1), f(x1), f(y1 - c), T[2], '1' if small else '.45'))
+    return '<g transform="translate(%s %s) rotate(%s)">%s</g>' % (f(fa['px']), f(fa['py']), f(ang), ''.join(out))
+
+
+# A sitter in profile, cut as the old silhouette-cutters cut a likeness: the
+# head, the brow and nose and lips and chin, the neck in its collar and the
+# bust truncated in a curve. Local units, head facing right, crown at y 0.
+SITTER = [(4.0, 0.0), (6.3, 0.6), (7.6, 1.9), (8.1, 3.3), (8.25, 4.25), (8.05, 4.8), (8.6, 5.7), (9.15, 6.55),
+          (8.75, 6.88), (8.35, 6.97), (8.52, 7.42), (8.25, 7.76), (8.42, 8.06), (8.05, 8.52), (8.32, 9.2),
+          (7.9, 9.85), (6.9, 10.12), (6.3, 10.6), (6.2, 11.6), (6.5, 12.6), (8.0, 13.6), (9.4, 15.2, 1),
+          (4.0, 16.5), (-0.6, 15.9, 1), (-0.7, 14.6), (0.6, 13.0), (1.6, 11.8), (2.2, 10.2), (1.4, 8.8),
+          (0.4, 7.0), (0.2, 5.0), (0.8, 2.8), (2.2, 0.9)]
+
+
+def sitter(m, name, x, y, hgt, small=False):
+    """An upright oval cameo set in the card: a sitter's likeness in white
+    relief on jasper blue, the way a portrait medallion was cut. The
+    introduction is a person."""
+    rx, ry = hgt * 0.37, hgt * 0.5
+    cx, cy = x + rx, y + ry
+    out = ['<ellipse cx="%s" cy="%s" rx="%s" ry="%s" fill="%s"/>' % (f(cx), f(cy), f(rx), f(ry), JASPER[1])]
+    k = hgt / 19.0
+    pts = [((px - 4.3) * k + cx, (py - 7.6) * k + cy) + tuple(p[2:]) for p in SITTER for px, py in [p[:2]]]
+    d = smooth_d(pts)
+    clip = m.clip(name + '-oval', '<ellipse cx="%s" cy="%s" rx="%s" ry="%s"/>' % (f(cx), f(cy), f(rx), f(ry)))
+    body = ''
+    if not small:
+        # the jasper dished a little, in shade on the lamp side's rim
+        body += '<path d="%s" fill="%s"/>' % (wedge_d(cx, cy, 0, max(rx, ry) * 1.2, math.radians(190), math.radians(280)), JASPER[0])
+        body += '<ellipse cx="%s" cy="%s" rx="%s" ry="%s" fill="%s"/>' % (f(cx + 0.35), f(cy + 0.45), f(rx * 0.9), f(ry * 0.92), JASPER[1])
+        body += relief(d, JASPER[3], lit='#ffffff', shade='#1c2c3a', dx=0.4, dy=0.5, sh_op=0.5, lo=0.2)
+    else:
+        body += '<path d="%s" fill="%s"/>' % (d, JASPER[3])
+    out.append('<g clip-path="%s">%s</g>' % (clip, body))
+    out.append('<ellipse cx="%s" cy="%s" rx="%s" ry="%s" fill="none" stroke="%s" stroke-width="%s"/>'
+               % (f(cx), f(cy), f(rx), f(ry), GILT[4], '1.2' if small else '.7'))
+    return ''.join(out)
+
+
+JASPER = ['#5d7a92', '#7e9bb2', '#a9c0d0', '#f1ede4']      # the jasper's shade, its body, its light; the relief
+
+
+def subject_outreach(m, h, small=False):
+    """The day's queue as the desk deals it: three calling cards fanned from
+    one hand, graded as the page grades them, gold for the first call, sky
+    for the second, plain ivory with a gilt edge for the third. The front
+    card has its corner turned up, the old sign of a card delivered in
+    person, because the desk never sends: the owner does."""
+    a0, a1, a2 = FAN['angles']
+    m.add(card(m, 'c3', 'p3', a0, small=small))
+    m.add(card(m, 'c2', 'p2', a1, small=small))
+    m.add(card(m, 'c1', 'p1', a2, gilt=0.7, fold=True, portrait=True, small=small))
+
+
+# --------------------------------------------------------------------------
+# Arsenal: the gunner's quadrant, laid at an elevation
+# --------------------------------------------------------------------------
+QUAD = {'vx': 60.0, 'vy': 24.5, 'elev': 36.0, 'long': 56.0, 'r0': 22.0, 'r1': 31.0, 'bar': 6.6}
+BRASS4 = [GILT[1], GILT[2], GILT[4], GILT[5], GILT[3]]
+BRASS_CUTS = [0.18, 0.45, 0.7, 0.9]
+LACQUER = ['#3a0c08', '#7a1e16', '#b03a2e', '#e0705a']     # the bob's signal-red lacquer
+
+
+def bevelled(outer, inner, face):
+    """A flat cast plate facing the reader: its face, and a chamfer round it
+    whose every facet takes the tone its outward normal turns to the key."""
+    out = ['<path d="%s" fill="%s"/>' % (poly_d(outer), face)]
+    n = len(outer)
+    cx = sum(p[0] for p in outer) / n
+    cy = sum(p[1] for p in outer) / n
+    for i in range(n):
+        a, b = outer[i], outer[(i + 1) % n]
+        c, d = inner[(i + 1) % n], inner[i]
+        ex, ey = b[0] - a[0], b[1] - a[1]
+        nx, ny = ey, -ex
+        if nx * ((a[0] + b[0]) / 2 - cx) + ny * ((a[1] + b[1]) / 2 - cy) < 0:
+            nx, ny = -nx, -ny
+        ln = math.hypot(nx, ny) or 1
+        t = facet(lam((nx / ln, -ny / ln, 0.7)), BRASS4, BRASS_CUTS)
+        out.append('<path d="%s" fill="%s"/>' % (poly_d([a, b, c, d]), t))
+    out.append('<path d="%s" fill="%s"/>' % (poly_d(inner), face))
+    return ''.join(out)
+
+
+def subject_arsenal(m, h, small=False):
+    """The gunner's quadrant, the instrument that first turned a gun's
+    elevation into a number (Tartaglia, 1537): a long arm laid in the bore,
+    a short arm square to it, and between them a limb graduated in the
+    gunner's twelve points. A plumb bob on its cord hangs from the corner and
+    reads the elevation where it crosses the limb, as Arsenal's Ballistic
+    Computer reads one off the range. Cast brass, the bob lacquered in the
+    tool's signal red."""
+    q = QUAD
+    vx, vy = q['vx'], q['vy']
+    e = math.radians(q['elev'])
+    long_dir = (math.cos(math.pi + e), -math.sin(math.pi + e))            # screen, down and left
+    short_dir = (math.cos(1.5 * math.pi + e), -math.sin(1.5 * math.pi + e))  # down and a little right
+    bw = q['bar']
+    r0, r1 = q['r0'], q['r1']
+    ch = 0.0 if small else 0.9                                            # chamfer
+
+    def along(d, t, s):
+        # a point t along direction d, s to its side (the side toward the limb is +)
+        px, py = -d[1], d[0]
+        return (vx + d[0] * t + px * s, vy + d[1] * t + py * s)
+
+    # the limb: an annular band between the arms
+    a0 = math.pi + e                    # the long arm's angle (math, y up)
+    a1 = 1.5 * math.pi + e              # the short arm's
+    n = 36
+
+    def arc(r, a_from, a_to):
+        return [(vx + r * math.cos(a_from + (a_to - a_from) * k / n), vy - r * math.sin(a_from + (a_to - a_from) * k / n))
+                for k in range(n + 1)]
+    limb_o, limb_i = arc(r1, a0, a1), arc(r0, a0, a1)
+    limb = limb_o + limb_i[::-1]
+    # the arms, as bars from the corner
+    lo = [along(long_dir, -bw / 2, -bw / 2), along(long_dir, q['long'], -bw / 2),
+          along(long_dir, q['long'], bw / 2), along(long_dir, -bw / 2, bw / 2)]
+    so = [along(short_dir, -bw / 2, bw / 2), along(short_dir, r1 + 1.2, bw / 2),
+          along(short_dir, r1 + 1.2, -bw / 2), along(short_dir, -bw / 2, -bw / 2)]
+    body = [lo, so]
+    sil = ' '.join(poly_d(p) for p in body) + ' ' + poly_d(limb)
+    m.add(shadow(sil, 1.3, 1.8, 0.55))
+
+    def inset(poly, k):
+        cx = sum(p[0] for p in poly) / len(poly)
+        cy = sum(p[1] for p in poly) / len(poly)
+        out = []
+        n_ = len(poly)
+        for i in range(n_):
+            p0, p1, p2 = poly[i - 1], poly[i], poly[(i + 1) % n_]
+            # offset each vertex inward along the bisector of its two edges
+            e1 = (p1[0] - p0[0], p1[1] - p0[1])
+            e2 = (p2[0] - p1[0], p2[1] - p1[1])
+            n1 = (-e1[1], e1[0])
+            n2 = (-e2[1], e2[0])
+            l1, l2 = math.hypot(*n1) or 1, math.hypot(*n2) or 1
+            n1, n2 = (n1[0] / l1, n1[1] / l1), (n2[0] / l2, n2[1] / l2)
+            bx, by = n1[0] + n2[0], n1[1] + n2[1]
+            bl = math.hypot(bx, by) or 1
+            bx, by = bx / bl, by / bl
+            cosh = max(0.3, bx * n1[0] + by * n1[1])
+            # inward is toward the centroid
+            if bx * (cx - p1[0]) + by * (cy - p1[1]) < 0:
+                bx, by = -bx, -by
+            out.append((p1[0] + bx * k / cosh, p1[1] + by * k / cosh))
+        return out
+    face = BRASS4[2]
+    # the web between the arms: a thinner plate set down inside the limb,
+    # engraved with the gunner's points run in to the corner
+    web = [(vx, vy)] + arc(r0 + 0.6, a0, a1)
+    m.add('<path d="%s" fill="%s"/>' % (poly_d(web), BRASS4[1]))
+    if not small:
+        rays = []
+        for k in range(1, 12):
+            a = a0 + (a1 - a0) * k / 12
+            rays.append((vx + 6.0 * math.cos(a), vy - 6.0 * math.sin(a), vx + (r0 - 0.6) * math.cos(a), vy - (r0 - 0.6) * math.sin(a)))
+        m.add('<path d="%s" stroke="%s" stroke-width=".35" stroke-opacity=".8"/>' % (lines_path(rays), BRASS4[0]))
+        m.add('<path d="M%s" stroke="%s" stroke-width=".6" fill="none"/>'
+              % (' L'.join('%s %s' % (f(x), f(y)) for x, y in arc(r0 - 0.3, a0, a1)), BRASS4[3]))
+    if small:
+        m.add('<path d="%s" fill="%s"/>' % (poly_d(limb), BRASS4[2]))
+        m.add('<path d="%s" fill="%s"/>' % (' '.join(poly_d(p) for p in body), BRASS4[3]))
+    else:
+        m.add(bevelled(limb, inset_arc(vx, vy, r0, r1, a0, a1, n, ch), face))
+        for p in body:
+            m.add(bevelled(p, inset(p, ch), face))
+        # the limb's graduation: twelve points, the third ones long
+        ticks = []
+        for k in range(13):
+            a = a0 + (a1 - a0) * k / 12
+            r_in = r0 + (2.8 if k % 3 else 1.2)
+            ticks.append((vx + r_in * math.cos(a), vy - r_in * math.sin(a), vx + (r1 - 1.3) * math.cos(a), vy - (r1 - 1.3) * math.sin(a)))
+        for k in range(48):
+            a = a0 + (a1 - a0) * k / 48
+            ticks.append((vx + (r1 - 2.6) * math.cos(a), vy - (r1 - 2.6) * math.sin(a), vx + (r1 - 1.3) * math.cos(a), vy - (r1 - 1.3) * math.sin(a)))
+        m.add('<path d="%s" stroke="%s" stroke-width=".42"/>' % (lines_path(ticks), BRASS4[0]))
+        arcl = arc(r1 - 1.3, a0, a1)
+        m.add('<path d="M%s" stroke="%s" stroke-width=".4" fill="none"/>' % (' L'.join('%s %s' % (f(x), f(y)) for x, y in arcl), BRASS4[0]))
+        # the lines engraved down the long arm, where it lies in the bore
+        m.add('<path d="M%s %s L%s %s" stroke="%s" stroke-width=".4"/>'
+              % tuple([f(c) for c in along(long_dir, r1 + 3, 0)] + [f(c) for c in along(long_dir, q['long'] - 3, 0)] + [BRASS4[0]]))
+    # the plumb line and its bob
+    bob_y = vy + r1 + 11.5
+    m.add('<path d="M%s %s V%s" stroke="#1c1410" stroke-width="%s"/>' % (f(vx), f(vy), f(bob_y - 3.6), '1.1' if small else '.5'))
+    m.add(plumb_bob(vx, bob_y, small))
+    # the pivot boss at the corner
+    m.add(shadow(circle_d(vx, vy, 3.4), 0.6, 0.9, 0.5))
+    m.add(faceted_ring(vx, vy, 2.1, 3.4, +1, n=24))
+    m.add('<circle cx="%s" cy="%s" r="2.1" fill="%s"/>' % (f(vx), f(vy), BRASS4[2]))
+    if not small:
+        m.add('<path d="M%s %s L%s %s" stroke="%s" stroke-width=".55"/>' % (f(vx - 1.5), f(vy + 0.9), f(vx + 1.5), f(vy - 0.9), BRASS4[0]))
+
+
+def inset_arc(cx, cy, r0, r1, a0, a1, n, k):
+    """The face of an annular band, set in from its edges by k."""
+    da = k / ((r0 + r1) / 2)
+    o = [(cx + (r1 - k) * math.cos(a0 + da + (a1 - a0 - 2 * da) * i / n), cy - (r1 - k) * math.sin(a0 + da + (a1 - a0 - 2 * da) * i / n))
+         for i in range(n + 1)]
+    ii = [(cx + (r0 + k) * math.cos(a0 + da + (a1 - a0 - 2 * da) * i / n), cy - (r0 + k) * math.sin(a0 + da + (a1 - a0 - 2 * da) * i / n))
+          for i in range(n + 1)]
+    return o + ii[::-1]
+
+
+def plumb_bob(x, y, small=False):
+    """A turned plumb bob: a brass cap and a pear of red lacquer, its planes
+    running down it as a lathe leaves them."""
+    prof = [(-3.6, 1.0), (-2.6, 1.25), (-2.2, 2.5), (-0.6, 3.3), (1.2, 3.1), (3.0, 2.2), (4.6, 1.0), (5.8, 0.0)]
+    fc = S.Faces()
+    v = S.View(x, y, 1.0, yaw=0, pitch=PITCH)
+    n = 18 if small else 32
+    for j in range(len(prof) - 1):
+        (y0, r0), (y1, r1) = prof[j], prof[j + 1]
+        pal = BRASS4[:4] if j < 1 else LACQUER
+        for k in range(n):
+            p0, p1 = 2 * math.pi * k / n, 2 * math.pi * (k + 1) / n
+            pm = (p0 + p1) / 2
+            nv = v.nrm((math.cos(pm), (r1 - r0) / max(0.01, y1 - y0), math.sin(pm)))
+            if nv[2] <= 0:
+                continue
+            pts = [v.proj((r0 * math.cos(p0), -y0, r0 * math.sin(p0))), v.proj((r0 * math.cos(p1), -y0, r0 * math.sin(p1))),
+                   v.proj((r1 * math.cos(p1), -y1, r1 * math.sin(p1))), v.proj((r1 * math.cos(p0), -y1, r1 * math.sin(p0)))]
+            fc.add([(a, b) for a, b, _ in pts], sum(z for _, _, z in pts) / 4, facet(lam(nv), pal, [0.2, 0.45, 0.72]))
+    return shadow(poly_d([(x - 3.3, y - 1), (x + 3.3, y - 1), (x, y + 5.8)]), 0.7, 1.0, 0.45) + fc.svg(seam=0.1)
+
+
+# --------------------------------------------------------------------------
+# Bourse: the canary the desk keeps on watch, on its perch in a gilt cage
+# --------------------------------------------------------------------------
+# The bird, from the living canary, facing the key light: a short conical
+# bill, a round head on a short neck with a soft dip at the nape, the breast
+# carried full and forward, the body sitting up at about fifty-five degrees,
+# the wing folded along the side with its primaries reaching over the base
+# of the tail, and a long tail with a shallow notch. Bird units, the feet on
+# the perch at the origin, y down; a point (x, y, 1) is a corner.
+CANARY = {
+    'outline': [(-17.4, -26.7, 1), (-14.3, -29.1, 1), (-13.6, -31.4), (-11.8, -33.3), (-9.3, -34.2), (-6.7, -33.4),
+                (-5.0, -31.5), (-4.1, -29.4), (-2.7, -27.6), (-0.4, -25.4), (2.8, -21.6), (5.9, -17.0), (8.3, -13.2),
+                (10.2, -10.3), (14.4, -3.4), (18.8, 3.4, 1), (17.6, 3.1, 1), (16.9, 4.9, 1), (15.2, 2.7), (10.8, -2.4),
+                (7.2, -4.2), (4.6, -3.6), (1.8, -2.8), (-1.4, -3.3), (-4.8, -5.4), (-8.0, -8.9), (-10.4, -13.2),
+                (-12.3, -18.0), (-13.5, -21.8), (-14.4, -25.0, 1)],
+    'head': ((-9.4, -28.2), 5.9),
+    'body': ((-2.6, -14.6), 58.0, 14.2, 9.4),        # centre, axis angle (deg, toward the head), half length, half depth
+    'wing': [(-6.9, -22.6, 1), (-4.6, -25.2), (-1.0, -23.4), (3.0, -18.8), (6.4, -13.9), (9.4, -9.4), (12.6, -5.2, 1),
+             (9.8, -4.6), (6.4, -4.3), (2.8, -5.3), (-0.6, -7.8), (-3.4, -11.4), (-5.4, -15.6), (-6.6, -19.4)],
+    # the greater coverts' scalloped edge, and the tertials' stepped tips
+    'coverts': [(-6.9, -22.6, 1), (-4.6, -25.2), (-1.0, -23.4), (2.4, -19.6), (1.6, -17.1), (0.0, -16.4), (-1.0, -14.9),
+                (-2.8, -14.3), (-3.8, -12.7), (-5.2, -12.9)],
+    'tertials': [(1.6, -20.8), (4.6, -17.0), (7.8, -12.6), (6.6, -10.9), (5.0, -11.4), (4.4, -9.8), (2.6, -10.4),
+                 (1.8, -8.7), (0.0, -9.9), (-1.2, -12.2), (0.2, -14.0), (0.4, -16.8)],
+    'shoulder': [(-6.9, -22.6, 1), (-4.8, -24.6), (-2.6, -24.2), (-2.4, -21.8), (-3.8, -20.0), (-5.6, -19.2)],
+    'tail_far': [(9.8, -8.2), (14.6, -2.2), (18.8, 3.4, 1), (17.6, 3.1, 1), (16.9, 4.9, 1), (14.4, 1.8), (9.6, -3.8)],
+    'bill_upper': [(-17.4, -26.7, 1), (-15.8, -28.2), (-14.3, -29.1, 1), (-13.9, -27.4, 1), (-13.7, -26.5, 1)],
+    'bill_lower': [(-17.4, -26.7, 1), (-13.7, -26.5, 1), (-14.4, -25.0, 1), (-15.9, -25.6)],
+    'eye': (-10.4, -28.9, 0.95),
+    'legs': [(-1.2, -3.4, -1.0, 0.0), (1.4, -3.0, 1.6, 0.0)],
+}
+YELLOW = ['#b57f12', '#dea724', '#f3ca38', '#fde670']       # dark, shade, body, lit
+YELLOW_CUTS = [0.2, 0.46, 0.72]
+WINGC = ['#a8780e', '#cf9d1e', '#ecc234', '#fbe06a']        # primaries, tertials, coverts, shoulder
+HORN = ['#caa184', '#ecd2b8', '#8a6452']                    # lower, upper, gape
+CAGE = {'cx': 48.0, 'r': 23.0, 'base': 72.5, 'spring': 41.0, 'top': 20.5, 'wires': 3}
+
+
+def smax(a, b, k):
+    hh = max(k - abs(a - b), 0.0) / k
+    return max(a, b) + hh * hh * k * 0.25
+
+
+def canary(m, x, y, s, small=False):
+    """Lay the bird with its feet at (x, y), scaled by s. Its volume is a
+    head and a body blended at the neck; the planes are cut from that
+    volume along the key light and clipped to the drawn outline, so the
+    silhouette stays the bird's and the tone follows its form."""
+    C = CANARY
+    (hx, hy), hr = C['head']
+    (bx, by), bang, ba, bb = C['body']
+    ux, uy = -math.cos(math.radians(bang)), -math.sin(math.radians(bang))
+    vx_, vy_ = -uy, ux
+    nx_, ny_ = -10.6, -22.4
+
+    def height(px, py):
+        d2 = (px - hx) ** 2 + (py - hy) ** 2
+        h1 = 0.9 * math.sqrt(max(0.0, hr * hr - d2))
+        du = (px - bx) * ux + (py - by) * uy
+        dv = (px - bx) * vx_ + (py - by) * vy_
+        q = 1 - (du / ba) ** 2 - (dv / bb) ** 2
+        h2 = bb * math.sqrt(max(0.0, q))
+        # the throat, carrying the head down into the breast
+        d3 = ((px - nx_) / 5.2) ** 2 + ((py - ny_) / 6.4) ** 2
+        h3 = 5.6 * math.sqrt(max(0.0, 1 - d3))
+        return smax(smax(h1, h3, 3.0), h2, 4.0)
+
+    def light(sx, sy):
+        px, py = (sx - x) / s, (sy - y) / s
+        e = 0.12
+        gx = (height(px + e, py) - height(px - e, py)) / (2 * e)
+        gy = (height(px, py + e) - height(px, py - e)) / (2 * e)
+        return lam((-gx, gy, 1.0))
+
+    def T(pts):
+        return [(x + p[0] * s, y + p[1] * s) + tuple(p[2:]) for p in pts]
+    outline = smooth_d(T(C['outline']))
+    xs = [x + p[0] * s for p in C['outline']]
+    ys = [y + p[1] * s for p in C['outline']]
+    box = (min(xs) - 1, min(ys) - 1, max(xs) + 1, max(ys) + 1)
+    out = [shadow(outline, 1.0, 1.4, 0.5)]
+    # the far side of the tail, seen below the near one
+    out.append('<path d="%s" fill="%s"/>' % (smooth_d(T(C['tail_far'])), YELLOW[0]))
+    if small:
+        out.append(planes(m, 'bird', outline, light, box, YELLOW[1:], YELLOW_CUTS[1:], 0.7, 0.2))
+    else:
+        out.append(planes(m, 'bird', outline, light, box, YELLOW, YELLOW_CUTS, 0.3, 0.1))
+    # the folded wing: primaries darkest, the tertials' stepped tips, the
+    # greater coverts' scalloped edge, the lit shoulder
+    out.append('<path d="%s" fill="#6a4a08" fill-opacity=".35" transform="translate(.35 .5)"/>' % smooth_d(T(C['wing'])))
+    out.append('<path d="%s" fill="%s"/>' % (smooth_d(T(C['wing'])), WINGC[0]))
+    if not small:
+        out.append('<path d="%s" fill="%s"/>' % (smooth_d(T(C['tertials'])), WINGC[1]))
+        out.append('<path d="%s" fill="%s"/>' % (smooth_d(T(C['coverts'])), WINGC[2]))
+        out.append('<path d="%s" fill="%s"/>' % (smooth_d(T(C['shoulder'])), WINGC[3]))
+        # the primaries' tips, each feather edged paler
+        tips = []
+        for k, (a, b) in enumerate(((0.36, 0.0), (0.56, 0.6), (0.76, 1.1))):
+            p0 = (x + (4.5 + 7.6 * a) * s, y + (-9.0 + 4.6 * a) * s)
+            p1 = (x + (5.8 + 6.4 * a + b) * s, y + (-5.4 + 0.6 * a) * s)
+            tips.append((p0[0], p0[1], p1[0], p1[1]))
+        out.append('<path d="%s" stroke="%s" stroke-width=".4" stroke-linecap="round"/>' % (lines_path(tips), WINGC[2]))
+        # the tail's feathers: the edges between them, running to the notch
+        tail = [(10.8, -7.6, 17.9, 2.6), (11.6, -5.4, 16.6, 1.9)]
+        out.append('<path d="%s" stroke="%s" stroke-width=".35" stroke-linecap="round"/>'
+                   % (lines_path([(x + a * s, y + b * s, x + c * s, y + d * s) for a, b, c, d in tail]), YELLOW[0]))
+    else:
+        out.append('<path d="%s" fill="%s"/>' % (smooth_d(T(C['coverts'])), WINGC[2]))
+    # the bill: horn, the upper mandible lit, the lower in shade, the gape between
+    out.append('<path d="%s" fill="%s"/>' % (smooth_d(T(C['bill_lower'])), HORN[0]))
+    out.append('<path d="%s" fill="%s"/>' % (smooth_d(T(C['bill_upper'])), HORN[1]))
+    ex, ey, er = C['eye']
+    out.append('<circle cx="%s" cy="%s" r="%s" fill="#1c1208"/>' % (f(x + ex * s), f(y + ey * s), f(er * s * (1.25 if small else 1))))
+    return ''.join(out)
+
+
+def subject_bourse(m, h, small=False):
+    """The canary the desk keeps on watch (its Watchtower watches two, and
+    the desk speaks only when the air turns), sitting calm on a turned perch
+    in a gilt dome cage. The cage is open to the reader, its wires behind the
+    bird; it stands on a turned tray banded in the curtain's own olive gold,
+    and hangs from a ring of its own."""
+    c = CAGE
+    v = S.View(c['cx'], 0, 1.0, yaw=0, pitch=PITCH)
+    R, yb, ys, yt = c['r'], -c['base'], -c['spring'], -c['top']
+    wire_t = [GILT[1], GILT[2], GILT[4], GILT[5], GILT[3]]
+    ww = 3.0 if small else 2.5
+
+    def dome_pt(ph, t):
+        # t 0..1 up the dome from the spring line to the top
+        a = t * math.pi / 2
+        r = R * math.cos(a)
+        return (r * math.cos(ph), ys + (yt - ys) * math.sin(a), r * math.sin(ph))
+    band = [c['cx'], 0]
+    # the wires behind the bird: the back half of the drum and the dome
+    n = c['wires']
+    back = []
+    for k in range(n):
+        ph = math.pi + math.pi * (k + 0.5) / n                   # the back half (z < 0)
+        pts = [(R * math.cos(ph), yb + (ys - yb) * j / 6, R * math.sin(ph)) for j in range(7)]
+        pts += [dome_pt(ph, j / 10) for j in range(1, 11)]
+        back.append([v.proj(p)[:2] for p in pts])
+    hoops = []
+    for yy in (ys, yb + 0.6, (yb + ys) / 2):
+        hoops.append([v.proj((R * math.cos(math.pi + math.pi * j / 32), yy, R * math.sin(math.pi + math.pi * j / 32)))[:2]
+                      for j in range(33)])
+    # the side wires, where the drum turns edge-on to the reader, carry the silhouette
+    sides = []
+    for ph in (math.pi * 0.985, math.pi * 0.015):
+        pts = [(R * math.cos(ph), yb + (ys - yb) * j / 6, R * math.sin(ph)) for j in range(7)]
+        pts += [dome_pt(ph, j / 12) for j in range(1, 13)]
+        sides.append([v.proj(p)[:2] for p in pts])
+
+    def wire(pts, col, wd):
+        return '<path d="M%s" stroke="%s" stroke-width="%s" fill="none" stroke-linecap="round" stroke-linejoin="round"/>' % (
+            ' L'.join('%s %s' % (f(px), f(py)) for px, py in pts), col, f(wd))
+    # the tray: a turned base banded in olive gold
+    fc = S.Faces()
+    tray = [(yb - 6.4, yb - 5.0, R + 2.0, R + 2.0), (yb - 5.0, yb - 1.3, R + 1.6, R + 1.6), (yb - 1.3, yb, R + 1.6, R + 0.8)]
+    # the band is fired in the curtain's own dye (HUE's velvet), so the mark
+    # carries its cloth
+    vo, vi = h['velvet']['onyx'], h['velvet']['ivory']
+    tones = {0: wire_t, 1: [darken(vo, 0.45), vo, vi, lighten(vi, 0.3)], 2: wire_t}
+    for i, (y0, y1, r0, r1) in enumerate(tray):
+        nn = 24 if small else 48
+        for k in range(nn):
+            p0, p1 = 2 * math.pi * k / nn, 2 * math.pi * (k + 1) / nn
+            pm = (p0 + p1) / 2
+            nv = v.nrm((math.cos(pm), (r0 - r1) / max(0.01, y1 - y0), math.sin(pm)))
+            if nv[2] <= 0:
+                continue
+            q = [v.proj((r0 * math.cos(p0), y0, r0 * math.sin(p0))), v.proj((r0 * math.cos(p1), y0, r0 * math.sin(p1))),
+                 v.proj((r1 * math.cos(p1), y1, r1 * math.sin(p1))), v.proj((r1 * math.cos(p0), y1, r1 * math.sin(p0)))]
+            fc.add([(a, b) for a, b, _ in q], sum(z for _, _, z in q) / 4,
+                   facet(lam(nv), tones[i], [0.2, 0.46, 0.72, 0.92] if i != 1 else [0.3, 0.6, 2, 2]))
+    top = [v.proj(((R + 1.0) * math.cos(2 * math.pi * k / 48), yb, (R + 1.0) * math.sin(2 * math.pi * k / 48))) for k in range(48)]
+    fc.add([(a, b) for a, b, _ in top], sum(z for _, _, z in top) / 48 - 0.5, GILT[1])
+    base_sil = [v.proj(((R + 2.0) * math.cos(2 * math.pi * k / 48), yb - 6.4, (R + 2.0) * math.sin(2 * math.pi * k / 48)))[:2] for k in range(48)]
+    m.add(shadow(poly_d(base_sil), 0.9, 0.9, 0.45))
+    # the back wires and hoops, then the tray over their feet
+    for pts in back:
+        m.add(wire(pts, '#000', ww + 0.5).replace('stroke="#000"', 'stroke="#000" stroke-opacity=".35"'))
+        m.add(wire(pts, wire_t[1], ww))
+        if not small:
+            m.add(wire([(px - 0.45, py) for px, py in pts], wire_t[3], ww * 0.35))
+    for pts in hoops:
+        m.add(wire(pts, wire_t[1], 1.6 if not small else 2))
+    m.add(fc.svg(seam=0.12))
+    # the perch, a turned bar across the cage
+    py_ = 61.5
+    px0, px1 = c['cx'] - R + 1.5, c['cx'] + R - 1.5
+    m.add(shadow('M%s %s H%s V%s H%s Z' % (f(px0), f(py_ - 1.1), f(px1), f(py_ + 1.1), f(px0)), 0.4, 0.9, 0.4))
+    m.add('<path d="M%s %s H%s V%s H%s Z" fill="%s"/>' % (f(px0), f(py_ - 1.1), f(px1), f(py_ + 1.1), f(px0), GILT[2]))
+    m.add('<path d="M%s %s H%s V%s H%s Z" fill="%s"/>' % (f(px0), f(py_ - 1.1), f(px1), f(py_ - 0.2), f(px0), GILT[5]))
+    # the bird
+    bxy = (c['cx'] + 1.5, py_ - 1.0)
+    s = 1.12
+    legs = []
+    for x0, y0, x1, y1 in CANARY['legs']:
+        legs.append((bxy[0] + x0 * s, bxy[1] + y0 * s, bxy[0] + x1 * s, bxy[1] + y1 * s))
+    m.add('<path d="%s" stroke="%s" stroke-width="%s" stroke-linecap="round"/>' % (lines_path(legs), '#b88a7a', '1.2' if small else '.8'))
+    m.add(canary(m, bxy[0], bxy[1], s, small))
+    if not small:
+        toes = []
+        for x0, y0, x1, y1 in CANARY['legs']:
+            fx, fy = bxy[0] + x1 * s, bxy[1] + y1 * s
+            toes.append('M%s %s q%s %s %s %s' % (f(fx), f(fy), f(-1.4), f(0.2), f(-1.8), f(1.6)))
+            toes.append('M%s %s q%s %s %s %s' % (f(fx), f(fy), f(1.2), f(0.3), f(1.4), f(1.5)))
+        m.add('<path d="%s" stroke="#b88a7a" stroke-width=".7" fill="none" stroke-linecap="round"/>' % ' '.join(toes))
+    # the side wires in front of everything at the cage's edges, the finial and its ring
+    for pts in sides:
+        m.add(wire(pts, '#000', ww + 0.5).replace('stroke="#000"', 'stroke="#000" stroke-opacity=".35"'))
+        m.add(wire(pts, wire_t[2], ww))
+        if not small:
+            m.add(wire([(px - 0.5, py) for px, py in pts], wire_t[4], ww * 0.4))
+    tx, ty = v.proj((0, yt, 0))[:2]
+    m.add(relief('M%s %s C%s %s %s %s %s %s C%s %s %s %s %s %s Z'
+                 % (f(tx - 3.2), f(ty + 1.2), f(tx - 3.0), f(ty - 1.6), f(tx - 1.0), f(ty - 3.4), f(tx), f(ty - 3.6),
+                    f(tx + 1.0), f(ty - 3.4), f(tx + 3.0), f(ty - 1.6), f(tx + 3.2), f(ty + 1.2)), GILT[4], dx=0.4, dy=0.6))
+    m.add('<circle cx="%s" cy="%s" r="2.1" fill="none" stroke="#000" stroke-opacity=".4" stroke-width="1.3" transform="translate(.4 .6)"/>'
+          '<circle cx="%s" cy="%s" r="2.1" fill="none" stroke="%s" stroke-width="1.3"/>'
+          % (f(tx), f(ty - 5.6), f(tx), f(ty - 5.6), GILT[4]))
+
+
+# --------------------------------------------------------------------------
+# The enamel: each app's colour fired over its own engine turning
+# --------------------------------------------------------------------------
+def enamel_glaze(m, h):
+    """The fired colour: HUE's lit, field and deep, thinnest (lightest) up
+    and to the left where the turning lies nearest the surface."""
+    grad = m.rad('enamel', [(0, h['lit']), (0.55, h['field']), (1, h['deep'])], 42, 36, 50, 38, 30)
+    m.add('<circle cx="48" cy="48" r="%s" fill="%s"/>' % (f(R_FIELD), grad))
+
+
+def turning(m, w, hh, tile, transform='translate(48 48)'):
+    m.add('<circle cx="48" cy="48" r="%s" fill="%s"/>' % (f(R_FIELD), m.pattern('turn', w, hh, tile, transform)))
+
+
+def ground_barleycorn(m, h):
+    """Autopilot: a barleycorn turning, two sets of fine lines crossing."""
+    enamel_glaze(m, h)
+    line = '<rect width=".34" height="10" fill="%s" fill-opacity=".2"/>' % h['lit']
+    for k, turn in enumerate((-60, 60)):
+        m.add('<circle cx="48" cy="48" r="%s" fill="%s"/>'
+              % (f(R_FIELD), m.pattern('turn%d' % k, 1.3, 10, line, 'rotate(%d 48 48)' % turn)))
+
+
+def ground_lined(m, h):
+    """Ground Station: straight-line engine turning, level, like the lines
+    of a machined instrument plate."""
+    enamel_glaze(m, h)
+    turning(m, 8, 1.3, '<rect width="8" height=".34" fill="%s" fill-opacity=".2"/>' % h['lit'])
+
+
+def ground_basket(m, h):
+    """Outreach: a basket-weave turning, the ground of a silver card case."""
+    enamel_glaze(m, h)
+    segs, s = [], 4.4
+    for i in range(2):
+        for j in range(2):
+            x0, y0 = i * s, j * s
+            for t in (0.9, 2.2, 3.5):
+                if (i + j) % 2 == 0:
+                    segs.append((x0 + 0.4, y0 + t, x0 + s - 0.4, y0 + t))
+                else:
+                    segs.append((x0 + t, y0 + 0.4, x0 + t, y0 + s - 0.4))
+    turning(m, 8.8, 8.8, '<path d="%s" stroke="%s" stroke-width=".42" stroke-opacity=".3"/>' % (lines_path(segs), h['lit']))
 
 
 def ground_halftone(m, h):
-    """Green enamel over a halftone screen, the way a paper prints its
-    pictures: the dots swell toward the light."""
-    grad = m.rad('enamel', [(0, h['lit']), (0.55, h['field']), (1, h['deep'])], 40, 34, 50, 36, 28)
-    m.add('<circle cx="48" cy="48" r="%s" fill="%s"/>' % (f(R_FIELD), grad))
-    fine = m.pattern('dots', 2.7, 2.7, '<circle cx="1.35" cy="1.35" r=".3" fill="%s" fill-opacity=".38"/>' % h['lit'],
-                     'rotate(45 48 48)')
-    bold = m.pattern('dots2', 2.7, 2.7, '<circle cx="1.35" cy="1.35" r=".62" fill="%s" fill-opacity=".38"/>' % h['lit'],
-                     'rotate(45 48 48)')
-    fade = m.lin('dotfade', [(0, '#fff'), (0.55, '#fff', 0.35), (1, '#fff', 0)], 20, 20, 70, 70)
-    m.defs.append('<mask id="%s" maskUnits="userSpaceOnUse" x="0" y="0" width="96" height="96">'
-                  '<rect width="96" height="96" fill="%s"/></mask>' % (m.id('dotmask'), fade))
-    m.add('<circle cx="48" cy="48" r="%s" fill="%s"/>' % (f(R_FIELD), fine))
-    m.add('<circle cx="48" cy="48" r="%s" fill="%s" mask="%s"/>' % (f(R_FIELD), bold, m.url('dotmask')))
-
-
-def subject_pressroom(m, h):
-    """The world as a cast desk globe, turned to the hemisphere the paper
-    reads, lit from one side so half of it lies in night and half in the
-    morning: 'the world overnight, set in type by morning'. Its coasts are
-    projected from real longitudes and latitudes; a gilt meridian ring goes
-    round it and it stands on a turned foot."""
-    g = GLOBE
-    cx, cy, R = g['cx'], g['cy'], g['r']
-    sun = g['sun']
-    # the light's direction across the disc, for the shading gradients
-    dx, dy = sun[0], -sun[1]
-    ln = math.hypot(dx, dy)
-    dx, dy = dx / ln, dy / ln
-    x1, y1, x2, y2 = cx + R * dx, cy + R * dy, cx - R * dx, cy - R * dy
-    term = 0.5 + 0.5 * sun[2] / math.hypot(sun[0], sun[1]) * 0.9     # where night falls, along the gradient
-    sea = m.lin('sea', [(0, '#b6e2b4'), (0.18, '#6cb884'), (term - 0.16, '#2c7a4e'), (term - 0.03, '#17482c'),
-                        (term + 0.03, '#0c2a1a'), (1, '#04110a')], x1, y1, x2, y2)
-    land = m.lin('land', [(0, '#fff6d6'), (0.2, '#eadcaa'), (term - 0.16, '#b6a46a'), (term - 0.03, '#6a6238'),
-                          (term + 0.03, '#26361e'), (1, '#0e1c10')], x1, y1, x2, y2)
-    # the meridian ring: a gilt band round the globe through its poles,
-    # turned so that it cuts across the disc
-    turn = math.radians(58)
-
-    def ring_pt(a, rr):
-        # in the globe's own frame: a circle through the poles, turned about the axis
-        x, y, z = rr * math.cos(a) * math.sin(turn), rr * math.sin(a), rr * math.cos(a) * math.cos(turn)
-        t = math.radians(-g['tilt'])
-        x, y = x * math.cos(t) - y * math.sin(t), x * math.sin(t) + y * math.cos(t)
-        return (x, y, z)
-    ring_o = [ring_pt(2 * math.pi * k / 120, 1.16) for k in range(121)]
-    ring_i = [ring_pt(2 * math.pi * k / 120, 1.09) for k in range(121)]
-
-    def ring_half(front):
-        segs, cur = [], []
-        for po, pi in zip(ring_o, ring_i):
-            if (po[2] > 0) == front:
-                cur.append((po, pi))
-            elif cur:
-                segs.append(cur)
-                cur = []
-        if cur:
-            segs.append(cur)
-        out = []
-        for seg in segs:
-            outer = [(cx + R * p[0], cy - R * p[1]) for p, _ in seg]
-            inner = [(cx + R * q[0], cy - R * q[1]) for _, q in seg]
-            out.append(poly_d(outer + inner[::-1]))
-        return ' '.join(out)
-    # the stand: a stem from the ring's foot to a stepped, turned foot
-    low = max(ring_o, key=lambda p: -p[1])
-    sx, sy = cx + R * low[0], cy - R * low[1]
-    fc = S.Faces()
-    v = S.View(sx, 0, 1.0, yaw=0, pitch=18)
-    foot = [GILT[0], GILT[1], GILT[2], GILT[4], GILT[5], GILT[3]]
-    fy = -84.0
-    solid_cylinder(fc, v, (0, fy, 0), (0, fy + 1.6, 0), 11.5, 11.0, 48, foot)
-    solid_cylinder(fc, v, (0, fy + 1.6, 0), (0, fy + 3.0, 0), 8.2, 7.6, 40, foot)
-    solid_cylinder(fc, v, (0, fy + 3.0, 0), (0, fy + 4.2, 0), 4.2, 3.4, 32, foot)
-    m.add(shadow(S.pts_d([v.proj((11.5 * math.cos(t), fy, 11.5 * math.sin(t)))[:2]
-                          for t in [2 * math.pi * k / 48 for k in range(48)]]), 1.2, 1.2, 0.5))
-    m.add(fc.svg())
-    top_y = v.proj((0, fy + 4.2, 0))[1]
-    m.add(relief('M%s %s L%s %s L%s %s L%s %s Z' % (f(sx - 1.3), f(top_y + 0.4), f(sx - 0.8), f(sy - 0.5),
-                                                     f(sx + 0.8), f(sy - 0.5), f(sx + 1.3), f(top_y + 0.4)),
-                 cyl_grad(m, 'stem', sx - 1.3, 0, sx + 1.3, 0, foot)))
-    # the ring's far half, behind the globe
-    m.add('<path d="%s" fill="%s"/>' % (ring_half(False), GILT[1]))
-    # the globe's shadow on the enamel, then the globe
-    m.add(shadow(circle_d(cx, cy, R), 1.6, 2.2, 0.5))
-    m.add('<circle cx="%s" cy="%s" r="%s" fill="%s"/>' % (f(cx), f(cy), f(R), sea))
-    clipg = m.clip('globe', '<circle cx="%s" cy="%s" r="%s"/>' % (f(cx), f(cy), f(R)))
-    m.add('<g clip-path="%s">' % clipg)
-    shapes = []
-    for name, pts in LAND.items():
-        if not pts:
-            continue
-        xyz = [globe_xyz(lo, la) for lo, la in pts]
-        if max(p[2] for p in xyz) <= 0:
-            continue
-        shapes.append(poly_d([globe_pt(p) for p in xyz]))
-    m.add('<path d="%s" fill="%s"/>' % (' '.join(shapes), land))
-    lakes = [poly_d([globe_pt(globe_xyz(lo, la)) for lo, la in pts]) for pts in LAKES.values()]
-    m.add('<path d="%s" fill="%s"/>' % (' '.join(lakes), sea))
-    # the graticule, engraved: meridians every thirty degrees, the tropics,
-    # the equator and the polar circles
-    lines = []
-    for lon in range(0, 360, 30):
-        cur = []
-        for k in range(0, 181, 4):
-            p = globe_xyz(lon, -90 + k)
-            if p[2] > 0:
-                cur.append(globe_pt(p))
-            elif cur:
-                lines.append(cur)
-                cur = []
-        if cur:
-            lines.append(cur)
-    for lat in (-66.5, -23.4, 0, 23.4, 66.5):
-        cur = []
-        for k in range(0, 361, 4):
-            p = globe_xyz(k, lat)
-            if p[2] > 0:
-                cur.append(globe_pt(p))
-            elif cur:
-                lines.append(cur)
-                cur = []
-        if cur:
-            lines.append(cur)
-    gd = ' '.join('M' + ' L'.join('%s %s' % (f(x), f(y)) for x, y in ln_) for ln_ in lines if len(ln_) > 1)
-    m.add('<path d="%s" stroke="%s" stroke-width=".32" stroke-opacity=".55" fill="none"/>' % (gd, GILT[5]))
-    # the limb: the sphere turning away at its edge
-    limb = m.rad('limb', [(0.7, '#000', 0), (0.93, '#000', 0.18), (1, '#000', 0.42)], cx, cy, R)
-    m.add('<circle cx="%s" cy="%s" r="%s" fill="%s"/>' % (f(cx), f(cy), f(R), limb))
-    m.add('</g>')
-    # the lit rim where the key light rakes the edge of the day side
-    m.add('<path d="%s" stroke="#fff8dc" stroke-width=".5" stroke-opacity=".7" fill="none"/>'
-          % ('M%s %s A%s %s 0 0 1 %s %s' % (f(cx - R * 0.94), f(cy + R * 0.34), f(R), f(R), f(cx + R * 0.34), f(cy - R * 0.94))))
-    # the ring's near half, over the globe
-    near = ring_half(True)
-    m.add('<path d="%s" fill="#000" fill-opacity=".45" transform="translate(.5 .7)"/>' % near)
-    m.add('<path d="%s" fill="%s"/>' % (near, m.lin('ring', [(0, GILT[3]), (0.3, GILT[5]), (0.65, GILT[4]), (1, GILT[1])],
-                                                    cx - R, cy - R, cx + R, cy + R)))
-    # the knop where the stem takes the ring
-    m.add(relief('M%s %s C%s %s %s %s %s %s C%s %s %s %s %s %s Z'
-                 % (f(sx - 2.2), f(sy + 2.4), f(sx - 2.4), f(sy + 0.4), f(sx - 1.2), f(sy - 1.0), f(sx), f(sy - 1.0),
-                    f(sx + 1.2), f(sy - 1.0), f(sx + 2.4), f(sy + 0.4), f(sx + 2.2), f(sy + 2.4)),
-                 cyl_grad(m, 'knop', sx - 2.4, 0, sx + 2.4, 0, [GILT[0], GILT[1], GILT[2], GILT[4], GILT[5], GILT[3]])))
-    # the pivots at the poles
-    for lat in (90, -90):
-        p = globe_xyz(0, lat)
-        px, py = globe_pt(p, clamp=False)
-        if p[2] > -0.3:
-            m.add(relief(circle_d(px, py, 1.3), GILT[4], dx=0.4, dy=0.55))
-
-
-# --------------------------------------------------------------------------
-# Arsenal: the armourer's trophy, a spanner and a rammer lashed crosswise
-# --------------------------------------------------------------------------
-POLISH = ['#10161b', '#2a343c', '#52616c', '#8a9ba6', '#c6d3da', '#eef4f6']
-ASH = ['#24160a', '#50331a', '#8a6034', '#bb8e56', '#e2bc84']
-CORD = ['#2a0806', '#5e1610', '#9a2c20', '#c8483a', '#ee8a70']
+    """The Press Room: a halftone screen, the way a paper prints its
+    pictures."""
+    enamel_glaze(m, h)
+    turning(m, 2.7, 2.7, '<circle cx="1.35" cy="1.35" r=".42" fill="%s" fill-opacity=".3"/>' % h['lit'], 'rotate(45 48 48)')
 
 
 def ground_perlage(m, h):
-    """Gunmetal enamel over perlage, the overlapping circles a machinist
-    spots on a plate."""
-    grad = m.rad('enamel', [(0, h['lit']), (0.55, h['field']), (1, h['deep'])], 40, 36, 50, 38, 30)
-    m.add('<circle cx="48" cy="48" r="%s" fill="%s"/>' % (f(R_FIELD), grad))
+    """Arsenal: perlage, the overlapping circles a machinist spots on a
+    plate."""
+    enamel_glaze(m, h)
     d, p, rh = [], 4.2, 4.2 * 0.86
     for j in range(-1, 4):
         for i in range(-1, 3):
@@ -1371,178 +1747,42 @@ def ground_perlage(m, h):
             y = j * rh
             if -3 < x < p + 3 and -3 < y < 2 * rh + 3:
                 d.append(circle_d(x, y, 2.9))
-    tile = '<path d="%s" stroke="#b8c6d0" stroke-width=".32" stroke-opacity=".22" fill="none"/>' % ' '.join(d)
-    m.add('<circle cx="48" cy="48" r="%s" fill="%s"/>' % (f(R_FIELD), m.pattern('turn', p, 2 * rh, tile, 'translate(48 48)')))
+    turning(m, p, 2 * rh, '<path d="%s" stroke="%s" stroke-width=".34" stroke-opacity=".24" fill="none"/>'
+            % (' '.join(d), h['lit']))
 
 
-def rot2(x, y, deg):
-    a = math.radians(deg)
-    return (x * math.cos(a) - y * math.sin(a), x * math.sin(a) + y * math.cos(a))
-
-
-def forged(m, name, sdf, box, pal, bevel=0.9):
-    """A flat forged part in relief: its outline traced from a distance
-    field, the chamfer round its edge lit on the lamp side and shaded on the
-    far side, the flat face inside it."""
-    outer = S.contours(sdf, *box, 0.16)
-    inner = S.contours(sdf, *box, 0.16, level=-bevel)
-    od = ' '.join(S.pts_d(lp) for lp in outer)
-    idd = ' '.join(S.pts_d(lp) for lp in inner)
-    x0, y0, x1, y1 = box
-    out = [shadow(od, 0.9, 1.3, 0.6, ' fill-rule="evenodd"'),
-           '<path d="%s" fill="%s" fill-rule="evenodd"/>' % (od, pal[1]),
-           '<path d="%s" fill="%s" fill-rule="evenodd" transform="translate(-.55 -.55)"/>' % (od, pal[4]),
-           '<path d="%s" fill="%s" fill-rule="evenodd" transform="translate(-.2 -.2)"/>' % (od, pal[3]),
-           '<path d="%s" fill="%s" fill-rule="evenodd"/>' % (idd, m.lin(name, [(0, pal[4]), (0.3, pal[3]), (0.7, pal[2]), (1, pal[1])],
-                                                                         x0, y0, x1, y1))]
-    return ''.join(out), outer
-
-
-def subject_arsenal(m, h):
-    """The armourer's trophy of Arsenal's own masthead, drawn as the tools
-    are: a drop-forged double-ended spanner, its larger jaw closed on a hex
-    nut, crossed over a gun rammer of turned ash with a brass-bound head,
-    the two lashed at the cross with red cord."""
-    ang = -45.0                                   # the spanner runs up to the right
-    ux, uy = rot2(1, 0, ang)
-    cx, cy = 48.0, 49.0
-    A = (cx - 21.5 * ux, cy - 21.5 * uy)          # big head, lower left
-    B = (cx + 22.0 * ux, cy + 22.0 * uy)          # small head, upper right
-    ra, rb, sa, sb = 7.6, 6.2, 3.3, 2.6
-    da = rot2(-ux, -uy, 15)                       # each jaw opens 15 degrees off the shank
-    db = rot2(ux, uy, 15)
-    ta = (A[0] - da[0] * 1.0, A[1] - da[1] * 1.0)
-    tb = (B[0] - db[0] * 0.8, B[1] - db[1] * 0.8)
-
-    def spanner(x, y):
-        d = S.smin(S.sd_circle(x, y, A[0], A[1], ra), S.sd_circle(x, y, B[0], B[1], rb), 0.1)
-        shank = S.sd_capsule(x, y, A[0] + ux * 5, A[1] + uy * 5, B[0] - ux * 4, B[1] - uy * 4, 2.35, 1.85)
-        d = S.smin(d, shank, 3.2)
-        slot_a = S.sd_capsule(x, y, ta[0], ta[1], ta[0] + da[0] * 30, ta[1] + da[1] * 30, sa)
-        slot_b = S.sd_capsule(x, y, tb[0], tb[1], tb[0] + db[0] * 30, tb[1] + db[1] * 30, sb)
-        return max(d, -slot_a, -slot_b)
-    # the plate behind the trophy: a bolt head of blued steel, bevelled on
-    # its six flats, screwed down at each corner, its slots turned every way
-    oh = ngon(48, 48, 33.5, 6, 0)
-    ih = ngon(48, 48, 29.6, 6, 0)
-    m.add(shadow(poly_d(oh), 0.9, 1.3, 0.6))
-    m.add(facet_poly(oh, ih, BLUED, shade_all=0.2))
-    m.add('<path d="%s" fill="%s"/>' % (poly_d(ih), m.lin('plate', [(0, '#56636e'), (0.5, '#333d46'), (1, '#171d22')], 26, 22, 70, 76)))
-    for k, a in enumerate(range(0, 360, 60)):
-        x, y = pt(48, 48, 26.2, math.radians(a))
-        m.add('<circle cx="%s" cy="%s" r="1.75" fill="#000" fill-opacity=".6"/>' % (f(x + .35), f(y + .5)))
-        m.add('<circle cx="%s" cy="%s" r="1.6" fill="%s"/>'
-              % (f(x), f(y), m.rad('scr%d' % k, [(0, BLUED[3]), (0.6, BLUED[4]), (1, BLUED[1])], x - .6, y - .6, 2.2)))
-        sa = math.radians(17 + k * 53)
-        ddx, ddy = 1.25 * math.cos(sa), 1.25 * math.sin(sa)
-        m.add('<path d="M%s %s L%s %s" stroke="%s" stroke-width=".5"/>' % (f(x - ddx), f(y - ddy), f(x + ddx), f(y + ddy), BLUED[0]))
-    # the rammer: an ash staff, a turned head bound in brass at the lower right
-    ra_ang = 42.0
-    vx, vy = rot2(1, 0, ra_ang)
-    P0 = (cx - 30 * vx, cy - 30 * vy - 1.0)
-    P1 = (cx + 27 * vx, cy + 27 * vy - 1.0)
-    nx_, ny_ = -vy, vx
-
-    def bar(t0, t1, r, pal, name, cap=False):
-        a = (P0[0] + vx * t0, P0[1] + vy * t0)
-        b = (P0[0] + vx * t1, P0[1] + vy * t1)
-        pts = [(a[0] + nx_ * r, a[1] + ny_ * r), (b[0] + nx_ * r, b[1] + ny_ * r),
-               (b[0] - nx_ * r, b[1] - ny_ * r), (a[0] - nx_ * r, a[1] - ny_ * r)]
-        mx, my = (a[0] + b[0]) / 2, (a[1] + b[1]) / 2
-        g = cyl_grad(m, name, mx + nx_ * r, my + ny_ * r, mx - nx_ * r, my - ny_ * r, pal, n=9, amb=0.22, shine=0.3)
-        return '<path d="%s" fill="%s"/>' % (poly_d(pts), g), pts
-    L = math.hypot(P1[0] - P0[0], P1[1] - P0[1])
-    staff, sp = bar(1.4, L - 11.5, 2.3, ASH, 'staff')
-    head, hp = bar(L - 10.6, L - 1.0, 4.7, ASH, 'rhead')
-    fer, fp_ = bar(L - 12.3, L - 10.4, 5.0, GILT, 'ferrule')
-    cap_, cp_ = bar(L - 1.3, L, 4.2, GILT, 'rcap')
-    butt, bp = bar(0, 1.8, 2.65, GILT, 'butt')
-    for pts in (sp, hp, fp_, cp_, bp):
-        m.add(shadow(poly_d(pts), 0.9, 1.3, 0.55))
-    m.add(staff + butt + head + fer + cap_)
-    # the grain of the ash, running the length of the staff and the head
-    grain = []
-    for off, t0, t1 in ((0.9, 3, L - 13), (-0.5, 6, L - 16), (-1.3, 2.5, L - 20), (2.2, L - 10, L - 2),
-                        (0.6, L - 9.6, L - 1.6), (-1.6, L - 10, L - 3), (-3.1, L - 9, L - 2.4)):
-        a = (P0[0] + vx * t0 + nx_ * off, P0[1] + vy * t0 + ny_ * off)
-        b = (P0[0] + vx * t1 + nx_ * off, P0[1] + vy * t1 + ny_ * off)
-        grain.append((a[0], a[1], b[0], b[1]))
-    m.add('<path d="%s" stroke="%s" stroke-width=".22" stroke-opacity=".55"/>' % (lines_path(grain), ASH[1]))
-    # the spanner over it
-    box = (min(A[0], B[0]) - 10, min(A[1], B[1]) - 10, max(A[0], B[0]) + 10, max(A[1], B[1]) + 10)
-    body, _ = forged(m, 'spanner', spanner, box, POLISH, bevel=0.85)
-    m.add(body)
-    # the raised web down the shank, catching the light along its crest
-    wa = (A[0] + ux * 9.5, A[1] + uy * 9.5)
-    wb = (B[0] - ux * 8.5, B[1] - uy * 8.5)
-    m.add('<path d="M%s %s L%s %s" stroke="%s" stroke-width="1.5" stroke-linecap="round"/>'
-          % (f(wa[0]), f(wa[1]), f(wb[0]), f(wb[1]), POLISH[2]))
-    m.add('<path d="M%s %s L%s %s" stroke="%s" stroke-width=".55" stroke-linecap="round" transform="translate(-.35 -.35)"/>'
-          % (f(wa[0]), f(wa[1]), f(wb[0]), f(wb[1]), POLISH[5]))
-    # the nut in the big jaw, seen from above: a hexagon chamfered to a
-    # circle at its corners, the bolt's end standing in its bore
-    af = sa
-    N = (ta[0] + da[0] * (af * 1.1547 - 0.25), ta[1] + da[1] * (af * 1.1547 - 0.25))
-    base_ang = math.degrees(math.atan2(da[1], da[0]))
-    hexo = [(N[0] + af * 1.1547 * math.cos(math.radians(base_ang + 60 * k)),
-             N[1] + af * 1.1547 * math.sin(math.radians(base_ang + 60 * k))) for k in range(6)]
-    m.add(shadow(poly_d(hexo), 0.7, 1.0, 0.6))
-    for k in range(6):
-        a0, a1 = hexo[k], hexo[(k + 1) % 6]
-        mx, my = (a0[0] + a1[0]) / 2 - N[0], (a0[1] + a1[1]) / 2 - N[1]
-        ln = math.hypot(mx, my) or 1
-        lit = (mx / ln) * LX + (my / ln) * LY
-        m.add('<path d="%s" fill="%s"/>' % (poly_d([N, a0, a1]), tone(lit, POLISH)))
-    m.add('<circle cx="%s" cy="%s" r="%s" fill="%s"/>'
-          % (f(N[0]), f(N[1]), f(af * 0.98), m.lin('nutface', [(0, POLISH[4]), (0.5, POLISH[3]), (1, POLISH[2])],
-                                                   N[0] - af, N[1] - af, N[0] + af, N[1] + af)))
-    m.add('<circle cx="%s" cy="%s" r="%s" fill="%s"/>' % (f(N[0]), f(N[1]), f(af * 0.56), POLISH[0]))
-    m.add('<circle cx="%s" cy="%s" r="%s" fill="%s"/>'
-          % (f(N[0] - 0.12), f(N[1] - 0.12), f(af * 0.46), m.lin('bolt', [(0, POLISH[3]), (1, POLISH[1])],
-                                                              N[0] - af * .5, N[1] - af * .5, N[0] + af * .5, N[1] + af * .5)))
-    m.add('<circle cx="%s" cy="%s" r="%s" fill="none" stroke="%s" stroke-width=".3"/>'
-          % (f(N[0] - 0.12), f(N[1] - 0.12), f(af * 0.3), POLISH[1]))
-    # the lashing at the cross: three turns of red cord laid over the
-    # spanner's shank along the rammer, and three over the rammer along the
-    # spanner, each a twisted strand bellied round what it binds
-    X = (cx + 0.2, cy - 0.6)
-
-    def turns(dirx, diry, across, span, name):
-        px_, py_ = -diry, dirx
-        for k in (-1, 0, 1):
-            c0 = (X[0] + dirx * k * 1.9, X[1] + diry * k * 1.9)
-            a = (c0[0] - px_ * span, c0[1] - py_ * span)
-            b = (c0[0] + px_ * span, c0[1] + py_ * span)
-            r = 0.8
-            bel = 0.55                                 # the belly of the turn
-            d = ('M%s %s Q%s %s %s %s L%s %s Q%s %s %s %s Z'
-                 % (f(a[0] + dirx * r), f(a[1] + diry * r), f(c0[0] + dirx * (r + bel)), f(c0[1] + diry * (r + bel)),
-                    f(b[0] + dirx * r), f(b[1] + diry * r), f(b[0] - dirx * r), f(b[1] - diry * r),
-                    f(c0[0] - dirx * (r - bel)), f(c0[1] - diry * (r - bel)), f(a[0] - dirx * r), f(a[1] - diry * r)))
-            g = cyl_grad(m, '%s%d' % (name, k + 1), c0[0] + dirx * r, c0[1] + diry * r, c0[0] - dirx * r,
-                         c0[1] - diry * r, CORD, n=7, amb=0.25, shine=0.2)
-            m.add(shadow(d, 0.35, 0.5, 0.55))
-            m.add('<path d="%s" fill="%s"/>' % (d, g))
-            tw = []
-            steps = int(span * 2 / 0.9)
-            for t in range(steps + 1):
-                tt = -span + 2 * span * t / steps
-                q = (c0[0] + px_ * tt, c0[1] + py_ * tt)
-                tw.append((q[0] + dirx * r * 0.85 - px_ * 0.3, q[1] + diry * r * 0.85 - py_ * 0.3,
-                           q[0] - dirx * r * 0.85 + px_ * 0.3, q[1] - diry * r * 0.85 + py_ * 0.3))
-            m.add('<path d="%s" stroke="%s" stroke-width=".2" stroke-opacity=".75"/>' % (lines_path(tw), CORD[0]))
-    turns(vx, vy, 1, 3.4, 'cordA')          # over the spanner
-    turns(ux, uy, 1, 3.0, 'cordB')          # over the rammer
+def ground_lattice(m, h):
+    """Bourse: the lozenge lattice of its own page, a diamond in a diamond."""
+    enamel_glaze(m, h)
+    q = 1.2
+    dia = ' '.join(poly_d([(cx, cy - q), (cx + q, cy), (cx, cy + q), (cx - q, cy)])
+                   for cx, cy in ((3, 0), (0, 3), (6, 3), (3, 6)))
+    turning(m, 6, 6, '<path d="M0 0 L6 6 M6 0 L0 6" stroke="%s" stroke-width=".4" stroke-opacity=".24"/>'
+            '<path d="%s" stroke="%s" stroke-width=".3" stroke-opacity=".3" fill="none"/>' % (h['lit'], dia, h['lit']),
+            'translate(48 51)')
 
 
 SUBJECTS = {
-    'groundstation': (ground_dusk, subject_groundstation, 'round'),
-    'bourse': (ground_lattice, subject_bourse, 'round'),
-    'autopilot': (ground_lamp, subject_autopilot, 'round'),
+    'autopilot': (ground_barleycorn, subject_autopilot, 'round'),
+    'groundstation': (ground_lined, subject_groundstation, 'round'),
     'outreach': (ground_basket, subject_outreach, 'round'),
     'pressroom': (ground_halftone, subject_pressroom, 'kite'),
     'arsenal': (ground_perlage, subject_arsenal, 'round'),
+    'bourse': (ground_lattice, subject_bourse, 'round'),
 }
+# Each charge sits inside a circle of about 39 units, so the enamel shows
+# all round it and nothing is cropped by the fillet: (scale, centre).
+FIT = {'autopilot': (0.92, 48.0, 40.0), 'outreach': (0.98, 48.0, 48.0)}
+
+
+def lay_subject(m, app, h, small=False):
+    k = FIT.get(app)
+    if k:
+        s, cx, cy = k
+        m.add('<g transform="translate(%s %s) scale(%s) translate(%s %s)">' % (f(cx), f(cy), f(s), f(-cx), f(-cy)))
+    SUBJECTS[app][1](m, h, small=small)
+    if k:
+        m.add('</g>')
 
 
 def emblem(app):
@@ -1554,168 +1794,33 @@ def emblem(app):
     paint, subject, stone = SUBJECTS[app]
     die_back(m, h)
     enamel_open(m, h, paint)
-    subject(m, h)
+    lay_subject(m, app, h)
     enamel_close(m)
     crown(m, h['pop'], stone)
     return m.markup()
 
 
 def emblem_small(app):
-    """The small cut: the Ledger's sigil (20 to 35 px) and the 16/32/48
-    favicon. The same die and enamel, the subject cut to its biggest masses
-    and set a little larger in the field."""
+    """The small cut: the Ledger's sigil (20 to 35 px), the gate's cartouche
+    on a laptop (under 40 px) and the 16/32/48 favicon. The same die and
+    enamel and the same subject from the same geometry, cut to its biggest
+    planes: fewer tones, no engraving, nothing under two units."""
     h = HUE[app]
     m = Mark(app, '-s')
     lip = m.lin('lip', [(0, GILT[3]), (0.35, GILT[5]), (0.7, GILT[2]), (1, GILT[1])], 14, 12, 84, 86)
     m.add('<circle cx="48.9" cy="49.3" r="47.4" fill="#000" fill-opacity=".55"/>')
     m.add('<circle cx="48" cy="48" r="47.4" fill="%s"/>' % lip)
-    m.add('<circle cx="48" cy="48" r="41.8" fill="%s"/>' % GILT[0])
-    clip = m.clip('field', '<circle cx="48" cy="48" r="40"/>')
+    m.add('<circle cx="48" cy="48" r="%s" fill="%s"/>' % (f(R_FIELD + 1.2), GILT[0]))
+    clip = m.clip('field', '<circle cx="48" cy="48" r="%s"/>' % f(R_FIELD))
     m.add('<g clip-path="%s">' % clip)
-    SMALL[app](m, h)
-    m.add('<circle cx="48" cy="48" r="40" fill="none" stroke="#000" stroke-opacity=".35" stroke-width="2.4"/>')
+    enamel_glaze(m, h)
+    lay_subject(m, app, h, small=True)
+    m.add('<circle cx="48" cy="48" r="%s" fill="none" stroke="#000" stroke-opacity=".35" stroke-width="2.4"/>' % f(R_FIELD))
     m.add('</g>')
-    m.add('<circle cx="48.5" cy="7.4" r="6.2" fill="#000" fill-opacity=".55"/><circle cx="48" cy="6.8" r="6" fill="%s"/>'
-          '<circle cx="48" cy="6.8" r="4" fill="%s"/>' % (GILT[4], h['pop']))
+    m.add('<circle cx="48.5" cy="6.1" r="5.6" fill="#000" fill-opacity=".55"/><circle cx="48" cy="5.6" r="5.4" fill="%s"/>'
+          '<circle cx="48" cy="5.6" r="3.6" fill="%s"/>' % (GILT[4], h['pop']))
     return m.markup()
 
-
-def small_enamel(m, h, cy=40):
-    g = m.rad('enamel', [(0, h['lit']), (0.6, h['field']), (1, h['deep'])], 44, cy, 46)
-    m.add('<rect width="96" height="96" fill="%s"/>' % g)
-
-
-def small_groundstation(m, h):
-    """The same dish and sky, the bowl filled in one sweep of its lit
-    colour, the struts and the tower as single masses."""
-    sky = m.lin('sky', [(0, '#141820'), (0.4, '#6a3812'), (0.72, '#e08c34'), (0.86, '#f8cc84')], 0, 8, 0, 72)
-    m.add('<rect width="96" height="96" fill="%s"/>' % sky)
-    m.add('<path d="M0 71 C20 68 70 68.5 96 71 V96 H0 Z" fill="#170b04"/>')
-    v = S.View(0, 0, 25.0, yaw=0, pitch=-5)
-    a = GS_AXIS
-    u, w, _ = S.basis(a)
-    F = 0.62
-    rc = v.proj(S.mul(a, 1.0 / (4 * F)))
-    v.cx, v.cy = 44 - rc[0], 40 - rc[1]
-    base = v.proj((0.1, -1.72, -0.5))
-    top = v.proj((0.1, -0.7, -0.5))
-    m.add('<path d="M%s %s L%s %s H%s L%s %s Z" fill="#6e3a16"/>'
-          % (f(base[0] - 7), f(base[1] + 4), f(top[0] - 3.2), f(top[1]), f(top[0] + 3.2), f(base[0] + 7), f(base[1] + 4)))
-    m.add('<path d="M%s %s L%s %s H%s L%s %s Z" fill="#b06a2c"/>'
-          % (f(base[0] - 7), f(base[1] + 4), f(top[0] - 3.2), f(top[1]), f(top[0] - 0.6), f(base[0] - 2), f(base[1] + 4)))
-    rim = [v.proj(S.add(S.add(S.mul(u, math.cos(t)), S.mul(w, math.sin(t))), S.mul(a, 1.0 / (4 * F))))[:2]
-           for t in [2 * math.pi * k / 48 for k in range(48)]]
-    m.add(shadow(S.pts_d(rim), 1.6, 2.2, 0.5))
-    bowl = m.lin('bowl', [(0, '#6a3410'), (0.45, '#e2994a'), (1, '#fff0d6')], rim[24][0], rim[24][1], rim[0][0], rim[0][1])
-    m.add('<path d="%s" fill="%s" stroke="#fff4dc" stroke-width="2"/>' % (S.pts_d(rim), bowl))
-    fp = v.proj(S.mul(a, 0.98))
-    for d in (40, 130, 220, 310):
-        t = math.radians(d)
-        rp = v.proj(S.add(S.add(S.mul(u, math.cos(t)), S.mul(w, math.sin(t))), S.mul(a, 1.0 / (4 * F))))
-        m.add('<path d="M%s %s L%s %s" stroke="#3a1c0a" stroke-width="2" stroke-linecap="round"/>'
-              % (f(rp[0]), f(rp[1]), f(fp[0]), f(fp[1])))
-    m.add('<path d="M74 10 L75.8 17.2 L83 19 L75.8 20.8 L74 28 L72.2 20.8 L65 19 L72.2 17.2 Z" fill="#fff4d8"/>')
-
-
-def small_bourse(m, h):
-    small_enamel(m, h)
-    g = GILT[4]
-    m.add('<path d="M24 76 H72 L69 83 H27 Z" fill="%s"/><rect x="27" y="69" width="42" height="7" fill="#6b692c"/>' % g)
-    m.add('<path d="M29 70 V40 C29 22 67 22 67 40 V70" stroke="%s" stroke-width="3.2" fill="none"/>' % g)
-    m.add('<path d="M48 18 V26 M38.5 26 C35 32 34 36 34 40 V70 M57.5 26 C61 32 62 36 62 40 V70" stroke="%s" '
-          'stroke-width="2" fill="none"/>' % GILT[2])
-    m.add('<circle cx="48" cy="14" r="3.4" fill="none" stroke="%s" stroke-width="2.4"/>' % g)
-    m.add('<g transform="translate(49 66) scale(1.55)"><path d="%s" fill="#f2c936"/><path d="%s" fill="#b88614"/>'
-          '<path d="%s" fill="#c99618"/><circle cx="%s" cy="%s" r=".9" fill="#1c1108"/></g>'
-          % (smooth_d(CANARY['body']), smooth_d(CANARY['shade']), smooth_d(CANARY['primaries']),
-             CANARY['eye'][0], CANARY['eye'][1]))
-
-
-def small_autopilot(m, h):
-    small_enamel(m, h, cy=30)
-    m.add('<path d="M16 64 H80 V71 H16 Z" fill="#9c5429"/><path d="M16 64 H80 V66.5 H16 Z" fill="#d28a55"/>')
-    m.add('<path d="M22 71 H30 Q24 73 24 82 H22 Z M74 71 H66 Q72 73 72 82 H74 Z" fill="%s"/>' % GILT[4])
-    books = [(20, 10, 36, '#e9dec2', '#fdf6e2'), (30.5, 8.6, 30, '#28583a', '#468458'),
-             (39.6, 13, 46, '#b64638', '#e07c64'), (53.1, 8, 28, '#1e4560', '#386a86')]
-    for x, w, ht, c, lt in books:
-        m.add('<rect x="%s" y="%s" width="%s" height="%s" fill="%s"/><rect x="%s" y="%s" width="%s" height="%s" fill="%s"/>'
-              % (f(x), f(64 - ht), f(w), f(ht), c, f(x), f(64 - ht), f(w * 0.35), f(ht), lt))
-        m.add('<rect x="%s" y="%s" width="%s" height="3" fill="%s"/>' % (f(x), f(64 - ht + ht * 0.2), f(w), GILT[5]))
-    m.add('<g transform="rotate(-13 67 64)"><rect x="67" y="29" width="11" height="35" fill="#95622c"/>'
-          '<rect x="67" y="29" width="4" height="35" fill="#c49052"/><rect x="67" y="36" width="11" height="3" fill="%s"/></g>'
-          % GILT[5])
-
-
-def small_outreach(m, h):
-    small_enamel(m, h)
-    m.add('<ellipse cx="49.5" cy="55" rx="37" ry="23" fill="#000" fill-opacity=".5"/>')
-    m.add('<ellipse cx="48" cy="52.5" rx="37" ry="23" fill="%s"/>'
-          % m.lin('rim', [(0, '#f6fafb'), (0.5, '#94abb8'), (1, '#203645')], 20, 34, 76, 74))
-    m.add('<ellipse cx="48" cy="52.5" rx="28" ry="16.5" fill="%s"/>'
-          % m.lin('well', [(0, '#dfe8ec'), (0.6, '#4e6878'), (1, '#1a2e3a')], 26, 38, 70, 70))
-    for k, (d, c0, c1) in enumerate((('M18 50 L50 30 L64 44 L32 64 Z', '#efe6d0', '#b8ac92'),
-                                     ('M20 54 L56 38 L67 53 L32 68 Z', '#f6efdc', '#c6bba2'),
-                                     ('M24 58 L63 48 L70 60 L67 65 L32 72 Z', '#fffdf6', '#d6ccb4'))):
-        m.add('<path d="%s" fill="#000" fill-opacity=".35" transform="translate(1 1.4)"/>' % d)
-        m.add('<path d="%s" fill="%s"/><path d="%s" fill="none" stroke="%s" stroke-width="1.5"/>'
-              % (d, m.lin('card%d' % k, [(0, c0), (1, c1)], 22, 40, 70, 64), d, GILT[4]))
-
-
-def small_pressroom(m, h):
-    small_enamel(m, h)
-    g = GLOBE
-    cx, cy, R = 48, 44, 27
-    m.add('<ellipse cx="48" cy="85" rx="13" ry="4.4" fill="%s"/><path d="M46 85 L47 68 H49 L50 85 Z" fill="%s"/>'
-          % (GILT[4], GILT[4]))
-    sea = m.lin('sea', [(0, '#b6e2b4'), (0.3, '#4c9a68'), (0.52, '#1a4e30'), (0.6, '#0a2416'), (1, '#04110a')], 28, 30, 68, 60)
-    land = m.lin('land', [(0, '#fff6d6'), (0.3, '#d6c690'), (0.52, '#6a6238'), (0.6, '#1e3018'), (1, '#0e1c10')], 28, 30, 68, 60)
-    m.add('<circle cx="%s" cy="%s" r="%s" fill="%s"/>' % (cx, cy, R, sea))
-    k = R / g['r']
-    shapes = []
-    for name in ('eurasia', 'africa', 'australia'):
-        pts = [globe_pt(globe_xyz(lo, la)) for lo, la in LAND[name]]
-        pts = [(cx + (x - g['cx']) * k, cy + (y - g['cy']) * k) for x, y in pts]
-        shapes.append(poly_d(S.rdp(pts, 0.8)))
-    clipg = m.clip('globe', '<circle cx="%s" cy="%s" r="%s"/>' % (cx, cy, R))
-    m.add('<path d="%s" fill="%s" clip-path="%s"/>' % (' '.join(shapes), land, clipg))
-    m.add('<path d="M%s %s A%s %s 0 0 1 %s %s" stroke="%s" stroke-width="3" fill="none"/>'
-          % (cx + 6, cy - R - 1.5, R + 2, R + 2, cx + 3, cy + R + 1.5, GILT[4]))
-
-
-def small_arsenal(m, h):
-    small_enamel(m, h)
-    ux, uy = rot2(1, 0, -45)
-    cx, cy = 48, 49
-    A = (cx - 21 * ux, cy - 21 * uy)
-    B = (cx + 21 * ux, cy + 21 * uy)
-    vx, vy = rot2(1, 0, 42)
-    P0 = (cx - 29 * vx, cy - 29 * vy)
-    P1 = (cx + 27 * vx, cy + 27 * vy)
-    m.add('<path d="M%s %s L%s %s" stroke="#8a6034" stroke-width="5" stroke-linecap="round"/>'
-          % (f(P0[0]), f(P0[1]), f(P1[0]), f(P1[1])))
-    hx, hy = P1[0] - vx * 5, P1[1] - vy * 5
-    m.add('<path d="M%s %s L%s %s" stroke="#bb8e56" stroke-width="10" stroke-linecap="round"/>'
-          % (f(hx), f(hy), f(P1[0]), f(P1[1])))
-    da = rot2(-ux, -uy, 15)
-    db = rot2(ux, uy, 15)
-
-    def sp(x, y):
-        d = S.smin(S.sd_circle(x, y, A[0], A[1], 9), S.sd_circle(x, y, B[0], B[1], 7.5), 0.1)
-        d = S.smin(d, S.sd_capsule(x, y, A[0], A[1], B[0], B[1], 3.4, 2.9), 3)
-        ta = (A[0] - da[0], A[1] - da[1])
-        tb = (B[0] - db[0], B[1] - db[1])
-        d = max(d, -S.sd_capsule(x, y, ta[0], ta[1], ta[0] + da[0] * 30, ta[1] + da[1] * 30, 4))
-        return max(d, -S.sd_capsule(x, y, tb[0], tb[1], tb[0] + db[0] * 30, tb[1] + db[1] * 30, 3.2))
-    loops = S.contours(sp, 10, 10, 86, 86, 0.6)
-    d = ' '.join(S.pts_d(lp) for lp in loops)
-    m.add(shadow(d, 1.4, 2, 0.6, ' fill-rule="evenodd"'))
-    m.add('<path d="%s" fill="%s" fill-rule="evenodd"/>'
-          % (d, m.lin('sp', [(0, POLISH[5]), (0.5, POLISH[3]), (1, POLISH[1])], 26, 26, 70, 70)))
-    m.add('<circle cx="%s" cy="%s" r="4.4" fill="#c8483a"/>' % (f(cx), f(cy - 0.6)))
-
-
-SMALL = {'autopilot': small_autopilot, 'groundstation': small_groundstation, 'outreach': small_outreach,
-         'pressroom': small_pressroom, 'arsenal': small_arsenal, 'bourse': small_bourse}
 
 
 # --------------------------------------------------------------------------
@@ -1764,9 +1869,11 @@ CSS_END = '/* END generated velvets */'
 
 
 def defs_block():
+    """The marks for the page's <defs>. Each full mark carries the ink its
+    gate's day card is printed in (HUE's ink), which app.js reads from it."""
     rows = []
     for app in MARKS:
-        rows.append('  <g id="mark-%s">%s</g>' % (app, emblem(app)))
+        rows.append('  <g id="mark-%s" data-ink="%s">%s</g>' % (app, HUE[app]['ink'], emblem(app)))
         rows.append('  <g id="mark-%s-s">%s</g>' % (app, emblem_small(app)))
     rows.append('  <g id="mark-atrium">%s</g>' % atrium_emblem())
     return BEGIN + '\n' + '\n'.join(rows) + '\n' + END
@@ -1803,12 +1910,18 @@ def inside_repo(p):
         return False
 
 
-def write_text(path, text):
+def guard(path, allow_outside=False):
+    """Every file this script writes passes here: nothing lands outside this
+    repository unless the caller says so in as many words."""
+    if not allow_outside and not inside_repo(path):
+        raise SystemExit('refusing to write outside %s: %s' % (ROOT, path))
+    return path
+
+
+def write_text(path, text, allow_outside=False, newline=None):
     """Write in text mode so a CRLF checkout round-trips, and never outside
     this repository."""
-    if not inside_repo(path):
-        raise SystemExit('refusing to write outside %s: %s' % (ROOT, path))
-    with io.open(path, 'w', encoding='utf-8') as fh:
+    with io.open(guard(path, allow_outside), 'w', encoding='utf-8', newline=newline) as fh:
         fh.write(text)
 
 
@@ -1850,13 +1963,14 @@ def rasterise(jobs):
         subprocess.run(['node', str(RASTER_JS), manifest], check=True)
 
 
-def build(app, outdir):
+def build(app, outdir, allow_outside=False):
     from PIL import Image
+    guard(outdir, allow_outside)
     os.makedirs(outdir, exist_ok=True)
     body = emblem_small(app) if app != 'atrium' else atrium_emblem()
     full = emblem(app) if app != 'atrium' else body
     deep = HUE[app]['deep'] if app in HUE else ATRIUM['deep']
-    io.open(os.path.join(outdir, 'icon.svg'), 'w', encoding='utf-8').write(svg_doc(full))
+    write_text(os.path.join(outdir, 'icon.svg'), svg_doc(full), allow_outside)
     jobs = [(svg_doc(full if s >= 64 else body, size=s), s, os.path.join(outdir, '_r%d.png' % s)) for s in RASTER]
     jobs.append((svg_doc(full, pad=18, bg=deep, size=512), 512, os.path.join(outdir, '_mask.png')))
     rasterise(jobs)
@@ -1875,7 +1989,7 @@ def build(app, outdir):
     os.remove(os.path.join(outdir, '_mask.png'))
     names = HUE.get(app, {'name': 'Atrium', 'short': 'Atrium'})
     chrome_bg = CHROME_BG.get(app, deep)
-    with io.open(os.path.join(outdir, 'manifest.webmanifest'), 'w', encoding='utf-8') as fh:
+    with io.open(guard(os.path.join(outdir, 'manifest.webmanifest'), allow_outside), 'w', encoding='utf-8') as fh:
         json.dump({
             'name': names['name'], 'short_name': names['short'], 'start_url': '/', 'display': 'standalone',
             'background_color': SPLASH_BG.get(app, chrome_bg), 'theme_color': chrome_bg,
@@ -1893,15 +2007,17 @@ SYM_BEGIN = '    <!-- BEGIN generated app mark (icons/gen.py) -->'
 SYM_END = '    <!-- END generated app mark -->'
 
 
-def write_app_symbol(app):
-    """Rewrite the inline <symbol id="applogo"> in the app's own page."""
+def write_app_symbol(app, allow_outside=False):
+    """Rewrite the inline <symbol id="applogo"> in the app's own page (in
+    another repository, so only with allow_outside)."""
     path = SYMBOL_TARGETS.get(app)
     if not path:
         return
+    guard(path, allow_outside)
     block = '%s\n    <symbol id="applogo" viewBox="0 0 96 96">%s</symbol>\n%s' % (SYM_BEGIN, emblem(app), SYM_END)
     src = io.open(path, encoding='utf-8').read()
     src = replace_between(src, SYM_BEGIN, SYM_END, block, path)
-    io.open(path, 'w', encoding='utf-8', newline='\n').write(src)
+    write_text(path, src, allow_outside, newline='\n')
     print('  %-14s -> %s (inline mark)' % (app, path))
 
 
@@ -1926,9 +2042,9 @@ def main(argv):
                 ap.error('%s is outside %s; pass --allow-outside-repo to write there' % (out, ROOT))
         for app in args.brand:
             out = Path(args.out).resolve() if args.out else Path(TARGETS[app])
-            build(app, str(out))
+            build(app, str(out), args.allow_outside_repo)
             if args.allow_outside_repo and not args.out:
-                write_app_symbol(app)
+                write_app_symbol(app, allow_outside=True)
     write_atrium_defs()
     write_velvets()
     print('done')

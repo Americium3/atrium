@@ -1,10 +1,10 @@
 """True forms for the app marks: a small orthographic modeller.
 
-The marks draw their subjects from the real object's geometry (a paraboloid
-dish, a sphere and its graticule, a cage of wires, a salver's well) and shade
-each plane by its angle to the hall's one key light, up and to the left and a
-little in front. Everything here is pure geometry; icons/gen.py decides the
-colours and writes the SVG.
+The marks draw their subjects from the real object's geometry (a sphere and
+its graticule, a paraboloid dish, turned stands, a cage of wires) and cut
+each form into flat planes of tone along the hall's one key light, up and to
+the left and a little in front. Everything here is pure geometry; icons/gen.py
+decides the colours and writes the SVG.
 """
 import math
 
@@ -20,10 +20,6 @@ KEY = norm((-0.55, 0.62, 0.58))
 
 def add(a, b):
     return (a[0] + b[0], a[1] + b[1], a[2] + b[2])
-
-
-def sub(a, b):
-    return (a[0] - b[0], a[1] - b[1], a[2] - b[2])
 
 
 def mul(a, k):
@@ -70,18 +66,6 @@ class View:
         return self.rot(n)
 
 
-def lambert(n_view, amb=0.18, wrap=0.0):
-    d = dot(norm(n_view), KEY)
-    d = (d + wrap) / (1 + wrap)
-    return amb + (1 - amb) * max(0.0, d)
-
-
-def spec(n_view, power=18):
-    """Blinn highlight toward the viewer."""
-    h = norm(add(KEY, (0, 0, 1)))
-    return max(0.0, dot(norm(n_view), h)) ** power
-
-
 def hexrgb(c):
     c = c.lstrip('#')
     return [int(c[i:i + 2], 16) for i in (0, 2, 4)]
@@ -91,18 +75,10 @@ def rgbhex(v):
     return '#%02x%02x%02x' % tuple(max(0, min(255, int(round(x)))) for x in v)
 
 
-def ramp(cols, t):
-    """Interpolate along a list of hex colours, t in 0..1."""
-    t = max(0.0, min(1.0, t))
-    k = t * (len(cols) - 1)
-    i = min(int(k), len(cols) - 2)
-    a, b = hexrgb(cols[i]), hexrgb(cols[i + 1])
-    u = k - i
-    return rgbhex([x + (y - x) * u for x, y in zip(a, b)])
-
-
 def fmt(x):
-    s = ('%.2f' % x).rstrip('0').rstrip('.')
+    """Coordinates to a tenth of a mark unit: a fifth of a pixel on the sheet's
+    400px marks, and a twentieth of one on a gate."""
+    s = ('%.1f' % x).rstrip('0').rstrip('.')
     return '0' if s in ('-0', '') else s
 
 
@@ -153,25 +129,8 @@ def quant(c, step=6):
 
 
 # --------------------------------------------------------------------------
-# Signed distance outlines: forged and turned profiles (a spanner's jaws,
-# a fillet where the shank meets the head) traced as real contours.
+# Tracing: the outline of a region, from a function that is negative inside.
 # --------------------------------------------------------------------------
-def sd_circle(px, py, cx, cy, r):
-    return math.hypot(px - cx, py - cy) - r
-
-
-def sd_capsule(px, py, ax, ay, bx, by, ra, rb=None):
-    """Distance to a segment whose radius runs from ra at a to rb at b."""
-    rb = ra if rb is None else rb
-    dx, dy = bx - ax, by - ay
-    t = ((px - ax) * dx + (py - ay) * dy) / (dx * dx + dy * dy or 1)
-    t = max(0.0, min(1.0, t))
-    return math.hypot(px - ax - dx * t, py - ay - dy * t) - (ra + (rb - ra) * t)
-
-
-def smin(a, b, k):
-    h = max(k - abs(a - b), 0.0) / k
-    return min(a, b) - h * h * k * 0.25
 
 
 def contours(sdf, x0, y0, x1, y1, step, level=0.0):
@@ -246,3 +205,46 @@ def rdp(pts, eps):
         return [seq[0], seq[-1]]
     half = len(pts) // 2
     return _rdp(pts[:half + 1])[:-1] + _rdp(pts[half:] + [pts[0]])[:-1]
+
+
+# --------------------------------------------------------------------------
+# Planes: a form cut into flat fields of tone along the key light, the way a
+# woodcut or a poster cuts it. The boundary between two tones is an isoline
+# of the form's lighting, traced and drawn as one smooth curve.
+# --------------------------------------------------------------------------
+def catmull_d(pts, closed=True):
+    """A closed Catmull-Rom spline through pts, as cubic Beziers."""
+    n = len(pts)
+    if n < 3:
+        return pts_d(pts, closed)
+    out = ['M%s %s' % (fmt(pts[0][0]), fmt(pts[0][1]))]
+    last = n if closed else n - 1
+    for i in range(last):
+        p0, p1 = pts[(i - 1) % n], pts[i]
+        p2, p3 = pts[(i + 1) % n], pts[(i + 2) % n]
+        if not closed:
+            p0, p3 = pts[max(i - 1, 0)], pts[min(i + 2, n - 1)]
+        c1 = (p1[0] + (p2[0] - p0[0]) / 6.0, p1[1] + (p2[1] - p0[1]) / 6.0)
+        c2 = (p2[0] - (p3[0] - p1[0]) / 6.0, p2[1] - (p3[1] - p1[1]) / 6.0)
+        out.append('C%s %s %s %s %s %s' % (fmt(c1[0]), fmt(c1[1]), fmt(c2[0]), fmt(c2[1]), fmt(p2[0]), fmt(p2[1])))
+    return ' '.join(out) + (' Z' if closed else '')
+
+
+def region_d(fn, box, step=0.4, eps=0.12, smooth=True):
+    """The region fn(x, y) < 0 inside box (x0, y0, x1, y1), as path data.
+    The box's own edge counts as outside, so every loop closes."""
+    x0, y0, x1, y1 = box
+
+    def pad(x, y):
+        if x < x0 + step * 0.5 or y < y0 + step * 0.5 or x > x1 - step * 0.5 or y > y1 - step * 0.5:
+            return 1.0
+        return fn(x, y)
+    loops = contours(pad, x0 - step, y0 - step, x1 + step, y1 + step, step)
+    loops = [rdp(lp, eps) for lp in loops]
+    loops = [lp for lp in loops if len(lp) > 2 and abs(area(lp)) > step * step]
+    return ' '.join((catmull_d(lp) if smooth else pts_d(lp)) for lp in loops)
+
+
+def area(pts):
+    return 0.5 * sum(pts[i][0] * pts[(i + 1) % len(pts)][1] - pts[(i + 1) % len(pts)][0] * pts[i][1]
+                     for i in range(len(pts)))
