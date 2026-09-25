@@ -882,7 +882,8 @@ the lamp and takes the address line's place while it stands.
   the day card, carrying the gate's own corner ornament in light). By day the
   tabs are drawn back and tied, and the screen shows the title card: card
   stock in front of a matte silver screen, printed in the gate's own ink
-  (oxblood, bottle green or navy) with a border band, its corner motif, a
+  (oxblood, bottle green or navy, chosen with the mark so a green house
+  never carries an oxblood card) with a border band, its corner motif, a
   headpiece and a rule, set semibold in `#160f06`, never
   smaller than its words.
 - Lamp states: `…` (checking, until the first /api/status, lights at
@@ -931,69 +932,94 @@ the lamp and takes the address line's place while it stands.
 
 Each service's mark is a 1930s enamelled badge. The six are cut from one
 die, the way a cinema circuit's commissionaires wore one badge with their
-own house's device in it. The die is a cast gilt lip turned in six tones, a
-groove of beads, translucent enamel fired over an engine-turned ground (laid
-as a pattern tile), and a stone in a collet at the crown. The gilt is fixed,
-as `--br` is, so a mark stays its own object in a gold bezel or a nickel one.
+own house's device in it. The die is a plain turned gilt lip in six tones
+with one groove cut inside it, translucent enamel fired over an
+engine-turned ground (laid as a pattern tile), and a stone in a collet at
+the crown. It has no beads and no rivets: the gate's bezel owns the rivet
+ring. The gilt is fixed, as `--br` is, so a mark stays its own object in a
+gold bezel or a nickel one.
 
-Inside the die each app keeps a subject drawn from the real object. The
-owner's rule for them: no lettering of any kind, no figure pieced together
-from circles and rectangles, and colour laid in as the eye remembers the
-thing, in broad fields that follow its planes. `icons/solid.py` supplies
-the true forms. It is a small orthographic modeller that projects a
-paraboloid dish, a sphere and its graticule, a cage of wires round a drum
-and dome, or a salver's well and rim, and shades each plane by its angle to
-the hall's key light, up and to the left. Flat forged parts, a spanner's
-jaws and the fillet where its shank meets the head, are traced from
-distance fields. The canary runs on a spline through landmarks taken from
-the living bird. Flat reliefs are still drawn three times along the key
-light. Nothing on a mark glows and nothing carries a gloss band: the domed
-crystal over the gate gives it the one reflection glass is allowed.
+Inside the die each app carries one charge on plain enamel, with no
+scenery round it, seen from the same place: level with it or eight degrees
+above. The owner's rule for them: no lettering of any kind, no figure
+pieced together from circles and rectangles, and colour laid in as the eye
+remembers the thing. Each subject is drawn from the real object's geometry
+and proportions, and its form is then cut into three or four flat planes
+of tone along the hall's key light, up and to the left, the way a woodcut
+or a Deco poster cuts it. There is no gradient inside a plane and no
+outline round one. `icons/solid.py` projects the solids (a sphere and its
+graticule, a paraboloid dish, turned stands and bobs, a cage round a drum
+and dome) and traces the boundary between two planes as an isoline of the
+form's lighting. The canary's volume is a head, a throat and a body blended
+together, clipped to an outline drawn from the living bird. Nothing on a
+mark glows and nothing carries a gloss band: the domed crystal over the
+gate gives it the one reflection glass is allowed. Each charge stays within
+about 39 units of the centre, so the enamel shows all round it.
 
-- Anime Autopilot: the season shelf under the reading lamp. Five volumes
-  stand on a mahogany plank on brass brackets, their rounded backs lit
-  across the barrel and their heads seen from a little above. Two more lie
-  flat at the end, and the last upright one is tipped against its
-  neighbour. The crown's opal is the lamp. Oxblood enamel over a barleycorn
-  turning.
-- Ground Station: an earth station at dusk. A parabolic dish on a turned
-  tower looks up at the one star it is tracking, every panel of the bowl lit
-  by its own angle. The enamel is fired as the sky, amber at the horizon and
-  graphite overhead, over a lined turning. An amber stone.
-- Outreach Desk: the day's calling cards fanned on a silver salver, the top
-  one with its corner turned up because it is delivered by hand. A band of
-  bright-cut engraving runs round the well. Prussian blue enamel over a
-  basket weave. A citrine.
-- The Press Room: the world as a cast desk globe, its coasts projected from
-  real longitudes and latitudes, lit from one side so that half of it lies
-  in night and half in morning. A gilt meridian ring goes round it and it
-  stands on a turned foot. Green enamel over a halftone screen. The kite is
-  its stone.
-- Arsenal: the armourer's trophy from its own masthead. A drop-forged
-  spanner, its larger jaw on a hex nut, crosses a rammer of turned ash with
-  a brass-bound head, and red cord lashes the two where they cross. They
-  lie on a blued-steel bolt-head plate. Gunmetal enamel over perlage. A
-  signal-red stone.
-- Bourse: the canary on its perch in a gilded dome cage whose door stands
-  open, and it stays. The cage stands on a band of the curtain's olive gold.
-  Olive-gold enamel over the page's lozenge lattice. A ticker-amber stone.
+- Anime Autopilot: the season's shelf. A tall red morocco volume with raised
+  cords and a label leads vellum, bottle-green cloth and navy buckram at
+  their own heights on a mahogany plank. A calf volume leans on its
+  neighbour at one end and the brass bookend the app's opening sets down
+  holds the other. Each spine is a rounded back in its planes, its head seen
+  from a little above. Oxblood enamel over a barleycorn turning; an opal.
+- Ground Station: an earth station's dish in white-painted steel, turned up
+  to the sky it listens to. The bowl is lit where it faces the light and in
+  shade where it turns away, four struts carry the subreflector at the
+  focus, and a cast yoke stands on a turned pedestal. Amber enamel over a
+  lined turning; an amber stone.
+- Outreach Desk: the day's queue as three calling cards dealt in a fan,
+  graded as the page grades them: sky blue, bone, and the first call in
+  ivory with a gilt edge. The front card carries a cameo of its sitter in
+  white relief on jasper blue, and its corner is turned up, the old sign of
+  a card left by hand. Prussian blue enamel over a basket weave; a citrine.
+- The Press Room: the world as a desk globe turned to Europe, Africa and
+  Asia, the sun raking it so a hard terminator and a band of twilight part
+  day from night. Round its equator runs the paper's own staff, the rule
+  with its dashes and hung triples of dots, printed in bone as a globe
+  prints its graduated equator. A gilt meridian ring holds it by the poles
+  in the same projection, and it stands on a turned foot. Green enamel over
+  a halftone screen; the kite is its stone.
+- Arsenal: a gunner's quadrant (Tartaglia's, 1537), the instrument that
+  first turned a gun's elevation into a number. A long arm lies in the
+  bore, a short arm stands square to it, and between them a limb graduated
+  in the gunner's twelve points. A plumb bob in signal-red lacquer hangs
+  from the corner and reads the elevation, as the Ballistic Computer reads
+  one off the range. Gunmetal enamel over perlage; a signal-red stone.
+- Bourse: the canary the desk keeps on watch, calm on a turned perch in a
+  gilt dome cage that is open to the reader. The cage hangs from a ring of
+  its own and stands on a tray banded in the curtain's own olive gold, a
+  dye the drawing reads from `HUE`. Dark olive enamel over the page's
+  lozenge lattice; a ticker-amber stone.
 
-Each mark also has a small cut from the same die, `#mark-<id>-s`, with the
-subject reduced to its biggest masses. The Ledger's medal (20 to 35px)
-wears it, and it is the drawing for a 16, 32 or 48px favicon.
+Each mark also has a small cut, `#mark-<id>-s`, drawn from the same
+geometry with fewer planes and nothing under two units. The Ledger's medal
+(20 to 35px) wears it, the gate wears it where its cartouche is under 40px
+(a container query on the gate picks the cut, so a 1280 or 1366 hall shows
+the small one), and it is the drawing for a 16, 32 or 48px favicon.
 
-The curtain follows the mark. `HUE` in `icons/gen.py` holds each mark's
-enamel beside the dye of its velvet for Onyx and Ivory, and the script
-writes both: the marks into the page's defs, the dyes into
-`palace-gates.css`, keyed on the service. No hash picks a velvet. The
+The house follows the mark. `HUE` in `icons/gen.py` holds each mark's
+enamel beside the dye of its velvet for Onyx and Ivory and the ink its day
+card is printed in, and the script writes them: the marks into the page's
+defs (each full mark carries its ink as `data-ink`, which `inkFor` in
+`app.js` reads), the dyes into `palace-gates.css`, keyed on the service
+through `velvetFor`. No hash picks a velvet or a marked gate's ink. The
 reserved gate keeps its iron, and a service with no mark hangs the house
-claret. `tests/test_web_assets.py` fails when a dye leaves its mark's hue
-family (30 degrees in CIELAB; a steel mark takes a near-neutral cloth),
-rises past three quarters of `--au-2`'s luminance, or comes within 15
-CIEDE2000 of another velvet in its wing. It also fails when a mark carries
-text, a filter or `currentColor`. Sapphire is kept for the concourse
-clock, so no mark or curtain is named for it or wears a saturated royal
-blue.
+claret. `tests/test_web_assets.py` fails when:
+
+- a dye leaves its mark's enamel field by more than 30 degrees of CIELAB
+  hue (a steel field takes a cloth of chroma 10 or less, in its own hue),
+  rises past three quarters of `--au-2`'s luminance, or comes within 15
+  CIEDE2000 of another velvet in its wing (10 with both houses dark);
+- a mark is not fired in `HUE`'s own enamel, or carries text, a filter or
+  `currentColor`;
+- any sheet sets `--velvet` outside the generated block (the reserved
+  gate's iron aside), `velvetFor` stops returning each service's own id
+  when run under node, or a service in `server.py` is not its own sigil;
+- two gates of a wing print their cards in one ink, or the gate stops
+  mounting both cuts.
+
+Sapphire is kept for the concourse clock, so no mark or curtain is named
+for it or wears a saturated royal blue.
 
 `python icons/gen.py` writes only this repository's defs and velvet rules.
 The apps' own favicons and brand files are rebuilt with `--brand` after

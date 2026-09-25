@@ -462,11 +462,13 @@ its next poll once the hub has restarted. A service taken out of
 ## The marks
 
 `icons/gen.py` draws every service's badge and is the one source for its
-colours. Each mark is an enamelled badge cut from one die (a gilt lip, a
-ring of beads, translucent enamel over engine turning, the app's subject in
-gilt relief and a stone at the crown), and each has a small cut for the
-Ledger and a future favicon. `HUE` holds each app's enamel beside the dye
-of the velvet its gate hangs, per theme, so the curtain follows the mark.
+colours. Each mark is an enamelled badge cut from one die (a turned gilt
+lip, translucent enamel over engine turning and a stone at the crown)
+holding one subject drawn from the real object and cut into flat planes of
+tone along the hall's key light. Each has a small cut for the Ledger, for a
+gate on a laptop-sized hall and for a future favicon. `HUE` holds each
+app's enamel beside the dye of the velvet its gate hangs (per theme) and
+the ink its day card is printed in, so the house follows the mark.
 DESIGN.md, "App marks (v7)", describes the six.
 
 A plain run writes only this repository: the generated block of marks in
