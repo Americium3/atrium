@@ -932,8 +932,10 @@ function finishEntrance() {
   // Relay: motion transfers from the overlay to the hall. The gear train
   // twitches one tooth: the machine exhales as the overlay clears, once the
   // frame that lets go of the street (100-180ms of raster at 3440) is out,
-  // so its first frames are not lost in it.
-  afterDrawn(deskNudge);
+  // so its first frames are not lost in it. A throw in the meantime (a
+  // lever activated as the entrance landed) has it stand down.
+  var gen = driveGen;
+  afterDrawn(function () { if (driveGen === gen) deskNudge(); });
 }
 
 /* Desk nudge: the handle lifts a hair and drops back into its jaws after
@@ -945,8 +947,9 @@ function deskNudge() {
   if (!desk) return;
   var t0 = performance.now();
   var PUSH = 200, PULL = 280, AMP = 0.03;
-  var base = getDrive();
+  var base = getDrive(), gen = driveGen;
   function frame(now) {
+    if (driveGen !== gen) return;     // a throw took the drive: it lands the blade
     var dt = Math.max(0, now - t0);   // same early-frame timestamp as deskDrive
     var v;
     if (dt < PUSH) {
@@ -1091,8 +1094,10 @@ function getDrive() { return driveNow; }
    at 3440, and the arm was first drawn at or past its end stop (MO-15).
    After a late frame it now carries on from where it was drawn, and the
    swing and the overshoot are always drawn in sixteen frames or more. */
+var driveGen = 0;   // bumped by every throw; a nudge in its way stands down
 function deskDrive(target) {
   if (!desk) return;
+  driveGen++;
   cancelAnimationFrame(deskRaf);
   // Hidden pages never fire rAF — land the mechanism instantly.
   if (root.dataset.motion === 'reduced' ||
