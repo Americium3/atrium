@@ -228,17 +228,120 @@ def _wings() -> dict[str, str]:
 
 
 # A curtain belongs to its mark when its hue sits within this of the mark's
-# enamel field (CIELAB hue angle, degrees). A neutral field (chroma under 12,
-# a steel) takes a neutral cloth instead: chroma 10 at most, and where the
-# cloth shows any colour at all (chroma over 6) it is the field's own hue.
+# ground as the page draws it (CIELAB hue angle, degrees). A neutral ground
+# (chroma under 12, a steel) takes a neutral cloth instead: chroma 10 at most,
+# and where the cloth shows any colour at all (chroma over 6) it is the
+# ground's own hue.
 VELVET_HUE_TOLERANCE = 30.0
 NEUTRAL_CHROMA = 12.0
 NEUTRAL_VELVET_CHROMA = 10.0
 # Two gates of one wing must not read as the same cloth (CIEDE2000), open or
 # with the house dark (the shade mixes in palace-gates.css).
 WING_MIN_DE = 15.0
-WING_MIN_DE_DARK = 10.0
+WING_MIN_DE_DARK = 15.0
 DARK_MIX = {"onyx": (0.34, "#0f0d0f"), "ivory": (0.28, "#110e0c")}
+
+
+def _page_marks() -> dict[str, str]:
+    """Each mark's markup as the page carries it: {'autopilot': ...,
+    'autopilot-s': ...}, one line of the generated block each."""
+    page = PAGE.read_text(encoding="utf-8").replace("\r\n", "\n")
+    return {m.group(1): m.group(2) for m in re.finditer(r'^  <g id="mark-([\w-]+)"[^>]*>(.*)</g>$', page, flags=re.M)}
+
+
+def _shipped_velvets() -> dict[tuple[str, str], str]:
+    """The dye each gate's cloth is given in the stylesheets as served:
+    {(theme, key): '#rrggbb'} for every `.gate[data-velvet=key]` rule."""
+    out = {}
+    for sheet in sheets():
+        css = re.sub(r"/\*.*?\*/", "", sheet.read_text(encoding="utf-8"), flags=re.S)
+        for theme, key, hex_ in re.findall(
+                r':root\[data-theme="(\w+)"\] \.gate\[data-velvet="([\w-]+)"\] \{ --velvet: (#[0-9a-fA-F]{6}); \}', css):
+            out[(theme, key)] = hex_.lower()
+    return out
+
+
+def _gradient(markup: str, gid: str):
+    """A gradient in the mark's defs, as a function of (x, y) giving
+    (r, g, b, alpha) in 0..1, the way SVG spreads it (pad)."""
+    import math
+    m = re.search(r'<(radialGradient|linearGradient) id="%s"([^>]*)>(.*?)</\1>' % re.escape(gid), markup)
+    if not m:
+        return None
+    kind, attrs, body = m.groups()
+    at = dict(re.findall(r'([\w-]+)="([^"]*)"', attrs))
+    stops = []
+    for s in re.findall(r"<stop([^>]*)/>", body):
+        sa = dict(re.findall(r'([\w-]+)="([^"]*)"', s))
+        stops.append((float(sa["offset"]), _rgb(sa["stop-color"]), float(sa.get("stop-opacity", 1))))
+
+    def colour(t):
+        t = max(0.0, min(1.0, t))
+        if t <= stops[0][0]:
+            return (*stops[0][1], stops[0][2])
+        for (o0, c0, a0), (o1, c1, a1) in zip(stops, stops[1:]):
+            if t <= o1:
+                k = 0.0 if o1 == o0 else (t - o0) / (o1 - o0)
+                return (*[x + (y - x) * k for x, y in zip(c0, c1)], a0 + (a1 - a0) * k)
+        return (*stops[-1][1], stops[-1][2])
+    if kind == "linearGradient":
+        x1, y1, x2, y2 = (float(at.get(k, d)) for k, d in (("x1", 0), ("y1", 0), ("x2", 1), ("y2", 0)))
+        dx, dy = x2 - x1, y2 - y1
+        n = dx * dx + dy * dy or 1.0
+        return lambda x, y: colour(((x - x1) * dx + (y - y1) * dy) / n)
+    cx, cy, r = float(at["cx"]), float(at["cy"]), float(at["r"])
+    fx, fy = float(at.get("fx", cx)), float(at.get("fy", cy))
+
+    def radial(x, y):
+        # where the ray from the focus through (x, y) meets the circle
+        dx, dy = x - fx, y - fy
+        if dx == 0 and dy == 0:
+            return colour(0.0)
+        a = dx * dx + dy * dy
+        b = 2 * (dx * (fx - cx) + dy * (fy - cy))
+        c = (fx - cx) ** 2 + (fy - cy) ** 2 - r * r
+        s = (-b + math.sqrt(max(0.0, b * b - 4 * a * c))) / (2 * a)
+        return colour(1.0 / s if s > 0 else 1.0)
+    return radial
+
+
+def _ground_as_drawn(markup: str) -> str:
+    """The colour of a mark's ground as the page draws it: every layer the
+    die lays across the whole enamel field (a circle the size of the field's
+    clip, filled flat or with a gradient), composited in order and averaged
+    over the field. The charge and the engine turning's hairlines are left
+    out; the turning is the enamel's own lit colour at a fifth of its
+    strength."""
+    clip = re.search(r'<clipPath id="[\w-]+-field"><circle cx="48" cy="48" r="([\d.]+)"/></clipPath>', markup)
+    assert clip, "a mark with no enamel field"
+    R = float(clip.group(1))
+    layers = []
+    for m in re.finditer(r'<circle cx="48" cy="48" r="([\d.]+)" fill="([^"]+)"( fill-opacity="([\d.]+)")?/>', markup):
+        if float(m.group(1)) < R:
+            continue
+        paint, op = m.group(2), float(m.group(4) or 1)
+        if paint.startswith("#"):
+            flat = (*_rgb(paint), 1.0)
+            layers.append((lambda x, y, c=flat: c, op))
+        else:
+            fn = _gradient(markup, paint[5:-1])
+            if fn:
+                layers.append((fn, op))
+    assert layers, "no layer fills the enamel field"
+    acc, n = [0.0, 0.0, 0.0], 0
+    for j in range(-40, 41):
+        for i in range(-40, 41):
+            x, y = 48 + i * R / 40, 48 + j * R / 40
+            if (x - 48) ** 2 + (y - 48) ** 2 > R * R:
+                continue
+            px = [0.0, 0.0, 0.0]
+            for fn, op in layers:
+                r, g, b, a = fn(x, y)
+                a *= op
+                px = [p * (1 - a) + q * a for p, q in zip(px, (r, g, b))]
+            acc = [s + p for s, p in zip(acc, px)]
+            n += 1
+    return "#%02x%02x%02x" % tuple(round(s / n * 255) for s in acc)
 
 
 def test_every_velvet_stays_a_quarter_under_the_leaf():
@@ -256,30 +359,42 @@ def test_every_velvet_stays_a_quarter_under_the_leaf():
 
 def test_every_velvet_is_its_marks_colour_family():
     """The owner's rule: whatever colour a mark takes, its curtain matches.
-    The reference is the enamel field, which every mark is fired in (the
-    next test holds the drawing to it)."""
+    Both sides are read from what the hall serves, not from a number typed
+    in beside them: the ground each cut of the mark is drawn on in the page
+    (both cuts show in the cartouche, at their own sizes), and the dye the
+    stylesheets give that gate's cloth."""
+    marks, velvets = _page_marks(), _shipped_velvets()
+    apps = [k for k in marks if not k.endswith("-s") and k != "atrium"]
+    assert len(apps) == 6, f"expected the six marks in the page, found {apps}"
     bad = []
-    for app, h in _literal("HUE").items():
-        _, lc, lh = _lch(h["field"])
-        for theme in ("onyx", "ivory"):
-            _, vc, vh = _lch(h["velvet"][theme])
-            dh = abs((vh - lh + 180) % 360 - 180)
-            if lc < NEUTRAL_CHROMA:
-                if vc > NEUTRAL_VELVET_CHROMA:
-                    bad.append(f"{app} {theme}: a steel mark under a coloured cloth (chroma {vc:.0f})")
-                elif vc > 6 and dh > VELVET_HUE_TOLERANCE:
-                    bad.append(f"{app} {theme}: a steel mark under a {dh:.0f} degree tinted cloth")
-                continue
-            if vc < NEUTRAL_CHROMA or dh > VELVET_HUE_TOLERANCE:
-                bad.append(f"{app} {theme}: velvet {h['velvet'][theme]} is {dh:.0f} degrees off its mark {h['field']}")
+    for app in apps:
+        for cut in (app, app + "-s"):
+            ground = _ground_as_drawn(marks[cut])
+            _, lc, lh = _lch(ground)
+            for theme in ("onyx", "ivory"):
+                v = velvets.get((theme, app))
+                if not v:
+                    bad.append(f"{app} {theme}: the gate is given no cloth of its own")
+                    continue
+                _, vc, vh = _lch(v)
+                dh = abs((vh - lh + 180) % 360 - 180)
+                if lc < NEUTRAL_CHROMA:
+                    if vc > NEUTRAL_VELVET_CHROMA:
+                        bad.append(f"{cut} {theme}: a steel ground {ground} under a coloured cloth {v} (chroma {vc:.0f})")
+                    elif vc > 6 and dh > VELVET_HUE_TOLERANCE:
+                        bad.append(f"{cut} {theme}: a steel ground {ground} under a {dh:.0f} degree tinted cloth {v}")
+                    continue
+                if vc < NEUTRAL_CHROMA or dh > VELVET_HUE_TOLERANCE:
+                    bad.append(f"{cut} {theme}: cloth {v} is {dh:.0f} degrees off the ground drawn, {ground}")
     assert not bad, "; ".join(bad)
 
 
 def test_every_mark_is_fired_in_its_own_enamel():
-    """The curtain is matched against HUE's field, so the drawing has to be
-    fired in it: every cut of every mark lays its enamel as HUE's lit, field
-    and deep. A ground painted into the drawing by hand, the way a sky once
-    was, would slip past the colour test above; this one catches it."""
+    """HUE is the one source, so the drawing has to be fired in it: every
+    cut of every mark lays its enamel as HUE's lit, field and deep, and
+    nothing is painted over it by hand the way a sky once was. (The colour
+    test above measures the ground the page draws; this keeps HUE honest
+    about it.)"""
     sys.path.insert(0, str(ROOT / "icons"))
     import gen
     bad = []
@@ -307,7 +422,10 @@ def _mix(c: str, k: float, base: str) -> str:
 
 
 def test_the_gates_of_one_wing_hang_different_cloth():
-    hue, wings = _literal("HUE"), _wings()
+    """Two gates side by side must not hang what reads as one cloth, with
+    the house open or dark (the dark shade is each dye mixed toward black,
+    as palace-gates.css mixes it). Read from the stylesheets as served."""
+    hue, wings, velvets = _literal("HUE"), _wings(), _shipped_velvets()
     bad = []
     for theme in ("onyx", "ivory"):
         k, base = DARK_MIX[theme]
@@ -315,7 +433,7 @@ def test_the_gates_of_one_wing_hang_different_cloth():
             apps = [a for a in hue if wings.get(a) == wing]
             for i, a in enumerate(apps):
                 for b in apps[i + 1:]:
-                    va, vb = hue[a]["velvet"][theme], hue[b]["velvet"][theme]
+                    va, vb = velvets[(theme, a)], velvets[(theme, b)]
                     de = _de2000(va, vb)
                     if de < WING_MIN_DE:
                         bad.append(f"{theme} {wing}: {a} and {b} differ by only {de:.1f}")
@@ -337,8 +455,9 @@ def test_only_the_generator_dyes_a_velvet():
     """A hand-written --velvet anywhere else (a later rule, a later sheet)
     would re-hang a gate in the wrong cloth with every other test green. The
     generated block is the only place a dye is set, bar the reserved gate's
-    iron."""
+    iron; the dark shade is only ever the dye mixed toward black."""
     stray = []
+    shade = {f':root[data-theme="{t}"] .gate[data-state="dark"]' for t in DARK_MIX}
     for sheet in sheets():
         css = sheet.read_text(encoding="utf-8").replace("\r\n", "\n")
         if sheet.name == "palace-gates.css":
@@ -349,7 +468,52 @@ def test_only_the_generator_dyes_a_velvet():
             sel = " ".join(m.group(1).split())
             if sel != '.gate[data-velvet="iron"]':
                 stray.append(f"{sheet.name}: {sel}")
+        for m in re.finditer(r"([^{};]*)\{[^{}]*--velvet-shade\s*:", css):
+            sel = " ".join(m.group(1).split())
+            if sel not in shade:
+                stray.append(f"{sheet.name}: {sel} (the dark shade)")
     assert not stray, "velvets dyed outside icons/gen.py's block: " + "; ".join(stray)
+
+
+# The parts of a house that are its cloth (their ::before and ::after are
+# the pile's light and the fringe, laid over the cloth, not the cloth).
+CLOTH = ("g-tab", "g-tab-l", "g-tab-r", "g-valance", "mr-house")
+
+
+def test_the_cloth_is_only_ever_painted_in_its_velvet():
+    """The original fault could come back by another road: a rule that
+    paints a gate's tabs or valance directly, in a later sheet or a later
+    line, and never touches --velvet. Every paint laid on the cloth, in
+    every sheet, is the velvet (or its dark shade, the day screen it opens
+    on, or the reserved gate's iron)."""
+    cloth = re.compile(r"\.(%s)(?![\w-])" % "|".join(CLOTH))
+    ok = ("var(--velvet)", "var(--velvet-shade)", "var(--screen)", "var(--iron)")
+    bad = []
+    for sheet in sheets():
+        css = re.sub(r"/\*.*?\*/", "", sheet.read_text(encoding="utf-8"), flags=re.S)
+        for m in re.finditer(r"([^{};]*)\{([^{}]*)\}", css):
+            sels = [" ".join(x.split()) for x in m.group(1).split(",")]
+            hit = [x for x in sels if cloth.search(x) and ":before" not in x and ":after" not in x]
+            if not hit:
+                continue
+            for d in re.finditer(r"(?:^|;)\s*(background|background-color|background-image|fill)\s*:\s*([^;]+)", m.group(2)):
+                if not any(v in d.group(2) for v in ok):
+                    bad.append(f"{sheet.name}: {hit[0]} {{ {d.group(1)}: {' '.join(d.group(2).split())[:60]} }}")
+    assert not bad, "cloth painted in something other than its velvet: " + "; ".join(bad)
+
+
+def test_only_velvetfor_chooses_a_cloth():
+    """The key a gate's cloth is dyed by is set in one place, from the mark
+    (velvetFor). No script sets it again later, writes the attribute by
+    hand or dyes a gate's --velvet inline."""
+    bad = []
+    writes = re.compile(r"dataset\.velvet\s*=(?!=)|setAttribute\(\s*['\"]data-velvet['\"]|"
+                        r"setProperty\(\s*['\"]--velvet|--velvet\s*:|data-velvet=")
+    for js in scripts():
+        for n, line in enumerate(js.read_text(encoding="utf-8").split("\n"), 1):
+            if writes.search(line) and line.strip() != "a.dataset.velvet = velvetFor(svc);":
+                bad.append(f"{js.name}:{n}: {line.strip()[:80]}")
+    assert not bad, "a gate's cloth is chosen outside velvetFor: " + "; ".join(bad)
 
 
 def test_a_gate_hangs_its_own_marks_cloth():
@@ -410,6 +574,25 @@ def test_the_gate_carries_both_cuts():
     assert re.search(r"\.sigil \.cut-small \{ display: none; \}\n@media \(max-resolution: 1\.49dppx\) \{\n"
                      r"\s*@container \(max-width: 299px\) \{\n\s*\.sigil \.cut-full \{ display: none; \}\n"
                      r"\s*\.sigil \.cut-small \{ display: inline; \}", css), "the cartouche's cut switch has moved"
+
+
+def test_the_die_carries_no_bead_ring():
+    """A ring of beads a unit across round the enamel is under a pixel at
+    every gate size and shimmers on the gate's parallax; the die has a plain
+    turned lip and one groove. No cut of any mark draws a run of small
+    circles, as elements or as circular paths."""
+    sys.path.insert(0, str(ROOT / "icons"))
+    import gen
+    bad = []
+    for app_id in gen.HUE:
+        for suffix, body in (("", gen.emblem(app_id)), ("-s", gen.emblem_small(app_id))):
+            radii = [float(r) for r in re.findall(r'<circle [^>]*\br="([\d.]+)"', body)]
+            radii += [float(r) for r in re.findall(r"[aA]([\d.]+) \1 0 1 [01] ", body)]
+            small = [r for r in radii if r < 1.6]
+            for r in sorted(set(small)):
+                if small.count(r) >= 6:
+                    bad.append(f"{app_id}{suffix}: {small.count(r)} beads of radius {r}")
+    assert not bad, "; ".join(bad)
 
 
 def test_no_mark_or_curtain_is_a_sapphire():
