@@ -932,38 +932,54 @@ the lamp and takes the address line's place while it stands.
 Each service's mark is a 1930s enamelled badge. The six are cut from one
 die, the way a cinema circuit's commissionaires wore one badge with their
 own house's device in it. The die is a cast gilt lip turned in six tones, a
-groove of beads, translucent enamel fired over an engine-turned ground, the
-subject cast and chased in gilt with champleve fields standing proud of the
-enamel, and a stone in a collet at the crown. The gilt is fixed, as `--br`
-is, so a mark stays its own object in a gold bezel or a nickel one. Every
-relief is drawn three times along the hall's key light. Nothing on a mark
-glows and nothing carries a gloss band: the domed crystal over the gate
-gives it the one reflection glass is allowed. The turning under the enamel
-follows the monogram's sunray, not the clock's guilloche field.
+groove of beads, translucent enamel fired over an engine-turned ground (laid
+as a pattern tile), and a stone in a collet at the crown. The gilt is fixed,
+as `--br` is, so a mark stays its own object in a gold bezel or a nickel one.
 
-Each app owns its enamel, the turning under it, its bead count, its subject
-and its stone:
+Inside the die each app keeps a subject drawn from the real object. The
+owner's rule for them: no lettering of any kind, no figure pieced together
+from circles and rectangles, and colour laid in as the eye remembers the
+thing, in broad fields that follow its planes. `icons/solid.py` supplies
+the true forms. It is a small orthographic modeller that projects a
+paraboloid dish, a sphere and its graticule, a cage of wires round a drum
+and dome, or a salver's well and rim, and shades each plane by its angle to
+the hall's key light, up and to the left. Flat forged parts, a spanner's
+jaws and the fillet where its shank meets the head, are traced from
+distance fields. The canary runs on a spline through landmarks taken from
+the living bird. Flat reliefs are still drawn three times along the key
+light. Nothing on a mark glows and nothing carries a gloss band: the domed
+crystal over the gate gives it the one reflection glass is allowed.
 
-- Anime Autopilot: the season shelf on oxblood enamel, a Deco bookend and
-  five volumes of uneven height, the last one leaning on its neighbour,
-  under the rays of the lamp. An opal at the crown.
-- Ground Station: a tracking scope set in an octagonal amber plate, its
-  sweep going round and one contact locked in its acquisition brackets,
-  still waiting for Steam. An amber signal stone.
-- Outreach Desk: a calling card on a salver of Prussian blue enamel, its
-  corner turned down because it is delivered by hand. The salver's rim has
-  twenty gadroons, one for each of the day's introductions. A citrine.
-- The Press Room: 晨 in bone enamel within gilt cloisons, its second
-  impression sunk as the masthead prints it, on the staff and the register
-  of the day's stories, over a halftone screen. The kite is its stone.
-- Arsenal: a gunner's quadrant graduated to 60 on a gunmetal bolt-head
-  plate, the pointer laid at 45, six hex studs for the powder charges. A
+- Anime Autopilot: the season shelf under the reading lamp. Five volumes
+  stand on a mahogany plank on brass brackets, their rounded backs lit
+  across the barrel and their heads seen from a little above. Two more lie
+  flat at the end, and the last upright one is tipped against its
+  neighbour. The crown's opal is the lamp. Oxblood enamel over a barleycorn
+  turning.
+- Ground Station: an earth station at dusk. A parabolic dish on a turned
+  tower looks up at the one star it is tracking, every panel of the bowl lit
+  by its own angle. The enamel is fired as the sky, amber at the horizon and
+  graphite overhead, over a lined turning. An amber stone.
+- Outreach Desk: the day's calling cards fanned on a silver salver, the top
+  one with its corner turned up because it is delivered by hand. A band of
+  bright-cut engraving runs round the well. Prussian blue enamel over a
+  basket weave. A citrine.
+- The Press Room: the world as a cast desk globe, its coasts projected from
+  real longitudes and latitudes, lit from one side so that half of it lies
+  in night and half in morning. A gilt meridian ring goes round it and it
+  stands on a turned foot. Green enamel over a halftone screen. The kite is
+  its stone.
+- Arsenal: the armourer's trophy from its own masthead. A drop-forged
+  spanner, its larger jaw on a hex nut, crosses a rammer of turned ash with
+  a brass-bound head, and red cord lashes the two where they cross. They
+  lie on a blued-steel bolt-head plate. Gunmetal enamel over perlage. A
   signal-red stone.
-- Bourse: the canary on its perch in a gilded dome cage, over olive-gold
-  enamel engraved with the page's lozenge lattice. A ticker-amber stone.
+- Bourse: the canary on its perch in a gilded dome cage whose door stands
+  open, and it stays. The cage stands on a band of the curtain's olive gold.
+  Olive-gold enamel over the page's lozenge lattice. A ticker-amber stone.
 
 Each mark also has a small cut from the same die, `#mark-<id>-s`, with the
-subject reduced to its biggest shapes. The Ledger's medal (20 to 35px)
+subject reduced to its biggest masses. The Ledger's medal (20 to 35px)
 wears it, and it is the drawing for a 16, 32 or 48px favicon.
 
 The curtain follows the mark. `HUE` in `icons/gen.py` holds each mark's
@@ -974,7 +990,8 @@ reserved gate keeps its iron, and a service with no mark hangs the house
 claret. `tests/test_web_assets.py` fails when a dye leaves its mark's hue
 family (30 degrees in CIELAB; a steel mark takes a near-neutral cloth),
 rises past three quarters of `--au-2`'s luminance, or comes within 15
-CIEDE2000 of another velvet in its wing. Sapphire is kept for the concourse
+CIEDE2000 of another velvet in its wing. It also fails when a mark carries
+text, a filter or `currentColor`. Sapphire is kept for the concourse
 clock, so no mark or curtain is named for it or wears a saturated royal
 blue.
 
