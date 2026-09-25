@@ -321,6 +321,22 @@ def test_the_hall_carries_what_the_generator_draws():
             assert page.count(f'id="mark-{app_id}{suffix}"') == 1, f"#mark-{app_id}{suffix} is not in the page once"
 
 
+def test_the_marks_carry_no_lettering_and_no_filters():
+    """The owner's rule: no text of any kind inside a mark (the name is on
+    the gate's sign). A filter would re-rasterise on every frame of the
+    gate's parallax, and currentColor would let forced colours repaint the
+    enamel."""
+    sys.path.insert(0, str(ROOT / "icons"))
+    import gen
+    bad = []
+    for app_id in gen.HUE:
+        for body in (gen.emblem(app_id), gen.emblem_small(app_id)):
+            for needle in ("<text", "<tspan", "<filter", "currentcolor", "<fe"):
+                if needle in body.lower():
+                    bad.append(f"{app_id}: {needle}")
+    assert not bad, "marks must carry no lettering or filters: " + "; ".join(sorted(set(bad)))
+
+
 if __name__ == "__main__":
     failures = 0
     for name, fn in sorted(globals().items()):
