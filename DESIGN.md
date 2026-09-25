@@ -967,11 +967,17 @@ about 39 units of the centre, so the enamel shows all round it.
   shade where it turns away, four struts carry the subreflector at the
   focus, and a cast yoke stands on a turned pedestal. Amber enamel over a
   lined turning; an amber stone.
-- Outreach Desk: the day's queue as three calling cards dealt in a fan,
-  graded as the page grades them: sky blue, bone, and the first call in
-  ivory with a gilt edge. The front card carries a cameo of its sitter in
-  white relief on jasper blue, and its corner is turned up, the old sign of
-  a card left by hand. Prussian blue enamel over a basket weave; a citrine.
+- Outreach Desk: an introduction held out by hand. A blank calling card
+  with a gilt edge is pinched between the thumb and the first two fingers.
+  The desk briefs every introduction overnight and never sends one; the
+  owner delivers each himself. The hand is traced from a photograph and cut
+  as three layers of relief (the second finger, the hand with the first
+  finger, and the thumb in front of the card), each rounded at its edges and
+  swelling across its width, so its planes turn from the key light. It
+  reaches from a starched double cuff, whose gilt link is set with the
+  badge's own enamel, and from a dress coat's black sleeve, which runs out
+  through the rim: of the six charges, this is the one the enamel does not
+  surround. Prussian blue enamel over a basket weave; a citrine.
 - The Press Room: the world as a desk globe turned to Europe, Africa and
   Asia, the sun raking it so a hard terminator and a band of twilight part
   day from night. Round its equator runs the paper's own staff, the rule
