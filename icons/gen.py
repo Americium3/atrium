@@ -7,8 +7,8 @@ turning under it and the stone are each app's own.
 
 Inside the die each app carries one charge, seen from the same place (level
 with it or a few degrees above) and lit by the one key light, up and to the
-left: a globe, a dish, a shelf of bound volumes, three calling cards, a
-gunner's quadrant, a canary in its cage. Each is drawn from the real
+left: a globe, a dish, a shelf of bound volumes, a card held out by hand,
+a gunner's quadrant, a canary in its cage. Each is drawn from the real
 object's geometry and proportions, never pieced together from circles and
 rectangles, and never lettered. Its form is then cut into three or four flat
 planes of tone along the key light, the way a woodcut or a Deco poster cuts
@@ -1168,123 +1168,297 @@ def bookend(m, x0, yb, w, hgt, small=False):
 
 
 # --------------------------------------------------------------------------
-# Outreach Desk: the day's introductions, three calling cards dealt in a fan
+# Outreach Desk: an introduction held out by hand
 # --------------------------------------------------------------------------
-# The page grades every person P1, P2 or P3, and prints the grades as a gold
-# badge, a sky-blue badge and an outlined one. The cards take those stocks:
-# each as face, shade (the turned flap, its underside) and the bevel's dark.
-STOCKS = {  # face, a shade for the turned flap, the plate mark's shadow, its light
-    'p1': ['#f8f3e6', '#d8ceb4', '#b8ab8c', '#ffffff'],     # the first call: ivory, gilt-edged
-    'p2': ['#dcecf6', '#a8c8dc', '#8aaec6', '#f4fbff'],     # the second: sky
-    'p3': ['#ece2c8', '#cdbf9c', '#b0a27e', '#fbf5e6'],     # the third: plain bone
+# The desk briefs each introduction overnight, but it never sends one: the
+# owner opens the profile and delivers every note himself. The charge is
+# that act, one calling card held out between the thumb and the first two
+# fingers, from a white double cuff and the black sleeve of a dress coat.
+# Traced from photographs (a hand holding out a card, a double cuff and its
+# link); the units below are the photograph's pixels, y down, and
+# OUTREACH_POSE lays them on the badge, turned eight degrees so the forearm
+# comes up from the lower right. The card, the hand and the cuff keep to the
+# circle of about 39 units the other charges keep to; the sleeve runs on out
+# through the rim, as an arm issues from the edge of a heraldic field.
+#
+# The hand is cut as three layers of relief, back to front: the second
+# finger, the hand with the first finger, and the thumb, which lies in
+# front of the card it holds. Each layer is its outline inflated, so every
+# edge turns away from the reader over `round` pixels, and a broad part
+# swells under a low `dome` (centre, long axis, half length, half width,
+# rise), so it turns from the light across its width.
+OUTREACH_PARTS = {
+    'finger': {'round': 11.0, 'dome': None, 'outline': [
+        (355, 157, 1), (357, 166), (361, 177), (370, 184), (386, 186), (446, 187), (460, 199), (476, 209),
+        (496, 229, 1), (500, 196), (486, 176), (470, 167), (446, 165), (412, 166), (374, 160)]},
+    'hand': {'round': 15.0, 'dome': ((560, 250), (0.62, 0.78), 150.0, 85.0, 30.0), 'outline': [
+        (376, 125), (362, 129), (353, 136), (351, 146), (355, 157, 1), (374, 162), (412, 168), (446, 167),
+        (474, 170), (487, 184), (496, 229, 1), (512, 252), (517, 265), (513, 284),
+        (505, 296), (486, 301), (466, 298), (440, 286), (420, 281), (398, 280), (383, 285), (373, 295),
+        (369, 308), (371, 321), (380, 329), (405, 333), (432, 338), (464, 348), (500, 364), (536, 382),
+        (584, 397), (612, 406), (632, 414), (655, 432, 1),
+        (722, 352, 1), (700, 328), (680, 321), (660, 314), (640, 294), (627, 277), (608, 246), (585, 211),
+        (566, 194), (544, 181), (512, 159), (490, 145), (470, 137), (440, 134), (402, 132)]},
+    'thumb': {'round': 13.0, 'dome': ((520, 352), (0.93, 0.36), 160.0, 42.0, 10.0), 'outline': [
+        (505, 296), (486, 301), (466, 298), (440, 286), (420, 281), (398, 280), (383, 285), (373, 295),
+        (369, 308), (371, 321), (380, 329), (405, 333), (432, 338), (464, 348), (500, 364), (536, 382),
+        (584, 397), (612, 406), (632, 414), (655, 432, 1), (648, 392), (615, 372), (575, 350), (540, 326),
+        (514, 303)]},
 }
-FAN = {'px': 28.0, 'py': 71.5, 'w': 49.0, 'h': 28.5, 'angles': (-40.0, -23.0, -6.0)}
+# the thumbnail, seen on its back at the thumb's tip, and its free edge
+OUTREACH_NAIL = [(380, 300), (392, 297), (402, 299, 1), (405, 312), (402, 325, 1), (392, 328), (380, 326), (376, 313)]
+OUTREACH_NAIL_LIT = [(380, 300), (392, 297), (402, 299, 1), (404, 306), (396, 309), (386, 310), (377, 309)]
+OUTREACH_NAIL_EDGE = [(380, 300), (376, 313), (380, 326), (384, 325), (381, 313), (384, 301)]
+OUTREACH_NAILC = ['#e3b19c', '#f8dccd', '#fbefe5']                  # its body, where it takes the light, its free edge
+OUTREACH_CARD = [(225, 190), (421, 186), (430, 281), (230, 301)]
+# the cuff and the sleeve round the forearm's axis: where the cuff's rim
+# stands, the axis' direction, the cuff's radius and length, the sleeve's
+OUTREACH_ARM = {'at': (664.0, 369.0), 'to': (768.2, 456.4), 'cuff_r': 55.0, 'cuff_l': 40.0,
+                'sleeve_r': 67.0, 'sleeve_l': 320.0, 'bulge': 0.17}
+OUTREACH_POSE = {'ox': 481.0, 'oy': 260.5, 'rot': 8.0, 's': 0.1488, 'cx': 47.5, 'cy': 49.5}
+OUTREACH_FLESH = ['#6e3b33', '#b8705a', '#e2a88a', '#f6d8c0']      # dark, shade, body, lit: warm, ruddy in shade
+OUTREACH_FLESH_CUTS = [0.15, 0.48, 0.74]
+OUTREACH_LINEN = ['#8e99a1', '#c3c9cb', '#e9e6de', '#fbfaf5']      # a starched white cuff
+OUTREACH_CLOTH = ['#07080b', '#12141a', '#1f222b', '#363b48']      # a black dress coat
+OUTREACH_STOCK = ['#f4f1ea', '#d9d0bb']                              # the page's own paper; its edge in shade
 
 
-def card(m, name, stock, ang, gilt=0.0, fold=False, portrait=False, small=False):
-    """One engraved calling card: square cornered, blank, its engraved plate
-    pressed into the stock as a sunk panel (lit on its lower and right walls,
-    shaded on its upper and left), and, on the finest, a gilt bevel round the
-    edge. With fold, its lower right corner is turned up across a real
-    crease: the flap shows the card's underside and throws a shadow on the
-    face."""
-    fa = FAN
-    T = STOCKS[stock]
-    w, hh = fa['w'], fa['h']
-    x0, y0, x1, y1 = -4.0, -hh + 4.0, w - 4.0, 4.0        # local: pivot at the origin, y down
-    c = 9.0                                            # the fold's leg
-    if fold:
-        face = [(x0, y0), (x1, y0), (x1, y1 - c), (x1 - c, y1), (x0, y1)]
-    else:
-        face = [(x0, y0), (x1, y0), (x1, y1), (x0, y1)]
-    a = math.radians(ang)
+def outreach_at(p):
+    """A point of the photograph, laid on the badge."""
+    P = OUTREACH_POSE
+    a = math.radians(P['rot'])
+    x, y = (p[0] - P['ox']) * P['s'], (p[1] - P['oy']) * P['s']
+    return (P['cx'] + x * math.cos(a) - y * math.sin(a), P['cy'] + x * math.sin(a) + y * math.cos(a))
 
-    def lit_of(nx, ny, nz=0.6):
-        rx, ry = nx * math.cos(a) - ny * math.sin(a), nx * math.sin(a) + ny * math.cos(a)
-        return lam((rx, -ry, nz))
-    out = [shadow(poly_d(face), 1.1, 1.5, 0.42)]
-    # the stock's thickness, a hair below and right of the face
-    out.append('<path d="%s" fill="%s" transform="translate(.35 .45)"/>' % (poly_d(face), T[2]))
-    out.append('<path d="%s" fill="%s"/>' % (poly_d(face), T[0]))
-    inner_parts = []
+
+def outreach_from(x, y):
+    P = OUTREACH_POSE
+    a = math.radians(P['rot'])
+    dx, dy = x - P['cx'], y - P['cy']
+    return (P['ox'] + (dx * math.cos(a) + dy * math.sin(a)) / P['s'],
+            P['oy'] + (-dx * math.sin(a) + dy * math.cos(a)) / P['s'])
+
+
+def outreach_path(pts):
+    return smooth_d([outreach_at(p) + tuple(p[2:]) for p in pts])
+
+
+def outreach_curve(pts, per=8):
+    """Sample an outline's spline (as smooth_d draws it) into a polygon."""
+    n = len(pts)
+    P = [(p[0], p[1]) for p in pts]
+    corner = [len(p) > 2 and p[2] for p in pts]
+    out = []
+    for i in range(n):
+        p0, p1, p2, p3 = P[(i - 1) % n], P[i], P[(i + 1) % n], P[(i + 2) % n]
+        c1 = p1 if corner[i] else (p1[0] + (p2[0] - p0[0]) / 6.0, p1[1] + (p2[1] - p0[1]) / 6.0)
+        c2 = p2 if corner[(i + 1) % n] else (p2[0] - (p3[0] - p1[0]) / 6.0, p2[1] - (p3[1] - p1[1]) / 6.0)
+        for k in range(per):
+            t, mt = k / per, 1 - k / per
+            out.append((mt ** 3 * p1[0] + 3 * mt * mt * t * c1[0] + 3 * mt * t * t * c2[0] + t ** 3 * p2[0],
+                        mt ** 3 * p1[1] + 3 * mt * mt * t * c1[1] + 3 * mt * t * t * c2[1] + t ** 3 * p2[1]))
+    return out
+
+
+def outreach_seg_dist(px, py, ax, ay, bx, by):
+    dx, dy = bx - ax, by - ay
+    t = max(0.0, min(1.0, ((px - ax) * dx + (py - ay) * dy) / ((dx * dx + dy * dy) or 1e-9)))
+    return math.hypot(px - ax - dx * t, py - ay - dy * t)
+
+
+def outreach_dome(dome, x, y):
+    if not dome:
+        return 0.0
+    (cx, cy), (ux, uy), a, b, rise = dome
+    p, q = ((x - cx) * ux + (y - cy) * uy) / a, (-(x - cx) * uy + (y - cy) * ux) / b
+    return rise * max(0.0, 1 - p * p - q * q)
+
+
+_OUTREACH_GRIDS = {}
+
+
+def outreach_grid(name):
+    """A layer's relief on a two-pixel grid, computed once: a scanline fill
+    for what is inside its outline, and for each point inside, its distance
+    to the outline (bucketed, so only nearby edges are measured)."""
+    if name in _OUTREACH_GRIDS:
+        return _OUTREACH_GRIDS[name]
+    part = OUTREACH_PARTS[name]
+    poly = outreach_curve(part['outline'])
+    R, g = part['round'], 2.0
+    x0, y0 = min(p[0] for p in poly) - 4, min(p[1] for p in poly) - 4
+    nx = int((max(p[0] for p in poly) + 4 - x0) / g) + 2
+    ny = int((max(p[1] for p in poly) + 4 - y0) / g) + 2
+    segs = [(poly[i], poly[(i + 1) % len(poly)]) for i in range(len(poly))]
+    cell, buckets = 16.0, {}
+    for (ax, ay), (bx, by) in segs:
+        for cx in range(int((min(ax, bx) - R - x0) // cell), int((max(ax, bx) + R - x0) // cell) + 1):
+            for cy in range(int((min(ay, by) - R - y0) // cell), int((max(ay, by) + R - y0) // cell) + 1):
+                buckets.setdefault((cx, cy), []).append((ax, ay, bx, by))
+    H = [[0.0] * nx for _ in range(ny)]
+    for j in range(ny):
+        y = y0 + j * g
+        xs = sorted(ax + (y - ay) * (bx - ax) / (by - ay)
+                    for (ax, ay), (bx, by) in segs if (ay <= y < by) or (by <= y < ay))
+        for k in range(0, len(xs) - 1, 2):
+            for i in range(max(0, int((xs[k] - x0) / g) + 1), min(nx, int((xs[k + 1] - x0) / g) + 1)):
+                x = x0 + i * g
+                d = R
+                for s4 in buckets.get((int((x - x0) // cell), int((y - y0) // cell)), ()):
+                    d = min(d, outreach_seg_dist(x, y, *s4))
+                H[j][i] = math.sqrt(max(0.0, R * R - (R - d) ** 2)) + outreach_dome(part['dome'], x, y)
+    # two passes of a box blur: the distance field is kinked wherever the
+    # nearest edge changes, and a plane's border would carry every kink
+    for _ in range(2):
+        B = [row[:] for row in H]
+        for j in range(1, ny - 1):
+            for i in range(1, nx - 1):
+                B[j][i] = (H[j - 1][i - 1] + H[j - 1][i] + H[j - 1][i + 1] + H[j][i - 1] + H[j][i] + H[j][i + 1]
+                           + H[j + 1][i - 1] + H[j + 1][i] + H[j + 1][i + 1]) / 9.0
+        H = B
+    G = {'H': H, 'x0': x0, 'y0': y0, 'g': g, 'nx': nx, 'ny': ny}
+    _OUTREACH_GRIDS[name] = G
+    return G
+
+
+def outreach_height(name, x, y):
+    G = outreach_grid(name)
+    fx, fy = (x - G['x0']) / G['g'], (y - G['y0']) / G['g']
+    i, j = int(fx), int(fy)
+    if not (0 <= i < G['nx'] - 1 and 0 <= j < G['ny'] - 1):
+        return 0.0
+    tx, ty = fx - i, fy - j
+    H = G['H']
+    return (H[j][i] * (1 - tx) + H[j][i + 1] * tx) * (1 - ty) + (H[j + 1][i] * (1 - tx) + H[j + 1][i + 1] * tx) * ty
+
+
+def outreach_light(name):
+    """How squarely the layer's skin under a badge point faces the key light.
+    Each plane is traced over the same lattice, so each point is lit once."""
+    e, s, seen = 0.45, OUTREACH_POSE['s'], {}
+
+    def lit(sx, sy):
+        key = (round(sx, 4), round(sy, 4))
+        if key not in seen:
+            hx = outreach_height(name, *outreach_from(sx + e, sy)) - outreach_height(name, *outreach_from(sx - e, sy))
+            hy = outreach_height(name, *outreach_from(sx, sy + e)) - outreach_height(name, *outreach_from(sx, sy - e))
+            seen[key] = lam((-hx * s / (2 * e), hy * s / (2 * e), 1.0))
+        return seen[key]
+    return lit
+
+
+def outreach_layer(m, name, small=False):
+    """One layer of the hand, cut into its planes."""
+    pts = OUTREACH_PARTS[name]['outline']
+    sil = outreach_path(pts)
+    xs = [outreach_at(p)[0] for p in pts]
+    ys = [outreach_at(p)[1] for p in pts]
+    box = (min(xs) - 1, min(ys) - 1, max(xs) + 1, max(ys) + 1)
+    if small:
+        return sil, planes(m, name, sil, outreach_light(name), box, OUTREACH_FLESH[1:], OUTREACH_FLESH_CUTS[1:], 0.6, 0.2)
+    return sil, planes(m, name, sil, outreach_light(name), box, OUTREACH_FLESH, OUTREACH_FLESH_CUTS, 0.25, 0.14)
+
+
+def outreach_arm_frame():
+    A = OUTREACH_ARM
+    (x0, y0), (x1, y1) = outreach_at(A['at']), outreach_at(A['to'])
+    ln = math.hypot(x1 - x0, y1 - y0)
+    u = ((x1 - x0) / ln, (y1 - y0) / ln)
+    v = (-u[1], u[0])
+    if v[1] < 0:
+        v = (-v[0], -v[1])                     # across the arm, downward on the badge
+    return (x0, y0), u, v, OUTREACH_POSE['s']
+
+
+def outreach_tube(t0, t1, r, tones, cuts, rim=None):
+    """A length of cloth round the forearm, t0 to t1 along it: seen from the
+    side, its near rim bows toward the hand, and it is cut into bands along
+    its length by the key light, the way cloth round a limb takes it."""
+    (x0, y0), u, v, s = outreach_arm_frame()
+    R = r * s
+    bulge = OUTREACH_ARM['bulge'] * R
+
+    def at(t, w):
+        tt = t * s - bulge * math.sqrt(max(0.0, 1 - w * w))
+        return (x0 + u[0] * tt + v[0] * w * R, y0 + u[1] * tt + v[1] * w * R)
+
+    def tone(w):
+        return facet(lam((v[0] * w, -v[1] * w, math.sqrt(max(0.0, 1 - w * w)))), tones, cuts)
+    n = 24
+    ws = [-1 + 2 * k / n for k in range(n + 1)]
+    sil = poly_d([at(t0, w) for w in ws] + [at(t1, w) for w in reversed(ws)])
+    out, k0 = [], 0
+    bands = [tone((ws[k] + ws[k + 1]) / 2) for k in range(n)]
+    for k in range(1, n + 1):
+        if k == n or bands[k] != bands[k0]:
+            strip = [at(t0, w) for w in ws[k0:k + 1]] + [at(t1, w) for w in reversed(ws[k0:k + 1])]
+            out.append('<path d="%s" fill="%s"/>' % (poly_d(strip), bands[k0]))
+            k0 = k
+    if rim:
+        # the rim itself, a rolled edge: it turns toward the hand, so it
+        # catches the light a band's width ahead of the cloth behind it
+        for k in range(n):
+            wm = (ws[k] + ws[k + 1]) / 2
+            nv = (v[0] * wm - u[0] * 0.6, -(v[1] * wm - u[1] * 0.6), math.sqrt(max(0.0, 1 - wm * wm)))
+            q = [at(t0, ws[k]), at(t0, ws[k + 1]), at(t0 + rim, ws[k + 1]), at(t0 + rim, ws[k])]
+            col = facet(lam(nv), tones, cuts)
+            out.append('<path d="%s" fill="%s" stroke="%s" stroke-width=".12"/>' % (poly_d(q), col, col))
+    return sil, ''.join(out)
+
+
+def outreach_link(small=False):
+    """The cufflink on the cuff's near side: an oval of the badge's own
+    enamel in a gilt rim."""
+    A = OUTREACH_ARM
+    (x0, y0), u, v, s = outreach_arm_frame()
+    t, w = A['cuff_l'] * 0.5, 0.34
+    R = A['cuff_r'] * s
+    cx, cy = x0 + u[0] * t * s + v[0] * w * R, y0 + u[1] * t * s + v[1] * w * R
+    ang = math.degrees(math.atan2(u[1], u[0]))
+
+    def oval(dx, dy, rx, ry, fill, extra=''):
+        return ('<ellipse cx="%s" cy="%s" rx="%s" ry="%s" fill="%s" transform="rotate(%s %s %s)"%s/>'
+                % (f(cx + dx), f(cy + dy), f(rx), f(ry), fill, f(ang), f(cx), f(cy), extra))
+    rx, ry = (1.6, 2.1) if not small else (1.9, 2.4)
+    out = [oval(0.4, 0.55, rx, ry, '#000', ' fill-opacity=".35"'), oval(0, 0, rx, ry, GILT[4])]
     if not small:
-        if gilt:
-            bw = gilt
-            inner = [(x0 + bw, y0 + bw), (x1 - bw, y0 + bw), (x1 - bw, y1 - bw), (x0 + bw, y1 - bw)]
-            outer = [(x0, y0), (x1, y0), (x1, y1), (x0, y1)]
-            normals = [(0, -1), (1, 0), (0, 1), (-1, 0)]
-            gold = [GILT[1], GILT[2], GILT[4], GILT[5], GILT[3]]
-            for k in range(4):
-                nx, ny = normals[k]
-                t = facet(lit_of(nx, ny), gold, [0.18, 0.45, 0.7, 0.9])
-                inner_parts.append('<path d="%s" fill="%s"/>' % (poly_d([outer[k], outer[(k + 1) % 4], inner[(k + 1) % 4], inner[k]]), t))
-    elif gilt:
-        inner_parts.append('<path d="%s" fill="none" stroke="%s" stroke-width="2.2"/>' % (poly_d([(x0, y0), (x1, y0), (x1, y1), (x0, y1)]), GILT[4]))
-    if inner_parts:
-        out.append('<g clip-path="%s">%s</g>' % (m.clip(name + '-face', '<path d="%s"/>' % poly_d(face)), ''.join(inner_parts)))
-    if portrait:
-        out.append(sitter(m, name, x0 + 3.6, y0 + 3.4, 19.5, small))
-    if fold:
-        # the flap: the corner turned up over the face, its underside showing
-        flap = [(x1 - c, y1), (x1, y1 - c), (x1 - c, y1 - c)]
-        out.append('<path d="%s" fill="#000" fill-opacity=".3" transform="translate(1 1.3)"/>' % poly_d(flap))
-        out.append('<path d="%s" fill="%s"/>' % (poly_d(flap), T[1]))
-        if gilt and not small:
-            out.append('<path d="M%s %s L%s %s L%s %s" stroke="%s" stroke-width="%s" fill="none"/>'
-                       % (f(x1 - c), f(y1), f(x1 - c), f(y1 - c), f(x1), f(y1 - c), GILT[2], f(gilt)))
-        out.append('<path d="M%s %s L%s %s" stroke="%s" stroke-width="%s" stroke-linecap="round"/>'
-                   % (f(x1 - c), f(y1), f(x1), f(y1 - c), T[2], '1' if small else '.45'))
-    return '<g transform="translate(%s %s) rotate(%s)">%s</g>' % (f(fa['px']), f(fa['py']), f(ang), ''.join(out))
-
-
-# A sitter in profile, cut as the old silhouette-cutters cut a likeness: the
-# head, the brow and nose and lips and chin, the neck in its collar and the
-# bust truncated in a curve. Local units, head facing right, crown at y 0.
-SITTER = [(4.0, 0.0), (6.3, 0.6), (7.6, 1.9), (8.1, 3.3), (8.25, 4.25), (8.05, 4.8), (8.6, 5.7), (9.15, 6.55),
-          (8.75, 6.88), (8.35, 6.97), (8.52, 7.42), (8.25, 7.76), (8.42, 8.06), (8.05, 8.52), (8.32, 9.2),
-          (7.9, 9.85), (6.9, 10.12), (6.3, 10.6), (6.2, 11.6), (6.5, 12.6), (8.0, 13.6), (9.4, 15.2, 1),
-          (4.0, 16.5), (-0.6, 15.9, 1), (-0.7, 14.6), (0.6, 13.0), (1.6, 11.8), (2.2, 10.2), (1.4, 8.8),
-          (0.4, 7.0), (0.2, 5.0), (0.8, 2.8), (2.2, 0.9)]
-
-
-def sitter(m, name, x, y, hgt, small=False):
-    """An upright oval cameo set in the card: a sitter's likeness in white
-    relief on jasper blue, the way a portrait medallion was cut. The
-    introduction is a person."""
-    rx, ry = hgt * 0.37, hgt * 0.5
-    cx, cy = x + rx, y + ry
-    out = ['<ellipse cx="%s" cy="%s" rx="%s" ry="%s" fill="%s"/>' % (f(cx), f(cy), f(rx), f(ry), JASPER[1])]
-    k = hgt / 19.0
-    pts = [((px - 4.3) * k + cx, (py - 7.6) * k + cy) + tuple(p[2:]) for p in SITTER for px, py in [p[:2]]]
-    d = smooth_d(pts)
-    clip = m.clip(name + '-oval', '<ellipse cx="%s" cy="%s" rx="%s" ry="%s"/>' % (f(cx), f(cy), f(rx), f(ry)))
-    body = ''
-    if not small:
-        # the jasper dished a little, in shade on the lamp side's rim
-        body += '<path d="%s" fill="%s"/>' % (wedge_d(cx, cy, 0, max(rx, ry) * 1.2, math.radians(190), math.radians(280)), JASPER[0])
-        body += '<ellipse cx="%s" cy="%s" rx="%s" ry="%s" fill="%s"/>' % (f(cx + 0.35), f(cy + 0.45), f(rx * 0.9), f(ry * 0.92), JASPER[1])
-        body += relief(d, JASPER[3], lit='#ffffff', shade='#1c2c3a', dx=0.4, dy=0.5, sh_op=0.5, lo=0.2)
-    else:
-        body += '<path d="%s" fill="%s"/>' % (d, JASPER[3])
-    out.append('<g clip-path="%s">%s</g>' % (clip, body))
-    out.append('<ellipse cx="%s" cy="%s" rx="%s" ry="%s" fill="none" stroke="%s" stroke-width="%s"/>'
-               % (f(cx), f(cy), f(rx), f(ry), GILT[4], '1.2' if small else '.7'))
+        out.append(oval(-0.2, -0.25, rx * 0.7, ry * 0.72, GILT[3]))
+        out.append(oval(0.1, 0.1, rx * 0.55, ry * 0.58, HUE['outreach']['field']))
     return ''.join(out)
 
 
-JASPER = ['#5d7a92', '#7e9bb2', '#a9c0d0', '#f1ede4']      # the jasper's shade, its body, its light; the relief
-
-
 def subject_outreach(m, h, small=False):
-    """The day's queue as the desk deals it: three calling cards fanned from
-    one hand, graded as the page grades them, gold for the first call, sky
-    for the second, plain ivory with a gilt edge for the third. The front
-    card has its corner turned up, the old sign of a card delivered in
-    person, because the desk never sends: the owner does."""
-    a0, a1, a2 = FAN['angles']
-    m.add(card(m, 'c3', 'p3', a0, small=small))
-    m.add(card(m, 'c2', 'p2', a1, small=small))
-    m.add(card(m, 'c1', 'p1', a2, gilt=0.7, fold=True, portrait=True, small=small))
+    """An introduction held out by hand: one calling card, blank and
+    gilt-edged, between the thumb and the first two fingers, the hand
+    reaching from a starched double cuff and a dress coat's black sleeve.
+    The desk briefs every card overnight; the owner delivers each himself."""
+    A = OUTREACH_ARM
+    card = poly_d([outreach_at(p) for p in OUTREACH_CARD])
+    # the sleeve runs on out through the badge's rim; the cuff runs on
+    # under the sleeve's hem
+    sleeve_sil, sleeve = outreach_tube(A['cuff_l'], A['cuff_l'] + A['sleeve_l'], A['sleeve_r'],
+                                       OUTREACH_CLOTH, [0.2, 0.45, 0.72], rim=None if small else 3.0)
+    cuff_sil, cuff = outreach_tube(0, A['cuff_l'] + 16, A['cuff_r'], OUTREACH_LINEN, [0.2, 0.45, 0.72],
+                                   rim=None if small else 4.0)
+    finger_sil, finger = outreach_layer(m, 'finger', small)
+    hand_sil, hand = outreach_layer(m, 'hand', small)
+    thumb_sil, thumb = outreach_layer(m, 'thumb', small)
+    # one shadow for the whole charge, cast down and right on the enamel
+    m.add('<g opacity=".5" transform="translate(1 1.4)">%s</g>'
+          % ''.join('<path d="%s"/>' % d for d in (finger_sil, hand_sil, card, sleeve_sil, cuff_sil)))
+    m.add(finger)
+    m.add(hand)
+    # the card: its gilt edge, a hair below and right of its face
+    m.add('<path d="%s" fill="%s" transform="translate(.35 .45)"/>' % (card, GILT[4] if not small else OUTREACH_STOCK[1]))
+    m.add('<path d="%s" fill="%s"/>' % (card, OUTREACH_STOCK[0]))
+    m.add(thumb)
+    if not small:
+        m.add('<path d="%s" fill="%s"/>' % (outreach_path(OUTREACH_NAIL), OUTREACH_NAILC[0]))
+        m.add('<path d="%s" fill="%s"/>' % (outreach_path(OUTREACH_NAIL_LIT), OUTREACH_NAILC[1]))
+        m.add('<path d="%s" fill="%s"/>' % (outreach_path(OUTREACH_NAIL_EDGE), OUTREACH_NAILC[2]))
+    m.add(cuff)
+    m.add(outreach_link(small))
+    m.add(sleeve)
 
 
 # --------------------------------------------------------------------------
