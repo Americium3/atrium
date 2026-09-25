@@ -1615,7 +1615,7 @@ def bourse_form(poly):
     return light
 
 
-def bourse_turn(v, axis, profile, tones, cuts, cap=True):
+def bourse_turn(v, axis, profile, tones, cuts, cap=True, small=False):
     """A turned part for the perch: a solid of revolution about the view's
     x or y axis through the origin of `v`, from a profile of (t0, t1, r0,
     r1) bands, bottom up (or left to right). Each band is cut only where
@@ -1633,7 +1633,7 @@ def bourse_turn(v, axis, profile, tones, cuts, cap=True):
     out, n = [], 96
 
     def lay(polys, tone):
-        d = ' '.join(S.pts_d(S.rdp(p, 0.05)) for p in polys)
+        d = ' '.join(S.pts_d(S.rdp(p, 0.12 if small else 0.05)) for p in polys)
         out.append('<path d="%s" fill="%s" stroke="%s" stroke-width=".1"/>' % (d, tone, tone))
     for i, (t0, t1, r0, r1) in enumerate(profile):
         dr = (r0 - r1) / max(0.01, abs(t1 - t0)) * (1 if t1 > t0 else -1)
@@ -1649,7 +1649,7 @@ def bourse_turn(v, axis, profile, tones, cuts, cap=True):
                 if seq[k0] is not None:
                     span = (k - k0) % n or n
                     a0, a1 = 2 * math.pi * k0 / n, 2 * math.pi * (k0 + span) / n
-                    m_ = max(2, int(span / 6) + 1)
+                    m_ = max(2, int(span / (12 if small else 6)) + 1)
                     angs = [a0 + (a1 - a0) * j / m_ for j in range(m_ + 1)]
                     runs.setdefault(seq[k0], []).append([P(t0, r0, a) for a in angs] + [P(t1, r1, a) for a in reversed(angs)])
                 k0 = k
@@ -1706,14 +1706,14 @@ def bourse_perch(m, h, fx, fy, small=False):
     m.add(shadow('M%s %s H%s A%s %s 0 0 1 %s %s H%s A%s %s 0 0 1 %s %s Z'
                  % (f(x_l - 1.7), f(bar_y - r), f(x_r + 1.7), f(r), f(r), f(x_r + 1.7), f(bar_y + r),
                     f(x_l - 1.7), f(r), f(r), f(x_l - 1.7), f(bar_y - r)), 0.8, 1.2, 0.42))
-    m.add(bourse_turn(vs, 'y', rim, band, [0.25, 0.5, 0.72, 0.9], cap=False))
-    m.add(bourse_turn(vs, 'y', stem, gilt, gc))
+    m.add(bourse_turn(vs, 'y', rim, band, [0.25, 0.5, 0.72, 0.9], cap=False, small=small))
+    m.add(bourse_turn(vs, 'y', stem, gilt, gc, small=small))
     kx, ky, _ = vs.proj((0.0, top - 3.2, 0.0))
-    m.add(bourse_sphere(m, 'knop', kx, ky, 1.9, gilt, gc, 0.4 if small else 0.2))
-    m.add(bourse_turn(vs, 'y', collar, gilt, gc))
-    m.add(bourse_turn(vb, 'x', prof, gilt, gc, cap=False))
+    m.add(bourse_sphere(m, 'knop', kx, ky, 1.9, gilt, gc, 0.5 if small else 0.2))
+    m.add(bourse_turn(vs, 'y', collar, gilt, gc, small=small))
+    m.add(bourse_turn(vb, 'x', prof, gilt, gc, cap=False, small=small))
     for k, bx_ in enumerate((x_l - 1.7, x_r + 1.7)):
-        m.add(bourse_sphere(m, 'ball%d' % k, bx_, bar_y, 1.9, gilt, gc, 0.4 if small else 0.2))
+        m.add(bourse_sphere(m, 'ball%d' % k, bx_, bar_y, 1.9, gilt, gc, 0.5 if small else 0.2))
     return bar_y
 
 
