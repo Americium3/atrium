@@ -492,10 +492,10 @@ def smooth_d(points, closed=True, tension=1.0):
 # left out, as an engraver cuts them for a masthead globe.
 PRESSROOM_GLOBE = {'cx': 48.0, 'cy': 49.0, 'r': 31.0, 'lean': -23.4, 'tip': 12.0,
                    'dawn': -30.0, 'front': 0.3}
-#                  night      dawn       shade      body       lit
-PRESSROOM_SEA = ['#15130d', '#b0703f', '#d8c58e', '#e9ddac', '#f7f0c9']
-PRESSROOM_LAND = ['#534c2e', '#6a4524', '#66702f', '#768d43', '#97ac5b']
-PRESSROOM_LIGHT = [-0.1, 0.03, 0.34, 0.7]          # where each plane begins (n . sun)
+#                  night      dawn, deep and risen  low sun    body       lit
+PRESSROOM_SEA = ['#15130d', '#6e3a2c', '#b8743f', '#d8c58e', '#e9ddac', '#f7f0c9']
+PRESSROOM_LAND = ['#534c2e', '#4e3322', '#6a4524', '#66702f', '#768d43', '#97ac5b']
+PRESSROOM_LIGHT = [-0.13, -0.05, 0.03, 0.34, 0.7]  # where each plane begins (n . sun)
 # Natural Earth 1:110m land (public domain), the loops that face the
 # Atlantic, simplified to 1.2 degrees; (longitude, latitude).
 PRESSROOM_COAST = [
@@ -665,7 +665,7 @@ def pressroom_line(pts, fr):
 
 def subject_pressroom(m, h, small=False):
     """The world at dawn: the globe cut into the planes the sun lays on it
-    (full morning, morning, the low sun, the band of dawn, night), sea and
+    (full morning, morning, the low sun, dawn in two bands, night), sea and
     land each in its own colour, with the graticule engraved as a printed
     globe carries it, in ink by day and in pale lines across the night."""
     g = PRESSROOM_GLOBE
@@ -686,9 +686,9 @@ def subject_pressroom(m, h, small=False):
     cuts = PRESSROOM_LIGHT
     sea, land = PRESSROOM_SEA, PRESSROOM_LAND
     if small:
-        # the small cut keeps night, dawn and one morning
-        cuts = cuts[:2]
-        sea, land = sea[:2] + [sea[3]], land[:2] + [land[3]]
+        # the small cut keeps night, one band of dawn and one morning
+        cuts = [-0.1, 0.03]
+        sea, land = [sea[0], sea[2], sea[4]], [land[0], land[2], land[4]]
     m.add(shadow(disc, 1.3, 1.9, 0.5))
     m.add(planes(m, 'sea', disc, light, box, sea, cuts, step))
     # the land
