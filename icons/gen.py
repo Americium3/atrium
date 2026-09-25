@@ -667,7 +667,7 @@ PRESSROOM_LAND = ['#45412a', '#d68f50', '#b5a172', '#d6c594', '#efe4bf']
 # reaches (n . key light at `reach` and above) it is `lo` wide, and it widens
 # to `hi` where the lamp falls away, so the first light tapers up the globe
 # and never reads as a ribbon of one width.
-PRESSROOM_DAWN = [0.05, 0.2, 0.7]
+PRESSROOM_DAWN = [0.08, 0.22, 0.7]
 PRESSROOM_DAWN_S = [0.12, 0.34, 0.7]     # the small cut's, wide enough to see
 PRESSROOM_KEY = [0.1, 0.6]               # where the morning's body and its lit plane begin (n . key light)
 PRESSROOM_KEY_S = [0.2]                  # the small cut's: the morning in two planes
