@@ -19,8 +19,8 @@ band: the domed crystal the gate's bezel holds over it supplies the one
 reflection glass is allowed.
 
 Every mark also has a small cut (#mark-<id>-s), drawn from the same geometry
-with fewer planes and nothing under two units, for the Ledger, the gate on a
-laptop and a future favicon.
+with fewer planes, no engraving, and its struts, wires and cords drawn
+heavier, for the Ledger, the gate on a laptop and a future favicon.
 
 HUE below is the one source of truth. Each entry carries the mark's enamel,
 the dye of the velvet its gate hangs (per theme) and the ink its gate's day
@@ -1804,7 +1804,7 @@ def emblem_small(app):
     """The small cut: the Ledger's sigil (20 to 35 px), the gate's cartouche
     on a laptop (under 40 px) and the 16/32/48 favicon. The same die and
     enamel and the same subject from the same geometry, cut to its biggest
-    planes: fewer tones, no engraving, nothing under two units."""
+    planes: fewer tones, no engraving, thin members drawn heavier."""
     h = HUE[app]
     m = Mark(app, '-s')
     lip = m.lin('lip', [(0, GILT[3]), (0.35, GILT[5]), (0.7, GILT[2]), (1, GILT[1])], 14, 12, 84, 86)

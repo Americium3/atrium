@@ -992,10 +992,11 @@ about 39 units of the centre, so the enamel shows all round it.
   lozenge lattice; a ticker-amber stone.
 
 Each mark also has a small cut, `#mark-<id>-s`, drawn from the same
-geometry with fewer planes and nothing under two units. The Ledger's medal
-(20 to 35px) wears it, the gate wears it where its cartouche is under 40px
-(a container query on the gate picks the cut, so a 1280 or 1366 hall shows
-the small one), and it is the drawing for a 16, 32 or 48px favicon.
+geometry with fewer planes, no engraving, and its struts, wires and cords
+drawn heavier. The Ledger's medal (20 to 35px) wears it, the gate wears it
+where its cartouche is under 40px (a container query on the gate picks the
+cut, so a 1280 or 1366 hall shows the small one), and it is the drawing for
+a 16, 32 or 48px favicon.
 
 The house follows the mark. `HUE` in `icons/gen.py` holds each mark's
 enamel beside the dye of its velvet for Onyx and Ivory and the ink its day
