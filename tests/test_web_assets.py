@@ -246,11 +246,13 @@ def _wings() -> dict[str, str]:
 
 
 # A curtain belongs to its mark when its hue sits within this of the mark's
-# ground as the page draws it (CIELAB hue angle, degrees). A neutral ground
+# ground as the page draws it (CIELAB hue angle, degrees), and nearer to it
+# than to any other mark's ground (the largest real offset is under 14
+# degrees; at 30 an amber mark could hang an olive cloth). A neutral ground
 # (chroma under 12, a steel) takes a neutral cloth instead: chroma 10 at most,
 # and where the cloth shows any colour at all (chroma over 6) it is the
 # ground's own hue.
-VELVET_HUE_TOLERANCE = 30.0
+VELVET_HUE_TOLERANCE = 20.0
 NEUTRAL_CHROMA = 12.0
 NEUTRAL_VELVET_CHROMA = 10.0
 # Two gates of one wing must not read as the same cloth (CIEDE2000), open or
@@ -409,6 +411,12 @@ def test_every_velvet_is_its_marks_colour_family():
                     continue
                 if vc < NEUTRAL_CHROMA or dh > VELVET_HUE_TOLERANCE:
                     bad.append(f"{cut} {theme}: cloth {v} is {dh:.0f} degrees off the ground drawn, {ground}")
+                for other in apps:
+                    if other == app:
+                        continue
+                    _, oc, oh = _lch(_ground_as_drawn(marks[other]))
+                    if oc >= NEUTRAL_CHROMA and abs((vh - oh + 180) % 360 - 180) < dh:
+                        bad.append(f"{cut} {theme}: cloth {v} sits nearer {other}'s ground than its own")
     assert not bad, "; ".join(bad)
 
 
@@ -435,7 +443,59 @@ def test_every_mark_is_fired_in_its_own_enamel():
             for fn in ("paint", "sky", "dusk", "cone"):
                 if f'id="mk-{app_id}{suffix}-{fn}' in body:
                     bad.append(f"{app_id}{suffix}: a painted ground ({fn}) over the enamel")
+            bad += _field_layers(gen, app_id + suffix, body, h)
     assert not bad, "; ".join(bad)
+
+
+def _field_layers(gen, name, body, h):
+    """Inside the enamel's clip, any shape broad enough to be a ground (it
+    reaches 80% of the field's radius from the centre in every direction)
+    has to be the enamel itself: HUE's lit, field or deep, a gradient or a
+    turning of only those, the pool or a shadow no darker than .35 black."""
+    R = gen.R_FIELD
+    m = re.search(r'<g clip-path="url\(#mk-%s-field\)">' % re.escape(name), body)
+    if not m:
+        return [f"{name}: no enamel field group"]
+    inner = body[m.end():]
+    allowed = {h["lit"].lower(), h["field"].lower(), h["deep"].lower(), "none"}
+    ok_urls = {f"url(#mk-{name}-{k})" for k in ("enamel", "pool")}
+    ok_urls |= set(re.findall(r'url\(#mk-%s-turn\d*\)' % re.escape(name), inner))
+    out = []
+    for el in re.finditer(r"<(path|circle|rect|ellipse|polygon)\b([^>]*)/?>", inner):
+        tag, attrs = el.group(1), el.group(2)
+        a = dict(re.findall(r'([\w-]+)="([^"]*)"', attrs))
+        fill = a.get("fill", "#000").lower()
+        if fill == "none":
+            continue
+        pts = []
+        if tag == "circle":
+            cx, cy, r = float(a["cx"]), float(a["cy"]), float(a["r"])
+            pts = [(cx - r, cy - r), (cx + r, cy + r)]
+        elif tag == "rect":
+            x, y = float(a.get("x", 0)), float(a.get("y", 0))
+            pts = [(x, y), (x + float(a.get("width", 0)), y + float(a.get("height", 0)))]
+        elif tag == "path" and "d" in a:
+            for _, v in gen.path_segments(a["d"]):
+                pts += list(zip(v[-2::-2][::-1], v[-1::-2][::-1])) if v else []
+        elif "points" in a:
+            nums = [float(x) for x in re.findall(r"-?[\d.]+", a["points"])]
+            pts = list(zip(nums[0::2], nums[1::2]))
+        if not pts:
+            continue
+        xs, ys = [p[0] for p in pts], [p[1] for p in pts]
+        k = 0.8 * R
+        if not (min(xs) <= 48 - k and max(xs) >= 48 + k and min(ys) <= 48 - k and max(ys) >= 48 + k):
+            continue
+        op = float(a.get("fill-opacity", a.get("opacity", 1)))
+        if fill in allowed or fill in ok_urls or (fill in ("#000", "#000000") and op <= 0.35):
+            continue
+        if fill.startswith("url(#mk-%s-" % name):
+            gid = fill[5:-1]
+            g = re.search(r'<(?:radialGradient|linearGradient) id="%s"[^>]*>(.*?)</' % re.escape(gid), body)
+            if g and set(c.lower() for c in re.findall(r'stop-color="(#[0-9a-fA-F]{6})"', g.group(1))) <= allowed:
+                continue
+        out.append(f"{name}: a {tag} the size of the field painted {fill} over the enamel")
+    return out
 
 
 def _mix(c: str, k: float, base: str) -> str:
@@ -512,20 +572,20 @@ def test_only_the_generator_dyes_a_velvet():
     iron; the dark shade is only ever the dye mixed toward black."""
     stray = []
     shade = {f':root[data-theme="{t}"] .gate[data-state="dark"]' for t in DARK_MIX}
-    for sheet in sheets():
-        css = sheet.read_text(encoding="utf-8").replace("\r\n", "\n")
-        if sheet.name == "palace-gates.css":
+    for name, css in css_sources():
+        css = css.replace("\r\n", "\n")
+        if name == "palace-gates.css":
             head, rest = css.split("/* BEGIN generated velvets (icons/gen.py) */", 1)
             css = head + rest.split("/* END generated velvets */", 1)[1]
         css = re.sub(r"/\*.*?\*/", "", css, flags=re.S)
         for m in re.finditer(r"([^{};]*)\{[^{}]*--velvet\s*:", css):
             sel = " ".join(m.group(1).split())
             if sel != '.gate[data-velvet="iron"]':
-                stray.append(f"{sheet.name}: {sel}")
+                stray.append(f"{name}: {sel}")
         for m in re.finditer(r"([^{};]*)\{[^{}]*--velvet-shade\s*:", css):
             sel = " ".join(m.group(1).split())
             if sel not in shade:
-                stray.append(f"{sheet.name}: {sel} (the dark shade)")
+                stray.append(f"{name}: {sel} (the dark shade)")
     assert not stray, "velvets dyed outside icons/gen.py's block: " + "; ".join(stray)
 
 
@@ -542,18 +602,71 @@ def test_the_cloth_is_only_ever_painted_in_its_velvet():
     on, or the reserved gate's iron)."""
     cloth = re.compile(r"\.(%s)(?![\w-])" % "|".join(CLOTH))
     ok = ("var(--velvet)", "var(--velvet-shade)", "var(--screen)", "var(--iron)")
+    paint = r"(?:^|;)\s*(background|background-color|background-image|fill)\s*:\s*([^;]+)"
+    # what may colour the cloth without being its paint: the pile's light
+    # and shade (black or white at an alpha), the gilt of the fringe, and the
+    # house's own lights; no blend that takes a hue from above
+    neutral = re.compile(r"rgba\(\s*(0,\s*0,\s*0|255,\s*255,\s*255)\s*,|#000\b|#fff\b|transparent|"
+                         r"var\(--(velvet|velvet-shade|lead-\d|tab-foot)\)|url\(")
+    colour = re.compile(r"#[0-9a-fA-F]{3,8}\b|rgba?\([^)]*\)|hsla?\([^)]*\)|\b(red|blue|green|crimson|"
+                        r"navy|purple|orange|gold|maroon)\b", re.I)
     bad = []
-    for sheet in sheets():
-        css = re.sub(r"/\*.*?\*/", "", sheet.read_text(encoding="utf-8"), flags=re.S)
+    for name, css in css_sources():
+        css = re.sub(r"/\*.*?\*/", "", css, flags=re.S)
         for m in re.finditer(r"([^{};]*)\{([^{}]*)\}", css):
             sels = [" ".join(x.split()) for x in m.group(1).split(",")]
-            hit = [x for x in sels if cloth.search(x) and ":before" not in x and ":after" not in x]
+            hit = [x for x in sels if cloth.search(x)]
             if not hit:
                 continue
-            for d in re.finditer(r"(?:^|;)\s*(background|background-color|background-image|fill)\s*:\s*([^;]+)", m.group(2)):
-                if not any(v in d.group(2) for v in ok):
-                    bad.append(f"{sheet.name}: {hit[0]} {{ {d.group(1)}: {' '.join(d.group(2).split())[:60]} }}")
+            body = m.group(2)
+            for d in re.finditer(r"(?:^|;)\s*(filter|backdrop-filter|-webkit-backdrop-filter)\s*:\s*([^;]+)", body):
+                if d.group(2).strip() != "none":
+                    bad.append(f"{name}: {hit[0]} {{ {d.group(1)}: {d.group(2).strip()[:40]} }}")
+            for d in re.finditer(r"(?:^|;)\s*mix-blend-mode\s*:\s*([^;]+)", body):
+                if d.group(1).strip() in ("color", "hue", "saturation", "luminosity", "difference", "exclusion"):
+                    bad.append(f"{name}: {hit[0]} {{ mix-blend-mode: {d.group(1).strip()} }}")
+            plain = [x for x in hit if ":before" not in x and ":after" not in x]
+            for d in re.finditer(paint, body):
+                val = " ".join(d.group(2).split())
+                if plain and not any(v in val for v in ok):
+                    bad.append(f"{name}: {plain[0]} {{ {d.group(1)}: {val[:60]} }}")
+                elif not plain:
+                    # a pseudo-element over the cloth may shade it and carry
+                    # the gilt fringe, but never lay a colour of its own
+                    rest = neutral.sub("", val)
+                    if colour.search(rest):
+                        bad.append(f"{name}: {hit[0]} {{ {d.group(1)}: {val[:60]} }} lays a colour on the cloth")
     assert not bad, "cloth painted in something other than its velvet: " + "; ".join(bad)
+
+
+def test_no_gate_is_lit_on_its_own():
+    """The footlights and the projector's spot are the house's lights, the
+    same on every gate of a theme. Dyed for one gate they would wash its
+    cloth another colour with the velvet untouched."""
+    lights = ("--footlight", "--spot", "--spot-edge", "--tab-foot")
+    one_gate = re.compile(r"\[data-(service|velvet|glass|ink)=|#gate-")
+    bad = []
+    for name, css in css_sources():
+        css = re.sub(r"/\*.*?\*/", "", css, flags=re.S)
+        for m in re.finditer(r"([^{};]*)\{([^{}]*)\}", css):
+            sel = " ".join(m.group(1).split())
+            if one_gate.search(sel) and any(re.search(r"(?:^|;)\s*%s\s*:" % re.escape(v), m.group(2)) for v in lights):
+                bad.append(f"{name}: {sel}")
+    for js in scripts():
+        for n, line in enumerate(js.read_text(encoding="utf-8").split("\n"), 1):
+            if re.search(r"setProperty\(\s*['\"`](%s)['\"`]" % "|".join(lights), line):
+                bad.append(f"{js.name}:{n}: {line.strip()[:80]}")
+    assert not bad, "a gate's lights are set on their own: " + "; ".join(bad)
+
+
+def test_the_cloth_keeps_its_dye_under_forced_colours():
+    """Forced colours repaint backgrounds as Canvas, and every house went
+    black while its mark kept its paint. The cloth carries no text, so it
+    keeps its own dye there, as the niche does."""
+    css = (STATIC / "css" / "palace-gates.css").read_text(encoding="utf-8").replace("\r\n", "\n")
+    blocks = re.findall(r"@media \(forced-colors: active\) \{(.*?)\n\}", css, flags=re.S)
+    assert any(re.search(r"\.g-tab, \.g-valance, \.mirror-art \.mr-house \{ forced-color-adjust: none; \}", b)
+               for b in blocks), "the house's cloth is forced to Canvas under forced colours"
 
 
 def test_only_velvetfor_chooses_a_cloth():
@@ -561,12 +674,21 @@ def test_only_velvetfor_chooses_a_cloth():
     (velvetFor). No script sets it again later, writes the attribute by
     hand or dyes a gate's --velvet inline."""
     bad = []
-    writes = re.compile(r"dataset\.velvet\s*=(?!=)|setAttribute\(\s*['\"]data-velvet['\"]|"
-                        r"setProperty\(\s*['\"]--velvet|--velvet\s*:|data-velvet=")
+    writes = re.compile(r"dataset\s*(?:\.velvet|\[\s*['\"`]velvet['\"`]\s*\])\s*=(?!=)|"
+                        r"setAttribute(?:NS)?\(\s*(?:[^,]*,\s*)?['\"`]data-(?:velvet)?['\"`]\s*[,+]|"
+                        r"setAttribute(?:NS)?\(\s*(?:[^,]*,\s*)?['\"`]data-velvet|"
+                        r"Object\.assign\([^)]*dataset|"
+                        r"setProperty\(\s*['\"`]--velvet|--velvet\s*:|data-velvet=|"
+                        r"velvetFor\s*=(?!=)")
+    decls = 0
     for js in scripts():
-        for n, line in enumerate(js.read_text(encoding="utf-8").split("\n"), 1):
+        text = js.read_text(encoding="utf-8").replace("\r\n", "\n")
+        decls += len(re.findall(r"function\s+velvetFor\b", text))
+        for n, line in enumerate(text.split("\n"), 1):
             if writes.search(line) and line.strip() != "a.dataset.velvet = velvetFor(svc);":
                 bad.append(f"{js.name}:{n}: {line.strip()[:80]}")
+    if decls != 1:
+        bad.append(f"velvetFor is declared {decls} times across static/js (a second one wins by hoisting)")
     assert not bad, "a gate's cloth is chosen outside velvetFor: " + "; ".join(bad)
 
 
@@ -589,7 +711,8 @@ def test_a_gate_hangs_its_own_marks_cloth():
         print("  (node is not on the PATH; velvetFor not run)")
         return
     known = re.search(r"var KNOWN_SIGILS = \{[^}]*\};", app).group(0)
-    fn = re.search(r"function velvetFor\(svc\) \{.*?\n\}", app, flags=re.S).group(0)
+    # the last declaration is the one that runs, should there ever be two
+    fn = re.findall(r"function velvetFor\(svc\) \{.*?\n\}", app, flags=re.S)[-1]
     cases = [{"sigil": a} for a in hue] + [{"sigil": "somethingnew"}, {"sigil": "autopilot", "vacant": True}]
     script = known + "\n" + fn + "\nconsole.log(JSON.stringify(%s.map(velvetFor)));" % json.dumps(cases)
     out = subprocess.run([node, "-e", script], capture_output=True, text=True, check=True).stdout
@@ -691,7 +814,24 @@ def test_no_mark_or_curtain_is_a_sapphire():
             _, c, hh = _lch(h["velvet"][theme])
             if 225 <= hh <= 315 and c > 30:
                 loud.append(f"{app} velvet {theme} (chroma {c:.0f})")
-    assert not loud, "saturated blues on marks or curtains: " + "; ".join(loud)
+    # and every colour any cut of any mark actually paints, fill, stroke or
+    # gradient stop: no blue in the clock's band (a hue of 255 to 320 with any
+    # chroma to speak of), and none a near neighbour of the clock's own blues
+    sys.path.insert(0, str(ROOT / "icons"))
+    import gen
+    clock = re.findall(r"\.ck-moon(?:well|shade) \{ fill: (#[0-9a-fA-F]{6}); \}",
+                       (STATIC / "css" / "atrium.css").read_text(encoding="utf-8"))
+    assert clock, "the clock's moon blues are not where this test looks for them"
+    for app in hue:
+        for body in (gen.emblem(app), gen.emblem_small(app)):
+            for c in set(re.findall(r'(?:fill|stroke|stop-color)="(#[0-9a-fA-F]{6})"', body)):
+                _, ch, hh = _lch(c)
+                if 255 <= hh <= 320 and ch > 20:
+                    loud.append(f"{app} paints {c} (hue {hh:.0f}, chroma {ch:.0f})")
+                near = min(_de2000(c, k) for k in clock)
+                if near < 10 and ch > 15:
+                    loud.append(f"{app} paints {c}, {near:.1f} from the clock's blue")
+    assert not loud, "saturated blues on marks or curtains: " + "; ".join(sorted(set(loud)))
 
 
 def test_the_hall_carries_what_the_generator_draws():
@@ -712,6 +852,29 @@ def test_the_hall_carries_what_the_generator_draws():
     for app_id in gen.HUE:
         for suffix in ("", "-s"):
             assert page.count(f'id="mark-{app_id}{suffix}"') == 1, f"#mark-{app_id}{suffix} is not in the page once"
+
+
+def test_the_small_cut_draws_no_hairline():
+    """The small cut is seen at 22 to 55 screen pixels. A stroke under three
+    units is under a pixel on the 32px gate, and a plumb line or a leg drawn
+    that fine vanishes and leaves its bob or its bird floating. Seam strokes
+    (the same colour as the fill they close) and the field's shade ring are
+    not lines anyone reads."""
+    sys.path.insert(0, str(ROOT / "icons"))
+    import gen
+    bad = []
+    for app_id in gen.HUE:
+        for el in re.finditer(r"<(path|circle|ellipse|line|polyline|rect)\b([^>]*)/?>", gen.emblem_small(app_id)):
+            a = dict(re.findall(r'([\w-]+)="([^"]*)"', el.group(2)))
+            if "stroke-width" not in a or a.get("stroke", "none") == "none":
+                continue
+            if a.get("stroke") == a.get("fill"):
+                continue
+            if el.group(1) == "circle" and a.get("fill") == "none" and a.get("stroke") == "#000":
+                continue
+            if float(a["stroke-width"]) < 3.0:
+                bad.append(f"{app_id}-s: a {a['stroke-width']}-unit {a['stroke']} stroke")
+    assert not bad, "; ".join(bad)
 
 
 def test_the_marks_carry_no_lettering_and_no_filters():

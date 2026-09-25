@@ -631,11 +631,13 @@ html[lang="zh"] .g-lamp { letter-spacing: 0.2em; }
    The fold map is new: broad rounded crests and deep soft valleys that
    hang in their own weight, each crest lit on the footlights' side and
    brighter toward the hem. It is laid in `multiply`, so --velvet is the
-   colour of the cloth at its brightest crest and the folds only take it
-   down: the highlights keep the velvet's own hue instead of going pastel.
-   Cloth has to stand against the gilt round it, so every velvet's crest
-   is at least a quarter darker than the leaf's body (--au-2, relative
-   luminance). An amber dye at 1.7 times the leaf by night once read as
+   colour of the cloth at its brightest crest in the house's own light and
+   the folds only take it down: the highlights keep the velvet's own hue
+   instead of going pastel. By night the footlights warm the hem a step
+   above that, the way floats light the foot of a stage curtain; that is
+   light laid on the cloth, not the cloth. Cloth has to stand against the
+   gilt round it, so every velvet's crest is at least a quarter darker than
+   the leaf's body (--au-2, relative luminance). An amber dye at 1.7 times the leaf by night once read as
    gold curtains in a gold frame, so a gold or orange mark hangs a deep
    cognac or olive gold of its own hue. tests/test_web_assets.py holds the
    cloth to both rules. */
@@ -764,8 +766,14 @@ html[lang="zh"] .g-lamp { letter-spacing: 0.2em; }
 }
 /* The niche is scenery (its drawing is aria-hidden and the clock says the
    time in text): under forced colours it keeps its own paint rather than
-   being redrawn as system lines. */
-@media (forced-colors: active) { .niche { forced-color-adjust: none; } }
+   being redrawn as system lines. So does each house's cloth, which carries
+   no text of its own: forced to Canvas it went black on every gate, and
+   the curtain no longer matched its mark. The card and the lamp word over
+   it are still forced, on the system's backplate. */
+@media (forced-colors: active) {
+  .niche { forced-color-adjust: none; }
+  .g-tab, .g-valance, .mirror-art .mr-house { forced-color-adjust: none; }
+}
 
 /* ==========================================================================
    THE IRON: THE RESERVED GATE'S SAFETY CURTAIN
