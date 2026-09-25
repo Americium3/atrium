@@ -698,7 +698,7 @@ function paint(parts, cam, P) {
   var times = [], tp = performance.now();
   GRIDS = {};
   for (var t = 0; t <= cam.walkEnd + 200; t += 80) times.push(t);
-  var hold = [], all = [], stats = { canvases: 0, bytes: 0, pieces: {}, tiles: [] };
+  var hold = [], all = [], stats = { canvases: 0, bytes: 0, pieces: {} };
   parts.forEach(function (part) {
     var key = part.el.className.replace('e-piece ', '').split(' ')[0];
     var gone = part.lastSeen >= 0 && part.lastSeen < cam.walkEnd ? part.lastSeen + 80 : Infinity;
@@ -734,8 +734,6 @@ function paint(parts, cam, P) {
           stats.canvases++; stats.bytes += L.w * L.h * 4;
           stats.pieces[key] = (stats.pieces[key] || 0) + L.w * L.h * 4;
         });
-        stats.tiles.push([key, l.cls.split(' ')[0], [r.a0, r.a1, r.b0, r.b1].map(f2).join(','), tl.res.map(Math.round).join('x'),
-          tl.levels.map(function (lv) { return lv.k + '@' + lv.from; }).join(' ')]);
       });
     });
   });
@@ -748,13 +746,8 @@ function paint(parts, cam, P) {
     all.forEach(function (L) { if (ms < L.to) b += L.w * L.h * 4; });
     return b;
   };
-  stats.peak = 0; stats.curve = [];
-  for (var ms = 0; ms <= cam.walkEnd + 400; ms += 40) { var a = alive(ms); stats.curve.push(Math.round(a / 1048576)); if (a > stats.peak) { stats.peak = a; stats.peakAt = ms; } }
-  stats.at = {};
-  all.forEach(function (L) {
-    var k = L.job.l.el.parentNode.className.replace('e-piece ', '').split(' ')[0];
-    if (stats.peakAt < L.to) stats.at[k] = Math.round((stats.at[k] || 0) + L.w * L.h * 4 / 1048576);
-  });
+  stats.peak = 0;
+  for (var ms = 0; ms <= cam.walkEnd + 400; ms += 40) { var a = alive(ms); if (a > stats.peak) { stats.peak = a; stats.peakAt = ms; } }
   // the hold's levels: a tile's finest among them drawn from its SVG, the
   // coarser ones halved from it
   var groups = [];
