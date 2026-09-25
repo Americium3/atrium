@@ -480,22 +480,24 @@ def smooth_d(points, closed=True, tension=1.0):
 # --------------------------------------------------------------------------
 # The Press Room: the world at dawn, printed in the paper's own colours
 # --------------------------------------------------------------------------
-# The Earth as it stands at sunrise on an equinox, seen from a little above
-# the equator. The sun comes up out of the east, on the right, so the dawn
-# line runs from pole to pole down the Atlantic: Europe and Africa are in
-# morning and the Americas still lie in night. The sun is set against the
-# hall's key light on purpose. A dark half on the lamp's side cannot pass for
-# ordinary shading; it can only be night. The globe is printed the way the
-# paper is (bone paper, the page's olive, ink for the night), with one
-# narrow band of dawn along the line. The coasts are Natural Earth's 1:110m
-# land, simplified to a degree and a bit: the true shapes with the small wiggles
+# The Earth as it stands at sunrise on an equinox, seen from the family's
+# eye, a little above the equator. The dawn line runs from pole to pole down
+# the Atlantic: Europe and Africa are in morning and the Americas still lie
+# in night. Night and dawn are printed on the globe, the way the paper prints
+# them (bone paper, the page's olive, ink for the night), and the globe's own
+# roundness is lit by the hall's key light like every other charge: the
+# morning side takes its lit plane up and to the left and its shade down and
+# to the right. So the night falls on the lamp's side, where no shading could
+# put it, and reads as night. The coasts are Natural Earth's 1:110m land,
+# simplified to a degree and a bit: the true shapes with the small wiggles
 # left out, as an engraver cuts them for a masthead globe.
-PRESSROOM_GLOBE = {'cx': 48.0, 'cy': 49.0, 'r': 31.0, 'lean': -23.4, 'tip': 12.0,
+PRESSROOM_GLOBE = {'cx': 48.0, 'cy': 49.0, 'r': 31.0, 'lean': -23.4, 'tip': PITCH,
                    'dawn': -30.0, 'front': 0.3}
-#                  night      dawn, deep and risen  low sun    body       lit
+#                  night      dawn, deep and risen  morning: shade, body, lit
 PRESSROOM_SEA = ['#15130d', '#6e3a2c', '#b8743f', '#d8c58e', '#e9ddac', '#f7f0c9']
 PRESSROOM_LAND = ['#534c2e', '#4e3322', '#6a4524', '#66702f', '#768d43', '#97ac5b']
-PRESSROOM_LIGHT = [-0.13, -0.05, 0.03, 0.34, 0.7]  # where each plane begins (n . sun)
+PRESSROOM_DAWN = [-0.13, -0.05, 0.03]   # where deep dawn, risen dawn and morning begin (n . sun)
+PRESSROOM_KEY = [0.05, 0.6]             # where the morning's body and its lit plane begin (n . key light)
 # Natural Earth 1:110m land (public domain), the loops that face the
 # Atlantic, simplified to 1.2 degrees; (longitude, latitude).
 PRESSROOM_COAST = [
@@ -664,33 +666,51 @@ def pressroom_line(pts, fr):
 
 
 def subject_pressroom(m, h, small=False):
-    """The world at dawn: the globe cut into the planes the sun lays on it
-    (full morning, morning, the low sun, dawn in two bands, night), sea and
-    land each in its own colour, with the graticule engraved as a printed
+    """The world at dawn: night, dawn in two bands and the morning are
+    printed on the globe by where the sun stands, and the morning is cut
+    into the three planes the hall's key light lays on a sphere. Sea and land
+    each take their own colour, with the graticule engraved as a printed
     globe carries it, in ink by day and in pale lines across the night."""
     g = PRESSROOM_GLOBE
     fr = pressroom_frame()
     cx, cy, R, sun = g['cx'], g['cy'], g['r'], fr['sun']
 
-    def light(x, y):
+    def normal(x, y):
         X, Y = (x - cx) / R, -(y - cy) / R
         q = X * X + Y * Y
         if q >= 0.998:
             k = math.sqrt(0.998 / q)
             X, Y, q = X * k, Y * k, 0.998
-        return S.dot((X, Y, math.sqrt(1 - q)), sun)
+        return (X, Y, math.sqrt(1 - q))
+
+    def light(x, y):                 # where the sun stands: night, dawn, morning
+        return S.dot(normal(x, y), sun)
+
+    def key(x, y):                   # the hall's lamp on the globe's roundness
+        return S.dot(normal(x, y), S.KEY)
 
     disc = circle_d(cx, cy, R)
     box = (cx - R - 1, cy - R - 1, cx + R + 1, cy + R + 1)
     step = 0.6 if small else 0.35
-    cuts = PRESSROOM_LIGHT
+    dawn, lamp = PRESSROOM_DAWN, PRESSROOM_KEY
     sea, land = PRESSROOM_SEA, PRESSROOM_LAND
+    # each plane from the night up, as the region it covers (f < 0 inside)
+    rise = [lambda x, y, t=t: t - light(x, y) for t in dawn]
+    morning = [lambda x, y, t=t: max(dawn[-1] - light(x, y), t - key(x, y)) for t in lamp]
+    fns = rise + morning
     if small:
-        # the small cut keeps night, one band of dawn and one morning
-        cuts = [-0.1, 0.03]
-        sea, land = [sea[0], sea[2], sea[4]], [land[0], land[2], land[4]]
+        # the small cut keeps night, one band of dawn, and the morning in
+        # its shade and its body
+        fns = [rise[1], rise[2], morning[0]]
+        sea, land = [sea[0], sea[2], sea[3], sea[4]], [land[0], land[2], land[3], land[4]]
+
+    def cut(name, tones):
+        body = ''.join('<path d="%s" fill="%s" fill-rule="evenodd"/>' % (d, col)
+                       for d, col in ((S.region_d(fn, box, step, 0.12), col) for fn, col in zip(fns, tones[1:])) if d)
+        return '<path d="%s" fill="%s"/><g clip-path="%s">%s</g>' % (
+            disc, tones[0], m.clip(name, '<path d="%s"/>' % disc), body)
     m.add(shadow(disc, 1.3, 1.9, 0.5))
-    m.add(planes(m, 'sea', disc, light, box, sea, cuts, step))
+    m.add(cut('sea', sea))
     # the land
     eps = 0.45 if small else 0.12
     loops = []
@@ -700,19 +720,18 @@ def subject_pressroom(m, h, small=False):
             loops.append(S.pts_d(S.rdp(face, eps)))
     land_d = ' '.join(loops)
     lclip = m.clip('land', '<path d="%s"/>' % land_d)
-    m.add('<g clip-path="%s">%s</g>' % (lclip, planes(m, 'landp', disc, light, box, land, cuts, step)))
+    m.add('<g clip-path="%s">%s</g>' % (lclip, cut('landp', land)))
     if not small:
         lakes = [pressroom_face(lake, fr) for lake in PRESSROOM_LAKES]
         lake_d = ' '.join(S.pts_d(lk) for lk in lakes if lk)
         if lake_d:
-            m.add('<g clip-path="%s">%s</g>' % (m.clip('lake', '<path d="%s"/>' % lake_d),
-                                                 planes(m, 'lakep', disc, light, box, sea, cuts, step)))
+            m.add('<g clip-path="%s">%s</g>' % (m.clip('lake', '<path d="%s"/>' % lake_d), cut('lakep', sea)))
         # the graticule every thirty degrees, the equator a shade heavier
         grat = [pressroom_line([(lon, lat) for lat in range(-90, 91, 3)], fr) for lon in range(0, 360, 30)]
         grat += [pressroom_line([(lon, lat) for lon in range(0, 361, 3)], fr) for lat in (-60, -30, 30, 60)]
         equator = pressroom_line([(lon, 0) for lon in range(0, 361, 3)], fr)
-        day = S.region_d(lambda x, y: PRESSROOM_LIGHT[0] - light(x, y), box, step, 0.1)
-        night = S.region_d(lambda x, y: light(x, y) - PRESSROOM_LIGHT[0], box, step, 0.1)
+        day = S.region_d(lambda x, y: dawn[0] - light(x, y), box, step, 0.1)
+        night = S.region_d(lambda x, y: light(x, y) - dawn[0], box, step, 0.1)
         dclip = m.clip('disc', '<path d="%s"/>' % disc)
         m.add('<g clip-path="%s"><g clip-path="%s">'
               '<path d="%s" stroke="#1a170c" stroke-width=".25" stroke-opacity=".14" fill="none"/>'
@@ -722,18 +741,6 @@ def subject_pressroom(m, h, small=False):
               '<path d="%s" stroke="#f6efc8" stroke-width=".25" stroke-opacity=".1" fill="none"/>'
               '<path d="%s" stroke="#f6efc8" stroke-width=".4" stroke-opacity=".16" fill="none"/></g></g>'
               % (dclip, m.clip('night', '<path d="%s"/>' % night), ' '.join(grat), equator))
-        # the airglow: the thin green line the upper air gives off round the
-        # night side's limb, the one thing on the globe that shines
-        glow = []
-        for k in range(0, 361, 2):
-            a = math.radians(k)
-            if S.dot((math.cos(a), math.sin(a), 0.0), sun) < PRESSROOM_LIGHT[0] - 0.04:
-                glow.append((cx + (R + 0.35) * math.cos(a), cy - (R + 0.35) * math.sin(a)))
-            elif glow:
-                break
-        if len(glow) > 1:
-            m.add('<path d="%s" stroke="#7ab870" stroke-width=".6" stroke-opacity=".75" stroke-linecap="round" fill="none"/>'
-                  % S.pts_d(glow, close=False))
 
 
 # --------------------------------------------------------------------------
