@@ -2207,8 +2207,9 @@ def arsenal_engraving(v, fr, zf, small=False):
 # side-on (Wikimedia Commons, "Phaeo gelb intensiv.jpg"), mirrored to face
 # the key light: the rounded crown, the short conical bill as deep as it is
 # long, the nape, the mantle running down into the folded wing, the full
-# breast carried forward, the long tail with its shallow notch, and the body
-# at about forty degrees. The wing's feather masses are read against
+# breast swelling forward of the throat (checked against "Domestic canary
+# 2.jpg" and the 2015 Macedonian canary stamp), the long tail with its
+# shallow notch, and the body at about forty degrees. The wing's feather masses are read against
 # "Domestic Canary - Serinus canaria.jpg", the show perch against "Mehringer
 # gelb lipochrom.jpg". Bird units: the feet on the perch at the origin, y
 # down, one unit ten of the photograph's pixels (at 960 wide); a point
@@ -2219,16 +2220,16 @@ BOURSE_BIRD = {
                 (10.6, -26.8), (15.2, -24.3), (19.4, -21.9), (22.8, -18.9), (27.9, -15.9, 1), (33.5, -12.8), (39.5, -9.4),
                 (45.5, -6.0), (48.8, -4.4, 1), (46.6, -3.4, 1), (48.2, -1.6, 1), (43.0, -3.4), (37.0, -6.0), (31.8, -8.4),
                 (27.4, -9.9), (21.8, -10.4), (16.2, -10.2), (10.4, -8.9), (5.2, -7.4), (0.5, -7.0),
-                (-4.2, -7.6), (-8.2, -9.5), (-12.6, -11.8), (-17.0, -14.6), (-21.0, -18.6), (-24.0, -23.3), (-25.7, -28.5),
-                (-26.0, -32.6), (-25.9, -36.5), (-26.6, -39.6), (-27.8, -43.4), (-28.5, -46.0, 1)],
+                (-4.2, -7.6), (-8.2, -9.5), (-12.6, -11.8), (-17.0, -14.2), (-21.4, -17.6), (-25.0, -21.8), (-27.6, -26.6),
+                (-29.0, -31.4), (-29.4, -35.6), (-29.0, -39.4), (-28.6, -43.0), (-28.5, -46.0, 1)],
     # the volume the light is cut from: head and body only (the tail and the
     # bill are flat and drawn over it)
     'form': [(-28.1, -46.5), (-28.1, -51.4), (-25.9, -53.1), (-23.2, -53.9), (-18.7, -53.5), (-14.4, -51.3),
              (-11.9, -48.4), (-9.6, -43.6), (-6.8, -39.6), (-2.9, -36.1), (2.0, -33.2), (6.4, -30.3), (10.6, -26.8),
              (15.2, -24.3), (19.4, -21.9), (22.8, -18.9), (26.4, -15.6), (27.8, -12.6), (25.4, -10.4), (21.8, -10.4),
              (16.2, -10.2), (10.4, -8.9), (5.2, -7.4), (0.5, -7.0), (-4.2, -7.6), (-8.2, -9.5), (-12.6, -11.8),
-             (-17.0, -14.6), (-21.0, -18.6), (-24.0, -23.3), (-25.7, -28.5), (-26.0, -32.6), (-25.9, -36.5),
-             (-26.6, -39.6), (-27.8, -43.4)],
+             (-17.0, -14.2), (-21.4, -17.6), (-25.0, -21.8), (-27.6, -26.6), (-29.0, -31.4), (-29.4, -35.6),
+             (-29.0, -39.4), (-28.6, -43.0)],
     # the folded wing: the flight feathers' mass, its primaries stepping to
     # the point over the tail
     'wing': [(-10.8, -34.6), (-5.4, -35.0), (0.2, -33.2), (5.6, -30.1), (10.4, -26.7), (15.2, -24.2), (19.4, -21.8),
@@ -2514,27 +2515,71 @@ def bourse_bird(m, T, s, small=False):
     return ''.join(out)
 
 
-def bourse_legs(T, small=False, front=False):
-    """The tarsi (behind the body), or with front the toes closed over the
-    front of the bar."""
+def bourse_taper(pts, w0, w1):
+    """A filled limb along a polyline: w0 wide at its first point, w1 at its
+    last, its end rounded."""
+    n = len(pts)
+    left, right = [], []
+    for k, (x, y) in enumerate(pts):
+        a = pts[max(k - 1, 0)]
+        b = pts[min(k + 1, n - 1)]
+        dx, dy = b[0] - a[0], b[1] - a[1]
+        ln = math.hypot(dx, dy) or 1.0
+        nx, ny = -dy / ln, dx / ln
+        hw = (w0 + (w1 - w0) * k / max(1, n - 1)) / 2
+        left.append((x + nx * hw, y + ny * hw))
+        right.append((x - nx * hw, y - ny * hw))
+    (ex, ey), (px, py) = pts[-1], pts[-2]
+    dx, dy = ex - px, ey - py
+    ln = math.hypot(dx, dy) or 1.0
+    tip = (ex + dx / ln * w1 * 0.45, ey + dy / ln * w1 * 0.45)
+    return poly_d(left + [tip] + right[::-1])
+
+
+def bourse_legs(T, bar, small=False, front=False):
+    """The legs, or with front the feet. A tarsus is a slim filled taper from
+    the heel, hidden under the flank feathers, down to the bar. The feet stand
+    on the bar and grip it: three toes run forward over the top of the bar
+    and curl down its near face, the hind toe back and down the same way,
+    each with its dark claw where it turns under. The far foot's toes are
+    shorter, most of them round the far side of the bar and out of sight."""
+    cx_bar, bar_y, rb = bar
     out = []
-    w = 1.3 if small else 0.9
+    w = (2.8, 2.4) if small else (1.35, 0.95)
     for k, (heel, foot) in enumerate(BOURSE_BIRD['legs']):
         col = BOURSE_SHANK[k]
         (ax, ay), (bx, by) = T([heel, foot])
-        by += 0.2
+        by = bar_y - rb * 0.92
         if not front:
-            out.append('<path d="M%s %sL%s %s" stroke="%s" stroke-width="%s" stroke-linecap="round"/>'
-                       % (f(ax), f(ay), f(bx), f(by), col, f(w)))
+            out.append('<path d="%s" fill="%s"/>' % (bourse_taper([(ax, ay), (bx, by)], w[0], w[1]), col))
+            if not small:
+                # the lamp's side of the near tarsus
+                out.append('<path d="%s" fill="%s" fill-opacity=".5"/>'
+                           % (bourse_taper([(ax - w[0] * 0.28, ay), (bx - w[1] * 0.28, by)], w[0] * 0.35, w[1] * 0.3),
+                              lighten(col, 0.35)))
             continue
-        # the toes laid along the bar's top, forward and back, their claws
-        # hooked over its front
-        toes = ['M%s %s q%s %s %s %s' % (f(bx), f(by), f(-1.3), f(0.1), f(-2.3), f(1.0)),
-                'M%s %s q%s %s %s %s' % (f(bx), f(by), f(1.2), f(0.1), f(1.9), f(0.9))]
-        if not small:
-            toes.append('M%s %s q%s %s %s %s' % (f(bx), f(by), f(-0.7), f(0.5), f(-1.1), f(1.7)))
-        out.append('<path d="%s" stroke="%s" stroke-width="%s" fill="none" stroke-linecap="round"/>'
-                   % (' '.join(toes), col, f(w * 0.8)))
+        far = k == 1
+        reach = 0.55 if far else 1.0
+        tw = (2.0, 1.5) if small else (0.78, 0.5)
+        toes = []
+        fans = [(-2.9, 0.95)] if small else [(-1.8, 0.7), (-2.6, 0.95), (-3.2, 0.8)]
+        for dx, down in fans:
+            toes.append([(bx, by), (bx + dx * 0.45 * reach, by - 0.15), (bx + dx * 0.85 * reach, by + rb * 0.35),
+                         (bx + dx * reach, by + rb * (0.9 + down * 0.5) * reach)])
+        toes.append([(bx, by), (bx + 0.9 * reach, by - 0.05), (bx + 1.5 * reach, by + rb * 0.5),
+                     (bx + 1.7 * reach, by + rb * 1.05 * reach)])
+        for t in toes:
+            out.append('<path d="%s" fill="%s"/>' % (bourse_taper(t, tw[0], tw[1]), col))
+            if not small:
+                # the claw, hooked under where the toe turns beneath the bar
+                (px, py), (ex, ey) = t[-2], t[-1]
+                dx, dy = ex - px, ey - py
+                ln = math.hypot(dx, dy) or 1.0
+                ux, uy = dx / ln, dy / ln
+                c0 = (ex - uy * tw[1] * 0.45, ey + ux * tw[1] * 0.45)
+                c1 = (ex + uy * tw[1] * 0.45, ey - ux * tw[1] * 0.45)
+                tip = (ex + ux * 0.75 - uy * 0.2, ey + uy * 0.75 + ux * 0.2)
+                out.append('<path d="%s" fill="#3a2716"/>' % poly_d([c0, tip, c1]))
     return ''.join(out)
 
 
@@ -2545,10 +2590,11 @@ def subject_bourse(m, h, small=False):
     One charge on the enamel, filling it."""
     fx, fy, s, turn = 43.0, 67.0, 0.77, 7.0
     T = bourse_place(fx, fy, s, turn)
-    bourse_perch(m, h, fx, fy, small)
-    m.add(bourse_legs(T, small))
+    bar_y = bourse_perch(m, h, fx, fy, small)
+    bar = (fx + 0.6, bar_y, 2.1 if small else 1.8)
+    m.add(bourse_legs(T, bar, small))
     m.add(bourse_bird(m, T, s, small))
-    m.add(bourse_legs(T, small, front=True))
+    m.add(bourse_legs(T, bar, small, front=True))
 
 
 # --------------------------------------------------------------------------
