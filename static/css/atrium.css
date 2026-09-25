@@ -210,20 +210,8 @@
   --iron-rivet: #676b62; --iron-ink: #2d312a;
   --mirror-a: 0.24;
 }
-/* House velvets: the gate's own colour, deep at night, a full step up by
-   day when the drawn tabs catch the street light. */
-:root[data-theme="onyx"] .gate[data-velvet="claret"]   { --velvet: #5c1119; }
-:root[data-theme="onyx"] .gate[data-velvet="emerald"]  { --velvet: #0c3a2a; }
-:root[data-theme="onyx"] .gate[data-velvet="sapphire"] { --velvet: #13224d; }
-:root[data-theme="onyx"] .gate[data-velvet="plum"]     { --velvet: #3a1236; }
-:root[data-theme="onyx"] .gate[data-velvet="peacock"]  { --velvet: #0a3439; }
-:root[data-theme="onyx"] .gate[data-velvet="umber"]    { --velvet: #43290f; }
-:root[data-theme="ivory"] .gate[data-velvet="claret"]   { --velvet: #86202b; }
-:root[data-theme="ivory"] .gate[data-velvet="emerald"]  { --velvet: #1e6048; }
-:root[data-theme="ivory"] .gate[data-velvet="sapphire"] { --velvet: #274078; }
-:root[data-theme="ivory"] .gate[data-velvet="plum"]     { --velvet: #612659; }
-:root[data-theme="ivory"] .gate[data-velvet="peacock"]  { --velvet: #17585f; }
-:root[data-theme="ivory"] .gate[data-velvet="umber"]    { --velvet: #72502a; }
+/* House velvets are written by icons/gen.py into palace-gates.css, each gate
+   the cloth of its own mark. The reserved gate hangs its iron. */
 .gate[data-velvet="iron"] { --velvet: var(--iron); }
 
 /* Wing metal — carried by exactly three surfaces:

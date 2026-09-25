@@ -1396,7 +1396,10 @@ function renderGates() {
     a.dataset.service = svc.id;
     a.dataset.state = svc.vacant ? 'vacant' : 'checking';
     a.dataset.wing = svc.wing;
-    a.dataset.velvet = id.velvet || 'claret';
+    // The house curtain is the mark's own cloth (icons/gen.py HUE writes the
+    // dyes, keyed on the service); a service with no mark hangs the house
+    // claret, and the reserved gate its iron.
+    a.dataset.velvet = svc.vacant ? 'iron' : (KNOWN_SIGILS[svc.sigil] ? svc.sigil : 'house');
     a.dataset.glass = id.glass || 'amber';
     // The day screen's title card: an intertitle border, the gate's own.
     a.dataset.card = id.card || 'fans';
@@ -4411,7 +4414,9 @@ function buildPlaque(d) {
   window.Cabinet.cartouche(svg, window.Cabinet.card(li, d.id, shadowWrap));
   var sig = document.createElementNS(ns, 'use');
   var known = KNOWN_SIGILS[d.origin];
-  sig.setAttribute('href', known ? '#mark-' + d.origin : '#sig-fallback');
+  // The medal is 20 to 35px across: it takes the mark's small cut, the
+  // same die with the subject reduced to its biggest shapes.
+  sig.setAttribute('href', known ? '#mark-' + d.origin + '-s' : '#sig-fallback');
   sig.setAttribute('class', known ? 'm-sig m-mark' : 'm-sig');
   svg.appendChild(sig);
   medal.appendChild(svg);

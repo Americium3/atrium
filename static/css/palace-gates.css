@@ -622,9 +622,10 @@ html[lang="zh"] .g-lamp { letter-spacing: 0.2em; }
 /* ==========================================================================
    VELVET AND GLASS
    ==========================================================================
-   The house velvet and the fanlight glass each come a step toward the
-   Paramount's amber and green: no violet, no electric blue, no aqua. Every
-   gate keeps its own colour (the names stay as the hash's keys).
+   Each house hangs the cloth of its own mark: the dye is part of the
+   mark's palette in icons/gen.py and follows it whatever colour the mark
+   takes. The fanlight glass is still the hash's, a step toward the
+   Paramount's amber and green: no violet, no electric blue, no aqua.
    The fold map is new: broad rounded crests and deep soft valleys that
    hang in their own weight, each crest lit on the footlights' side and
    brighter toward the hem. It is laid in `multiply`, so --velvet is the
@@ -632,21 +633,29 @@ html[lang="zh"] .g-lamp { letter-spacing: 0.2em; }
    down: the highlights keep the velvet's own hue instead of going pastel.
    Cloth has to stand against the gilt round it, so every velvet's crest
    is at least a quarter darker than the leaf's body (--au-2, relative
-   luminance). Umber was amber at 1.7 times the leaf by night, and the
-   house read as gold curtains in a gold frame; it is a tobacco brown
-   now, the pigment its name says. */
-:root[data-theme="onyx"] .gate[data-velvet="claret"]   { --velvet: #c22b3b; }
-:root[data-theme="onyx"] .gate[data-velvet="emerald"]  { --velvet: #24754b; }
-:root[data-theme="onyx"] .gate[data-velvet="sapphire"] { --velvet: #3f5d6e; }
-:root[data-theme="onyx"] .gate[data-velvet="plum"]     { --velvet: #92304c; }
-:root[data-theme="onyx"] .gate[data-velvet="peacock"]  { --velvet: #6b692c; }
-:root[data-theme="onyx"] .gate[data-velvet="umber"]    { --velvet: #8c4a2c; }
-:root[data-theme="ivory"] .gate[data-velvet="claret"]   { --velvet: #c83a4a; }
-:root[data-theme="ivory"] .gate[data-velvet="emerald"]  { --velvet: #36906a; }
-:root[data-theme="ivory"] .gate[data-velvet="sapphire"] { --velvet: #56727f; }
-:root[data-theme="ivory"] .gate[data-velvet="plum"]     { --velvet: #9c4660; }
-:root[data-theme="ivory"] .gate[data-velvet="peacock"]  { --velvet: #8e8c4a; }
-:root[data-theme="ivory"] .gate[data-velvet="umber"]    { --velvet: #98563a; }
+   luminance). An amber dye at 1.7 times the leaf by night once read as
+   gold curtains in a gold frame, so a gold or orange mark hangs a deep
+   cognac or olive gold of its own hue. tests/test_web_assets.py holds the
+   cloth to both rules. */
+/* BEGIN generated velvets (icons/gen.py) */
+/* Each gate hangs its mark's own cloth, keyed on the service. The dyes
+   live beside the enamel in icons/gen.py HUE and are written here by it;
+   edit them there. A service with no mark hangs the house claret. */
+:root[data-theme="onyx"] .gate[data-velvet="autopilot"] { --velvet: #92304c; }  /* mulberry */
+:root[data-theme="onyx"] .gate[data-velvet="groundstation"] { --velvet: #8a4f22; }  /* cognac */
+:root[data-theme="onyx"] .gate[data-velvet="outreach"] { --velvet: #1f5066; }  /* prussian */
+:root[data-theme="onyx"] .gate[data-velvet="pressroom"] { --velvet: #24754b; }  /* emerald */
+:root[data-theme="onyx"] .gate[data-velvet="arsenal"] { --velvet: #44545f; }  /* gunmetal */
+:root[data-theme="onyx"] .gate[data-velvet="bourse"] { --velvet: #6b692c; }  /* olive gold */
+:root[data-theme="onyx"] .gate[data-velvet="house"] { --velvet: #c22b3b; }  /* claret */
+:root[data-theme="ivory"] .gate[data-velvet="autopilot"] { --velvet: #9c4660; }  /* mulberry */
+:root[data-theme="ivory"] .gate[data-velvet="groundstation"] { --velvet: #a0622a; }  /* cognac */
+:root[data-theme="ivory"] .gate[data-velvet="outreach"] { --velvet: #2d5d74; }  /* prussian */
+:root[data-theme="ivory"] .gate[data-velvet="pressroom"] { --velvet: #36906a; }  /* emerald */
+:root[data-theme="ivory"] .gate[data-velvet="arsenal"] { --velvet: #5a6a74; }  /* gunmetal */
+:root[data-theme="ivory"] .gate[data-velvet="bourse"] { --velvet: #8e8c4a; }  /* olive gold */
+:root[data-theme="ivory"] .gate[data-velvet="house"] { --velvet: #c83a4a; }  /* claret */
+/* END generated velvets */
 /* The fold map is shaded as velvet: the crests' cores dark where the pile
    is seen end-on, rims of light down the flanks where it turns edge-on.
    Over it the pile itself, a fine crushed grain in soft light, so the
@@ -684,8 +693,8 @@ html[lang="zh"] .g-lamp { letter-spacing: 0.2em; }
    dimming (brightness 0.7) left a light dye as bright as an open house.
    The hem keeps only a faint cold bounce off the stage. By day the shade
    goes as deep: an open house shows only its gathered tabs beside a lit
-   card, and a 72% day mix left the lighter dyes (peacock, emerald,
-   sapphire) brighter than a claret or plum house that was open. The day
+   card, and a 72% day mix left the lighter dyes (olive gold, emerald,
+   slate) brighter than a claret or plum house that was open. The day
    velvets are a step lighter than the night ones, so the same depth of
    shade lands them a touch above the night's dark houses, and every DARK
    house sits well under the darkest open one in both themes. */
