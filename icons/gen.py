@@ -7,9 +7,9 @@ turning under it and the stone are each app's own.
 
 Inside the die each app carries one charge, seen from the same place (level
 with it or a few degrees above) and lit by the one key light, up and to the
-left: a globe at dawn with the morning's paper round it, an earth station's
-dish, a shelf of bound volumes, a card held up in the hand, a gunner's
-quadrant, a canary on its perch. The globe's night and dawn are printed on
+left: the world at dawn, an earth station's dish, a shelf of bound
+volumes, a card held up in a cubit arm, a gun laid with the gunner's square
+in its muzzle, a canary on its perch. The globe's night and dawn are printed on
 it; its roundness takes the same lamp as the rest. Each is drawn from the real object, its geometry and
 proportions taken from photographs, never pieced together from circles and
 rectangles, and never lettered. Its form is then cut into three or four flat
@@ -27,9 +27,9 @@ than three units, for the Ledger, the gate wherever its mark is under 56
 screen pixels, and a future favicon.
 
 HUE below is the one source of truth. Each entry carries the mark's enamel,
-the dye of the velvet its gate hangs (per theme), the ink its gate's day
-card is printed in and the glass of its fanlight, so the house follows the
-mark in code and not by eye.
+the dye of the velvet its gate hangs (per theme) and the ink its gate's day
+card is printed in, so the house follows the mark in code and not by eye.
+The fanlight's glass is not the mark's: palace.js still picks it by hash.
 The script writes them into the hall:
 
     python icons/gen.py            # the hall's defs and the velvet CSS, in this repo
@@ -78,46 +78,43 @@ RASTER_JS = ROOT / 'icons' / 'raster.js'
 #            foot is fired in this same dye, read from here.
 #   ink      the day screen's title card is printed in this ink (one of
 #            INKS; no two alike in a wing), the one nearest the house
-#   glass    the fanlight's glass over the gate (one of palace.js GLASS;
-#            no two alike in a wing): by night it is the biggest colour in
-#            the crown, so it keeps to the mark's family or stays quiet
 # --------------------------------------------------------------------------
 HUE = {
     'autopilot': {
         'name': 'Anime Autopilot', 'short': 'Autopilot',
         'deep': '#24060d', 'field': '#621925', 'lit': '#983446', 'pop': '#fff4d2',
         'velvet': {'name': 'mulberry', 'onyx': '#92304c', 'ivory': '#9c4660'},
-        'ink': 'oxblood', 'glass': 'rose',
+        'ink': 'oxblood',
     },
     'groundstation': {
         'name': 'Ground Station', 'short': 'Ground Stn',
         'deep': '#5a2f08', 'field': '#c8781f', 'lit': '#eea24c', 'pop': '#ffb454',
         'velvet': {'name': 'cognac', 'onyx': '#885020', 'ivory': '#9f6322'},
-        'ink': 'sepia', 'glass': 'amber',
+        'ink': 'sepia',
     },
     'outreach': {
         'name': 'Outreach Desk', 'short': 'Outreach',
         'deep': '#0a2230', 'field': '#1c4a5f', 'lit': '#3a6e86', 'pop': '#e8c968',
         'velvet': {'name': 'prussian', 'onyx': '#1f5066', 'ivory': '#33576b'},
-        'ink': 'navy', 'glass': 'opal',
+        'ink': 'navy',
     },
     'pressroom': {
         'name': 'The Press Room', 'short': 'Press Room',
         'deep': '#0b2616', 'field': '#1e6a40', 'lit': '#3f9463', 'pop': '#5a8040',
         'velvet': {'name': 'emerald', 'onyx': '#24754b', 'ivory': '#37905f'},
-        'ink': 'bottle', 'glass': 'celadon',
+        'ink': 'bottle',
     },
     'arsenal': {
         'name': 'Arsenal', 'short': 'Arsenal',
         'deep': '#222a32', 'field': '#62717d', 'lit': '#93a1ac', 'pop': '#b03a2e',
         'velvet': {'name': 'gunmetal', 'onyx': '#44545f', 'ivory': '#5a6a74'},
-        'ink': 'navy', 'glass': 'opal',
+        'ink': 'navy',
     },
     'bourse': {
         'name': 'Bourse', 'short': 'Bourse',
         'deep': '#141305', 'field': '#4a4616', 'lit': '#7a742c', 'pop': '#e6a817',
         'velvet': {'name': 'olive gold', 'onyx': '#73662b', 'ivory': '#9b8848'},
-        'ink': 'sepia', 'glass': 'honey',
+        'ink': 'sepia',
     },
 }
 # The inks a day card can be printed in, as palace-gates.css draws them.
@@ -3330,12 +3327,10 @@ CSS_END = '/* END generated velvets */'
 
 def defs_block():
     """The marks for the page's <defs>. Each full mark carries the ink its
-    gate's day card is printed in and the glass of its fanlight (HUE's ink
-    and glass), which app.js reads from it."""
+    gate's day card is printed in (HUE's ink), which app.js reads from it."""
     rows = []
     for app in MARKS:
-        rows.append('  <g id="mark-%s" data-ink="%s" data-glass="%s">%s</g>'
-                    % (app, HUE[app]['ink'], HUE[app]['glass'], emblem(app)))
+        rows.append('  <g id="mark-%s" data-ink="%s">%s</g>' % (app, HUE[app]['ink'], emblem(app)))
         rows.append('  <g id="mark-%s-s">%s</g>' % (app, emblem_small(app)))
     rows.append('  <g id="mark-atrium">%s</g>' % atrium_emblem())
     return BEGIN + '\n' + '\n'.join(rows) + '\n' + END

@@ -150,12 +150,12 @@ both themes; only the hour changes.
    (never under 0.05em) and then takes a second line; the house gives up the
    height.
 8. Siblings are a family, never twins. A gate's archivolt count, metal
-   chord, relief programme, fanlight glazing, the velvet's fold pitch,
-   valance swags, crest and day card come from an FNV-1a hash of its
+   chord, relief programme, fanlight glass and glazing, the velvet's fold
+   pitch, valance swags, crest and day card come from an FNV-1a hash of its
    service id, walked in registry order so a new service never repaints the
-   ones already standing (`palace.js`). The velvet's colour and the
-   fanlight's glass are not hashed: each gate takes them from its own mark
-   (see "App marks (v7)"). Dials, pier lights, damask bays,
+   ones already standing (`palace.js`). The velvet's colour and the ink of
+   the day card are not hashed: each gate takes them from its own mark (see
+   "App marks (v7)"). Dials, pier lights, damask bays,
    dado slabs, console blocks, Ledger cards and desk panels vary the same
    way. Fixtures do not vary: sign, transom, cartouche, imposts, apron, lamp
    and plinth are the same on every gate.
@@ -973,7 +973,7 @@ its own stone. No two marks share a motif.
   The labels are blank leather onlays. The row is turned 20 degrees, so a
   cover shows wherever a volume stands clear of a shorter one, and it sits
   on the field's centre line. Oxblood enamel over a barleycorn turning; an
-  opal; rose glass in the fanlight.
+  opal.
 - Ground Station: an earth station's Cassegrain antenna, after Goonhilly's
   GHY-3 and the OTC dish at Carnarvon. A shallow paraboloid of
   white-painted panels, its focal length about half its diameter and the
@@ -986,7 +986,7 @@ its own stone. No two marks share a motif.
   hub turns at the front of a long head beam, under whose tail hangs the
   counterweight. The beam rides an azimuth turret on a railed gallery at
   the head of a squat concrete cone that flares to the ground. Amber enamel
-  over a lined turning; an amber stone; amber glass.
+  over a lined turning; an amber stone.
 - Outreach Desk: an introduction held up to be seen. A blank calling card
   with a gilt edge is gripped at its lower corner, traced from a photograph
   of a hand holding up a card: the thumb presses from behind, and the four
@@ -997,7 +997,7 @@ its own stone. No two marks share a motif.
   ring, middle and index fingers, each lying over the one below), each
   rounded at its edges, so its planes turn from the key light. It comes
   from a plain starched cuff and is couped below it. Prussian blue enamel
-  over a basket weave; a citrine; opal glass.
+  over a basket weave; a citrine.
 - The Press Room: the world at an equinox sunrise, seen a little above the
   equator, with the morning's paper round it. The dawn line runs from pole
   to pole down the Atlantic: Europe and Africa are in morning and the
@@ -1014,7 +1014,7 @@ its own stone. No two marks share a motif.
   paper, so the night is not printed on it, and it crosses the dark side
   unbroken. The coasts are Natural Earth's 1:110m land simplified to 1.2
   degrees, and the graticule is engraved every thirty degrees. Green enamel
-  over a halftone screen; an olive cabochon; celadon glass.
+  over a halftone screen; an olive cabochon.
 - Arsenal: a gunner's quadrant, the instrument that first turned a gun's
   elevation into a number, after the two attributed to Christoph Schissler
   in the Museo Galileo (inv. 2529 and 2637) and Diego Ufano's 1628 plate of
@@ -1027,7 +1027,7 @@ its own stone. No two marks share a motif.
   of calibres as closed cells, every other one filled. An index pivoted on
   the corner pin lies across the face and reads the elevation off the rim,
   as the Ballistic Computer reads one off the range. Gunmetal enamel over
-  perlage; a signal-red stone; opal glass.
+  perlage; a signal-red stone.
 - Bourse: the canary the desk keeps on watch, traced from a photograph of a
   perched domestic canary and turned to face the light, its breast full and
   carried forward of the throat. Its planes are canary yellow, cool lemon
@@ -1036,7 +1036,7 @@ its own stone. No two marks share a motif.
   three toes over the bar and down its near face and the hind toe back,
   each with its claw. The perch's foot rim is fired in the curtain's own
   olive gold, a dye the drawing reads from `HUE`. Olive enamel over the
-  page's lozenge lattice; a ticker-amber stone; honey glass.
+  page's lozenge lattice; a ticker-amber stone.
 
 Each mark also has a small cut, `#mark-<id>-s`, drawn from the same
 geometry with fewer planes and its struts and legs drawn heavier: nothing
@@ -1062,14 +1062,13 @@ nothing and a compressor's time does, so the page goes out as it is.
 The house follows the mark. `HUE` in `icons/gen.py` holds each mark's
 enamel beside the dye of its velvet for Onyx and Ivory, the ink its day
 card is printed in (oxblood, bottle, navy or sepia, whichever sits nearest
-its house) and the glass of its fanlight, the biggest colour in the crown
-by night (rose, amber, opal, celadon or honey, no two alike in a wing).
-The script writes them: the marks into the page's defs (each full mark
-carries its ink and its glass as `data-ink` and `data-glass`, which
-`inkFor` and `glassFor` in `app.js` read), the dyes into
-`palace-gates.css`, keyed on the service through `velvetFor`. No hash picks
-a velvet, a marked gate's ink or its glass. The reserved gate keeps its
-iron, and a service with no mark hangs the house claret.
+its house). The script writes them: the marks into the page's defs (each
+full mark carries its ink as `data-ink`, which `inkFor` in `app.js` reads)
+and the dyes into `palace-gates.css`, keyed on the service through
+`velvetFor`. No hash picks a velvet or a marked gate's ink. The fanlight's
+glass is not the mark's: `palace.js` picks it from the hash, as it always
+has. The reserved gate keeps its iron, and a service with no mark hangs the
+house claret.
 `tests/test_web_assets.py` reads the marks and the dyes from the page and
 the sheets as they are served, and fails when:
 
@@ -1094,9 +1093,8 @@ the sheets as they are served, and fails when:
 - a script chooses a gate's cloth anywhere but `velvetFor`, `velvetFor` is
   declared more than once or stops returning each service's own id when
   run under node, or a service in `server.py` is not its own sigil;
-- two gates of a wing print their cards in one ink or glaze their
-  fanlights in one glass, a gate takes its glass from anywhere but its
-  mark, or the cloth is forced to Canvas under forced colours;
+- two gates of a wing print their cards in one ink, or the cloth is forced
+  to Canvas under forced colours;
 - `markCut` stops picking the cut in the screen's own pixels when run under
   node.
 

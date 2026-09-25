@@ -393,13 +393,6 @@ function inkFor(svc, id) {
   var mk = KNOWN_SIGILS[svc.sigil] ? document.getElementById('mark-' + svc.sigil) : null;
   return (mk && mk.getAttribute('data-ink')) || id.ink || 'oxblood';
 }
-/* And so does the fanlight's glass, the biggest colour in the crown by
-   night: HUE's glass, carried on the mark's group like the ink. A gate
-   without a mark keeps the hashed one. */
-function glassFor(svc, id) {
-  var mk = KNOWN_SIGILS[svc.sigil] ? document.getElementById('mark-' + svc.sigil) : null;
-  return (mk && mk.getAttribute('data-glass')) || id.glass || 'amber';
-}
 
 /* ========================================================================
    Read state — the cursor is what reads
@@ -1453,7 +1446,6 @@ function renderGates() {
     a.dataset.state = svc.vacant ? 'vacant' : 'checking';
     a.dataset.wing = svc.wing;
     a.dataset.velvet = velvetFor(svc);
-    if (!svc.vacant) id.glass = glassFor(svc, id);
     a.dataset.glass = id.glass || 'amber';
     // The day screen's title card: an intertitle border, the gate's own.
     a.dataset.card = id.card || 'fans';
