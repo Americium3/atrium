@@ -18,8 +18,10 @@
      card              the day screen's title card: its border motif, its
                        ink and its stock (each unique within a wing), and
                        the tilt a DARK gate's notice is pinned at
-     velvet            the house curtain's colour, fold pitch and phase, and
-                       which three of the four baked swags its valance hangs
+     velvet            the house curtain's fold pitch and phase, and which
+                       three of the four baked swags its valance hangs. Its
+                       colour is not hashed: each gate hangs its own mark's
+                       cloth (icons/gen.py HUE writes the dyes)
 
    All geometry lives on the gate's 300 x 570 design box. The archivolts are
    stilted arches: boundary k of n sits DJ*k/n in from the jamb but DC*k/n
@@ -60,20 +62,19 @@ function pickUnique(list, h, k, taken) {
   return list[s];
 }
 
-var VELVET = ['claret', 'emerald', 'sapphire', 'plum', 'peacock', 'umber'];
 var GLASS = ['amber', 'rose', 'celadon', 'opal', 'honey', 'aqua'];
 var FANS = ['rays', 'fan', 'fountain', 'stepped', 'sunrise', 'chevron'];
 var CRESTS = ['fan', 'ziggurat', 'star', 'palmette'];
 var CARDS = ['fans', 'steps', 'lozenge'];
-var INKS = ['oxblood', 'bottle', 'navy'];          // the day card's printing ink
+var INKS = ['oxblood', 'bottle', 'prussian'];      // the day card's ink, for a gate with no mark
 var STOCKS = ['cream', 'bone', 'buff'];            // and the card it is printed on
 var LOUD = ['ray', 'chevron', 'dentil', 'step', 'scallop'];
 var QUIET = ['bead', 'reed', 'flute', 'plain'];
 
-/* Walk the registry in order: the (velvet, glass, fanlight) of a gate is its
-   own unless a gate ahead of it in the registry already took it. */
+/* Walk the registry in order: the (glass, fanlight) of a gate is its own
+   unless a gate ahead of it in the registry already took it. */
 function identities(list) {
-  var out = {}, tv = {}, tg = {}, tf = {}, tn = {}, tc = {}, tk = {}, ts = {}, ti = {}, tp = {};
+  var out = {}, tg = {}, tf = {}, tn = {}, tc = {}, tk = {}, ts = {}, ti = {}, tp = {};
   list.forEach(function (svc) {
     if (svc.vacant) { out[svc.id] = vacant(svc); return; }
     var h = fnv1a(svc.id);
@@ -98,7 +99,6 @@ function identities(list) {
     }
     out[svc.id] = {
       h: h, n: n, motifs: motifs, metals: metals,
-      velvet: pickUnique(VELVET, h, 1, tv),
       glass: pickUnique(GLASS, h, 2, tg),
       fan: pickUnique(FANS, h, 3, tf),
       rays: [9, 11, 13, 15, 17][Math.floor(draw(h, 5) * 5)],
@@ -122,7 +122,7 @@ function identities(list) {
    Nothing about it is hashed: it is the stock the other six are cut from. */
 function vacant(svc) {
   return { h: 0, n: 4, motifs: ['plain', 'bead', 'plain', 'reed'],
-           metals: ['pl', 'pl', 'pl', 'pl'], velvet: 'iron', glass: 'void',
+           metals: ['pl', 'pl', 'pl', 'pl'], glass: 'void',
            fan: 'rays', rays: 9, crest: 'none', folds: 1, foldX: 0, tilt: 0, rivets: 8, swag: 0,
            vacant: true };
 }

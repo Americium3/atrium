@@ -66,12 +66,13 @@ of follows "The picture palace (v6)".
   allowed (quarter numerals, spandrel lozenges, subdial rings, the seconds
   baton). It is the hall's single jewel. Since v6 the case is statuary bronze
   with leaf on its bevels only.
-- Service marks (v3.2): gate cartouches and Ledger cards carry each
-  service's own coloured mark rather than a monochrome sigil. This is the
-  one sanctioned break in the hall's monochrome discipline: the mark shown
-  in the hall is byte-identical to the one the service's own favicon,
-  taskbar tile and masthead show. Services with no mark fall back to the
-  line-drawn keystone sigil, which still tints with `color`.
+- Service marks (v3.2, redrawn in v7): gate cartouches and Ledger cards
+  carry each service's own coloured mark rather than a monochrome sigil.
+  This is the one sanctioned break in the hall's monochrome discipline. The
+  marks are enamelled badges cut from one die (see "App marks (v7)"), and
+  the service's own favicon, taskbar tile and masthead take the same
+  drawing once the owner has signed off on them. Services with no mark fall
+  back to the line-drawn keystone sigil, which still tints with `color`.
 - Concourse vocabulary (v4, dressed in v6). *Wall*: a dentil cornice
   broken by console blocks over a relief frieze, damask hung bay by bay,
   antique-mirror pilasters between reeded fillets, torchieres in the outer
@@ -151,10 +152,12 @@ both themes; only the hour changes.
    (never under 0.05em) and then takes a second line; the house gives up the
    height.
 8. Siblings are a family, never twins. A gate's archivolt count, metal
-   chord, relief programme, fanlight glass and glazing, velvet and its fold
+   chord, relief programme, fanlight glass and glazing, the velvet's fold
    pitch, valance swags, crest and day card come from an FNV-1a hash of its
    service id, walked in registry order so a new service never repaints the
-   ones already standing (`palace.js`). Dials, pier lights, damask bays,
+   ones already standing (`palace.js`). The velvet's colour and the ink of
+   the day card are not hashed: each gate takes them from its own mark (see
+   "App marks (v7)"). Dials, pier lights, damask bays,
    dado slabs, console blocks, Ledger cards and desk panels vary the same
    way. Fixtures do not vary: sign, transom, cartouche, imposts, apron, lamp
    and plinth are the same on every gate.
@@ -236,8 +239,10 @@ both themes; only the hour changes.
 ## Geometry system
 
 Gates 1:1.9 (design 300×570), stepped shoulders = 3 steps of 6px, keystone
-sigil zone 96×96. All sigils drawn on that 96 grid: 1.5px stroke, zero corner
-radius, at most one accent-filled shape each, matched optical ink. One shared
+sigil zone 96×96. All sigils drawn on that 96 grid, centred on (48,48). The
+fallback sigil keeps the line rules (1.5px stroke, zero corner radius, at
+most one accent-filled shape); the app marks are enamel and follow "App
+marks (v7)". One shared
 SVG `<defs>` block for frames, so every gate provably uses identical ornament
 paths. A **generic fallback sigil** (plain deco keystone) exists for future
 services without custom art.
@@ -1107,7 +1112,9 @@ the lamp and takes the address line's place while it stands.
   the day card, carrying the gate's own corner ornament in light). By day the
   tabs are drawn back and tied, and the screen shows the title card: card
   stock in front of a matte silver screen, printed in the gate's own ink
-  (oxblood, bottle green or navy) with a border band, its corner motif, a
+  (oxblood, bottle green, Prussian, gunmetal or sepia, chosen with the mark
+  so a green house never carries an oxblood card) with a border band, its
+  corner motif, a
   headpiece and a rule, set semibold in `#160f06`, never
   smaller than its words.
 - Lamp states: `…` (checking, until the first /api/status, lights at
@@ -1130,8 +1137,10 @@ the lamp and takes the address line's place while it stands.
   named window so each service reuses one tab. A modifier or middle click is
   left to the browser.
 - DARK gate: fanlight and coves off, tabs closed, and the velvet in
-  shadow below every open house's velvet, by day as by night and whatever
-  the two dyes. The engraving sits at 35% (full strength under forced
+  shadow: its dye is mixed down below every open house's dye, by day as by
+  night and whatever the two dyes. By day the pile and the light can bring
+  the cloth itself level with the darkest open house; the unlit slide
+  beside a lit card is what marks it there. The engraving sits at 35% (full strength under forced
   colours or more contrast), on the slide's black field with no light in
   it, so the tabs' meeting line never runs through the words. The lamp is
   a hollow diamond (extinguished, not alarmed, no red).
@@ -1151,6 +1160,213 @@ the lamp and takes the address line's place while it stands.
   field inside a raised bead, four slotted screws, and the letters in
   relief, polished on their faces. The lamp reads SHUT. It is never lit and
   never lifts.
+
+## App marks (v7)
+
+Each service's mark is a 1930s enamelled badge. The six are cut from one
+die, the way a cinema circuit's commissionaires wore one badge with their
+own house's device in it. The die is a plain turned gilt lip in six tones
+with one groove cut inside it, translucent enamel fired over an
+engine-turned ground (laid as a pattern tile), and a stone in a collet at
+the crown. It has no beads and no rivets: the gate's bezel owns the rivet
+ring. The gilt is fixed, as `--br` is, so a mark stays its own object in a
+gold bezel or a nickel one.
+
+Inside the die each app carries one charge on plain enamel, with no
+scenery round it, seen from the same place: level with it or eight degrees
+above. The owner's rule for them: no lettering of any kind, no figure
+pieced together from circles and rectangles, and colour laid in as the eye
+remembers the thing. Each subject is drawn from photographs and period
+drawings of the real object, traced for its proportions and its planes,
+and its form is then cut into three or four flat planes of tone along the
+hall's one key light, up and to the left, the way a woodcut or a Deco
+poster cuts it. There is no gradient inside a plane and no outline round
+one. `icons/solid.py` projects the solids (bound volumes, a paraboloid
+dish on its tower, a globe on its stand, a gun turned from its profile on
+a spoked wheel, turned stands and bobs) and traces the boundary between
+two planes as an isoline of the form's lighting. The hand and the canary
+are traced from photographs, and each one's volume is solved from its own
+outline, so no ellipse is laid in by hand. Nothing on a mark glows and
+nothing carries a gloss band: the domed crystal over the gate gives it the
+one reflection glass is allowed. Each charge stays within about 39 units
+of the centre, so the enamel shows all round it, and every one stands on
+something of its own: the plank, the concrete cone, the arm's couped
+sleeve, the globe's foot, the gun's wheel and trail, the perch. Every
+crown is the same round cabochon in its own stone. No two marks share a
+motif.
+
+- Anime Autopilot: the season's shelf. Five bindings stand on a mahogany
+  plank, each modelled whole: boards overhanging the leaves by their
+  squares, a back rounded between the joints, raised bands lying across
+  the round, and a head where the leaves sit below the boards, capped by
+  the leather rolled over the headband, which stands a little proud of the
+  back and rises in a shallow arch above the boards. Tan calf, a tall red
+  morocco lead with gilt bands and a gilt head, bottle-green morocco ruled
+  in gilt and chocolate calf stand at their own heights, and a vellum
+  volume has slipped to lean on its neighbour with its cover turned out.
+  The labels are blank leather onlays. The row is turned 20 degrees, so a
+  cover shows wherever a volume stands clear of a shorter one, and it sits
+  on the field's centre line. Oxblood enamel over a barleycorn turning; an
+  opal.
+- Ground Station: an earth station's Cassegrain antenna, after Goonhilly's
+  GHY-3 and the OTC dish at Carnarvon. A shallow paraboloid of
+  white-painted panels, its focal length about half its diameter and the
+  dish twice as wide as its tower is tall, turns up and to the right, seen
+  three quarters on. The key light rakes the bowl, so the wall on the
+  lamp's side falls into pale grey shade and the far wall takes the light,
+  which is what makes it read as a bowl and not a plate. The dark lattice
+  of the rim truss rings its edge, a dark backing truss runs to the hub,
+  three legs hold the subreflector at the focus as at Carnarvon, and the
+  hub turns at the front of a long head beam, under whose tail hangs the
+  counterweight. The beam rides an azimuth turret on a railed gallery at
+  the head of a squat concrete cone that flares to the ground. Amber enamel
+  over a lined turning; an amber stone.
+- Outreach Desk: an introduction held up to be seen. The desk briefs every
+  introduction overnight and never sends one; the owner delivers each
+  himself, so the charge is his hand, drawn as a heraldic cubit arm erect
+  holding up one blank calling card. The card lies flat against the
+  fingers, the four fingertips hook over its top edge with their nails to
+  the reader, and the thumb presses across its foot, so the card is gripped
+  top and bottom and is the largest and highest shape in the charge. The
+  grip is the one a card or a ticket is held up by in the photographs
+  (Pexels 4066294, Flickr 3431671190), and the anatomy comes from a
+  photograph of a right palm with the thumb across it. The palm, the thumb
+  and each fingertip are one outline of a real hand, inflated into a single
+  skin that swells at the knuckles and the ball of the thumb; the palm is
+  foreshortened behind the card, as heraldry allows. The card is larger
+  than a visiting card, with a bevelled gilt edge and its lower corner
+  turned down, the old sign of a card left in person. The sleeve is gold
+  cloth, metal on colour as a crest's arm is, tapering to the wrist, and
+  the folds a raised sleeve slides into cross it on the diagonal, each lit
+  on its upper face with its shade under it (the vested arm of A Complete
+  Guide to Heraldry, fig. 268). A white cuff is turned back over it,
+  flaring to a rolled edge, with the dark of its mouth round the wrist.
+  Prussian blue enamel over a basket weave; a citrine.
+- The Press Room: the world on a news desk, a 1930s desk globe on its
+  stand. It is drawn from the tin globe of about 1930 in the Palazzo
+  Pretorio at Prato, an old tin globe on Wikimedia Commons and Weber
+  Costello's black-ocean globe with its streamlined foot. The ball leans
+  the globe-maker's 23.4 degrees with Europe and Africa toward the reader,
+  and a nickel half meridian stands off it a finger's breadth, pinned at
+  both poles with a nut at the north, cut with its degrees, and runs round
+  the far side down to a turned stem on a stepped foot. The globe is
+  printed as the Deco black-ocean globes were, in ink and paper: the oceans
+  in a bottle-green ink darker than the enamel and the land in the bone of
+  newsprint, so the land is the one light figure. The ball takes the key
+  light in four planes, up and to the left like every other charge, and
+  the meridian's rim falls into shade beside its lit face. There is no
+  graticule and no ring round the ball. The coasts are Natural Earth's
+  1:50m land simplified to 0.4 degrees. Green enamel over a halftone
+  screen; an olive cabochon.
+- Arsenal: the gun on its field carriage, laid for range with the gunner's
+  square in its muzzle, as Tartaglia drew the piece in Nova Scientia
+  (1537). The carriage follows the Gribeauval twelve-pounder in the
+  Invalides and the Royal Artillery's side elevation of a field carriage: a
+  wheel two thirds as high as the gun is long, twelve spokes in a turned
+  nave with an iron hoop, six oak felloes and an iron tyre, and a deep cheek
+  with the trunnion bedded on its top, running straight down to a trail
+  shod in iron. The far wheel's rim shows past the near one. The gun is an
+  iron muzzle-loader of the Blomefield pattern, turned from the labelled
+  elevation of the gun on Martello Tower No. 24 (knob, base ring,
+  reinforces, chase girdle, muzzle astragal and swell) a little fuller
+  than the real one, laid at 37.5 degrees and turned so its muzzle and bore
+  face the reader. The square is the gunner's quadrant of Sisson's pattern
+  (Royal Museums Greenwich, about 1770): its long arm lies in the bore and
+  runs out three times the radius of its arc, the short arm hangs square
+  at the corner, and a turned brass bob on a hemp cord crosses the arc at
+  its fifth point of twelve, the gun's elevation. Out of the muzzle it
+  reads as a rule with a quarter arc at its end. Iron black with a cold
+  blue on its lit back, oiled oak and brass, on a blued gun steel dark
+  enough that they carry the figure; perlage under it and a signal-red
+  stone.
+- Bourse: the canary the desk keeps on watch, traced from a photograph of a
+  perched domestic canary and turned to face the light, its breast full and
+  carried forward of the throat. Its planes are canary yellow, cool lemon
+  in the light and warm ochre in shade, and the folded wing is three
+  feather masses a shade more olive. It grips a turned gilt show perch,
+  three toes over the bar and down its near face and the hind toe back,
+  each with its claw. The perch's foot rim is fired in the curtain's own
+  olive gold, a dye the drawing reads from `HUE`. Olive enamel over the
+  page's lozenge lattice; a ticker-amber stone.
+
+Each mark also has a small cut, `#mark-<id>-s`, drawn from the same
+geometry with fewer planes and its struts and legs drawn heavier: nothing
+in it is stroked finer than three units, a pixel on the 32px gate. It
+drops the fine engraving, the meridian's degrees and the fingertips'
+nails. Arsenal keeps the square's points as three coarse blocks, two
+points to a block, draws its spokes fewer and heavier and fits the whole
+piece a little larger; the Press Room fills the Mediterranean and the
+Black Sea so Europe and Africa hold as one land, and draws the meridian
+and the stem heavier. The Ledger's medal (20 to 35px) wears it, and so
+does the gate wherever its cartouche comes to under 56 of the screen's own
+pixels. The gate mounts one cut, and `markCut` in `app.js` picks it from
+the cartouche's width times the screen's density, and picks again whenever
+the gate changes size or the window moves to a screen of another density.
+At ordinary density every hall up to 2200 wide shows the small cut (its
+cartouche is 55.6 px there) and from 2560 up the full one (60 px at
+2800); a 2560 screen at 125% shows the full one, and on a double-density
+screen every gate does. It is also the drawing for a 16, 32 or 48px
+favicon.
+
+The page carries every path to a tenth of a unit, in relative steps where
+those are shorter, which keeps the six marks and their small cuts to about
+305 KB of `index.html`, a quarter of it Arsenal's gun and carriage. A
+turned solid lays each tone as one path between two steps. They stay inline, so they are drawn in the page's
+first frame. The hall is served on 127.0.0.1 only, where the bytes cost
+nothing and a compressor's time does, so the page goes out as it is.
+
+The house follows the mark. `HUE` in `icons/gen.py` holds each mark's
+enamel beside the dye of its velvet for Onyx and Ivory, the ink its day
+card is printed in (oxblood, bottle, Prussian, gunmetal or sepia,
+whichever sits nearest its house). The script writes them: the marks into the page's defs (each
+full mark carries its ink as `data-ink`, which `inkFor` in `app.js` reads)
+and the dyes into `palace-gates.css`, keyed on the service through
+`velvetFor`. No hash picks a velvet or a marked gate's ink. The fanlight's
+glass is not the mark's: `palace.js` picks it from the hash, as it always
+has. The reserved gate keeps its iron, and a service with no mark hangs the
+house claret.
+`tests/test_web_assets.py` reads the marks and the dyes from the page and
+the sheets as they are served, and fails when:
+
+- a dye leaves the family of the ground its mark is drawn on (more than 20
+  degrees of CIELAB hue from the ground each cut lays across its field, or
+  nearer another mark's ground than its own; a steel ground takes a cloth
+  of chroma 10 or less, in its own hue), or rises past three quarters of
+  `--au-2`'s luminance;
+- two velvets of a wing come within 15 CIEDE2000 open, or 10 with both
+  houses dark, measured as the cloth renders under its fold map; two
+  velvets of different wings come within 8 open or 4 dark; or a dark
+  house's shade is as light as the darkest open dye;
+- a mark is not fired in `HUE`'s own enamel or has a shape the size of its
+  field painted over the enamel in another colour, carries text, a filter
+  or `currentColor`, draws a ring of small beads, or strokes a line finer
+  than three units in its small cut;
+- any sheet, `<style>` block or style attribute sets `--velvet` outside the
+  generated block (the reserved gate's iron aside) or a dark shade outside
+  its two theme rules (read with the sheet's escapes decoded); any rule
+  paints a gate's cloth in anything but its velvet, lays a coloured layer
+  over the velvet, filters it, blends a hue into it or lays a colour of its
+  own over it from a pseudo-element; a rule that names one gate sets
+  anything but its custom properties; a rule turns the hue of a house or
+  anything round it; a gate's footlights or spot are set for that gate
+  alone;
+- a script chooses a gate's cloth anywhere but `velvetFor` (a property
+  name built from pieces counts), `velvetFor` is
+  declared more than once or stops returning each service's own id when
+  run under node, or a service in `server.py` is not its own sigil;
+- two gates of a wing print their cards in one ink, or the cloth is forced
+  to Canvas under forced colours;
+- `markCut` stops picking the cut in the screen's own pixels when run under
+  node.
+
+Sapphire is kept for the concourse clock, so no mark or curtain is named
+for it, and nothing any mark paints, and no ink a day card can be printed
+in, falls in the clock's blue band or near the blue of its moon dial and
+its hands.
+
+`python icons/gen.py` writes only this repository's defs and velvet rules.
+The apps' own favicons and brand files are rebuilt with `--brand` after
+sign-off; until then the hall's marks are newer than the apps'.
 
 ## The Ledger (R10)
 
@@ -1656,7 +1872,8 @@ Motion setting collapse all of the above to fades/instant.
   speak their readings. English signage carries `lang="en"` in the Chinese
   hall.
 - Forced colours: every selected or lit state gets a Highlight border or
-  fill; the wall and floor keep their own colours. The masthead's fascia and
+  fill; the wall and floor keep their own colours, and so does each house's
+  cloth, which carries no text, so the curtain still matches its mark. The masthead's fascia and
   the marquee's glass carry lettering, so they give way to the system's
   Canvas and the words stand in CanvasText, with no backplate slabs on the
   stone; the crown, the frieze panels, the medallions and the bulbs keep

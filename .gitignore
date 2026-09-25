@@ -8,3 +8,4 @@ hub-*.log
 hub.boot.log
 state/
 shots/
+icons/_build/

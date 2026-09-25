@@ -378,6 +378,21 @@ var chipFilter = 'all';   // session-only, resets to ALL on every load (R11)
 var ledgerOpening = false;    // true only during openLedger() render pass
 var cascadeIndex = 0;         // counter for --ci stamps in cascading pass
 var KNOWN_SIGILS = { autopilot: 1, groundstation: 1, outreach: 1, pressroom: 1, arsenal: 1, bourse: 1 };
+/* The house curtain is the mark's own cloth: icons/gen.py HUE writes each
+   dye into palace-gates.css keyed on the service id, so a gate with a mark
+   hangs its own id. A service with no mark hangs the house claret, and the
+   reserved gate its iron. tests/test_web_assets.py runs this under node. */
+function velvetFor(svc) {
+  if (svc.vacant) return 'iron';
+  return KNOWN_SIGILS[svc.sigil] ? svc.sigil : 'house';
+}
+/* The day card's ink comes from the mark too (HUE's ink, carried on the
+   mark's own group in the page's defs); only a gate without a mark keeps
+   the hashed one. */
+function inkFor(svc, id) {
+  var mk = KNOWN_SIGILS[svc.sigil] ? document.getElementById('mark-' + svc.sigil) : null;
+  return (mk && mk.getAttribute('data-ink')) || id.ink || 'oxblood';
+}
 
 /* ========================================================================
    Read state — the cursor is what reads
@@ -1199,11 +1214,46 @@ function gateDomOrder() {
   });
 }
 
+/* A gate's mark comes in two cuts. Under 56 of the screen's own pixels (the
+   hall on a laptop and at 1920 on an ordinary screen) the cartouche shows
+   the small cut, the same subject in its biggest planes, drawn for 16 to 48
+   pixels, where the full cut's engraving would fall under a pixel and
+   shimmer. At 56 and over it shows the full cut. The cartouche's own box
+   (its layout width, before the gate's tilt) times the screen's density
+   decides, so a 125% or a double-density screen gets the cut its pixels
+   can hold. A ResizeObserver picks again whenever a gate changes size, and
+   a resolution query whenever the page moves to a screen of another
+   density. Only one <use> is mounted, so the hidden cut costs nothing. */
+var CUT_FULL_FROM = 56;
+function markCut(sigil, cssWidth) {
+  if (cssWidth > 0) sigil._cutW = cssWidth;
+  var w = sigil._cutW || 0;
+  var id = sigil.getAttribute('data-mark');
+  if (!id || !w) return;
+  var href = '#mark-' + id + (w * (window.devicePixelRatio || 1) < CUT_FULL_FROM ? '-s' : '');
+  var use = sigil.firstChild;
+  if (use.getAttribute('href') !== href) use.setAttribute('href', href);
+}
+var cutRO = window.ResizeObserver ? new ResizeObserver(function (es) {
+  es.forEach(function (e) { markCut(e.target, e.contentRect.width); });
+}) : null;
+(function watchDensity() {
+  var q = matchMedia('(resolution: ' + (window.devicePixelRatio || 1) + 'dppx)');
+  var again = function () {
+    Array.prototype.forEach.call(document.querySelectorAll('.sigil[data-mark]'), function (sg) { markCut(sg, 0); });
+    watchDensity();
+  };
+  if (q.addEventListener) q.addEventListener('change', again, { once: true });
+  else if (q.addListener) q.addListener(function h() { q.removeListener(h); again(); });
+})();
+
 function renderGates() {
   var wrap = $('#gates');
   wrap.textContent = '';
+  if (cutRO) cutRO.disconnect();
   // One identity per gate, off a fixed hash of its id (palace.js): the
-  // archivolts, the relief programme, the fanlight and the velvet.
+  // archivolts, the relief programme, the fanlight and the velvet's folds
+  // and swags. The velvet's colour is the mark's (velvetFor).
   var idents = window.Palace ? window.Palace.identities(slots()) : {};
   gateDomOrder().forEach(function (svc) {
     // A reserved gate opens onto nothing, so it is not a link and not a tab
@@ -1226,11 +1276,11 @@ function renderGates() {
     a.dataset.service = svc.id;
     a.dataset.state = svc.vacant ? 'vacant' : 'checking';
     a.dataset.wing = svc.wing;
-    a.dataset.velvet = id.velvet || 'claret';
+    a.dataset.velvet = velvetFor(svc);
     a.dataset.glass = id.glass || 'amber';
     // The day screen's title card: an intertitle border, the gate's own.
     a.dataset.card = id.card || 'fans';
-    a.dataset.ink = id.ink || 'oxblood';
+    a.dataset.ink = inkFor(svc, id);
     a.dataset.stock = id.stock || 'cream';
     a.style.setProperty('--folds', String(id.folds || 9));
     a.style.setProperty('--fold-x', (id.foldX || 0) + '%');
@@ -1259,9 +1309,16 @@ function renderGates() {
     // taskbar tile and its own masthead show. One identity per service. It
     // is mounted on the cartouche at the fanlight's hub.
     var sig = KNOWN_SIGILS[svc.sigil] ? svc.sigil : null;
-    face.appendChild(sig
-      ? svgUse('sigil mark', '0 0 96 96', '#mark-' + sig)
-      : svgUse('sigil', '0 0 96 96', '#sig-fallback'));
+    var sigil = sig
+      ? svgUse('sigil mark', '0 0 96 96', '#mark-' + sig + '-s')
+      : svgUse('sigil', '0 0 96 96', '#sig-fallback');
+    // The cartouche shows one cut of the mark, picked from the size it is
+    // drawn at in the screen's own pixels (markCut, below).
+    if (sig) {
+      sigil.setAttribute('data-mark', sig);
+      if (cutRO) cutRO.observe(sigil);
+    }
+    face.appendChild(sigil);
     // The domed crystal the bezel holds over the mark (palace.js).
     if (window.Palace) {
       var crys = document.createElementNS(ns, 'svg');
@@ -4246,7 +4303,9 @@ function buildPlaque(d) {
   window.Cabinet.cartouche(svg, window.Cabinet.card(li, d.id, shadowWrap));
   var sig = document.createElementNS(ns, 'use');
   var known = KNOWN_SIGILS[d.origin];
-  sig.setAttribute('href', known ? '#mark-' + d.origin : '#sig-fallback');
+  // The medal is 20 to 35px across: it takes the mark's small cut, the
+  // same die with the subject reduced to its biggest shapes.
+  sig.setAttribute('href', known ? '#mark-' + d.origin + '-s' : '#sig-fallback');
   sig.setAttribute('class', known ? 'm-sig m-mark' : 'm-sig');
   svg.appendChild(sig);
   medal.appendChild(svg);

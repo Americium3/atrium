@@ -622,31 +622,43 @@ html[lang="zh"] .g-lamp { letter-spacing: 0.2em; }
 /* ==========================================================================
    VELVET AND GLASS
    ==========================================================================
-   The house velvet and the fanlight glass each come a step toward the
-   Paramount's amber and green: no violet, no electric blue, no aqua. Every
-   gate keeps its own colour (the names stay as the hash's keys).
+   Each house hangs the cloth of its own mark: the dye is part of the
+   mark's palette in icons/gen.py and follows it whatever colour the mark
+   takes. The fanlight glass is still the hash's (palace.js GLASS, one
+   pick per gate as on main), each glass a step toward the Paramount's
+   amber and green: no violet, no electric blue.
    The fold map is new: broad rounded crests and deep soft valleys that
    hang in their own weight, each crest lit on the footlights' side and
    brighter toward the hem. It is laid in `multiply`, so --velvet is the
-   colour of the cloth at its brightest crest and the folds only take it
-   down: the highlights keep the velvet's own hue instead of going pastel.
-   Cloth has to stand against the gilt round it, so every velvet's crest
-   is at least a quarter darker than the leaf's body (--au-2, relative
-   luminance). Umber was amber at 1.7 times the leaf by night, and the
-   house read as gold curtains in a gold frame; it is a tobacco brown
-   now, the pigment its name says. */
-:root[data-theme="onyx"] .gate[data-velvet="claret"]   { --velvet: #c22b3b; }
-:root[data-theme="onyx"] .gate[data-velvet="emerald"]  { --velvet: #24754b; }
-:root[data-theme="onyx"] .gate[data-velvet="sapphire"] { --velvet: #3f5d6e; }
-:root[data-theme="onyx"] .gate[data-velvet="plum"]     { --velvet: #92304c; }
-:root[data-theme="onyx"] .gate[data-velvet="peacock"]  { --velvet: #6b692c; }
-:root[data-theme="onyx"] .gate[data-velvet="umber"]    { --velvet: #8c4a2c; }
-:root[data-theme="ivory"] .gate[data-velvet="claret"]   { --velvet: #c83a4a; }
-:root[data-theme="ivory"] .gate[data-velvet="emerald"]  { --velvet: #36906a; }
-:root[data-theme="ivory"] .gate[data-velvet="sapphire"] { --velvet: #56727f; }
-:root[data-theme="ivory"] .gate[data-velvet="plum"]     { --velvet: #9c4660; }
-:root[data-theme="ivory"] .gate[data-velvet="peacock"]  { --velvet: #8e8c4a; }
-:root[data-theme="ivory"] .gate[data-velvet="umber"]    { --velvet: #98563a; }
+   colour of the cloth at its brightest crest in the house's own light and
+   the folds only take it down: the highlights keep the velvet's own hue
+   instead of going pastel. By night the footlights warm the hem a step
+   above that, the way floats light the foot of a stage curtain; that is
+   light laid on the cloth, not the cloth. Cloth has to stand against the
+   gilt round it, so every velvet's crest is at least a quarter darker than
+   the leaf's body (--au-2, relative luminance). An amber dye at 1.7 times the leaf by night once read as
+   gold curtains in a gold frame, so a gold or orange mark hangs a deep
+   cognac or olive gold of its own hue. tests/test_web_assets.py holds the
+   cloth to both rules. */
+/* BEGIN generated velvets (icons/gen.py) */
+/* Each gate hangs its mark's own cloth, keyed on the service. The dyes
+   live beside the enamel in icons/gen.py HUE and are written here by it;
+   edit them there. A service with no mark hangs the house claret. */
+:root[data-theme="onyx"] .gate[data-velvet="autopilot"] { --velvet: #92304c; }  /* mulberry */
+:root[data-theme="onyx"] .gate[data-velvet="groundstation"] { --velvet: #885020; }  /* cognac */
+:root[data-theme="onyx"] .gate[data-velvet="outreach"] { --velvet: #1f5066; }  /* prussian */
+:root[data-theme="onyx"] .gate[data-velvet="pressroom"] { --velvet: #24754b; }  /* emerald */
+:root[data-theme="onyx"] .gate[data-velvet="arsenal"] { --velvet: #63696e; }  /* gunmetal */
+:root[data-theme="onyx"] .gate[data-velvet="bourse"] { --velvet: #73662b; }  /* olive gold */
+:root[data-theme="onyx"] .gate[data-velvet="house"] { --velvet: #c22b3b; }  /* claret */
+:root[data-theme="ivory"] .gate[data-velvet="autopilot"] { --velvet: #9c4660; }  /* mulberry */
+:root[data-theme="ivory"] .gate[data-velvet="groundstation"] { --velvet: #9f6322; }  /* cognac */
+:root[data-theme="ivory"] .gate[data-velvet="outreach"] { --velvet: #33576b; }  /* prussian */
+:root[data-theme="ivory"] .gate[data-velvet="pressroom"] { --velvet: #37905f; }  /* emerald */
+:root[data-theme="ivory"] .gate[data-velvet="arsenal"] { --velvet: #858f9b; }  /* gunmetal */
+:root[data-theme="ivory"] .gate[data-velvet="bourse"] { --velvet: #9b8848; }  /* olive gold */
+:root[data-theme="ivory"] .gate[data-velvet="house"] { --velvet: #c83a4a; }  /* claret */
+/* END generated velvets */
 /* The fold map is shaded as velvet: the crests' cores dark where the pile
    is seen end-on, rims of light down the flanks where it turns edge-on.
    Over it the pile itself, a fine crushed grain in soft light, so the
@@ -684,13 +696,18 @@ html[lang="zh"] .g-lamp { letter-spacing: 0.2em; }
    dimming (brightness 0.7) left a light dye as bright as an open house.
    The hem keeps only a faint cold bounce off the stage. By day the shade
    goes as deep: an open house shows only its gathered tabs beside a lit
-   card, and a 72% day mix left the lighter dyes (peacock, emerald,
-   sapphire) brighter than a claret or plum house that was open. The day
-   velvets are a step lighter than the night ones, so the same depth of
-   shade lands them a touch above the night's dark houses, and every DARK
-   house sits well under the darkest open one in both themes. */
-:root[data-theme="onyx"] .gate[data-state="dark"] { --velvet-shade: color-mix(in srgb, var(--velvet) 34%, #0f0d0f); --tab-foot: rgba(150, 168, 190, 0.05); }
-:root[data-theme="ivory"] .gate[data-state="dark"] { --velvet-shade: color-mix(in srgb, var(--velvet) 28%, #110e0c); }
+   card, and a 72% day mix left the lighter dyes (olive gold, emerald,
+   slate) brighter than a claret or plum house that was open. The mix still
+   keeps enough of each dye that, under the fold map's multiply, two dark
+   houses of one wing stay two cloths (a CIEDE2000 of 10 as rendered; at a
+   third of the dye they came to 5 or 6 and read as one brown), and every
+   DARK shade, under the fold map, sits under the darkest open dye in both
+   themes. That holds for the dye, not always for the cloth as the page
+   paints it: by day the pile and the light can bring a dark house level
+   with the darkest open one, and there the unlit slide beside a lit card
+   is what marks it DARK. */
+:root[data-theme="onyx"] .gate[data-state="dark"] { --velvet-shade: color-mix(in srgb, var(--velvet) 55%, #0f0d0f); --tab-foot: rgba(150, 168, 190, 0.05); }
+:root[data-theme="ivory"] .gate[data-state="dark"] { --velvet-shade: color-mix(in srgb, var(--velvet) 48%, #110e0c); }
 .gate[data-state="dark"] .g-tab,
 .gate[data-state="dark"] .g-valance { background-color: var(--velvet-shade); }
 .gate[data-state="dark"] .mirror-art .mr-house { fill: color-mix(in srgb, var(--velvet-shade) 42%, #000); }
@@ -752,8 +769,14 @@ html[lang="zh"] .g-lamp { letter-spacing: 0.2em; }
 }
 /* The niche is scenery (its drawing is aria-hidden and the clock says the
    time in text): under forced colours it keeps its own paint rather than
-   being redrawn as system lines. */
-@media (forced-colors: active) { .niche { forced-color-adjust: none; } }
+   being redrawn as system lines. So does each house's cloth, which carries
+   no text of its own: forced to Canvas it went black on every gate, and
+   the curtain no longer matched its mark. The card and the lamp word over
+   it are still forced, on the system's backplate. */
+@media (forced-colors: active) {
+  .niche { forced-color-adjust: none; }
+  .g-tab, .g-valance, .mirror-art .mr-house { forced-color-adjust: none; }
+}
 
 /* ==========================================================================
    THE IRON: THE RESERVED GATE'S SAFETY CURTAIN
@@ -1111,15 +1134,18 @@ html[lang="zh"] .gate.vacant .g-desc { -webkit-text-stroke: 0.45px currentColor;
    fans, steps or lozenge drawn in 1px lines nobody could see from across
    the room, so the three cards of a wing were twins. It is printed now, as
    a picture palace's title cards were: a deco border band in the gate's
-   own ink (oxblood, bottle green or navy), a hairline inside the band, the
+   own ink (oxblood, bottle green, Prussian, gunmetal or sepia), a hairline inside the band, the
    gate's corner motif printed solid in the same ink, a headpiece over the
    words and the rule under them, on the gate's own card stock (cream, bone
-   or buff) with a lithographic grain. Ink, stock and motif each come from
-   the hash, unique within a wing. The headpiece is the first thing to give
+   or buff) with a lithographic grain. The ink is the mark's (HUE's ink in
+   icons/gen.py, read by app.js); stock and motif come from the hash; all
+   three are unique within a wing. The headpiece is the first thing to give
    way when the house is short; the words never do. */
 .gate[data-ink="oxblood"] { --card-ink: #6a1d19; --ink-loz: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'%3E%3Cpath d='M5 0L10 5L5 10L0 5Z' fill='%236a1d19'/%3E%3C/svg%3E"); }
 .gate[data-ink="bottle"]  { --card-ink: #1d4633; --ink-loz: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'%3E%3Cpath d='M5 0L10 5L5 10L0 5Z' fill='%231d4633'/%3E%3C/svg%3E"); }
-.gate[data-ink="navy"]    { --card-ink: #1c2b4c; --ink-loz: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'%3E%3Cpath d='M5 0L10 5L5 10L0 5Z' fill='%231c2b4c'/%3E%3C/svg%3E"); }
+.gate[data-ink="prussian"] { --card-ink: #173d4f; --ink-loz: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'%3E%3Cpath d='M5 0L10 5L5 10L0 5Z' fill='%23173d4f'/%3E%3C/svg%3E"); }
+.gate[data-ink="gunmetal"] { --card-ink: #2f3940; --ink-loz: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'%3E%3Cpath d='M5 0L10 5L5 10L0 5Z' fill='%232f3940'/%3E%3C/svg%3E"); }
+.gate[data-ink="sepia"]   { --card-ink: #4e3413; --ink-loz: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'%3E%3Cpath d='M5 0L10 5L5 10L0 5Z' fill='%234e3413'/%3E%3C/svg%3E"); }
 .gate[data-stock="cream"] { --card-stock: #f3ead3; }
 .gate[data-stock="bone"]  { --card-stock: #f6f1e3; }
 .gate[data-stock="buff"]  { --card-stock: #f3e6cb; }

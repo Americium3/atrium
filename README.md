@@ -96,10 +96,10 @@ re-set every second. It is always in view at full size.
 ### Gates
 
 Each destination is a small gilt proscenium: stepped archivolts round a lit
-fanlight, the service's own mark (the identical artwork its favicon and
-taskbar tile show) in a machined bezel at the fanlight's hub, the name on a
-black glass sign, a velvet house with the description thrown on the closed
-curtain, and a lacquer apron carrying one live stat, the literal address it
+fanlight, the service's own mark (an enamelled badge its favicon and
+taskbar tile will share once the apps are synced) in a machined bezel at
+the fanlight's hub, the name on a black glass sign, a velvet house in the
+mark's own colour with the description thrown on the closed curtain, and a lacquer apron carrying one live stat, the literal address it
 opens and an OPEN/DARK lamp (live health checks). By day the curtain is tied
 back and the description is a title card on the screen. A service's own
 warning (qBittorrent down, the sync daemon stalled) is engraved on the apron
@@ -457,46 +457,65 @@ its next poll once the hub has restarted. A service taken out of
 
 - Add `desc.<key>` strings to both `STR` tables in `static/js/app.js`.
   Without them the gate shows the generic description.
-- Give it its mark: add the service to `APPS`, `HUE` and `SIL` in
-  `icons/gen.py`, draw its subject in `glyph()`, run the script so
-  `#mark-<id>` lands in the generated block, and add the id to
-  `KNOWN_SIGILS` in `app.js`. The gate and its Ledger
-  medallions use `#mark-<id>` only for ids listed there, and fall back to
-  `#sig-fallback` otherwise.
+- Give it its mark: add the service to `HUE` in `icons/gen.py` (its
+  enamel, its velvet dye for both themes and its card ink), draw its
+  subject and its small cut, run `python icons/gen.py` so `#mark-<id>`, `#mark-<id>-s` and
+  its velvet rules land in the generated blocks, and add the id to
+  `KNOWN_SIGILS` in `app.js`. The gate and its Ledger medallions use the
+  mark only for ids listed there, and fall back to `#sig-fallback` and the
+  house claret otherwise.
 - Write an adapter tick in `server.py` if the service should feed the Ledger
   or the gate's stat line.
 
 ## The marks
 
-`icons/gen.py` draws every local service's badge (silhouette, guilloche fan,
-quarter-chevrons, engraved subject, crown gem) and writes each one out as
-`icon.svg`, `favicon.ico`, three PNGs, a maskable tile and a manifest into that
-service's own repository, then inlines all of them into the generated block in
-`static/index.html`. The hall therefore shows the identical artwork each app's
-own favicon shows. Bourse is the exception: `gen.py` does not draw its mark,
-so `#mark-bourse` is kept by hand just after the block's END sentinel, where
-a run cannot reach it.
+`icons/gen.py` draws every service's badge and is the one source for its
+colours. Each mark is an enamelled badge cut from one die (a turned gilt
+lip, translucent enamel over engine turning and a stone at the crown)
+holding one subject drawn from photographs of the real object and cut into
+flat planes of tone along the hall's key light. Each has a small cut for
+the Ledger, for a gate whose mark comes to under 56 screen pixels (every
+hall up to 2200 wide on an ordinary screen; from 2560 up the gates show
+the full cut) and for a future favicon.
+`HUE` holds each app's enamel beside the dye of the velvet its gate hangs
+(per theme) and the ink its day card is printed in, so the house follows
+the mark. The fanlight's glass is still picked by the gate's hash. DESIGN.md, "App marks (v7)",
+describes the six.
 
-A service that also carries its mark inline in its own page, so its masthead
-does not pay for a second request, lists that page in `SYMBOL_TARGETS`, and the
-script rewrites the `<symbol id="applogo">` there between its own sentinels. A
-generated asset with two homes needs the generator to own both; the first time
-this one was redrawn, only `static/brand/` was rewritten and the badge the page
-actually wore stayed the old colour.
-
-It lives here because the marks are shared by five projects that do not share a
-repository. `TARGETS` at the foot of the file is the checkout layout it writes
-to; rasterising shells out to headless Chrome.
+A plain run writes only this repository: the generated block of marks in
+`static/index.html` and the generated velvet rules in
+`static/css/palace-gates.css`. Both are rewritten wholesale, so a mark left
+out of `HUE` is a mark deleted from the concourse.
 
 ```
-python icons/gen.py              # every brand directory, then the hall's defs
-python icons/gen.py autopilot    # one directory, then the hall's defs
+python icons/gen.py
 ```
 
-The generated block is rewritten wholesale on every run, so a mark left out of
-`APPS` is a mark deleted from the concourse. Add new services to that dict,
-never to the block by hand. A mark drawn anywhere else goes outside the
-sentinels, as Bourse's does.
+Building an app's own brand directory (favicon, PNGs, maskable tile,
+manifest) is opt-in. `--brand` refuses app names it does not know, refuses
+any directory outside this repository unless `--allow-outside-repo` is
+given, and rasterises through `icons/raster.js`, which runs only under the
+Atrium kit's Playwright shim. For Autopilot, `--allow-outside-repo` without
+`--out` also rewrites the inline `<symbol id="applogo">` in
+`anime-rss-auto/static/index.html`, between its sentinels. Builds under
+`icons/_build/` stay out of git. The owner syncs the apps after signing off
+on the marks.
+
+```
+NODE_PATH=/x/Github/atrium-wt/_kit/shim python icons/gen.py --brand autopilot --out icons/_build/autopilot
+NODE_PATH=/x/Github/atrium-wt/_kit/shim python icons/gen.py --brand autopilot --allow-outside-repo
+```
+
+`tests/test_web_assets.py` checks that the page carries what the generator
+draws, and that every velvet, as the sheets serve it, stays in the colour
+family of the ground its mark is drawn on in the page, under the leaf's
+luminance and apart from its wing's other cloths, open or dark, and a
+little apart from the other wing's. It also fails if any rule or script
+hangs a gate in a cloth by another road than the generated dyes and
+`velvetFor`: a layer of colour over the velvet, a rule that singles out
+one gate for anything but its custom properties, a filter or blend that
+turns a house's hue, or a property name spelled in escapes or built from
+pieces. No mark, cloth or card ink may be the clock's sapphire.
 
 ## Debug URL parameters
 
