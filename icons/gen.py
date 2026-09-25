@@ -7,10 +7,10 @@ turning under it and the stone are each app's own.
 
 Inside the die each app carries one charge, seen from the same place (level
 with it or a few degrees above) and lit by the one key light, up and to the
-left: the world at dawn, an earth station's dish, a shelf of bound
-volumes, a card held up in a cubit arm, a gun laid with the gunner's square
-in its muzzle, a canary on its perch. The globe's night and dawn are printed on
-it; its roundness takes the same lamp as the rest. Each is drawn from the real object, its geometry and
+left: a desk globe on its stand, an earth station's dish, a shelf of bound
+volumes, a card gripped in a cubit arm, a field gun on its carriage laid
+with the gunner's square in its muzzle, a canary on its perch. Each stands
+on something of its own. Each is drawn from the real object, its geometry and
 proportions taken from photographs, never pieced together from circles and
 rectangles, and never lettered. Its form is then cut into three or four flat
 planes of tone along the key light, the way a woodcut or a Deco poster cuts
@@ -40,6 +40,10 @@ refuses any directory outside this repository unless a second flag says so:
 
     python icons/gen.py --brand autopilot --out icons/_build/autopilot
     python icons/gen.py --brand autopilot --allow-outside-repo      # the app's own repo
+
+For Autopilot the second form also rewrites the inline <symbol id="applogo">
+in anime-rss-auto/static/index.html, between its sentinels (SYMBOL_TARGETS).
+icons/_build/ is ignored by git.
 
 Rasters go through icons/raster.js, which runs only under the Atrium kit's
 Playwright shim (a seeded profile; a bare headless Chrome probes the Windows
@@ -1116,8 +1120,8 @@ def subject_pressroom(m, h, small=False):
 
 
 def pressroom_xyz(lon, lat, fr):
-    """A point on the globe, in view space. The sun stands over `sub`; the
-    dawn line lies ninety degrees west of it."""
+    """A point on the globe, in view space: longitudes are counted from
+    `sub`, the meridian turned to the reader."""
     a, b = math.radians(lon - fr['sub']), math.radians(lat)
     return S.add(S.mul(S.add(S.mul(fr['sun'], math.cos(a)), S.mul(fr['east'], math.sin(a))), math.cos(b)),
                  S.mul(fr['axis'], math.sin(b)))
@@ -1847,7 +1851,7 @@ OUTREACH_THUMB = {'base': (32.0, 47.0), 'joint': (26.0, 24.0), 'tip': (19.0, 5.0
 # The turned cuff and the sleeve, about the arm's axis at x = 1: (top, foot,
 # half width at the top, half width at the foot). The cuff flares to its
 # rolled edge; the sleeve widens toward the elbow and is couped.
-OUTREACH_CUFF = (59.0, 77.0, 35.5, 31.5)
+OUTREACH_CUFF = (58.0, 77.0, 38.5, 32.0)
 OUTREACH_SLEEVE = (73.0, 113.0, 30.0, 35.5)
 # The folds a raised sleeve slides into: where each crosses the arm's axis
 # (along the sleeve, 0 at its top), its slope across the arm, its depth and
@@ -1862,6 +1866,7 @@ OUTREACH_BACK = ['#5f2f27', '#a15743', '#d49379', '#f0c8b0']
 OUTREACH_CUTS = [0.22, 0.4, 0.7]
 OUTREACH_NAIL = ['#c48e80', '#eccdc1', '#fbefe6']          # its plate, where it takes the light, its free edge
 OUTREACH_LINEN = ['#6f7a82', '#aab3b6', '#e3e1d9', '#fbfaf5']
+OUTREACH_MOUTH = '#394248'                                    # the inside of the cuff, in its own shade
 OUTREACH_SLEEVE_CLOTH = ['#3a280a', '#765419', '#ad8636', '#d9bb6c']   # vested or: the page's gold, as cloth
 OUTREACH_CLOTH_CUTS = [0.2, 0.44, 0.72]
 OUTREACH_STOCK = ['#f4f1ea', '#d9d0bb', '#b9ae95']           # the card: its face, its turned corner, its shade
@@ -2318,7 +2323,7 @@ def subject_outreach(m, h, small=False):
     e = math.sin(math.radians(PITCH))
     mouth = [(1.0 + (cw0 - 0.6) * math.cos(a), cy0 - e * (cw0 - 0.6) * math.sin(a)) for a in
              (2 * math.pi * j / 40 for j in range(40))]
-    m.add('<path d="%s" fill="%s"/>' % (outreach_path(mouth), OUTREACH_LINEN[0]))
+    m.add('<path d="%s" fill="%s"/>' % (outreach_path(mouth), OUTREACH_MOUTH))
     m.add(outreach_planes(m, 'palm', palm, hand_light, *lay(OUTREACH_PALM), small=small))
     # the turned cuff lies over the sleeve and shades it along its foot
     m.add('<path d="%s" fill="#000" fill-opacity=".35" transform="translate(.5 .9)"/>' % outreach_path(cuff))
@@ -2328,9 +2333,17 @@ def subject_outreach(m, h, small=False):
         # light a plane ahead of the cloth under it
         ws = [-1 + 2 * k / 32 for k in range(33)]
         roll = ([(1.0 + w * cw0, cy0 + e * cw0 * math.sqrt(1 - w * w)) for w in ws]
-                + [(1.0 + w * (cw0 - 0.3), cy0 + 2.2 + e * cw0 * math.sqrt(1 - w * w)) for w in reversed(ws)])
+                + [(1.0 + w * (cw0 - 0.4), cy0 + 3.2 + e * cw0 * math.sqrt(1 - w * w)) for w in reversed(ws)])
         m.add(outreach_cloth(m, 'roll', roll, lambda u, v: outreach_cuff_light(u, v, 1.2), OUTREACH_LINEN,
                              OUTREACH_CLOTH_CUTS, small))
+        # the cufflink where the cuff's two ends meet, toward the reader's
+        # right: a small gilt oval standing off the linen
+        w, v = 0.7, (cy0 + cy1) / 2 + 1.0
+        hw = cw0 + (cw1 - cw0) * (v - cy0) / (cy1 - cy0)
+        lc = (1.0 + w * hw, v + e * hw * math.sqrt(1 - w * w))
+        link = [(lc[0] + 2.1 * math.cos(a) * math.sqrt(1 - w * w), lc[1] + 3.0 * math.sin(a))
+                for a in (2 * math.pi * j / 20 for j in range(20))]
+        m.add(relief(outreach_path(link), GILT[4], dx=0.35, dy=0.5, lo=0.25))
     # the card stands a finger's breadth in front of the palm, so it throws
     # a band of shade down and right across the heel of the hand
     heel = m.clip('heel', '<path d="%s"/>' % outreach_path(palm[0]))
@@ -2387,8 +2400,8 @@ def subject_outreach(m, h, small=False):
 # trail's end on the ground. The gun is a muzzle-loading iron gun of the
 # Blomefield pattern (the twenty-four pounder on Martello Tower No. 24, and
 # the side elevation with its parts named), a little fuller than the real
-# one so it holds at the size of a gate. It is laid at thirty degrees, so
-# the plumb cuts the arc at its fourth point of twelve.
+# one so it holds at the size of a gate. It is laid at the fifth of the
+# gunner's twelve points, 37.5 degrees, where the plumb cuts the arc.
 #
 # The square is the gunner's quadrant of Sisson's pattern (Royal Museums
 # Greenwich, about 1770): a long arm three times the radius of its arc, so
@@ -2404,7 +2417,7 @@ def subject_outreach(m, h, small=False):
 # long from its knob to its muzzle face, y up, the ground at y = 0 and the
 # reader toward +z; the whole piece is fitted to the badge afterwards.
 ARSENAL = {
-    'elev': 34.0,                    # the gun's elevation, degrees
+    'elev': 37.5,                    # the gun's elevation, degrees: the fifth of the gunner's twelve points
     'yaw': -10.0,                    # turned so the muzzle comes a little toward the reader
     'girth': 1.35,                   # the profile's radii, a little fuller than the real gun's
     'girth_s': 1.15,                 # and the small cut's gun, heavier again
