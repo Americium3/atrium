@@ -673,3 +673,19 @@ window.Palace = {
   geometry: { YS: YS, MARK_Y: MARK_Y, BOT: BOT, INNER_X: X0 + DJ }
 };
 })();
+
+/* While the entrance walks the reader in (html.e-posed), the hall's boxes
+   are carried by transforms to where the camera sees them. Anything that
+   measures the hall to lay it out reads it at rest: atRest lifts the pose
+   (html.e-rest sets transform: none !important on the posed boxes) for the
+   length of the measurement, inside the one task, so no frame ever draws
+   it lifted. Outside the walk it just runs fn. */
+(function () {
+  var depth = 0, root = document.documentElement;
+  window.atRest = function (fn) {
+    if (!root.classList.contains('e-posed')) return fn();
+    if (!depth++) root.classList.add('e-rest');
+    try { return fn(); } finally { if (!--depth) root.classList.remove('e-rest'); }
+  };
+  window.restRect = function (el) { return window.atRest(function () { return el.getBoundingClientRect(); }); };
+})();

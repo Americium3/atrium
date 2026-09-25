@@ -557,13 +557,33 @@ var entranceTimers = [];
    hall lands where it will rest. */
 function entranceEye() {
   var dial = $('#clock .dial');
-  var r = dial && dial.getBoundingClientRect();
+  var r = dial && window.restRect(dial);
   // the hall stands at rest until the clock starts, so this is its own box
   return r && r.height ? r.top + r.height / 2 : window.innerHeight * 0.45;
 }
 function entranceMeasure() {
   if (root.dataset.entered !== 'no' || !window.Entrance) return;
-  window.Entrance.measure(entranceEye());
+  // The foyer is sized to the hall, so the street is dressed once the stage
+  // is solved (the gates are in), and a hall that moves after that while
+  // the street stands has it dressed again.
+  if (!streetAsked) { if (entranceArmed) dressSoon(); return; }
+  if (window.Entrance.measure(entranceEye())) dressStreet();
+}
+/* The stage is solved more than once as the hall comes in (the gates, then
+   the cases beside them), and each can move the dial; the street is dressed
+   once it has been still for a moment, or 900ms after it was first solved. */
+var streetAsked = false, entranceArmed = false, dressT = 0, firstSolved = 0;
+function dressSoon() {
+  var now = performance.now();
+  if (!firstSolved) firstSolved = now;
+  clearTimeout(dressT);
+  dressT = setTimeout(dressOnce, Math.max(0, Math.min(260, firstSolved + 900 - now)));
+  entranceTimers.push(dressT);
+}
+function dressOnce() {
+  if (streetAsked || root.dataset.entered !== 'no') return;
+  streetAsked = true;
+  dressStreet();
 }
 
 /* The street is dressed at once, but its clock starts only when the hall
@@ -609,6 +629,17 @@ function afterDrawn(fn) {
   });
 }
 
+/* Calls fn at the first two frames in a row that come on time (under 40ms
+   apart): the clock may start late, but not in the middle of a freeze. */
+function afterCalm(fn) {
+  var last = 0, calm = 0;
+  requestAnimationFrame(function tick(t) {
+    if (last) calm = t - last < 40 ? calm + 1 : 0;
+    last = t;
+    if (calm >= 2) fn(); else requestAnimationFrame(tick);
+  });
+}
+
 /* The street is painted into its canvases while it stands (a few hundred
    ms at 3440); until then the overlay's own dark (or the day's stone) holds
    the screen. */
@@ -636,7 +667,7 @@ function whenStreet(fn) {
 function entranceResize() {
   if (root.dataset.entered !== 'no') return;
   if (window.Entrance.running()) finishEntrance();
-  else dressStreet();
+  else if (streetAsked) dressStreet();
 }
 
 function playEntrance(built) {
@@ -651,7 +682,11 @@ function playEntrance(built) {
     return;
   }
   entrance.classList.add(root.dataset.theme === 'ivory' ? 'day' : 'night');
-  dressStreet();
+  // Dressed as soon as the stage stands (entranceMeasure), or after a short
+  // wait for a hub slow to send the gates.
+  entranceArmed = true;
+  if ($('#gates .gate')) dressSoon();
+  else entranceTimers.push(setTimeout(dressOnce, 1100));
   window.addEventListener('resize', entranceResize);
   var started = false;
   function start() {
@@ -663,7 +698,11 @@ function playEntrance(built) {
   // are the ones afterDrawn() watches.
   function arm() {
     entranceTimers.push(setTimeout(function () { whenStreet(function () { afterDrawn(start); }); }, ENTRANCE_HOLD));
-    entranceTimers.push(setTimeout(function () { whenStreet(start); }, ENTRANCE_HOLD_MAX));
+    // Past the longest hold the clock starts anyway, but never inside a
+    // stall: a browser drawing for the first time (a new profile compiling
+    // its shaders) froze the page for up to 1.6s at about this point, and a
+    // clock started by the timer alone spent the walk's first 650ms in it.
+    entranceTimers.push(setTimeout(function () { whenStreet(function () { afterCalm(start); }); }, ENTRANCE_HOLD_MAX));
     Promise.resolve(built).then(function () {
       whenStreet(function () { afterDrawn(start); });
     });
@@ -739,6 +778,14 @@ function armEntranceSkip() {
 
 var entranceSkip = null;
 
+/* A gate drawn again, or come alight, while the walk runs joins the
+   fanlights' cascade rather than lighting at once. Its floor streak follows
+   the gate in a mutation observer, so the cue waits for that. */
+function entranceAdopt() {
+  if (root.dataset.entered !== 'no' || !window.Entrance) return;
+  Promise.resolve().then(function () { window.Entrance.adopt(); });
+}
+
 /* preventDefault on pointerdown stops a mouse's compatibility events but
    not the click a touchscreen synthesizes from a tap. That click is eaten
    here, in the capture phase, before anything in the hall sees it. The
@@ -776,11 +823,11 @@ function finishEntrance() {
     entranceSkip = null;
   }
   window.removeEventListener('resize', entranceResize);
-  // A box the hall measured while it was posed behind the doors (a poll's
-  // new line on the band, a face that finished loading) was read at a
-  // fraction of its size; the hall lays itself out once more as it lands.
-  var walked = window.Entrance && window.Entrance.running();
+  // The hall was only ever posed by transforms, and whatever measured it on
+  // the way in read it at rest (window.atRest), so it lands as it stands:
+  // nothing is laid out again.
   if (window.Entrance) window.Entrance.clear();
+  window.__entranceLanded = performance.now();   // read by the frame-timing scripts
   entrance.style.display = 'none';
   // data-boot stays 'played', so the suppressed-load hall-fade does NOT
   // retrigger on this flip.
@@ -788,7 +835,6 @@ function finishEntrance() {
   // Re-enable ledger button now that entrance is done
   var lb = $('#ledger-btn');
   if (lb) lb.disabled = false;
-  if (walked) window.dispatchEvent(new Event('resize'));
   // Relay: motion transfers from the overlay to the hall. The gear train
   // twitches one tooth: the machine exhales as the overlay clears.
   deskNudge();
@@ -2122,7 +2168,8 @@ function boardHole(board, originX) {
 /* The wall is measured against the stage, not against a media query: the
    triptych grows with --ui and the boards resize with it, so the only
    honest source for "where does the bare wall start" is the live box. */
-function buildAisles() {
+function buildAisles() { return window.atRest(buildAislesAtRest); }
+function buildAislesAtRest() {
   var wall = $('#backwall'), stage = $('#stage');
   if (!wall || !stage) return;
   var wl = $('.wall-l', wall), wr = $('.wall-r', wall);
@@ -3520,7 +3567,8 @@ var SKY_MIN_PX = 90;    // RISE and 07:09 at 10px beside a readable ellipse
 var casesHung = null;   // null: below 2800px, where there is no aisle
 var casesRO = null;     // set below; renderWorks() adds the dials to it
 
-function fitCases() {
+function fitCases() { return window.atRest(fitCasesAtRest); }
+function fitCasesAtRest() {
   var boards = [$('#works'), $('#almanac')];
   var dials = $('#wk-dials'), host = $('#al-sky');
   if (!boards[0] || !boards[1] || !dials || !host) return;
@@ -3847,6 +3895,7 @@ function applyStatuses() {
     var noteSaid = $('.g-said-note', a);
     if (noteSaid) noteSaid.textContent = note ? note + t('srStop') : '';
   });
+  entranceAdopt();
   var allDark = known === services.length && known > 0 && openCount === 0;
 
   // The hall is a picture; say out loud how many lines are open, so a screen
@@ -4773,6 +4822,10 @@ function tickerModel() {
 /* now: the reader asked for this (language, motion, a new band width), so it
    lands at once instead of waiting for the loop. */
 function renderTicker(now) {
+  var a = arguments;
+  return window.atRest(function () { return renderTickerAtRest.apply(null, a); });
+}
+function renderTickerAtRest(now) {
   var ticker = $('#ticker');
   var m = tickerModel();
   // A language switch re-letters the whole hall at once; the band with it.
@@ -5035,6 +5088,7 @@ function applyRegistry(payload) {
   var on = ae && ae.closest ? ae.closest('#gates .gate') : null;
   services = list;
   renderGates();
+  entranceAdopt();
   var back = on && document.getElementById(on.id);
   if (back && back !== on && !back.closest('[inert]')) back.focus({ preventScroll: true });
 }

@@ -1,20 +1,37 @@
 /* ===========================================================================
    THE PICTURE PALACE: the entrance, through the doors
 
-   The street in front of the palace, dressed by static/js/entrance.js: the
-   canopy, the entrance bay and its doors, the pavement, and the hall seen
-   through the glass. Every piece is drawn once in its own SVG and moved
-   only by transform and opacity (Web Animations), so the walk runs on the
-   compositor. This sheet only places the pieces and colours the few plain
-   planes; the drawing and the light live in the script.
+   The street in front of the palace and the foyer behind its doors, dressed
+   by static/js/entrance.js. Every piece is drawn once into canvases and
+   moved only by transform and opacity (Web Animations), so the walk runs on
+   the compositor. This sheet only places the pieces, stacks the inside
+   under the street, and colours the few plain planes; the drawing and the
+   light live in the script.
+
+   Four layers, bottom to top, all over the hall:
+     #e-foyer  the foyer's floor, ceiling and side walls, which meet the hall
+     #e-veil   the inside as the street sees it: dimmer by night, and by day
+               dim and cool to an eye that has been in the sun (multiplied)
+     #e-sun    by day, the sun through the doors on the foyer's floor and
+               up its far wall (screened on, colour dodge)
+     #entrance the street: the facade, the canopy, the doors, the pavement
    =========================================================================== */
 #entrance {
   position: fixed; inset: 0; z-index: 100;
   overflow: hidden;
   pointer-events: none;
 }
+#e-foyer, #e-veil, #e-sun {
+  position: fixed; inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+#e-foyer { z-index: 97; }
+#e-veil { z-index: 98; mix-blend-mode: multiply; opacity: 0; }
+#e-sun { z-index: 99; mix-blend-mode: color-dodge; }
+:root[data-theme="onyx"] #e-sun { display: none; }
 html[data-entered="no"] #entrance { pointer-events: auto; cursor: pointer; }
-html[data-entered="yes"] #entrance { display: none; }
+html[data-entered="yes"] :is(#entrance, #e-foyer, #e-veil, #e-sun) { display: none; }
 html[data-entered="no"] #entrance.done-fade { pointer-events: none; cursor: auto; }
 /* Until the script has dressed the street, the street's own dark (or the
    day's pale stone) stands in for it, so no first frame shows the hall
@@ -22,41 +39,63 @@ html[data-entered="no"] #entrance.done-fade { pointer-events: none; cursor: auto
 html[data-entered="no"] #entrance:not(.dressed) { background: #07060a; }
 :root[data-theme="ivory"][data-entered="no"] #entrance:not(.dressed) { background: #d9d4c8; }
 
-#entrance .e-world { position: absolute; inset: 0; overflow: hidden; }
-#entrance .e-defs { position: absolute; width: 0; height: 0; overflow: hidden; }
-#entrance .e-card,
-#entrance .e-row,
-#entrance .e-leaf,
-#entrance .e-plane,
-#entrance .e-band { position: absolute; left: 0; top: 0; }
-#entrance .e-row,
-#entrance .e-leaf { transform-origin: 0 0; }
-#entrance .e-layer {
-  position: absolute; left: 0; top: 0;
-  width: 100%; height: 100%;
-  overflow: visible;
+/* The inside as the street sees it. By night the foyer is lit but not yet
+   at full light; by day it is dim and cool to an eye that has been in the
+   sun. Both lift as the reader crosses the threshold. */
+:root[data-theme="onyx"] #e-veil { background: rgb(158, 134, 108); }
+:root[data-theme="ivory"] #e-veil {
+  background: linear-gradient(180deg, rgb(112, 120, 142), rgb(136, 143, 162) 40%, rgb(156, 161, 176));
 }
 
-/* ----- The foyer's far wall ------------------------------------------------
-   Round the hall the foyer carries on: its ceiling over the masthead, its
-   floor under the hall's own, its walls either side. The ring is seen only
-   in the last of the walk, in the doorway's corners. Flat colours, like the
-   veil and the ground under the wet stone: a plane of one colour is drawn
-   by the compositor without a tile to raster, however large it is scaled. */
-:root[data-theme="onyx"] #entrance .e-ring-top { background: #080605; }
-:root[data-theme="onyx"] #entrance .e-ring-bot { background: #0b0907; }
-:root[data-theme="onyx"] #entrance .e-ring-l,
-:root[data-theme="onyx"] #entrance .e-ring-r { background: #0a0806; }
-:root[data-theme="ivory"] #entrance .e-ring-top { background: #e9e2d3; }
-:root[data-theme="ivory"] #entrance .e-ring-bot { background: #d3c7ae; }
-:root[data-theme="ivory"] #entrance .e-ring-l,
-:root[data-theme="ivory"] #entrance .e-ring-r { background: #e6dece; }
-/* The hall as the street sees it: the foyer by night is lit but not yet at
-   full light; by day it is a shade darker than the sunlit pavement the eye
-   has been on. The veil lifts as the reader crosses the threshold. */
-:root[data-theme="onyx"] #entrance .e-veil { background: rgba(6, 4, 2, 0.4); }
-:root[data-theme="ivory"] #entrance .e-veil { background: rgba(40, 30, 16, 0.2); }
-#entrance .e-mirror-ground { background: #050406; }
+#entrance .e-world,
+#e-foyer .e-world,
+#e-sun .e-world { position: absolute; inset: 0; overflow: hidden; }
+.e-piece { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
+.e-piece .e-layer { position: absolute; }
+.e-piece .e-tile { position: absolute; display: block; }
+
+/* The hall, posed by the entrance: its boxes turn about their own corner,
+   and are kept as layers drawn at the size they land at while the street
+   stands (html.e-hold), so the walk moves textures and draws nothing. A
+   measurement taken while the walk runs lifts the pose for its length
+   (html.e-rest, window.atRest in palace.js). */
+html.e-hold :is(#masthead, #ticker, #backwall, #floorplane, #works, #stage, #almanac, #signal-desk) {
+  will-change: transform;
+  transform-origin: 0 0;
+}
+html.e-rest :is(#masthead, #ticker, #backwall, #floorplane, #works, #stage, #almanac, #signal-desk) {
+  transform: none !important;
+}
+
+/* ----- By day ------------------------------------------------------------ */
+/* A cloud's shade over the street, multiplied in, sliding off to the right
+   as the sun comes out from behind it; its trailing edge is soft. */
+#entrance .e-cloud {
+  position: absolute; left: 0; top: 0; height: 100%;
+  mix-blend-mode: multiply;
+  background: linear-gradient(90deg, rgba(70, 84, 112, 0) 0, rgba(70, 84, 112, 0.62) 22%, rgba(70, 84, 112, 0.62) 100%);
+}
+/* The sun the right leaf throws back across the pavement: a soft pane of
+   light, blurred once, carried by its holder. */
+.e-glintfloor { overflow: hidden; }
+.e-glint { position: absolute; left: 0; top: 0; transform-origin: 0 0; opacity: 0; }
+.e-glint-in {
+  position: absolute; left: 0; top: 0;
+  background: radial-gradient(ellipse 60% 55% at 50% 45%, rgba(255, 250, 232, 0.9), rgba(255, 244, 214, 0.5) 60%, rgba(255, 240, 200, 0) 100%);
+  filter: blur(5px);
+}
+/* The leaves' shadows on the foyer's floor and wall: two frames whose soft
+   edges are the shadows of the leaves' free edges; only they move. */
+.e-win { position: absolute; overflow: hidden; transform-origin: 0 0; }
+.e-win-in { position: absolute; left: 0; top: 0; width: 0; height: 0; transform-origin: 0 0; }
+.e-win-a {
+  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 26px);
+  mask-image: linear-gradient(90deg, transparent 0, #000 26px);
+}
+.e-win-b {
+  -webkit-mask-image: linear-gradient(270deg, transparent 0, #000 26px);
+  mask-image: linear-gradient(270deg, transparent 0, #000 26px);
+}
 
 /* ----- The marquee's one chase (the hall's own, at the landing) ------------ */
 .e-marquee { position: absolute; overflow-x: clip; overflow-y: visible; }

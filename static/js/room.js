@@ -398,7 +398,8 @@ function buildFascia() {
    when the stretch is too short to read as a panel rather than a tab. The
    fascia also runs down behind the marquee to the cornice, so the board is
    set into the building rather than floating in front of the page. */
-function fitMasthead() {
+function fitMasthead() { return window.atRest(fitMastheadAtRest); }
+function fitMastheadAtRest() {
   var m = $('#masthead');
   if (!m) return;
   var mr = m.getBoundingClientRect();
@@ -797,7 +798,8 @@ function cutMirror(fp) {
   var v = f2(Math.max(0, mark.getBoundingClientRect().top - mir.getBoundingClientRect().top)) + 'px';
   if (clock.style.getPropertyValue('--cm-runner') !== v) clock.style.setProperty('--cm-runner', v);
 }
-function layoutFloor() {
+function layoutFloor() { return window.atRest(layoutFloorAtRest); }
+function layoutFloorAtRest() {
   var fp = $('#floorplane');
   if (!fp) return;
   cutMirror(fp);
