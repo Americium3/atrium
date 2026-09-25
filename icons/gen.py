@@ -1609,12 +1609,12 @@ OUTREACH_PALM_SWELL = [
 ]
 # Its crease, a run of points with its depth and width (mm): the thenar
 # crease, curving round the ball of the thumb toward the wrist.
-OUTREACH_PALM_CREASE = [([(15.0, 21.0), (10.5, 33.0), (9.5, 44.0), (7.0, 55.0)], 1.3, 1.7)]
+OUTREACH_PALM_CREASE = [([(12.5, 27.0), (10.0, 37.0), (8.8, 47.0), (6.5, 56.0)], 1.3, 1.7)]
 # The thumb, opposed across the card, from its base in the thenar through
 # its last joint to its tip, and its widths there; it stands forward of the
 # palm by OUTREACH_THUMB_LIFT at the joint and beyond.
 OUTREACH_THUMB = {'base': (30.0, 43.0), 'joint': (22.5, 12.0), 'tip': (14.5, -7.5),
-                  'w': (20.5, 15.8, 16.8), 'lift': 8.5}
+                  'w': (20.5, 15.8, 16.8), 'lift': 11.0}
 # The arm is vested and cuffed as a heraldic arm is: a sleeve of gold
 # cloth, couped square, and at the wrist a white cuff turned back over it,
 # broader than the sleeve and flaring to its rolled edge. (top, foot, half width at the top,
@@ -1786,7 +1786,7 @@ def outreach_form():
             continue
         for (j, i), v in z.items():
             hand[j][i] = max(hand[j][i], v)
-    k = 1.4
+    k = 3.0
     for (j, i), v in Z['thumb'].items():
         p = hand[j][i]
         thumb[j][i] = v if p == OUTREACH_OFF else max(p, v) + k * math.log1p(math.exp(-abs(p - v) / k))
