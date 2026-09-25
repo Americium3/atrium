@@ -811,161 +811,252 @@ def subject_pressroom(m, h, small=False):
 
 
 # --------------------------------------------------------------------------
-# Ground Station: the earth station's dish, turned up to the sky it listens to
+# Ground Station: the earth station's antenna, turned up to the sky it listens to
 # --------------------------------------------------------------------------
-DISH = {'vx': 41.0, 'vy': 41.5, 'r': 27.0, 'F': 0.6, 'el': 42.0, 'az': 28.0}
-PAINT = ['#5d5f60', '#9d9a92', '#d6d0c2', '#f6f0e2']       # white-painted steel: dark, shade, body, lit
-PAINT_CUTS = [0.22, 0.5, 0.8]
+# Drawn from photographs of Goonhilly's Antenna 1 and GHY-3 and of the OTC
+# antenna at Carnarvon: a broad, shallow reflector of white-painted panels on
+# a dark backing truss, its subreflector held out at the focus on four legs.
+# The reflector turns about an elevation axle at the front of a level box
+# beam that carries the drive and, in its tail, the counterweight; the beam
+# rides an azimuth turret on a railed gallery at the head of an octagonal
+# concrete tower. World units are mark units: y up, the tower's axis at x = 0,
+# the reader toward +z. Every tone set runs dark, shade, body, lit.
+DISH = {
+    'x': 43.5, 'base': 81.5, 'scale': 1.1,   # where the tower's axis meets the ground, on the mark; size
+    'R': 25.5, 'FD': 0.36,                   # reflector radius; focal length over diameter
+    'el': 38.0, 'head': 30.0,                # elevation; heading, degrees from +x toward the reader
+    'truss': 8.0, 'hub': 5.2,                # the backing truss's depth behind the vertex; hub radius
+    'tower': [(0.0, 1.6, 12.4, 12.4), (1.6, 19.4, 11.4, 6.9)],   # octagonal frustums: y0, y1, r0, r1
+    'gallery': (19.4, 20.9, 9.8),            # the railed platform: y0, y1, radius
+    'turret': (20.9, 26.2, 6.2),             # the azimuth turret: y0, y1, radius
+    'beam': (-15.0, 6.0, 4.4, 5.8),          # the head beam: from, to along the heading; half width; height
+    'paint': ['#8c877b', '#bdb6a5', '#e1dac8', '#f9f5ea'],     # white-painted panels and steel
+    'face_cuts': [0.08, 0.32, 0.6],
+    'truss_tones': ['#23211d', '#39352f', '#57524a', '#7d766a'],
+    'gallery_tones': ['#2e2b26', '#48433b', '#6a6458', '#8f887a'],
+    'concrete': ['#5e5649', '#8e8371', '#bcb098', '#ddd3ba'],
+    'cuts': [0.22, 0.5, 0.8],
+}
 
 
-def dish_frame():
-    d = DISH
-    el, az = math.radians(d['el']), math.radians(d['az'])
-    a = (math.cos(el) * math.cos(az), math.sin(el), math.cos(el) * math.sin(az))   # world, y up
-    v = S.View(0, 0, 1.0, yaw=0, pitch=PITCH)
-    A = S.norm(v.rot(a))                                    # view space, y up, z to the reader
-    U, W, _ = S.basis(A)
-    return A, U, W
+def groundstation_normal(poly):
+    """Newell's normal of a planar polygon (world points)."""
+    nx = ny = nz = 0.0
+    for i in range(len(poly)):
+        x0, y0, z0 = poly[i]
+        x1, y1, z1 = poly[(i + 1) % len(poly)]
+        nx += (y0 - y1) * (z0 + z1)
+        ny += (z0 - z1) * (x0 + x1)
+        nz += (x0 - x1) * (y0 + y1)
+    return S.norm((nx, ny, nz))
+
+
+def groundstation_mean(pts):
+    n = float(len(pts))
+    return (sum(p[0] for p in pts) / n, sum(p[1] for p in pts) / n, sum(p[2] for p in pts) / n)
+
+
+def groundstation_solid(fc, vw, polys, centre, tones, cuts, lift=0.0, sky=0.14):
+    """Lay a convex solid into the painter's list: every face that turns to
+    the reader, one flat tone by how squarely it meets the key light, and a
+    little more where it looks up at the open sky."""
+    for poly in polys:
+        n = groundstation_normal(poly)
+        if S.dot(n, S.add(groundstation_mean(poly), S.mul(centre, -1))) < 0:
+            n = S.mul(n, -1)
+        nv = vw.nrm(n)
+        if nv[2] <= 1e-4:
+            continue
+        q = [vw.proj(p) for p in poly]
+        fc.add([(x, y) for x, y, _ in q], sum(z for _, _, z in q) / len(q),
+               facet(lam(nv) + lift + sky * max(0.0, n[1]), tones, cuts))
+
+
+def groundstation_ring(o, X, Y, Z, y, r, n, turn=0.0):
+    """n points round a circle of radius r at height y on the axis (o, Y)."""
+    return [S.add(S.add(o, S.mul(Y, y)), S.add(S.mul(X, r * math.cos(turn + 2 * math.pi * k / n)),
+                                                 S.mul(Z, r * math.sin(turn + 2 * math.pi * k / n))))
+            for k in range(n)]
+
+
+def groundstation_frustum(o, X, Y, Z, y0, y1, r0, r1, n, turn=0.0, caps=True):
+    """A turned or faceted frustum on the axis (o, Y): its side faces and caps,
+    and its centre."""
+    lo = groundstation_ring(o, X, Y, Z, y0, r0, n, turn)
+    hi = groundstation_ring(o, X, Y, Z, y1, r1, n, turn)
+    polys = [[lo[k], lo[(k + 1) % n], hi[(k + 1) % n], hi[k]] for k in range(n)]
+    if caps:
+        polys += [hi, lo[::-1]]
+    return polys, S.add(o, S.mul(Y, (y0 + y1) / 2))
+
+
+def groundstation_box(o, X, Y, Z, hx, hy, hz):
+    """A box about o on the axes X, Y, Z: its six faces and its centre."""
+    c = [S.add(o, S.add(S.mul(X, sx * hx), S.add(S.mul(Y, sy * hy), S.mul(Z, sz * hz))))
+         for sx in (-1, 1) for sy in (-1, 1) for sz in (-1, 1)]
+    quads = [(0, 1, 3, 2), (4, 5, 7, 6), (0, 1, 5, 4), (2, 3, 7, 6), (0, 2, 6, 4), (1, 3, 7, 5)]
+    return [[c[i] for i in q] for q in quads], o
+
+
+def groundstation_hull(pts):
+    """The convex hull of screen points (for a part's cast shadow)."""
+    pts = sorted(set((round(x, 2), round(y, 2)) for x, y in pts))
+    if len(pts) < 3:
+        return pts
+
+    def half(seq):
+        out = []
+        for p in seq:
+            while len(out) >= 2 and ((out[-1][0] - out[-2][0]) * (p[1] - out[-2][1])
+                                     - (out[-1][1] - out[-2][1]) * (p[0] - out[-2][0])) <= 0:
+                out.pop()
+            out.append(p)
+        return out
+    lower, upper = half(pts), half(pts[::-1])
+    return lower[:-1] + upper[:-1]
+
+
+def groundstation_beam(p0, p1, w, lit, shade):
+    """A square steel member between two screen points: a shaded half and,
+    toward the key light, a lit half."""
+    dx, dy = p1[0] - p0[0], p1[1] - p0[1]
+    ln = math.hypot(dx, dy) or 1.0
+    nx, ny = -dy / ln, dx / ln
+    if nx * LX + ny * LY < 0:
+        nx, ny = -nx, -ny
+    hw = w / 2.0
+    full = [(p0[0] - nx * hw, p0[1] - ny * hw), (p1[0] - nx * hw, p1[1] - ny * hw),
+            (p1[0] + nx * hw, p1[1] + ny * hw), (p0[0] + nx * hw, p0[1] + ny * hw)]
+    half = [p0, p1, (p1[0] + nx * hw, p1[1] + ny * hw), (p0[0] + nx * hw, p0[1] + ny * hw)]
+    return '<path d="%s" fill="%s"/><path d="%s" fill="%s"/>' % (poly_d(full), shade, poly_d(half), lit)
 
 
 def subject_groundstation(m, h, small=False):
-    """An earth station's dish, the object the app is named for: a deep
-    paraboloid of white-painted steel turned up and to the right, its bowl
-    cut into planes by the key light (lit where it faces up and left, in
-    shade where it turns away), four struts carrying the subreflector at the
-    focus, and an elevation yoke on a turned pedestal. Nothing in the sky:
-    the dish says it is listening."""
+    """An earth station's antenna, the object the app is named for, drawn
+    from Goonhilly and Carnarvon. The reflector is a true paraboloid (focal
+    length 0.36 of its diameter) turned up and to the right and seen three
+    quarters on. The key light rakes across its white panels: the wall on the
+    lamp's side turns its face away and falls into pale grey shade, and the
+    far wall faces the lamp and takes the light. Those planes are what tell a
+    bowl from a plate. Behind it the backing truss is a dark faceted cone down
+    to the hub, and four legs hold the subreflector at the focus. The hub
+    turns at the front of the head beam, whose tail carries the
+    counterweight. The beam rides the azimuth turret on a railed gallery at
+    the head of an octagonal concrete tower. Nothing in the sky and nothing
+    lit: the antenna is listening. The small cut is the same geometry with
+    coarser planes, heavier legs, a larger subreflector and no handrail."""
     d = DISH
-    A, U, W = dish_frame()
-    Rd, Fp = d['r'], d['F'] * d['r']
-    V = (d['vx'], -d['vy'], 0.0)                           # the vertex, view space (y up)
-
-    def hit(x, y):
-        """The dish surface under screen point (x, y), nearest the reader:
-        (lit, facing the reader with its inside, signed edge value). The
-        edge value is negative on the dish and changes sign smoothly both at
-        the rim and where the bowl's back turns away, so the outline traces
-        clean."""
-        D0 = (x - V[0], -y - V[1], -V[2])
-        du, dw, da = S.dot(D0, U), S.dot(D0, W), S.dot(D0, A)
-        a2 = U[2] ** 2 + W[2] ** 2
-        b = 2 * (du * U[2] + dw * W[2] - 2 * Fp * A[2])
-        c = du * du + dw * dw - 4 * Fp * da
-        disc = b * b - 4 * a2 * c
-        k = 1.0 / (4 * Fp * Rd)
-        if disc < 0:
-            return None, math.sqrt(-disc) * k
-        best, edge = None, 1e9
-        for t in ((-b + math.sqrt(disc)) / (2 * a2), (-b - math.sqrt(disc)) / (2 * a2)):
-            qu, qw = du + t * U[2], dw + t * W[2]
-            rho = (qu * qu + qw * qw) / (Rd * Rd)
-            edge = min(edge, rho - 1.0)
-            if rho <= 1.0 and (best is None or t > best[0]):
-                best = (t, qu, qw)
-        if best is None:
-            return None, edge
-        _, qu, qw = best
-        n = S.norm(S.add(S.add(S.mul(U, -qu / (2 * Fp)), S.mul(W, -qw / (2 * Fp))), A))
-        inside = n[2] > 0
-        if not inside:
-            n = S.mul(n, -1)
-        return (lam(n), inside), max(edge, -math.sqrt(disc) * k)
-
-    def sil(x, y):
-        return hit(x, y)[1]
-
-    def light(x, y):
-        r = hit(x, y)[0]
-        if r is None:
-            return 0.0
-        return r[0] if r[1] else r[0] * 0.55
-
-    def proj(p):
-        return (p[0], -p[1])
-
-    def dish_pt(u, w, a_off=0.0):
-        qa = (u * u + w * w) / (4 * Fp) + a_off
-        return S.add(S.add(S.add(V, S.mul(U, u)), S.mul(W, w)), S.mul(A, qa))
-
-    rim = [proj(dish_pt(Rd * math.cos(2 * math.pi * k / 72), Rd * math.sin(2 * math.pi * k / 72))) for k in range(72)]
-    xs, ys = [p[0] for p in rim], [p[1] for p in rim]
-    box = (min(xs) - 3, min(ys) - 3, max(xs) + 3, max(ys) + 3)
+    paint, steel, concrete, cuts = d['paint'], d['truss_tones'], d['concrete'], d['cuts']
+    k = d['scale']
+    vw = S.View(d['x'], d['base'], k, yaw=0, pitch=PITCH)
+    el, hd = math.radians(d['el']), math.radians(d['head'])
+    hdir = (math.cos(hd), 0.0, math.sin(hd))                  # level, the way the reflector looks
+    axle = (-hdir[2], 0.0, hdir[0])                           # level, square to the heading
+    a = (math.cos(el) * hdir[0], math.sin(el), math.cos(el) * hdir[2])   # the boresight
+    up = (0.0, 1.0, 0.0)
+    ua = S.norm(S.cross(axle, a))                             # square to the boresight, up and back
+    R, F = d['R'], d['FD'] * 2 * d['R']
+    zr = R * R / (4 * F)                                      # the rim's depth above the vertex
+    t0, t1, tr = d['turret']
+    b0, b1, bw, bh = d['beam']
+    P = S.add(S.mul(hdir, b1 - 2.6), (0.0, t1 + bh - 1.4, 0.0))   # the elevation axle
+    V = S.add(P, S.mul(a, d['truss'] + 1.6))                  # the reflector's vertex
     step = 0.7 if small else 0.4
-    # -- the mount: a turned pedestal, a turntable and the elevation yoke ------
-    base_y = 81.5
-    px = d['vx'] - 1.0
     fc = S.Faces()
-    sv = S.View(px, base_y, 1.0, yaw=0, pitch=PITCH)
-    prof = [(0.0, 2.0, 11.0, 11.0), (2.0, 3.3, 11.0, 8.8), (3.3, 4.6, 7.0, 7.0),
-            (4.6, 23.0, 5.8, 4.4), (23.0, 25.4, 7.4, 7.4)]
-    cuts = [0.22, 0.5, 0.8]
-    for y0, y1, r0, r1 in prof:
-        n = 20 if small else 36
-        for k in range(n):
-            p0, p1 = 2 * math.pi * k / n, 2 * math.pi * (k + 1) / n
-            pm = (p0 + p1) / 2
-            nv = sv.nrm((math.cos(pm), (r0 - r1) / max(0.01, y1 - y0), math.sin(pm)))
-            if nv[2] <= 0:
-                continue
-            q = [sv.proj((r0 * math.cos(p0), y0, r0 * math.sin(p0))), sv.proj((r0 * math.cos(p1), y0, r0 * math.sin(p1))),
-                 sv.proj((r1 * math.cos(p1), y1, r1 * math.sin(p1))), sv.proj((r1 * math.cos(p0), y1, r1 * math.sin(p0)))]
-            fc.add([(a, b) for a, b, _ in q], sum(z for _, _, z in q) / 4, facet(lam(nv), PAINT, cuts))
-        top = [sv.proj((r1 * math.cos(2 * math.pi * k / n), y1, r1 * math.sin(2 * math.pi * k / n))) for k in range(n)]
-        fc.add([(a, b) for a, b, _ in top], sum(z for _, _, z in top) / n - 0.5, facet(lam(sv.nrm((0, 1, 0))), PAINT, cuts))
-    foot = [sv.proj((11 * math.cos(2 * math.pi * k / 40), 0, 11 * math.sin(2 * math.pi * k / 40)))[:2] for k in range(40)]
-    m.add(shadow(poly_d(foot), 1.2, 1.0, 0.45))
+
+    # -- the tower, its gallery, the turret and the head beam ------------------
+    X, Y, Z = (1.0, 0.0, 0.0), up, (0.0, 0.0, 1.0)
+    turn = math.radians(22.5)                                 # a flat of the octagon to the reader
+    for y0, y1, r0, r1 in d['tower']:
+        polys, c = groundstation_frustum((0, 0, 0), X, Y, Z, y0, y1, r0, r1, 8, turn)
+        groundstation_solid(fc, vw, polys, c, concrete, cuts)
+    g0, g1, gr = d['gallery']
+    polys, c = groundstation_frustum((0, 0, 0), X, Y, Z, g0, g1, gr, gr, 8, turn)
+    groundstation_solid(fc, vw, polys, c, d['gallery_tones'], cuts)
+    polys, c = groundstation_frustum((0, 0, 0), X, Y, Z, t0, t1, tr, tr * 0.94, 8 if small else 16, turn)
+    groundstation_solid(fc, vw, polys, c, paint, cuts, lift=-0.1)
+    bo = S.add(S.mul(hdir, (b0 + b1) / 2), (0.0, t1 + bh / 2, 0.0))
+    polys, c = groundstation_box(bo, hdir, up, axle, (b1 - b0) / 2, bh / 2, bw)
+    groundstation_solid(fc, vw, polys, c, paint, cuts, lift=-0.14, sky=0.3)
+
+    # -- the hub and the backing truss behind the reflector --------------------
+    U, W = axle, ua
+    polys, c = groundstation_frustum(V, U, a, W, -d['truss'] - 3.2, -d['truss'], d['hub'] * 0.86, d['hub'] * 0.86, 20)
+    groundstation_solid(fc, vw, polys, c, steel, cuts)
+    n_back = 48                                               # the rim stays round in both cuts
+    polys, c = groundstation_frustum(V, U, a, W, -d['truss'], zr - 0.4, d['hub'], R - 0.2, n_back, caps=False)
+    groundstation_solid(fc, vw, polys, S.add(V, S.mul(a, zr + 6.0)), steel, cuts, lift=0.06)
+    # the rim: a shallow skirt round the reflector's edge, white-painted
+    polys, c = groundstation_frustum(V, U, a, W, zr - 1.2, zr, R, R, n_back, caps=False)
+    groundstation_solid(fc, vw, polys, S.add(V, S.mul(a, zr - 0.6)), paint, cuts)
+
+    # the charge's shadow on the enamel, cast down and to the right
+    base = [vw.proj(p)[:2] for y0, y1, r0, r1 in d['tower'] for p in groundstation_ring((0, 0, 0), X, Y, Z, y0, r0, 8, turn)]
+    base += [vw.proj(p)[:2] for p in groundstation_ring((0, 0, 0), X, Y, Z, t1, tr, 8, turn)]
+    m.add(shadow(poly_d(groundstation_hull(base)), 1.3, 1.1, 0.42))
+    head = [vw.proj(S.add(S.mul(hdir, sx), S.add((0.0, t1 + sy, 0.0), S.mul(axle, sz))))[:2]
+            for sx in (b0, b1) for sy in (0.0, bh) for sz in (-bw, bw)]
+    m.add(shadow(poly_d(groundstation_hull(head)), 1.2, 1.4, 0.4))
+    rimv = [vw.proj(p) for p in groundstation_ring(V, U, a, W, zr, R, 96)]
+    hub = [vw.proj(p)[:2] for p in groundstation_ring(V, U, a, W, -d['truss'], d['hub'], 24)]
+    m.add(shadow(poly_d(groundstation_hull([p[:2] for p in rimv] + hub)), 1.6, 2.0, 0.45))
     m.add(fc.svg(seam=0.12))
-    # the yoke: a cast block rising from the turntable to the elevation
-    # axle behind the bowl, its lit face toward the key light
-    ty = sv.proj((0, 25.4, 0))[1]
-    axle = proj(S.add(V, S.mul(A, -1.5)))
-    x0l, x0r, x1l, x1r = px - 6.2, px + 6.2, axle[0] - 4.2, axle[0] + 4.2
-    mid0, mid1 = px - 1.2, axle[0] - 0.8
-    block = 'M%s %s L%s %s L%s %s L%s %s Z' % (f(x0l), f(ty + 0.6), f(x1l), f(axle[1]), f(x1r), f(axle[1]), f(x0r), f(ty + 0.6))
-    m.add(shadow(block, 0.8, 1.0, 0.45))
-    m.add('<path d="%s" fill="%s"/>' % (block, PAINT[1]))
-    m.add('<path d="M%s %s L%s %s L%s %s L%s %s Z" fill="%s"/>'
-          % (f(x0l), f(ty + 0.6), f(x1l), f(axle[1]), f(mid1), f(axle[1]), f(mid0), f(ty + 0.6), PAINT[3]))
-    # -- the bowl ----------------------------------------------------------------
-    outline = S.region_d(sil, box, step, 0.1)
-    m.add(shadow(outline, 1.6, 2.2, 0.5))
-    m.add(planes(m, 'bowl', outline, light, box, PAINT, PAINT_CUTS, step))
-    # the rim: a rolled lip, lit where its edge faces up and left
-    lip = []
-    for k in range(72):
-        (x0, y0), (x1, y1) = rim[k], rim[(k + 1) % 72]
-        mx, my = (x0 + x1) / 2, (y0 + y1) / 2
-        c = (sum(xs) / 72, sum(ys) / 72)
-        nx, ny = mx - c[0], my - c[1]
-        ln = math.hypot(nx, ny) or 1
-        lip.append((x0, y0, x1, y1, facet(lam((nx / ln, -ny / ln, 0.45)), PAINT, PAINT_CUTS)))
-    for tone in sorted(set(e[4] for e in lip)):
-        m.add('<path d="%s" stroke="%s" stroke-width="%s" stroke-linecap="round" fill="none"/>'
-              % (lines_path([e[:4] for e in lip if e[4] == tone]), tone, '1.6' if small else '1.1'))
-    # the feed horn at the vertex and the subreflector at the focus on four struts
-    foc = S.add(V, S.mul(A, Fp * 0.92))
-    fp = proj(foc)
-    if not small:
-        horn0, horn1 = proj(S.add(V, S.mul(A, 0.8))), proj(S.add(V, S.mul(A, 4.2)))
-        m.add('<path d="M%s %s L%s %s" stroke="%s" stroke-width="2.6" stroke-linecap="butt"/>'
-              % (f(horn0[0]), f(horn0[1]), f(horn1[0]), f(horn1[1]), PAINT[1]))
-    legs = []
-    for deg in (45, 135, 225, 315):
+
+    # -- the reflector's face ---------------------------------------------------
+    Av, Uv, Wv = S.norm(vw.nrm(a)), S.norm(vw.nrm(U)), S.norm(vw.nrm(W))
+    Vv = vw.rot(V)
+
+    def face_light(x, y):
+        """How squarely the bowl's inside meets the key light under screen
+        point (x, y), at the nearest surface point along the reader's ray."""
+        D0 = ((x - d['x']) / k - Vv[0], (d['base'] - y) / k - Vv[1], -Vv[2])
+        du, dw, da = S.dot(D0, Uv), S.dot(D0, Wv), S.dot(D0, Av)
+        a2 = Uv[2] ** 2 + Wv[2] ** 2
+        b = 2 * (du * Uv[2] + dw * Wv[2] - 2 * F * Av[2])
+        cc = du * du + dw * dw - 4 * F * da
+        disc = b * b - 4 * a2 * cc
+        if disc < 0:
+            return 0.0
+        # the nearest point on the reflector; past the rim, the surface
+        # carried on, so the planes run out under the rim's own outline
+        hits = []
+        for t in ((-b + math.sqrt(disc)) / (2 * a2), (-b - math.sqrt(disc)) / (2 * a2)):
+            qu, qw = du + t * Uv[2], dw + t * Wv[2]
+            hits.append((qu * qu + qw * qw > R * R, -t, qu, qw))
+        _, _, qu, qw = min(hits)
+        return lam(S.add(S.add(S.mul(Uv, -qu / (2 * F)), S.mul(Wv, -qw / (2 * F))), Av))
+
+    rim2 = [(x, y) for x, y, _ in rimv]
+    rim_d = smooth_d(rim2[::2] if small else rim2)
+    xs, ys = [p[0] for p in rim2], [p[1] for p in rim2]
+    box = (min(xs) - 2, min(ys) - 2, max(xs) + 2, max(ys) + 2)
+    m.add(planes(m, 'reflector', rim_d, face_light, box, paint, d['face_cuts'], step))
+
+    # -- the quadripod and the subreflector --------------------------------------
+    apex = S.add(V, S.mul(a, 0.86 * F))
+    ap = vw.proj(apex)[:2]
+    for deg in (40, 140, 220, 320):
         t = math.radians(deg)
-        p = proj(dish_pt(Rd * 0.97 * math.cos(t), Rd * 0.97 * math.sin(t)))
-        legs.append((p[0], p[1], fp[0], fp[1]))
-    m.add('<path d="%s" stroke="#000" stroke-opacity=".35" stroke-width="%s" transform="translate(.5 .7)"/>'
-          % (lines_path(legs), '2' if small else '1.1'))
-    m.add('<path d="%s" stroke="%s" stroke-width="%s" stroke-linecap="round"/>'
-          % (lines_path(legs), PAINT[2], '1.7' if small else '0.9'))
-    # the subreflector: a small convex disc facing back into the bowl; we see its back
-    sub = [proj(S.add(foc, S.add(S.mul(U, 3.4 * math.cos(2 * math.pi * k / 32)), S.mul(W, 3.4 * math.sin(2 * math.pi * k / 32)))))
-           for k in range(32)]
-    m.add(shadow(poly_d(sub), 0.6, 0.9, 0.45))
-    m.add('<path d="%s" fill="%s"/>' % (poly_d(sub), facet(lam(A), PAINT, PAINT_CUTS)))
+        foot = S.add(V, S.add(S.mul(a, zr - 0.2), S.add(S.mul(U, (R - 0.8) * math.cos(t)), S.mul(W, (R - 0.8) * math.sin(t)))))
+        m.add(groundstation_beam(vw.proj(foot)[:2], ap, 1.9 if small else 1.05, paint[3], paint[1]))
+    # the subreflector's housing: a shallow drum, its back to the sky
+    sr = 3.9 if small else 3.1
+    polys, c = groundstation_frustum(apex, U, a, W, -0.6, 1.0, sr, sr * 0.72, 12 if small else 24)
+    sf = S.Faces()
+    groundstation_solid(sf, vw, polys, c, paint, cuts)
+    m.add(shadow(poly_d(groundstation_hull([vw.proj(p)[:2] for poly in polys for p in poly])), 0.7, 0.9, 0.35))
+    m.add(sf.svg(seam=0.1))
+
+    # the gallery's handrail, a thread of steel round the front of the platform
     if not small:
-        sub2 = [((x - fp[0]) * 0.55 + fp[0] - 0.4, (y - fp[1]) * 0.55 + fp[1] - 0.4) for x, y in sub]
-        m.add('<path d="%s" fill="%s"/>' % (poly_d(sub2), PAINT[3]))
+        rail = groundstation_ring((0, 0, 0), X, Y, Z, g1 + 1.3, gr - 0.3, 8, turn)
+        segs = []
+        for k in range(8):
+            p0, p1 = rail[k], rail[(k + 1) % 8]
+            if vw.rot(S.mul(S.add(p0, p1), 0.5))[2] > -1.0:
+                q0, q1 = vw.proj(p0), vw.proj(p1)
+                segs.append((q0[0], q0[1], q1[0], q1[1]))
+        m.add('<path d="%s" stroke="%s" stroke-width=".4" stroke-linecap="round"/>' % (lines_path(segs), steel[2]))
 
 
 # --------------------------------------------------------------------------
