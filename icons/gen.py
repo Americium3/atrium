@@ -105,7 +105,7 @@ HUE = {
     },
     'bourse': {
         'name': 'Bourse', 'short': 'Bourse',
-        'deep': '#0f0e05', 'field': '#35320f', 'lit': '#5e5a22', 'pop': '#e6a817',
+        'deep': '#141305', 'field': '#4a4616', 'lit': '#7a742c', 'pop': '#e6a817',
         'velvet': {'name': 'olive gold', 'onyx': '#6b692c', 'ivory': '#8e8c4a'},
         'ink': 'oxblood',
     },
@@ -1956,227 +1956,354 @@ def arsenal_engraving(v, fr, zf, small=False):
 
 
 # --------------------------------------------------------------------------
-# Bourse: the canary the desk keeps on watch, on its perch in a gilt cage
+# Bourse: the canary the desk keeps on watch, on a turned perch
 # --------------------------------------------------------------------------
-# The bird, from the living canary, facing the key light: a short conical
-# bill, a round head on a short neck with a soft dip at the nape, the breast
-# carried full and forward, the body sitting up at about fifty-five degrees,
-# the wing folded along the side with its primaries reaching over the base
-# of the tail, and a long tail with a shallow notch. Bird units, the feet on
-# the perch at the origin, y down; a point (x, y, 1) is a corner.
-CANARY = {
-    'outline': [(-17.4, -26.7, 1), (-14.3, -29.1, 1), (-13.6, -31.4), (-11.8, -33.3), (-9.3, -34.2), (-6.7, -33.4),
-                (-5.0, -31.5), (-4.1, -29.4), (-2.7, -27.6), (-0.4, -25.4), (2.8, -21.6), (5.9, -17.0), (8.3, -13.2),
-                (10.2, -10.3), (14.4, -3.4), (18.8, 3.4, 1), (17.6, 3.1, 1), (16.9, 4.9, 1), (15.2, 2.7), (10.8, -2.4),
-                (7.2, -4.2), (4.6, -3.6), (1.8, -2.8), (-1.4, -3.3), (-4.8, -5.4), (-8.0, -8.9), (-10.4, -13.2),
-                (-12.3, -18.0), (-13.5, -21.8), (-14.4, -25.0, 1)],
-    'head': ((-9.4, -28.2), 5.9),
-    'body': ((-2.6, -14.6), 58.0, 14.2, 9.4),        # centre, axis angle (deg, toward the head), half length, half depth
-    'wing': [(-6.9, -22.6, 1), (-4.6, -25.2), (-1.0, -23.4), (3.0, -18.8), (6.4, -13.9), (9.4, -9.4), (12.6, -5.2, 1),
-             (9.8, -4.6), (6.4, -4.3), (2.8, -5.3), (-0.6, -7.8), (-3.4, -11.4), (-5.4, -15.6), (-6.6, -19.4)],
-    # the greater coverts' scalloped edge, and the tertials' stepped tips
-    'coverts': [(-6.9, -22.6, 1), (-4.6, -25.2), (-1.0, -23.4), (2.4, -19.6), (1.6, -17.1), (0.0, -16.4), (-1.0, -14.9),
-                (-2.8, -14.3), (-3.8, -12.7), (-5.2, -12.9)],
-    'tertials': [(1.6, -20.8), (4.6, -17.0), (7.8, -12.6), (6.6, -10.9), (5.0, -11.4), (4.4, -9.8), (2.6, -10.4),
-                 (1.8, -8.7), (0.0, -9.9), (-1.2, -12.2), (0.2, -14.0), (0.4, -16.8)],
-    'shoulder': [(-6.9, -22.6, 1), (-4.8, -24.6), (-2.6, -24.2), (-2.4, -21.8), (-3.8, -20.0), (-5.6, -19.2)],
-    'tail_far': [(9.8, -8.2), (14.6, -2.2), (18.8, 3.4, 1), (17.6, 3.1, 1), (16.9, 4.9, 1), (14.4, 1.8), (9.6, -3.8)],
-    'bill_upper': [(-17.4, -26.7, 1), (-15.8, -28.2), (-14.3, -29.1, 1), (-13.9, -27.4, 1), (-13.7, -26.5, 1)],
-    'bill_lower': [(-17.4, -26.7, 1), (-13.7, -26.5, 1), (-14.4, -25.0, 1), (-15.9, -25.6)],
-    'eye': (-10.4, -28.9, 0.95),
-    'legs': [(-1.2, -3.4, -1.0, 0.0), (1.4, -3.0, 1.6, 0.0)],
+# The bird is traced from a photograph of a living domestic canary perched
+# side-on (Wikimedia Commons, "Phaeo gelb intensiv.jpg"), mirrored to face
+# the key light: the rounded crown, the short conical bill as deep as it is
+# long, the nape, the mantle running down into the folded wing, the full
+# breast carried forward, the long tail with its shallow notch, and the body
+# at about forty degrees. The wing's feather masses are read against
+# "Domestic Canary - Serinus canaria.jpg", the show perch against "Mehringer
+# gelb lipochrom.jpg". Bird units: the feet on the perch at the origin, y
+# down, one unit ten of the photograph's pixels (at 960 wide); a point
+# (x, y, 1) is a corner.
+BOURSE_BIRD = {
+    'outline': [(-32.8, -50.0, 1), (-30.9, -50.9), (-28.1, -51.4), (-25.9, -53.1), (-23.2, -53.9), (-18.7, -53.5),
+                (-14.4, -51.3), (-11.9, -48.4), (-9.6, -43.6), (-6.8, -39.6), (-2.9, -36.1), (2.0, -33.2), (6.4, -30.3),
+                (10.6, -26.8), (15.2, -24.3), (19.4, -21.9), (22.8, -18.9), (27.9, -15.9, 1), (33.5, -12.8), (39.5, -9.4),
+                (45.5, -6.0), (48.8, -4.4, 1), (46.6, -3.4, 1), (48.2, -1.6, 1), (43.0, -3.4), (37.0, -6.0), (31.8, -8.4),
+                (27.4, -9.9), (21.8, -10.4), (16.2, -10.2), (10.4, -8.9), (5.2, -7.4), (0.5, -7.0),
+                (-4.2, -7.6), (-8.2, -9.5), (-12.6, -11.8), (-17.0, -14.6), (-21.0, -18.6), (-24.0, -23.3), (-25.7, -28.5),
+                (-26.0, -32.6), (-25.9, -36.5), (-26.6, -39.6), (-27.8, -43.4), (-28.5, -46.0, 1)],
+    # the volume the light is cut from: head and body only (the tail and the
+    # bill are flat and drawn over it)
+    'form': [(-28.1, -46.5), (-28.1, -51.4), (-25.9, -53.1), (-23.2, -53.9), (-18.7, -53.5), (-14.4, -51.3),
+             (-11.9, -48.4), (-9.6, -43.6), (-6.8, -39.6), (-2.9, -36.1), (2.0, -33.2), (6.4, -30.3), (10.6, -26.8),
+             (15.2, -24.3), (19.4, -21.9), (22.8, -18.9), (26.4, -15.6), (27.8, -12.6), (25.4, -10.4), (21.8, -10.4),
+             (16.2, -10.2), (10.4, -8.9), (5.2, -7.4), (0.5, -7.0), (-4.2, -7.6), (-8.2, -9.5), (-12.6, -11.8),
+             (-17.0, -14.6), (-21.0, -18.6), (-24.0, -23.3), (-25.7, -28.5), (-26.0, -32.6), (-25.9, -36.5),
+             (-26.6, -39.6), (-27.8, -43.4)],
+    # the folded wing: the flight feathers' mass, its primaries stepping to
+    # the point over the tail
+    'wing': [(-10.8, -34.6), (-5.4, -35.0), (0.2, -33.2), (5.6, -30.1), (10.4, -26.7), (15.2, -24.2), (19.4, -21.8),
+             (22.8, -18.9), (27.9, -15.9, 1), (26.1, -15.5, 1), (25.4, -16.2, 1), (23.4, -15.9, 1), (22.7, -16.6, 1),
+             (19.8, -16.6), (14.0, -17.1), (7.0, -17.8), (0.6, -18.9), (-4.4, -20.4), (-8.4, -22.6), (-10.9, -25.8),
+             (-11.6, -29.6)],
+    # the tertials lying over the flight feathers, their tips stepped
+    'tertials': [(1.6, -31.5), (6.2, -29.4), (10.6, -26.6), (14.6, -23.9), (18.2, -21.3), (20.6, -18.4, 1),
+                 (18.4, -17.7, 1), (17.6, -18.9, 1), (15.2, -18.3, 1), (14.4, -19.7, 1), (11.6, -19.4), (7.2, -21.2),
+                 (3.4, -24.4), (1.2, -28.0)],
+    # the coverts over the shoulder, the greater coverts' tips scalloped
+    'coverts': [(-10.8, -34.6), (-5.4, -35.0), (0.2, -33.2), (4.8, -30.5), (7.4, -28.2), (5.6, -26.9, 1),
+                (4.6, -25.4), (2.4, -25.2, 1), (1.2, -23.8), (-1.2, -23.9, 1), (-2.6, -22.6), (-5.0, -23.0, 1),
+                (-6.6, -22.2), (-8.4, -22.6), (-10.9, -25.8), (-11.6, -29.6)],
+    # the tail: its near half, and the far outer feather below it
+    'tail': [(22.8, -18.9), (27.9, -15.9, 1), (33.5, -12.8), (39.5, -9.4), (45.5, -6.0), (48.8, -4.4, 1),
+             (46.6, -3.4, 1), (40.8, -5.8), (34.4, -8.8), (28.6, -11.4), (24.6, -12.4)],
+    'tail_far': [(27.4, -9.9), (31.8, -8.4), (37.0, -6.0), (43.0, -3.4), (48.2, -1.6, 1), (46.6, -3.4, 1),
+                 (40.8, -5.8), (34.4, -8.8), (28.6, -11.4)],
+    'bill_upper': [(-28.1, -51.4, 1), (-30.9, -50.9), (-32.8, -50.0, 1), (-30.6, -49.0), (-28.3, -48.3, 1)],
+    'bill_lower': [(-28.3, -48.3, 1), (-30.6, -49.0), (-32.5, -49.8, 1), (-30.4, -47.9), (-28.5, -46.0, 1)],
+    'eye': (-21.9, -47.6, 1.2),
+    # tarsi from the heel under the flank feathers to the perch, near then far
+    'legs': [((3.4, -8.2), (4.4, 0.0)), ((-1.0, -8.0), (-3.2, 0.0))],
 }
-YELLOW = ['#b57f12', '#dea724', '#f3ca38', '#fde670']       # dark, shade, body, lit
-YELLOW_CUTS = [0.2, 0.46, 0.72]
-WINGC = ['#a8780e', '#cf9d1e', '#ecc234', '#fbe06a']        # primaries, tertials, coverts, shoulder
-HORN = ['#caa184', '#ecd2b8', '#8a6452']                    # lower, upper, gape
-CAGE = {'cx': 48.0, 'r': 23.0, 'base': 72.5, 'spring': 41.0, 'top': 20.5, 'wires': 3}
+# Canary yellow as the eye keeps it: cool lemon where the light falls, the
+# warm deep yellow of the breast and flank in shade.
+BOURSE_PLUMAGE = ['#a47014', '#d99c20', '#f3c52c', '#fde25e']       # deep, shade, body, lit
+BOURSE_COVERTS = ['#977812', '#cfa526', '#ecc934', '#f9e373']       # the shoulder, a shade cooler
+BOURSE_TERTIALS = ['#78631a', '#b3922a', '#d8b83c', '#eed86e']      # the olive in a canary's wing
+BOURSE_FLIGHT = ['#625216', '#98802a', '#c3a73c', '#e2cd66']        # the long flight feathers
+BOURSE_CUTS = [0.24, 0.44, 0.7]
+BOURSE_WING_CUTS = [0.26, 0.5, 0.8]
+BOURSE_HORN = ['#ecd8b8', '#c3a07e']                                 # the upper mandible, the lower
+BOURSE_SHANK = ['#d9a58e', '#a9735f']                                # the near leg, the far one
+BOURSE_FORM = {}                                                      # the traced volume, solved once a placing
 
 
-def smax(a, b, k):
-    hh = max(k - abs(a - b), 0.0) / k
-    return max(a, b) + hh * hh * k * 0.25
+def bourse_fill(poly, x0, y0, step, nx, ny):
+    """Which cells of a grid lie inside a polygon (even-odd, by scanline)."""
+    inside = [[False] * nx for _ in range(ny)]
+    n = len(poly)
+    for j in range(ny):
+        y = y0 + (j + 0.5) * step
+        xs = []
+        for i in range(n):
+            (ax, ay), (bx, by) = poly[i], poly[(i + 1) % n]
+            if (ay <= y < by) or (by <= y < ay):
+                xs.append(ax + (y - ay) * (bx - ax) / (by - ay))
+        xs.sort()
+        for a, b in zip(xs[0::2], xs[1::2]):
+            i0 = max(0, int(math.ceil((a - x0) / step - 0.5)))
+            i1 = min(nx - 1, int(math.floor((b - x0) / step - 0.5)))
+            for i in range(i0, i1 + 1):
+                inside[j][i] = True
+    return inside
 
 
-def canary(m, x, y, s, small=False):
-    """Lay the bird with its feet at (x, y), scaled by s. Its volume is a
-    head and a body blended at the neck; the planes are cut from that
-    volume along the key light and clipped to the drawn outline, so the
-    silhouette stays the bird's and the tone follows its form."""
-    C = CANARY
-    (hx, hy), hr = C['head']
-    (bx, by), bang, ba, bb = C['body']
-    ux, uy = -math.cos(math.radians(bang)), -math.sin(math.radians(bang))
-    vx_, vy_ = -uy, ux
-    nx_, ny_ = -10.6, -22.4
+def bourse_curve(pts, n=6):
+    """The traced outline as a dense polygon, along the same spline
+    smooth_d draws, so the volume and the drawn edge agree."""
+    P = [(p[0], p[1]) for p in pts]
+    corner = [len(p) > 2 and p[2] for p in pts]
+    k, out, m_ = 1 / 6.0, [], len(P)
+    for i in range(m_):
+        p0, p1, p2, p3 = P[(i - 1) % m_], P[i], P[(i + 1) % m_], P[(i + 2) % m_]
+        c1 = p1 if corner[i] else (p1[0] + (p2[0] - p0[0]) * k, p1[1] + (p2[1] - p0[1]) * k)
+        c2 = p2 if corner[(i + 1) % m_] else (p2[0] - (p3[0] - p1[0]) * k, p2[1] - (p3[1] - p1[1]) * k)
+        for s in range(n):
+            t = s / float(n)
+            a, b, c, d = (1 - t) ** 3, 3 * t * (1 - t) ** 2, 3 * t * t * (1 - t), t ** 3
+            out.append((a * p1[0] + b * c1[0] + c * c2[0] + d * p2[0], a * p1[1] + b * c1[1] + c * c2[1] + d * p2[1]))
+    return out
 
-    def height(px, py):
-        d2 = (px - hx) ** 2 + (py - hy) ** 2
-        h1 = 0.9 * math.sqrt(max(0.0, hr * hr - d2))
-        du = (px - bx) * ux + (py - by) * uy
-        dv = (px - bx) * vx_ + (py - by) * vy_
-        q = 1 - (du / ba) ** 2 - (dv / bb) ** 2
-        h2 = bb * math.sqrt(max(0.0, q))
-        # the throat, carrying the head down into the breast
-        d3 = ((px - nx_) / 5.2) ** 2 + ((py - ny_) / 6.4) ** 2
-        h3 = 5.6 * math.sqrt(max(0.0, 1 - d3))
-        return smax(smax(h1, h3, 3.0), h2, 4.0)
 
-    def light(sx, sy):
-        px, py = (sx - x) / s, (sy - y) / s
-        e = 0.12
-        gx = (height(px + e, py) - height(px - e, py)) / (2 * e)
-        gy = (height(px, py + e) - height(px, py - e)) / (2 * e)
-        return lam((-gx, gy, 1.0))
+def bourse_form(poly):
+    """The bird's volume from its traced outline alone (`poly`, as laid on
+    the mark). The outline is inflated the way a membrane is under even
+    pressure (the Poisson equation, solved by over-relaxation) and the
+    height is the square root of that: a disc comes out a true sphere, and
+    the head, the throat and the breast take whatever roundness their
+    outline gives them, with no ellipse laid in by hand. The slope is held
+    under sixty-two degrees, so the form turns away at its edge as a broad
+    plane and never as a hairline rim. Returns light(x, y)."""
+    key = tuple((round(p[0], 2), round(p[1], 2)) for p in poly)
+    if key in BOURSE_FORM:
+        return BOURSE_FORM[key]
+    step = 0.5
+    x0, y0 = min(p[0] for p in poly) - 2 * step, min(p[1] for p in poly) - 2 * step
+    nx = int((max(p[0] for p in poly) - x0) / step) + 3
+    ny = int((max(p[1] for p in poly) - y0) / step) + 3
+    ins = bourse_fill(poly, x0, y0, step, nx, ny)
+    u = [[0.0] * nx for _ in range(ny)]
+    cells = [(j, i) for j in range(1, ny - 1) for i in range(1, nx - 1) if ins[j][i]]
+    w, h2 = 1.93, step * step
+    for _ in range(260):
+        for j, i in cells:
+            r = u[j]
+            g = (r[i - 1] + r[i + 1] + u[j - 1][i] + u[j + 1][i] + h2) * 0.25
+            r[i] += w * (g - r[i])
+    z = [[2.0 * math.sqrt(max(0.0, v)) for v in row] for row in u]
+    g_max = math.tan(math.radians(60))
+    raw = [[lam((0, 0, 1))] * nx for _ in range(ny)]
+    for j in range(1, ny - 1):
+        for i in range(1, nx - 1):
+            gx = (z[j][i + 1] - z[j][i - 1]) / (2 * step)
+            gy = (z[j + 1][i] - z[j - 1][i]) / (2 * step)
+            g = math.hypot(gx, gy)
+            if g > g_max:
+                gx, gy = gx * g_max / g, gy * g_max / g
+            raw[j][i] = lam((-gx, gy, 1.0))
+    # one pass of a 3x3 box, so no plane's edge carries the grid's step
+    lam_ = [row[:] for row in raw]
+    for j in range(1, ny - 1):
+        for i in range(1, nx - 1):
+            lam_[j][i] = sum(raw[j + a][i + b] for a in (-1, 0, 1) for b in (-1, 0, 1)) / 9.0
+
+    def light(x, y):
+        fx, fy = (x - x0) / step - 0.5, (y - y0) / step - 0.5
+        i, j = int(math.floor(fx)), int(math.floor(fy))
+        if i < 0 or j < 0 or i >= nx - 1 or j >= ny - 1:
+            return lam((0, 0, 1))
+        tx, ty = fx - i, fy - j
+        return ((lam_[j][i] * (1 - tx) + lam_[j][i + 1] * tx) * (1 - ty)
+                + (lam_[j + 1][i] * (1 - tx) + lam_[j + 1][i + 1] * tx) * ty)
+    BOURSE_FORM[key] = light
+    return light
+
+
+def bourse_turn(v, axis, profile, tones, cuts, cap=True, small=False):
+    """A turned part for the perch: a solid of revolution about the view's
+    x or y axis through the origin of `v`, from a profile of (t0, t1, r0,
+    r1) bands, bottom up (or left to right). Each band is cut only where
+    its tone changes along the key light, and each run of one tone is laid
+    as one strip; a band's top face follows it, under the band above."""
+    def P(t, r, a):
+        if axis == 'y':
+            return v.proj((r * math.cos(a), t, r * math.sin(a)))[:2]
+        return v.proj((t, r * math.sin(a), r * math.cos(a)))[:2]
+
+    def N(dr, a):
+        if axis == 'y':
+            return v.nrm((math.cos(a), dr, math.sin(a)))
+        return v.nrm((dr, math.sin(a), math.cos(a)))
+    out, n = [], 96
+
+    def lay(polys, tone):
+        d = ' '.join(S.pts_d(S.rdp(p, 0.12 if small else 0.05)) for p in polys)
+        out.append('<path d="%s" fill="%s" stroke="%s" stroke-width=".1"/>' % (d, tone, tone))
+    for i, (t0, t1, r0, r1) in enumerate(profile):
+        dr = (r0 - r1) / max(0.01, abs(t1 - t0)) * (1 if t1 > t0 else -1)
+        seq = []
+        for k in range(n):
+            nv = N(dr, 2 * math.pi * (k + 0.5) / n)
+            seq.append(S.quant(facet(lam(nv), tones, cuts)) if nv[2] > 0 else None)
+        start = next((k for k in range(n) if seq[k] != seq[k - 1]), 0)
+        runs, k0 = {}, start
+        for step_ in range(1, n + 1):
+            k = (start + step_) % n
+            if step_ == n or seq[k] != seq[k0]:
+                if seq[k0] is not None:
+                    span = (k - k0) % n or n
+                    a0, a1 = 2 * math.pi * k0 / n, 2 * math.pi * (k0 + span) / n
+                    m_ = max(2, int(span / (12 if small else 6)) + 1)
+                    angs = [a0 + (a1 - a0) * j / m_ for j in range(m_ + 1)]
+                    runs.setdefault(seq[k0], []).append([P(t0, r0, a) for a in angs] + [P(t1, r1, a) for a in reversed(angs)])
+                k0 = k
+        for tone, polys in runs.items():
+            lay(polys, tone)
+        above = profile[i + 1][2] if i + 1 < len(profile) else 0.0
+        if cap and axis == 'y' and r1 > above + 0.05:
+            lay([[P(t1, r1, 2 * math.pi * k / 24) for k in range(24)]], S.quant(facet(lam(v.nrm((0, 1, 0))), tones, cuts)))
+    return ''.join(out)
+
+
+def bourse_sphere(m, name, cx, cy, r, tones, cuts, step=0.25):
+    """A turned ball seen square on: a disc cut into the planes of a
+    sphere under the key light."""
+    def light(x, y):
+        X, Y = (x - cx) / r, -(y - cy) / r
+        q = min(0.995, X * X + Y * Y)
+        return lam((X, Y, math.sqrt(1 - q)))
+    disc = circle_d(cx, cy, r)
+    return planes(m, name, disc, light, (cx - r - 0.5, cy - r - 0.5, cx + r + 0.5, cy + r + 0.5), tones, cuts, step, 0.05)
+
+
+def bourse_perch(m, h, fx, fy, small=False):
+    """The show perch the bird grips: a turned gilt bar with a ball at each
+    end, on a baluster stem and a spreading foot whose rim is fired in the
+    curtain's own olive gold (HUE's velvet), so the mark carries its cloth.
+    Returns the height of the bar's axis."""
+    gilt = [GILT[1], GILT[2], GILT[4], GILT[5], GILT[3]]
+    gc = [0.18, 0.45, 0.7, 0.9]
+    vo, vi = h['velvet']['onyx'], h['velvet']['ivory']
+    band = [darken(vo, 0.45), darken(vo, 0.1), vo, vi, lighten(vi, 0.3)]
+    rb = 2.1 if small else 1.8                            # the bar's radius
+    cx = fx + 0.6                                         # the stem stands under the feet
+    bar_y = fy + rb
+    foot_y = 83.4
+    # the stem and foot, bottom up, about a vertical axis (heights up from the foot)
+    vs = S.View(cx, foot_y, 1.0, yaw=0, pitch=PITCH)
+    top = foot_y - bar_y
+    ws = 1.8 if small else 1.35                           # the stem's waist
+    rim = [(0.0, 1.4, 7.2, 7.2)]
+    stem = [(1.4, 2.0, 7.2, 6.4), (2.0, 2.9, 6.4, 4.0), (2.9, 3.8, 4.0, 2.2), (3.8, 4.6, 2.2, 1.5),
+            (4.6, top - 3.6, ws, ws * 0.92)]
+    collar = [(top - 1.3, top - 0.7, 1.4, 2.2), (top - 0.7, top, 2.2, 1.6)]
+    # the bar, about a horizontal axis, a collar and a ball at each end
+    vb = S.View(cx, bar_y, 1.0, yaw=0, pitch=PITCH)
+    x_l, x_r = fx - 13.0, fx + 9.5
+    prof = ([(x_l - 0.4, x_l + 0.5, 1.1, 2.2), (x_l + 0.5, x_l + 1.1, 2.2, rb)] + [(x_l + 1.1, x_r - 1.1, rb, rb)] +
+            [(x_r - 1.1, x_r - 0.5, rb, 2.2), (x_r - 0.5, x_r + 0.4, 2.2, 1.1)])
+    prof = [(a - cx, b - cx, r0, r1) for a, b, r0, r1 in prof]
+    # the shadows the foot and the bar cast on the enamel, under everything
+    base = [vs.proj((7.2 * math.cos(2 * math.pi * k / 48), 0.0, 7.2 * math.sin(2 * math.pi * k / 48)))[:2] for k in range(48)]
+    m.add(shadow(poly_d(base), 1.0, 1.0, 0.45))
+    r = 1.8
+    m.add(shadow('M%s %s H%s A%s %s 0 0 1 %s %s H%s A%s %s 0 0 1 %s %s Z'
+                 % (f(x_l - 1.7), f(bar_y - r), f(x_r + 1.7), f(r), f(r), f(x_r + 1.7), f(bar_y + r),
+                    f(x_l - 1.7), f(r), f(r), f(x_l - 1.7), f(bar_y - r)), 0.8, 1.2, 0.42))
+    m.add(bourse_turn(vs, 'y', rim, band, [0.25, 0.5, 0.72, 0.9], cap=False, small=small))
+    m.add(bourse_turn(vs, 'y', stem, gilt, gc, small=small))
+    kx, ky, _ = vs.proj((0.0, top - 3.2, 0.0))
+    m.add(bourse_sphere(m, 'knop', kx, ky, 1.9, gilt, gc, 0.5 if small else 0.2))
+    m.add(bourse_turn(vs, 'y', collar, gilt, gc, small=small))
+    m.add(bourse_turn(vb, 'x', prof, gilt, gc, cap=False, small=small))
+    for k, bx_ in enumerate((x_l - 1.7, x_r + 1.7)):
+        m.add(bourse_sphere(m, 'ball%d' % k, bx_, bar_y, 1.9, gilt, gc, 0.5 if small else 0.2))
+    return bar_y
+
+
+def bourse_place(x, y, s, turn):
+    """Bird units to the mark: feet at (x, y), s mark units to a bird unit,
+    the bird turned `turn` degrees head-up about its feet."""
+    c, sn = math.cos(math.radians(turn)), math.sin(math.radians(turn))
 
     def T(pts):
-        return [(x + p[0] * s, y + p[1] * s) + tuple(p[2:]) for p in pts]
-    outline = smooth_d(T(C['outline']))
-    xs = [x + p[0] * s for p in C['outline']]
-    ys = [y + p[1] * s for p in C['outline']]
-    box = (min(xs) - 1, min(ys) - 1, max(xs) + 1, max(ys) + 1)
+        return [(x + s * (p[0] * c - p[1] * sn), y + s * (p[0] * sn + p[1] * c)) + tuple(p[2:]) for p in pts]
+    return T
+
+
+def bourse_bird(m, T, s, small=False):
+    """Lay the canary through T (bourse_place). The plumage's planes are cut
+    from the traced volume along the key light and clipped to the traced
+    outline; the wing's feather masses take the same light in their own
+    colours, so the planes run on across them."""
+    B = BOURSE_BIRD
+    light = bourse_form(bourse_curve(T(B['form'])))
+    out_pts = T(B['outline'])
+    outline = smooth_d(out_pts)
+    box = (min(p[0] for p in out_pts) - 1, min(p[1] for p in out_pts) - 1,
+           max(p[0] for p in out_pts) + 1, max(p[1] for p in out_pts) + 1)
+    step, eps = (0.6, 0.22) if small else (0.34, 0.14)
+
+    def cut(p, cuts):
+        return (p[1:], cuts[1:]) if small else (p, cuts)
+
+    def bx(pts):
+        q = T(pts)
+        return (min(p[0] for p in q) - 0.6, min(p[1] for p in q) - 0.6, max(p[0] for p in q) + 0.6, max(p[1] for p in q) + 0.6)
     out = [shadow(outline, 1.0, 1.4, 0.5)]
-    # the far side of the tail, seen below the near one
-    out.append('<path d="%s" fill="%s"/>' % (smooth_d(T(C['tail_far'])), YELLOW[0]))
-    if small:
-        out.append(planes(m, 'bird', outline, light, box, YELLOW[1:], YELLOW_CUTS[1:], 0.7, 0.2))
-    else:
-        out.append(planes(m, 'bird', outline, light, box, YELLOW, YELLOW_CUTS, 0.3, 0.1))
-    # the folded wing: primaries darkest, the tertials' stepped tips, the
-    # greater coverts' scalloped edge, the lit shoulder
-    out.append('<path d="%s" fill="#6a4a08" fill-opacity=".35" transform="translate(.35 .5)"/>' % smooth_d(T(C['wing'])))
-    out.append('<path d="%s" fill="%s"/>' % (smooth_d(T(C['wing'])), WINGC[0]))
+    out.append(planes(m, 'bird', outline, light, box, *cut(BOURSE_PLUMAGE, BOURSE_CUTS), step=step, eps=eps))
+    # the tail: the far outer feather in shade under the near half
+    out.append('<path d="%s" fill="%s"/>' % (smooth_d(T(B['tail_far'])), BOURSE_FLIGHT[1]))
+    out.append(planes(m, 'tail', smooth_d(T(B['tail'])), light, bx(B['tail']), *cut(BOURSE_FLIGHT, BOURSE_WING_CUTS),
+                      step=step, eps=eps))
+    # the folded wing: flight feathers, tertials, coverts, each lit alike
+    wing = smooth_d(T(B['wing']))
+    out.append(shadow(wing, 0.35, 0.5, 0.3))
+    out.append(planes(m, 'flight', wing, light, bx(B['wing']), *cut(BOURSE_FLIGHT, BOURSE_WING_CUTS), step=step, eps=eps))
     if not small:
-        out.append('<path d="%s" fill="%s"/>' % (smooth_d(T(C['tertials'])), WINGC[1]))
-        out.append('<path d="%s" fill="%s"/>' % (smooth_d(T(C['coverts'])), WINGC[2]))
-        out.append('<path d="%s" fill="%s"/>' % (smooth_d(T(C['shoulder'])), WINGC[3]))
-        # the primaries' tips, each feather edged paler
-        tips = []
-        for k, (a, b) in enumerate(((0.36, 0.0), (0.56, 0.6), (0.76, 1.1))):
-            p0 = (x + (4.5 + 7.6 * a) * s, y + (-9.0 + 4.6 * a) * s)
-            p1 = (x + (5.8 + 6.4 * a + b) * s, y + (-5.4 + 0.6 * a) * s)
-            tips.append((p0[0], p0[1], p1[0], p1[1]))
-        out.append('<path d="%s" stroke="%s" stroke-width=".4" stroke-linecap="round"/>' % (lines_path(tips), WINGC[2]))
-        # the tail's feathers: the edges between them, running to the notch
-        tail = [(10.8, -7.6, 17.9, 2.6), (11.6, -5.4, 16.6, 1.9)]
-        out.append('<path d="%s" stroke="%s" stroke-width=".35" stroke-linecap="round"/>'
-                   % (lines_path([(x + a * s, y + b * s, x + c * s, y + d * s) for a, b, c, d in tail]), YELLOW[0]))
-    else:
-        out.append('<path d="%s" fill="%s"/>' % (smooth_d(T(C['coverts'])), WINGC[2]))
-    # the bill: horn, the upper mandible lit, the lower in shade, the gape between
-    out.append('<path d="%s" fill="%s"/>' % (smooth_d(T(C['bill_lower'])), HORN[0]))
-    out.append('<path d="%s" fill="%s"/>' % (smooth_d(T(C['bill_upper'])), HORN[1]))
-    ex, ey, er = C['eye']
-    out.append('<circle cx="%s" cy="%s" r="%s" fill="#1c1208"/>' % (f(x + ex * s), f(y + ey * s), f(er * s * (1.25 if small else 1))))
+        ter = smooth_d(T(B['tertials']))
+        out.append(shadow(ter, 0.3, 0.45, 0.3))
+        out.append(planes(m, 'tert', ter, light, bx(B['tertials']), BOURSE_TERTIALS, BOURSE_WING_CUTS, step=step, eps=eps))
+    cov = smooth_d(T(B['coverts']))
+    out.append(shadow(cov, 0.3, 0.45, 0.28))
+    out.append(planes(m, 'cov', cov, light, bx(B['coverts']), *cut(BOURSE_COVERTS, BOURSE_WING_CUTS), step=step, eps=eps))
+    # the bill: horn, the upper mandible lit, the lower in shade
+    out.append('<path d="%s" fill="%s"/>' % (smooth_d(T(B['bill_lower'])), BOURSE_HORN[1]))
+    out.append('<path d="%s" fill="%s"/>' % (smooth_d(T(B['bill_upper'])), BOURSE_HORN[0]))
+    (ex, ey), = T([B['eye'][:2]])
+    out.append('<circle cx="%s" cy="%s" r="%s" fill="#1d1309"/>' % (f(ex), f(ey), f(B['eye'][2] * s * (1.3 if small else 1))))
+    return ''.join(out)
+
+
+def bourse_legs(T, small=False, front=False):
+    """The tarsi (behind the body), or with front the toes closed over the
+    front of the bar."""
+    out = []
+    w = 1.3 if small else 0.9
+    for k, (heel, foot) in enumerate(BOURSE_BIRD['legs']):
+        col = BOURSE_SHANK[k]
+        (ax, ay), (bx, by) = T([heel, foot])
+        by += 0.2
+        if not front:
+            out.append('<path d="M%s %sL%s %s" stroke="%s" stroke-width="%s" stroke-linecap="round"/>'
+                       % (f(ax), f(ay), f(bx), f(by), col, f(w)))
+            continue
+        # the toes laid along the bar's top, forward and back, their claws
+        # hooked over its front
+        toes = ['M%s %s q%s %s %s %s' % (f(bx), f(by), f(-1.3), f(0.1), f(-2.3), f(1.0)),
+                'M%s %s q%s %s %s %s' % (f(bx), f(by), f(1.2), f(0.1), f(1.9), f(0.9))]
+        if not small:
+            toes.append('M%s %s q%s %s %s %s' % (f(bx), f(by), f(-0.7), f(0.5), f(-1.1), f(1.7)))
+        out.append('<path d="%s" stroke="%s" stroke-width="%s" fill="none" stroke-linecap="round"/>'
+                   % (' '.join(toes), col, f(w * 0.8)))
     return ''.join(out)
 
 
 def subject_bourse(m, h, small=False):
     """The canary the desk keeps on watch (its Watchtower watches two, and
-    the desk speaks only when the air turns), sitting calm on a turned perch
-    in a gilt dome cage. The cage is open to the reader, its wires behind the
-    bird; it stands on a turned tray banded in the curtain's own olive gold,
-    and hangs from a ring of its own."""
-    c = CAGE
-    v = S.View(c['cx'], 0, 1.0, yaw=0, pitch=PITCH)
-    R, yb, ys, yt = c['r'], -c['base'], -c['spring'], -c['top']
-    wire_t = [GILT[1], GILT[2], GILT[4], GILT[5], GILT[3]]
-    ww = 3.0 if small else 2.5
-
-    def dome_pt(ph, t):
-        # t 0..1 up the dome from the spring line to the top
-        a = t * math.pi / 2
-        r = R * math.cos(a)
-        return (r * math.cos(ph), ys + (yt - ys) * math.sin(a), r * math.sin(ph))
-    band = [c['cx'], 0]
-    # the wires behind the bird: the back half of the drum and the dome
-    n = c['wires']
-    back = []
-    for k in range(n):
-        ph = math.pi + math.pi * (k + 0.5) / n                   # the back half (z < 0)
-        pts = [(R * math.cos(ph), yb + (ys - yb) * j / 6, R * math.sin(ph)) for j in range(7)]
-        pts += [dome_pt(ph, j / 10) for j in range(1, 11)]
-        back.append([v.proj(p)[:2] for p in pts])
-    hoops = []
-    for yy in (ys, yb + 0.6, (yb + ys) / 2):
-        hoops.append([v.proj((R * math.cos(math.pi + math.pi * j / 32), yy, R * math.sin(math.pi + math.pi * j / 32)))[:2]
-                      for j in range(33)])
-    # the side wires, where the drum turns edge-on to the reader, carry the silhouette
-    sides = []
-    for ph in (math.pi * 0.985, math.pi * 0.015):
-        pts = [(R * math.cos(ph), yb + (ys - yb) * j / 6, R * math.sin(ph)) for j in range(7)]
-        pts += [dome_pt(ph, j / 12) for j in range(1, 13)]
-        sides.append([v.proj(p)[:2] for p in pts])
-
-    def wire(pts, col, wd):
-        return '<path d="M%s" stroke="%s" stroke-width="%s" fill="none" stroke-linecap="round" stroke-linejoin="round"/>' % (
-            ' L'.join('%s %s' % (f(px), f(py)) for px, py in pts), col, f(wd))
-    # the tray: a turned base banded in olive gold
-    fc = S.Faces()
-    tray = [(yb - 6.4, yb - 5.0, R + 2.0, R + 2.0), (yb - 5.0, yb - 1.3, R + 1.6, R + 1.6), (yb - 1.3, yb, R + 1.6, R + 0.8)]
-    # the band is fired in the curtain's own dye (HUE's velvet), so the mark
-    # carries its cloth
-    vo, vi = h['velvet']['onyx'], h['velvet']['ivory']
-    tones = {0: wire_t, 1: [darken(vo, 0.45), vo, vi, lighten(vi, 0.3)], 2: wire_t}
-    for i, (y0, y1, r0, r1) in enumerate(tray):
-        nn = 24 if small else 48
-        for k in range(nn):
-            p0, p1 = 2 * math.pi * k / nn, 2 * math.pi * (k + 1) / nn
-            pm = (p0 + p1) / 2
-            nv = v.nrm((math.cos(pm), (r0 - r1) / max(0.01, y1 - y0), math.sin(pm)))
-            if nv[2] <= 0:
-                continue
-            q = [v.proj((r0 * math.cos(p0), y0, r0 * math.sin(p0))), v.proj((r0 * math.cos(p1), y0, r0 * math.sin(p1))),
-                 v.proj((r1 * math.cos(p1), y1, r1 * math.sin(p1))), v.proj((r1 * math.cos(p0), y1, r1 * math.sin(p0)))]
-            fc.add([(a, b) for a, b, _ in q], sum(z for _, _, z in q) / 4,
-                   facet(lam(nv), tones[i], [0.2, 0.46, 0.72, 0.92] if i != 1 else [0.3, 0.6, 2, 2]))
-    top = [v.proj(((R + 1.0) * math.cos(2 * math.pi * k / 48), yb, (R + 1.0) * math.sin(2 * math.pi * k / 48))) for k in range(48)]
-    fc.add([(a, b) for a, b, _ in top], sum(z for _, _, z in top) / 48 - 0.5, GILT[1])
-    base_sil = [v.proj(((R + 2.0) * math.cos(2 * math.pi * k / 48), yb - 6.4, (R + 2.0) * math.sin(2 * math.pi * k / 48)))[:2] for k in range(48)]
-    m.add(shadow(poly_d(base_sil), 0.9, 0.9, 0.45))
-    # the back wires and hoops, then the tray over their feet
-    for pts in back:
-        m.add(wire(pts, '#000', ww + 0.5).replace('stroke="#000"', 'stroke="#000" stroke-opacity=".35"'))
-        m.add(wire(pts, wire_t[1], ww))
-        if not small:
-            m.add(wire([(px - 0.45, py) for px, py in pts], wire_t[3], ww * 0.35))
-    for pts in hoops:
-        m.add(wire(pts, wire_t[1], 1.6 if not small else 2))
-    m.add(fc.svg(seam=0.12))
-    # the perch, a turned bar across the cage
-    py_ = 61.5
-    px0, px1 = c['cx'] - R + 1.5, c['cx'] + R - 1.5
-    m.add(shadow('M%s %s H%s V%s H%s Z' % (f(px0), f(py_ - 1.1), f(px1), f(py_ + 1.1), f(px0)), 0.4, 0.9, 0.4))
-    m.add('<path d="M%s %s H%s V%s H%s Z" fill="%s"/>' % (f(px0), f(py_ - 1.1), f(px1), f(py_ + 1.1), f(px0), GILT[2]))
-    m.add('<path d="M%s %s H%s V%s H%s Z" fill="%s"/>' % (f(px0), f(py_ - 1.1), f(px1), f(py_ - 0.2), f(px0), GILT[5]))
-    # the bird
-    bxy = (c['cx'] + 1.5, py_ - 1.0)
-    s = 1.12
-    legs = []
-    for x0, y0, x1, y1 in CANARY['legs']:
-        legs.append((bxy[0] + x0 * s, bxy[1] + y0 * s, bxy[0] + x1 * s, bxy[1] + y1 * s))
-    m.add('<path d="%s" stroke="%s" stroke-width="%s" stroke-linecap="round"/>' % (lines_path(legs), '#b88a7a', '1.2' if small else '.8'))
-    m.add(canary(m, bxy[0], bxy[1], s, small))
-    if not small:
-        toes = []
-        for x0, y0, x1, y1 in CANARY['legs']:
-            fx, fy = bxy[0] + x1 * s, bxy[1] + y1 * s
-            toes.append('M%s %s q%s %s %s %s' % (f(fx), f(fy), f(-1.4), f(0.2), f(-1.8), f(1.6)))
-            toes.append('M%s %s q%s %s %s %s' % (f(fx), f(fy), f(1.2), f(0.3), f(1.4), f(1.5)))
-        m.add('<path d="%s" stroke="#b88a7a" stroke-width=".7" fill="none" stroke-linecap="round"/>' % ' '.join(toes))
-    # the side wires in front of everything at the cage's edges, the finial and its ring
-    for pts in sides:
-        m.add(wire(pts, '#000', ww + 0.5).replace('stroke="#000"', 'stroke="#000" stroke-opacity=".35"'))
-        m.add(wire(pts, wire_t[2], ww))
-        if not small:
-            m.add(wire([(px - 0.5, py) for px, py in pts], wire_t[4], ww * 0.4))
-    tx, ty = v.proj((0, yt, 0))[:2]
-    m.add(relief('M%s %s C%s %s %s %s %s %s C%s %s %s %s %s %s Z'
-                 % (f(tx - 3.2), f(ty + 1.2), f(tx - 3.0), f(ty - 1.6), f(tx - 1.0), f(ty - 3.4), f(tx), f(ty - 3.6),
-                    f(tx + 1.0), f(ty - 3.4), f(tx + 3.0), f(ty - 1.6), f(tx + 3.2), f(ty + 1.2)), GILT[4], dx=0.4, dy=0.6))
-    m.add('<circle cx="%s" cy="%s" r="2.1" fill="none" stroke="#000" stroke-opacity=".4" stroke-width="1.3" transform="translate(.4 .6)"/>'
-          '<circle cx="%s" cy="%s" r="2.1" fill="none" stroke="%s" stroke-width="1.3"/>'
-          % (f(tx), f(ty - 5.6), f(tx), f(ty - 5.6), GILT[4]))
+    the desk speaks only when the air turns), alert on a turned gilt show
+    perch: head up, the bill closed, the tail carried in line with the back.
+    One charge on the enamel, filling it."""
+    fx, fy, s, turn = 43.0, 67.0, 0.77, 7.0
+    T = bourse_place(fx, fy, s, turn)
+    bourse_perch(m, h, fx, fy, small)
+    m.add(bourse_legs(T, small))
+    m.add(bourse_bird(m, T, s, small))
+    m.add(bourse_legs(T, small, front=True))
 
 
 # --------------------------------------------------------------------------
