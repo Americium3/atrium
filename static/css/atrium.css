@@ -2008,13 +2008,18 @@ svg.portal {
 }
 .sigil.mark { transition: none; }
 /* The cartouche carries both cuts of the mark. Its width is 18.67% of the
-   gate's, so under a 214px gate (a 40px mark, the hall on a laptop) the
-   small cut shows: the same subject in its biggest planes, drawn for that
-   size, where the full one would turn to mush. */
+   gate's, so under a 300px gate (a mark under 56 pixels: the hall on a
+   laptop and at 1920) the small cut shows, the same subject in its biggest
+   planes, drawn for 16 to 48 pixels, where the full one's engraving would
+   fall under a pixel and shimmer. The full cut takes the larger gates. The
+   size that counts is the screen's own pixels, so on a double-density
+   screen the full cut shows at every gate size the hall has. */
 .sigil .cut-small { display: none; }
-@container (max-width: 214px) {
-  .sigil .cut-full { display: none; }
-  .sigil .cut-small { display: inline; }
+@media (max-resolution: 1.49dppx) {
+  @container (max-width: 299px) {
+    .sigil .cut-full { display: none; }
+    .sigil .cut-small { display: inline; }
+  }
 }
 .medal .m-mark { transition: none; }
 

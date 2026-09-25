@@ -399,12 +399,17 @@ def test_every_day_card_takes_its_marks_ink():
 
 
 def test_the_gate_carries_both_cuts():
-    """On a laptop the cartouche holds the mark at 33px, the small cut's
-    size; the gate mounts both cuts and its own width picks one."""
+    """The cartouche holds the mark at 32px on a laptop and 49px at 1920,
+    the sizes the small cut is drawn for; the gate mounts both cuts and its
+    own width picks one: the small cut under a 300px gate (a 56px mark) on a
+    screen of ordinary density, the full cut above it and on any screen of
+    double density, where even the laptop's mark is 64 pixels."""
     app = (STATIC / "js" / "app.js").read_text(encoding="utf-8")
     assert "cut.setAttribute('href', '#mark-' + sig + '-s');" in app
-    css = (STATIC / "css" / "atrium.css").read_text(encoding="utf-8")
-    assert re.search(r"@container \(max-width: 214px\) \{\s*\.sigil \.cut-full \{ display: none; \}", css)
+    css = (STATIC / "css" / "atrium.css").read_text(encoding="utf-8").replace("\r\n", "\n")
+    assert re.search(r"\.sigil \.cut-small \{ display: none; \}\n@media \(max-resolution: 1\.49dppx\) \{\n"
+                     r"\s*@container \(max-width: 299px\) \{\n\s*\.sigil \.cut-full \{ display: none; \}\n"
+                     r"\s*\.sigil \.cut-small \{ display: inline; \}", css), "the cartouche's cut switch has moved"
 
 
 def test_no_mark_or_curtain_is_a_sapphire():

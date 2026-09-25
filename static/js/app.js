@@ -1449,7 +1449,8 @@ function renderGates() {
       ? svgUse('sigil mark', '0 0 96 96', '#mark-' + sig)
       : svgUse('sigil', '0 0 96 96', '#sig-fallback');
     // Both cuts ride in the cartouche; the gate's own width picks one. Under
-    // 40px (a laptop's hall) the small cut shows, drawn for that size.
+    // a 56px mark (a laptop's hall and 1920) the small cut shows, drawn for
+    // that size (atrium.css, .sigil).
     if (sig) {
       sigil.firstChild.setAttribute('class', 'cut-full');
       var cut = document.createElementNS(ns, 'use');
