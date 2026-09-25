@@ -38,6 +38,7 @@ import uvicorn
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse
 from fastapi.staticfiles import StaticFiles
+from starlette.middleware.gzip import GZipMiddleware
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 
 ROOT = Path(__file__).resolve().parent
@@ -1453,6 +1454,9 @@ app = FastAPI(docs_url=None, redoc_url=None, lifespan=lifespan)
 # Cheap DNS-rebinding defense for an unauthenticated localhost service.
 app.add_middleware(TrustedHostMiddleware,
                    allowed_hosts=["127.0.0.1", "localhost"])
+# The page carries the six app marks in its <defs> (a few hundred KB of
+# vector); they compress about four to one, and so do the JSON payloads.
+app.add_middleware(GZipMiddleware, minimum_size=1024)
 
 
 @app.middleware("http")
