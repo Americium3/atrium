@@ -1560,9 +1560,9 @@ def subject_autopilot(m, h, small=False):
 # drawn as a heraldic cubit arm erect, the hand holding up one calling card
 # to be seen: the palm toward the reader, the four fingers standing behind
 # the card with their tips over its top edge, and the thumb opposed across
-# its foot, pinching it, its nail to the reader. Below the hand a starched
-# cuff and a dark coat sleeve, couped square, the way a heraldic arm is
-# vested and cuffed.
+# its foot, pinching it, its nail to the reader. The arm is vested or and
+# cuffed argent, as a crest's arm is (a gold sleeve on the Prussian enamel,
+# metal on colour, and the page's own gold), and couped square.
 #
 # The pose is traced from a photograph of a man holding up a blank card
 # (Pexels 326576): the card as wide as the four fingers, the middle finger
@@ -1599,29 +1599,28 @@ OUTREACH_FINGERS = [
 # The palm below the card, closing in to the wrist, traced off "A Hand.jpg"
 # and scaled to the card; it runs on under the card and under the cuff.
 OUTREACH_PALM_LINE = [(-34.0, 10.0), (-18.0, 8.0), (0.0, 8.0), (16.0, 9.0), (27.0, 13.0), (35.5, 23.0), (41.0, 34.0),
-                      (42.5, 43.0), (40.0, 50.0), (34.5, 55.5), (28.5, 59.5), (27.5, 68.0), (27.0, 78.0), (1.0, 80.0), (-25.0, 78.0),
-                      (-25.5, 68.0), (-26.5, 59.0), (-29.5, 49.0), (-32.5, 36.0), (-34.2, 22.0)]
-# Its swellings: centre, long axis, half length, half width, rise (mm; a
-# hollow rises below the palm). The thenar lies along the thumb's
-# metacarpal.
+                      (42.5, 43.0), (40.0, 50.0), (34.5, 55.5), (28.5, 59.5), (27.5, 64.0), (27.0, 68.5), (1.0, 70.0), (-25.0, 68.5),
+                      (-25.5, 64.0), (-26.5, 59.0), (-29.5, 49.0), (-32.5, 36.0), (-34.2, 22.0)]
+# Its swelling, the thenar or ball of the thumb, along the thumb's
+# metacarpal: centre, long axis, half length, half width, rise (mm). The
+# hypothenar needs none; the palm's own edge turns it.
 OUTREACH_PALM_SWELL = [
     ((25.0, 38.0), (0.45, 0.89), 20.0, 14.5, 7.0),        # the thenar, the ball of the thumb
-    ((-23.0, 37.0), (0.15, 0.99), 25.0, 13.0, 1.6),       # the hypothenar, a long ridge down the edge
 ]
-# Its creases, each a run of points with its depth and width (mm): the
-# thenar crease curving round the ball of the thumb to the wrist, and the
-# wrist's own crease.
-OUTREACH_PALM_CREASE = [([(15.0, 21.0), (10.5, 33.0), (9.5, 44.0), (7.0, 55.0)], 1.3, 1.7),
-                        ([(-24.0, 57.5), (0.0, 57.0), (26.0, 56.0)], 0.6, 1.2)]
+# Its crease, a run of points with its depth and width (mm): the thenar
+# crease, curving round the ball of the thumb toward the wrist.
+OUTREACH_PALM_CREASE = [([(15.0, 21.0), (10.5, 33.0), (9.5, 44.0), (7.0, 55.0)], 1.3, 1.7)]
 # The thumb, opposed across the card, from its base in the thenar through
 # its last joint to its tip, and its widths there; it stands forward of the
 # palm by OUTREACH_THUMB_LIFT at the joint and beyond.
 OUTREACH_THUMB = {'base': (30.0, 43.0), 'joint': (22.5, 12.0), 'tip': (14.5, -7.5),
                   'w': (20.5, 15.8, 16.8), 'lift': 8.5}
-# The shirt cuff and the coat sleeve: (top, bottom, half width) about the
-# arm's axis at x = 1.
-OUTREACH_CUFF = (62.0, 78.0, 29.5)
-OUTREACH_SLEEVE = (75.0, 93.0, 34.0)
+# The arm is vested and cuffed as a heraldic arm is: a sleeve of gold
+# cloth, couped square, and at the wrist a white cuff turned back over it,
+# broader than the sleeve and flaring to its rolled edge. (top, foot, half width at the top,
+# half width at the foot) about the arm's axis at x = 1.
+OUTREACH_CUFF = (58.0, 71.0, 34.0, 32.0)
+OUTREACH_SLEEVE = (68.0, 93.0, 29.0, 31.0)
 # Colour as the eye keeps a hand: the fingertips rosier than the palm, the
 # back of the thumb a little browner; four planes each (dark, shade, body,
 # lit), cut at OUTREACH_CUTS.
@@ -1631,7 +1630,7 @@ OUTREACH_BACK = ['#5f2f27', '#a15743', '#d49379', '#f0c8b0']
 OUTREACH_CUTS = [0.22, 0.4, 0.7]
 OUTREACH_NAIL = ['#c48e80', '#eccdc1', '#fbefe6']          # its plate, where it takes the light, its free edge
 OUTREACH_LINEN = ['#8e99a1', '#c3c9cb', '#e9e6de', '#fbfaf5']
-OUTREACH_COAT = ['#0c0b10', '#18161e', '#27242f', '#3b3846']   # the page's ink, as cloth
+OUTREACH_SLEEVE_CLOTH = ['#3f2c0c', '#7f5d1e', '#b38c3c', '#dcbf73']   # vested or: the page's gold, as cloth
 OUTREACH_STOCK = ['#f4f1ea', '#d9d0bb', '#b9ae95']           # the card: its face, its turned corner, its shade
 OUTREACH_FACE = 0.32                                         # how flat a form's face is: 0.5 is round
 _OUTREACH = {}
@@ -1893,19 +1892,6 @@ def outreach_creases():
     return out
 
 
-def outreach_link():
-    """The cuff's link, a gilt oval where the cuff closes at its side, seen
-    edge on: its shaded half and its lit half."""
-    y0, y1, hw = OUTREACH_CUFF
-    w = -0.84
-    e = hw * math.sin(math.radians(PITCH)) * math.sqrt(1 - w * w)
-    c = (1.0 + w * hw, (y0 + y1) / 2 + e)
-    body = [(c[0] + 1.7 * math.cos(t), c[1] + 3.0 * math.sin(t)) for t in (2 * math.pi * k / 16 for k in range(16))]
-    lit = [(c[0] - 0.4 + 1.0 * math.cos(t), c[1] - 0.6 + 2.0 * math.sin(t)) for t in (2 * math.pi * k / 16 for k in range(16))]
-    return ('<path d="%s" fill="%s"/><path d="%s" fill="%s"/>'
-            % (outreach_path(body), GILT[2], outreach_path(lit), GILT[5]))
-
-
 def outreach_card():
     """The card's outline (mm): its lower left corner turned down toward
     the reader, as a card left by hand was; and the turned flap."""
@@ -1936,20 +1922,23 @@ def outreach_inset(pts, d):
     return out
 
 
-def outreach_band(y0, y1, hw, tones, cuts, lip=0.0):
-    """A length of cloth round the forearm (the arm's axis at x = 1): its
-    rims bow toward the reader as the family's eye sees a circle from a
-    little above, and it is cut into bands along its length by the key
-    light, as cloth round a limb takes it. Returns (outline, body)."""
-    e = hw * math.sin(math.radians(PITCH))
+def outreach_band(y0, y1, hw0, hw1, tones, cuts, lip=0.0):
+    """A length of cloth round the forearm (the arm's axis at x = 1), hw0
+    wide at its top and hw1 at its foot: its rims bow toward the reader as
+    the family's eye sees a circle from a little above, and it is cut into
+    bands along its length by the key light, as cloth round a limb takes
+    it; a band that flares faces a little up. Returns (outline, body)."""
     a = math.radians(OUTREACH_PLACE['lean'])
     cp, sp = math.cos(math.radians(PITCH)), math.sin(math.radians(PITCH))
+    flare = (hw0 - hw1) / (y1 - y0)
 
     def at(y, w):
-        return (1.0 + w * hw, y + e * math.sqrt(max(0.0, 1 - w * w)))
+        hw = hw0 + (hw1 - hw0) * (y - y0) / (y1 - y0)
+        return (1.0 + w * hw, y + hw * math.sin(math.radians(PITCH)) * math.sqrt(max(0.0, 1 - w * w)))
 
     def tone(w, up=0.0):
         nz = math.sqrt(max(0.0, 1 - w * w))
+        up += flare
         rx, ry = w * math.cos(a) + up * math.sin(a), -w * math.sin(a) + up * math.cos(a)
         return facet(lam((rx, ry * cp - nz * sp, ry * sp + nz * cp)), tones, cuts)
     n = 28
@@ -1964,13 +1953,22 @@ def outreach_band(y0, y1, hw, tones, cuts, lip=0.0):
             out.append('<path d="%s" fill="%s" stroke="%s" stroke-width=".1"/>' % (poly_d(q), bands[k0], bands[k0]))
             k0 = k
     if lip:
-        # the turned hem at the top: it faces up toward the lamp, so it
+        # the rolled edge at the top: it faces up toward the lamp, so it
         # catches the light a band ahead of the cloth under it
         for k in range(n):
-            col = tone((ws[k] + ws[k + 1]) / 2, 0.55)
+            col = tone((ws[k] + ws[k + 1]) / 2, 0.6)
             q = [outreach_at(p) for p in (at(y0, ws[k]), at(y0, ws[k + 1]), at(y0 + lip, ws[k + 1]), at(y0 + lip, ws[k]))]
             out.append('<path d="%s" fill="%s" stroke="%s" stroke-width=".1"/>' % (poly_d(q), col, col))
     return outline, ''.join(out)
+
+
+def outreach_mouth(y0, hw):
+    """The inside of the cuff's mouth behind the wrist: the far half of the
+    rim, seen from a little above, down to the near half (mm)."""
+    e = hw * math.sin(math.radians(PITCH))
+    ws = [-1 + 2 * k / 24 for k in range(25)]
+    return ([(1.0 + w * hw, y0 - e * math.sqrt(max(0.0, 1 - w * w))) for w in ws]
+            + [(1.0 + w * hw, y0 + e * math.sqrt(max(0.0, 1 - w * w))) for w in reversed(ws)])
 
 
 def outreach_nail():
@@ -1999,7 +1997,7 @@ def outreach_nail():
 
 def subject_outreach(m, h, small=False):
     """The day's introduction, held up in the hand: a cubit arm erect,
-    vested in the page's ink and cuffed in its paper, the hand holding one
+    vested or and cuffed argent, the hand holding one
     calling card up to be seen, the fingers standing behind it and the
     thumb opposed across its foot. The desk briefs every card overnight;
     the owner delivers each himself."""
@@ -2008,10 +2006,10 @@ def subject_outreach(m, h, small=False):
     palm = [forms['palm'][1]]
     thumb = [forms['thumb'][1]]
     face, flap = outreach_card()
-    cy0, cy1, chw = OUTREACH_CUFF
-    sy0, sy1, shw = OUTREACH_SLEEVE
-    sleeve_sil, sleeve = outreach_band(sy0, sy1, shw, OUTREACH_COAT, [0.25, 0.5, 0.74], lip=0 if small else 2.2)
-    cuff_sil, cuff = outreach_band(cy0, cy1, chw, OUTREACH_LINEN, [0.22, 0.46, 0.72])
+    cy0, cy1, cw0, cw1 = OUTREACH_CUFF
+    sy0, sy1, sw0, sw1 = OUTREACH_SLEEVE
+    sleeve_sil, sleeve = outreach_band(sy0, sy1, sw0, sw1, OUTREACH_SLEEVE_CLOTH, [0.25, 0.5, 0.74])
+    cuff_sil, cuff = outreach_band(cy0, cy1, cw0, cw1, OUTREACH_LINEN, [0.22, 0.46, 0.72], lip=0 if small else 1.8)
     cuts = OUTREACH_CUTS
     hand_light, thumb_light = outreach_light('hand'), outreach_light('thumb')
 
@@ -2027,11 +2025,13 @@ def subject_outreach(m, h, small=False):
         m.add('<path d="%s" stroke="%s" stroke-width=".3" stroke-opacity=".5" stroke-linecap="round" fill="none"/>'
               % (' '.join(smooth_d([outreach_at(p) for p in run], closed=False) for run in outreach_creases()),
                  OUTREACH_FINGER[0]))
-    m.add(outreach_planes(m, 'palm', palm, hand_light, *lay(OUTREACH_PALM), small=small))
-    m.add(cuff)
-    if not small:
-        m.add(outreach_link())
     m.add(sleeve)
+    # the cuff's mouth behind the wrist, then the hand issuing from it
+    m.add('<path d="%s" fill="%s"/>' % (outreach_path(outreach_mouth(cy0, cw0 - 0.8)), OUTREACH_LINEN[0]))
+    m.add(outreach_planes(m, 'palm', palm, hand_light, *lay(OUTREACH_PALM), small=small))
+    # the turned cuff lies over the sleeve and shades it along its foot
+    m.add('<path d="%s" fill="#000" fill-opacity=".35" transform="translate(.5 .9)"/>' % outreach_path(cuff_sil))
+    m.add(cuff)
     # the card stands a finger's breadth in front of the palm, so it throws
     # a band of shade down and right across the heel of the hand
     heel = m.clip('heel', '<path d="%s"/>' % outreach_path(palm[0]))
