@@ -1576,176 +1576,383 @@ def subject_outreach(m, h, small=False):
 
 
 # --------------------------------------------------------------------------
-# Arsenal: the gunner's quadrant, laid at an elevation
+# Arsenal: the gunner's quadrant, set in the bore at an elevation
 # --------------------------------------------------------------------------
-QUAD = {'vx': 60.0, 'vy': 24.5, 'elev': 36.0, 'long': 56.0, 'r0': 22.0, 'r1': 31.0, 'bar': 6.6}
-BRASS4 = [GILT[1], GILT[2], GILT[4], GILT[5], GILT[3]]
-BRASS_CUTS = [0.18, 0.45, 0.7, 0.9]
-LACQUER = ['#3a0c08', '#7a1e16', '#b03a2e', '#e0705a']     # the bob's signal-red lacquer
+# Drawn from Tartaglia's squadra (Nova Scientia, 1537) and the brass
+# quadrants of the sixteenth and seventeenth centuries in the Museo Galileo
+# (inv. 659 and 1303): a long flat arm that goes into the bore, tapering to
+# a foot with a toe; a short arm square to it; and between them the limb, a
+# band of a quarter circle centred on the pin in the corner, joined to the
+# long arm and run on through the short arm into a horn that reads a
+# depression. The limb is open inside, as the real ones are. A gusset
+# stiffens the inside corner, and the plumb line hangs from the pin across
+# the limb to a turned bob. On the museum pieces the limb's radius is about
+# a quarter of the long arm; here it is nearly half, so the limb that says
+# quadrant still reads at the gate's 32 px. Local units with the pin at the
+# origin, y up; the charge is fitted to the badge afterwards.
+ARSENAL = {
+    'elev': 30.0,                    # the elevation the plumb line reads, degrees
+    'long': 62.0, 'short': 40.0,     # the arms, from the pin
+    'r1': 28.5, 'r0': 20.5,          # the limb: outer and inner radius
+    'w': 5.6, 'taper': 0.6,          # the arms' width at the corner; the long arm's at its foot, over w
+    'horn': 16.0,                    # degrees the limb runs on past the short arm
+    'gusset': 4.8,
+    'drop': 5.0,                     # the bob hangs this far under the limb
+    'bob': 1.45,                     # the bob's size, over the profile's
+    'thick': 3.0,                    # the plate, drawn thicker than the real one so it reads
+    'turn': 40.0,                    # degrees the plate is turned toward the lamp
+    'fit': 38.6,                     # the radius of the circle the charge fills on the badge
+    'centre': (48.0, 48.6),
+}
+# The instrument's brass, from Arsenal's own page (--brass-lo, --brass,
+# --brass-hi) with a shade under and a crest over: every face, wall and
+# chamfer takes one of these by how squarely it meets the key light.
+ARSENAL_BRASS = ['#3a2c0f', '#6f571f', '#a3843a', '#c9a64e', '#e7c976', '#f9ebb4']
+ARSENAL_BRASS_CUTS = [0.12, 0.32, 0.55, 0.78, 0.92]
+ARSENAL_BOB = ['#4a3912', '#8c6e2c', '#c9a64e', '#eed48a']          # the turned bob's planes
+ARSENAL_BOB_CUTS = [0.3, 0.6, 0.86]
+ARSENAL_INK = '#2a2109'              # what the graver cuts, filled with black wax
+ARSENAL_CORD = '#1b140c'             # the plumb line
 
 
-def bevelled(outer, inner, face):
-    """A flat cast plate facing the reader: its face, and a chamfer round it
-    whose every facet takes the tone its outward normal turns to the key."""
-    out = ['<path d="%s" fill="%s"/>' % (poly_d(outer), face)]
-    n = len(outer)
-    cx = sum(p[0] for p in outer) / n
-    cy = sum(p[1] for p in outer) / n
+def arsenal_arc(r, a0, a1, n):
+    """Points on a circle about the pin from angle a0 to a1 (radians, y up)."""
+    return [(r * math.cos(a0 + (a1 - a0) * k / n), r * math.sin(a0 + (a1 - a0) * k / n)) for k in range(n + 1)]
+
+
+def arsenal_round(c, a, b, n=6):
+    """A concave round cut into a corner: the short way about c from a to b."""
+    a0 = math.atan2(a[1] - c[1], a[0] - c[0])
+    a1 = math.atan2(b[1] - c[1], b[0] - c[0])
+    d = (a1 - a0 + math.pi) % (2 * math.pi) - math.pi
+    r = (math.hypot(a[0] - c[0], a[1] - c[1]) + math.hypot(b[0] - c[0], b[1] - c[1])) / 2
+    return [(c[0] + r * math.cos(a0 + d * k / n), c[1] + r * math.sin(a0 + d * k / n)) for k in range(n + 1)]
+
+
+def arsenal_form(small=False):
+    """The quadrant's plate in local units: its outer boundary and the open
+    quarter inside the limb (lists of points, y up), and the frame the
+    engraving and the plumb line are laid in."""
+    q = ARSENAL
+    e = math.radians(q['elev'])
+    uL = (-math.cos(e), -math.sin(e))          # the long arm, into the bore
+    uS = (math.sin(e), -math.cos(e))           # the short arm, square to it
+    aL = math.atan2(uL[1], uL[0])
+    aS = aL + math.pi / 2
+    aH = aS + math.radians(q['horn'])
+    L, Sh = q['long'], q['short']
+    k = 1.32 if small else 1.0                 # the small cut's members, drawn heavier
+    w = q['w'] * k
+    r1 = q['r1'] + (w - q['w']) * 0.45
+    r0 = q['r0'] - (w - q['w']) * 0.55
+    g = q['gusset']
+
+    def P(t, s):
+        return (t * uL[0] + s * uS[0], t * uL[1] + s * uS[1])
+
+    def wl(t):
+        return w * (1 - (1 - q['taper']) * max(0.0, t) / L)
+
+    def on_edge(r):
+        # how far along the long arm its inner edge (s = +wl/2) lies r from the pin
+        t = r
+        for _ in range(6):
+            t = math.sqrt(max(0.0, r * r - (wl(t) / 2) ** 2))
+        return t
+
+    def ang(p):
+        a = math.atan2(p[1], p[0])
+        while a < aL - 0.5:
+            a += 2 * math.pi
+        while a > aL + 2 * math.pi - 0.5:
+            a -= 2 * math.pi
+        return a
+    n_arc = 44
+    wf = wl(L)
+    tj1, tj0 = on_edge(r1), on_edge(r0)
+    J1, J0 = P(tj1, wl(tj1) / 2), P(tj0, wl(tj0) / 2)
+    sk1, sk0 = math.sqrt(r1 * r1 - (w / 2) ** 2), math.sqrt(r0 * r0 - (w / 2) ** 2)
+    K1, K2, K0, K3 = P(w / 2, sk1), P(-w / 2, sk1), P(w / 2, sk0), P(-w / 2, sk0)
+    # the foot: a toe on the outer side, the inner corner cut back in a round
+    rn = 0.56 * wf
+    out = [P(-w / 2, -w / 2), P(L, -wf / 2)]
+    out += arsenal_round(P(L, wf / 2), P(L, wf / 2 - rn), P(L - rn, wl(L - rn) / 2))
+    # up the long arm's inner edge to the limb, round its outer edge to the
+    # short arm and out along that to its end, cut the same way
+    out += [J1] + arsenal_arc(r1, ang(J1), ang(K1), n_arc)[1:-1] + [K1]
+    rs = 0.56 * w
+    out += arsenal_round(P(w / 2, Sh), P(w / 2, Sh - rs), P(w / 2 - rs, Sh))
+    out += [P(-w / 2, Sh), K2]
+    # the horn, out past the short arm, with the same toe and round at its tip
+    out += arsenal_arc(r1, ang(K2), aH, 12)[1:]
+    rh = 0.56 * (r1 - r0)
+    tip = (r0 * math.cos(aH), r0 * math.sin(aH))
+    back = aH - rh / r0
+    out += arsenal_round(tip, ((r0 + rh) * math.cos(aH), (r0 + rh) * math.sin(aH)),
+                         (r0 * math.cos(back), r0 * math.sin(back)))
+    out += arsenal_arc(r0, back, ang(K3), 12)[1:-1] + [K3]
+    # the open quarter: the long arm's inner edge from the gusset to the
+    # limb, the limb's inner edge, the short arm's inner edge back to the
+    # gusset, and the gusset's free edge, straight and then rounded into the
+    # short arm as on inv. 1303
+    G1, G2 = P(w / 2 + g, wl(w / 2 + g) / 2), P(w / 2, w / 2 + g)
+    hole = [G1, J0] + arsenal_arc(r0, ang(J0), ang(K0), n_arc)[1:-1] + [K0, G2]
+    gm = (G2[0] + (G1[0] - G2[0]) * 0.42, G2[1] + (G1[1] - G2[1]) * 0.42)
+    ic = P(w / 2, w / 2)
+    ctrl = ((G2[0] + gm[0]) / 2 + (ic[0] - (G2[0] + gm[0]) / 2) * 0.55,
+            (G2[1] + gm[1]) / 2 + (ic[1] - (G2[1] + gm[1]) / 2) * 0.55)
+    for j in range(1, 6):
+        t = j / 6.0
+        hole.append(((1 - t) ** 2 * G2[0] + 2 * (1 - t) * t * ctrl[0] + t * t * gm[0],
+                     (1 - t) ** 2 * G2[1] + 2 * (1 - t) * t * ctrl[1] + t * t * gm[1]))
+    hole.append(gm)
+    frame = {'aL': aL, 'aS': aS, 'aH': aH, 'r0': r0, 'r1': r1, 'w': w, 'wl': wl, 'tj1': tj1, 'P': P, 'L': L,
+             'bob_top': r1 + q['drop']}
+    return out, hole, frame
+
+
+def arsenal_bob_profile(n=90):
+    """A turned brass plumb bob, from the top of its cap down to the point:
+    (distance down, radius). A short cap and a collar, then the body, full
+    in the shoulder and drawn out to the point, smooth all the way so the
+    lathe's planes run round it in even curves."""
+    prof = [(0.0, 0.0), (0.0, 0.8), (0.8, 0.8), (0.8, 1.45), (1.35, 1.45), (1.35, 0.0)]
+    for i in range(1, n + 1):
+        u = i / float(n)
+        prof.append((1.35 + 9.2 * u, 3.25 * (u ** 0.34) * ((1 - u) ** 1.05) / 0.4768))
+    return prof
+
+
+def arsenal_offset(loop, d, solid_left):
+    """A loop of plate points (y up) moved d into the metal, each vertex along
+    the bisector of its two edges. solid_left: the metal lies to the left of
+    the loop's direction of travel."""
+    sg = 1.0 if solid_left else -1.0
+    n, out = len(loop), []
     for i in range(n):
-        a, b = outer[i], outer[(i + 1) % n]
-        c, d = inner[(i + 1) % n], inner[i]
-        ex, ey = b[0] - a[0], b[1] - a[1]
-        nx, ny = ey, -ex
-        if nx * ((a[0] + b[0]) / 2 - cx) + ny * ((a[1] + b[1]) / 2 - cy) < 0:
-            nx, ny = -nx, -ny
-        ln = math.hypot(nx, ny) or 1
-        t = facet(lam((nx / ln, -ny / ln, 0.7)), BRASS4, BRASS_CUTS)
-        out.append('<path d="%s" fill="%s"/>' % (poly_d([a, b, c, d]), t))
-    out.append('<path d="%s" fill="%s"/>' % (poly_d(inner), face))
-    return ''.join(out)
+        p0, p1, p2 = loop[i - 1], loop[i], loop[(i + 1) % n]
+        e1 = (p1[0] - p0[0], p1[1] - p0[1])
+        e2 = (p2[0] - p1[0], p2[1] - p1[1])
+        l1, l2 = math.hypot(*e1) or 1, math.hypot(*e2) or 1
+        n1 = (-e1[1] / l1 * sg, e1[0] / l1 * sg)
+        n2 = (-e2[1] / l2 * sg, e2[0] / l2 * sg)
+        bx, by = n1[0] + n2[0], n1[1] + n2[1]
+        bl = math.hypot(bx, by)
+        if bl < 1e-6:
+            bx, by, bl = n1[0], n1[1], 1.0
+        bx, by = bx / bl, by / bl
+        cosh = max(0.4, bx * n1[0] + by * n1[1])
+        out.append((p1[0] + bx * d / cosh, p1[1] + by * d / cosh))
+    return out
+
+
+def arsenal_area(loop):
+    return 0.5 * sum(loop[i][0] * loop[(i + 1) % len(loop)][1] - loop[(i + 1) % len(loop)][0] * loop[i][1]
+                     for i in range(len(loop)))
+
+
+def arsenal_view(small=False):
+    """The quadrant stands upright on the badge, as it hangs at the muzzle,
+    turned a little toward the lamp so its face takes the light and the
+    thickness of the plate shows along the far edges. First the plate and
+    everything hung from it is projected at unit scale about the pin; the
+    circle round all of it is then fitted to the badge."""
+    q = ARSENAL
+    out, hole, fr = arsenal_form(small)
+    t = q['thick'] * (1.15 if small else 1.0)
+    v0 = S.View(0.0, 0.0, 1.0, yaw=-q['turn'], pitch=PITCH)
+    pts = [v0.proj((x, y, z))[:2] for x, y in out for z in (t / 2, -t / 2)]
+    bs = q['bob'] * (1.2 if small else 1.0)
+    top = fr['bob_top']
+    for d, r in arsenal_bob_profile():
+        cx, cy, _ = v0.proj((0.0, -top, t / 2 + 1.0))
+        pts += [(cx + r * bs, cy + d * bs), (cx - r * bs, cy + d * bs)]
+    c = (sum(p[0] for p in pts) / len(pts), sum(p[1] for p in pts) / len(pts))
+    for i in range(3000):                      # Badoiu-Clarkson: walk toward the farthest point
+        far = max(pts, key=lambda p: (p[0] - c[0]) ** 2 + (p[1] - c[1]) ** 2)
+        c = (c[0] + (far[0] - c[0]) / (i + 2), c[1] + (far[1] - c[1]) / (i + 2))
+    rad = max(math.hypot(p[0] - c[0], p[1] - c[1]) for p in pts)
+    k = q['fit'] / rad
+    X, Y = q['centre']
+    v = S.View(X - k * c[0], Y - k * c[1], k, yaw=-q['turn'], pitch=PITCH)
+    return v, k, out, hole, fr, t, bs
+
+
+def arsenal_plate(v, loops, t, ch):
+    """The cast plate: its walls where they turn to the reader, each in the
+    tone its normal takes from the key light, a chamfer round the face, and
+    the flat face over them."""
+    fc = S.Faces()
+    face_loops = []
+    zf, zb = t / 2, -t / 2
+    for loop, is_hole in loops:
+        ccw = arsenal_area(loop) > 0
+        solid_left = ccw != is_hole            # the metal's side of the loop
+        inner = arsenal_offset(loop, ch, solid_left) if ch else loop
+        face_loops.append(inner)
+        n = len(loop)
+        for i in range(n):
+            a, b = loop[i], loop[(i + 1) % n]
+            ex, ey = b[0] - a[0], b[1] - a[1]
+            ln = math.hypot(ex, ey)
+            if ln < 1e-6:
+                continue
+            # the outward normal, away from the metal
+            nx, ny = (ey / ln, -ex / ln) if solid_left else (-ey / ln, ex / ln)
+            nw = v.nrm((nx, ny, 0.0))
+            if nw[2] > 0.02:
+                quad = [v.proj((a[0], a[1], zf - ch)), v.proj((b[0], b[1], zf - ch)),
+                        v.proj((b[0], b[1], zb)), v.proj((a[0], a[1], zb))]
+                fc.add([(p[0], p[1]) for p in quad], sum(p[2] for p in quad) / 4 - 50,
+                       facet(lam(nw), ARSENAL_BRASS, ARSENAL_BRASS_CUTS))
+            if ch:
+                c_, d_ = inner[(i + 1) % n], inner[i]
+                nc = v.nrm(S.norm((nx, ny, 1.0)))
+                quad = [v.proj((a[0], a[1], zf - ch)), v.proj((b[0], b[1], zf - ch)),
+                        v.proj((c_[0], c_[1], zf)), v.proj((d_[0], d_[1], zf))]
+                fc.add([(p[0], p[1]) for p in quad], sum(p[2] for p in quad) / 4,
+                       facet(lam(nc), ARSENAL_BRASS, ARSENAL_BRASS_CUTS))
+    face = ' '.join(S.pts_d([v.proj((x, y, zf))[:2] for x, y in lp]) for lp in face_loops)
+    tone = facet(lam(v.nrm((0.0, 0.0, 1.0))), ARSENAL_BRASS, ARSENAL_BRASS_CUTS)
+    return fc.svg(seam=0.12) + '<path d="%s" fill="%s" fill-rule="evenodd"/>' % (face, tone)
+
+
+def arsenal_bob(m, x, y, s, small=False):
+    """The turned bob, hung by its cap at (x, y), s badge units to one local
+    unit, cut into the planes a lathe leaves on it along the key light."""
+    edge = arsenal_bob_profile(24)            # the outline, drawn
+    prof = arsenal_bob_profile()              # the surface, lit
+    right = [(x + r * s, y + d * s) for d, r in edge]
+    left = [(x - r * s, y + d * s) for d, r in edge[::-1]]
+    sil = S.pts_d(right + left[1:-1])
+    v = S.View(0.0, 0.0, 1.0, pitch=PITCH)
+
+    def light(px, py):
+        d = (py - y) / s
+        for j in range(len(prof) - 1):
+            (d0, r0), (d1, r1) = prof[j], prof[j + 1]
+            if d0 <= d <= d1:
+                r = r0 + (r1 - r0) * (d - d0) / max(1e-6, d1 - d0)
+                slope = (r1 - r0) / max(1e-6, d1 - d0)
+                break
+        else:
+            return 0.0
+        if r < 1e-3:
+            return 0.0
+        u = max(-1.0, min(1.0, (px - x) / (r * s)))
+        return lam(v.nrm(S.norm((u, slope, math.sqrt(max(0.0, 1 - u * u))))))
+    box = (x - 4 * s, y - 1, x + 4 * s, y + 11 * s)
+    return shadow(sil, 0.8, 1.1, 0.5) + planes(m, 'bob', sil, light, box, ARSENAL_BOB, ARSENAL_BOB_CUTS,
+                                               0.3 if small else 0.2, 0.08)
 
 
 def subject_arsenal(m, h, small=False):
     """The gunner's quadrant, the instrument that first turned a gun's
-    elevation into a number (Tartaglia, 1537): a long arm laid in the bore,
-    a short arm square to it, and between them a limb graduated in the
-    gunner's twelve points. A plumb bob on its cord hangs from the corner and
-    reads the elevation where it crosses the limb, as Arsenal's Ballistic
-    Computer reads one off the range. Cast brass, the bob lacquered in the
-    tool's signal red."""
-    q = QUAD
-    vx, vy = q['vx'], q['vy']
-    e = math.radians(q['elev'])
-    long_dir = (math.cos(math.pi + e), -math.sin(math.pi + e))            # screen, down and left
-    short_dir = (math.cos(1.5 * math.pi + e), -math.sin(1.5 * math.pi + e))  # down and a little right
-    bw = q['bar']
-    r0, r1 = q['r0'], q['r1']
-    ch = 0.0 if small else 0.9                                            # chamfer
-
-    def along(d, t, s):
-        # a point t along direction d, s to its side (the side toward the limb is +)
-        px, py = -d[1], d[0]
-        return (vx + d[0] * t + px * s, vy + d[1] * t + py * s)
-
-    # the limb: an annular band between the arms
-    a0 = math.pi + e                    # the long arm's angle (math, y up)
-    a1 = 1.5 * math.pi + e              # the short arm's
-    n = 36
-
-    def arc(r, a_from, a_to):
-        return [(vx + r * math.cos(a_from + (a_to - a_from) * k / n), vy - r * math.sin(a_from + (a_to - a_from) * k / n))
-                for k in range(n + 1)]
-    limb_o, limb_i = arc(r1, a0, a1), arc(r0, a0, a1)
-    limb = limb_o + limb_i[::-1]
-    # the arms, as bars from the corner
-    lo = [along(long_dir, -bw / 2, -bw / 2), along(long_dir, q['long'], -bw / 2),
-          along(long_dir, q['long'], bw / 2), along(long_dir, -bw / 2, bw / 2)]
-    so = [along(short_dir, -bw / 2, bw / 2), along(short_dir, r1 + 1.2, bw / 2),
-          along(short_dir, r1 + 1.2, -bw / 2), along(short_dir, -bw / 2, -bw / 2)]
-    body = [lo, so]
-    sil = ' '.join(poly_d(p) for p in body) + ' ' + poly_d(limb)
-    m.add(shadow(sil, 1.3, 1.8, 0.55))
-
-    def inset(poly, k):
-        cx = sum(p[0] for p in poly) / len(poly)
-        cy = sum(p[1] for p in poly) / len(poly)
-        out = []
-        n_ = len(poly)
-        for i in range(n_):
-            p0, p1, p2 = poly[i - 1], poly[i], poly[(i + 1) % n_]
-            # offset each vertex inward along the bisector of its two edges
-            e1 = (p1[0] - p0[0], p1[1] - p0[1])
-            e2 = (p2[0] - p1[0], p2[1] - p1[1])
-            n1 = (-e1[1], e1[0])
-            n2 = (-e2[1], e2[0])
-            l1, l2 = math.hypot(*n1) or 1, math.hypot(*n2) or 1
-            n1, n2 = (n1[0] / l1, n1[1] / l1), (n2[0] / l2, n2[1] / l2)
-            bx, by = n1[0] + n2[0], n1[1] + n2[1]
-            bl = math.hypot(bx, by) or 1
-            bx, by = bx / bl, by / bl
-            cosh = max(0.3, bx * n1[0] + by * n1[1])
-            # inward is toward the centroid
-            if bx * (cx - p1[0]) + by * (cy - p1[1]) < 0:
-                bx, by = -bx, -by
-            out.append((p1[0] + bx * k / cosh, p1[1] + by * k / cosh))
-        return out
-    face = BRASS4[2]
-    # the web between the arms: a thinner plate set down inside the limb,
-    # engraved with the gunner's points run in to the corner
-    web = [(vx, vy)] + arc(r0 + 0.6, a0, a1)
-    m.add('<path d="%s" fill="%s"/>' % (poly_d(web), BRASS4[1]))
+    elevation into a number: a long arm laid in the bore, a short arm square
+    to it, and between them the open limb cut in the gunner's twelve points.
+    It stands as it does at the muzzle of a gun laid at thirty degrees, and
+    the plumb line hangs from the pin in the corner and reads the elevation
+    where it crosses the limb, as Arsenal's Ballistic Computer reads one off
+    the range. Cast and filed brass, the colour of the Ballistic Computer's
+    own fittings, on the gunmetal enamel. One casting: the flat face takes
+    one tone, the chamfer round it and the walls that show along its far
+    edges take theirs from the key light, and the bob is cut into the planes
+    of the lathe."""
+    v, k, out, hole, fr, t, bs = arsenal_view(small)
+    zf = t / 2
+    # the charge's shadow on the enamel: the plate's front and back outlines
+    sil = ' '.join(S.pts_d([v.proj((x, y, z))[:2] for x, y in lp]) for lp in (out, hole) for z in (zf,))
+    back = ' '.join(S.pts_d([v.proj((x, y, z))[:2] for x, y in lp]) for lp in (out, hole) for z in (-zf,))
+    m.add(shadow(sil, 1.2, 1.7, 0.5, ' fill-rule="evenodd"'))
+    m.add(shadow(back, 1.2, 1.7, 0.5, ' fill-rule="evenodd"'))
+    m.add(arsenal_plate(v, [(out, False), (hole, True)], t, 0.0 if small else 0.8))
+    m.add(arsenal_engraving(v, fr, zf, small))
+    # the plumb line, hung from the pin in front of the face, straight down
+    # across the limb to the bob
+    zc = zf + 0.9
+    px, py, _ = v.proj((0.0, 0.0, zc))
+    bx, by, _ = v.proj((0.0, -fr['bob_top'], zc))
+    lw = 1.3 if small else 0.55
     if not small:
-        rays = []
-        for k in range(1, 12):
-            a = a0 + (a1 - a0) * k / 12
-            rays.append((vx + 6.0 * math.cos(a), vy - 6.0 * math.sin(a), vx + (r0 - 0.6) * math.cos(a), vy - (r0 - 0.6) * math.sin(a)))
-        m.add('<path d="%s" stroke="%s" stroke-width=".35" stroke-opacity=".8"/>' % (lines_path(rays), BRASS4[0]))
-        m.add('<path d="M%s" stroke="%s" stroke-width=".6" fill="none"/>'
-              % (' L'.join('%s %s' % (f(x), f(y)) for x, y in arc(r0 - 0.3, a0, a1)), BRASS4[3]))
+        m.add('<path d="M%s %s V%s" stroke="#000" stroke-opacity=".32" stroke-width="%s" transform="translate(.6 .8)"/>'
+              % (f(px), f(py), f(by + 0.6), f(lw)))
+    m.add('<path d="M%s %s V%s" stroke="%s" stroke-width="%s"/>' % (f(px), f(py), f(by + 0.6), ARSENAL_CORD, f(lw)))
+    m.add(arsenal_bob(m, bx, by, k * bs, small))
+    # the pin the line hangs from, a turned head proud of the face
+    rp = 1.9 if small else 1.5
+    m.add(shadow(circle_d(px, py, rp), 0.4, 0.6, 0.45))
+    m.add(faceted_ring(px, py, rp * 0.55, rp, +1, n=24))
+    m.add('<circle cx="%s" cy="%s" r="%s" fill="%s"/>' % (f(px), f(py), f(rp * 0.55), ARSENAL_BRASS[2]))
+
+
+def arsenal_engraving(v, fr, zf, small=False):
+    """What the graver cut in the face, filled with black wax. The limb's
+    twelve points are cut alternately, as Tartaglia's own woodcut of the
+    squadra shows them, with the horn's points of depression beyond; down the
+    long arm the scale of calibres, a division for each weight of shot at the
+    cube root of the weight, cut alternately in the same way."""
+    r0, r1, aL, aS, aH = fr['r0'], fr['r1'], fr['aL'], fr['aS'], fr['aH']
+
+    def T(p):
+        x, y, _ = v.proj((p[0], p[1], zf))
+        return (x, y)
+
+    def pol(r, a):
+        return T((r * math.cos(a), r * math.sin(a)))
+    m_ = 1.1 if small else 1.0
+    rin, rout = r0 + m_, r1 - m_
+    # the small cut keeps the alternation but cuts two points to a block, so
+    # the blocks stay wider than a pixel at the Ledger's 25 px
+    step = (aS - aL) / (6.0 if small else 12.0)
+    blocks, segs = [], []
+    rm = (rin + rout) / 2
+    w = fr['w']
+    lo_a, hi_a = aL + (w / 2 + 0.5) / rm, aH - 0.03
+    # the short arm crosses the limb: the cuts stop at its edges
+    gap = ((aS - (w / 2 + 0.5) / rm), (aS + (w / 2 + 0.5) / rm))
+    for j in range(-6, 12):
+        if j % 2 or (small and j >= 6):
+            continue
+        a0, a1 = aS - j * step, aS - (j + 1) * step
+        a0, a1 = min(a0, hi_a), max(a1, lo_a)
+        spans = []
+        for u0, u1 in ((a1, min(a0, gap[0])), (max(a1, gap[1]), a0)):
+            if u1 > u0 + 0.01:
+                spans.append((u0, u1))
+        for u0, u1 in spans:
+            pts = [pol(rout, u0 + (u1 - u0) * i / 6) for i in range(7)] + [pol(rin, u1 + (u0 - u1) * i / 6) for i in range(7)]
+            blocks.append(poly_d(pts))
+    P, wl, L = fr['P'], fr['wl'], fr['L']
+    t0, t1 = fr['tj1'] + (1.5 if small else 2.0), L - (4.0 if small else 3.4)
+    tt = [t0 + (t1 - t0) * (wg ** (1 / 3.0) - 1) / (50 ** (1 / 3.0) - 1) for wg in (1, 2, 4, 8, 16, 25, 36, 50)]
+    for j in range(0, len(tt) - 1, 2):
+        e0, e1 = -wl(tt[j]) / 2 + m_, -wl(tt[j + 1]) / 2 + m_
+        pts = [P(tt[j], e0), P(tt[j + 1], e1), P(tt[j + 1], e1 + wl(tt[j + 1]) * 0.42), P(tt[j], e0 + wl(tt[j]) * 0.42)]
+        blocks.append(poly_d([T(p) for p in pts]))
+    out = '<path d="%s" fill="%s" fill-opacity=".86"/>' % (' '.join(blocks), ARSENAL_INK)
     if small:
-        m.add('<path d="%s" fill="%s"/>' % (poly_d(limb), BRASS4[2]))
-        m.add('<path d="%s" fill="%s"/>' % (' '.join(poly_d(p) for p in body), BRASS4[3]))
-    else:
-        m.add(bevelled(limb, inset_arc(vx, vy, r0, r1, a0, a1, n, ch), face))
-        for p in body:
-            m.add(bevelled(p, inset(p, ch), face))
-        # the limb's graduation: twelve points, the third ones long
-        ticks = []
-        for k in range(13):
-            a = a0 + (a1 - a0) * k / 12
-            r_in = r0 + (2.8 if k % 3 else 1.2)
-            ticks.append((vx + r_in * math.cos(a), vy - r_in * math.sin(a), vx + (r1 - 1.3) * math.cos(a), vy - (r1 - 1.3) * math.sin(a)))
-        for k in range(48):
-            a = a0 + (a1 - a0) * k / 48
-            ticks.append((vx + (r1 - 2.6) * math.cos(a), vy - (r1 - 2.6) * math.sin(a), vx + (r1 - 1.3) * math.cos(a), vy - (r1 - 1.3) * math.sin(a)))
-        m.add('<path d="%s" stroke="%s" stroke-width=".42"/>' % (lines_path(ticks), BRASS4[0]))
-        arcl = arc(r1 - 1.3, a0, a1)
-        m.add('<path d="M%s" stroke="%s" stroke-width=".4" fill="none"/>' % (' L'.join('%s %s' % (f(x), f(y)) for x, y in arcl), BRASS4[0]))
-        # the lines engraved down the long arm, where it lies in the bore
-        m.add('<path d="M%s %s L%s %s" stroke="%s" stroke-width=".4"/>'
-              % tuple([f(c) for c in along(long_dir, r1 + 3, 0)] + [f(c) for c in along(long_dir, q['long'] - 3, 0)] + [BRASS4[0]]))
-    # the plumb line and its bob
-    bob_y = vy + r1 + 11.5
-    m.add('<path d="M%s %s V%s" stroke="#1c1410" stroke-width="%s"/>' % (f(vx), f(vy), f(bob_y - 3.6), '1.1' if small else '.5'))
-    m.add(plumb_bob(vx, bob_y, small))
-    # the pivot boss at the corner
-    m.add(shadow(circle_d(vx, vy, 3.4), 0.6, 0.9, 0.5))
-    m.add(faceted_ring(vx, vy, 2.1, 3.4, +1, n=24))
-    m.add('<circle cx="%s" cy="%s" r="2.1" fill="%s"/>' % (f(vx), f(vy), BRASS4[2]))
-    if not small:
-        m.add('<path d="M%s %s L%s %s" stroke="%s" stroke-width=".55"/>' % (f(vx - 1.5), f(vy + 0.9), f(vx + 1.5), f(vy - 0.9), BRASS4[0]))
-
-
-def inset_arc(cx, cy, r0, r1, a0, a1, n, k):
-    """The face of an annular band, set in from its edges by k."""
-    da = k / ((r0 + r1) / 2)
-    o = [(cx + (r1 - k) * math.cos(a0 + da + (a1 - a0 - 2 * da) * i / n), cy - (r1 - k) * math.sin(a0 + da + (a1 - a0 - 2 * da) * i / n))
-         for i in range(n + 1)]
-    ii = [(cx + (r0 + k) * math.cos(a0 + da + (a1 - a0 - 2 * da) * i / n), cy - (r0 + k) * math.sin(a0 + da + (a1 - a0 - 2 * da) * i / n))
-          for i in range(n + 1)]
-    return o + ii[::-1]
-
-
-def plumb_bob(x, y, small=False):
-    """A turned plumb bob: a brass cap and a pear of red lacquer, its planes
-    running down it as a lathe leaves them."""
-    prof = [(-3.6, 1.0), (-2.6, 1.25), (-2.2, 2.5), (-0.6, 3.3), (1.2, 3.1), (3.0, 2.2), (4.6, 1.0), (5.8, 0.0)]
-    fc = S.Faces()
-    v = S.View(x, y, 1.0, yaw=0, pitch=PITCH)
-    n = 18 if small else 32
-    for j in range(len(prof) - 1):
-        (y0, r0), (y1, r1) = prof[j], prof[j + 1]
-        pal = BRASS4[:4] if j < 1 else LACQUER
-        for k in range(n):
-            p0, p1 = 2 * math.pi * k / n, 2 * math.pi * (k + 1) / n
-            pm = (p0 + p1) / 2
-            nv = v.nrm((math.cos(pm), (r1 - r0) / max(0.01, y1 - y0), math.sin(pm)))
-            if nv[2] <= 0:
-                continue
-            pts = [v.proj((r0 * math.cos(p0), -y0, r0 * math.sin(p0))), v.proj((r0 * math.cos(p1), -y0, r0 * math.sin(p1))),
-                   v.proj((r1 * math.cos(p1), -y1, r1 * math.sin(p1))), v.proj((r1 * math.cos(p0), -y1, r1 * math.sin(p0)))]
-            fc.add([(a, b) for a, b, _ in pts], sum(z for _, _, z in pts) / 4, facet(lam(nv), pal, [0.2, 0.45, 0.72]))
-    return shadow(poly_d([(x - 3.3, y - 1), (x + 3.3, y - 1), (x, y + 5.8)]), 0.7, 1.0, 0.45) + fc.svg(seam=0.1)
+        return out
+    # the fine work: the ruled edges of the scale, the half points, and a
+    # tick for every weight of shot
+    rings = []
+    for r in (rin, rout):
+        pts = [pol(r, lo_a + (hi_a - lo_a) * i / 60) for i in range(61)]
+        rings.append('M' + ' L'.join('%s %s' % (f(x), f(y)) for x, y in pts))
+    for j in range(-6, 12):
+        a = aS - (j + 0.5) * step
+        if lo_a < a < hi_a:
+            p, q_ = pol(rout - 1.2, a), pol(rout, a)
+            segs.append((p[0], p[1], q_[0], q_[1]))
+    a_, b_ = T(P(t0, -wl(t0) / 2 + m_)), T(P(t1, -wl(t1) / 2 + m_))
+    segs.append((a_[0], a_[1], b_[0], b_[1]))
+    for wgt in (1, 2, 3, 4, 6, 8, 10, 12, 16, 20, 25, 30, 36, 40, 50):
+        t = t0 + (t1 - t0) * (wgt ** (1 / 3.0) - 1) / (50 ** (1 / 3.0) - 1)
+        lo = -wl(t) / 2 + m_
+        hi = lo + wl(t) * (0.62 if wgt in (1, 8, 25, 50) else 0.5)
+        p, q_ = T(P(t, lo)), T(P(t, hi))
+        segs.append((p[0], p[1], q_[0], q_[1]))
+    return (out + '<path d="%s" stroke="%s" stroke-width=".3" stroke-opacity=".8"/>' % (lines_path(segs), ARSENAL_INK)
+            + '<path d="%s" stroke="%s" stroke-width=".3" stroke-opacity=".8" fill="none"/>' % (' '.join(rings), ARSENAL_INK))
 
 
 # --------------------------------------------------------------------------
