@@ -94,7 +94,7 @@ HUE = {
     'pressroom': {
         'name': 'The Press Room', 'short': 'Press Room',
         'deep': '#0b2616', 'field': '#1e6a40', 'lit': '#3f9463', 'pop': '#5a8040',
-        'velvet': {'name': 'emerald', 'onyx': '#24754b', 'ivory': '#36906a'},
+        'velvet': {'name': 'emerald', 'onyx': '#24754b', 'ivory': '#37905f'},
         'ink': 'bottle',
     },
     'arsenal': {
@@ -477,337 +477,263 @@ def smooth_d(points, closed=True, tension=1.0):
     return ' '.join(out) + (' Z' if closed else '')
 
 
-LAND = {
-    'eurasia': [(25, 71), (44, 68), (60, 69), (70, 73), (100, 77), (130, 72), (160, 70), (180, 66), (163, 60),
-                (160, 55), (157, 51), (152, 58), (140, 58), (135, 54), (140, 48), (132, 43), (129, 36),
-                (127, 34.5), (126, 37.5), (124.5, 40), (121, 40.8), (118, 39), (119.5, 37.5), (122.5, 37),
-                (120, 35), (121, 32), (122, 30.5), (120, 26), (116, 23), (114, 22.3), (110, 21.2), (107.5, 21.5),
-                (106, 19.5), (108.5, 16), (109.2, 12), (106.5, 9), (104.8, 8.6), (105, 10.5), (102.5, 12),
-                (100.5, 13.5), (100, 11), (99.5, 8), (101, 6.5), (103.5, 1.5), (102, 2.5), (100.5, 5),
-                (98.5, 8.5), (98, 10), (97.5, 16.5), (94.2, 16), (94, 19), (91.8, 22.2), (88.5, 21.6),
-                (86.5, 20), (84.5, 18.5), (80.2, 15.5), (80, 10.5), (77.5, 8), (76, 10.5), (74.5, 14.5),
-                (72.8, 19), (72.6, 21.5), (70, 22.5), (68.5, 23.5), (66.5, 25.2), (61.5, 25.2), (57.5, 25.8),
-                (56.5, 27), (54, 26.6), (51, 29.5), (48, 30), (49.5, 27.5), (50.8, 25), (51.6, 24),
-                (56, 24.3), (58, 23.5), (59.8, 22.4), (57.5, 19), (55, 17), (52, 15.8), (48.5, 14),
-                (45, 12.8), (43.3, 13), (42.5, 16), (40.5, 20), (39, 21.8), (37, 25.5), (35, 28), (34.4, 28.1),
-                (32.6, 30), (34.3, 31.3), (35, 33), (35.9, 35.5), (36.1, 36.6), (32.5, 36.2), (30, 36.3),
-                (28, 36.7), (26.7, 38.2), (26.5, 40.2), (28.9, 41.1), (31, 41.2), (35, 42), (38.5, 40.9),
-                (41.5, 41.5), (40, 43.4), (37.8, 44.8), (35, 45.2), (33.5, 44.6), (32.5, 45.5), (30.8, 46.5),
-                (29.5, 45.2), (28.6, 43.8), (28, 42), (26.2, 40.9), (24, 40.8), (22.9, 40.5), (23.5, 38),
-                (22.5, 36.5), (21.5, 37.5), (20.2, 39.6), (19.4, 41.5), (15.8, 43.5), (13.6, 45.6),
-                (12.3, 44.3), (13.5, 43.6), (16, 41.9), (18.5, 40.2), (16.6, 38.5), (15.7, 38), (15.6, 40),
-                (12.5, 41.5), (10.5, 43), (8.8, 44.4), (6.6, 43.2), (3.2, 43.3), (3.2, 41.9), (0.5, 40.5),
-                (-0.4, 38.5), (-2, 36.7), (-5.5, 36), (-7, 37.2), (-9, 37), (-9.5, 39), (-8.8, 42.5),
-                (-8, 43.7), (-3.5, 43.5), (-1.5, 43.4), (-1.2, 46), (-2.5, 47.3), (-4.6, 48.4), (-1.5, 48.8),
-                (1.6, 50.2), (2.5, 51.1), (4.5, 52.8), (7, 53.5), (8.5, 55.5), (8.2, 57), (10.5, 57.6),
-                (10.6, 56), (12.5, 55.5), (14, 54.1), (18.5, 54.6), (21, 55.5), (21.3, 57.3), (24, 57.5),
-                (23.5, 59.2), (28.5, 59.9), (29.5, 60.2), (25, 60.3), (22.8, 60.1), (21.5, 61.5), (21.3, 63.3),
-                (25.3, 65.2), (22, 65.8), (18, 63), (17.2, 61.1), (18.6, 59.8), (16.5, 57), (14.2, 55.4),
-                (12.5, 56.3), (11.3, 58.8), (8.5, 58.2), (5.5, 58.8), (5, 61.5), (8, 63.5), (12.5, 66.2),
-                (15.5, 68.5), (19, 70), (23, 70.7)],
-    'africa': [(32.6, 30), (29.5, 31), (25, 31.6), (20, 30.8), (19.8, 32.2), (15.5, 32.2), (11, 33.2),
-               (10.2, 36.8), (3, 36.8), (-2, 35.1), (-5.9, 35.8), (-9.6, 32.5), (-10, 29.5), (-16, 23.5),
-               (-17, 20.5), (-16.7, 12.5), (-13.5, 9), (-8, 4.5), (-2, 4.8), (4.5, 6.3), (8.5, 4.5), (9.7, 2.2),
-               (9.3, -1), (11.8, -4.2), (13.3, -8.8), (11.8, -16.5), (14.5, -22.8), (15.2, -27), (18.4, -34.2),
-               (22, -34), (25.5, -33.9), (28.5, -32.2), (32.4, -28.5), (32.8, -26), (35.3, -24),
-               (35.5, -21), (39.5, -16.5), (40.6, -14), (40.2, -10.3), (39.3, -6.5), (39.8, -4.2), (42, -0.8),
-               (45, 1.9), (48.5, 5.8), (51.2, 10.4), (51.2, 11.9), (48.5, 11.2), (44.5, 10.4), (43.3, 11.8),
-               (42.5, 13.8), (41.2, 14.9), (39.2, 15.8), (37.3, 18.8), (37, 22), (35.6, 23.9), (34, 26.6),
-               (32.7, 29.6)],
-    'madagascar': [(44, -25), (47.1, -25), (50.4, -15.6), (49.3, -12), (47.9, -13.6), (44.2, -16.5), (43.4, -21.8)],
-    'arabia_gulf': [],
-    'srilanka': [(79.9, 6.2), (81.8, 7.2), (81.2, 8.6), (80.1, 9.8), (79.7, 8)],
-    'honshu': [(130.9, 34), (132.4, 35.4), (135.8, 35.7), (136.9, 37.2), (138.6, 37.9), (140, 39.8), (140.1, 41.3),
-               (141.5, 41.2), (142, 39.5), (141, 38.2), (140.9, 36.4), (140.5, 35.2), (139.1, 34.8),
-               (137.2, 34.6), (136.2, 33.6), (135.1, 33.8), (133.2, 33.3), (132, 33.8)],
-    'kyushu': [(129.6, 33.3), (130.9, 33.9), (131.9, 32.8), (131.3, 31.3), (130.3, 31.2)],
-    'hokkaido': [(140.1, 42.2), (141.3, 43.2), (141.7, 45.4), (143.6, 44.2), (145.6, 43.3), (143.4, 42),
-                 (141.1, 41.8)],
-    'sakhalin': [(142, 46.2), (143.5, 46.8), (143, 49.2), (144.6, 49), (142.7, 54.3), (142.2, 51)],
-    'taiwan': [(120.1, 23.1), (121, 25.2), (121.9, 24.6), (120.8, 21.9)],
-    'hainan': [(108.7, 19.2), (110.5, 20.1), (111, 19.6), (109.5, 18.2)],
-    'luzon': [(120, 18.4), (122.3, 18.5), (122.1, 16), (124, 13.4), (123.9, 12.6), (121.5, 13.7), (120.4, 14.5), (120, 16.3)],
-    'mindanao': [(122, 7.2), (124.3, 6.2), (126.5, 6.6), (125.6, 9.7), (123.5, 8.6)],
-    'borneo': [(109.1, 1.6), (110.3, -1.2), (111, -3.1), (114.5, -4), (116.5, -3.1), (118, 0.9), (119.2, 5.3),
-               (117.2, 7), (116.1, 6.7), (113.2, 3.2), (111.2, 2.3)],
-    'sumatra': [(95.3, 5.6), (98.3, 4), (100.5, 2), (104, -1.3), (106, -3.3), (106, -5.8), (104.6, -5.9),
-                (101.5, -3.2), (99.5, 0.2), (97.5, 2.4)],
-    'java': [(105.3, -6.8), (108.5, -6.4), (111, -6.5), (114.5, -7.7), (114.4, -8.7), (110, -8.2), (106.5, -7.4)],
-    'sulawesi': [(119.5, -5.5), (119, -3), (120.2, 0.6), (124.8, 1.5), (121, -0.8), (123.2, -1.5), (121.2, -2.5),
-                 (122.5, -4.8), (121, -4.2)],
-    'newguinea': [(131, -1.4), (134, -0.8), (137, -1.6), (141, -2.6), (145.5, -4.8), (147.5, -6.3), (148, -8.2),
-                  (150.2, -10.5), (146, -8.5), (143.5, -9.1), (141, -9.1), (139, -8.2), (138, -7.5), (137.8, -5),
-                  (135, -4.4), (133, -3.9), (132, -2.9)],
-    'australia': [(113.5, -22), (114.1, -26.4), (115.1, -33.9), (117.8, -35.1), (123.5, -33.9), (126.2, -32.2),
-                  (129, -31.6), (131.5, -31.5), (134.2, -32.8), (135.8, -34.8), (137.8, -33), (138.1, -35.6),
-                  (140, -37.9), (143.5, -38.8), (146.3, -39), (148.2, -37.8), (150, -37.4), (151.2, -33.9),
-                  (153.1, -30.3), (153.6, -28), (153, -25), (150.8, -22.6), (149.2, -21), (146.3, -19),
-                  (145.4, -15.2), (143.6, -14.2), (142.5, -10.7), (141.6, -12.9), (141.5, -16.6), (140.6, -17.6),
-                  (139.3, -17.4), (137.1, -15.9), (135.4, -14.8), (136.8, -12.3), (132.6, -11.5), (131, -12.2),
-                  (129.7, -14.9), (128.2, -14.9), (126.1, -14.1), (125, -16.4), (122.2, -17.3), (121.2, -19.6),
-                  (118.8, -20.3), (116.7, -20.6)],
-    'britain': [(-5.6, 50.1), (-3.5, 50.4), (1.4, 51.2), (1.7, 52.8), (0.2, 53.5), (-0.2, 54.6), (-1.6, 55.6),
-                (-2, 57.6), (-4, 58.6), (-5.1, 58.5), (-6.2, 56.6), (-4.8, 55), (-3, 54.9), (-3.1, 53.3),
-                (-4.6, 53.2), (-4.2, 51.6), (-5.2, 51.7)],
-    'ireland': [(-6, 52.2), (-6.2, 54.5), (-7.6, 55.3), (-10, 54.2), (-10.3, 51.8), (-8.4, 51.6)],
-}
-LAKES = {
-    'caspian': [(47, 45), (49.5, 46.6), (51.4, 47), (53.2, 45.4), (51.3, 44.5), (52.9, 41), (54, 37.4),
-                (50.8, 37), (49, 38.2), (49.6, 40.6), (47.8, 42.8)],
-}
-
-
 # --------------------------------------------------------------------------
-# The Press Room: the world on a desk globe, half of it in night, girdled
-# by the paper's own staff
+# The Press Room: the world at dawn, printed in the paper's own colours
 # --------------------------------------------------------------------------
-GLOBE = {'cx': 48.0, 'cy': 43.0, 'r': 25.5, 'lean': 23.4, 'ring_yaw': 64.0, 'lon0': 60.0,
-         'sun': S.norm((-0.84, 0.46, 0.28))}
-SEA = ['#0a2a1d', '#9c7446', '#2c7058', '#5c9f82', '#a6d4b8']      # night, twilight, shade, body, lit
-LANDC = ['#1f3220', '#c49658', '#8a7a44', '#c6b274', '#f0e2ae']
-BONE = ['#34331f', '#c8a878', '#9a9270', '#d6cea4', '#f6f0c6']
-DAY = [0.0, 0.075, 0.36, 0.72]                                    # where each plane begins (n . sun)
+# The Earth as it stands at sunrise on an equinox, seen from a little above
+# the equator. The sun comes up out of the east, on the right, so the dawn
+# line runs from pole to pole down the Atlantic: Europe and Africa are in
+# morning and the Americas still lie in night. The sun is set against the
+# hall's key light on purpose. A dark half on the lamp's side cannot pass for
+# ordinary shading; it can only be night. The globe is printed the way the
+# paper is (bone paper, the page's olive, ink for the night), with one
+# narrow band of dawn along the line. The coasts are Natural Earth's 1:110m
+# land, simplified to a degree and a bit: the true shapes with the small wiggles
+# left out, as an engraver cuts them for a masthead globe.
+PRESSROOM_GLOBE = {'cx': 48.0, 'cy': 49.0, 'r': 31.0, 'lean': -23.4, 'tip': 12.0,
+                   'dawn': -30.0, 'front': 0.3}
+#                  night      dawn, deep and risen  low sun    body       lit
+PRESSROOM_SEA = ['#15130d', '#6e3a2c', '#b8743f', '#d8c58e', '#e9ddac', '#f7f0c9']
+PRESSROOM_LAND = ['#534c2e', '#4e3322', '#6a4524', '#66702f', '#768d43', '#97ac5b']
+PRESSROOM_LIGHT = [-0.13, -0.05, 0.03, 0.34, 0.7]  # where each plane begins (n . sun)
+# Natural Earth 1:110m land (public domain), the loops that face the
+# Atlantic, simplified to 1.2 degrees; (longitude, latitude).
+PRESSROOM_COAST = [
+    [(107, 77), (114.1, 75.8), (109.4, 74.2), (127, 73.6), (131.3, 70.8), (140.5, 72.8), (160.9, 69.4),
+     (178.6, 69.4), (180, 69), (180, 65), (177.4, 64.6), (179.5, 62.6), (163.5, 59.9), (162.1, 54.9),
+     (156.8, 51), (155.9, 56.8), (164.5, 62.6), (160.1, 60.5), (156.7, 61.4), (155, 59.1), (142.2, 59),
+     (135.1, 54.7), (139.9, 54.2), (141.4, 52.2), (138.2, 46.3), (127.5, 39.8), (129.1, 35.1), (126.5, 34.4),
+     (125.3, 39.6), (121.1, 38.9), (121.6, 40.9), (118, 39.2), (118.9, 37.4), (122.4, 37.5), (119.2, 34.9),
+     (121.9, 31.7), (121.7, 28.2), (115.9, 22.8), (105.9, 19.8), (109.3, 13.4), (105.2, 8.6), (100.1, 13.4),
+     (99.2, 9.2), (104.2, 1.3), (98.3, 7.8), (97.2, 16.9), (94.2, 16), (91.4, 22.8), (87, 21.5), (80.3, 15.9),
+     (79.9, 10.4), (77.5, 8), (72.6, 21.4), (70.5, 20.9), (66.4, 25.4), (57.4, 25.7), (48, 30), (51.8, 24),
+     (56.4, 26.4), (59.8, 22.3), (55.3, 17.2), (43.5, 12.6), (34.9, 29.5), (33.9, 27.6), (32.4, 29.9),
+     (42.7, 11.7), (44.6, 10.4), (51.1, 12), (50.6, 9.2), (40.3, -2.6), (38.7, -5.9), (40.8, -14.7),
+     (34.8, -19.8), (35.5, -24.1), (28.2, -32.8), (18.4, -34.1), (13.9, -21.7), (11.6, -16.7), (13.7, -10.7),
+     (8.8, -1.1), (9.4, 3.7), (4.3, 6.3), (-9, 4.8), (-16.6, 12.2), (-17, 21.9), (-5.9, 35.8), (9.5, 37.4),
+     (11.1, 36.9), (10.3, 33.8), (19.1, 30.3), (21.5, 32.8), (33.8, 31), (36.2, 36.7), (27.6, 36.7),
+     (26.2, 39.5), (33.5, 42), (41.7, 42), (36.7, 45.2), (39.1, 47.3), (33.9, 44.4), (30.7, 46.6), (27.7, 42.6),
+     (28.8, 41.1), (22.6, 40.3), (24, 37.7), (22.5, 36.4), (19.5, 41.7), (13.1, 45.7), (12.6, 44.1),
+     (18.5, 40.2), (16.9, 40.4), (16.1, 38), (8.9, 44.4), (3.1, 43.1), (-2.1, 36.7), (-8.9, 36.9), (-9.4, 43),
+     (-1.4, 44), (-1.2, 46), (-4.6, 48.7), (8.1, 53.5), (8.5, 57.1), (10.6, 57.7), (10.9, 54), (19.7, 54.4),
+     (21.6, 57.4), (24.1, 57), (23.3, 59.2), (29.1, 60), (21.3, 60.7), (21.5, 63.2), (25.4, 65.1), (22.2, 65.7),
+     (17.8, 62.7), (18.8, 60.1), (15.9, 56.1), (12.9, 55.4), (10.4, 59.5), (5.7, 58.6), (5, 62), (24.5, 71),
+     (40.3, 67.9), (40, 66.3), (33.2, 66.6), (37, 63.8), (43.9, 66.1), (43.5, 68.6), (46.3, 68.3), (46.3, 66.7),
+     (53.7, 68.9), (59.9, 68.3), (60.6, 69.9), (68.5, 68.1), (66.7, 71), (72.6, 72.8), (72.4, 66.2),
+     (75.1, 67.8), (73.1, 71.4), (74.7, 72.8), (76.4, 71.2), (81.5, 71.8), (80.5, 73.6), (87.2, 75.1)],
+    [(-90.5, 69.5), (-87.4, 67.2), (-85.5, 69.9), (-82.6, 69.7), (-81.3, 67.6), (-93.2, 62), (-94.7, 58.9),
+     (-92.3, 57.1), (-82.3, 55.1), (-79.9, 51.2), (-78.6, 52.6), (-79.8, 54.7), (-76.5, 56.5), (-78.5, 58.8),
+     (-78.1, 62.3), (-73.8, 62.4), (-69.6, 61.1), (-67.6, 58.2), (-64.6, 60.3), (-55.7, 52.1), (-66.4, 50.2),
+     (-71.1, 46.8), (-65.1, 49.2), (-64.5, 46.2), (-59.8, 45.9), (-65.4, 43.5), (-64.4, 45.3), (-67.1, 45.1),
+     (-70.7, 43), (-70, 41.6), (-75.5, 39.5), (-75.9, 37.2), (-76.3, 39.2), (-75.7, 35.6), (-81.3, 31.4),
+     (-80.4, 25.2), (-84.1, 30.1), (-96.6, 28.3), (-97.9, 22.4), (-96.3, 19.3), (-92, 18.7), (-87.1, 21.5),
+     (-88.9, 15.9), (-83.4, 15.3), (-83.8, 11.1), (-81.4, 8.8), (-76.8, 8.6), (-71.8, 12.4), (-71.7, 9.1),
+     (-69.9, 12.2), (-68.2, 10.6), (-61.9, 10.7), (-57.1, 6), (-51.3, 4.2), (-50.4, -0.1), (-40, -2.9),
+     (-34.7, -7.3), (-38.7, -13.1), (-40.9, -21.9), (-47.6, -24.9), (-53.8, -34.4), (-58.4, -33.9),
+     (-56.8, -36.9), (-62.3, -38.8), (-62.1, -40.7), (-65.1, -41.1), (-63.8, -42), (-67.3, -45.6),
+     (-65.6, -47.2), (-69.1, -50.7), (-68.2, -52.3), (-71.4, -53.9), (-75.3, -51.6), (-70.2, -19.8),
+     (-76, -14.6), (-81.2, -6.1), (-79.8, -2.7), (-80.9, -1.1), (-77.1, 3.8), (-78.2, 8.3), (-80.9, 7.2),
+     (-85.7, 9.9), (-87.5, 13.3), (-103.5, 18.3), (-113.9, 31.6), (-114.7, 30.2), (-109.4, 23.4),
+     (-112.2, 24.7), (-124.4, 40.3), (-124.7, 48.2), (-122.6, 47.1), (-122.8, 49), (-127.4, 50.8),
+     (-134.1, 58.1), (-147.1, 60.9), (-151.7, 59.2), (-150.6, 61.3), (-158.4, 56), (-164.8, 54.4), (-157, 58.9),
+     (-162, 58.7), (-166.1, 61.5), (-160.8, 64.8), (-168.1, 65.7), (-161.7, 66.1), (-166.8, 68.4),
+     (-156.6, 71.4), (-136.5, 68.9), (-128.1, 70.5), (-108.9, 67.4), (-106.2, 68.8), (-96.1, 67.3),
+     (-94.2, 69.1), (-96.5, 70.1), (-95.2, 71.9)],
+    [(143.6, -13.8), (153.1, -26.1), (152.9, -31.6), (149.4, -37.8), (140.6, -38), (138.2, -34.4),
+     (136.8, -35.3), (137.8, -32.9), (136, -34.9), (131.3, -31.5), (116.6, -35), (115, -34.2), (114.6, -28.8),
+     (114.1, -21.8), (120.9, -19.7), (125.7, -14.2), (129.6, -15), (132.4, -11.1), (136.5, -11.9), (135.5, -15),
+     (140.2, -17.7), (142.1, -11)],
+    [(-27.1, 83.5), (-20.8, 82.7), (-31.4, 82), (-12.2, 81.3), (-20, 80.2), (-17.7, 80.1), (-19.7, 78.8),
+     (-18.5, 77), (-21.7, 76.6), (-19.4, 74.3), (-24.8, 72.3), (-21.8, 70.7), (-26.4, 70.2), (-22.3, 70.1),
+     (-39.8, 65.5), (-44.8, 60), (-51.6, 63.6), (-54, 67.2), (-50.9, 69.9), (-54.7, 69.6), (-51.4, 70.6),
+     (-55.8, 71.7), (-54.7, 72.6), (-57.3, 74.7), (-68.5, 76.1), (-71.4, 77), (-66.8, 77.4), (-73.2, 78.4),
+     (-60.3, 82)],
+    [(117.9, 1.8), (119, 0.9), (114.9, -4.1), (110.2, -2.9), (109.7, 2), (117.1, 6.9), (119.2, 5.4)],
+    [(50.1, -13.6), (47.1, -24.9), (44, -25), (43.4, -21.3), (44.4, -16.2), (49.2, -12)],
+    [(-86.6, 73.2), (-72.2, 71.6), (-61.9, 66.9), (-63.9, 65), (-68, 66.3), (-64.7, 63.4), (-68.8, 63.7),
+     (-66.2, 61.9), (-78.6, 64.6), (-74, 65.5), (-72.9, 67.7), (-79, 70.2), (-88.7, 70.4), (-90.2, 72.2)],
+    [(105.8, -5.9), (95.4, 5), (97.5, 5.2), (103.8, 0.1)],
+    [(-3, 58.6), (-3.1, 56), (1.4, 51.3), (-5.2, 50), (-2.9, 54), (-6.1, 56.8)],
+    [(-114.2, 73.1), (-105.4, 72.7), (-101.1, 69.6), (-107.1, 69.1), (-116.1, 69.2), (-112.4, 70.4),
+     (-119.4, 71.6)],
+    [(-68.5, 83.1), (-61.9, 82.4), (-76.9, 79.3), (-75.4, 78.5), (-79.8, 77.2), (-77.9, 76.8), (-89.5, 76.5),
+     (-88.3, 77.9), (-85, 77.5), (-88, 78.4), (-85.1, 79.3), (-86.9, 80.3), (-81.8, 80.5), (-91.6, 81.9)],
+    [(125.2, 1.4), (120.2, 0.2), (120.9, -1.4), (123.3, -0.6), (121.5, -1.9), (123.2, -5.3), (121.5, -4.6),
+     (121, -2.6), (119.4, -5.4), (120, 0.6)],
+    [(108.6, -6.8), (115.7, -8.4), (110.6, -8.1), (105.4, -6.9)],
+    [(-56.1, 50.7), (-53.1, 48.7), (-53.1, 46.7), (-54.2, 47.8), (-59.3, 47.6)],
+    [(-79.7, 22.8), (-74.2, 20.3), (-77.8, 19.9), (-78.7, 21.6), (-85, 21.9)],
+    [(-14.5, 66.5), (-13.6, 65.1), (-18.7, 63.5), (-24, 64.9), (-22.2, 65.1), (-23.7, 66.3)],
+    [(-67.8, -53.9), (-65, -54.7), (-68.1, -55.6), (-72.3, -54.5), (-74.7, -52.8)],
+    [(57.5, 70.7), (51.5, 72), (57.9, 75.6), (68.9, 76.5), (58.5, 74.3), (55.4, 72.4)],
+    [(-72.6, 19.9), (-69.2, 19.3), (-68.7, 18.2), (-70.7, 18.4), (-74.5, 18.3)],
+]
+# The Caspian, which the 1:110m land leaves filled
+PRESSROOM_LAKES = [
+    [(47, 45), (49.5, 46.6), (51.4, 47), (53.2, 45.4), (51.3, 44.5), (52.9, 41), (54, 37.4), (50.8, 37),
+     (49, 38.2), (49.6, 40.6), (47.8, 42.8)],
+]
 
 
-def _globe_frame():
-    g = GLOBE
-    t, ph = math.radians(g['lean']), math.radians(g['ring_yaw'])
-    h = (math.cos(ph), 0.0, math.sin(ph))                  # the ring plane's level direction
-    axis = S.norm(S.add(S.mul((0.0, 1.0, 0.0), math.cos(t)), S.mul(h, math.sin(t))))
-    nr = S.norm(S.cross((0.0, 1.0, 0.0), h))               # the ring plane's normal
-    b1 = nr
-    b2 = S.cross(b1, axis)                                  # east runs to the right, seen from outside
-    view = S.View(g['cx'], g['cy'], g['r'], yaw=0, pitch=PITCH)
-    # turn the globe so that lon0 faces the reader
-    vz = _unview(view, (0.0, 0.0, 1.0))
-    alpha = math.atan2(S.dot(vz, b1), S.dot(vz, b2))
-    spin = math.radians(g['lon0']) - alpha
-    return view, axis, h, nr, b1, b2, spin
+def pressroom_frame():
+    """The globe's axes in view space (x right, y up, z toward the reader):
+    the axis leans the globe-maker's 23.4 degrees and tips a little toward
+    the reader; the sun stands square to the axis, as it does at an equinox,
+    so the dawn line passes through both poles."""
+    g = PRESSROOM_GLOBE
+    le, ti = math.radians(g['lean']), math.radians(g['tip'])
+    axis = S.norm((math.sin(le), math.cos(le) * math.cos(ti), math.cos(le) * math.sin(ti)))
+    s0 = (1.0, 0.0, g['front'])
+    sun = S.norm(S.add(s0, S.mul(axis, -S.dot(s0, axis))))
+    return {'axis': axis, 'sun': sun, 'east': S.cross(axis, sun), 'sub': g['dawn'] + 90.0}
 
 
-def _unview(view, n):
-    """A view-space direction back into the world (the View's inverse)."""
-    x, y, z = n
-    y, z = y * view.cp_ + z * view.sp_, -y * view.sp_ + z * view.cp_
-    x, z = x * view.cy_ - z * view.sy_, x * view.sy_ + z * view.cy_
-    return (x, y, z)
+def pressroom_xyz(lon, lat, fr):
+    """A point on the globe, in view space. The sun stands over `sub`; the
+    dawn line lies ninety degrees west of it."""
+    a, b = math.radians(lon - fr['sub']), math.radians(lat)
+    return S.add(S.mul(S.add(S.mul(fr['sun'], math.cos(a)), S.mul(fr['east'], math.sin(a))), math.cos(b)),
+                 S.mul(fr['axis'], math.sin(b)))
 
 
-def globe_world(lon, lat, fr):
-    view, axis, h, nr, b1, b2, spin = fr
-    lo, la = math.radians(lon) - spin, math.radians(lat)
-    return S.add(S.mul(S.add(S.mul(b2, math.cos(lo)), S.mul(b1, math.sin(lo))), math.cos(la)),
-                 S.mul(axis, math.sin(la)))
+def pressroom_screen(p):
+    g = PRESSROOM_GLOBE
+    return (g['cx'] + g['r'] * p[0], g['cy'] - g['r'] * p[1])
 
 
-def globe_screen(p, fr, clamp=True):
-    view = fr[0]
-    x, y, z = view.proj(p)
-    if z < 0 and clamp:
-        dx, dy = x - view.cx, y - view.cy
-        k = view.s / (math.hypot(dx, dy) or 1)
-        x, y = view.cx + dx * k, view.cy + dy * k
-    return (x, y, z)
+def pressroom_face(loop, fr, step=2.0):
+    """One coast on the face of the globe the reader sees, as screen points.
+    Each edge is walked along its great circle; where the coast runs round
+    the back, the limb that hides it stands in, swept the way the hidden
+    stretch went. None when the whole coast is out of sight."""
+    pts = []
+    n = len(loop)
+    for i in range(n):
+        a, b = pressroom_xyz(*loop[i], fr), pressroom_xyz(*loop[(i + 1) % n], fr)
+        ang = math.degrees(math.acos(max(-1.0, min(1.0, S.dot(a, b)))))
+        k = max(1, int(math.ceil(ang / step)))
+        for j in range(k):
+            pts.append(S.norm(S.add(S.mul(a, 1 - j / k), S.mul(b, j / k))))
+    vis = [p[2] > 0 for p in pts]
+    if not any(vis):
+        return None
+    if all(vis):
+        return [pressroom_screen(p) for p in pts]
+    start = next(i for i in range(len(pts)) if vis[i] and not vis[i - 1])
+    pts, vis = pts[start:] + pts[:start], vis[start:] + vis[:start]
+
+    def cross(p, q):
+        t = p[2] / (p[2] - q[2])
+        return math.atan2(p[1] + (q[1] - p[1]) * t, p[0] + (q[0] - p[0]) * t)
+    out, sweep, last = [], 0.0, None
+    for i, p in enumerate(pts):
+        q = pts[(i + 1) % len(pts)]
+        if vis[i]:
+            out.append(pressroom_screen(p))
+            if not vis[(i + 1) % len(pts)]:
+                last = cross(p, q)              # the coast goes over the limb
+                sweep = 0.0
+        else:
+            ang = math.atan2(q[1], q[0]) if not vis[(i + 1) % len(pts)] else cross(p, q)
+            d = (ang - last + math.pi) % (2 * math.pi) - math.pi
+            sweep += d
+            if vis[(i + 1) % len(pts)]:
+                # it comes back: lay the limb from where it left, the way it went
+                a0 = ang - sweep
+                k = max(1, int(abs(math.degrees(sweep)) / 3))
+                for j in range(k + 1):
+                    t = a0 + sweep * j / k
+                    out.append(pressroom_screen((math.cos(t), math.sin(t), 0.0)))
+            last = ang
+    return out
+
+
+def pressroom_line(pts, fr):
+    """A graticule line: the runs of it the reader can see, in screen points."""
+    runs, cur = [], []
+    for lon, lat in pts:
+        p = pressroom_xyz(lon, lat, fr)
+        if p[2] > 0.01:
+            cur.append(pressroom_screen(p))
+        elif cur:
+            runs.append(cur)
+            cur = []
+    if cur:
+        runs.append(cur)
+    return ' '.join('M' + ' L'.join('%s %s' % (S.fmt(x), S.fmt(y)) for x, y in r) for r in runs if len(r) > 1)
 
 
 def subject_pressroom(m, h, small=False):
-    """The world as a cast desk globe, turned to the hemisphere the paper
-    reads, Europe to the Pacific. The sun rakes it from the key light's side,
-    so half of it lies in night, with a band of twilight at the terminator.
-    Round its equator runs the paper's own staff, the rule with its dashes
-    and its hung triples of dots, printed in bone as a globe prints its
-    graduated equator. A gilt meridian ring holds it by the poles and it
-    stands on a turned foot."""
-    g = GLOBE
-    fr = _globe_frame()
-    view, axis, hdir, nr, b1, b2, spin = fr
-    cx, cy, R = g['cx'], g['cy'], g['r']
-    sun = g['sun']
+    """The world at dawn: the globe cut into the planes the sun lays on it
+    (full morning, morning, the low sun, dawn in two bands, night), sea and
+    land each in its own colour, with the graticule engraved as a printed
+    globe carries it, in ink by day and in pale lines across the night."""
+    g = PRESSROOM_GLOBE
+    fr = pressroom_frame()
+    cx, cy, R, sun = g['cx'], g['cy'], g['r'], fr['sun']
 
-    def nview(x, y):
+    def light(x, y):
         X, Y = (x - cx) / R, -(y - cy) / R
         q = X * X + Y * Y
         if q >= 0.998:
             k = math.sqrt(0.998 / q)
             X, Y, q = X * k, Y * k, 0.998
-        return (X, Y, math.sqrt(1 - q))
-
-    def light(x, y):
-        return S.dot(nview(x, y), sun)
+        return S.dot((X, Y, math.sqrt(1 - q)), sun)
 
     disc = circle_d(cx, cy, R)
     box = (cx - R - 1, cy - R - 1, cx + R + 1, cy + R + 1)
-    step = 0.7 if small else 0.42
-    # -- the meridian ring, the stand -----------------------------------------
-    r_o, r_i = 1.15, 1.08
-
-    def ring_pts(rr, th0, th1, n=36):
-        return [S.mul(S.add(S.mul(axis, math.cos(th0 + (th1 - th0) * k / n)),
-                            S.mul(S.cross(nr, axis), math.sin(th0 + (th1 - th0) * k / n))), rr) for k in range(n + 1)]
-    side = S.cross(nr, axis)
-    front_sign = 1 if view.rot(side)[2] > 0 else -1
-
-    def ring_half(front):
-        th0, th1 = (0, math.pi) if (front_sign > 0) == front else (math.pi, 2 * math.pi)
-        o = [view.proj(p)[:2] for p in ring_pts(r_o, th0, th1)]
-        i = [view.proj(p)[:2] for p in ring_pts(r_i, th0, th1)]
-        return S.pts_d(o + i[::-1]), o, i
-    ring_face = view.nrm(nr if view.rot(nr)[2] > 0 else S.mul(nr, -1))
-    face_lit = lam(ring_face)
-    # the stand: stem from the ring's lowest point, a turned foot
-    low = view.proj((0.0, -r_o, 0.0))
-    fc = S.Faces()
-    sv = S.View(low[0], low[1], R, yaw=0, pitch=PITCH)
-    gilt4 = [GILT[1], GILT[2], GILT[4], GILT[5], GILT[3]]
-    # a turned foot, a baluster stem and a knop taking the ring, bottom up
-    foot = [(-0.46, -0.41, 0.46, 0.46), (-0.41, -0.37, 0.46, 0.37), (-0.37, -0.34, 0.31, 0.29),
-            (-0.34, -0.22, 0.1, 0.075), (-0.22, -0.11, 0.075, 0.05), (-0.11, -0.065, 0.05, 0.088),
-            (-0.065, -0.02, 0.088, 0.05), (-0.02, 0.03, 0.042, 0.042)]
-    for y0, y1, r0, r1 in foot:
-        n = 24 if small else 40
-        for k in range(n):
-            p0, p1 = 2 * math.pi * k / n, 2 * math.pi * (k + 1) / n
-            pm = (p0 + p1) / 2
-            nv = sv.nrm((math.cos(pm), (r0 - r1) / max(0.01, y1 - y0), math.sin(pm)))
-            if nv[2] <= 0:
-                continue
-            q = [sv.proj((r0 * math.cos(p0), y0, r0 * math.sin(p0))), sv.proj((r0 * math.cos(p1), y0, r0 * math.sin(p1))),
-                 sv.proj((r1 * math.cos(p1), y1, r1 * math.sin(p1))), sv.proj((r1 * math.cos(p0), y1, r1 * math.sin(p0)))]
-            fc.add([(a, b) for a, b, _ in q], sum(z for _, _, z in q) / 4, facet(lam(nv), gilt4, [0.18, 0.45, 0.7, 0.9]))
-        top = [sv.proj((r1 * math.cos(2 * math.pi * k / n), y1, r1 * math.sin(2 * math.pi * k / n))) for k in range(n)]
-        fc.add([(a, b) for a, b, _ in top], sum(z for _, _, z in top) / n - 0.5,
-               facet(lam(sv.nrm((0, 1, 0))), gilt4, [0.18, 0.45, 0.7, 0.9]))
-    base = [sv.proj((0.46 * math.cos(2 * math.pi * k / 40), -0.46, 0.46 * math.sin(2 * math.pi * k / 40)))[:2]
-            for k in range(40)]
-    m.add(shadow(poly_d(base), 1.0, 1.0, 0.45))
-    m.add(fc.svg(seam=0.12))
-    # the ring's far half, behind the globe
-    back, _, _ = ring_half(False)
-    m.add('<path d="%s" fill="%s"/>' % (back, GILT[1]))
-    # -- the globe --------------------------------------------------------------
-    m.add(shadow(disc, 1.4, 2.0, 0.45))
-    m.add(planes(m, 'sea', disc, light, box, SEA, DAY, step))
-    shapes = []
-    for name, pts in LAND.items():
-        if len(pts) < 3:
-            continue
-        xyz = [globe_world(lo, la, fr) for lo, la in pts]
-        scr = [globe_screen(p, fr) for p in xyz]
-        if max(z for _, _, z in scr) <= 0:
-            continue
-        shapes.append(S.pts_d(S.rdp([(x, y) for x, y, _ in scr], 0.3 if small else 0.15)))
-    land_d = ' '.join(shapes)
+    step = 0.6 if small else 0.35
+    cuts = PRESSROOM_LIGHT
+    sea, land = PRESSROOM_SEA, PRESSROOM_LAND
+    if small:
+        # the small cut keeps night, one band of dawn and one morning
+        cuts = [-0.1, 0.03]
+        sea, land = [sea[0], sea[2], sea[4]], [land[0], land[2], land[4]]
+    m.add(shadow(disc, 1.3, 1.9, 0.5))
+    m.add(planes(m, 'sea', disc, light, box, sea, cuts, step))
+    # the land
+    eps = 0.45 if small else 0.12
+    loops = []
+    for coast in PRESSROOM_COAST:
+        face = pressroom_face(coast, fr)
+        if face and abs(S.area(face)) > (4.0 if small else 0.4):
+            loops.append(S.pts_d(S.rdp(face, eps)))
+    land_d = ' '.join(loops)
     lclip = m.clip('land', '<path d="%s"/>' % land_d)
-    dclip = m.clip('disc', '<path d="%s"/>' % disc)
-    m.add('<g clip-path="%s"><g clip-path="%s">%s</g></g>' % (dclip, lclip, planes(m, 'landp', disc, light, box, LANDC, DAY, step)))
-    lakes = [poly_d([globe_screen(globe_world(lo, la, fr), fr)[:2] for lo, la in pts]) for pts in LAKES.values()]
+    m.add('<g clip-path="%s">%s</g>' % (lclip, planes(m, 'landp', disc, light, box, land, cuts, step)))
     if not small:
-        m.add(planes(m, 'lake', ' '.join(lakes), light, box, SEA, DAY, step))
-    # the graticule, engraved: meridians every thirty degrees, the tropics
-    # and the polar circles (the equator carries the staff)
-    if not small:
-        lines = []
-        for lon in range(0, 360, 30):
-            cur = []
-            for k in range(0, 181, 4):
-                p = globe_screen(globe_world(lon, -90 + k, fr), fr, clamp=False)
-                if p[2] > 0:
-                    cur.append(p[:2])
-                elif cur:
-                    lines.append(cur)
-                    cur = []
-            if cur:
-                lines.append(cur)
-        for lat in (-66.5, -23.4, 23.4, 66.5):
-            cur = []
-            for k in range(0, 361, 4):
-                p = globe_screen(globe_world(k, lat, fr), fr, clamp=False)
-                if p[2] > 0:
-                    cur.append(p[:2])
-                elif cur:
-                    lines.append(cur)
-                    cur = []
-            if cur:
-                lines.append(cur)
-        gd = ' '.join('M' + ' L'.join('%s %s' % (f(x), f(y)) for x, y in ln_) for ln_ in lines if len(ln_) > 1)
-        m.add('<path d="%s" stroke="#0c1c12" stroke-width=".42" stroke-opacity=".3" fill="none"/>' % gd)
-    # -- the staff round the equator ------------------------------------------
-    half = 3.4
-
-    def lat_at(x, y):
-        n = _unview(view, nview(x, y))
-        return math.degrees(math.asin(max(-1.0, min(1.0, S.dot(n, axis)))))
-
-    def band_fn(x, y):
-        if (x - cx) ** 2 + (y - cy) ** 2 > (R - 0.05) ** 2:
-            return 1.0
-        return abs(lat_at(x, y)) - half
-    band = S.region_d(band_fn, box, step, 0.1)
-    if band:
-        m.add(planes(m, 'staff', band, light, box, BONE, DAY, step))
-        if not small:
-            ink = []
-            rule = []
-            for k in range(0, 361, 3):
-                p = globe_screen(globe_world(k, 0.9, fr), fr, clamp=False)
-                rule.append(p)
-            seg, segs = [], []
-            for p in rule:
-                if p[2] > 0.05:
-                    seg.append(p[:2])
-                elif seg:
-                    segs.append(seg)
-                    seg = []
-            if seg:
-                segs.append(seg)
-            ink.append('<path d="%s" stroke="#1a170c" stroke-width=".42" stroke-opacity=".75" fill="none"/>'
-                       % ' '.join('M' + ' L'.join('%s %s' % (f(x), f(y)) for x, y in s_) for s_ in segs if len(s_) > 1))
-            dash, dots = [], []
-            for lon in range(0, 360, 12):
-                a = globe_screen(globe_world(lon, 2.3, fr), fr, clamp=False)
-                b = globe_screen(globe_world(lon, -0.5, fr), fr, clamp=False)
-                if min(a[2], b[2]) > 0.12:
-                    dash.append((a[0], a[1], b[0], b[1]))
-                for dl, dt in ((5.2, -1.3), (6.8, -1.3), (6.0, -2.5)):
-                    q = globe_screen(globe_world(lon + dl, dt, fr), fr, clamp=False)
-                    if q[2] > 0.12:
-                        dots.append('M%s %sh.01' % (S.fmt(q[0]), S.fmt(q[1])))
-            ink.append('<path d="%s" stroke="#1a170c" stroke-width=".4" stroke-opacity=".75"/>' % lines_path(dash))
-            ink.append('<path d="%s" stroke="#1a170c" stroke-opacity=".7" stroke-width=".52" stroke-linecap="round"/>' % ''.join(dots))
-            m.add('<g clip-path="%s">%s</g>' % (m.clip('staffink', '<path d="%s"/>' % band), ''.join(ink)))
-    # -- the ring's near half and its pivots -----------------------------------
-    near, o, i = ring_half(True)
-    m.add(shadow(near, 0.6, 0.9, 0.45))
-    m.add('<path d="%s" fill="%s"/>' % (near, facet(face_lit, gilt4, [0.18, 0.45, 0.7, 0.9])))
-    # its outer edge: the ring's thickness, lit where it faces up and left
-    edge = []
-    for k in range(len(o) - 1):
-        (x0, y0), (x1, y1) = o[k], o[k + 1]
-        nx, ny = (y1 - y0), -(x1 - x0)
-        mx, my = (x0 + x1) / 2 - cx, (y0 + y1) / 2 - cy
-        if nx * mx + ny * my < 0:
-            nx, ny = -nx, -ny
-        ln = math.hypot(nx, ny) or 1
-        edge.append((x0, y0, x1, y1, lam((nx / ln, -ny / ln, 0.35))))
-    for tone in sorted(set(facet(e[4], gilt4, [0.18, 0.45, 0.7, 0.9]) for e in edge)):
-        segs = [(a, b, c, d) for a, b, c, d, l in edge if facet(l, gilt4, [0.18, 0.45, 0.7, 0.9]) == tone]
-        m.add('<path d="%s" stroke="%s" stroke-width=".7" stroke-linecap="round"/>' % (lines_path(segs), tone))
-    if not small:
-        ticks = []
-        th0 = 0 if front_sign > 0 else math.pi
-        for k in range(1, 18):
-            th = th0 + math.pi * k / 18
-            p = S.add(S.mul(axis, math.cos(th)), S.mul(side, math.sin(th)))
-            a, b = view.proj(S.mul(p, r_o - 0.005)), view.proj(S.mul(p, r_i + (0.035 if k % 3 else 0.005)))
-            ticks.append((a[0], a[1], b[0], b[1]))
-        m.add('<path d="%s" stroke="%s" stroke-width=".35"/>' % (lines_path(ticks), GILT[1]))
-    for sgn in (1, -1):
-        p = view.proj(S.mul(axis, sgn * (r_i - 0.01)))
-        q = view.proj(S.mul(axis, sgn * 1.0))
-        if p[2] > -0.2:
-            m.add('<path d="M%s %s L%s %s" stroke="%s" stroke-width="1.1" stroke-linecap="round"/>'
-                  % (f(p[0]), f(p[1]), f(q[0]), f(q[1]), GILT[2]))
-            m.add(relief(circle_d(p[0], p[1], 1.25), GILT[4], dx=0.35, dy=0.5))
+        lakes = [pressroom_face(lake, fr) for lake in PRESSROOM_LAKES]
+        lake_d = ' '.join(S.pts_d(lk) for lk in lakes if lk)
+        if lake_d:
+            m.add('<g clip-path="%s">%s</g>' % (m.clip('lake', '<path d="%s"/>' % lake_d),
+                                                 planes(m, 'lakep', disc, light, box, sea, cuts, step)))
+        # the graticule every thirty degrees, the equator a shade heavier
+        grat = [pressroom_line([(lon, lat) for lat in range(-90, 91, 3)], fr) for lon in range(0, 360, 30)]
+        grat += [pressroom_line([(lon, lat) for lon in range(0, 361, 3)], fr) for lat in (-60, -30, 30, 60)]
+        equator = pressroom_line([(lon, 0) for lon in range(0, 361, 3)], fr)
+        day = S.region_d(lambda x, y: PRESSROOM_LIGHT[0] - light(x, y), box, step, 0.1)
+        night = S.region_d(lambda x, y: light(x, y) - PRESSROOM_LIGHT[0], box, step, 0.1)
+        dclip = m.clip('disc', '<path d="%s"/>' % disc)
+        m.add('<g clip-path="%s"><g clip-path="%s">'
+              '<path d="%s" stroke="#1a170c" stroke-width=".25" stroke-opacity=".14" fill="none"/>'
+              '<path d="%s" stroke="#1a170c" stroke-width=".4" stroke-opacity=".3" fill="none"/></g></g>'
+              % (dclip, m.clip('day', '<path d="%s"/>' % day), ' '.join(grat), equator))
+        m.add('<g clip-path="%s"><g clip-path="%s">'
+              '<path d="%s" stroke="#f6efc8" stroke-width=".25" stroke-opacity=".1" fill="none"/>'
+              '<path d="%s" stroke="#f6efc8" stroke-width=".4" stroke-opacity=".16" fill="none"/></g></g>'
+              % (dclip, m.clip('night', '<path d="%s"/>' % night), ' '.join(grat), equator))
+        # the airglow: the thin green line the upper air gives off round the
+        # night side's limb, the one thing on the globe that shines
+        glow = []
+        for k in range(0, 361, 2):
+            a = math.radians(k)
+            if S.dot((math.cos(a), math.sin(a), 0.0), sun) < PRESSROOM_LIGHT[0] - 0.04:
+                glow.append((cx + (R + 0.35) * math.cos(a), cy - (R + 0.35) * math.sin(a)))
+            elif glow:
+                break
+        if len(glow) > 1:
+            m.add('<path d="%s" stroke="#7ab870" stroke-width=".6" stroke-opacity=".75" stroke-linecap="round" fill="none"/>'
+                  % S.pts_d(glow, close=False))
 
 
 # --------------------------------------------------------------------------

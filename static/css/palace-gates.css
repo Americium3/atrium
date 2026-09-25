@@ -651,7 +651,7 @@ html[lang="zh"] .g-lamp { letter-spacing: 0.2em; }
 :root[data-theme="ivory"] .gate[data-velvet="autopilot"] { --velvet: #9c4660; }  /* mulberry */
 :root[data-theme="ivory"] .gate[data-velvet="groundstation"] { --velvet: #a0622a; }  /* cognac */
 :root[data-theme="ivory"] .gate[data-velvet="outreach"] { --velvet: #2d5d74; }  /* prussian */
-:root[data-theme="ivory"] .gate[data-velvet="pressroom"] { --velvet: #36906a; }  /* emerald */
+:root[data-theme="ivory"] .gate[data-velvet="pressroom"] { --velvet: #37905f; }  /* emerald */
 :root[data-theme="ivory"] .gate[data-velvet="arsenal"] { --velvet: #5a6a74; }  /* gunmetal */
 :root[data-theme="ivory"] .gate[data-velvet="bourse"] { --velvet: #8e8c4a; }  /* olive gold */
 :root[data-theme="ivory"] .gate[data-velvet="house"] { --velvet: #c83a4a; }  /* claret */
