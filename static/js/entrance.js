@@ -836,13 +836,17 @@ function halve(from, to) {
    GPU, 100 to 1200ms at a time at 3440 on a busy machine, in the walk. */
 var Levels = {
   timers: [],
+  // A level out of its stretch stands at 0.004, not 0, like a lamp that is
+  // out: invisible, but drawn, so its first showing is not also its first
+  // draw (at 0 a newly shown level was laid out and drawn by the page's
+  // thread in the walk, up to 850ms on a browser drawing for the first time).
   animate: function (plan, total) {
     plan.all.forEach(function (L) {
       if (!L.multi) return;
-      var fr = [[0, { opacity: L.from > 0 ? 0 : 1, easing: 'steps(1, end)' }]];
+      var fr = [[0, { opacity: L.from > 0 ? 0.004 : 1, easing: 'steps(1, end)' }]];
       if (L.from > 0) fr.push([L.from, { opacity: 1, easing: 'steps(1, end)' }]);
       var end = L.next ? L.next.from : Infinity;
-      if (isFinite(end)) fr.push([end, { opacity: 0 }]);
+      if (isFinite(end)) fr.push([end, { opacity: 0.004 }]);
       run(L.cv, fr, total);
     });
   },

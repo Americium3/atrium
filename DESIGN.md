@@ -452,7 +452,9 @@ grown by under a pixel to fit, and the side pairs, the transom, the fascia
 and the rope are cut only along their bars, between their letters or below
 the rope: two tiles painted at different sizes meet up to a pixel apart,
 and across a fine line that shows. Each tile
-also keeps a copy at half size, shown until the tile has grown past it, so
+also keeps a copy at half size, shown until the tile has grown past it (the
+level out of its stretch stands at 0.004, like a lamp that is out, so its
+first showing is not its first draw), so
 the compositor never shrinks a texture by more than half (it samples without
 mipmaps, and a fine line shrunk further breaks into steps). Each layer's SVG
 is parsed once and drawn into each of its tiles at the tile's own size, and
