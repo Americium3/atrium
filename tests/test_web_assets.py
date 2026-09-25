@@ -31,6 +31,24 @@ def sheets() -> list[Path]:
     return sorted((STATIC / "css").glob("*.css"))
 
 
+def css_sources() -> list[tuple[str, str]]:
+    """Every place the hall's CSS can come from, as (name, text): each sheet,
+    each <style> block in the page, and each style="" attribute in it (as a
+    rule on its element, so a selector test sees what it styles)."""
+    out = [(f.name, f.read_text(encoding="utf-8")) for f in sheets()]
+    page = PAGE.read_text(encoding="utf-8")
+    for k, m in enumerate(re.finditer(r"<style[^>]*>(.*?)</style>", page, flags=re.S | re.I)):
+        out.append((f"index.html <style> #{k + 1}", m.group(1)))
+    for m in re.finditer(r"<([a-zA-Z][\w-]*)([^>]*?)\sstyle=\"([^\"]*)\"", page):
+        attrs = m.group(2)
+        cls = re.search(r'class="([^"]*)"', attrs)
+        ident = re.search(r'id="([^"]*)"', attrs)
+        sel = m.group(1) + ("#" + ident.group(1) if ident else "") + \
+            "".join("." + c for c in (cls.group(1).split() if cls else []))
+        out.append((f"index.html style attribute on {sel}", f"{sel} {{ {m.group(3)} }}"))
+    return out
+
+
 def test_every_script_parses():
     """A syntax error in any script is a blank hall, not a broken feature."""
     node = shutil.which("node")
@@ -562,18 +580,41 @@ def test_every_day_card_takes_its_marks_ink():
     assert "a.dataset.ink = inkFor(svc, id);" in app and "getAttribute('data-ink')" in app
 
 
-def test_the_gate_carries_both_cuts():
+def test_the_gate_picks_its_cut_in_screen_pixels():
     """The cartouche holds the mark at 32px on a laptop and 49px at 1920,
-    the sizes the small cut is drawn for; the gate mounts both cuts and its
-    own width picks one: the small cut under a 300px gate (a 56px mark) on a
-    screen of ordinary density, the full cut above it and on any screen of
-    double density, where even the laptop's mark is 64 pixels."""
-    app = (STATIC / "js" / "app.js").read_text(encoding="utf-8")
-    assert "cut.setAttribute('href', '#mark-' + sig + '-s');" in app
-    css = (STATIC / "css" / "atrium.css").read_text(encoding="utf-8").replace("\r\n", "\n")
-    assert re.search(r"\.sigil \.cut-small \{ display: none; \}\n@media \(max-resolution: 1\.49dppx\) \{\n"
-                     r"\s*@container \(max-width: 299px\) \{\n\s*\.sigil \.cut-full \{ display: none; \}\n"
-                     r"\s*\.sigil \.cut-small \{ display: inline; \}", css), "the cartouche's cut switch has moved"
+    the sizes the small cut is drawn for. The gate mounts one cut, and
+    app.js's markCut picks it from the cartouche's width times the screen's
+    density: the small cut under 56 screen pixels, the full cut from 56 up,
+    so a 125% laptop, a 2560 screen at 125% and a double-density one each
+    get the cut their pixels can hold. Run under node on the sizes the hall
+    has."""
+    app = (STATIC / "js" / "app.js").read_text(encoding="utf-8").replace("\r\n", "\n")
+    assert "var CUT_FULL_FROM = 56;" in app, "the cut's threshold has moved"
+    assert "svgUse('sigil mark', '0 0 96 96', '#mark-' + sig + '-s')" in app, "the gate no longer mounts one cut"
+    assert "if (cutRO) cutRO.observe(sigil);" in app, "the gate's mark is not watched for its size"
+    css = "".join(text for _, text in css_sources())
+    assert "cut-small" not in css and "cut-full" not in css, "a sheet still switches the cut"
+    node = shutil.which("node")
+    if not node:
+        print("  (node is not on the PATH; markCut not run)")
+        return
+    fn = re.search(r"var CUT_FULL_FROM = 56;\nfunction markCut\(sigil, cssWidth\) \{.*?\n\}", app, flags=re.S).group(0)
+    # (css width of the mark, device pixel ratio) -> the cut it should show
+    cases = [(32.4, 1, "-s"), (40.4, 1, "-s"), (48.5, 1, "-s"), (55.9, 1, "-s"), (56.0, 1, ""), (63.4, 1, ""),
+             (52.1, 1.25, ""), (40.4, 1.25, "-s"), (44.0, 1.25, "-s"), (32.4, 1.5, "-s"), (40.4, 1.5, ""),
+             (27.0, 2, "-s"), (32.4, 2, ""), (24.7, 2, "-s")]
+    script = fn + """
+var out = %s.map(function (c) {
+  var use = { h: '#mark-x-s', getAttribute: function () { return this.h; }, setAttribute: function (k, v) { this.h = v; } };
+  var sg = { firstChild: use, getAttribute: function () { return 'x'; } };
+  global.window = { devicePixelRatio: c[1] };
+  markCut(sg, c[0]);
+  return use.h;
+});
+console.log(JSON.stringify(out));""" % json.dumps([[w, d] for w, d, _ in cases])
+    out = json.loads(subprocess.run([node, "-e", script], capture_output=True, text=True, check=True).stdout)
+    want = ["#mark-x" + c for _, _, c in cases]
+    assert out == want, [f"{w}px at {d}x shows {o}" for (w, d, _), o, x in zip(cases, out, want) if o != x]
 
 
 def test_the_die_carries_no_bead_ring():

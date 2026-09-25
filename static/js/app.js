@@ -1384,9 +1384,43 @@ function gateDomOrder() {
   });
 }
 
+/* A gate's mark comes in two cuts. Under 56 of the screen's own pixels (the
+   hall on a laptop and at 1920 on an ordinary screen) the cartouche shows
+   the small cut, the same subject in its biggest planes, drawn for 16 to 48
+   pixels, where the full cut's engraving would fall under a pixel and
+   shimmer. At 56 and over it shows the full cut. The cartouche's own box
+   (its layout width, before the gate's tilt) times the screen's density
+   decides, so a 125% or a double-density screen gets the cut its pixels
+   can hold. A ResizeObserver picks again whenever a gate changes size, and
+   a resolution query whenever the page moves to a screen of another
+   density. Only one <use> is mounted, so the hidden cut costs nothing. */
+var CUT_FULL_FROM = 56;
+function markCut(sigil, cssWidth) {
+  if (cssWidth > 0) sigil._cutW = cssWidth;
+  var w = sigil._cutW || 0;
+  var id = sigil.getAttribute('data-mark');
+  if (!id || !w) return;
+  var href = '#mark-' + id + (w * (window.devicePixelRatio || 1) < CUT_FULL_FROM ? '-s' : '');
+  var use = sigil.firstChild;
+  if (use.getAttribute('href') !== href) use.setAttribute('href', href);
+}
+var cutRO = window.ResizeObserver ? new ResizeObserver(function (es) {
+  es.forEach(function (e) { markCut(e.target, e.contentRect.width); });
+}) : null;
+(function watchDensity() {
+  var q = matchMedia('(resolution: ' + (window.devicePixelRatio || 1) + 'dppx)');
+  var again = function () {
+    Array.prototype.forEach.call(document.querySelectorAll('.sigil[data-mark]'), function (sg) { markCut(sg, 0); });
+    watchDensity();
+  };
+  if (q.addEventListener) q.addEventListener('change', again, { once: true });
+  else if (q.addListener) q.addListener(function h() { q.removeListener(h); again(); });
+})();
+
 function renderGates() {
   var wrap = $('#gates');
   wrap.textContent = '';
+  if (cutRO) cutRO.disconnect();
   // One identity per gate, off a fixed hash of its id (palace.js): the
   // archivolts, the relief programme, the fanlight and the velvet.
   var idents = window.Palace ? window.Palace.identities(slots()) : {};
@@ -1446,17 +1480,13 @@ function renderGates() {
     // is mounted on the cartouche at the fanlight's hub.
     var sig = KNOWN_SIGILS[svc.sigil] ? svc.sigil : null;
     var sigil = sig
-      ? svgUse('sigil mark', '0 0 96 96', '#mark-' + sig)
+      ? svgUse('sigil mark', '0 0 96 96', '#mark-' + sig + '-s')
       : svgUse('sigil', '0 0 96 96', '#sig-fallback');
-    // Both cuts ride in the cartouche; the gate's own width picks one. Under
-    // a 56px mark (a laptop's hall and 1920) the small cut shows, drawn for
-    // that size (atrium.css, .sigil).
+    // The cartouche shows one cut of the mark, picked from the size it is
+    // drawn at in the screen's own pixels (markCut, below).
     if (sig) {
-      sigil.firstChild.setAttribute('class', 'cut-full');
-      var cut = document.createElementNS(ns, 'use');
-      cut.setAttribute('href', '#mark-' + sig + '-s');
-      cut.setAttribute('class', 'cut-small');
-      sigil.appendChild(cut);
+      sigil.setAttribute('data-mark', sig);
+      if (cutRO) cutRO.observe(sigil);
     }
     face.appendChild(sigil);
     // The domed crystal the bezel holds over the mark (palace.js).

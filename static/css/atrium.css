@@ -2007,20 +2007,8 @@ svg.portal {
   overflow: visible;
 }
 .sigil.mark { transition: none; }
-/* The cartouche carries both cuts of the mark. Its width is 18.67% of the
-   gate's, so under a 300px gate (a mark under 56 pixels: the hall on a
-   laptop and at 1920) the small cut shows, the same subject in its biggest
-   planes, drawn for 16 to 48 pixels, where the full one's engraving would
-   fall under a pixel and shimmer. The full cut takes the larger gates. The
-   size that counts is the screen's own pixels, so on a double-density
-   screen the full cut shows at every gate size the hall has. */
-.sigil .cut-small { display: none; }
-@media (max-resolution: 1.49dppx) {
-  @container (max-width: 299px) {
-    .sigil .cut-full { display: none; }
-    .sigil .cut-small { display: inline; }
-  }
-}
+/* The cartouche shows the small cut of the mark under 56 of the screen's
+   own pixels and the full cut from there up; app.js (markCut) picks it. */
 .medal .m-mark { transition: none; }
 
 /* The sign: verre eglomise. Leaf laid behind black glass, a front veil with
