@@ -65,12 +65,13 @@ of follows "The picture palace (v6)".
   allowed (quarter numerals, spandrel lozenges, subdial rings, the seconds
   baton). It is the hall's single jewel. Since v6 the case is statuary bronze
   with leaf on its bevels only.
-- Service marks (v3.2): gate cartouches and Ledger cards carry each
-  service's own coloured mark rather than a monochrome sigil. This is the
-  one sanctioned break in the hall's monochrome discipline: the mark shown
-  in the hall is byte-identical to the one the service's own favicon,
-  taskbar tile and masthead show. Services with no mark fall back to the
-  line-drawn keystone sigil, which still tints with `color`.
+- Service marks (v3.2, redrawn in v7): gate cartouches and Ledger cards
+  carry each service's own coloured mark rather than a monochrome sigil.
+  This is the one sanctioned break in the hall's monochrome discipline. The
+  marks are enamelled badges cut from one die (see "App marks (v7)"), and
+  the service's own favicon, taskbar tile and masthead take the same
+  drawing once the owner has signed off on them. Services with no mark fall
+  back to the line-drawn keystone sigil, which still tints with `color`.
 - Concourse vocabulary (v4, dressed in v6). *Wall*: a dentil cornice
   broken by console blocks over a relief frieze, damask hung bay by bay,
   antique-mirror pilasters between reeded fillets, torchieres in the outer
@@ -149,10 +150,11 @@ both themes; only the hour changes.
    (never under 0.05em) and then takes a second line; the house gives up the
    height.
 8. Siblings are a family, never twins. A gate's archivolt count, metal
-   chord, relief programme, fanlight glass and glazing, velvet and its fold
+   chord, relief programme, fanlight glass and glazing, the velvet's fold
    pitch, valance swags, crest and day card come from an FNV-1a hash of its
    service id, walked in registry order so a new service never repaints the
-   ones already standing (`palace.js`). Dials, pier lights, damask bays,
+   ones already standing (`palace.js`). The velvet's colour is not hashed:
+   each house hangs its own mark's cloth (see "App marks (v7)"). Dials, pier lights, damask bays,
    dado slabs, console blocks, Ledger cards and desk panels vary the same
    way. Fixtures do not vary: sign, transom, cartouche, imposts, apron, lamp
    and plinth are the same on every gate.
@@ -234,8 +236,10 @@ both themes; only the hour changes.
 ## Geometry system
 
 Gates 1:1.9 (design 300×570), stepped shoulders = 3 steps of 6px, keystone
-sigil zone 96×96. All sigils drawn on that 96 grid: 1.5px stroke, zero corner
-radius, at most one accent-filled shape each, matched optical ink. One shared
+sigil zone 96×96. All sigils drawn on that 96 grid, centred on (48,48). The
+fallback sigil keeps the line rules (1.5px stroke, zero corner radius, at
+most one accent-filled shape); the app marks are enamel and follow "App
+marks (v7)". One shared
 SVG `<defs>` block for frames, so every gate provably uses identical ornament
 paths. A **generic fallback sigil** (plain deco keystone) exists for future
 services without custom art.
@@ -922,6 +926,61 @@ the lamp and takes the address line's place while it stands.
   field inside a raised bead, four slotted screws, and the letters in
   relief, polished on their faces. The lamp reads SHUT. It is never lit and
   never lifts.
+
+## App marks (v7)
+
+Each service's mark is a 1930s enamelled badge. The six are cut from one
+die, the way a cinema circuit's commissionaires wore one badge with their
+own house's device in it. The die is a cast gilt lip turned in six tones, a
+groove of beads, translucent enamel fired over an engine-turned ground, the
+subject cast and chased in gilt with champleve fields standing proud of the
+enamel, and a stone in a collet at the crown. The gilt is fixed, as `--br`
+is, so a mark stays its own object in a gold bezel or a nickel one. Every
+relief is drawn three times along the hall's key light. Nothing on a mark
+glows and nothing carries a gloss band: the domed crystal over the gate
+gives it the one reflection glass is allowed. The turning under the enamel
+follows the monogram's sunray, not the clock's guilloche field.
+
+Each app owns its enamel, the turning under it, its bead count, its subject
+and its stone:
+
+- Anime Autopilot: the season shelf on oxblood enamel, a Deco bookend and
+  five volumes of uneven height, the last one leaning on its neighbour,
+  under the rays of the lamp. An opal at the crown.
+- Ground Station: a tracking scope set in an octagonal amber plate, its
+  sweep going round and one contact locked in its acquisition brackets,
+  still waiting for Steam. An amber signal stone.
+- Outreach Desk: a calling card on a salver of Prussian blue enamel, its
+  corner turned down because it is delivered by hand. The salver's rim has
+  twenty gadroons, one for each of the day's introductions. A citrine.
+- The Press Room: 晨 in bone enamel within gilt cloisons, its second
+  impression sunk as the masthead prints it, on the staff and the register
+  of the day's stories, over a halftone screen. The kite is its stone.
+- Arsenal: a gunner's quadrant graduated to 60 on a gunmetal bolt-head
+  plate, the pointer laid at 45, six hex studs for the powder charges. A
+  signal-red stone.
+- Bourse: the canary on its perch in a gilded dome cage, over olive-gold
+  enamel engraved with the page's lozenge lattice. A ticker-amber stone.
+
+Each mark also has a small cut from the same die, `#mark-<id>-s`, with the
+subject reduced to its biggest shapes. The Ledger's medal (20 to 35px)
+wears it, and it is the drawing for a 16, 32 or 48px favicon.
+
+The curtain follows the mark. `HUE` in `icons/gen.py` holds each mark's
+enamel beside the dye of its velvet for Onyx and Ivory, and the script
+writes both: the marks into the page's defs, the dyes into
+`palace-gates.css`, keyed on the service. No hash picks a velvet. The
+reserved gate keeps its iron, and a service with no mark hangs the house
+claret. `tests/test_web_assets.py` fails when a dye leaves its mark's hue
+family (30 degrees in CIELAB; a steel mark takes a near-neutral cloth),
+rises past three quarters of `--au-2`'s luminance, or comes within 15
+CIEDE2000 of another velvet in its wing. Sapphire is kept for the concourse
+clock, so no mark or curtain is named for it or wears a saturated royal
+blue.
+
+`python icons/gen.py` writes only this repository's defs and velvet rules.
+The apps' own favicons and brand files are rebuilt with `--brand` after
+sign-off; until then the hall's marks are newer than the apps'.
 
 ## The Ledger (R10)
 
