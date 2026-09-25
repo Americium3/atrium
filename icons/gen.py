@@ -952,23 +952,28 @@ def subject_pressroom(m, h, small=False):
 # --------------------------------------------------------------------------
 # Ground Station: the earth station's antenna, turned up to the sky it listens to
 # --------------------------------------------------------------------------
-# Drawn from photographs of Goonhilly's Antenna 1 and GHY-3 and of the OTC
-# antenna at Carnarvon: a broad, shallow reflector of white-painted panels on
-# a dark backing truss, its subreflector held out at the focus on four legs.
-# The reflector turns about an elevation axle at the front of a level box
-# beam that carries the drive and, in its tail, the counterweight; the beam
-# rides an azimuth turret on a railed gallery at the head of an octagonal
-# concrete tower. World units are mark units: y up, the tower's axis at x = 0,
-# the reader toward +z. Every tone set runs dark, shade, body, lit.
+# Drawn from photographs of Goonhilly's GHY-3 and of the OTC antenna at
+# Carnarvon: a broad, shallow reflector of white-painted panels, twice as
+# wide as its tower is tall, ringed at its edge by the dark lattice of its
+# rim truss and backed by a dark truss down to the hub; its subreflector is
+# held out at the focus on three legs, as at Carnarvon. The reflector turns
+# about an elevation axle at the front of a long box beam that carries the
+# drive, and under the beam's tail hangs the counterweight. The beam rides an
+# azimuth turret on a railed gallery at the head of a squat concrete cone
+# that flares to the ground. World units are mark units: y up, the tower's
+# axis at x = 0, the reader toward +z. Every tone set runs dark, shade, body,
+# lit.
 DISH = {
-    'x': 43.5, 'base': 81.5, 'scale': 1.1,   # where the tower's axis meets the ground, on the mark; size
-    'R': 25.5, 'FD': 0.36,                   # reflector radius; focal length over diameter
-    'el': 38.0, 'head': 30.0,                # elevation; heading, degrees from +x toward the reader
-    'truss': 8.0, 'hub': 5.2,                # the backing truss's depth behind the vertex; hub radius
-    'tower': [(0.0, 1.6, 12.4, 12.4), (1.6, 19.4, 11.4, 6.9)],   # octagonal frustums: y0, y1, r0, r1
-    'gallery': (19.4, 20.9, 9.8),            # the railed platform: y0, y1, radius
-    'turret': (20.9, 26.2, 6.2),             # the azimuth turret: y0, y1, radius
-    'beam': (-15.0, 6.0, 4.4, 5.8),          # the head beam: from, to along the heading; half width; height
+    'x': 40.5, 'base': 83.0, 'scale': 1.0,   # where the tower's axis meets the ground, on the mark; size
+    'R': 29.0, 'FD': 0.52,                   # reflector radius; focal length over diameter
+    'el': 40.0, 'head': 22.0,                # elevation; heading, degrees from +x toward the reader
+    'truss': 6.0, 'hub': 5.0,                # the backing truss's depth behind the vertex; hub radius
+    'rim_truss': 6.5,                        # the depth of the lattice ring behind the rim
+    'tower': [(0.0, 1.4, 15.5, 15.5), (1.4, 14.5, 14.2, 7.6)],   # the concrete cone: y0, y1, r0, r1
+    'gallery': (14.5, 16.0, 10.4),           # the railed platform: y0, y1, radius
+    'turret': (16.0, 20.4, 6.6),             # the azimuth turret: y0, y1, radius
+    'beam': (-17.5, 6.5, 5.0, 7.2),          # the head beam: from, to along the heading; half width; height
+    'counter': (-17.5, -10.5, 4.6, 9.5),     # the counterweight under its tail: from, to; half width; drop
     'paint': ['#8c877b', '#bdb6a5', '#e1dac8', '#f9f5ea'],     # white-painted panels and steel
     'face_cuts': [0.08, 0.32, 0.6],
     'truss_tones': ['#23211d', '#39352f', '#57524a', '#7d766a'],
@@ -1073,17 +1078,19 @@ def groundstation_beam(p0, p1, w, lit, shade):
 def subject_groundstation(m, h, small=False):
     """An earth station's antenna, the object the app is named for, drawn
     from Goonhilly and Carnarvon. The reflector is a true paraboloid (focal
-    length 0.36 of its diameter) turned up and to the right and seen three
-    quarters on. The key light rakes across its white panels: the wall on the
+    length about half its diameter, as shallow as the earth stations' are)
+    turned up and to the right and seen three quarters on. The key light rakes across its white panels: the wall on the
     lamp's side turns its face away and falls into pale grey shade, and the
     far wall faces the lamp and takes the light. Those planes are what tell a
-    bowl from a plate. Behind it the backing truss is a dark faceted cone down
-    to the hub, and four legs hold the subreflector at the focus. The hub
-    turns at the front of the head beam, whose tail carries the
-    counterweight. The beam rides the azimuth turret on a railed gallery at
-    the head of an octagonal concrete tower. Nothing in the sky and nothing
+    bowl from a plate. Its edge is ringed by the dark lattice of the rim
+    truss, behind it the backing truss is a dark faceted cone down to the
+    hub, and three legs hold the subreflector at the focus. The hub turns at
+    the front of the head beam, under whose tail hangs the counterweight. The
+    beam rides the azimuth turret on a railed gallery at the head of a squat
+    concrete cone. Nothing in the sky and nothing
     lit: the antenna is listening. The small cut is the same geometry with
-    coarser planes, heavier legs, a larger subreflector and no handrail."""
+    coarser planes, heavier legs, a larger subreflector, the rim truss as a
+    plain dark band and no handrail."""
     d = DISH
     paint, steel, concrete, cuts = d['paint'], d['truss_tones'], d['concrete'], d['cuts']
     k = d['scale']
@@ -1105,18 +1112,23 @@ def subject_groundstation(m, h, small=False):
 
     # -- the tower, its gallery, the turret and the head beam ------------------
     X, Y, Z = (1.0, 0.0, 0.0), up, (0.0, 0.0, 1.0)
-    turn = math.radians(22.5)                                 # a flat of the octagon to the reader
+    nt = 10 if small else 20                                   # the cone's cast facets
+    turn = math.pi / nt                                       # a flat of it to the reader
     for y0, y1, r0, r1 in d['tower']:
-        polys, c = groundstation_frustum((0, 0, 0), X, Y, Z, y0, y1, r0, r1, 8, turn)
+        polys, c = groundstation_frustum((0, 0, 0), X, Y, Z, y0, y1, r0, r1, nt, turn)
         groundstation_solid(fc, vw, polys, c, concrete, cuts)
     g0, g1, gr = d['gallery']
-    polys, c = groundstation_frustum((0, 0, 0), X, Y, Z, g0, g1, gr, gr, 8, turn)
+    polys, c = groundstation_frustum((0, 0, 0), X, Y, Z, g0, g1, gr, gr, nt, turn)
     groundstation_solid(fc, vw, polys, c, d['gallery_tones'], cuts)
     polys, c = groundstation_frustum((0, 0, 0), X, Y, Z, t0, t1, tr, tr * 0.94, 8 if small else 16, turn)
     groundstation_solid(fc, vw, polys, c, paint, cuts, lift=-0.1)
     bo = S.add(S.mul(hdir, (b0 + b1) / 2), (0.0, t1 + bh / 2, 0.0))
     polys, c = groundstation_box(bo, hdir, up, axle, (b1 - b0) / 2, bh / 2, bw)
     groundstation_solid(fc, vw, polys, c, paint, cuts, lift=-0.14, sky=0.3)
+    c0, c1, cw, cd = d['counter']
+    co = S.add(S.mul(hdir, (c0 + c1) / 2), (0.0, t1 + 0.4 - cd / 2, 0.0))
+    polys, c = groundstation_box(co, hdir, up, axle, (c1 - c0) / 2, cd / 2, cw)
+    groundstation_solid(fc, vw, polys, c, d['gallery_tones'], cuts, lift=0.04)
 
     # -- the hub and the backing truss behind the reflector --------------------
     U, W = axle, ua
@@ -1125,13 +1137,17 @@ def subject_groundstation(m, h, small=False):
     n_back = 48                                               # the rim stays round in both cuts
     polys, c = groundstation_frustum(V, U, a, W, -d['truss'], zr - 0.4, d['hub'], R - 0.2, n_back, caps=False)
     groundstation_solid(fc, vw, polys, S.add(V, S.mul(a, zr + 6.0)), steel, cuts, lift=0.06)
-    # the rim: a shallow skirt round the reflector's edge, white-painted
-    polys, c = groundstation_frustum(V, U, a, W, zr - 1.2, zr, R, R, n_back, caps=False)
-    groundstation_solid(fc, vw, polys, S.add(V, S.mul(a, zr - 0.6)), paint, cuts)
+    # the rim truss: a ring of dark lattice round the reflector's edge,
+    # sloping in behind it, and the thin white-painted lip of the rim
+    rt = d['rim_truss']
+    ring, _ = groundstation_frustum(V, U, a, W, zr - rt, zr - 0.35, R * 0.9, R + 0.15, n_back, caps=False)
+    groundstation_solid(fc, vw, ring, S.add(V, S.mul(a, zr + 6.0)), steel, cuts, lift=-0.04)
+    polys, c = groundstation_frustum(V, U, a, W, zr - 0.35, zr, R + 0.15, R, n_back, caps=False)
+    groundstation_solid(fc, vw, polys, S.add(V, S.mul(a, zr - 0.2)), paint, cuts)
 
     # the charge's shadow on the enamel, cast down and to the right
-    base = [vw.proj(p)[:2] for y0, y1, r0, r1 in d['tower'] for p in groundstation_ring((0, 0, 0), X, Y, Z, y0, r0, 8, turn)]
-    base += [vw.proj(p)[:2] for p in groundstation_ring((0, 0, 0), X, Y, Z, t1, tr, 8, turn)]
+    base = [vw.proj(p)[:2] for y0, y1, r0, r1 in d['tower'] for p in groundstation_ring((0, 0, 0), X, Y, Z, y0, r0, nt, turn)]
+    base += [vw.proj(p)[:2] for p in groundstation_ring((0, 0, 0), X, Y, Z, t1, tr, nt, turn)]
     m.add(shadow(poly_d(groundstation_hull(base)), 1.3, 1.1, 0.42))
     head = [vw.proj(S.add(S.mul(hdir, sx), S.add((0.0, t1 + sy, 0.0), S.mul(axle, sz))))[:2]
             for sx in (b0, b1) for sy in (0.0, bh) for sz in (-bw, bw)]
@@ -1140,6 +1156,30 @@ def subject_groundstation(m, h, small=False):
     hub = [vw.proj(p)[:2] for p in groundstation_ring(V, U, a, W, -d['truss'], d['hub'], 24)]
     m.add(shadow(poly_d(groundstation_hull([p[:2] for p in rimv] + hub)), 1.6, 2.0, 0.45))
     m.add(fc.svg(seam=0.12))
+    if not small:
+        # the lattice of the rim truss: its diagonals, pale steel on the dark
+        # ring wherever the ring turns to the reader
+        struts = []
+        for kk in range(n_back):
+            t0_, t1_ = 2 * math.pi * kk / n_back, 2 * math.pi * (kk + 1) / n_back
+            f0 = S.add(V, S.add(S.mul(a, zr - 0.35), S.add(S.mul(U, (R + 0.15) * math.cos(t0_)),
+                                                           S.mul(W, (R + 0.15) * math.sin(t0_)))))
+            b1_ = S.add(V, S.add(S.mul(a, zr - rt), S.add(S.mul(U, R * 0.9 * math.cos(t1_)),
+                                                         S.mul(W, R * 0.9 * math.sin(t1_)))))
+            b0_ = S.add(V, S.add(S.mul(a, zr - rt), S.add(S.mul(U, R * 0.9 * math.cos(t0_)),
+                                                         S.mul(W, R * 0.9 * math.sin(t0_)))))
+            n_ = groundstation_normal([f0, b0_, b1_])
+            if S.dot(n_, S.add(groundstation_mean([f0, b0_, b1_]), S.mul(S.add(V, S.mul(a, zr + 6.0)), -1))) < 0:
+                n_ = S.mul(n_, -1)
+            if vw.nrm(n_)[2] <= 0.02:
+                continue
+            p0, p1 = vw.proj(f0), vw.proj(b1_ if kk % 2 == 0 else b0_)
+            if kk % 2:
+                p0 = vw.proj(S.add(V, S.add(S.mul(a, zr - 0.35), S.add(S.mul(U, (R + 0.15) * math.cos(t1_)),
+                                                                     S.mul(W, (R + 0.15) * math.sin(t1_))))))
+            struts.append((p0[0], p0[1], p1[0], p1[1]))
+        if struts:
+            m.add('<path d="%s" stroke="%s" stroke-width=".38" stroke-opacity=".85"/>' % (lines_path(struts), steel[3]))
 
     # -- the reflector's face ---------------------------------------------------
     Av, Uv, Wv = S.norm(vw.nrm(a)), S.norm(vw.nrm(U)), S.norm(vw.nrm(W))
@@ -1171,10 +1211,10 @@ def subject_groundstation(m, h, small=False):
     box = (min(xs) - 2, min(ys) - 2, max(xs) + 2, max(ys) + 2)
     m.add(planes(m, 'reflector', rim_d, face_light, box, paint, d['face_cuts'], step))
 
-    # -- the quadripod and the subreflector --------------------------------------
+    # -- the tripod and the subreflector -----------------------------------------
     apex = S.add(V, S.mul(a, 0.86 * F))
     ap = vw.proj(apex)[:2]
-    for deg in (40, 140, 220, 320):
+    for deg in (90, 210, 330):
         t = math.radians(deg)
         foot = S.add(V, S.add(S.mul(a, zr - 0.2), S.add(S.mul(U, (R - 0.8) * math.cos(t)), S.mul(W, (R - 0.8) * math.sin(t)))))
         m.add(groundstation_beam(vw.proj(foot)[:2], ap, 1.9 if small else 1.05, paint[3], paint[1]))
@@ -1188,10 +1228,10 @@ def subject_groundstation(m, h, small=False):
 
     # the gallery's handrail, a thread of steel round the front of the platform
     if not small:
-        rail = groundstation_ring((0, 0, 0), X, Y, Z, g1 + 1.3, gr - 0.3, 8, turn)
+        rail = groundstation_ring((0, 0, 0), X, Y, Z, g1 + 1.3, gr - 0.3, nt, turn)
         segs = []
-        for k in range(8):
-            p0, p1 = rail[k], rail[(k + 1) % 8]
+        for k in range(nt):
+            p0, p1 = rail[k], rail[(k + 1) % nt]
             if vw.rot(S.mul(S.add(p0, p1), 0.5))[2] > -1.0:
                 q0, q1 = vw.proj(p0), vw.proj(p1)
                 segs.append((q0[0], q0[1], q1[0], q1[1]))
