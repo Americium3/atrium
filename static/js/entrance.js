@@ -708,7 +708,9 @@ function paint(parts, cam, P) {
       while ((m = re.exec(l.markup))) ids[m[1]] = 1;
       Object.keys(ids).forEach(function (id) { if (D[id]) used += D[id]; });
       var sub = l.sub;
+      l.used = used; l.imgP = null; l.pending = 0;
       planTiles(part, l, cam, times, dpr).forEach(function (tl) {
+        l.pending++;
         var r = tl.r, kMax = Math.max.apply(null, tl.levels.map(function (lv) { return lv.k; }));
         // Opaque paint runs two pixels (of the coarsest level) into its
         // neighbour, so no seam shows between tiles; the layer's own edges
@@ -775,18 +777,32 @@ function paint(parts, cam, P) {
   };
   return { done: Promise.all([next(), next(), next(), next()]), stats: stats, all: all };
 }
+/* One picture a layer: its SVG parsed once and drawn into each of its tiles
+   at the tile's own size (an SVG drawn to a canvas is drawn again from its
+   vectors at the size asked, never scaled from pixels). Parsing the whole
+   layer again for every tile kept the page's thread busy for most of the
+   paint, seconds on a busy machine. */
+function layerImage(l) {
+  if (!l.imgP) {
+    var s = l.sub, w = Math.max(1, Math.round((s.a1 - s.a0) * U)), h = Math.max(1, Math.round((s.b1 - s.b0) * U));
+    var src = '<svg xmlns="http://www.w3.org/2000/svg" width="' + w + '" height="' + h + '" viewBox="' +
+      f5(s.a0) + ' ' + f5(-s.b1) + ' ' + f5(s.a1 - s.a0) + ' ' + f5(s.b1 - s.b0) + '" preserveAspectRatio="none"><defs>' + l.used + '</defs>' + l.markup + '</svg>';
+    var url = URL.createObjectURL(new Blob([src], { type: 'image/svg+xml' }));
+    var img = new Image();
+    img.src = url;
+    l.imgW = w; l.imgH = h;
+    l.imgP = img.decode().then(function () { URL.revokeObjectURL(url); return img; }, function () { URL.revokeObjectURL(url); return null; });
+  }
+  return l.imgP;
+}
 function drawLevel(L) {
   var job = L.job, l = job.l, cv = L.cv;
   cv.width = L.w; cv.height = L.h;
-  var src = '<svg xmlns="http://www.w3.org/2000/svg" width="' + L.w + '" height="' + L.h + '" viewBox="' +
-    f5(job.x0) + ' ' + f5(-job.y1) + ' ' + f5(job.x1 - job.x0) + ' ' + f5(job.y1 - job.y0) + '" preserveAspectRatio="none"><defs>' + job.used + '</defs>' + l.markup + '</svg>';
-  var url = URL.createObjectURL(new Blob([src], { type: 'image/svg+xml' }));
-  var img = new Image();
-  img.src = url;
-  return img.decode().then(function () {
-    if (!cv.width) return;             // let go meanwhile
+  return layerImage(l).then(function (img) {
+    if (!img || !cv.width) return;     // let go meanwhile
+    var s = l.sub, kx = l.imgW / (s.a1 - s.a0), ky = l.imgH / (s.b1 - s.b0);
     var ctx = cv.getContext('2d');
-    ctx.drawImage(img, 0, 0, L.w, L.h);
+    ctx.drawImage(img, (job.x0 - s.a0) * kx, (s.b1 - job.y1) * ky, (job.x1 - job.x0) * kx, (job.y1 - job.y0) * ky, 0, 0, L.w, L.h);
     if (l.texts) {
       var sx = L.w / (job.x1 - job.x0), sy = L.h / (job.y1 - job.y0);
       l.texts.forEach(function (tx) {
@@ -801,8 +817,9 @@ function drawLevel(L) {
       });
     }
     L.painted = true;
-    URL.revokeObjectURL(url);
-  }).catch(function () { URL.revokeObjectURL(url); });
+    // the layer's picture goes once its last tile is drawn
+    if (--l.pending <= 0) { l.imgP = null; l.pending = 0; }
+  });
 }
 function halve(from, to) {
   to.cv.width = to.w; to.cv.height = to.h;
