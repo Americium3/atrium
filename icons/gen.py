@@ -969,202 +969,299 @@ def subject_groundstation(m, h, small=False):
 
 
 # --------------------------------------------------------------------------
-# Anime Autopilot: the season's shelf, bound volumes on a mahogany plank
+# Anime Autopilot: the season's shelf, bound volumes standing on a plank
 # --------------------------------------------------------------------------
-# Book cloths as the eye remembers them, each in four planes: dark, shade,
-# body and lit.
-CLOTHS = {
-    'vellum':  ['#6a5a40', '#a8966e', '#d8c8a0', '#f4e8c6'],
-    'bottle':  ['#0c2016', '#1a4430', '#2c6a48', '#5a9a72'],
-    'morocco': ['#3c0c0a', '#7c2218', '#b23c2c', '#e27a5c'],
-    'navy':    ['#0a1622', '#16324a', '#27526e', '#4c7c9a'],
-    'calf':    ['#3a2210', '#6e4420', '#a26c36', '#d69e62'],
+# The shelf is modelled, not drawn: each volume is a real binding (two boards
+# that overhang the page block by their squares, a back rounded in a shallow
+# arc between the joints, raised bands lying across that round, a head where
+# the page block sits down between the boards) and the row is turned a little
+# so its near end comes toward the reader. From the hall's eye, a few degrees
+# above, the spines face the key light, the covers that stand clear of a
+# shorter neighbour turn into shade, and the heads lie open to the light.
+# Every face takes one of its cloth's four planes by how squarely it meets
+# the key light; nothing is graded inside a plane.
+AUTOPILOT_YAW = 20.0            # degrees the row is turned, its right end nearer
+AUTOPILOT_CLOTH = {             # dark, shade, body, lit: the cloth as the eye remembers it
+    'calf':    ['#2c170a', '#5e3a1c', '#946434', '#c4925a'],     # tan calf
+    'morocco': ['#3a0c0a', '#7a2218', '#b0372a', '#da6446'],     # red morocco, the lead volume
+    'vellum':  ['#5c4e36', '#a08c64', '#d6c49c', '#f2e5c2'],     # vellum over boards
+    'green':   ['#0a1c13', '#193e2b', '#2a6143', '#4c8a62'],     # bottle-green morocco
+    'brown':   ['#1e0f07', '#432615', '#6a3f24', '#93603c'],     # chocolate calf
 }
-LEAF = ['#8a7a5a', '#cfc2a0', '#efe4c6']                 # the page block's top: shade, body, lit
-PLANK = ['#2c1107', '#5c2b12', '#8e4c24', '#c27a46']
-SPINE_CUTS = [0.14, 0.44, 0.66]
-SHELF = {'x0': 19.0, 'x1': 78.0, 'y': 72.5, 'face': 5.0, 'depth': 30.0, 'setback': 10.0}
+AUTOPILOT_LABEL = {             # leather onlays, in the same four planes
+    'black': ['#0e0a09', '#1a1311', '#2a211d', '#443631'],
+    'red':   ['#3c0f0a', '#62190f', '#8a2a1e', '#aa4430'],
+    'olive': ['#1b1d0b', '#333714', '#4e5420', '#6b7330'],
+}
+AUTOPILOT_CUTS = [-0.25, 0.5, 0.7]
+AUTOPILOT_CUTS_S = [-0.25, 0.56, 9.0]      # the small cut: the lit plane folds into the body
+AUTOPILOT_GILT = [GILT[1], GILT[2], GILT[4], GILT[5], GILT[3]]
+AUTOPILOT_GILT_CUTS = [-0.4, 0.3, 0.55, 0.75]
+AUTOPILOT_LEAVES = ['#6e6046', '#b8a880', '#dccfae', '#f0e6cc']    # the page block's head
+AUTOPILOT_PLANK = ['#1e0d06', '#4a2211', '#76391c', '#a0562c']     # mahogany
+# The row, left to right: x along the shelf, thickness, height and depth of
+# each volume (depth follows height, as a quarto is deeper than an octavo),
+# its cloth, its raised bands and gilt rules (fractions of its height), its
+# labels, whether its bands and head are gilt, and the one volume that leans
+# (its cover, turned to the reader, carries a gilt frame).
+# The small cut keeps each volume's size and cloth and only its boldest
+# furniture: the keys ending in _s.
+AUTOPILOT_ROW = [
+    {'x': 0.0, 't': 8.2, 'h': 36.5, 'd': 23.0, 'cloth': 'calf',
+     'bands': (0.17, 0.37, 0.57, 0.77), 'labels': ((0.595, 0.745, 'red'),)},
+    {'x': 8.2, 't': 10.4, 'h': 50.0, 'd': 30.0, 'cloth': 'morocco', 'gilt': True,
+     'bands': (0.15, 0.315, 0.48, 0.645, 0.81), 'labels': ((0.665, 0.79, 'black'),),
+     'bands_s': (0.16, 0.42, 0.85), 'labels_s': ((0.6, 0.76, 'black'),)},
+    {'x': 18.6, 't': 8.0, 'h': 43.5, 'd': 27.0, 'cloth': 'green',
+     'rules': (0.1, 0.32, 0.54, 0.76, 0.9), 'rules_s': (0.22, 0.52, 0.82)},
+    {'x': 26.6, 't': 8.2, 'h': 40.0, 'd': 25.0, 'cloth': 'brown', 'fillets': True,
+     'bands': (0.2, 0.41, 0.62, 0.83), 'labels': ((0.645, 0.795, 'olive'),)},
+    {'lean': 13.0, 't': 8.6, 'h': 38.5, 'd': 25.5, 'cloth': 'vellum', 'frame': True,
+     'labels': ((0.68, 0.82, 'red'),), 'labels_s': ((0.66, 0.84, 'red'),)},
+]
+AUTOPILOT_PLACE = (19.0, 67.4)  # where the row's front left foot stands, in the mark
+AUTOPILOT_SCALE = 1.075        # mark units to a world unit: the charge fills its circle
 
 
-def spine_columns(w, groove):
-    """Where the rounded back turns from one plane to the next, left to
-    right: (x0, x1, tone index). The back's normal swings from 65 degrees
-    left to 65 degrees right across it."""
-    inner0, inner1 = groove, w - groove
-    cols, cur, start = [], None, inner0
-    n = 60
-    for k in range(n + 1):
-        x = inner0 + (inner1 - inner0) * k / n
-        s = (x - w / 2) / ((inner1 - inner0) / 2)
-        ph = math.asin(max(-1.0, min(1.0, s * math.sin(math.radians(65)))))
-        t = 0
-        l_ = lam((math.sin(ph), 0.0, math.cos(ph)))
-        for i, c in enumerate(SPINE_CUTS):
-            if l_ >= c:
-                t = i + 1
-        if cur is None:
-            cur = t
-        elif t != cur:
-            cols.append((start, x, cur))
-            start, cur = x, t
-    cols.append((start, inner1, cur))
-    return cols
+def autopilot_view(ox, oy, k=1.0):
+    """The hall's eye on the shelf: the row turned by AUTOPILOT_YAW, seen
+    from PITCH degrees above. World x runs along the shelf, y up, z out of
+    the shelf toward the reader. Returns project(p) -> (x, y, depth) and
+    light(normal) -> the signed cosine with the key light."""
+    cy_, sy_ = math.cos(math.radians(AUTOPILOT_YAW)), math.sin(math.radians(AUTOPILOT_YAW))
+    cp, sp = math.cos(math.radians(PITCH)), math.sin(math.radians(PITCH))
+
+    def rot(v):
+        x, y, z = v
+        x1, z1 = x * cy_ - z * sy_, x * sy_ + z * cy_
+        return (x1, y * cp - z1 * sp, y * sp + z1 * cp)
+
+    def project(p):
+        x1, y2, z2 = rot(p)
+        return (ox + k * x1, oy - k * y2, z2)
+
+    def light(n):
+        return S.dot(S.norm(rot(n)), S.KEY)
+
+    def world(v):
+        """A view-space direction back in the world."""
+        x1, y2, z2 = v
+        y, z1 = y2 * cp + z2 * sp, -y2 * sp + z2 * cp
+        return (x1 * cy_ + z1 * sy_, y, -x1 * sy_ + z1 * cy_)
+    return project, light, world
 
 
-def volume(m, x0, yb, w, hgt, cloth, bands=(), label=None, rules=False, lean=0.0, small=False):
-    """One bound volume standing on the shelf, spine out: the rounded back in
-    its planes between the two joints, the board edges, raised cords with
-    their lit upper and shaded lower faces, a leather label onlay, and the
-    head seen a little from above (the boards' top edges, the page block set
-    down between them, the headcap turned over at the front). Local frame:
-    (x0, yb) is the bottom left of the spine; lean turns the volume about its
-    bottom right corner, in degrees."""
-    T = CLOTHS[cloth]
-    depth = 18.0
-    hp = depth * math.sin(math.radians(PITCH))          # the head, seen from a little above
-    groove = 0.0 if small else min(0.95, w * 0.12)
-    out = []
-    # the head: boards' top edges, the page block set down between them
-    out.append('<path d="M0 %s H%s V%s H0 Z" fill="%s"/>' % (f(-hgt), f(w), f(-hgt - hp), T[2]))
-    if not small:
-        tb = max(0.6, w * 0.1)
-        out.append('<path d="M%s %s H%s V%s H%s Z" fill="%s"/>' % (f(tb), f(-hgt - 0.1), f(w - tb), f(-hgt - hp + 0.5), f(tb), LEAF[2]))
-        out.append('<path d="M%s %s H%s V%s H%s Z" fill="%s"/>' % (f(w * 0.62), f(-hgt - 0.1), f(w - tb), f(-hgt - hp + 0.5), f(w * 0.62), LEAF[1]))
-        out.append('<path d="M%s %s Q%s %s %s %s V%s Q%s %s %s %s Z" fill="%s"/>'
-                   % (f(tb * 0.6), f(-hgt), f(w / 2), f(-hgt - 1.6), f(w - tb * 0.6), f(-hgt),
-                      f(-hgt + 0.2), f(w / 2), f(-hgt - 0.9), f(tb * 0.6), f(-hgt + 0.2), T[3]))
-    else:
-        out.append('<path d="M%s %s H%s V%s H%s Z" fill="%s"/>' % (f(w * 0.15), f(-hgt - 0.2), f(w * 0.85), f(-hgt - hp + 0.4), f(w * 0.15), LEAF[2]))
-    # the spine: board edges, the joints, the rounded back in its planes
-    out.append('<path d="M0 0 H%s V%s H0 Z" fill="%s"/>' % (f(w), f(-hgt), T[0]))
-    cols = [(0.0, w, 2)] if small and w < 7 else spine_columns(w, groove)
-    if small:
-        cols = [(0.0, w * 0.4, 3), (w * 0.4, w * 0.78, 2), (w * 0.78, w, 1)]
-    for a, b, t in cols:
-        out.append('<path d="M%s 0 H%s V%s H%s Z" fill="%s"/>' % (f(a), f(b), f(-hgt), f(a), T[t]))
-    if groove:
-        out.append('<path d="M0 0 H%s V%s H0 Z" fill="%s"/>' % (f(groove * 0.55), f(-hgt), T[2]))
-        out.append('<path d="M%s 0 H%s V%s H%s Z" fill="%s"/>' % (f(w - groove * 0.55), f(w), f(-hgt), f(w - groove * 0.55), T[1]))
-    # raised cords: each a ridge, its upper face lit, its lower face in shade
-    for y in bands:
-        yy = -hgt * y
-        if small:
-            out.append('<path d="M0 %s H%s V%s H0 Z" fill="%s"/>' % (f(yy), f(w), f(yy - 2.2), T[3]))
-            continue
-        for a, b, t in cols:
-            out.append('<path d="M%s %s H%s V%s H%s Z" fill="%s"/>' % (f(a), f(yy - 0.75), f(b), f(yy - 1.5), f(a), T[min(3, t + 1)]))
-            out.append('<path d="M%s %s H%s V%s H%s Z" fill="%s"/>' % (f(a), f(yy), f(b), f(yy - 0.75), f(a), T[max(0, t - 2)]))
-        out.append('<path d="M%s %s H%s M%s %s H%s" stroke="%s" stroke-width=".32" stroke-opacity=".85"/>'
-                   % (f(groove), f(yy - 1.95), f(w - groove), f(groove), f(yy + 0.45), f(w - groove), GILT[5]))
-    if label and not small:
-        y0, y1, col = label
-        ya, yb2 = -hgt * y0, -hgt * y1
-        lc = [darken(col, 0.55), darken(col, 0.25), col]
-        out.append('<path d="M%s %s H%s V%s H%s Z" fill="%s"/>' % (f(groove + 0.3), f(ya), f(w - groove - 0.3), f(yb2), f(groove + 0.3), lc[1]))
-        out.append('<path d="M%s %s H%s V%s H%s Z" fill="%s"/>' % (f(groove + 0.3), f(ya), f(w * 0.45), f(yb2), f(groove + 0.3), lc[2]))
-        out.append('<path d="M%s %s H%s V%s H%s Z" fill="%s"/>' % (f(w * 0.8), f(ya), f(w - groove - 0.3), f(yb2), f(w * 0.8), lc[0]))
-        out.append('<path d="M%s %s H%s V%s H%s Z" fill="none" stroke="%s" stroke-width=".3" stroke-opacity=".9"/>'
-                   % (f(groove + 0.9), f(ya - 0.6), f(w - groove - 0.9), f(yb2 + 0.6), f(groove + 0.9), GILT[5]))
-    if rules and not small:
-        for y in (0.08, 0.92):
-            yy = -hgt * y
-            out.append('<path d="M%s %s H%s M%s %s H%s" stroke="%s" stroke-width=".35" stroke-opacity=".8"/>'
-                       % (f(groove), f(yy), f(w - groove), f(groove), f(yy - 0.9), f(w - groove), GILT[5]))
-    body = ''.join(out)
-    tf = 'translate(%s %s)' % (f(x0), f(yb))
-    if lean:
-        tf += ' rotate(%s %s 0)' % (f(lean), f(w))
-    sil = 'M0 0 H%s V%s H0 Z' % (f(w), f(-hgt - hp))
-    return ('<g transform="%s"><path d="%s" fill="#000" fill-opacity=".45" transform="translate(.7 .3)"/>%s</g>'
-            % (tf, sil, body))
+def autopilot_volume(v, project, light, small=False):
+    """One bound volume, spine out, as painted faces back to front: the
+    cover on its right (seen where it stands clear of a shorter neighbour),
+    the head (the two boards' top edges, the page block set down between
+    them by the square, the inside of the far board above it), the rounded
+    back in its planes, its labels, its raised bands and their fillets. Its
+    local frame: x across the spine, y up, z out of the spine; the back
+    bulges forward in a shallow arc to 0.18 of its width, the way a backed
+    and rounded text block does."""
+    T = AUTOPILOT_CLOTH[v['cloth']]
+    t, H, D = v['t'], v['h'], v['d']
+    sq, bd = 0.9, 0.75                      # the squares, and the boards' thickness
+    B = math.radians(40.0)                  # the round turns 40 degrees each way to the joints
+    R = (t / 2) / math.sin(B)
+    lean = math.radians(v.get('lean', 0.0))
+    cl, sl = math.cos(lean), math.sin(lean)
+    x0 = v['x']
+
+    def place(p):                           # lean about the foot of the left board, then set down
+        x, y, z = p
+        return (x0 + x * cl - y * sl, x * sl + y * cl, z)
+
+    def turn(n):
+        x, y, z = n
+        return (x * cl - y * sl, x * sl + y * cl, z)
+
+    def P(p):
+        q = project(place(p))
+        return (q[0], q[1])
+
+    def arc(b, y, e=0.0):
+        """A point on the back at angle b (radians), height y, e proud of it."""
+        return (t / 2 + (R + e) * math.sin(b), y, R * (math.cos(b) - math.cos(B)) + e * math.cos(b))
+
+    CUTS = AUTOPILOT_CUTS_S if small else AUTOPILOT_CUTS
+
+    def get(key):
+        return v.get(key + '_s', ()) if small else v.get(key, ())
+
+    def tone(n, pal=T, cuts=CUTS):
+        return facet(light(turn(n)), pal, cuts)
+
+    def runs(fn, n=24):
+        """Split the round into runs of one tone: fn(b) -> colour."""
+        out, cur, start = [], None, -B
+        for k in range(n):
+            b0, b1 = -B + 2 * B * k / n, -B + 2 * B * (k + 1) / n
+            c = fn((b0 + b1) / 2)
+            if c != cur:
+                if cur is not None:
+                    out.append((start, b0, cur))
+                cur, start = c, b0
+        out.append((start, B, cur))
+        return out
+
+    def strip(b0, b1, y0, y1, e0=0.0, e1=0.0, n=6):
+        lo = [P(arc(b0 + (b1 - b0) * k / n, y0, e0)) for k in range(n + 1)]
+        hi = [P(arc(b1 - (b1 - b0) * k / n, y1, e1)) for k in range(n + 1)]
+        return lo + hi
+
+    faces = []
+
+    def face(pts, col):
+        faces.append('<path d="%s" fill="%s"/>' % (S.pts_d(pts), col))
+
+    # the cover on the right: the outer face of the near board
+    cov = [(t, 0, 0), (t, H, 0), (t, H, -D), (t, 0, -D)]
+    face([P(p) for p in cov], tone((1, 0, 0)))
+    if v.get('frame') and not small:
+        # a gilt fillet tooled round the board, dull in the cover's shade
+        g = facet(light(turn((1, 0, 0))), AUTOPILOT_GILT, AUTOPILOT_GILT_CUTS)
+        i, w = 1.7, 0.32
+        for a, b in (((i, -D + i), (H - i, -D + i)), ((H - i, -D + i), (H - i, -2.2)),
+                     ((H - i, -2.2), (i, -2.2)), ((i, -2.2), (i, -D + i))):
+            (ya, za), (yb, zb) = a, b
+            dy, dz = yb - ya, zb - za
+            ln = math.hypot(dy, dz)
+            ny, nz = -dz / ln * w / 2, dy / ln * w / 2
+            face([P((t + 0.01, ya + ny, za + nz)), P((t + 0.01, yb + ny, zb + nz)),
+                  P((t + 0.01, yb - ny, zb - nz)), P((t + 0.01, ya - ny, za - nz))], g)
+    # the head: the boards' top edges, the page block between them
+    top = tone((0, 1, 0))
+    face([P(p) for p in ((0, H, 0), (bd, H, 0), (bd, H, -D), (0, H, -D))], top)
+    leaves = AUTOPILOT_GILT if v.get('gilt') else AUTOPILOT_LEAVES
+    lcuts = AUTOPILOT_GILT_CUTS if v.get('gilt') else CUTS
+    front = [arc(math.asin(max(-1.0, min(1.0, (x - t / 2) / R))), H - sq, -1.0)
+             for x in (bd + (t - 2 * bd) * k / 6 for k in range(7))]
+    block = [(x, H - sq, max(z, -D + sq)) for x, _, z in front] + [(t - bd, H - sq, -D + sq), (bd, H - sq, -D + sq)]
+    face([P(p) for p in block], facet(light(turn((0, 1, 0))), leaves, lcuts))
+    # the inside of the far board, standing a square above the leaves
+    face([P(p) for p in ((bd, H - sq, -0.6), (bd, H, -0.6), (bd, H, -D), (bd, H - sq, -D + sq))], T[1])
+    face([P(p) for p in ((t - bd, H, 0), (t, H, 0), (t, H, -D), (t - bd, H, -D))], top)
+    # the back, in its planes
+    for b0, b1, c in runs(lambda b: tone((math.sin(b), 0, math.cos(b)))):
+        face(strip(b0, b1, 0.0, H), c)
+    # the headcap: the leather turned over the headband, facing up
+    bs = [-B + 2 * B * k / 8 for k in range(9)]
+    cap = [arc(b, H) for b in bs]
+    face([P(p) for p in cap] + [P((x, y, z - 0.9)) for x, y, z in cap[::-1]], top)
+    # labels: leather onlays, flush with the back
+    for y0, y1, name in get('labels'):
+        pal = AUTOPILOT_LABEL[name]
+        for b0, b1, col in runs(lambda b: tone((math.sin(b), 0, math.cos(b)), pal)):
+            face(strip(b0, b1, H * y0, H * y1, 0.03, 0.03), col)
+    # raised bands: a cord under the leather, its upper slope to the light
+    gilt = v.get('gilt')
+    gfn = lambda b: facet(light(turn((math.sin(b), 0, math.cos(b)))), AUTOPILOT_GILT, AUTOPILOT_GILT_CUTS)
+    wb, eb = (1.4, 0.9) if small else (0.75, 0.55)
+    for fy in get('bands'):
+        yb = H * fy
+        for sgn, ya, yb2, ea, eb2 in ((+1, yb, yb + wb, eb, 0.0), (-1, yb - wb, yb, 0.0, eb)):
+            eta = math.radians(52.0) * sgn
+            pal = AUTOPILOT_GILT if gilt else T
+            cuts = AUTOPILOT_GILT_CUTS if gilt else CUTS
+            fn = (lambda b, eta=eta, pal=pal, cuts=cuts:
+                  facet(light(turn((math.sin(b) * math.cos(eta), math.sin(eta), math.cos(b) * math.cos(eta)))), pal, cuts))
+            for b0, b1, col in runs(fn):
+                face(strip(b0, b1, ya, yb2, ea, eb2), col)
+        if v.get('fillets') and not small:
+            for yy in (yb + wb + 0.45, yb - wb - 0.75):
+                for b0, b1, col in runs(gfn):
+                    face(strip(b0, b1, yy, yy + 0.3, 0.02, 0.02), col)
+    # gilt rules tooled across a flat back, in pairs
+    for fy in get('rules'):
+        for yy in ((H * fy - 0.55, H * fy + 0.25) if not small else (H * fy - 0.6,)):
+            for b0, b1, col in runs(gfn):
+                face(strip(b0, b1, yy, yy + (0.32 if not small else 1.1), 0.02, 0.02), col)
+    # the outline of the whole volume, for its shadow on the enamel
+    pts = [P(p) for p in ((0, 0, 0), (t, 0, 0), (t, 0, -D), (0, H, -D), (t, H, -D), (0, H, 0), (t, H, 0))]
+    pts += [P(arc(-B + 2 * B * k / 6, y)) for k in range(7) for y in (0.0, H)]
+    return ''.join(faces), autopilot_hull(pts)
 
 
-def lying(m, x0, yb, length, th, cloth, small=False):
-    """A volume lying flat, spine out: its rounded back in horizontal planes
-    (the upper half turned to the light), and its top board seen from a
-    little above."""
-    T = CLOTHS[cloth]
-    hp = 18.0 * math.sin(math.radians(PITCH))
-    out = ['<path d="M%s %s H%s V%s H%s Z" fill="#000" fill-opacity=".45" transform="translate(.7 .5)"/>'
-           % (f(x0), f(yb), f(x0 + length), f(yb - th - hp), f(x0))]
-    out.append('<path d="M%s %s H%s V%s H%s Z" fill="%s"/>' % (f(x0), f(yb - th), f(x0 + length), f(yb - th - hp), f(x0), T[2]))
-    bands = [(0.0, 0.3, 0), (0.3, 0.62, 1), (0.62, 0.86, 2), (0.86, 1.0, 3)] if not small else [(0, 0.45, 1), (0.45, 1, 3)]
-    for a, b, t in bands:
-        out.append('<path d="M%s %s H%s V%s H%s Z" fill="%s"/>' % (f(x0), f(yb - th * a), f(x0 + length), f(yb - th * b), f(x0), T[t]))
-    if not small:
-        for fx in (0.16, 0.84):
-            out.append('<path d="M%s %s V%s" stroke="%s" stroke-width=".35" stroke-opacity=".8"/>'
-                       % (f(x0 + length * fx), f(yb - 0.5), f(yb - th + 0.5), GILT[5]))
-    return ''.join(out)
+def autopilot_hull(pts):
+    """The convex hull of a volume's projected corners: its silhouette."""
+    pts = sorted(set((round(x, 3), round(y, 3)) for x, y in pts))
+
+    def half(seq):
+        out = []
+        for p in seq:
+            while len(out) >= 2 and ((out[-1][0] - out[-2][0]) * (p[1] - out[-2][1])
+                                     - (out[-1][1] - out[-2][1]) * (p[0] - out[-2][0])) <= 0:
+                out.pop()
+            out.append(p)
+        return out[:-1]
+    return half(pts) + half(pts[::-1])
+
+
+def autopilot_plank(x0, x1, project, light, small=False):
+    """The mahogany plank the row stands on: its top, the bullnose front in
+    an upper and a lower plane, and the end grain at its near end."""
+    th, dp, zf, r = 4.2, 29.0, 9.0, 1.6       # the volumes stand back from its edge
+
+    def P(p):
+        q = project(p)
+        return (q[0], q[1])
+    faces = []
+
+    def face(pts, n):
+        faces.append('<path d="%s" fill="%s"/>' % (S.pts_d([P(p) for p in pts]), facet(light(n), AUTOPILOT_PLANK, AUTOPILOT_CUTS_S if small else AUTOPILOT_CUTS)))
+    face([(x0, 0, zf - r), (x1, 0, zf - r), (x1, 0, -dp), (x0, 0, -dp)], (0, 1, 0))
+    face([(x0, 0, zf - r), (x1, 0, zf - r), (x1, -th * 0.42, zf), (x0, -th * 0.42, zf)], (0, 0.75, 0.66))
+    face([(x0, -th * 0.42, zf), (x1, -th * 0.42, zf), (x1, -th, zf - r * 0.6), (x0, -th, zf - r * 0.6)], (0, -0.5, 0.87))
+    face([(x1, 0, zf - r), (x1, 0, -dp), (x1, -th, -dp), (x1, -th, zf - r * 0.6), (x1, -th * 0.42, zf)], (1, 0, 0))
+    hull = [P(p) for p in ((x0, 0, -dp), (x1, 0, -dp), (x1, -th, -dp), (x1, -th, zf - r * 0.6),
+                           (x0, -th, zf - r * 0.6), (x0, -th * 0.42, zf), (x1, -th * 0.42, zf))]
+    return ''.join(faces), autopilot_hull(hull)
 
 
 def subject_autopilot(m, h, small=False):
-    """The season's shelf: bound volumes standing on a mahogany plank, the
-    way the app shelves a season while the owner sleeps. A tall red morocco
-    volume leads, with its cords and label; vellum, bottle-green cloth and
-    navy buckram stand beside it at their own heights; the last volume in
-    calf leans on its neighbour, and two lie flat at the end. Each spine is
-    a rounded back cut into planes by the key light, with its head seen from
-    a little above."""
-    sh = SHELF
-    sb = sh['setback'] * math.sin(math.radians(PITCH))
-    top_back = sh['y'] - sh['depth'] * math.sin(math.radians(PITCH))
-    yb = sh['y'] - sb                                   # where the volumes stand
-    x0, x1 = sh['x0'], sh['x1']
-    # the plank: its top seen from a little above, a bullnose front
-    m.add(shadow('M%s %s H%s V%s H%s Z' % (f(x0), f(top_back), f(x1), f(sh['y'] + sh['face']), f(x0)), 1.2, 1.6, 0.5))
-    m.add('<path d="M%s %s H%s V%s H%s Z" fill="%s"/>' % (f(x0), f(top_back), f(x1), f(sh['y']), f(x0), PLANK[2]))
-    m.add('<path d="M%s %s H%s V%s H%s Z" fill="%s"/>' % (f(x0), f(sh['y']), f(x1), f(sh['y'] + sh['face'] * 0.45), f(x0), PLANK[3]))
-    m.add('<path d="M%s %s H%s V%s H%s Z" fill="%s"/>'
-          % (f(x0), f(sh['y'] + sh['face'] * 0.45), f(x1), f(sh['y'] + sh['face']), f(x0), PLANK[1]))
-    if not small:
-        m.add('<path d="M%s %s H%s" stroke="%s" stroke-width=".4"/>' % (f(x0), f(sh['y'] + sh['face'] - 0.2), f(x1), PLANK[0]))
-    # the volumes, left to right
-    lean = 12.0
-    books = [  # x, width, height, cloth, cords, label, rules
-        (29.4, 9.4, 42.0, 'vellum', (), (0.8, 0.9, '#6e2a20'), False),
-        (38.8, 7.8, 35.5, 'bottle', (), None, True),
-        (46.6, 12.2, 50.0, 'morocco', (0.18, 0.38, 0.58, 0.8), (0.62, 0.76, '#1c1410'), False),
-        (58.8, 8.6, 39.0, 'navy', (), (0.72, 0.84, '#8a2a22'), True),
-    ]
-    lh, lw = 37.0, 8.2
-    px = books[0][0] - lh * math.sin(math.radians(lean)) - 0.2
-    m.add(volume(m, px - lw, yb, lw, lh, 'calf', (0.22, 0.46, 0.7), None, False, lean=lean, small=small))
-    for x, w, hh, cloth, cords, label, rules in books:
-        m.add(volume(m, x, yb, w, hh, cloth, cords, label, rules, small=small))
-    m.add(bookend(m, 67.4, yb, 10.4, 24.0, small))
-
-
-BRASS = [GILT[1], GILT[2], GILT[4], GILT[5], GILT[3]]
-
-
-def bookend(m, x0, yb, w, hgt, small=False):
-    """The brass bookend the app's opening sets down before any volume
-    rises: a cast quarter fan, its flat back to the books and its sweep to
-    the open shelf, fluted from the heel."""
-    n = 28
-    arc = [(x0 + w * math.sin(math.pi / 2 * k / n), yb - hgt * math.cos(math.pi / 2 * k / n)) for k in range(n + 1)]
-    sil = 'M%s %s L%s Z' % (f(x0), f(yb), ' L'.join('%s %s' % (f(x), f(y)) for x, y in arc))
-    out = [shadow(sil, 0.9, 0.6, 0.45), '<path d="%s" fill="%s"/>' % (sil, BRASS[2])]
-    # the lip round the sweep, lit where it turns up to the key light
-    inner = [(x0 + (x - x0) * 0.86, yb - (yb - y) * 0.86) for x, y in arc]
-    for k in range(n):
-        a = math.pi / 2 * (k + 0.5) / n
-        nx, ny = math.sin(a) * hgt, -math.cos(a) * w
-        ln = math.hypot(nx, ny)
-        t = facet(lam((nx / ln, -ny / ln, 0.5)), BRASS, [0.18, 0.45, 0.7, 0.9])
-        out.append('<path d="%s" fill="%s"/>' % (poly_d([arc[k], arc[k + 1], inner[k + 1], inner[k]]), t))
-    if not small:
-        # flutes from the heel, each a groove: its shaded wall and its lit wall
-        for a in (18, 36, 54, 72):
-            t = math.radians(a)
-            ex, ey = x0 + w * 0.84 * math.sin(t), yb - hgt * 0.84 * math.cos(t)
-            hx, hy = x0 + w * 0.22 * math.sin(t), yb - hgt * 0.22 * math.cos(t)
-            out.append('<path d="M%s %s L%s %s" stroke="%s" stroke-width=".8"/>' % (f(hx), f(hy), f(ex), f(ey), BRASS[0]))
-            out.append('<path d="M%s %s L%s %s" stroke="%s" stroke-width=".45"/>'
-                       % (f(hx + 0.55), f(hy + 0.2), f(ex + 0.55), f(ey + 0.2), BRASS[4]))
-        out.append('<path d="M%s %s H%s" stroke="%s" stroke-width=".9"/>' % (f(x0), f(yb - 0.45), f(x0 + w), BRASS[1]))
-    return ''.join(out)
+    """The season's shelf, the way the app shelves a season while the owner
+    sleeps: five bound volumes on a mahogany plank. Tan calf with a red
+    label, a tall red morocco lead with gilt bands and a gilt head,
+    bottle-green morocco ruled in gilt, chocolate calf with an olive label,
+    and at the end a vellum volume that has slipped and leans on its
+    neighbour, its cover turned to the reader. Each is a real binding
+    modelled whole and cut into its cloth's planes by the key light
+    (autopilot_volume)."""
+    ox, oy = AUTOPILOT_PLACE
+    project, light, world = autopilot_view(ox, oy, AUTOPILOT_SCALE)
+    row = [dict(v) for v in AUTOPILOT_ROW]
+    # the leaning volume rests on the foot of its left board, far enough out
+    # that its head meets its neighbour's cover
+    last, prev = row[-1], row[-2]
+    last['x'] = prev['x'] + prev['t'] + last['h'] * math.sin(math.radians(last['lean'])) + 0.2
+    end = last['x'] + last['t'] * math.cos(math.radians(last['lean']))
+    plank, plank_hull = autopilot_plank(-2.6, end + 1.6, project, light, small)
+    books, hulls = [], [plank_hull]
+    for v in row:
+        body, hull = autopilot_volume(v, project, light, small)
+        books.append(body)
+        hulls.append(hull)
+    # a taller volume shades the head of the shorter one to its right
+    shade = {}
+    L = S.norm(world(S.KEY))
+    for i, (a, b) in enumerate(zip(row, row[1:])):
+        if b.get('lean') or a['h'] <= b['h']:
+            continue
+        reach = (a['h'] - b['h']) * (-L[0]) / L[1]
+        w = min(b['t'], reach)
+        dz = w * L[2] / (-L[0])
+        x0, y = b['x'], b['h']
+        pts = [(x0, y, 0.0), (x0 + w, y, -dz), (x0 + w, y, -b['d']), (x0, y, -b['d'])]
+        shade[i + 1] = '<path d="%s" fill="#000" fill-opacity=".38"/>' % S.pts_d([project(p)[:2] for p in pts])
+    m.add('<g opacity=".5" transform="translate(1 1.4)">%s</g>'
+          % ''.join('<path d="%s"/>' % S.pts_d(hl) for hl in hulls))
+    m.add(plank)
+    for i, body in enumerate(books):
+        m.add(body)
+        if i in shade and not small:
+            m.add(shade[i])
 
 
 # --------------------------------------------------------------------------
