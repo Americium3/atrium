@@ -1464,12 +1464,15 @@ def plumb_bob(x, y, small=False):
 # Bourse: the canary the desk keeps on watch, on a turned perch
 # --------------------------------------------------------------------------
 # The bird is traced from a photograph of a living domestic canary perched
-# side-on (Wikimedia Commons), mirrored to face the key light: the rounded
-# crown, the short conical bill as deep as it is long, the nape, the mantle
-# running down into the folded wing, the full breast carried forward, the
-# long tail with its shallow notch, and the body at about forty degrees.
-# Bird units: the feet on the perch at the origin, y down, one unit ten of
-# the photograph's pixels (at 960 wide); a point (x, y, 1) is a corner.
+# side-on (Wikimedia Commons, "Phaeo gelb intensiv.jpg"), mirrored to face
+# the key light: the rounded crown, the short conical bill as deep as it is
+# long, the nape, the mantle running down into the folded wing, the full
+# breast carried forward, the long tail with its shallow notch, and the body
+# at about forty degrees. The wing's feather masses are read against
+# "Domestic Canary - Serinus canaria.jpg", the show perch against "Mehringer
+# gelb lipochrom.jpg". Bird units: the feet on the perch at the origin, y
+# down, one unit ten of the photograph's pixels (at 960 wide); a point
+# (x, y, 1) is a corner.
 BOURSE_BIRD = {
     'outline': [(-32.8, -50.0, 1), (-30.9, -50.9), (-28.1, -51.4), (-25.9, -53.1), (-23.2, -53.9), (-18.7, -53.5),
                 (-14.4, -51.3), (-11.9, -48.4), (-9.6, -43.6), (-6.8, -39.6), (-2.9, -36.1), (2.0, -33.2), (6.4, -30.3),
