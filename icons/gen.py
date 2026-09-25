@@ -59,8 +59,8 @@ RASTER_JS = ROOT / 'icons' / 'raster.js'
 HUE = {
     'autopilot': {
         'name': 'Anime Autopilot', 'short': 'Autopilot',
-        'deep': '#2a0710', 'field': '#6c1b28', 'lit': '#a23a48',
-        'livery': '#6c1b28', 'pop': '#fff4d2', 'beads': 36,
+        'deep': '#24060d', 'field': '#621925', 'lit': '#983446',
+        'livery': '#621925', 'pop': '#fff4d2', 'beads': 36,
         'velvet': {'name': 'mulberry', 'onyx': '#92304c', 'ivory': '#9c4660'},
     },
     'groundstation': {
@@ -572,12 +572,12 @@ def subject_autopilot(m, h):
     m.add('<path d="M27 61.8 L20.9 50.4 M27 61.8 L23.3 42.8" stroke="%s" stroke-width=".3" fill="none" transform="translate(-.35 -.2)"/>' % GILT[3])
     m.add('<rect x="26.6" y="33.6" width=".6" height="29" fill="%s"/>' % GILT[3])
     vellum = ('#fffaf0', '#ece0c2', '#a8966e')
-    plum = ('#96506e', '#6c2c48', '#34101f')
-    crimson = ('#d65a4a', '#a8302a', '#4c100c')
+    bottle = ('#5e8a64', '#2f5a3a', '#122a18')
+    crimson = ('#ee7458', '#bf3a2c', '#5a120c')
     cream = ('#f4e6c2', '#d2bf92', '#8a7650')
     tan = ('#e8c48a', '#bf924f', '#6e4a1e')
     m.add(spine(m, 'v1', 27.6, 35.3, 29.4, 62.6, vellum, [33.2, 57.4], label=(37.2, 45.2, '#1d1510'), medallion=51.2))
-    m.add(spine(m, 'v2', 35.5, 41.7, 35.8, 62.6, plum, [39.4, 41.6, 58.4], label=(45.2, 51.4, '#5a1a16')))
+    m.add(spine(m, 'v2', 35.5, 41.7, 35.8, 62.6, bottle, [39.4, 41.6, 58.4], label=(45.2, 51.4, '#5a1a16')))
     m.add(spine(m, 'v3', 41.9, 51.4, 25.2, 62.6, crimson, [31.2, 36.8, 52.6, 58.2], label=(40.4, 48.8, '#16100c'),
                 medallion=55.4, headband='#b5362c'))
     m.add(spine(m, 'v4', 51.6, 56.8, 38.2, 62.6, cream, [41.6, 58.8], medallion=50))
