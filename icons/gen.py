@@ -109,7 +109,7 @@ HUE = {
     },
     'arsenal': {
         'name': 'Arsenal', 'short': 'Arsenal',
-        'deep': '#161c22', 'field': '#46535e', 'lit': '#72808b', 'pop': '#b03a2e',
+        'deep': '#222a32', 'field': '#62717d', 'lit': '#93a1ac', 'pop': '#b03a2e',
         'velvet': {'name': 'gunmetal', 'onyx': '#44545f', 'ivory': '#5a6a74'},
         'ink': 'navy', 'glass': 'opal',
     },
@@ -1896,111 +1896,474 @@ def subject_outreach(m, h, small=False):
 
 
 # --------------------------------------------------------------------------
-# Arsenal: the gunner's quadrant, laid in the bore at an elevation
+# Arsenal: the gun laid for range, the gunner's square in its muzzle
 # --------------------------------------------------------------------------
-# Drawn from the two gunner's quadrants attributed to Christoph Schissler in
-# the Museo Galileo (inv. 2529 and 2637) and from Diego Ufano's plate of the
-# quadrant set in a mortar's muzzle (1628): one flat brass casting, a solid
-# quarter plate with a long arm running on from its upper edge. The arm goes
-# into the bore and the quarter hangs under the muzzle, its rim cut in the
-# gunner's twelve points and its face ruled in the square grid of the shadow
-# square; the arm carries the scale of calibres. An index, a narrow brass
-# rule pivoted on the pin in the corner, lies across the face and reads the
-# elevation where it crosses the rim. On Schissler's pieces the quarter's
-# radius is a little under half the arm's length, and so it is here. The
-# instrument is laid as it sits at the muzzle of a raised gun, the arm
-# falling gently toward the breech and the quarter under it, so no corner of
-# it stands up as an apex, and nothing hangs from it like a pole. Local units
-# with the pin at the origin, y up; the charge is fitted to the badge
-# afterwards.
+# A gunner's quadrant reads only when it is seen doing its job, so the charge
+# is the gun and the instrument together, the way Tartaglia drew them in Nova
+# Scientia (1537; the Library of Congress print of the page headed "Pezzo
+# elevato alli 45 gradi sopra a l'orizonte") and the Encyclopaedia Britannica
+# redrew them in 1911: the square's long arm laid on the bottom of the bore,
+# its short arm hanging square to the gun beyond the muzzle, and a plumb line
+# from the inner corner crossing the quarter arc between them at the gun's
+# elevation. The gun is laid at Tartaglia's forty-five degrees, so the plumb
+# cuts the arc at its sixth point, halfway.
+#
+# The gun is a muzzle-loading iron gun of the Blomefield pattern, from the
+# twenty-four pounder on Martello Tower No. 24 and the side elevation of one
+# with its parts named: the lip and mouldings, the swell of the muzzle, the
+# neck, the muzzle astragal, the chase tapering back to its girdle, the
+# second and first reinforces each a step heavier, the trunnions a little
+# under the bore's axis, the base ring, the rounded base of the breech, and
+# the cascabel's neck and knob. Its radii are drawn fuller than the long
+# gun's, about the proportion of the short guns of the same pattern, so the
+# barrel reads as a gun and not a rod at the size of a gate. It is drawn
+# without its carriage, the way heraldry carries a cannon barrel, and turned
+# a little so its muzzle and the dark of the bore come toward the reader. It
+# is coloured as the eye remembers an iron gun: black, its lit back taking a
+# cold blue sheen, on the enamel a shade paler than the gun so the whole
+# barrel stands dark against it. The square is flat cast brass, its arc cut
+# in the gunner's twelve points and filled alternately, as in Tartaglia's
+# woodcut; the plumb is a turned brass bob on a hemp cord. World units: the
+# gun is 100 long from its knob to its muzzle face, y up, and the whole
+# charge is fitted to the badge afterwards.
 ARSENAL = {
-    'elev': 24.0,                    # how far the arm falls from level, degrees
-    'long': 66.0,                    # the arm, from the pin to its toe
-    'r1': 30.0,                      # the quarter plate's radius
-    'band': 5.4,                     # the rim band the points are cut in
-    'w': 6.4, 'taper': 0.76,         # the arm's width; its width at the toe, over w
-    'read': 0.62,                    # where the index lies, from the straight edge (0) to the arm (1)
-    'index': (1.36, 0.62, 1.1),      # the index's length over r1, width over w, thickness
-    'thick': 3.0,                    # the plate, drawn thicker than the real one so it reads
-    'turn': 22.0,                    # degrees the plate is turned toward the lamp
-    'fit': 39.4,                     # the radius of the circle the charge fills on the badge
-    'centre': (48.0, 49.2),
+    'elev': 45.0,                    # the gun's elevation, degrees
+    'yaw': -16.0,                    # turned so the muzzle comes toward the reader
+    'girth': 1.8,                    # the profile's radii, fuller than the real gun's so it reads
+    'girth_s': 1.3,                  # and the small cut's gun, heavier again
+    'bore': 0.03,                    # the bore's radius, over the length
+    'trunnion': (0.555, 0.0605, 0.03, 0.28),   # where (from the muzzle), the barrel's radius there,
+                                               # the trunnion's radius, its drop under the axis
+    'out': 26.0,                     # the square: its corner, this far beyond the muzzle
+    'arc': 24.0, 'band': 4.8,        # the arc's radius about the corner, and the band the points are cut in
+    'arm': 4.2, 'short': 31.0,       # the arms' width, and the short arm's length
+    'thick': 1.6,                    # the brass plate
+    'cord': 26.0, 'bob': 3.1,        # the plumb line, and the bob's scale
+    'fill': 0.26,                    # how much light the enamel throws back into the gun's belly
+    'shade': (1.2, 1.6, 0.42),       # the gun's cast shadow: its offset and opacity
+    'fit': 39.2, 'centre': (48.0, 49.0),
 }
-# The instrument's brass, from Arsenal's own page (--brass-lo, --brass,
+# Iron, black, its lit planes taking the sky's blue: dark, shade, body, lit, crest.
+ARSENAL_IRON = ['#0a0d10', '#161d23', '#2a353e', '#52636f', '#9aadba']
+ARSENAL_IRON_CUTS = [0.12, 0.3, 0.62, 0.88]
+ARSENAL_IRON_CUTS_S = [0.12, 0.3, 0.6, 0.8]       # the small cut: the crest kept broad, it draws the gun's back
+# The square's brass, from Arsenal's own page (--brass-lo, --brass,
 # --brass-hi) with a shade under and a crest over: every face, wall and
 # chamfer takes one of these by how squarely it meets the key light.
 ARSENAL_BRASS = ['#3a2c0f', '#6f571f', '#a3843a', '#c9a64e', '#e7c976', '#f9ebb4']
 ARSENAL_BRASS_CUTS = [0.12, 0.32, 0.55, 0.78, 0.92]
 ARSENAL_INK = '#2a2109'              # what the graver cuts, filled with black wax
+ARSENAL_HEMP = '#b39c70'             # the plumb's cord
+ARSENAL_BORE = '#07090b'
+ARSENAL_FILL = S.norm((0.55, -0.8, -0.2))  # the light the enamel throws back, from below and to the right
+# The bob, turned: (from, to, radius, radius) down its axis, in bob units.
+ARSENAL_BOB = [(0.0, 0.5, 0.35, 0.35), (0.5, 0.5, 0.35, 0.6), (0.5, 1.0, 0.6, 0.6), (1.0, 1.0, 0.6, 0.4),
+               (1.0, 1.7, 0.4, 0.75), (1.7, 2.3, 0.75, 0.98), (2.3, 2.9, 0.98, 1.0), (2.9, 3.6, 1.0, 0.82),
+               (3.6, 4.6, 0.82, 0.42), (4.6, 5.3, 0.42, 0.0)]
 
 
-def arsenal_arc(r, a0, a1, n):
-    """Points on a circle about the pin from angle a0 to a1 (radians, y up)."""
-    return [(r * math.cos(a0 + (a1 - a0) * k / n), r * math.sin(a0 + (a1 - a0) * k / n)) for k in range(n + 1)]
+def arsenal_profile(small=False):
+    """The gun's turned profile, knob to muzzle: bands (f0, f1, r0, r1), f the
+    distance from the muzzle face and r the radius, both over the length. A
+    band with f0 == f1 is a step (a ring's face). The small cut keeps each
+    ring as one plain band and drops the fillets."""
+    P = []
+    # the knob, a ball, and its neck
+    kc, kr = 0.978, 0.03
+    n = 8 if small else 20
+    ball = [(kc + kr * math.cos(math.pi * k / n), kr * math.sin(math.pi * k / n)) for k in range(n + 1)]
+    P += [(a[0], b[0], a[1], b[1]) for a, b in zip(ball, ball[1:])]
+    P += [(kc - kr, 0.952, 0.015, 0.015), (0.952, 0.952, 0.015, 0.024), (0.952, 0.946, 0.024, 0.024)]
+    # the base of the breech, rounding out to the base ring
+    n = 6 if small else 14
+    for k in range(n):
+        a0, a1 = math.pi / 2 * k / n, math.pi / 2 * (k + 1) / n
+        P.append((0.946 - 0.034 * math.sin(a0), 0.946 - 0.034 * math.sin(a1),
+                  0.024 + 0.05 * (1 - math.cos(a0)) ** 0.7, 0.024 + 0.05 * (1 - math.cos(a1)) ** 0.7))
+    # the base ring and the vent field
+    P += [(0.912, 0.912, 0.074, 0.077), (0.912, 0.896, 0.077, 0.077), (0.896, 0.896, 0.077, 0.070),
+          (0.896, 0.884, 0.070, 0.070)]
+    # the first reinforce's astragal and fillets, and the first reinforce
+    if small:
+        P += [(0.884, 0.64, 0.069, 0.065)]
+    else:
+        P += [(0.884, 0.884, 0.070, 0.072), (0.884, 0.879, 0.072, 0.072), (0.879, 0.879, 0.072, 0.075),
+              (0.879, 0.866, 0.075, 0.075), (0.866, 0.866, 0.075, 0.072), (0.866, 0.861, 0.072, 0.072),
+              (0.861, 0.861, 0.072, 0.069), (0.861, 0.64, 0.069, 0.065)]
+    # the second reinforce ring, and the second reinforce
+    P += [(0.64, 0.64, 0.065, 0.068), (0.64, 0.626, 0.068, 0.066), (0.626, 0.626, 0.066, 0.061),
+          (0.626, 0.44, 0.061, 0.058)]
+    # the chase girdle, and the chase tapering to the neck
+    if small:
+        P += [(0.44, 0.44, 0.058, 0.061), (0.44, 0.415, 0.061, 0.061), (0.415, 0.415, 0.061, 0.056)]
+    else:
+        P += [(0.44, 0.44, 0.058, 0.060), (0.44, 0.434, 0.060, 0.060), (0.434, 0.434, 0.060, 0.063),
+              (0.434, 0.42, 0.063, 0.063), (0.42, 0.42, 0.063, 0.060), (0.42, 0.414, 0.060, 0.060),
+              (0.414, 0.414, 0.060, 0.056)]
+    P += [(0.414, 0.15, 0.056, 0.047)]
+    # the muzzle astragal and fillets
+    if small:
+        P += [(0.15, 0.15, 0.047, 0.051), (0.15, 0.13, 0.051, 0.051), (0.13, 0.13, 0.051, 0.046)]
+    else:
+        P += [(0.15, 0.15, 0.047, 0.049), (0.15, 0.145, 0.049, 0.049), (0.145, 0.145, 0.049, 0.052),
+              (0.145, 0.133, 0.052, 0.052), (0.133, 0.133, 0.052, 0.049), (0.133, 0.128, 0.049, 0.049),
+              (0.128, 0.128, 0.049, 0.046)]
+    # the neck, and the swell of the muzzle rising to its mouldings and lip
+    n = 4 if small else 7
+    for k in range(n):
+        a0, a1 = k / float(n), (k + 1) / float(n)
+        P.append((0.128 - 0.1 * a0, 0.128 - 0.1 * a1, 0.046 + 0.018 * a0 ** 1.8, 0.046 + 0.018 * a1 ** 1.8))
+    P += [(0.028, 0.028, 0.064, 0.067), (0.028, 0.012, 0.067, 0.067), (0.012, 0.012, 0.067, 0.061),
+          (0.012, 0.0, 0.061, 0.061)]
+    return P
 
 
-def arsenal_round(c, a, b, n=6):
-    """A concave round cut into a corner: the short way about c from a to b."""
-    a0 = math.atan2(a[1] - c[1], a[0] - c[0])
-    a1 = math.atan2(b[1] - c[1], b[0] - c[0])
-    d = (a1 - a0 + math.pi) % (2 * math.pi) - math.pi
-    r = (math.hypot(a[0] - c[0], a[1] - c[1]) + math.hypot(b[0] - c[0], b[1] - c[1])) / 2
-    return [(c[0] + r * math.cos(a0 + d * k / n), c[1] + r * math.sin(a0 + d * k / n)) for k in range(n + 1)]
+def arsenal_frame():
+    """The bore (toward the muzzle), square to it upward, and toward the
+    reader: the gun lies in the world's x-y plane."""
+    e = math.radians(ARSENAL['elev'])
+    return (math.cos(e), math.sin(e), 0.0), (-math.sin(e), math.cos(e), 0.0), (0.0, 0.0, 1.0)
 
 
-def arsenal_form(small=False):
-    """The quadrant's plate in local units: its outline (a list of points,
-    y up), the index's outline, and the frame the engraving is laid in. The
-    arm runs from the pin toward the breech, to the right and falling; the
-    quarter hangs under the arm's first stretch, between the arm and the
-    straight edge under the pin."""
+def arsenal_runs(cls, n=180, iters=16):
+    """Where a ring's class changes: cls(angle) -> a tone, or None where the
+    surface turns from the reader. Returns [(a0, a1, tone)] covering the turn,
+    each edge found by bisection, so a plane's edge falls where the light puts
+    it and not on a facet boundary (neighbouring bands then share their edges
+    and a plane runs smoothly down the gun)."""
+    step = 2 * math.pi / n
+    cs = [cls(step * k) for k in range(n)]
+    edges = []
+    for k in range(n):
+        lo, clo, target = step * k, cs[k], cs[(k + 1) % n]
+        hi = step * (k + 1)
+        guard_ = 0
+        while clo != target and guard_ < 6:
+            a, b = lo, hi
+            for _ in range(iters):
+                mid = (a + b) / 2
+                if cls(mid) == clo:
+                    a = mid
+                else:
+                    b = mid
+            lo, clo = b, cls(b)
+            edges.append((b, clo))
+            guard_ += 1
+    if not edges:
+        return [(0.0, 2 * math.pi, cs[0])]
+    out = []
+    for i, (a, c) in enumerate(edges):
+        b = edges[(i + 1) % len(edges)][0]
+        if b <= a:
+            b += 2 * math.pi
+        out.append((a, b, c))
+    return out
+
+
+def arsenal_half(poly, a, d, side):
+    """The part of a polygon on one side of the line through a along d
+    (side +1: to the left of d, -1: to the right)."""
+    def s(p):
+        return side * (d[0] * (p[1] - a[1]) - d[1] * (p[0] - a[0]))
+    out = []
+    for i in range(len(poly)):
+        p, q = poly[i], poly[(i + 1) % len(poly)]
+        sp, sq = s(p), s(q)
+        if sp >= 0:
+            out.append(p)
+        if (sp >= 0) != (sq >= 0):
+            k = sp / (sp - sq)
+            out.append((p[0] + (q[0] - p[0]) * k, p[1] + (q[1] - p[1]) * k))
+    return out
+
+
+def arsenal_wrap(x):
+    """An angle difference brought into (-pi, pi]."""
+    return (x + math.pi) % (2 * math.pi) - math.pi
+
+
+def arsenal_lathe(v, O, A, U, W, bands, tones, cuts, small=False, bevel=1.6, fill=0.0):
+    """A turned solid about the axis through O along A: bands (t0, t1, r0, r1)
+    in order, far to near, laid one after another so a nearer band covers a
+    farther one. Each band is laid as runs of one tone, a run's edges where
+    the key light crosses a cut; what turns from the reader is left out.
+    Where two bands meet in one smooth stretch of the profile, the edge
+    between two tones is set on their shared rim halfway between where each
+    band alone would put it, so a plane's edge runs down the swell of the
+    muzzle as one line and not as a stair. Under the runs of a turned band
+    lies its whole outline (the hull of its two rims), each side of the axis
+    in the tone of the run at that side's edge, so the silhouette runs as one
+    smooth line down the gun. A step (t0 == t1) is a ring's face, lit as if
+    its edge were rounded over, unless a fifth value gives it another bevel
+    (0 for a flat face). Consecutive pieces of one tone share a path, all
+    wound the same way so none cuts a hole in another. Returns SVG."""
+    seq = []
+
+    def put(tone, poly):
+        if S.area(poly) < 0:
+            poly = poly[::-1]
+        if seq and seq[-1][0] == tone:
+            seq[-1][1].append(S.pts_d(poly))
+        else:
+            seq.append((tone, [S.pts_d(poly)]))
+
+    def P(t, r, a):
+        return v.proj(S.add(S.add(O, S.mul(A, t)), S.add(S.mul(U, r * math.cos(a)), S.mul(W, r * math.sin(a)))))[:2]
+    # first each band alone: its runs, and the angle of each change of tone
+    laid = []
+    for band in bands:
+        t0, t1, r0, r1 = band[:4]
+        bev = band[4] if len(band) > 4 else bevel
+        dt, dr = t1 - t0, r1 - r0
+        if abs(dt) < 1e-9 and abs(dr) < 1e-9:
+            continue
+        step = abs(dt) < 1e-9
+
+        def cls(a, dt=dt, dr=dr, step=step, bev=bev):
+            rad = S.add(S.mul(U, math.cos(a)), S.mul(W, math.sin(a)))
+            nv = v.nrm(S.norm(S.add(S.mul(rad, dt), S.mul(A, -dr))))
+            if nv[2] <= 0:
+                return None
+            if step and bev:
+                # a ring's face is not a flat washer: its edge is rounded
+                # over, so it takes the light the way a bevel would, and the
+                # part of it under the gun goes into the gun's shade
+                nv = v.nrm(S.norm(S.add(S.mul(A, -1.0 if dr > 0 else 1.0), S.mul(rad, bev))))
+            # the enamel under the gun throws a little light back up into its belly
+            return S.quant(facet(max(lam(nv), fill * max(0.0, S.dot(S.norm(nv), ARSENAL_FILL))), tones, cuts))
+        rings = arsenal_runs(cls, 90 if small else 180)
+        edges = {}
+        for (a0, a1, tn), (b0, b1, nx) in zip(rings, rings[1:] + rings[:1]):
+            key = (tn, nx)
+            edges[key] = None if key in edges else b0       # a change met twice is left alone
+        ln = math.hypot(dt, dr)
+        laid.append({'band': (t0, t1, r0, r1), 'step': step, 'rings': rings, 'edges': edges,
+                     'n': (dt / ln, -dr / ln), 'rim0': dict(edges), 'rim1': dict(edges)})
+    # then the rims two bands of one smooth stretch share
+    for p, q in zip(laid, laid[1:]):
+        if p['step'] or q['step']:
+            continue
+        if abs(p['band'][1] - q['band'][0]) > 1e-6 or abs(p['band'][3] - q['band'][2]) > 1e-6:
+            continue
+        if p['n'][0] * q['n'][0] + p['n'][1] * q['n'][1] < math.cos(math.radians(30)):
+            continue                                         # a crease, not a smooth turn
+        for key, ang in p['edges'].items():
+            other = q['edges'].get(key)
+            if ang is None or other is None:
+                continue
+            mid = ang + arsenal_wrap(other - ang) / 2
+            p['rim1'][key] = q['rim0'][key] = mid
+    for lb in laid:
+        t0, t1, r0, r1 = lb['band']
+        rings = lb['rings']
+        if not lb['step'] and any(tn is None for _, _, tn in rings):
+            ax0, ax1 = P(t0, 0.0, 0.0), P(t1, 0.0, 0.0)
+            d = (ax1[0] - ax0[0], ax1[1] - ax0[1])
+            if math.hypot(*d) > 1e-6:
+                hull = groundstation_hull([P(t, r, 2 * math.pi * j / 40) for t, r in ((t0, r0), (t1, r1)) for j in range(40)])
+                for (a0, a1, tn), (b0, b1, nx) in zip(rings, rings[1:] + rings[:1]):
+                    edge = None
+                    if tn is not None and nx is None:
+                        edge, tone = a1 - 1e-3, tn
+                    elif tn is None and nx is not None:
+                        edge, tone = b0 + 1e-3, nx
+                    if edge is None:
+                        continue
+                    p = P(t0, max(r0, r1), edge)
+                    side = 1 if d[0] * (p[1] - ax0[1]) - d[1] * (p[0] - ax0[0]) > 0 else -1
+                    half = arsenal_half(hull, ax0, d, side)
+                    if len(half) > 2:
+                        put(tone, half)
+        # the angle between points on a rim: its chord strays under a twentieth of a unit
+        arc = min(0.5, 2 * math.sqrt(0.1 / max(0.05, v.s * max(r0, r1))))
+        k = len(rings)
+        for i, (a0, a1, tone) in enumerate(rings):
+            if tone is None:
+                continue
+            if k == 1:
+                s0, e0, s1, e1 = a0, a1, a0, a1
+            else:
+                prev, nxt = rings[i - 1][2], rings[(i + 1) % k][2]
+
+                def at(rim, key, own):
+                    x = lb[rim].get(key)
+                    return own if x is None else own + arsenal_wrap(x - own)
+                s0, e0 = at('rim0', (prev, tone), a0), at('rim0', (tone, nxt), a1)
+                s1, e1 = at('rim1', (prev, tone), a0), at('rim1', (tone, nxt), a1)
+                e0, e1 = max(e0, s0), max(e1, s1)
+            m_ = max(2, int(max(e0 - s0, e1 - s1) / arc) + 1)
+            poly = ([P(t0, r0, s0 + (e0 - s0) * j / m_) for j in range(m_ + 1)]
+                    + [P(t1, r1, s1 + (e1 - s1) * j / m_) for j in range(m_, -1, -1)])
+            put(tone, S.rdp(poly, 0.05 if small else 0.03))
+    return ''.join('<path d="%s" fill="%s" stroke="%s" stroke-width=".1"/>' % (' '.join(ds), tone, tone) for tone, ds in seq)
+
+
+def arsenal_square(rb, small=False):
+    """The square in the bore's plane, (t, s) about the centre of the muzzle
+    face: t along the bore, s square to it and up. Returns its outline, the
+    opening between the arms and the arc, and the inner corner the cord
+    hangs from."""
     q = ARSENAL
-    e = math.radians(q['elev'])
-    uL = (math.cos(e), -math.sin(e))           # the arm, into the bore
-    uS = (-math.sin(e), -math.cos(e))          # the quarter's straight edge, square to it
-    aL = math.atan2(uL[1], uL[0])
-    aS = aL - math.pi / 2
-    L, R = q['long'], q['r1']
-    w = q['w'] * (1.18 if small else 1.0)      # the small cut's arm, drawn heavier
+    k = 1.3 if small else 1.0
+    wa, wb = q['arm'] * k, q['band'] * k
+    d, Ra, Ls = q['out'], q['arc'], q['short']
+    s0 = -rb                                   # the long arm lies on the bottom of the bore
+    n = 24
+    outer = [(0.0, s0 + wa), (d + wa, s0 + wa), (d + wa, s0 - Ls), (d, s0 - Ls)]
+    outer += [(d + Ra * math.cos(a), s0 + Ra * math.sin(a)) for a in [-math.pi / 2 - math.pi / 2 * j / n for j in range(n + 1)]]
+    outer += [(0.0, s0)]
+    ri = Ra - wb
+    hole = [(d, s0)] + [(d + ri * math.cos(a), s0 + ri * math.sin(a)) for a in [math.pi + math.pi / 2 * j / n for j in range(n + 1)]]
+    return outer, hole, (d, s0)
 
-    def P(t, s):
-        return (t * uL[0] + s * uS[0], t * uL[1] + s * uS[1])
 
-    def wl(t):
-        # full over the quarter, tapering from its rim to the toe
-        return w * (1 - (1 - q['taper']) * max(0.0, (t - R) / (L - R)))
+def arsenal_girth(small=False):
+    return ARSENAL['girth'] * (ARSENAL['girth_s'] if small else 1.0)
 
-    def ang(t, s):
-        return aL - math.atan2(s, t)
-    tj = R
-    for _ in range(8):                         # where the arm's lower edge meets the rim
-        tj = math.sqrt(max(0.0, R * R - wl(tj) ** 2))
-    wf = wl(L)
-    rc = 1.8                                   # the corner at the pin, rounded
-    out = [P(rc + rc * math.cos(p), rc + rc * math.sin(p)) for p in
-           [math.pi + (math.pi / 2) * j / 6.0 for j in range(7)]]
-    out.append(P(L, 0.0))
-    # the toe: square on its outer side, the inner corner cut back in a round
-    rn = 0.56 * wf
-    out += arsenal_round(P(L, wf), P(L, wf - rn), P(L - rn, wl(L - rn)))
-    # back along the arm's lower edge to the rim, and round the rim to the
-    # straight edge under the pin
-    out += [P(tj, wl(tj))] + arsenal_arc(R, ang(tj, wl(tj)), aS, 60)[1:]
-    # the index: a narrow rule pivoted on the pin, rounded about it and cut
-    # at its far end in the notch Schissler's indexes carry
-    ln, wk, _ = q['index']
-    aI = aS + q['read'] * (math.pi / 2)
-    uI, nI = (math.cos(aI), math.sin(aI)), (-math.sin(aI), math.cos(aI))
-    Li, wi = ln * R, wk * w * (1.1 if small else 1.0)
 
-    def Q(t, s):
-        return (t * uI[0] + s * nI[0], t * uI[1] + s * nI[1])
-    index = [Q(wi / 2 * math.cos(p), wi / 2 * math.sin(p)) for p in
-             [math.pi / 2 + math.pi * j / 10.0 for j in range(11)]]
-    index += [Q(Li, -wi / 2), Q(Li, -wi * 0.18), Q(Li - wi * 0.45, 0.0), Q(Li, wi * 0.18), Q(Li, wi / 2)]
-    frame = {'aL': aL, 'aS': aS, 'aI': aI, 'R': R, 'band': q['band'], 'w': w, 'wl': wl, 'tj': tj, 'P': P, 'L': L,
-             'ang': ang, 'Q': Q, 'Li': Li, 'wi': wi}
-    return out, index, frame
+def arsenal_bands(small=False):
+    """The profile as bands along the bore in world units, t from the knob
+    (0) to the muzzle face (100), and the face itself round the bore."""
+    g, L = arsenal_girth(small), 100.0
+    bands = [(L * (1 - f0), L * (1 - f1), L * r0 * g, L * r1 * g) for f0, f1, r0, r1 in arsenal_profile(small)]
+    bands.append((L, L, 0.061 * L * g, ARSENAL['bore'] * L * g, 0.0))      # the muzzle face, turned flat
+    return bands
+
+
+def arsenal_ring_pts(v, O, A, U, W, bands, step=15):
+    pts = []
+    for t0, t1, r0, r1 in (b[:4] for b in bands):
+        for deg in range(0, 360, step):
+            a = math.radians(deg)
+            for t, r in ((t0, r0), (t1, r1)):
+                pts.append(v.proj(S.add(S.add(O, S.mul(A, t)), S.add(S.mul(U, r * math.cos(a)), S.mul(W, r * math.sin(a)))))[:2])
+    return pts
+
+
+def arsenal_boss(m, v, c, n, e1, e2, r, cuts, small=False, dome=0.55):
+    """A round flat end of radius r about c, facing n, whose arris is turned
+    over so it reads as a boss: cut into planes along the light a shallow
+    dome would take (its normal leaning out by `dome` at the rim)."""
+    c2 = v.proj(c)[:2]
+    u1 = [a - b for a, b in zip(v.proj(S.add(c, e1))[:2], c2)]
+    u2 = [a - b for a, b in zip(v.proj(S.add(c, e2))[:2], c2)]
+    det = u1[0] * u2[1] - u1[1] * u2[0]
+    disc = [v.proj(S.add(c, S.add(S.mul(e1, r * math.cos(2 * math.pi * j / 48)), S.mul(e2, r * math.sin(2 * math.pi * j / 48)))))[:2]
+            for j in range(48)]
+
+    def lit(x, y):
+        dx, dy = x - c2[0], y - c2[1]
+        a, b = (dx * u2[1] - dy * u2[0]) / det, (u1[0] * dy - u1[1] * dx) / det
+        return lam(v.nrm(S.norm(S.add(n, S.mul(S.add(S.mul(e1, a), S.mul(e2, b)), dome / r)))))
+    xs, ys = [p[0] for p in disc], [p[1] for p in disc]
+    box = (min(xs) - 0.5, min(ys) - 0.5, max(xs) + 0.5, max(ys) + 0.5)
+    return planes(m, 'boss', S.pts_d(disc), lit, box, ARSENAL_IRON, cuts, step=0.3 if small else 0.15, eps=0.04)
+
+
+def subject_arsenal(m, h, small=False):
+    """The gun laid for range with the gunner's square in its muzzle, the
+    plumb line crossing the arc at the gun's elevation: the number Arsenal's
+    Ballistic Computer gives, read the way gunners first read it. Black iron
+    and the square's brass, the Ballistic Computer's own fittings, on the
+    gunmetal enamel. The small cut keeps the gun's big rings and draws the
+    barrel heavier, the square's arms heavier and its points as six blocks,
+    and the cord as a line three units wide."""
+    q = ARSENAL
+    L = 100.0
+    A, U, W = arsenal_frame()
+    O = (0.0, 0.0, 0.0)
+    M = S.mul(A, L)                               # the centre of the muzzle face
+    g = arsenal_girth(small)
+    rb = q['bore'] * L * g
+    bands = arsenal_bands(small)
+    outer, hole, corner = arsenal_square(rb, small)
+    thick = q['thick'] * (1.3 if small else 1.0)
+
+    def sq(p, z=0.0):
+        """A point of the square's plane in the world."""
+        w = S.add(M, S.add(S.mul(A, p[0]), S.mul(U, p[1])))
+        return (w[0], w[1], z)
+    outer_w = [sq(p)[:2] for p in outer]
+    hole_w = [sq(p)[:2] for p in hole]
+    pin = sq(corner, thick / 2 + 0.2)
+    bob_top = (pin[0], pin[1] - q['cord'], pin[2])
+    bs = q['bob'] * (1.25 if small else 1.0)
+    # fit: the whole charge at unit scale, then the circle round it onto the badge
+    v0 = S.View(0.0, 0.0, 1.0, yaw=q['yaw'], pitch=PITCH)
+    pts = arsenal_ring_pts(v0, O, A, U, W, bands)
+    pts += [v0.proj((x, y, z))[:2] for x, y in outer_w for z in (-thick / 2, thick / 2)]
+    pts += [v0.proj((bob_top[0] + dx, bob_top[1] - dy, bob_top[2]))[:2] for dx in (-bs, bs) for dy in (0.0, 5.3 * bs)]
+    xs, ys = [p[0] for p in pts], [p[1] for p in pts]
+    c = ((min(xs) + max(xs)) / 2, (min(ys) + max(ys)) / 2)
+    k = q['fit'] / max(math.hypot(p[0] - c[0], p[1] - c[1]) for p in pts)
+    X, Y = q['centre']
+    v = S.View(X - k * c[0], Y - k * c[1], k, yaw=q['yaw'], pitch=PITCH)
+    # the charge's shadows on the enamel, cast down and to the right
+    m.add(shadow(poly_d(groundstation_hull(arsenal_ring_pts(v, O, A, U, W, bands, 20))), *q['shade']))
+    m.add(shadow(S.pts_d([v.proj((x, y, -thick / 2))[:2] for x, y in outer_w]) + ' '
+                 + S.pts_d([v.proj((x, y, -thick / 2))[:2] for x, y in hole_w]), 1.4, 2.0, 0.42, ' fill-rule="evenodd"'))
+    # the gun, knob to muzzle, and the bore
+    cuts = ARSENAL_IRON_CUTS_S if small else ARSENAL_IRON_CUTS
+    m.add(arsenal_lathe(v, O, A, U, W, bands, ARSENAL_IRON, cuts, small, fill=q['fill']))
+    bore = [v.proj(S.add(M, S.add(S.mul(U, rb * math.cos(2 * math.pi * j / 48)), S.mul(W, rb * math.sin(2 * math.pi * j / 48)))))[:2]
+            for j in range(48)]
+    m.add('<path d="%s" fill="%s"/>' % (S.pts_d(bore), ARSENAL_BORE))
+    # the near trunnion, a short turned stub a little under the bore's axis,
+    # its end turned very slightly domed so it stands off the gun as a boss
+    ft, rl, rt, drop = q['trunnion']
+    rl, rt = rl * L * g, rt * L * g
+    To = S.add(S.mul(A, L * (1 - ft)), S.mul(U, -drop * rl))
+    reach = rl + rt * 1.4
+    m.add(arsenal_lathe(v, To, W, A, U, [(rl * 0.7, reach, rt, rt)], ARSENAL_IRON, cuts, small))
+    m.add(arsenal_boss(m, v, S.add(To, S.mul(W, reach)), W, A, U, rt, cuts, small))
+    # the square, its twelve points, the cord and the bob
+    m.add(arsenal_plate(v, [(outer_w, False), (hole_w, True)], thick, 0.0 if small else 0.35, zb=-thick / 2))
+    m.add(arsenal_points(v, sq, rb, thick, small))
+    c0, c1 = v.proj(pin)[:2], v.proj(bob_top)[:2]
+    line = 'M%s %s L%s %s' % (f(c0[0]), f(c0[1]), f(c1[0]), f(c1[1]))
+    cw = 3.0 if small else 0.5
+    m.add('<path d="%s" stroke="#000" stroke-opacity=".4" stroke-width="%s" transform="translate(1.2 1.6)"/>' % (line, f(cw)))
+    m.add('<path d="%s" stroke="%s" stroke-width="%s" stroke-linecap="round"/>' % (line, ARSENAL_HEMP, f(cw)))
+    bob = [(a * bs, b * bs, r0 * bs, r1 * bs) for a, b, r0, r1 in ARSENAL_BOB]
+    m.add(arsenal_lathe(v, bob_top, (0.0, -1.0, 0.0), (1.0, 0.0, 0.0), (0.0, 0.0, 1.0), bob,
+                        ARSENAL_BRASS, ARSENAL_BRASS_CUTS, small))
+    # the pin the cord hangs from, a turned head
+    rp = 1.6 if small else 1.1
+    m.add(faceted_ring(c0[0], c0[1], rp * 0.5, rp, +1, n=24))
+    m.add('<circle cx="%s" cy="%s" r="%s" fill="%s"/>' % (f(c0[0]), f(c0[1]), f(rp * 0.5), ARSENAL_BRASS[2]))
+
+
+def arsenal_points(v, sq, rb, thick, small=False):
+    """The gunner's twelve points on the arc, from the short arm (level) to
+    the long arm, cut alternately as Tartaglia's woodcut shows them and filled
+    with black wax between two ruled edges. The small cut keeps them as six
+    blocks, two points to a block."""
+    q = ARSENAL
+    k = 1.3 if small else 1.0
+    d, Ra, s0 = q['out'], q['arc'], -rb
+    ri = Ra - q['band'] * k
+    r_in, r_out = ri + 0.5 * k, Ra - 0.5 * k
+    z = thick / 2
+
+    def T(t, s):
+        return v.proj(sq((t, s), z))[:2]
+
+    def pol(r, a):
+        return T(d + r * math.cos(a), s0 + r * math.sin(a))
+    n = 6 if small else 12
+    blocks = []
+    for j in range(0, n, 2):
+        a0, a1 = math.pi * 1.5 - math.pi / 2 * j / n, math.pi * 1.5 - math.pi / 2 * (j + 1) / n
+        blocks.append(poly_d([pol(r_out, a0 + (a1 - a0) * i / 5) for i in range(6)]
+                             + [pol(r_in, a1 - (a1 - a0) * i / 5) for i in range(6)]))
+    out = '<path d="%s" fill="%s" fill-opacity=".84"/>' % (' '.join(blocks), ARSENAL_INK)
+    if not small:
+        rules = []
+        for r in (r_in, r_out):
+            rules.append('M' + ' L'.join('%s %s' % (f(x), f(y)) for x, y in
+                                         (pol(r, math.pi + math.pi / 2 * i / 40) for i in range(41))))
+        out += '<path d="%s" stroke="%s" stroke-width=".26" stroke-opacity=".7" fill="none"/>' % (' '.join(rules), ARSENAL_INK)
+    return out
 
 
 def arsenal_offset(loop, d, solid_left):
@@ -2029,29 +2392,6 @@ def arsenal_offset(loop, d, solid_left):
 def arsenal_area(loop):
     return 0.5 * sum(loop[i][0] * loop[(i + 1) % len(loop)][1] - loop[(i + 1) % len(loop)][0] * loop[i][1]
                      for i in range(len(loop)))
-
-
-def arsenal_view(small=False):
-    """The quadrant stands upright on the badge, as it hangs at the muzzle,
-    turned a little toward the lamp so its face takes the light and the
-    thickness of the plate shows along the far edges. First the plate and
-    everything hung from it is projected at unit scale about the pin; the
-    circle round all of it is then fitted to the badge."""
-    q = ARSENAL
-    out, index, fr = arsenal_form(small)
-    t = q['thick'] * (1.15 if small else 1.0)
-    v0 = S.View(0.0, 0.0, 1.0, yaw=-q['turn'], pitch=PITCH)
-    pts = [v0.proj((x, y, z))[:2] for x, y in out for z in (t / 2, -t / 2)]
-    pts += [v0.proj((x, y, t / 2 + q['index'][2]))[:2] for x, y in index]
-    # centred on its box, so the long arm does not leave the enamel under
-    # the quarter empty, and scaled so every point lies inside the circle
-    xs, ys = [p[0] for p in pts], [p[1] for p in pts]
-    c = ((min(xs) + max(xs)) / 2, (min(ys) + max(ys)) / 2)
-    rad = max(math.hypot(p[0] - c[0], p[1] - c[1]) for p in pts)
-    k = q['fit'] / rad
-    X, Y = q['centre']
-    v = S.View(X - k * c[0], Y - k * c[1], k, yaw=-q['turn'], pitch=PITCH)
-    return v, k, out, index, fr, t
 
 
 def arsenal_plate(v, loops, t, ch, zb=None):
@@ -2093,129 +2433,6 @@ def arsenal_plate(v, loops, t, ch, zb=None):
     face = ' '.join(S.pts_d([v.proj((x, y, zf))[:2] for x, y in lp]) for lp in face_loops)
     tone = facet(lam(v.nrm((0.0, 0.0, 1.0))), ARSENAL_BRASS, ARSENAL_BRASS_CUTS)
     return fc.svg(seam=0.12) + '<path d="%s" fill="%s" fill-rule="evenodd"/>' % (face, tone)
-
-
-def subject_arsenal(m, h, small=False):
-    """The gunner's quadrant, the instrument that first turned a gun's
-    elevation into a number: a long arm laid in the bore and a quarter plate
-    hanging from it, its rim cut in the gunner's twelve points, and an index
-    pivoted in the corner laid across it to a reading, as Arsenal's Ballistic
-    Computer lays one off the range. Cast and filed brass, the colour of the
-    Ballistic Computer's own fittings, on the gunmetal enamel. The flat face
-    takes one tone, the chamfer round it and the walls that show along its
-    far edges take theirs from the key light, and the index stands proud of
-    the face and throws its shadow on it."""
-    v, k, out, index, fr, t = arsenal_view(small)
-    zf = t / 2
-    ti = ARSENAL['index'][2]
-    # the charge's shadow on the enamel: the plate's front and back outlines
-    for z in (zf, -zf):
-        m.add(shadow(S.pts_d([v.proj((x, y, z))[:2] for x, y in out]), 1.2, 1.7, 0.5))
-    m.add(arsenal_plate(v, [(out, False)], t, 0.0 if small else 0.8))
-    m.add(arsenal_engraving(v, fr, zf, small))
-    # the index, proud of the face: its shadow on the brass, then the rule
-    isil = S.pts_d([v.proj((x, y, zf + ti))[:2] for x, y in index])
-    m.add(shadow(isil, 0.9, 1.25, 0.42))
-    m.add(arsenal_plate(v, [(index, False)], ti, 0.0 if small else 0.35, zb=zf + 0.05))
-    if not small:
-        # the index's fiducial line, ruled down its middle to the notch
-        Q, Li, wi = fr['Q'], fr['Li'], fr['wi']
-        a_ = v.proj(Q(wi * 0.9, 0.0) + (zf + ti + 0.05,))[:2]
-        b_ = v.proj(Q(Li - wi * 0.5, 0.0) + (zf + ti + 0.05,))[:2]
-        m.add('<path d="M%s %s L%s %s" stroke="%s" stroke-width=".3" stroke-opacity=".8"/>'
-              % (f(a_[0]), f(a_[1]), f(b_[0]), f(b_[1]), ARSENAL_INK))
-    # the pin the index turns on, a turned head proud of it
-    px, py, _ = v.proj((0.0, 0.0, zf + ti + 0.3))
-    rp = 2.5 if small else 1.9
-    m.add(shadow(circle_d(px, py, rp), 0.4, 0.6, 0.45))
-    m.add(faceted_ring(px, py, rp * 0.55, rp, +1, n=24))
-    m.add('<circle cx="%s" cy="%s" r="%s" fill="%s"/>' % (f(px), f(py), f(rp * 0.55), ARSENAL_BRASS[2]))
-
-
-def arsenal_engraving(v, fr, zf, small=False):
-    """What the graver cut in the face, filled with black wax. The rim's
-    twelve points are cut alternately, as Tartaglia's own woodcut of the
-    squadra shows them, counted from the straight edge (level) to the arm;
-    inside them the face is ruled in the square grid of the shadow square,
-    as on Schissler's pieces; along the arm the scale of calibres, a division
-    for each weight of shot at the cube root of the weight, cut as closed
-    cells, every other one filled. The small cut keeps the points, two to a
-    block, and drops the fine work."""
-    R, aL, aS, P, wl, L = fr['R'], fr['aL'], fr['aS'], fr['P'], fr['wl'], fr['L']
-
-    def T(p):
-        x, y, _ = v.proj((p[0], p[1], zf))
-        return (x, y)
-
-    def pol(r, a):
-        return T((r * math.cos(a), r * math.sin(a)))
-    m_ = 1.0 if small else 0.8
-    rout, rin = R - m_, R - fr['band'] * (1.15 if small else 1.0)
-    rm = (rin + rout) / 2
-    wlm = wl(rm) + (0.9 if small else 0.7)
-    a_hi = aL - math.atan2(wlm, math.sqrt(max(0.0, rm * rm - wlm * wlm)))   # clear of the arm
-    a_lo = aS + (1.0 if small else 0.7) / rm                             # clear of the straight edge
-    step = (math.pi / 2) / (6.0 if small else 12.0)
-    blocks, rules, ticks = [], [], []
-    n_pts = 6 if small else 12
-    for j in range(n_pts):
-        u0, u1 = aS + j * step, aS + (j + 1) * step
-        u0, u1 = max(u0, a_lo), min(u1, a_hi)
-        if u1 <= u0 + 0.01:
-            continue
-        if j % 2 == 0:
-            pts = [pol(rout, u0 + (u1 - u0) * i / 6) for i in range(7)] + [pol(rin, u1 + (u0 - u1) * i / 6) for i in range(7)]
-            blocks.append(poly_d(pts))
-        elif not small:
-            a = (u0 + u1) / 2                  # the half point, in the open blocks
-            p, q_ = pol(rout, a), pol(rout - (rout - rin) * 0.45, a)
-            ticks.append((p[0], p[1], q_[0], q_[1]))
-    # the scale of calibres along the arm: closed cells between two rules
-    t0, t1 = R + (2.2 if small else 2.6), L - (5.0 if small else 5.6)
-    tt = [t0 + (t1 - t0) * (wg ** (1 / 3.0) - 1) / (50 ** (1 / 3.0) - 1) for wg in (1, 2, 4, 8, 16, 25, 36, 50)]
-    s0 = m_
-
-    def s1(t):
-        return m_ + wl(t) * (0.46 if small else 0.42)
-    for j in range(0, len(tt) - 1, 2):
-        a_, b_ = tt[j], tt[j + 1]
-        blocks.append(poly_d([T(P(a_, s0)), T(P(b_, s0)), T(P(b_, s1(b_))), T(P(a_, s1(a_)))]))
-    out = '<path d="%s" fill="%s" fill-opacity=".86"/>' % (' '.join(blocks), ARSENAL_INK)
-    if small:
-        return out
-    # the fine work: the rim's ruled edges, the half points, the calibre
-    # scale's rules and divisions, and the square grid on the face
-    for r in (rin, rout):
-        rules.append('M' + ' L'.join('%s %s' % (f(x), f(y)) for x, y in
-                                     (pol(r, a_lo + (a_hi - a_lo) * i / 60) for i in range(61))))
-    for s in (s0, None):
-        pts = [T(P(t, s if s is not None else s1(t))) for t in (t0, t1)]
-        ticks.append((pts[0][0], pts[0][1], pts[1][0], pts[1][1]))
-    for t in tt:
-        p, q_ = T(P(t, s0)), T(P(t, s1(t)))
-        ticks.append((p[0], p[1], q_[0], q_[1]))
-    grid, g = [], 2.6
-    r_in = rin - 1.0
-    s_min, t_min = wl(0.0) + 1.0, 1.4
-    k = 1
-    while s_min + (k - 1) * g < r_in:          # lines along the arm
-        s = s_min + (k - 1) * g
-        te = math.sqrt(max(0.0, r_in * r_in - s * s))
-        if te > t_min + 0.5:
-            p, q_ = T(P(t_min, s)), T(P(te, s))
-            grid.append((p[0], p[1], q_[0], q_[1]))
-        k += 1
-    k = 0
-    while t_min + k * g < r_in:                # and square to it
-        t = t_min + k * g
-        se = math.sqrt(max(0.0, r_in * r_in - t * t))
-        if se > s_min + 0.5:
-            p, q_ = T(P(t, s_min)), T(P(t, se))
-            grid.append((p[0], p[1], q_[0], q_[1]))
-        k += 1
-    return (out + '<path d="%s" stroke="%s" stroke-width=".22" stroke-opacity=".42"/>' % (lines_path(grid), ARSENAL_INK)
-            + '<path d="%s" stroke="%s" stroke-width=".3" stroke-opacity=".8"/>' % (lines_path(ticks), ARSENAL_INK)
-            + '<path d="%s" stroke="%s" stroke-width=".3" stroke-opacity=".8" fill="none"/>' % (' '.join(rules), ARSENAL_INK))
 
 
 # --------------------------------------------------------------------------
