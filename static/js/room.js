@@ -398,7 +398,8 @@ function buildFascia() {
    when the stretch is too short to read as a panel rather than a tab. The
    fascia also runs down behind the marquee to the cornice, so the board is
    set into the building rather than floating in front of the page. */
-function fitMasthead() {
+function fitMasthead() { return window.atRest(fitMastheadAtRest); }
+function fitMastheadAtRest() {
   var m = $('#masthead');
   if (!m) return;
   var mr = m.getBoundingClientRect();
@@ -768,8 +769,8 @@ function streak(host, x, w, len, kind, attrs) {
 }
 /* A fanlight's streak is that fanlight's lamp on the floor, so it follows
    its own gate: lit while the gate stands in the hall with its line open,
-   rising and falling on the gate's own beat (--slot-delay, and --fan-i in
-   the entrance). Gated on the root's wing, every streak switched at once,
+   rising and falling on the gate's own beat (--slot-delay; the entrance
+   lights it with its bay). Gated on the root's wing, every streak switched at once,
    up to a second ahead of the lamp it stands for (MO-3). */
 function syncStreaks() {
   var host = $('#floorplane .fl-streaks');
@@ -779,7 +780,6 @@ function syncStreaks() {
     var s = ss[i], g = document.getElementById(s.dataset.gate);
     if (!g) continue;
     s.style.setProperty('--slot-delay', g.style.getPropertyValue('--slot-delay') || '0ms');
-    s.style.setProperty('--fan-i', g.style.getPropertyValue('--fan-i') || '0');
     if (s.dataset.state !== (g.dataset.state || '')) s.dataset.state = g.dataset.state || '';
     s.classList.toggle('on', g.classList.contains('active'));
   }
@@ -797,7 +797,8 @@ function cutMirror(fp) {
   var v = f2(Math.max(0, mark.getBoundingClientRect().top - mir.getBoundingClientRect().top)) + 'px';
   if (clock.style.getPropertyValue('--cm-runner') !== v) clock.style.setProperty('--cm-runner', v);
 }
-function layoutFloor() {
+function layoutFloor() { return window.atRest(layoutFloorAtRest); }
+function layoutFloorAtRest() {
   var fp = $('#floorplane');
   if (!fp) return;
   cutMirror(fp);

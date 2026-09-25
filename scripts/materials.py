@@ -882,6 +882,9 @@ BAKES = [
     ("grain-plaster", plaster, "gray"),
     ("grain-gilt", gilt_leaf, "gray"),
     ("grain-frost", frost, "gray"),
+    # the same frost at half size, for the entrance, which inlines it into
+    # every picture of etched glass it paints
+    ("grain-frost-small", lambda: frost().reshape(256, 2, 256, 2).mean(axis=(1, 3)), "gray"),
 ]
 
 

@@ -82,6 +82,7 @@
 <link rel="stylesheet" href="/static/css/palace-room.css">
 <link rel="stylesheet" href="/static/css/palace-cabinetry.css">
 <link rel="stylesheet" href="/static/css/palace-desk.css">
+<link rel="stylesheet" href="/static/css/palace-entrance.css">
 </head>
 <body>
 
@@ -238,44 +239,23 @@
 </svg>
 
 <!-- ======================================================================
-     Entrance: the house curtain (DESIGN.md, Entrance).
-     Night: the hall is dark behind a velvet house curtain; the footlights
-     come up along its hem, a follow spot opens on the gilt crest, the
-     curtain flies out on a festoon, the marquee's bulbs chase once, the
-     fanlights light from the clock outward and the spot docks on the
-     masthead's rosette. Day: the curtain is already up and the street's
-     light floods in, an exposure that settles while a gilt ring docks.
-     Beat ladder (ms): foot 60, spot 250, rise 950, house 1450, dock 1750,
-     done-fade 2140, finish 2700 (day: expose 280, dock 900, done-fade
-     1400, finish 1700).
+     Entrance: through the doors (DESIGN.md, Entrance).
+     The reader stands on the pavement in front of the picture palace and
+     walks in. Night: the canopy lights, ATRIUM letter by letter, the centre
+     pair swings in as the reader comes, and the hall comes up to full light
+     as they cross, its fanlights and marquee last. Day: a cloud slides off
+     the sun, a glint runs along the gilt letters, and the low sun follows
+     the reader in through the doors. static/js/entrance.js dresses the
+     street in #entrance and the foyer behind the doors in #e-foyer; #e-veil
+     is how the inside looks from the street, #e-sun the day's sun in it;
+     the marquee's one chase is the hall's.
 ====================================================================== -->
+<div id="e-foyer" aria-hidden="true"></div>
+<div id="e-veil" aria-hidden="true"></div>
+<div id="e-sun" aria-hidden="true"></div>
 <div id="entrance" aria-hidden="true">
-  <div class="e-void"></div>
-  <div class="e-flood"><div class="e-shafts"></div></div>
-  <div class="e-house">
-    <div class="e-drop"></div>
-    <div class="e-foot"></div>
-    <svg class="e-crest" viewBox="-400 -400 800 800">
-      <g class="e-rays"></g>
-      <g class="e-medal"></g>
-      <circle class="e-circle" cx="0" cy="0" r="92" fill="none"/>
-    </svg>
-    <div class="e-wordmark">ATRIUM</div>
-    <svg class="e-swag" preserveAspectRatio="none"></svg>
-    <div class="e-fringe"></div>
-  </div>
-  <div class="e-footlights"><div class="e-trough"></div><div class="e-lamps"></div></div>
   <div class="e-marquee"><i class="e-chase e-chase-t"></i><i class="e-chase e-chase-b"></i></div>
-  <div class="e-burst">
-    <div class="e-spot"></div>
-    <svg class="e-ring" viewBox="-100 -100 200 200">
-      <g class="e-ring-whole">
-        <circle class="e-ring-sh" cx="0" cy="1" r="34" fill="none"/>
-        <circle class="e-ring-hi" cx="0" cy="0.6" r="34" fill="none"/>
-        <circle class="e-ring-c" cx="0" cy="0" r="34" fill="none"/>
-      </g>
-    </svg>
-  </div>
+  <div class="e-plate"></div>
 </div>
 
 <!-- ====================================================================== -->
@@ -765,6 +745,7 @@
 <script src="/static/js/room.js"></script>
 <script src="/static/js/clock.js"></script>
 <script src="/static/js/desk.js"></script>
+<script src="/static/js/entrance.js"></script>
 <script src="/static/js/app.js"></script>
 <script>
 /* ?probe=1 - layout read-out for scripts/probe.py.

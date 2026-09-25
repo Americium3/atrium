@@ -862,12 +862,6 @@ html[lang="zh"] .m-sub, html[lang="zh"] #dateline { -webkit-text-stroke: 0.35px 
   opacity: calc(var(--lamp-on) * var(--so));
   transition: opacity 0.7s ease calc(var(--slot-delay, 0ms) + 420ms);
 }
-/* The entrance holds the fanlights dark until the house lights come up, and
-   then lights them from the clock outward; their streaks with them. */
-html[data-entered="no"] #entrance.night:not(.house) ~ #hall .st-fan { opacity: 0; transition: none; }
-html[data-entered="no"] #entrance.night.house ~ #hall .st-fan.on[data-state="open"] {
-  transition: opacity 0.5s ease calc(140ms + var(--fan-i, 0) * 170ms);
-}
 .st-fan[data-glass="amber"] { --sc: rgba(255, 190, 110, 0.6); }
 .st-fan[data-glass="rose"] { --sc: rgba(246, 170, 146, 0.6); }
 .st-fan[data-glass="celadon"] { --sc: rgba(180, 222, 160, 0.55); }
