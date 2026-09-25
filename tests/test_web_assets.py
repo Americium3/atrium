@@ -869,8 +869,9 @@ def test_no_mark_or_curtain_is_a_sapphire():
     sys.path.insert(0, str(ROOT / "icons"))
     import gen
     atrium_css = (STATIC / "css" / "atrium.css").read_text(encoding="utf-8")
-    clock = re.findall(r"\.ck-moon(?:well|shade) \{ fill: (#[0-9a-fA-F]{6}); \}", atrium_css)
-    clock += re.findall(r"\.ck-hand, \.ck-pomme \{ fill: (#[0-9a-fA-F]{6});", atrium_css)
+    clock = re.findall(r"\.cksa\.s\d \{ stop-color: (#[0-9a-fA-F]{6}); \}", atrium_css)
+    clock += re.findall(r"--bs-\d: (#[0-9a-fA-F]{6});", atrium_css)
+    clock += re.findall(r"\.ckcb\.s\d \{ stop-color: (#[0-9a-fA-F]{6}); \}", atrium_css)
     assert len(clock) >= 3, "the clock's moon and hand blues are not where this test looks for them"
     # the day card is the largest coloured shape in a house by day, so no
     # ink it can be printed in is the clock's blue either
@@ -954,6 +955,37 @@ def test_the_marks_carry_no_lettering_and_no_filters():
                 if needle in body.lower():
                     bad.append(f"{app_id}: {needle}")
     assert not bad, "marks must carry no lettering or filters: " + "; ".join(sorted(set(bad)))
+
+
+def test_the_clock_stones_do_not_change_with_the_wing():
+    """The moon disc's sapphire, the crown's star sapphire and the hands'
+    blued steel are the same stones and the same steel in both wings: a
+    throw changes the leaf round them, never them. So none of their colours
+    may come from the leaf (--lead-*, --au-*, --ag-*), and the stones'
+    rules may not be set per wing. The engraved lines are outlines, present
+    and complete."""
+    css = (STATIC / "css" / "atrium.css").read_text(encoding="utf-8")
+    bad = []
+    for sel in (r"\.cksa\.s\d", r"\.cksd\.s\d", r"\.cksp\.s\d", r"\.ckcb\.s\d", r"\.ckcs\.s\d",
+                r"\.ckr\.s\d", r"\.ckcp\.s\d", r"\.ck-cab \b", r"\.ck-sa-[a-z-]+", r"\.ck-hf-[lr]",
+                r"\.ck-hand, \.ck-pomme", r"\.ck-hridge", r"\.dh-rotor"):
+        for m in re.finditer(r"([^{}\n]*" + sel + r"[^{}\n]*)\{([^}]*)\}", css):
+            head, body = m.group(1), m.group(2)
+            if re.search(r"--(?:lead|au|ag)-\d", body):
+                bad.append(f"{head.strip()} takes the leaf: {body.strip()}")
+            if "data-wing" in head:
+                bad.append(f"{head.strip()} is set per wing")
+    assert not bad, "; ".join(bad)
+    tones = re.findall(r"--bs-(\d): (#[0-9a-fA-F]{6});", css)
+    assert [t[0] for t in tones] == [str(k) for k in range(6)], "the blued steel needs its six tones, --bs-0 to --bs-5"
+    js = (STATIC / "js" / "clock.js").read_text(encoding="utf-8")
+    for need in ('id="ck-sapph"', 'id="ck-cab-g"', "crownStone()", "makerLine()", "dedication()"):
+        assert need in js, f"clock.js has lost {need}"
+    block = re.search(r"/\* BEGIN generated dedication \*/\nvar DEDICATION = (\[.*?\]);\n/\* END generated dedication \*/", js, re.S)
+    assert block, "the engraved lines' outlines are missing"
+    lines = json.loads(block.group(1))
+    assert [len(l) for l in lines] == [14, 5], f"the engraved lines should be 14 and 5 glyphs, not {[len(l) for l in lines]}"
+    assert all(g[0].startswith("M") and g[1] == 1000 for l in lines for g in l), "every glyph is a full-width outline"
 
 
 if __name__ == "__main__":
