@@ -1000,8 +1000,8 @@ function buildFascia(P) {
         var cx = bx.a0 - 0.2 + (bx.a1 - bx.a0 + 0.4) * (j + 0.5) / SHEEN_N;
         frames.push('<defs><mask id="' + clip + '-' + j + '" maskUnits="userSpaceOnUse" x="-20" y="-20" width="40" height="40"><g transform="' + tr + '"><path d="' + gph.d + '" fill="none" stroke="#fff" stroke-width="0.094" stroke-linecap="square"/></g></mask></defs>' +
           '<g mask="url(#' + clip + '-' + j + ')"><g filter="url(#e-soft)">' +
-          '<path d="M' + f3(cx - 0.09) + ' ' + f3(-bx.b0) + 'L' + f3(cx + 0.02) + ' ' + f3(-bx.b0) + 'L' + f3(cx + 0.24) + ' ' + f3(-bx.b1) + 'L' + f3(cx + 0.13) + ' ' + f3(-bx.b1) + 'Z" fill="rgba(255,232,170,0.7)"/>' +
-          '<path d="M' + f3(cx - 0.045) + ' ' + f3(-bx.b0) + 'L' + f3(cx - 0.015) + ' ' + f3(-bx.b0) + 'L' + f3(cx + 0.205) + ' ' + f3(-bx.b1) + 'L' + f3(cx + 0.175) + ' ' + f3(-bx.b1) + 'Z" fill="#fffcee"/></g></g>');
+          '<path d="M' + f3(cx - 0.09) + ' ' + f3(-bx.b0) + 'L' + f3(cx + 0.02) + ' ' + f3(-bx.b0) + 'L' + f3(cx + 0.24) + ' ' + f3(-bx.b1) + 'L' + f3(cx + 0.13) + ' ' + f3(-bx.b1) + 'Z" fill="' + (P.wing === 'bureau' ? 'rgba(232,242,255,0.72)' : 'rgba(255,232,170,0.7)') + '"/>' +
+          '<path d="M' + f3(cx - 0.045) + ' ' + f3(-bx.b0) + 'L' + f3(cx - 0.015) + ' ' + f3(-bx.b0) + 'L' + f3(cx + 0.205) + ' ' + f3(-bx.b1) + 'L' + f3(cx + 0.175) + ' ' + f3(-bx.b1) + 'Z" fill="' + (P.wing === 'bureau' ? '#fbfdff' : '#fffcee') + '"/></g></g>');
       }
       sheen.push(frames);
     }
@@ -1630,8 +1630,10 @@ function buildShade() {
   var drop = CAN.z * LIGHT[1] / LIGHT[2], shift = CAN.z * LIGHT[0] / -LIGHT[2];
   var top = HEAD, bot = CAN.y0 - drop;
   var mk = function (y0, y1, a0, a1) {
+    // the doorway is cut out of it only where the two meet (a cut that ran
+    // past the shadow was itself filled, over the open doorway)
     var d = 'M' + f3(-CAN.half + shift) + ' ' + f3(-y1) + 'H' + f3(CAN.half + shift) + 'V' + f3(-y0) + 'H' + f3(-CAN.half + shift) + 'Z' +
-      'M' + (-OPEN) + ' ' + f3(-Math.min(DOOR_H, y1)) + 'H' + OPEN + 'V0.2H' + (-OPEN) + 'Z';
+      (DOOR_H > y0 + 0.001 ? 'M' + (-OPEN) + ' ' + f3(-Math.min(DOOR_H, y1)) + 'H' + OPEN + 'V' + f3(-y0) + 'H' + (-OPEN) + 'Z' : '');
     return '<defs><linearGradient id="e-shade-g' + a0 + '" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="rgba(34,42,58,' + a0 + ')"/>' +
       '<stop offset="0.85" stop-color="rgba(34,42,58,' + a1 + ')"/><stop offset="1" stop-color="rgba(34,42,58,' + (a1 * 0.3) + ')"/></linearGradient></defs>' +
       '<path d="' + d + '" fill="url(#e-shade-g' + a0 + ')" fill-rule="evenodd"/>';

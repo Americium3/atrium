@@ -707,9 +707,11 @@ function playEntrance(built) {
       whenStreet(function () { afterDrawn(start); });
     });
     // A street that could not be painted lands the hall rather than
-    // holding the screen.
+    // holding the screen; one that stands painted on a page that never
+    // runs calm starts its clock here anyway.
     entranceTimers.push(setTimeout(function () {
-      if (!started) finishEntrance();
+      if (started) return;
+      if (window.Entrance.ready()) start(); else finishEntrance();
     }, ENTRANCE_GIVE_UP));
   }
   // A hall loaded where nobody can see it (a tab opened in the background,
