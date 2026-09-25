@@ -45,6 +45,7 @@ import io
 import json
 import math
 import os
+import re
 import subprocess
 import sys
 import tempfile
@@ -243,7 +244,167 @@ class Mark:
         self.body.append(s)
 
     def markup(self):
-        return ('<defs>%s</defs>' % ''.join(self.defs) if self.defs else '') + ''.join(self.body)
+        return compact_markup(('<defs>%s</defs>' % ''.join(self.defs) if self.defs else '') + ''.join(self.body))
+
+
+# --------------------------------------------------------------------------
+# Path data, written small. The drawing works in absolute coordinates to a
+# hundredth of a unit; the page carries each path to a tenth (a twentieth of
+# a pixel on a 63px gate, a fifth of one on the sheet's 400px marks), in
+# relative steps where they are shorter, with the points of a straight run
+# that lie on it dropped. The shapes are the same; the hall's page is about
+# a third lighter.
+# --------------------------------------------------------------------------
+_PATH_TOKEN = re.compile(r'[MmLlHhVvCcSsQqTtAaZz]|[-+]?(?:\d+\.?\d*|\.\d+)(?:[eE][-+]?\d+)?')
+_PATH_ARGS = {'M': 2, 'L': 2, 'H': 1, 'V': 1, 'C': 6, 'S': 4, 'Q': 4, 'T': 2, 'A': 7}
+
+
+def path_segments(d):
+    """Path data as absolute segments: M, L, C, Q, A and Z."""
+    toks = _PATH_TOKEN.findall(d)
+    out, i, cmd = [], 0, None
+    cx = cy = sx = sy = 0.0
+    ctl = None                                  # the last control point, for S and T
+    while i < len(toks):
+        if toks[i].isalpha():
+            cmd = toks[i]
+            i += 1
+            if cmd in 'Zz':
+                out.append(('Z', []))
+                cx, cy, ctl = sx, sy, None
+                continue
+        up, rel = cmd.upper(), cmd.islower()
+        v = [float(x) for x in toks[i:i + _PATH_ARGS[up]]]
+        i += _PATH_ARGS[up]
+        if up in 'HV':
+            v = [v[0], 0.0 if rel else cy] if up == 'H' else [0.0 if rel else cx, v[0]]
+        if up == 'A':
+            p = v[:5] + ([cx + v[5], cy + v[6]] if rel else v[5:])
+        else:
+            p = [x + (cx if k % 2 == 0 else cy) if rel else x for k, x in enumerate(v)]
+        if up in 'ST':
+            refl = (2 * cx - ctl[1], 2 * cy - ctl[2]) if ctl and ctl[0] == ('C' if up == 'S' else 'Q') else (cx, cy)
+            p = list(refl) + p
+            up = 'C' if up == 'S' else 'Q'
+        if up in 'HV':
+            up = 'L'
+        out.append((up, p))
+        cx, cy = p[-2], p[-1]
+        ctl = (up, p[-4], p[-3]) if up in 'CQ' else None
+        if up == 'M':
+            sx, sy = cx, cy
+            cmd = 'l' if rel else 'L'
+    return out
+
+
+def _straight(pts, eps):
+    """The points of a straight run worth keeping (a Douglas-Peucker pass
+    that also drops repeats)."""
+    q = [pts[0]]
+    for p in pts[1:]:
+        if abs(p[0] - q[-1][0]) > 1e-9 or abs(p[1] - q[-1][1]) > 1e-9:
+            q.append(p)
+    if len(q) < 3:
+        return q
+
+    def keep(a, b):
+        (ax, ay), (bx, by) = q[a], q[b]
+        dx, dy = bx - ax, by - ay
+        ln2 = dx * dx + dy * dy
+        best, idx = -1.0, None
+        for k in range(a + 1, b):
+            px, py = q[k]
+            t = ((px - ax) * dx + (py - ay) * dy) / ln2 if ln2 > 1e-18 else 0.0
+            t = max(0.0, min(1.0, t))
+            dd = math.hypot(px - ax - dx * t, py - ay - dy * t)
+            if dd > best:
+                best, idx = dd, k
+        if idx is None or best <= eps:
+            return [a, b]
+        return keep(a, idx)[:-1] + keep(idx, b)
+    return [q[k] for k in keep(0, len(q) - 1)]
+
+
+def _num(x):
+    s = '%.1f' % x
+    s = s[:-2] if s.endswith('.0') else s
+    if s == '-0':
+        return '0'
+    if s.startswith('0.'):
+        return s[1:]
+    return '-' + s[2:] if s.startswith('-0.') else s
+
+
+def _numbers(nums):
+    out, prev = [], ''
+    for s in nums:
+        if prev and not (s[0] == '-' or (s[0] == '.' and '.' in prev)):
+            out.append(' ')
+        out.append(s)
+        prev = s
+    return ''.join(out)
+
+
+def compact_d(d, eps=0.03):
+    """The same path in fewer bytes (see above)."""
+    segs, cx, cy, sx, sy = [], 0.0, 0.0, 0.0, 0.0
+    src = [(c, v[:5] + [round(x * 10) / 10.0 for x in v[5:]]) if c == 'A' else (c, [round(x * 10) / 10.0 for x in v])
+           for c, v in path_segments(d)]
+    i = 0
+    while i < len(src):                         # drop points that lie on a straight run
+        c, v = src[i]
+        if c == 'L':
+            j = i
+            while j < len(src) and src[j][0] == 'L':
+                j += 1
+            run = [tuple(s[1]) for s in src[i:j]]
+            segs += [('L', list(p)) for p in _straight([(cx, cy)] + run, eps)[1:]]
+            cx, cy = run[-1]
+            i = j
+            continue
+        segs.append((c, v))
+        if c == 'M':
+            cx, cy = sx, sy = v
+        elif c == 'Z':
+            cx, cy = sx, sy
+        else:
+            cx, cy = v[-2], v[-1]
+        i += 1
+    out, last, lastnum = [], None, ''
+    cx = cy = sx = sy = 0.0
+    for c, v in segs:
+        if c == 'Z':
+            out.append('z')
+            last, lastnum, cx, cy = 'z', '', sx, sy
+            continue
+        head, tail = (v[:5], v[5:]) if c == 'A' else ([], v)
+        tail = [round(x * 10) / 10.0 for x in tail]
+        head = [_num(x) for x in head[:3]] + ['%d' % x for x in head[3:]]
+        ab = head + [_num(x) for x in tail]
+        rl = head + [_num(x - (cx if k % 2 == 0 else cy)) for k, x in enumerate(tail)]
+        letter = c
+        if c == 'L' and tail[1] == cy:
+            ab, rl, letter = [_num(tail[0])], [_num(tail[0] - cx)], 'H'
+        elif c == 'L' and tail[0] == cx:
+            ab, rl, letter = [_num(tail[1])], [_num(tail[1] - cy)], 'V'
+        nums = rl if len(_numbers(rl)) < len(_numbers(ab)) else ab
+        letter = letter.lower() if nums is rl else letter
+        s = _numbers(nums)
+        if c != 'M' and (last == letter or (last, letter) in (('M', 'L'), ('m', 'l'))):
+            if not (s[0] == '-' or (s[0] == '.' and '.' in lastnum)):
+                out.append(' ')
+            out.append(s)
+        else:
+            out.append(letter + s)
+        last, lastnum = letter, nums[-1]
+        cx, cy = tail[-2], tail[-1]
+        if c == 'M':
+            sx, sy = cx, cy
+    return ''.join(out)
+
+
+def compact_markup(s):
+    return re.sub(r' d="([^"]*)"', lambda mo: ' d="%s"' % compact_d(mo.group(1)), s)
 
 
 def stops_xml(stops):
