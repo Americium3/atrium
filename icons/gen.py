@@ -96,7 +96,7 @@ HUE = {
         'name': 'Outreach Desk', 'short': 'Outreach',
         'deep': '#0a2230', 'field': '#1c4a5f', 'lit': '#3a6e86', 'pop': '#e8c968',
         'velvet': {'name': 'prussian', 'onyx': '#1f5066', 'ivory': '#33576b'},
-        'ink': 'navy',
+        'ink': 'prussian',
     },
     'pressroom': {
         'name': 'The Press Room', 'short': 'Press Room',
@@ -106,9 +106,9 @@ HUE = {
     },
     'arsenal': {
         'name': 'Arsenal', 'short': 'Arsenal',
-        'deep': '#222a32', 'field': '#62717d', 'lit': '#93a1ac', 'pop': '#b03a2e',
-        'velvet': {'name': 'gunmetal', 'onyx': '#44545f', 'ivory': '#5a6a74'},
-        'ink': 'navy',
+        'deep': '#1c232a', 'field': '#434f59', 'lit': '#6c7984', 'pop': '#b03a2e',
+        'velvet': {'name': 'gunmetal', 'onyx': '#63696e', 'ivory': '#858f9b'},
+        'ink': 'gunmetal',
     },
     'bourse': {
         'name': 'Bourse', 'short': 'Bourse',
@@ -118,10 +118,12 @@ HUE = {
     },
 }
 # The inks a day card can be printed in, as palace-gates.css draws them.
-INKS = {'oxblood': '#6a1d19', 'bottle': '#1d4633', 'navy': '#1c2b4c', 'sepia': '#4e3413'}
+# None is the clock's blue: the quiet blue is a Prussian ink, and steel
+# prints in gunmetal.
+INKS = {'oxblood': '#6a1d19', 'bottle': '#1d4633', 'prussian': '#173d4f', 'gunmetal': '#2f3940', 'sepia': '#4e3413'}
 
-# The house cloth for a gate whose service has no mark of its own yet: the
-# claret of the entrance curtain.
+# The house cloth for a gate whose service has no mark of its own yet: a
+# claret, the cloth every house hung before the marks had cloths of their own.
 HOUSE_VELVET = {'name': 'claret', 'onyx': '#c22b3b', 'ivory': '#c83a4a'}
 
 # The hall's own mark keeps its July drawing (a keystone on gold); it is not
@@ -633,42 +635,41 @@ def smooth_d(points, closed=True, tension=1.0):
 
 
 # --------------------------------------------------------------------------
-# The Press Room: the world at dawn
+# The Press Room: the world printed in ink and paper, on its desk stand
 # --------------------------------------------------------------------------
-# "The world overnight, set in type by morning." The Earth as it stands at
-# sunrise on an equinox, seen from the family's eye a little above the
-# equator, with nothing round it. Drawn from the geostationary pictures of an
-# equinox (GOES-East for CIRA, 2024-09-22; Meteosat for NASA, 2010-11), where
-# the sun stands square to the axis and the dawn line runs from pole to pole
-# almost straight: here it runs down the Atlantic and just over Africa's
-# western bulge, so Europe and Africa are in morning and the Americas still
-# lie in night.
+# "The world overnight, set in type by morning." The charge is the object a
+# 1930s news desk kept the world in: a desk globe on its half meridian and
+# stand, drawn from photographs of the period's printed globes (the tin
+# globe of about 1930 in the Palazzo Pretorio, Prato; an "Alter Globus
+# etwa 19xx" on Wikimedia Commons; Weber Costello's black-ocean globe with
+# its streamlined foot). The ball is as round as a globe's is, its axis
+# leaning the globe-maker's 23.4 degrees; the half meridian stands off it
+# a finger's breadth, pinned at the poles, and runs down round the far side
+# to a turned stem on a stepped foot.
 #
-# The light is cut as a woodcut cuts it. The night is one field of dark sea
-# with the land showing through it in olive. The day begins at a hard dawn
-# line, and the first light lies past it in one warm plane, rose copper on
-# the sea and apricot on the land, so the coasts break it and it reads as
-# light falling on the world and not as a strap painted on a ball. That
-# plane is narrow up where the hall's lamp already reaches and widens
-# below, where the lamp falls away. The morning beyond it takes the lamp in
-# three planes, up and to the left like every other charge. The sea is the
-# green of the Daily News globe (Raymond Hood's lobby, 1930) and the land
-# the bone of the morning's paper. There is no graticule, no ring and no
-# band: seams on a sphere make a ball of it, and a ring makes a planet.
-PRESSROOM_GLOBE = {'cx': 48.0, 'cy': 48.6, 'r': 32.6, 'lean': -23.4, 'tip': PITCH,
-                   'dawn': -8.0, 'front': 0.16}
-#                 night      dawn       morning: shade, body, lit
-PRESSROOM_SEA = ['#132119', '#a66a52', '#46705a', '#628c6d', '#86a986']
-PRESSROOM_LAND = ['#45412a', '#d68f50', '#b5a172', '#d6c594', '#efe4bf']
-# The dawn's width in n . sun, [lo, hi, reach]: where the lamp already
-# reaches (n . key light at `reach` and above) it is `lo` wide, and it widens
-# to `hi` where the lamp falls away, so the first light tapers up the globe
-# and never reads as a ribbon of one width.
-PRESSROOM_DAWN = [0.08, 0.22, 0.7]
-PRESSROOM_DAWN_S = [0.12, 0.34, 0.7]     # the small cut's, wide enough to see
-PRESSROOM_KEY = [0.1, 0.6]               # where the morning's body and its lit plane begin (n . key light)
-PRESSROOM_KEY_S = [0.2]                  # the small cut's: the morning in two planes
-PRESSROOM_LIMB = '#6f8a5c'               # the night's limb, drawn so the round closes
+# It is printed as the Deco black-ocean globes were, in ink and paper: the
+# oceans in a bottle-green ink as deep as the enamel is bright, the land in
+# the bone of the morning's paper, so the land is the one light figure on
+# it. The ball, the meridian and the stand all take the hall's one lamp, up
+# and to the left, each in its own few planes; the fittings are nickel,
+# the Bureau's own metal. There is no graticule and no ring round the ball:
+# seams on a sphere make a ball of it, and a ring makes a planet.
+PRESSROOM_GLOBE = {'cx': 47.0, 'cy': 40.0, 'r': 25.6, 'lean': 23.4, 'tip': PITCH, 'face': (12.0, 14.0),
+                   'gap': 1.1, 'band': 2.5, 'turn': 12.0}
+#                  dark       shade      body       lit
+PRESSROOM_SEA = ['#0b1a13', '#15301f', '#1f4532', '#2d5c44']
+PRESSROOM_LAND = ['#6c603f', '#a89868', '#d6c797', '#f0e7c5']
+PRESSROOM_CUTS = [0.08, 0.38, 0.7]           # n . key light where each lighter plane begins
+PRESSROOM_CUTS_S = [0.2, 0.55]               # the small cut: three planes
+# Nickel, from its shadow to its crest, for the meridian and the stand.
+PRESSROOM_NICKEL = ['#23292a', '#4b5454', '#848d8b', '#b9c0bb', '#e4e8e1']
+PRESSROOM_NICKEL_CUTS = [0.1, 0.3, 0.58, 0.84]
+# The stand, turned about a plumb axis under the ball's centre: bands (y0, y1,
+# r0, r1) from the floor up, in mark units. A broad stepped foot, a collar,
+# and a stem that tapers up to the meridian's foot.
+PRESSROOM_STAND = [(0.0, 2.2, 15.2, 15.2), (2.2, 2.2, 15.2, 13.6), (2.2, 3.6, 13.6, 13.0), (3.6, 3.6, 13.0, 9.4),
+                   (3.6, 5.4, 9.4, 8.8), (5.4, 5.4, 8.8, 3.4), (5.4, 6.6, 3.4, 2.9), (6.6, 6.6, 2.9, 1.9),
+                   (6.6, 10.4, 1.9, 1.6), (10.4, 10.4, 1.6, 2.2), (10.4, 11.4, 2.2, 2.2)]
 # Natural Earth 1:50m land (public domain), the loops that face the reader,
 # simplified to 0.4 degrees (a pixel on the sheet's 400px mark), with the
 # stretches well round the back thinned, since they only steer the limb;
@@ -945,17 +946,173 @@ PRESSROOM_LAKES = [
 ]
 
 
-def pressroom_frame():
-    """The globe's axes in view space (x right, y up, z toward the reader):
-    the axis leans the globe-maker's 23.4 degrees and tips a little toward
-    the reader; the sun stands square to the axis, as it does at an equinox,
-    so the dawn line passes through both poles."""
+def pressroom_view():
+    """The family's eye on the globe: the ball's centre at the origin of the
+    world (y up, z toward the reader), seen PITCH degrees from above."""
     g = PRESSROOM_GLOBE
-    le, ti = math.radians(g['lean']), math.radians(g['tip'])
-    axis = S.norm((math.sin(le), math.cos(le) * math.cos(ti), math.cos(le) * math.sin(ti)))
-    s0 = (1.0, 0.0, g['front'])
-    sun = S.norm(S.add(s0, S.mul(axis, -S.dot(s0, axis))))
-    return {'axis': axis, 'sun': sun, 'east': S.cross(axis, sun), 'sub': g['dawn'] + 90.0}
+    return S.View(g['cx'], g['cy'], 1.0, yaw=0.0, pitch=g['tip'])
+
+
+def pressroom_axes():
+    """The meridian's plane in the world: the axis (north), and square to it
+    in that plane, out and down on the meridian's side. The half meridian
+    stands in a plumb plane turned `turn` degrees toward the reader, and the
+    axis leans the globe-maker's 23.4 degrees within it."""
+    g = PRESSROOM_GLOBE
+    le, tu = math.radians(g['lean']), math.radians(g['turn'])
+    hz = (math.cos(tu), 0.0, math.sin(tu))
+    up = (0.0, 1.0, 0.0)
+    return (S.add(S.mul(up, math.cos(le)), S.mul(hz, math.sin(le))),
+            S.add(S.mul(hz, math.cos(le)), S.mul(up, -math.sin(le))))
+
+
+def pressroom_frame():
+    """The globe's axes in view space (x right, y up, z toward the reader).
+    Longitudes are counted from the meridian of `face`, turned to the
+    reader."""
+    g = PRESSROOM_GLOBE
+    v = pressroom_view()
+    axis_w, side_w = pressroom_axes()
+    axis, side = S.norm(v.rot(axis_w)), S.norm(v.rot(side_w))
+    z = (0.0, 0.0, 1.0)
+    ref = S.norm(S.add(z, S.mul(axis, -S.dot(z, axis))))    # the equator's nearest point
+    return {'axis': axis, 'sun': ref, 'east': S.cross(axis, ref), 'sub': g['face'][0],
+            'side': side, 'normal': S.norm(S.cross(axis, side)), 'view': v}
+
+
+def pressroom_ring(fr, rho, th0, th1, off=0.0, n=60):
+    """Points of the half meridian at radius rho, from angle th0 to th1
+    (degrees from the north pole, round the meridian's side), `off` along
+    the meridian plane's normal: [(screen point, view direction)]."""
+    g = PRESSROOM_GLOBE
+    out = []
+    for k in range(n + 1):
+        t = math.radians(th0 + (th1 - th0) * k / n)
+        d = S.add(S.mul(fr['axis'], math.cos(t)), S.mul(fr['side'], math.sin(t)))
+        p = S.add(S.mul(d, rho), S.mul(fr['normal'], off))
+        out.append(((g['cx'] + p[0], g['cy'] - p[1]), d))
+    return out
+
+
+def subject_pressroom(m, h, small=False):
+    """The world on its desk stand: a 1930s globe printed in ink and paper,
+    on a nickel half meridian pinned at its poles, a turned stem and a
+    stepped foot. The ball takes the hall's lamp in four planes (three in
+    the small cut), the sea in bottle-green ink and the land in the bone of
+    newsprint, each through every plane; the meridian is a flat band with its
+    rim in shade, and the stand a turned solid. The small cut fills the
+    Mediterranean so Europe and Africa hold together, and draws the meridian
+    and the stem heavier."""
+    g = PRESSROOM_GLOBE
+    fr = pressroom_frame()
+    v = fr['view']
+    cx, cy, R = g['cx'], g['cy'], g['r']
+
+    def normal(x, y):
+        X, Y = (x - cx) / R, -(y - cy) / R
+        q = X * X + Y * Y
+        if q >= 0.998:
+            k = math.sqrt(0.998 / q)
+            X, Y, q = X * k, Y * k, 0.998
+        return (X, Y, math.sqrt(1 - q))
+
+    def key(x, y):                   # the hall's lamp on the ball
+        return S.dot(normal(x, y), S.KEY)
+
+    disc = circle_d(cx, cy, R)
+    box = (cx - R - 1, cy - R - 1, cx + R + 1, cy + R + 1)
+    step = 0.5 if small else 0.3
+    cuts = PRESSROOM_CUTS_S if small else PRESSROOM_CUTS
+    sea = PRESSROOM_SEA[:1] + PRESSROOM_SEA[-len(cuts):] if small else PRESSROOM_SEA
+    land = PRESSROOM_LAND[:1] + PRESSROOM_LAND[-len(cuts):] if small else PRESSROOM_LAND
+    regions = [S.region_d(lambda x, y, t=t: t - key(x, y), box, step, 0.12) for t in cuts]
+
+    def cut(name, tones):
+        body = ''.join('<path d="%s" fill="%s" fill-rule="evenodd"/>' % (d, col)
+                       for d, col in zip(regions, tones[1:]) if d)
+        return '<path d="%s" fill="%s"/><g clip-path="%s">%s</g>' % (
+            disc, tones[0], m.clip(name, '<path d="%s"/>' % disc), body)
+
+    band = g['band'] * (1.5 if small else 1.0)
+    r0 = R + g['gap']
+    r1 = r0 + band
+    th = 1.3 if small else 0.9                               # the band's thickness
+    # the stand: a plumb axis under the ball's centre, its top under the
+    # meridian's foot
+    top = PRESSROOM_STAND[-1][1]
+    O = (0.0, -r1 - top + 0.4, 0.0)
+    Y, X, Z = (0.0, 1.0, 0.0), (1.0, 0.0, 0.0), (0.0, 0.0, 1.0)
+    k_st = 1.3 if small else 1.0
+    stand = [(a, b, r_0 * (k_st if r_0 < 4 else 1.0), r_1 * (k_st if r_1 < 4 else 1.0), 0.35)
+             for a, b, r_0, r_1 in PRESSROOM_STAND]
+
+    # the shadows the charge casts on the enamel, down and to the right
+    foot = [v.proj(S.add(O, (PRESSROOM_STAND[0][2] * math.cos(a), 0.0, PRESSROOM_STAND[0][2] * math.sin(a))))[:2]
+            for a in (2 * math.pi * j / 32 for j in range(32))]
+    foot += [v.proj(S.add(O, (0.0, top, 0.0)))[:2]]
+    m.add(shadow(poly_d(groundstation_hull(foot)), 1.3, 1.2, 0.42))
+    ring = ([p for p, _ in pressroom_ring(fr, r1, 0.0, 180.0, 0.0, 48)]
+            + [p for p, _ in pressroom_ring(fr, r0, 180.0, 0.0, 0.0, 48)])
+    m.add(shadow(disc + ' ' + S.pts_d(ring), 1.5, 2.0, 0.45))
+    # the stand, floor up
+    m.add(arsenal_lathe(v, O, Y, X, Z, stand, PRESSROOM_NICKEL, PRESSROOM_NICKEL_CUTS, small))
+    # the ball: the sea, then the land printed over it
+    m.add(cut('sea', sea))
+    eps = 0.45 if small else 0.1
+    loops = []
+    for coast in PRESSROOM_COAST + (PRESSROOM_SMALL_SEAS if small else []):
+        face = pressroom_face(coast, fr)
+        if face and abs(S.area(face)) > (4.0 if small else 0.3):
+            if S.area(face) < 0:
+                face = face[::-1]            # one winding, so the filled seas join the land
+            loops.append(S.pts_d(S.rdp(face, eps)))
+    lclip = m.clip('land', '<path d="%s"/>' % ' '.join(loops))
+    m.add('<g clip-path="%s">%s</g>' % (lclip, cut('landp', land)))
+    if not small:
+        lakes = [pressroom_face(lake, fr) for lake in PRESSROOM_LAKES]
+        lake_d = ' '.join(S.pts_d(lk) for lk in lakes if lk)
+        if lake_d:
+            m.add('<g clip-path="%s">%s</g>' % (m.clip('lake', '<path d="%s"/>' % lake_d), cut('lakep', sea)))
+    # the pole pins, short turned rods along the axis out to the meridian,
+    # and at the north the nut that holds the ball
+    axis_w, _ = pressroom_axes()
+    Uw, Ww, _ = S.basis(axis_w)
+    pin = 0.75 * (1.4 if small else 1.0)
+    for sgn in (1.0, -1.0):
+        bands = [(R - 0.6, r1 + 0.2, pin, pin)]
+        if sgn > 0:
+            bands += [(r1 + 0.2, r1 + 0.2, pin, pin * 2.1), (r1 + 0.2, r1 + 1.6, pin * 2.1, pin * 2.1),
+                      (r1 + 1.6, r1 + 1.6, pin * 2.1, pin * 1.2), (r1 + 1.6, r1 + 2.4, pin * 1.2, 0.3)]
+        m.add(arsenal_lathe(v, (0.0, 0.0, 0.0), S.mul(axis_w, sgn), Uw, Ww, bands,
+                            PRESSROOM_NICKEL, PRESSROOM_NICKEL_CUTS, small))
+    # the half meridian: its rim, where it turns to the reader, then its face
+    fc = S.Faces()
+    outer = pressroom_ring(fr, r1, -4.0, 184.0, 0.0, 72)
+    o0 = S.mul(fr['normal'], th / 2)
+    for (p0, d0), (p1, d1) in zip(outer, outer[1:]):
+        dm = S.norm(S.add(d0, d1))
+        if dm[2] < -0.05:
+            continue
+        q = [(p0[0] + o0[0], p0[1] - o0[1]), (p1[0] + o0[0], p1[1] - o0[1]),
+             (p1[0] - o0[0], p1[1] + o0[1]), (p0[0] - o0[0], p0[1] + o0[1])]
+        fc.add(q, 0.0, facet(lam(dm), PRESSROOM_NICKEL, PRESSROOM_NICKEL_CUTS))
+    m.add(fc.svg(seam=0.1))
+    front = 1.0 if fr['normal'][2] > 0 else -1.0
+    n = S.mul(fr['normal'], front)
+    off = front * th / 2
+    face = ([p for p, _ in pressroom_ring(fr, r1, -4.0, 184.0, off, 72)]
+            + [p for p, _ in pressroom_ring(fr, r0, 184.0, -4.0, off, 72)])
+    m.add('<path d="%s" fill="%s"/>' % (S.pts_d(face), facet(lam(n) + 0.12, PRESSROOM_NICKEL, PRESSROOM_NICKEL_CUTS)))
+    if not small:
+        # its degrees, cut every ten across the outer half of the band and
+        # every thirty across the whole of it, from each pole to the equator
+        ticks = []
+        for deg in range(10, 180, 10):
+            a0 = r0 + (0.25 if deg % 30 == 0 else 0.5) * band
+            (p0, _), = pressroom_ring(fr, a0, deg, deg, off, 1)[:1]
+            (p1, _), = pressroom_ring(fr, r1 - 0.15, deg, deg, off, 1)[:1]
+            ticks.append((p0[0], p0[1], p1[0], p1[1]))
+        m.add('<path d="%s" stroke="%s" stroke-width=".28" stroke-opacity=".8"/>' % (lines_path(ticks), PRESSROOM_NICKEL[1]))
 
 
 def pressroom_xyz(lon, lat, fr):
@@ -1016,83 +1173,6 @@ def pressroom_face(loop, fr, step=2.0):
                     out.append(pressroom_screen((math.cos(t), math.sin(t), 0.0)))
             last = ang
     return out
-
-
-def subject_pressroom(m, h, small=False):
-    """The world at dawn, and nothing else. The night is one field with the
-    land showing through it; the day begins at a hard dawn line, where the
-    first light lies in one narrow warm plane across sea and land alike, and
-    the morning beyond it takes the hall's key light in three planes. Sea
-    and land each take their own colour through every plane. The small cut
-    keeps the night, a wider dawn, the morning in two planes and one land
-    (the Mediterranean filled, so Europe and Africa hold together)."""
-    g = PRESSROOM_GLOBE
-    fr = pressroom_frame()
-    cx, cy, R, sun = g['cx'], g['cy'], g['r'], fr['sun']
-
-    def normal(x, y):
-        X, Y = (x - cx) / R, -(y - cy) / R
-        q = X * X + Y * Y
-        if q >= 0.998:
-            k = math.sqrt(0.998 / q)
-            X, Y, q = X * k, Y * k, 0.998
-        return (X, Y, math.sqrt(1 - q))
-
-    def light(x, y):                 # where the sun stands: night or day
-        return S.dot(normal(x, y), sun)
-
-    def key(x, y):                   # the hall's lamp on the globe's roundness
-        return S.dot(normal(x, y), S.KEY)
-
-    disc = circle_d(cx, cy, R)
-    box = (cx - R - 1, cy - R - 1, cx + R + 1, cy + R + 1)
-    step = 0.5 if small else 0.3
-    sea, land = PRESSROOM_SEA, PRESSROOM_LAND
-    dawn = PRESSROOM_DAWN_S if small else PRESSROOM_DAWN
-    # each plane from the night up, as the region it covers (f < 0 inside):
-    # the day from the dawn line, the morning past the dawn's width, and
-    # the morning's body and lit plane where the lamp reaches
-    lo, hi, reach = dawn
-
-    def morning(x, y):               # past the dawn: narrow where the lamp reaches, wide below
-        return lo + (hi - lo) * min(1.0, max(0.0, (reach - key(x, y)) / (reach + 0.5))) - light(x, y)
-    fns = [lambda x, y: -light(x, y), morning]
-    fns += [lambda x, y, t=t: max(morning(x, y), t - key(x, y))
-            for t in (PRESSROOM_KEY_S if small else PRESSROOM_KEY)]
-    if small:
-        sea, land = sea[:len(fns) + 1], land[:len(fns) + 1]
-    regions = [S.region_d(fn, box, step, 0.12) for fn in fns]
-
-    def cut(name, tones):
-        body = ''.join('<path d="%s" fill="%s" fill-rule="evenodd"/>' % (d, col)
-                       for d, col in zip(regions, tones[1:]) if d)
-        return '<path d="%s" fill="%s"/><g clip-path="%s">%s</g>' % (
-            disc, tones[0], m.clip(name, '<path d="%s"/>' % disc), body)
-    m.add(shadow(disc, 1.4, 2.0, 0.5))
-    m.add(cut('sea', sea))
-    # the land
-    eps = 0.45 if small else 0.1
-    loops = []
-    for coast in PRESSROOM_COAST + (PRESSROOM_SMALL_SEAS if small else []):
-        face = pressroom_face(coast, fr)
-        if face and abs(S.area(face)) > (4.0 if small else 0.3):
-            if S.area(face) < 0:
-                face = face[::-1]            # one winding, so the filled seas join the land
-            loops.append(S.pts_d(S.rdp(face, eps)))
-    lclip = m.clip('land', '<path d="%s"/>' % ' '.join(loops))
-    m.add('<g clip-path="%s">%s</g>' % (lclip, cut('landp', land)))
-    if not small:
-        lakes = [pressroom_face(lake, fr) for lake in PRESSROOM_LAKES]
-        lake_d = ' '.join(S.pts_d(lk) for lk in lakes if lk)
-        if lake_d:
-            m.add('<g clip-path="%s">%s</g>' % (m.clip('lake', '<path d="%s"/>' % lake_d), cut('lakep', sea)))
-    # the night's limb, a line of the page's olive round the dark half, so
-    # the globe reads as a whole round against the enamel at every size
-    night = S.region_d(lambda x, y: light(x, y), box, step, 0.1)
-    lw = 1.8 if small else 0.7
-    m.add('<g clip-path="%s"><g clip-path="%s"><circle cx="%s" cy="%s" r="%s" fill="none" stroke="%s" '
-          'stroke-width="%s"/></g></g>' % (m.clip('disc', '<path d="%s"/>' % disc), m.clip('nlimb', '<path d="%s"/>' % night),
-                                            f(cx), f(cy), f(R), PRESSROOM_LIMB, f(2 * lw)))
 
 
 # --------------------------------------------------------------------------
@@ -1698,70 +1778,81 @@ def subject_autopilot(m, h, small=False):
 # --------------------------------------------------------------------------
 # The desk briefs each introduction overnight and never sends one: the owner
 # opens the profile and delivers every note himself. The charge is that act
-# drawn as a heraldic cubit arm erect, the hand holding up one calling card
-# to be seen: the palm toward the reader, the four fingers standing behind
-# the card with their tips over its top edge, and the thumb opposed across
-# its foot, pinching it, its nail to the reader. The arm is vested or and
-# cuffed argent, as a crest's arm is (a gold sleeve on the Prussian enamel,
-# metal on colour, and the page's own gold), and couped square.
+# drawn as a heraldic cubit arm erect, the hand holding one calling card up
+# to be seen: the card laid flat against the fingers, the four fingertips
+# hooked over its top edge with their nails to the reader, and the thumb
+# across its foot, so the card is gripped top and bottom and is the largest
+# and highest thing in the charge. The arm is vested or and cuffed argent,
+# as a crest's arm is (a gold sleeve on the Prussian enamel, metal on colour,
+# and the page's own gold), and couped.
 #
-# The pose is traced from a photograph of a man holding up a blank card
-# (Pexels 326576): the card as wide as the four fingers, the middle finger
-# standing highest, the little finger's tip no higher than the others'
-# last joints. The anatomy is read off "A Hand.jpg" (Wikimedia Commons), a
-# right palm with the thumb opposed across it: each finger's palmar side is
-# a run of pads split at its creases, the thenar is the big round mass
-# under the thumb and the hypothenar a long flatter one down the other
-# edge, and they close in to the wrist. Where the card hides the middle of
-# the hand the drawing takes the license heraldry takes: the palm is
-# foreshortened, as if tipped back a little behind the card.
+# The grip is the one a card or a ticket is held up by (Pexels 4066294, a
+# hand holding up a blank card by its edge; Flickr 3431671190, a hand holding
+# tickets): the card against the palmar side of the fingers, the fingers
+# flexed over its edge and the thumb pressed on its face. The anatomy is read
+# off "A Hand.jpg" (Wikimedia Commons), a right palm with the thumb opposed
+# across it: the thenar is the big round mass under the thumb and the
+# hypothenar a long flatter one down the other edge, and they close in to the
+# wrist. Where the card hides the fingers the drawing takes the licence
+# heraldry takes: the palm is foreshortened, as if tipped back a little
+# behind the card.
 #
-# Each finger, the palm with its wrist, and the thumb are each one traced
+# The sleeve is cloth, not a band: it tapers to the wrist, and the folds a
+# raised sleeve slides into cross the forearm on the diagonal, each a ridge
+# lit on its upper face with its shade under it, as the vested arms of the
+# heraldic manuals draw them (A Complete Guide to Heraldry, fig. 268). The
+# cuff is turned back over the sleeve, flaring to its rolled edge, with the
+# dark of its mouth round the wrist, as a turned shirt cuff stands (the
+# French cuff photographed on Wikimedia Commons).
+#
+# The palm with its wrist, the thumb and each fingertip are each one traced
 # outline, inflated the way Bourse's canary is (the Poisson equation), so
-# each is one continuous skin. On that skin the pads, the thenar and the
-# hypothenar swell (outreach_swell) and the creases run in as shallow
-# grooves, so a finger turns from the lamp pad by pad and is never one long
-# tube, and the thumb rises out of the thenar it grows from. The planes are
-# cut from that surface along the key light. Units are millimetres of a
-# real hand, y down, the card's centre at the origin; OUTREACH_PLACE lays
-# them on the badge.
-OUTREACH_PLACE = {'s': 0.42, 'lean': -5.0, 'at': (3.0, 9.0), 'cx': 48.0, 'cy': 48.0}
-OUTREACH_CARD = {'w': 89.0, 'h': 52.0, 'turn': -6.0, 'fold': 9.0, 'bevel': 1.5}
-# Each finger's palmar side: its tip, its lean (degrees; the tip toward the
-# thumb for a positive lean), the distance from the tip to its last and its
-# middle crease and on to where the card hides it, and its width over the
-# tip pad, the middle pad and the base.
-OUTREACH_FINGERS = [
-    ('little', (-25.4, -45.0), 5.0, (18.5, 38.0, 55.0), (13.0, 14.2, 15.4)),
-    ('ring', (-9.6, -61.5), 2.0, (22.5, 47.0, 68.0), (14.8, 16.0, 17.2)),
-    ('middle', (6.4, -66.0), 0.0, (24.0, 50.0, 72.0), (15.6, 16.8, 18.0)),
-    ('index', (22.2, -57.0), -4.0, (22.0, 45.0, 63.0), (15.2, 16.4, 17.6)),
+# each is one continuous skin; the thenar swells and its crease runs in as a
+# shallow groove. The planes are cut from that surface along the key light.
+# Units are millimetres of a real hand, y down, the card's centre at the
+# origin; OUTREACH_PLACE lays them on the badge.
+OUTREACH_PLACE = {'s': 0.425, 'lean': -5.0, 'at': (3.0, 40.0), 'cx': 48.0, 'cy': 48.0}
+OUTREACH_CARD = {'w': 102.0, 'h': 62.0, 'turn': -6.0, 'fold': 10.0, 'bevel': 1.6}
+# Each fingertip hooked over the card's top edge, in the card's own frame:
+# (name, where it crosses the edge (x), how far its knuckle stands above the
+# edge and its tip reaches down the card's face (mm), its width at the
+# knuckle and over the nail, and its lean (degrees, the tip toward the thumb
+# for a positive lean)). The middle finger reaches lowest, the little
+# finger least.
+OUTREACH_TIPS = [
+    ('little', -30.5, 5.6, 10.0, 13.8, 12.4, -6.0),
+    ('ring', -12.5, 6.6, 12.5, 15.6, 14.2, -2.5),
+    ('middle', 5.5, 7.0, 13.5, 16.2, 14.8, 0.0),
+    ('index', 23.5, 6.4, 12.0, 15.6, 14.2, 3.5),
 ]
 # The palm below the card, closing in to the wrist, traced off "A Hand.jpg"
 # and scaled to the card; it runs on under the card and under the cuff.
-OUTREACH_PALM_LINE = [(-34.0, 10.0), (-18.0, 8.0), (0.0, 8.0), (16.0, 9.0), (27.0, 13.0), (35.5, 23.0), (41.0, 34.0),
-                      (42.5, 43.0), (40.0, 50.0), (34.5, 55.5), (28.5, 59.5), (27.5, 64.0), (27.0, 68.5), (1.0, 70.0), (-25.0, 68.5),
-                      (-25.5, 64.0), (-26.5, 59.0), (-29.5, 49.0), (-32.5, 36.0), (-34.2, 22.0)]
+OUTREACH_PALM_LINE = [(-36.0, 12.0), (-18.0, 10.0), (0.0, 10.0), (16.0, 11.0), (27.0, 15.0), (35.5, 25.0), (41.0, 36.0),
+                      (42.5, 45.0), (40.0, 52.0), (34.5, 57.5), (28.5, 61.5), (27.5, 66.0), (27.0, 70.5), (1.0, 72.0), (-25.0, 70.5),
+                      (-25.8, 65.0), (-28.2, 58.5), (-32.0, 50.0), (-34.4, 40.0), (-35.5, 28.0)]
 # Its swelling, the thenar or ball of the thumb, along the thumb's
 # metacarpal: centre, long axis, half length, half width, rise (mm). The
 # hypothenar needs none; the palm's own edge turns it.
 OUTREACH_PALM_SWELL = [
-    ((25.0, 38.0), (0.45, 0.89), 20.0, 14.5, 7.0),        # the thenar, the ball of the thumb
+    ((25.0, 40.0), (0.45, 0.89), 20.0, 14.5, 7.0),        # the thenar, the ball of the thumb
 ]
 # Its crease, a run of points with its depth and width (mm): the thenar
 # crease, curving round the ball of the thumb toward the wrist.
-OUTREACH_PALM_CREASE = [([(12.5, 27.0), (10.0, 37.0), (8.8, 47.0), (6.5, 56.0)], 1.3, 1.7)]
-# The thumb, opposed across the card, from its base in the thenar through
+OUTREACH_PALM_CREASE = [([(12.5, 29.0), (10.0, 39.0), (8.8, 49.0), (6.5, 58.0)], 1.3, 1.7)]
+# The thumb, across the card's foot, from its base in the thenar through
 # its last joint to its tip, and its widths there; it stands forward of the
-# palm by OUTREACH_THUMB_LIFT at the joint and beyond.
-OUTREACH_THUMB = {'base': (30.0, 43.0), 'joint': (22.5, 12.0), 'tip': (14.5, -7.5),
-                  'w': (20.5, 15.8, 16.8), 'lift': 11.0}
-# The arm is vested and cuffed as a heraldic arm is: a sleeve of gold
-# cloth, couped square, and at the wrist a white cuff turned back over it,
-# broader than the sleeve and flaring to its rolled edge. (top, foot, half width at the top,
-# half width at the foot) about the arm's axis at x = 1.
-OUTREACH_CUFF = (58.0, 71.0, 34.0, 32.0)
-OUTREACH_SLEEVE = (68.0, 93.0, 29.0, 31.0)
+# palm by `lift` at the joint and beyond.
+OUTREACH_THUMB = {'base': (32.0, 47.0), 'joint': (26.0, 24.0), 'tip': (19.0, 5.0),
+                  'w': (20.5, 16.0, 17.0), 'lift': 11.0}
+# The turned cuff and the sleeve, about the arm's axis at x = 1: (top, foot,
+# half width at the top, half width at the foot). The cuff flares to its
+# rolled edge; the sleeve widens toward the elbow and is couped.
+OUTREACH_CUFF = (59.0, 77.0, 35.5, 31.5)
+OUTREACH_SLEEVE = (73.0, 113.0, 30.0, 35.5)
+# The folds a raised sleeve slides into: where each crosses the arm's axis
+# (along the sleeve, 0 at its top), its slope across the arm, its depth and
+# its width (mm).
+OUTREACH_FOLDS = [(0.1, 0.16, 1.3, 3.2), (0.42, 0.3, 2.3, 5.0), (0.76, 0.2, 1.7, 4.6)]
 # Colour as the eye keeps a hand: the fingertips rosier than the palm, the
 # back of the thumb a little browner; four planes each (dark, shade, body,
 # lit), cut at OUTREACH_CUTS.
@@ -1770,8 +1861,9 @@ OUTREACH_PALM = ['#6a3a30', '#b06b53', '#e0a689', '#f6dac4']
 OUTREACH_BACK = ['#5f2f27', '#a15743', '#d49379', '#f0c8b0']
 OUTREACH_CUTS = [0.22, 0.4, 0.7]
 OUTREACH_NAIL = ['#c48e80', '#eccdc1', '#fbefe6']          # its plate, where it takes the light, its free edge
-OUTREACH_LINEN = ['#8e99a1', '#c3c9cb', '#e9e6de', '#fbfaf5']
-OUTREACH_SLEEVE_CLOTH = ['#3f2c0c', '#7f5d1e', '#b38c3c', '#dcbf73']   # vested or: the page's gold, as cloth
+OUTREACH_LINEN = ['#6f7a82', '#aab3b6', '#e3e1d9', '#fbfaf5']
+OUTREACH_SLEEVE_CLOTH = ['#3a280a', '#765419', '#ad8636', '#d9bb6c']   # vested or: the page's gold, as cloth
+OUTREACH_CLOTH_CUTS = [0.2, 0.44, 0.72]
 OUTREACH_STOCK = ['#f4f1ea', '#d9d0bb', '#b9ae95']           # the card: its face, its turned corner, its shade
 OUTREACH_FACE = 0.32                                         # how flat a form's face is: 0.5 is round
 _OUTREACH = {}
@@ -1823,34 +1915,66 @@ def outreach_along(a, b, t):
     return (a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t)
 
 
+def outreach_capsule(bottom, top, wb, wt, n=8):
+    """A fingertip's outline (mm): an axis from its tip (bottom) to the
+    top of its knuckle, rounded at both ends, wb wide over the nail and wt
+    at the knuckle."""
+    ln = math.hypot(top[0] - bottom[0], top[1] - bottom[1])
+    u = ((top[0] - bottom[0]) / ln, (top[1] - bottom[1]) / ln)       # toward the knuckle
+    v = (-u[1], u[0])
+    # the rounded ends reach the given points, so their centres stand in
+    bottom = (bottom[0] + u[0] * 0.45 * wb, bottom[1] + u[1] * 0.45 * wb)
+    top = (top[0] - u[0] * 0.45 * wt, top[1] - u[1] * 0.45 * wt)
+    ux, uy = top[0] - bottom[0], top[1] - bottom[1]
+
+    def side(t, s):
+        w = (wb + (wt - wb) * t) / 2
+        return (bottom[0] + ux * t + s * v[0] * w, bottom[1] + uy * t + s * v[1] * w)
+
+    def arch(c, w, s):
+        return [(c[0] + s * (v[0] * w * math.cos(th) + u[0] * 0.9 * w * math.sin(th)),
+                 c[1] + s * (v[1] * w * math.cos(th) + u[1] * 0.9 * w * math.sin(th)))
+                for th in (math.pi * k / n for k in range(1, n))]
+    return ([side(k / float(n), 1.0) for k in range(n + 1)] + arch(top, wt / 2, 1.0)
+            + [side(1.0 - k / float(n), -1.0) for k in range(n + 1)] + arch(bottom, wb / 2, -1.0))
+
+
+def outreach_tips():
+    """Each fingertip in the hand's frame: (name, tip, knuckle top, nail
+    width, knuckle width), the card's turn applied."""
+    C = OUTREACH_CARD
+    top = -C['h'] / 2
+    out = []
+    for name, x, above, reach, wk, wn, lean in OUTREACH_TIPS:
+        a = math.radians(lean)
+        d = (-math.sin(a), math.cos(a))                   # from the edge down toward the tip
+        edge = (x, top)
+        tip = (edge[0] + d[0] * reach, edge[1] + d[1] * reach)
+        knuckle = (edge[0] - d[0] * above, edge[1] - d[1] * above)
+        tip, knuckle = rot([tip, knuckle], 0.0, 0.0, C['turn'])
+        out.append((name, tip, knuckle, wn, wk))
+    return out
+
+
 def outreach_forms():
     """The forms the hand is modelled from: {name: (group, outline (mm),
     thickness (mm), swellings, grooves, lift(x, y))}."""
     if 'forms' in _OUTREACH:
         return _OUTREACH['forms']
     forms = {}
-    for name, tip, lean, (dip, pip, end), (wd, wm, wb) in OUTREACH_FINGERS:
-        a = math.radians(lean)
-        u = (-math.sin(a), math.cos(a))                 # from the tip toward the palm
-        at = lambda t: (tip[0] + u[0] * t, tip[1] + u[1] * t)
-        # the tip pad is fullest a third of the way down, and the finger
-        # draws in a little at each crease, as a palm's fingers do
-        st = [(at(wd * 0.46), wd * 0.95), (at(dip * 0.42), wd), (at(dip * 0.78), wd * 0.96), (at(dip), wd * 0.9),
-              (at(dip + (pip - dip) * 0.45), wm), (at(pip), wm * 0.92), (at(end), wb)]
-        sw = [(at(dip * 0.5), u, dip * 0.5, wd * 0.6, 0.7),
-              (at((dip + pip) / 2), u, (pip - dip) * 0.5, wm * 0.6, 0.5)]
-        v = (-u[1], u[0])
-        gr = [([(at(c)[0] - v[0] * w, at(c)[1] - v[1] * w), (at(c)[0] + v[0] * w, at(c)[1] + v[1] * w)], dp, 1.4)
-              for c, w, dp in ((dip, wd, 0.6), (pip, wm, 0.5))]
-        forms[name] = ('finger', outreach_limb(st), 5.0, sw, gr, None)
+    for name, tip, knuckle, wn, wk in outreach_tips():
+        ln = math.hypot(knuckle[0] - tip[0], knuckle[1] - tip[1])
+        u = ((knuckle[0] - tip[0]) / ln, (knuckle[1] - tip[1]) / ln)
+        # the knuckle's hump where the finger bends over the edge, and the
+        # nail's plate lying flatter below it
+        sw = [((knuckle[0] - u[0] * wk * 0.45, knuckle[1] - u[1] * wk * 0.45), u, wk * 0.55, wk * 0.5, 1.4)]
+        forms[name] = ('tip', outreach_capsule(tip, knuckle, wn, wk, 6), 5.0, sw, [], None)
     forms['palm'] = ('palm', OUTREACH_PALM_LINE, 10.0, OUTREACH_PALM_SWELL, OUTREACH_PALM_CREASE, None)
     T = OUTREACH_THUMB
     b, j, t = T['base'], T['joint'], T['tip']
     wb, wj, wt = T['w']
     st = [(outreach_along(t, j, 0.46), wt * 0.97), (outreach_along(t, j, 0.72), wt), (j, wj),
           (outreach_along(j, b, 0.45), (wj + wb) / 2 + 0.8), (b, wb)]
-    ln = math.hypot(j[0] - b[0], j[1] - b[1])
-    ua = ((j[0] - b[0]) / ln, (j[1] - b[1]) / ln)
 
     def lift(x, y):
         # the thumb stands as high as the ball it grows from, all its length
@@ -2015,23 +2139,6 @@ def outreach_planes(m, name, outlines, light, tones, cuts, small=False):
     return ''.join(out)
 
 
-def outreach_creases():
-    """Each finger's last crease, where it shows above the card: a short
-    run across the pad, bowed toward the tip (mm)."""
-    out = []
-    for name, tip, lean, (dip, pip, end), (wd, wm, wb) in OUTREACH_FINGERS:
-        a = math.radians(lean)
-        u = (-math.sin(a), math.cos(a))
-        v = (-u[1], u[0])
-        c = (tip[0] + u[0] * dip, tip[1] + u[1] * dip)
-        run = []
-        for k in range(7):
-            w = -0.62 + 1.24 * k / 6
-            bow = -1.2 * (1 - (w / 0.62) ** 2)
-            run.append((c[0] + v[0] * w * wd / 2 + u[0] * bow, c[1] + v[1] * w * wd / 2 + u[1] * bow))
-        out.append(run)
-    return out
-
 
 def outreach_card():
     """The card's outline (mm): its lower left corner turned down toward
@@ -2063,65 +2170,100 @@ def outreach_inset(pts, d):
     return out
 
 
-def outreach_band(y0, y1, hw0, hw1, tones, cuts, lip=0.0):
-    """A length of cloth round the forearm (the arm's axis at x = 1), hw0
-    wide at its top and hw1 at its foot: its rims bow toward the reader as
-    the family's eye sees a circle from a little above, and it is cut into
-    bands along its length by the key light, as cloth round a limb takes
-    it; a band that flares faces a little up. Returns (outline, body)."""
+def outreach_lam(nx, ny, nz):
+    """How squarely a normal of the charge (x right, y up, z to the reader,
+    before the arm's lean) meets the key light, with the arm's lean and the
+    family's eye applied."""
     a = math.radians(OUTREACH_PLACE['lean'])
     cp, sp = math.cos(math.radians(PITCH)), math.sin(math.radians(PITCH))
-    flare = (hw0 - hw1) / (y1 - y0)
+    rx, ry = nx * math.cos(a) + ny * math.sin(a), -nx * math.sin(a) + ny * math.cos(a)
+    return lam((rx, ry * cp - nz * sp, ry * sp + nz * cp))
 
-    def at(y, w):
-        hw = hw0 + (hw1 - hw0) * (y - y0) / (y1 - y0)
-        return (1.0 + w * hw, y + hw * math.sin(math.radians(PITCH)) * math.sqrt(max(0.0, 1 - w * w)))
 
-    def tone(w, up=0.0):
-        nz = math.sqrt(max(0.0, 1 - w * w))
-        up += flare
-        rx, ry = w * math.cos(a) + up * math.sin(a), -w * math.sin(a) + up * math.cos(a)
-        return facet(lam((rx, ry * cp - nz * sp, ry * sp + nz * cp)), tones, cuts)
-    n = 28
+def outreach_ridge(t):
+    """A fold's profile across its line, and its slope: a soft rise on the
+    side toward the wrist and a quicker fall under it, where its shade is."""
+    k = 1.0 if t < 0 else 1.0 / 0.55
+    e = math.exp(-(t * k) ** 2)
+    return e, -2 * t * k * k * e
+
+
+def outreach_sleeve_at(v):
+    y0, y1, hw0, hw1 = OUTREACH_SLEEVE
+    return hw0 + (hw1 - hw0) * min(1.0, max(0.0, (v - y0) / (y1 - y0)))
+
+
+def outreach_sleeve_light(u, v):
+    """The sleeve's light at (u, v) mm: a cone of cloth round the forearm,
+    widening toward the elbow, with the folds laid across it."""
+    y0, y1, hw0, hw1 = OUTREACH_SLEEVE
+    hw = outreach_sleeve_at(v)
+    w = max(-0.985, min(0.985, (u - 1.0) / hw))
+    nz = math.sqrt(1 - w * w)
+    n = [w, -(hw1 - hw0) / (y1 - y0) * nz, nz]
+    for at, slope, depth, width in OUTREACH_FOLDS:
+        c = y0 + at * (y1 - y0) + slope * w * hw
+        e, de = outreach_ridge((v - c) / width)
+        # the fold's height rises and falls along the arm (v, down) and,
+        # because the fold runs on the diagonal, round it too
+        dv = depth * de / width
+        dw = -dv * slope * hw
+        n[1] += dv * 0.9
+        ds = dw * nz / hw
+        n[0] -= nz * ds
+        n[2] += w * ds
+    return outreach_lam(*S.norm(n))
+
+
+def outreach_cuff_light(u, v, lip=0.0):
+    """The turned cuff's light: a starched band round the wrist that flares
+    to its rolled edge, so it faces a little up, and more on the roll."""
+    y0, y1, hw0, hw1 = OUTREACH_CUFF
+    hw = hw0 + (hw1 - hw0) * min(1.0, max(0.0, (v - y0) / (y1 - y0)))
+    w = max(-0.985, min(0.985, (u - 1.0) / hw))
+    nz = math.sqrt(1 - w * w)
+    up = (hw0 - hw1) / (y1 - y0) + (lip * max(0.0, 1 - (v - y0) / 3.0) if lip else 0.0)
+    return outreach_lam(*S.norm((w, up * nz, nz)))
+
+
+def outreach_tube(y0, y1, hw0, hw1, bow0=1.0, bow1=1.0, n=28, bulge=None):
+    """The outline of a length of cloth round the arm (mm): its rims bow
+    toward the reader as the family's eye sees a circle from a little
+    above. `bulge(w, y)` pushes its sides out where a fold stands."""
+    e = math.sin(math.radians(PITCH))
     ws = [-1 + 2 * k / n for k in range(n + 1)]
-    outline = [at(y0, w) for w in ws] + [at(y1, w) for w in reversed(ws)]
-    out, k0 = [], 0
-    bands = [tone((ws[k] + ws[k + 1]) / 2) for k in range(n)]
-    for k in range(1, n + 1):
-        if k == n or bands[k] != bands[k0]:
-            strip = [at(y0, w) for w in ws[k0:k + 1]] + [at(y1, w) for w in reversed(ws[k0:k + 1])]
-            q = [outreach_at(p) for p in strip]
-            out.append('<path d="%s" fill="%s" stroke="%s" stroke-width=".1"/>' % (poly_d(q), bands[k0], bands[k0]))
-            k0 = k
-    if lip:
-        # the rolled edge at the top: it faces up toward the lamp, so it
-        # catches the light a band ahead of the cloth under it
-        for k in range(n):
-            col = tone((ws[k] + ws[k + 1]) / 2, 0.6)
-            q = [outreach_at(p) for p in (at(y0, ws[k]), at(y0, ws[k + 1]), at(y0 + lip, ws[k + 1]), at(y0 + lip, ws[k]))]
-            out.append('<path d="%s" fill="%s" stroke="%s" stroke-width=".1"/>' % (poly_d(q), col, col))
-    return outline, ''.join(out)
+    ns = 12 if bulge else 2
+    right = [(1.0 + hw0 + (hw1 - hw0) * k / ns + (bulge(1.0, y0 + (y1 - y0) * k / ns) if bulge else 0.0),
+              y0 + (y1 - y0) * k / ns) for k in range(1, ns)]
+    left = [(1.0 - hw1 - (hw0 - hw1) * k / ns - (bulge(-1.0, y1 - (y1 - y0) * k / ns) if bulge else 0.0),
+             y1 - (y1 - y0) * k / ns) for k in range(1, ns)]
+    top = [(1.0 + w * hw0, y0 + bow0 * e * hw0 * math.sqrt(max(0.0, 1 - w * w))) for w in ws]
+    foot = [(1.0 + w * hw1, y1 + bow1 * e * hw1 * math.sqrt(max(0.0, 1 - w * w))) for w in reversed(ws)]
+    top[0], top[-1], foot[0], foot[-1] = (top[0] + (1,), top[-1] + (1,), foot[0] + (1,), foot[-1] + (1,))
+    return top + right + foot + left
 
 
-def outreach_mouth(y0, hw):
-    """The inside of the cuff's mouth behind the wrist: the far half of the
-    rim, seen from a little above, down to the near half (mm)."""
-    e = hw * math.sin(math.radians(PITCH))
-    ws = [-1 + 2 * k / 24 for k in range(25)]
-    return ([(1.0 + w * hw, y0 - e * math.sqrt(max(0.0, 1 - w * w))) for w in ws]
-            + [(1.0 + w * hw, y0 + e * math.sqrt(max(0.0, 1 - w * w))) for w in reversed(ws)])
+def outreach_cloth(m, name, outline, light, tones, cuts, small=False):
+    """A length of cloth cut into its planes along the key light."""
+    pts = [outreach_at(p) for p in outline]
+    d = outreach_path(outline)
+    box = (min(p[0] for p in pts) - 1, min(p[1] for p in pts) - 1, max(p[0] for p in pts) + 1, max(p[1] for p in pts) + 1)
+    step, eps = (0.5, 0.2) if small else (0.28, 0.1)
+
+    def lit(x, y):
+        return light(*outreach_from(x, y))
+    return planes(m, name, d, lit, box, tones, cuts, step, eps)
 
 
-def outreach_nail():
-    """The thumb's nail, to the reader: its plate, the sliver of it that
-    turns to the lamp, and its free edge at the tip (mm)."""
-    T = OUTREACH_THUMB
-    j, t = T['joint'], T['tip']
-    ln = math.hypot(t[0] - j[0], t[1] - j[1])
-    u = ((t[0] - j[0]) / ln, (t[1] - j[1]) / ln)       # toward the tip
+def outreach_nail(tip, joint, length, width, clear=1.2):
+    """A nail to the reader on a digit whose tip is `tip` and whose last
+    joint is toward `joint`: its plate, the sliver of it that turns to the
+    lamp, and its free edge at the tip (mm)."""
+    ln = math.hypot(tip[0] - joint[0], tip[1] - joint[1])
+    u = ((tip[0] - joint[0]) / ln, (tip[1] - joint[1]) / ln)       # toward the tip
     v = (-u[1], u[0])
-    c = (t[0] - u[0] * 6.6, t[1] - u[1] * 6.6)
-    L, W = 13.0, 11.4
+    c = (tip[0] - u[0] * (length * 0.5 + clear), tip[1] - u[1] * (length * 0.5 + clear))
+    L, W = length, width
 
     def P(tt, w):
         return (c[0] + u[0] * tt * L / 2 + v[0] * w * W / 2, c[1] + u[1] * tt * L / 2 + v[1] * w * W / 2)
@@ -2138,41 +2280,57 @@ def outreach_nail():
 
 def subject_outreach(m, h, small=False):
     """The day's introduction, held up in the hand: a cubit arm erect,
-    vested or and cuffed argent, the hand holding one
-    calling card up to be seen, the fingers standing behind it and the
-    thumb opposed across its foot. The desk briefs every card overnight;
-    the owner delivers each himself."""
+    vested or and cuffed argent, the hand holding one calling card up to be
+    seen, its fingertips hooked over the card's top edge and its thumb
+    across the card's foot. The desk briefs every card overnight; the owner
+    delivers each himself."""
     forms = outreach_forms()
-    fingers = [v[1] for k, v in forms.items() if v[0] == 'finger']
+    tips = [v[1] for k, v in forms.items() if v[0] == 'tip']
     palm = [forms['palm'][1]]
     thumb = [forms['thumb'][1]]
     face, flap = outreach_card()
     cy0, cy1, cw0, cw1 = OUTREACH_CUFF
     sy0, sy1, sw0, sw1 = OUTREACH_SLEEVE
-    sleeve_sil, sleeve = outreach_band(sy0, sy1, sw0, sw1, OUTREACH_SLEEVE_CLOTH, [0.25, 0.5, 0.74])
-    cuff_sil, cuff = outreach_band(cy0, cy1, cw0, cw1, OUTREACH_LINEN, [0.22, 0.46, 0.72], lip=0 if small else 1.8)
     cuts = OUTREACH_CUTS
     hand_light, thumb_light = outreach_light('hand'), outreach_light('thumb')
 
-    def lay(tones):
-        return (tones[1:], cuts[1:]) if small else (tones, cuts)
+    def lay(tones, cc=cuts):
+        return (tones[1:], cc[1:]) if small else (tones, cc)
+
+    def bulge(s, y):
+        # a fold stands proud of the sleeve's side where it turns round it
+        hw = outreach_sleeve_at(y)
+        out = 0.0
+        for at, slope, depth, width in OUTREACH_FOLDS:
+            c = sy0 + at * (sy1 - sy0) + slope * s * hw
+            out += 0.7 * depth * outreach_ridge((y - c) / width)[0]
+        return out
+    n_ = 10 if small else 18
+    sleeve = outreach_tube(sy0, sy1, sw0, sw1, n=n_, bulge=bulge)
+    cuff = outreach_tube(cy0, cy1, cw0, cw1, n=n_)
     # one shadow for the whole charge, cast down and right on the enamel
     m.add('<g opacity=".5" transform="translate(1 1.4)">%s</g>'
-          % ''.join('<path d="%s"/>' % outreach_path(p) for p in fingers + palm + thumb + [face, cuff_sil, sleeve_sil]))
-    m.add(outreach_planes(m, 'fingers', fingers, hand_light, *lay(OUTREACH_FINGER), small=small))
-    if not small:
-        # the creases across each finger's pads, where the skin folds at a
-        # joint: a short line bowed toward the tip, in the skin's darkest
-        m.add('<path d="%s" stroke="%s" stroke-width=".3" stroke-opacity=".5" stroke-linecap="round" fill="none"/>'
-              % (' '.join(smooth_d([outreach_at(p) for p in run], closed=False) for run in outreach_creases()),
-                 OUTREACH_FINGER[0]))
-    m.add(sleeve)
-    # the cuff's mouth behind the wrist, then the hand issuing from it
-    m.add('<path d="%s" fill="%s"/>' % (outreach_path(outreach_mouth(cy0, cw0 - 0.8)), OUTREACH_LINEN[0]))
+          % ''.join('<path d="%s"/>' % outreach_path(p) for p in tips + palm + thumb + [face, cuff, sleeve]))
+    # the sleeve, and its couped end
+    m.add(outreach_cloth(m, 'sleeve', sleeve, outreach_sleeve_light, *lay(OUTREACH_SLEEVE_CLOTH, OUTREACH_CLOTH_CUTS), small))
+    # the cuff's mouth round the wrist: the inside of the turned cloth, in
+    # its own shade, then the hand issuing from it
+    e = math.sin(math.radians(PITCH))
+    mouth = [(1.0 + (cw0 - 0.6) * math.cos(a), cy0 - e * (cw0 - 0.6) * math.sin(a)) for a in
+             (2 * math.pi * j / 40 for j in range(40))]
+    m.add('<path d="%s" fill="%s"/>' % (outreach_path(mouth), OUTREACH_LINEN[0]))
     m.add(outreach_planes(m, 'palm', palm, hand_light, *lay(OUTREACH_PALM), small=small))
     # the turned cuff lies over the sleeve and shades it along its foot
-    m.add('<path d="%s" fill="#000" fill-opacity=".35" transform="translate(.5 .9)"/>' % outreach_path(cuff_sil))
-    m.add(cuff)
+    m.add('<path d="%s" fill="#000" fill-opacity=".35" transform="translate(.5 .9)"/>' % outreach_path(cuff))
+    m.add(outreach_cloth(m, 'cuff', cuff, outreach_cuff_light, *lay(OUTREACH_LINEN, OUTREACH_CLOTH_CUTS), small))
+    if not small:
+        # its rolled edge: it faces up toward the lamp, so it catches the
+        # light a plane ahead of the cloth under it
+        ws = [-1 + 2 * k / 32 for k in range(33)]
+        roll = ([(1.0 + w * cw0, cy0 + e * cw0 * math.sqrt(1 - w * w)) for w in ws]
+                + [(1.0 + w * (cw0 - 0.3), cy0 + 2.2 + e * cw0 * math.sqrt(1 - w * w)) for w in reversed(ws)])
+        m.add(outreach_cloth(m, 'roll', roll, lambda u, v: outreach_cuff_light(u, v, 1.2), OUTREACH_LINEN,
+                             OUTREACH_CLOTH_CUTS, small))
     # the card stands a finger's breadth in front of the palm, so it throws
     # a band of shade down and right across the heel of the hand
     heel = m.clip('heel', '<path d="%s"/>' % outreach_path(palm[0]))
@@ -2191,70 +2349,93 @@ def subject_outreach(m, h, small=False):
     # the turned corner, its back to the reader, laid on the face
     m.add('<path d="%s" fill="#000" fill-opacity=".18" transform="translate(.35 .45)"/>' % outreach_path(flap))
     m.add('<path d="%s" fill="%s"/>' % (outreach_path(flap), OUTREACH_STOCK[1]))
-    # the thumb over the card: its shade on the card, then the thumb
+    # the fingertips and the thumb over the card: their shade on it, then
+    # the skin, then the nails
     on_card = m.clip('oncard', '<path d="%s"/>' % card)
-    m.add('<g clip-path="%s"><path d="%s" fill="#3a2a20" fill-opacity=".3" transform="translate(1.1 1.3)"/></g>'
-          % (on_card, outreach_path(thumb[0])))
+    m.add('<g clip-path="%s">%s</g>' % (on_card, ''.join(
+        '<path d="%s" fill="#3a2a20" fill-opacity=".3" transform="translate(1.1 1.3)"/>' % outreach_path(p)
+        for p in tips + thumb)))
+    m.add(outreach_planes(m, 'tips', tips, hand_light, *lay(OUTREACH_FINGER), small=small))
     m.add(outreach_planes(m, 'thumb', thumb, thumb_light, *lay(OUTREACH_BACK), small=small))
-    plate, lit, edge = outreach_nail()
-    m.add('<path d="%s" fill="%s"/>' % (outreach_path(plate), OUTREACH_NAIL[0]))
+    T = OUTREACH_THUMB
+    nails = [outreach_nail(T['tip'], T['joint'], 13.0, 11.4)]
     if not small:
-        m.add('<path d="%s" fill="%s"/>' % (outreach_path(lit), OUTREACH_NAIL[1]))
-    m.add('<path d="%s" fill="%s"/>' % (outreach_path(edge), OUTREACH_NAIL[2]))
+        nails += [outreach_nail(tip, knuckle, 8.6, wn * 0.74, 0.6) for _, tip, knuckle, wn, _ in outreach_tips()]
+    for plate, lit, edge in nails:
+        m.add('<path d="%s" fill="%s"/>' % (outreach_path(plate), OUTREACH_NAIL[0]))
+        if not small:
+            m.add('<path d="%s" fill="%s"/>' % (outreach_path(lit), OUTREACH_NAIL[1]))
+        m.add('<path d="%s" fill="%s"/>' % (outreach_path(edge), OUTREACH_NAIL[2]))
 
 
 # --------------------------------------------------------------------------
-# Arsenal: the gun laid for range, the gunner's square in its muzzle
+# Arsenal: the gun on its carriage, laid by the gunner's square in its muzzle
 # --------------------------------------------------------------------------
-# A gunner's quadrant reads only when it is seen doing its job, so the charge
-# is the gun and the instrument together, the way Tartaglia drew them in Nova
-# Scientia (1537; the Library of Congress print of the page headed "Pezzo
-# elevato alli 45 gradi sopra a l'orizonte") and the Encyclopaedia Britannica
-# redrew them in 1911: the square's long arm laid on the bottom of the bore,
-# its short arm hanging square to the gun beyond the muzzle, and a plumb line
-# from the inner corner crossing the quarter arc between them at the gun's
-# elevation. The gun is laid at Tartaglia's forty-five degrees, so the plumb
-# cuts the arc at its sixth point, halfway.
+# A gunner's quadrant reads only when it is seen doing its job, and a gun
+# reads as a gun only on its carriage, so the charge is the whole piece as
+# Tartaglia drew it in Nova Scientia (1537; the Library of Congress print of
+# the page headed "Pezzo elevato alli 45 gradi sopra a l'orizonte"): the gun
+# on its wheeled field carriage, laid for range, with the square's long arm
+# in the bore and its quarter arc and plumb beyond the muzzle.
 #
-# The gun is a muzzle-loading iron gun of the Blomefield pattern, from the
-# twenty-four pounder on Martello Tower No. 24 and the side elevation of one
-# with its parts named: the lip and mouldings, the swell of the muzzle, the
-# neck, the muzzle astragal, the chase tapering back to its girdle, the
-# second and first reinforces each a step heavier, the trunnions a little
-# under the bore's axis, the base ring, the rounded base of the breech, and
-# the cascabel's neck and knob. Its radii are drawn fuller than the long
-# gun's, about the proportion of the short guns of the same pattern, so the
-# barrel reads as a gun and not a rod at the size of a gate. It is drawn
-# without its carriage, the way heraldry carries a cannon barrel, and turned
-# a little so its muzzle and the dark of the bore come toward the reader. It
-# is coloured as the eye remembers an iron gun: black, its lit back taking a
-# cold blue sheen, on the enamel a shade paler than the gun so the whole
-# barrel stands dark against it. The square is flat cast brass, its arc cut
-# in the gunner's twelve points and filled alternately, as in Tartaglia's
-# woodcut; the plumb is a turned brass bob on a hemp cord. World units: the
-# gun is 100 long from its knob to its muzzle face, y up, and the whole
-# charge is fitted to the badge afterwards.
+# The carriage is the field carriage of Gribeauval's system as it stands in
+# the Invalides (two photographs of the twelve-pounder, Wikimedia Commons)
+# and in the Royal Artillery's side elevation of a field carriage: a wheel
+# as high as two thirds of the gun is long, twelve spokes set in a turned
+# nave, six felloes shod with iron; a deep cheek with the trunnion bedded in
+# a notch on its top and a step behind it, running straight down to the
+# trail's end on the ground. The gun is a muzzle-loading iron gun of the
+# Blomefield pattern (the twenty-four pounder on Martello Tower No. 24, and
+# the side elevation with its parts named), a little fuller than the real
+# one so it holds at the size of a gate. It is laid at thirty degrees, so
+# the plumb cuts the arc at its fourth point of twelve.
+#
+# The square is the gunner's quadrant of Sisson's pattern (Royal Museums
+# Greenwich, about 1770): a long arm three times the radius of its arc, so
+# out of the muzzle it reads as a rule with a quarter arc at its end and
+# never as a letter. It is flat cast brass, its arc cut in the gunner's twelve
+# points and filled alternately, as in Tartaglia's woodcut; the plumb is a
+# turned brass bob on a hemp cord.
+#
+# Colour as the eye keeps it: the gun black iron, its lit back taking a cold
+# blue sheen; the carriage oiled oak with black ironwork; the square brass;
+# all on the enamel of blued gun steel, dark enough that the oak, the
+# brass and the gun's lit back carry the figure. World units: the gun is 100
+# long from its knob to its muzzle face, y up, the ground at y = 0 and the
+# reader toward +z; the whole piece is fitted to the badge afterwards.
 ARSENAL = {
-    'elev': 45.0,                    # the gun's elevation, degrees
-    'yaw': -16.0,                    # turned so the muzzle comes toward the reader
-    'girth': 1.8,                    # the profile's radii, fuller than the real gun's so it reads
-    'girth_s': 1.3,                  # and the small cut's gun, heavier again
+    'elev': 34.0,                    # the gun's elevation, degrees
+    'yaw': -10.0,                    # turned so the muzzle comes a little toward the reader
+    'girth': 1.35,                   # the profile's radii, a little fuller than the real gun's
+    'girth_s': 1.15,                 # and the small cut's gun, heavier again
     'bore': 0.03,                    # the bore's radius, over the length
     'trunnion': (0.555, 0.0605, 0.03, 0.28),   # where (from the muzzle), the barrel's radius there,
                                                # the trunnion's radius, its drop under the axis
-    'out': 26.0,                     # the square: its corner, this far beyond the muzzle
-    'arc': 24.0, 'band': 4.8,        # the arc's radius about the corner, and the band the points are cut in
-    'arm': 4.2, 'short': 31.0,       # the arms' width, and the short arm's length
-    'thick': 1.6,                    # the brass plate
-    'cord': 26.0, 'bob': 3.1,        # the plumb line, and the bob's scale
-    'fill': 0.26,                    # how much light the enamel throws back into the gun's belly
-    'shade': (1.2, 1.6, 0.42),       # the gun's cast shadow: its offset and opacity
-    'fit': 39.2, 'centre': (48.0, 49.0),
+    'wheel': 30.0, 'rise': 8.0,      # the wheel's radius; the trunnions over the axle
+    'track': 21.0,                   # the wheel's face from the gun's axis (toward the reader)
+    'cheek': (9.0, 12.5),            # the near cheek's inner and outer face
+    'spokes': 12,
+    'out': 21.0,                     # the square: its corner, this far beyond the muzzle
+    'arc': 10.0, 'band': 3.8,        # the arc's radius about the corner, and the band the points are cut in
+    'arm': 3.6, 'short': 10.0,       # the arms' width, and the short arm's length
+    'thick': 1.4,                    # the brass plate
+    'cord': 17.0, 'bob': 2.4,        # the plumb line, and the bob's scale
+    'shade': (1.2, 1.6, 0.42),       # the piece's cast shadow: its offset and opacity
+    'fit': 40.0, 'fit_s': 41.5, 'centre': (48.0, 48.5),
 }
+# The near cheek's side, in world units about the axle's foot: its top with
+# the trunnion's bed and the step behind it, the trail running straight down
+# to its end on the ground, and its foot back up under the axle.
+ARSENAL_CHEEK = [(9.5, 37.8), (4.3, 37.8), 'bed', (-4.3, 37.8), (-9.0, 37.8), (-11.0, 35.4), (-38.0, 14.8),
+                 (-41.4, 12.0), (-43.2, 8.4), (-43.8, 4.0), (-42.6, 0.4), (-38.0, 0.0), (-8.0, 21.0), (-5.5, 22.6),
+                 (6.0, 22.6), (9.0, 25.4), (10.4, 31.0)]
 # Iron, black, its lit planes taking the sky's blue: dark, shade, body, lit, crest.
-ARSENAL_IRON = ['#0a0d10', '#161d23', '#2a353e', '#52636f', '#9aadba']
+ARSENAL_IRON = ['#0a0d10', '#161d23', '#2c3842', '#5a6c79', '#a9bcc8']
 ARSENAL_IRON_CUTS = [0.12, 0.3, 0.62, 0.88]
-ARSENAL_IRON_CUTS_S = [0.12, 0.3, 0.6, 0.8]       # the small cut: the crest kept broad, it draws the gun's back
+ARSENAL_IRON_CUTS_S = [0.34, 0.74]               # the small cut: shade, body and a broad crest along the gun's back
+# Oiled oak, from its shadow to its crest.
+ARSENAL_OAK = ['#2e1f12', '#684828', '#9c7142', '#c4965e', '#e0bb82']
+ARSENAL_OAK_CUTS = [0.14, 0.34, 0.6, 0.86]
 # The square's brass, from Arsenal's own page (--brass-lo, --brass,
 # --brass-hi) with a shade under and a crest over: every face, wall and
 # chamfer takes one of these by how squarely it meets the key light.
@@ -2263,52 +2444,38 @@ ARSENAL_BRASS_CUTS = [0.12, 0.32, 0.55, 0.78, 0.92]
 ARSENAL_INK = '#2a2109'              # what the graver cuts, filled with black wax
 ARSENAL_HEMP = '#b39c70'             # the plumb's cord
 ARSENAL_BORE = '#07090b'
-ARSENAL_FILL = S.norm((0.55, -0.8, -0.2))  # the light the enamel throws back, from below and to the right
 # The bob, turned: (from, to, radius, radius) down its axis, in bob units.
-ARSENAL_BOB = [(0.0, 0.5, 0.35, 0.35), (0.5, 0.5, 0.35, 0.6), (0.5, 1.0, 0.6, 0.6), (1.0, 1.0, 0.6, 0.4),
-               (1.0, 1.7, 0.4, 0.75), (1.7, 2.3, 0.75, 0.98), (2.3, 2.9, 0.98, 1.0), (2.9, 3.6, 1.0, 0.82),
-               (3.6, 4.6, 0.82, 0.42), (4.6, 5.3, 0.42, 0.0)]
+ARSENAL_BOB = [(0.0, 0.8, 0.4, 0.4), (0.8, 0.8, 0.4, 0.62), (0.8, 1.7, 0.62, 0.8), (1.7, 2.9, 0.8, 1.0),
+               (2.9, 4.2, 1.0, 0.62), (4.2, 5.3, 0.62, 0.0)]
 
 
 def arsenal_profile(small=False):
     """The gun's turned profile, knob to muzzle: bands (f0, f1, r0, r1), f the
     distance from the muzzle face and r the radius, both over the length. A
-    band with f0 == f1 is a step (a ring's face). The small cut keeps each
-    ring as one plain band and drops the fillets."""
+    band with f0 == f1 is a step (a ring's face). At the size the gun is laid
+    on its carriage a fillet is under a pixel, so each ring is one plain
+    band; the full cut keeps the muzzle astragal's fillets, the one ring
+    that stands clear of the wheel, and turns the knob and the breech in more
+    steps."""
     P = []
     # the knob, a ball, and its neck
     kc, kr = 0.978, 0.03
-    n = 8 if small else 20
+    n = 4 if small else 6
     ball = [(kc + kr * math.cos(math.pi * k / n), kr * math.sin(math.pi * k / n)) for k in range(n + 1)]
     P += [(a[0], b[0], a[1], b[1]) for a, b in zip(ball, ball[1:])]
     P += [(kc - kr, 0.952, 0.015, 0.015), (0.952, 0.952, 0.015, 0.024), (0.952, 0.946, 0.024, 0.024)]
     # the base of the breech, rounding out to the base ring
-    n = 6 if small else 14
+    n = 3 if small else 4
     for k in range(n):
         a0, a1 = math.pi / 2 * k / n, math.pi / 2 * (k + 1) / n
         P.append((0.946 - 0.034 * math.sin(a0), 0.946 - 0.034 * math.sin(a1),
                   0.024 + 0.05 * (1 - math.cos(a0)) ** 0.7, 0.024 + 0.05 * (1 - math.cos(a1)) ** 0.7))
-    # the base ring and the vent field
+    # the base ring, the first reinforce, the second reinforce ring and the
+    # second reinforce, the chase girdle and the chase tapering to the neck
     P += [(0.912, 0.912, 0.074, 0.077), (0.912, 0.896, 0.077, 0.077), (0.896, 0.896, 0.077, 0.070),
-          (0.896, 0.884, 0.070, 0.070)]
-    # the first reinforce's astragal and fillets, and the first reinforce
-    if small:
-        P += [(0.884, 0.64, 0.069, 0.065)]
-    else:
-        P += [(0.884, 0.884, 0.070, 0.072), (0.884, 0.879, 0.072, 0.072), (0.879, 0.879, 0.072, 0.075),
-              (0.879, 0.866, 0.075, 0.075), (0.866, 0.866, 0.075, 0.072), (0.866, 0.861, 0.072, 0.072),
-              (0.861, 0.861, 0.072, 0.069), (0.861, 0.64, 0.069, 0.065)]
-    # the second reinforce ring, and the second reinforce
-    P += [(0.64, 0.64, 0.065, 0.068), (0.64, 0.626, 0.068, 0.066), (0.626, 0.626, 0.066, 0.061),
-          (0.626, 0.44, 0.061, 0.058)]
-    # the chase girdle, and the chase tapering to the neck
-    if small:
-        P += [(0.44, 0.44, 0.058, 0.061), (0.44, 0.415, 0.061, 0.061), (0.415, 0.415, 0.061, 0.056)]
-    else:
-        P += [(0.44, 0.44, 0.058, 0.060), (0.44, 0.434, 0.060, 0.060), (0.434, 0.434, 0.060, 0.063),
-              (0.434, 0.42, 0.063, 0.063), (0.42, 0.42, 0.063, 0.060), (0.42, 0.414, 0.060, 0.060),
-              (0.414, 0.414, 0.060, 0.056)]
-    P += [(0.414, 0.15, 0.056, 0.047)]
+          (0.896, 0.64, 0.070, 0.065), (0.64, 0.64, 0.065, 0.068), (0.64, 0.626, 0.068, 0.066),
+          (0.626, 0.626, 0.066, 0.061), (0.626, 0.44, 0.061, 0.058), (0.44, 0.44, 0.058, 0.061),
+          (0.44, 0.415, 0.061, 0.061), (0.415, 0.415, 0.061, 0.056), (0.415, 0.15, 0.056, 0.047)]
     # the muzzle astragal and fillets
     if small:
         P += [(0.15, 0.15, 0.047, 0.051), (0.15, 0.13, 0.051, 0.051), (0.13, 0.13, 0.051, 0.046)]
@@ -2317,7 +2484,7 @@ def arsenal_profile(small=False):
               (0.145, 0.133, 0.052, 0.052), (0.133, 0.133, 0.052, 0.049), (0.133, 0.128, 0.049, 0.049),
               (0.128, 0.128, 0.049, 0.046)]
     # the neck, and the swell of the muzzle rising to its mouldings and lip
-    n = 4 if small else 7
+    n = 3 if small else 4
     for k in range(n):
         a0, a1 = k / float(n), (k + 1) / float(n)
         P.append((0.128 - 0.1 * a0, 0.128 - 0.1 * a1, 0.046 + 0.018 * a0 ** 1.8, 0.046 + 0.018 * a1 ** 1.8))
@@ -2390,7 +2557,7 @@ def arsenal_wrap(x):
     return (x + math.pi) % (2 * math.pi) - math.pi
 
 
-def arsenal_lathe(v, O, A, U, W, bands, tones, cuts, small=False, bevel=1.6, fill=0.0):
+def arsenal_lathe(v, O, A, U, W, bands, tones, cuts, small=False, bevel=1.6):
     """A turned solid about the axis through O along A: bands (t0, t1, r0, r1)
     in order, far to near, laid one after another so a nearer band covers a
     farther one. Each band is laid as runs of one tone, a run's edges where
@@ -2406,14 +2573,21 @@ def arsenal_lathe(v, O, A, U, W, bands, tones, cuts, small=False, bevel=1.6, fil
     (0 for a flat face). Consecutive pieces of one tone share a path, all
     wound the same way so none cuts a hole in another. Returns SVG."""
     seq = []
+    # a stretch of bands between two steps tiles the surface without overlap,
+    # so within it every piece of one tone goes in one path (the outlines
+    # under the runs first); a step is its own stretch, laid in turn
+    stretch = [{}, {}]
 
-    def put(tone, poly):
+    def put(tone, poly, layer=1):
         if S.area(poly) < 0:
             poly = poly[::-1]
-        if seq and seq[-1][0] == tone:
-            seq[-1][1].append(S.pts_d(poly))
-        else:
-            seq.append((tone, [S.pts_d(poly)]))
+        stretch[layer].setdefault(tone, []).append(S.pts_d(poly))
+
+    def flush():
+        for layer in stretch:
+            for tone, ds in layer.items():
+                seq.append((tone, ds))
+            layer.clear()
 
     def P(t, r, a):
         return v.proj(S.add(S.add(O, S.mul(A, t)), S.add(S.mul(U, r * math.cos(a)), S.mul(W, r * math.sin(a)))))[:2]
@@ -2437,8 +2611,7 @@ def arsenal_lathe(v, O, A, U, W, bands, tones, cuts, small=False, bevel=1.6, fil
                 # over, so it takes the light the way a bevel would, and the
                 # part of it under the gun goes into the gun's shade
                 nv = v.nrm(S.norm(S.add(S.mul(A, -1.0 if dr > 0 else 1.0), S.mul(rad, bev))))
-            # the enamel under the gun throws a little light back up into its belly
-            return S.quant(facet(max(lam(nv), fill * max(0.0, S.dot(S.norm(nv), ARSENAL_FILL))), tones, cuts))
+            return S.quant(facet(lam(nv), tones, cuts))
         rings = arsenal_runs(cls, 90 if small else 180)
         edges = {}
         for (a0, a1, tn), (b0, b1, nx) in zip(rings, rings[1:] + rings[:1]):
@@ -2464,11 +2637,13 @@ def arsenal_lathe(v, O, A, U, W, bands, tones, cuts, small=False, bevel=1.6, fil
     for lb in laid:
         t0, t1, r0, r1 = lb['band']
         rings = lb['rings']
+        if lb['step']:
+            flush()
         if not lb['step'] and any(tn is None for _, _, tn in rings):
             ax0, ax1 = P(t0, 0.0, 0.0), P(t1, 0.0, 0.0)
             d = (ax1[0] - ax0[0], ax1[1] - ax0[1])
             if math.hypot(*d) > 1e-6:
-                hull = groundstation_hull([P(t, r, 2 * math.pi * j / 40) for t, r in ((t0, r0), (t1, r1)) for j in range(40)])
+                hull = S.rdp(groundstation_hull([P(t, r, 2 * math.pi * j / 32) for t, r in ((t0, r0), (t1, r1)) for j in range(32)]), 0.05)
                 for (a0, a1, tn), (b0, b1, nx) in zip(rings, rings[1:] + rings[:1]):
                     edge = None
                     if tn is not None and nx is None:
@@ -2481,9 +2656,9 @@ def arsenal_lathe(v, O, A, U, W, bands, tones, cuts, small=False, bevel=1.6, fil
                     side = 1 if d[0] * (p[1] - ax0[1]) - d[1] * (p[0] - ax0[0]) > 0 else -1
                     half = arsenal_half(hull, ax0, d, side)
                     if len(half) > 2:
-                        put(tone, half)
+                        put(tone, half, 0)
         # the angle between points on a rim: its chord strays under a twentieth of a unit
-        arc = min(0.5, 2 * math.sqrt(0.1 / max(0.05, v.s * max(r0, r1))))
+        arc = min(0.5, 2 * math.sqrt((0.3 if small else 0.12) / max(0.05, v.s * max(r0, r1))))
         k = len(rings)
         for i, (a0, a1, tone) in enumerate(rings):
             if tone is None:
@@ -2502,15 +2677,21 @@ def arsenal_lathe(v, O, A, U, W, bands, tones, cuts, small=False, bevel=1.6, fil
             m_ = max(2, int(max(e0 - s0, e1 - s1) / arc) + 1)
             poly = ([P(t0, r0, s0 + (e0 - s0) * j / m_) for j in range(m_ + 1)]
                     + [P(t1, r1, s1 + (e1 - s1) * j / m_) for j in range(m_, -1, -1)])
-            put(tone, S.rdp(poly, 0.05 if small else 0.03))
+            put(tone, S.rdp(poly, 0.18 if small else 0.06))
+        if lb['step']:
+            flush()
+    flush()
     return ''.join('<path d="%s" fill="%s" stroke="%s" stroke-width=".1"/>' % (' '.join(ds), tone, tone) for tone, ds in seq)
 
 
 def arsenal_square(rb, small=False):
     """The square in the bore's plane, (t, s) about the centre of the muzzle
-    face: t along the bore, s square to it and up. Returns its outline, the
-    opening between the arms and the arc, and the inner corner the cord
-    hangs from."""
+    face: t along the bore, s square to it and up. The long arm lies on the
+    bottom of the bore and runs out past the muzzle to the corner; the short
+    arm hangs square from the corner, as long as the arc's radius, and the
+    quarter arc joins them on the gun's side, so the plumb from the corner
+    crosses it. Returns its outline, the opening between the arms and the
+    arc, and the inner corner the cord hangs from."""
     q = ARSENAL
     k = 1.3 if small else 1.0
     wa, wb = q['arm'] * k, q['band'] * k
@@ -2548,6 +2729,154 @@ def arsenal_ring_pts(v, O, A, U, W, bands, step=15):
     return pts
 
 
+def arsenal_outline(v, O, A, U, W, bands):
+    """The gun's own silhouette: every turned band's outline (the hull of its
+    two rims), as one path, to clip the gun's planes to (a ring's face never
+    reaches past the band beside it)."""
+    out = []
+    for b in bands:
+        t0, t1, r0, r1 = b[:4]
+        if abs(t1 - t0) < 1e-9:
+            continue
+        ring = [v.proj(S.add(S.add(O, S.mul(A, t)), S.add(S.mul(U, r * math.cos(2 * math.pi * j / 32)),
+                                                           S.mul(W, r * math.sin(2 * math.pi * j / 32)))))[:2]
+                for t, r in ((t0, r0), (t1, r1)) for j in range(32)]
+        hull = groundstation_hull(ring)
+        if S.area(hull) < 0:
+            hull = hull[::-1]
+        out.append(S.pts_d(S.rdp(hull + hull[:1], 0.04)[:-1] if len(hull) > 4 else hull))
+    return ' '.join(out)
+
+
+def arsenal_cheek_profile():
+    """The near cheek's side in world (x, y), the trunnion's bed swept in."""
+    q = ARSENAL
+    rt = q['trunnion'][2] * 100.0 * arsenal_girth() + 0.3
+    ty = q['wheel'] + q['rise']
+    out = []
+    for p in ARSENAL_CHEEK:
+        if p == 'bed':
+            out += [(rt * math.cos(a), ty + rt * math.sin(a)) for a in (-math.pi * j / 12 for j in range(1, 12))]
+        else:
+            out.append(p)
+    return out
+
+
+def arsenal_prism(v, loop, z0, z1, tones, cuts, lift=0.0):
+    """A flat piece of timber or iron cut to `loop` (world x, y) between z0
+    and z1: its edges where they turn to the reader, each in the tone its
+    normal takes, and its face toward the reader over them. Returns SVG."""
+    fc = S.Faces()
+    ccw = arsenal_area(loop) > 0
+    n = len(loop)
+    for i in range(n):
+        a, b = loop[i], loop[(i + 1) % n]
+        ex, ey = b[0] - a[0], b[1] - a[1]
+        ln = math.hypot(ex, ey)
+        if ln < 1e-6:
+            continue
+        nx, ny = (ey / ln, -ex / ln) if ccw else (-ey / ln, ex / ln)
+        nw = v.nrm((nx, ny, 0.0))
+        if nw[2] <= 0.01:
+            continue
+        quad = [v.proj((a[0], a[1], z1)), v.proj((b[0], b[1], z1)), v.proj((b[0], b[1], z0)), v.proj((a[0], a[1], z0))]
+        fc.add([(p[0], p[1]) for p in quad], sum(p[2] for p in quad) / 4, facet(lam(nw) + lift, tones, cuts))
+    face = S.pts_d([v.proj((x, y, z1))[:2] for x, y in loop])
+    tone = facet(lam(v.nrm((0.0, 0.0, 1.0))) + lift, tones, cuts)
+    return fc.svg(seam=0.1) + '<path d="%s" fill="%s"/>' % (face, tone)
+
+
+def arsenal_wheel(m, v, c, zf, small=False, far=False):
+    """A field carriage's wheel in the plane z = zf about c (world x, y): an
+    iron tyre on six oak felloes, twelve spokes tapering from a turned nave,
+    and the axle's iron cap. The far wheel shows only its rim, in shade."""
+    q = ARSENAL
+    Rw = q['wheel']
+    ty, fw = (2.0, 5.2) if not small else (2.4, 6.0)
+    rn = 6.4                                   # the nave, where the spokes enter it
+    n = 36
+
+    def P(r, a, z=zf):
+        return v.proj((c[0] + r * math.cos(a), c[1] + r * math.sin(a), z))[:2]
+
+    def ring(r0, r1, z):
+        return (S.pts_d([P(r1, 2 * math.pi * j / n, z) for j in range(n)]) + ' '
+                + S.pts_d([P(r0, -2 * math.pi * j / n, z) for j in range(n)]))
+    face = lam(v.nrm((0.0, 0.0, 1.0)))
+    out = []
+    if far:
+        out.append('<path d="%s" fill="%s" fill-rule="evenodd"/>' % (ring(Rw - ty - fw, Rw, zf), ARSENAL_IRON[2]))
+        out.append('<path d="%s" fill="%s" fill-rule="evenodd"/>' % (ring(Rw - ty - fw, Rw - ty, zf), ARSENAL_OAK[2]))
+        return ''.join(out)
+    # the rim's edges where they turn to the reader: the tyre's tread
+    # outside, the felloes' inner edge inside
+    fc = S.Faces()
+    depth = 4.0
+    for j in range(n):
+        a0, a1 = 2 * math.pi * j / n, 2 * math.pi * (j + 1) / n
+        am = (a0 + a1) / 2
+        for r, sgn, tones in ((Rw, 1.0, ARSENAL_IRON), (Rw - ty - fw, -1.0, ARSENAL_OAK)):
+            nw = v.nrm((sgn * math.cos(am), sgn * math.sin(am), 0.0))
+            if nw[2] <= 0.01:
+                continue
+            quad = [P(r, a0), P(r, a1), P(r, a1, zf - depth), P(r, a0, zf - depth)]
+            fc.add(quad, -1.0, facet(lam(nw), tones, ARSENAL_OAK_CUTS if tones is ARSENAL_OAK else ARSENAL_IRON_CUTS))
+    out.append(fc.svg(seam=0.1))
+    # the spokes: each a rounded bar, the half toward the lamp lit
+    k = q['spokes'] - (2 if small else 0)
+    w0, w1 = (2.9, 2.1) if not small else (4.6, 3.6)
+    r1 = Rw - ty - fw + 0.6
+    for i in range(k):
+        a = 2 * math.pi * (i + 0.5) / k
+        u = (math.cos(a), math.sin(a))
+        p = (-u[1], u[0])
+        halves = []
+        for side in (1.0, -1.0):
+            poly = [(c[0] + u[0] * rn, c[1] + u[1] * rn), (c[0] + u[0] * r1, c[1] + u[1] * r1),
+                    (c[0] + u[0] * r1 + p[0] * side * w1 / 2, c[1] + u[1] * r1 + p[1] * side * w1 / 2),
+                    (c[0] + u[0] * rn + p[0] * side * w0 / 2, c[1] + u[1] * rn + p[1] * side * w0 / 2)]
+            nrm = v.nrm(S.norm((p[0] * side, p[1] * side, 1.0)))
+            tone = facet(lam(nrm), ARSENAL_OAK, ARSENAL_OAK_CUTS)
+            halves.append('<path d="%s" fill="%s" stroke="%s" stroke-width=".1"/>'
+                          % (S.pts_d([v.proj((x, y, zf - 0.8))[:2] for x, y in poly]), tone, tone))
+        out.append(''.join(halves))
+    # the felloes and the tyre, faced flat to the reader
+    out.append('<path d="%s" fill="%s" fill-rule="evenodd"/>' % (ring(Rw - ty - fw, Rw - ty + 0.1, zf),
+                                                                facet(face, ARSENAL_OAK, ARSENAL_OAK_CUTS)))
+    if not small:
+        joints = []
+        for j in range(6):
+            a = 2 * math.pi * j / 6 + math.pi / k
+            p0, p1 = P(Rw - ty - fw, a), P(Rw - ty, a)
+            joints.append((p0[0], p0[1], p1[0], p1[1]))
+        out.append('<path d="%s" stroke="%s" stroke-width=".3" stroke-opacity=".75"/>' % (lines_path(joints), ARSENAL_OAK[0]))
+    out.append('<path d="%s" fill="%s" fill-rule="evenodd"/>' % (ring(Rw - ty, Rw, zf + 0.2),
+                                                                facet(face, ARSENAL_IRON, ARSENAL_IRON_CUTS)))
+    # the nave, turned along the axle, its iron hoops, and the axle's cap
+    O = (c[0], c[1], zf - 6.0)
+    axis = ((0.0, 0.0, 1.0), (1.0, 0.0, 0.0), (0.0, 1.0, 0.0))
+    out.append(arsenal_lathe(v, O, *axis, [(0.0, 5.0, rn + 0.4, rn + 0.9), (5.0, 7.2, rn + 0.9, rn + 0.4)],
+                             ARSENAL_OAK, ARSENAL_OAK_CUTS, small))
+    out.append(arsenal_lathe(v, O, *axis, [(7.2, 7.2, rn + 0.4, rn + 0.9, 0.0), (7.2, 8.4, rn + 0.9, rn + 0.9)],
+                             ARSENAL_IRON, ARSENAL_IRON_CUTS, small))
+    out.append(arsenal_lathe(v, O, *axis, [(8.4, 8.4, rn + 0.9, rn - 0.4, 0.0), (8.4, 10.6, rn - 0.4, rn - 1.8)],
+                             ARSENAL_OAK, ARSENAL_OAK_CUTS, small))
+    cap = [(10.6, 10.6, rn - 1.8, 3.4, 0.0), (10.6, 12.6, 3.4, 3.1), (12.6, 12.6, 3.1, 0.0, 0.5)]
+    out.append(arsenal_lathe(v, O, (0.0, 0.0, 1.0), (1.0, 0.0, 0.0), (0.0, 1.0, 0.0), cap, ARSENAL_IRON, ARSENAL_IRON_CUTS, small))
+    return ''.join(out)
+
+
+def arsenal_fit(pts):
+    """The smallest circle round a set of points (Badoiu and Clarkson's
+    walk toward the farthest point): its centre and radius."""
+    cx, cy = pts[0]
+    for i in range(1, 400):
+        far = max(pts, key=lambda p: (p[0] - cx) ** 2 + (p[1] - cy) ** 2)
+        cx += (far[0] - cx) / (i + 1)
+        cy += (far[1] - cy) / (i + 1)
+    return (cx, cy), max(math.hypot(p[0] - cx, p[1] - cy) for p in pts)
+
+
 def arsenal_boss(m, v, c, n, e1, e2, r, cuts, small=False, dome=0.55):
     """A round flat end of radius r about c, facing n, whose arris is turned
     over so it reads as a boss: cut into planes along the light a shallow
@@ -2569,23 +2898,32 @@ def arsenal_boss(m, v, c, n, e1, e2, r, cuts, small=False, dome=0.55):
 
 
 def subject_arsenal(m, h, small=False):
-    """The gun laid for range with the gunner's square in its muzzle, the
-    plumb line crossing the arc at the gun's elevation: the number Arsenal's
-    Ballistic Computer gives, read the way gunners first read it. Black iron
-    and the square's brass, the Ballistic Computer's own fittings, on the
-    gunmetal enamel. The small cut keeps the gun's big rings and draws the
-    barrel heavier, the square's arms heavier and its points as six blocks,
-    and the cord as a line three units wide."""
+    """The gun on its field carriage, laid for range with the gunner's
+    square in its muzzle and the plumb line crossing the arc at the gun's
+    elevation: the number Arsenal's Ballistic Computer gives, read the way
+    gunners first read it. Black iron, oiled oak and the square's brass, the
+    Ballistic Computer's own fittings, on blued gun steel. The small cut
+    keeps the gun's big rings, the wheel's spokes and rim drawn heavier, the
+    square's arms heavier and its points as six blocks, and the cord as a
+    line three units wide."""
     q = ARSENAL
     L = 100.0
     A, U, W = arsenal_frame()
-    O = (0.0, 0.0, 0.0)
-    M = S.mul(A, L)                               # the centre of the muzzle face
+    Rw = q['wheel']
+    axle = (0.0, Rw)
+    Tc = (0.0, Rw + q['rise'], 0.0)                # the trunnions' centre
+    ft, rl, rt, drop = q['trunnion']
     g = arsenal_girth(small)
+    rl, rt = rl * L * g, rt * L * g
+    O = S.add(S.add(Tc, S.mul(A, -L * (1 - ft))), S.mul(U, drop * rl))   # the knob's end of the axis
+    M = S.add(O, S.mul(A, L))                     # the centre of the muzzle face
     rb = q['bore'] * L * g
     bands = arsenal_bands(small)
     outer, hole, corner = arsenal_square(rb, small)
     thick = q['thick'] * (1.3 if small else 1.0)
+    zc0, zc1 = q['cheek']
+    zw = q['track']
+    cheek = arsenal_cheek_profile()
 
     def sq(p, z=0.0):
         """A point of the square's plane in the world."""
@@ -2596,34 +2934,52 @@ def subject_arsenal(m, h, small=False):
     pin = sq(corner, thick / 2 + 0.2)
     bob_top = (pin[0], pin[1] - q['cord'], pin[2])
     bs = q['bob'] * (1.25 if small else 1.0)
-    # fit: the whole charge at unit scale, then the circle round it onto the badge
+    # fit: the whole piece at unit scale, then the smallest circle round it onto the badge
     v0 = S.View(0.0, 0.0, 1.0, yaw=q['yaw'], pitch=PITCH)
-    pts = arsenal_ring_pts(v0, O, A, U, W, bands)
+    pts = arsenal_ring_pts(v0, O, A, U, W, bands, 30)
     pts += [v0.proj((x, y, z))[:2] for x, y in outer_w for z in (-thick / 2, thick / 2)]
     pts += [v0.proj((bob_top[0] + dx, bob_top[1] - dy, bob_top[2]))[:2] for dx in (-bs, bs) for dy in (0.0, 5.3 * bs)]
-    xs, ys = [p[0] for p in pts], [p[1] for p in pts]
-    c = ((min(xs) + max(xs)) / 2, (min(ys) + max(ys)) / 2)
-    k = q['fit'] / max(math.hypot(p[0] - c[0], p[1] - c[1]) for p in pts)
+    pts += [v0.proj((x, y, z))[:2] for x, y in cheek for z in (zc0, zc1)]
+    pts += [v0.proj((axle[0] + Rw * math.cos(a), axle[1] + Rw * math.sin(a), z))[:2]
+            for a in (2 * math.pi * j / 36 for j in range(36)) for z in (zw, -zw)]
+    c, rad = arsenal_fit(pts)
+    k = q['fit_s' if small else 'fit'] / rad
     X, Y = q['centre']
     v = S.View(X - k * c[0], Y - k * c[1], k, yaw=q['yaw'], pitch=PITCH)
-    # the charge's shadows on the enamel, cast down and to the right
-    m.add(shadow(poly_d(groundstation_hull(arsenal_ring_pts(v, O, A, U, W, bands, 20))), *q['shade']))
-    m.add(shadow(S.pts_d([v.proj((x, y, -thick / 2))[:2] for x, y in outer_w]) + ' '
-                 + S.pts_d([v.proj((x, y, -thick / 2))[:2] for x, y in hole_w]), 1.4, 2.0, 0.42, ' fill-rule="evenodd"'))
-    # the gun, knob to muzzle, and the bore
-    cuts = ARSENAL_IRON_CUTS_S if small else ARSENAL_IRON_CUTS
-    m.add(arsenal_lathe(v, O, A, U, W, bands, ARSENAL_IRON, cuts, small, fill=q['fill']))
+    # the piece's shadows on the enamel, cast down and to the right
+    dx, dy, op = q['shade']
+    wheel_d = S.pts_d([v.proj((axle[0] + Rw * math.cos(a), axle[1] + Rw * math.sin(a), zw))[:2]
+                       for a in (2 * math.pi * j / 48 for j in range(48))])
+    parts = [wheel_d, S.pts_d([v.proj((x, y, zc1))[:2] for x, y in cheek]),
+             poly_d(groundstation_hull(arsenal_ring_pts(v, O, A, U, W, bands, 20))),
+             S.pts_d([v.proj((x, y, -thick / 2))[:2] for x, y in outer_w])]
+    m.add('<g opacity="%s" transform="translate(%s %s)">%s</g>'
+          % (f(op), f(dx), f(dy), ''.join('<path d="%s"/>' % d for d in parts)))
+    # back to front: the far wheel's rim, the gun, the near cheek with the
+    # trunnion bedded in it, the near wheel, and the square with its plumb
+    m.add(arsenal_wheel(m, v, axle, -zw, small, far=True))
+    iron, cuts = (ARSENAL_IRON[1:3] + ARSENAL_IRON[4:], ARSENAL_IRON_CUTS_S) if small else (ARSENAL_IRON, ARSENAL_IRON_CUTS)
+    gun = m.clip('gun', '<path d="%s"/>' % arsenal_outline(v, O, A, U, W, bands))
+    m.add('<g clip-path="%s">%s</g>' % (gun, arsenal_lathe(v, O, A, U, W, bands, iron, cuts, small)))
     bore = [v.proj(S.add(M, S.add(S.mul(U, rb * math.cos(2 * math.pi * j / 48)), S.mul(W, rb * math.sin(2 * math.pi * j / 48)))))[:2]
             for j in range(48)]
     m.add('<path d="%s" fill="%s"/>' % (S.pts_d(bore), ARSENAL_BORE))
-    # the near trunnion, a short turned stub a little under the bore's axis,
-    # its end turned very slightly domed so it stands off the gun as a boss
-    ft, rl, rt, drop = q['trunnion']
-    rl, rt = rl * L * g, rt * L * g
-    To = S.add(S.mul(A, L * (1 - ft)), S.mul(U, -drop * rl))
-    reach = rl + rt * 1.4
-    m.add(arsenal_lathe(v, To, W, A, U, [(rl * 0.7, reach, rt, rt)], ARSENAL_IRON, cuts, small))
-    m.add(arsenal_boss(m, v, S.add(To, S.mul(W, reach)), W, A, U, rt, cuts, small))
+    m.add(arsenal_prism(v, cheek, zc0, zc1, ARSENAL_OAK, ARSENAL_OAK_CUTS))
+    # the trail plate, the iron the trail's end is shod in, standing a
+    # little proud of the timber
+    d = (-0.83, -0.56)                                   # down the trail
+    plate = arsenal_half(cheek, (-37.6, 0.0), (d[1], -d[0]), 1)
+    if len(plate) > 2:
+        m.add(arsenal_prism(v, plate, zc0, zc1 + 0.35, ARSENAL_IRON, ARSENAL_IRON_CUTS))
+    # the trunnion's end in its bed, and the iron capsquare strapped over it
+    Te = (Tc[0], Tc[1], zc1 + 0.4)
+    m.add(arsenal_lathe(v, (Tc[0], Tc[1], zc1 - 1.0), W, A, U, [(0.0, 1.4, rt, rt)], iron, cuts, small))
+    m.add(arsenal_boss(m, v, Te, W, A, U, rt, ARSENAL_IRON_CUTS, small))
+    if not small:
+        strap = ([(Tc[0] + (rt + 0.3) * math.cos(a), Tc[1] + (rt + 0.3) * math.sin(a)) for a in (math.pi * j / 16 for j in range(17))]
+                 + [(Tc[0] + (rt + 1.7) * math.cos(a), Tc[1] + (rt + 1.7) * math.sin(a)) for a in (math.pi * (16 - j) / 16 for j in range(17))])
+        m.add(arsenal_prism(v, strap, zc1 - 0.2, zc1 + 0.9, ARSENAL_IRON, ARSENAL_IRON_CUTS))
+    m.add(arsenal_wheel(m, v, axle, zw, small))
     # the square, its twelve points, the cord and the bob
     m.add(arsenal_plate(v, [(outer_w, False), (hole_w, True)], thick, 0.0 if small else 0.35, zb=-thick / 2))
     m.add(arsenal_points(v, sq, rb, thick, small))
@@ -2634,7 +2990,7 @@ def subject_arsenal(m, h, small=False):
     m.add('<path d="%s" stroke="%s" stroke-width="%s" stroke-linecap="round"/>' % (line, ARSENAL_HEMP, f(cw)))
     bob = [(a * bs, b * bs, r0 * bs, r1 * bs) for a, b, r0, r1 in ARSENAL_BOB]
     m.add(arsenal_lathe(v, bob_top, (0.0, -1.0, 0.0), (1.0, 0.0, 0.0), (0.0, 0.0, 1.0), bob,
-                        ARSENAL_BRASS, ARSENAL_BRASS_CUTS, small))
+                        ARSENAL_BRASS[1:5], ARSENAL_BRASS_CUTS[1:4], small))
     # the pin the cord hangs from, a turned head
     rp = 1.6 if small else 1.1
     m.add(faceted_ring(c0[0], c0[1], rp * 0.5, rp, +1, n=24))
