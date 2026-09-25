@@ -76,43 +76,46 @@ RASTER_JS = ROOT / 'icons' / 'raster.js'
 #            foot is fired in this same dye, read from here.
 #   ink      the day screen's title card is printed in this ink (one of
 #            INKS; no two alike in a wing), the one nearest the house
+#   glass    the fanlight's glass over the gate (one of palace.js GLASS;
+#            no two alike in a wing): by night it is the biggest colour in
+#            the crown, so it keeps to the mark's family or stays quiet
 # --------------------------------------------------------------------------
 HUE = {
     'autopilot': {
         'name': 'Anime Autopilot', 'short': 'Autopilot',
         'deep': '#24060d', 'field': '#621925', 'lit': '#983446', 'pop': '#fff4d2',
         'velvet': {'name': 'mulberry', 'onyx': '#92304c', 'ivory': '#9c4660'},
-        'ink': 'oxblood',
+        'ink': 'oxblood', 'glass': 'rose',
     },
     'groundstation': {
         'name': 'Ground Station', 'short': 'Ground Stn',
         'deep': '#5a2f08', 'field': '#c8781f', 'lit': '#eea24c', 'pop': '#ffb454',
         'velvet': {'name': 'cognac', 'onyx': '#885020', 'ivory': '#9f6322'},
-        'ink': 'sepia',
+        'ink': 'sepia', 'glass': 'amber',
     },
     'outreach': {
         'name': 'Outreach Desk', 'short': 'Outreach',
         'deep': '#0a2230', 'field': '#1c4a5f', 'lit': '#3a6e86', 'pop': '#e8c968',
         'velvet': {'name': 'prussian', 'onyx': '#1f5066', 'ivory': '#33576b'},
-        'ink': 'navy',
+        'ink': 'navy', 'glass': 'opal',
     },
     'pressroom': {
         'name': 'The Press Room', 'short': 'Press Room',
         'deep': '#0b2616', 'field': '#1e6a40', 'lit': '#3f9463', 'pop': '#5a8040',
         'velvet': {'name': 'emerald', 'onyx': '#24754b', 'ivory': '#37905f'},
-        'ink': 'bottle',
+        'ink': 'bottle', 'glass': 'celadon',
     },
     'arsenal': {
         'name': 'Arsenal', 'short': 'Arsenal',
         'deep': '#161c22', 'field': '#46535e', 'lit': '#72808b', 'pop': '#b03a2e',
         'velvet': {'name': 'gunmetal', 'onyx': '#44545f', 'ivory': '#5a6a74'},
-        'ink': 'navy',
+        'ink': 'navy', 'glass': 'opal',
     },
     'bourse': {
         'name': 'Bourse', 'short': 'Bourse',
         'deep': '#141305', 'field': '#4a4616', 'lit': '#7a742c', 'pop': '#e6a817',
         'velvet': {'name': 'olive gold', 'onyx': '#73662b', 'ivory': '#9b8848'},
-        'ink': 'sepia',
+        'ink': 'sepia', 'glass': 'honey',
     },
 }
 # The inks a day card can be printed in, as palace-gates.css draws them.
@@ -2797,10 +2800,12 @@ CSS_END = '/* END generated velvets */'
 
 def defs_block():
     """The marks for the page's <defs>. Each full mark carries the ink its
-    gate's day card is printed in (HUE's ink), which app.js reads from it."""
+    gate's day card is printed in and the glass of its fanlight (HUE's ink
+    and glass), which app.js reads from it."""
     rows = []
     for app in MARKS:
-        rows.append('  <g id="mark-%s" data-ink="%s">%s</g>' % (app, HUE[app]['ink'], emblem(app)))
+        rows.append('  <g id="mark-%s" data-ink="%s" data-glass="%s">%s</g>'
+                    % (app, HUE[app]['ink'], HUE[app]['glass'], emblem(app)))
         rows.append('  <g id="mark-%s-s">%s</g>' % (app, emblem_small(app)))
     rows.append('  <g id="mark-atrium">%s</g>' % atrium_emblem())
     return BEGIN + '\n' + '\n'.join(rows) + '\n' + END

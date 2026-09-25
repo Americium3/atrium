@@ -461,6 +461,27 @@ def test_the_gates_of_one_wing_hang_different_cloth():
     assert not bad, "; ".join(bad)
 
 
+def test_every_fanlight_takes_its_marks_glass():
+    """By night the fanlight's glass is the biggest colour in a gate's crown,
+    so it comes from the mark (HUE's glass, carried on the mark's group) and
+    not from a hash that hung aqua between an oxblood badge and a mulberry
+    cloth. Each glass is one palace.js has, and no two gates of a wing share
+    one."""
+    hue, wings = _literal("HUE"), _wings()
+    palace = (STATIC / "js" / "palace.js").read_text(encoding="utf-8")
+    kinds = set(re.findall(r"'(\w+)'", re.search(r"var GLASS = \[([^\]]*)\]", palace).group(1)))
+    page = PAGE.read_text(encoding="utf-8")
+    for app_id, h in hue.items():
+        assert h.get("glass") in kinds, f"{app_id}'s glass {h.get('glass')!r} is not one of palace.js's {sorted(kinds)}"
+        assert re.search(r'<g id="mark-%s" data-ink="\w+" data-glass="%s">' % (app_id, h["glass"]), page), \
+            f"#mark-{app_id} does not carry its glass"
+    for wing in set(wings.values()):
+        used = [hue[a]["glass"] for a in hue if wings.get(a) == wing]
+        assert len(used) == len(set(used)), f"{wing} glazes two fanlights alike: {used}"
+    app = (STATIC / "js" / "app.js").read_text(encoding="utf-8")
+    assert "if (!svc.vacant) id.glass = glassFor(svc, id);" in app, "the gate no longer takes its glass from its mark"
+
+
 def test_the_dark_mix_is_the_one_the_sheet_uses():
     css = (STATIC / "css" / "palace-gates.css").read_text(encoding="utf-8")
     for theme, (k, base) in DARK_MIX.items():
@@ -575,7 +596,7 @@ def test_every_day_card_takes_its_marks_ink():
         assert len(used) == len(set(used)), f"{wing} prints two cards in one ink: {used}"
     page = PAGE.read_text(encoding="utf-8")
     for app_id, h in hue.items():
-        assert f'<g id="mark-{app_id}" data-ink="{h["ink"]}">' in page, f"#mark-{app_id} does not carry its ink"
+        assert f'<g id="mark-{app_id}" data-ink="{h["ink"]}" ' in page, f"#mark-{app_id} does not carry its ink"
     app = (STATIC / "js" / "app.js").read_text(encoding="utf-8")
     assert "a.dataset.ink = inkFor(svc, id);" in app and "getAttribute('data-ink')" in app
 
