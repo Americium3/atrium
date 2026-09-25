@@ -796,6 +796,12 @@ function runEntrance() {
   var E = window.Entrance;
   var t0 = E.start(ENTRANCE_LEAD);
   if (t0 == null) return;
+  // The hall's own boot fades still running (a gate's lettering taking its
+  // colour as its line answered) are finished before the walk: in it only
+  // transform and opacity move.
+  if (document.getAnimations && window.CSSTransition) document.getAnimations().forEach(function (a) {
+    if (a instanceof CSSTransition && a.playState === 'running' && !/^(opacity|transform)$/.test(a.transitionProperty)) a.finish();
+  });
   window.__entranceT0 = t0;   // the clock's zero, read by the frame-capture scripts
   entrance.classList.add('play');
   var b = E.beats(), wait = Math.max(0, t0 - performance.now());

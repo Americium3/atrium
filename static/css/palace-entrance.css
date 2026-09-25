@@ -44,14 +44,27 @@ html[data-entered="no"] #entrance.done-fade { pointer-events: none; cursor: auto
    opaque. Under an opaque plate the compositor leaves what it covers
    undrawn, and all of it would then be drawn for the first time in the
    walk's first frames. It lifts over the clock's first 200 ms and the
-   street comes into focus (entrance.js). The colour under the sketch is
-   the street's dark by night and its stone by day. */
+   street comes into focus (entrance.js). A browser can paint before the
+   script has drawn the sketch, so under it the plate carries a rougher one
+   of its own: the canopy's underside, the fanlights and the doors where
+   the first frame has them (their sizes follow the screen's height, since
+   the lens does). */
 #entrance .e-plate {
   position: absolute; inset: 0; z-index: 1;
   opacity: 0.996;
-  background: #0a0807;
+  background:
+    radial-gradient(64vh 30vh at 50% 82%, rgba(214, 180, 126, 0.95) 55%, rgba(214, 180, 126, 0) 100%),
+    radial-gradient(56vh 6vh at 50% 55%, rgba(200, 138, 76, 0.8) 40%, rgba(200, 138, 76, 0) 100%),
+    linear-gradient(180deg, transparent 29%, #211810 33%, #211810 47%, transparent 51%),
+    #0a0807;
 }
-:root[data-theme="ivory"] #entrance .e-plate { background: #6a6c71; }
+:root[data-theme="ivory"] #entrance .e-plate {
+  background:
+    radial-gradient(64vh 30vh at 50% 82%, rgba(106, 118, 132, 0.95) 55%, rgba(106, 118, 132, 0) 100%),
+    radial-gradient(56vh 6vh at 50% 55%, rgba(111, 127, 144, 0.8) 40%, rgba(111, 127, 144, 0) 100%),
+    linear-gradient(180deg, #7d8082 27%, #56575b 33%, #56575b 47%, transparent 51%),
+    #6a6c71;
+}
 #entrance .e-plate canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
 
 /* The inside as the street sees it. By night the foyer is lit but not yet
