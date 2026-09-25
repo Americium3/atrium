@@ -147,7 +147,7 @@ var TIMES = {
     doors: 680, doorsDur: 900, doorLag: 60,
     spill: [720, 1380],
     veil: [2110, 2600],
-    house: 2130, bayGap: 115, lampUp: 360, marquee: 2250,
+    house: 2130, bayGap: 100, lampUp: 300, marquee: 2170,
     doneFade: 2640
   },
   ivory: {
@@ -160,10 +160,10 @@ var TIMES = {
     tilt: [400, 2280],
     doors: 640, doorsDur: 900, doorLag: 55,
     sun: [220, 760],
-    sunOut: [2120, 2680],
-    veil: [1760, 2640],
-    doneFade: 2620,
-    end: 2700
+    sunOut: [2100, 2650],
+    veil: [1760, 2620],
+    doneFade: 2600,
+    end: 2660
   }
 };
 
@@ -2824,10 +2824,11 @@ E.clear = function (keepSketch) {
 E.beats = function () { return S ? { doneFade: S.t.doneFade, total: S.total } : null; };
 E.running = function () { return !!(S && S.started); };
 /* The GPU is drawing for the first time (a new profile, its shaders not
-   yet built): its drawing of the street took more than a quarter second
-   to run (under 110ms on a GPU that has drawn the hall before). The hall's first raster then comes in waves for a second or more
-   after it, a frame or two apart. */
-E.coldGpu = function () { return !!(S && S.drainMs > 250); };
+   yet built): its drawing of the street took more than 400ms to run (1.7
+   to 1.9s on a new profile at 3440; under 200ms on a GPU that has drawn
+   the hall before, even a busy one). The hall's first raster then comes
+   in waves for a second or more after it, a frame or two apart. */
+E.coldGpu = function () { return !!(S && S.drainMs > 400); };
 E.ready = function () { return !!(S && S.ready); };
 E.frozen = function () { return !!(S && S.frozen); };
 E.stats = function () {

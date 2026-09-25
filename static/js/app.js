@@ -613,7 +613,7 @@ var CALM_RUN = 3;
    frame or two apart; two short intervals fell between two waves, and the
    next one froze the walk's first 300ms (3440, a new profile, by day). There
    the clock waits for a longer calm. */
-var CALM_COLD = 16;
+var CALM_COLD = 10;
 function afterDrawn(fn, run) {
   var last = 0, best = Infinity, calm = 0, heavy = false, need = run || CALM_RUN;
   requestAnimationFrame(function tick(t) {
