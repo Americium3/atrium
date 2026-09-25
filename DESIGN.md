@@ -276,9 +276,11 @@ services without custom art.
 ## Entrance animation (timeline)
 
 The reader arrives from the street and walks in. It plays on every load.
-From the page's first frame to the lit hall at rest it takes 3.3 to 3.5 s at
-1920 and 3.4 to 3.6 s at 3440 on a browser that has drawn the hall before;
-its clock runs 2.74 s by night and 2.66 s by day of that. A click, a tap, a
+From the page's first frame to the lit hall at rest it takes 3.1 to 3.5 s at
+1920 and 3.4 to 3.7 s at 3440 on a browser that has drawn the hall before
+(4.4 s when the browser paints before the scripts have run, and 4.4 to
+4.7 s on a new profile); its clock runs 2.74 s by night and 2.66 s by day
+of that. A click, a tap, a
 keypress or a turn of the wheel cuts it short and lands the finished hall,
 lamps and all, any lamp still coming up by its own transition included.
 Only the keys the hall acts on (Enter, Space, Tab, Escape, the arrows,
@@ -549,7 +551,8 @@ street until the tab is first shown. A resize while the street stands
 dresses it again for the new screen; once the walk has begun, a resize
 lands the hall. At the landing the street's layers go at once, which costs
 one frame of 100 to 180 ms at 3440 while the compositor draws the hall
-again; the desk's breath waits for that frame to go out.
+again; the desk's breath waits for that frame to go out, and stands down
+if the lever has been thrown in the meantime.
 ## Layout & viewport
 
 Desktop-first: optimized 1440–1920px, supported down to 1280px, and opening
