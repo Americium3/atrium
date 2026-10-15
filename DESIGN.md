@@ -1642,6 +1642,17 @@ Endpoints:
   the card; both sit behind TTLs (3.5s and 6s) and run in a worker thread,
   so an idle hub samples nothing and a subprocess never touches the loop.
   The traffic dial's full deflection is a saturated gigabit line.
+- `GET /api/allowance`: the CLAUDE register in the west case:
+  `{state: 'live'|'lapsed'|'unreachable'|'signed_out', plan, usage:{session:
+  {pct, resets_at}, week:{pct, resets_at}, scoped:[{name, pct, resets_at}],
+  credit:{enabled, used, limit, pct, currency}}|null, read_at, age_s,
+  generated}`. `resets_at` and `read_at` are epoch ms; credit is in whole
+  currency units (the wire carries cents). Read from Anthropic's
+  `/api/oauth/usage` (unpublished; both its `limits` list and the older flat
+  `five_hour`/`seven_day` keys are read) with Claude Code's own login, which
+  is read and never renewed; the token stays in `claude_usage.py`. One GET
+  per 2 min, or a minute after a miss, at once for a renewed token, never
+  with an expired one. A lapse keeps the last reading, with `read_at`.
 - `GET /api/almanac` returns the east board: `{place:{name, name_zh, lat, lon,
   timezone}, weather:{code, label, label_zh, now_c/f, high_c/f, low_c/f,
   precip_prob, wind_kmh, sunrise, sunset, utc_offset_s}|null, age_s,

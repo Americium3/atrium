@@ -116,6 +116,21 @@ var STR = {
     wkCpuCount: '{c} {c|core|cores}, {t} {t|thread|threads}',
     wkOf: '{a} of {b} GB', wkLoad: 'GPU load {n}%',
     wkDown: '{d} down · {u} up MB/s',
+    /* The CLAUDE register. Its labels are engraving, the rest are lines. */
+    clSession: 'SESSION', clWeek: 'WEEKLY', clCredit: 'CREDIT',
+    clSessionLong: 'Current session, the rolling 5 hours',
+    clWeekLong: 'Plan usage this week, all models',
+    clCreditLong: 'Extra usage credit this month',
+    clUsed: '{n}% used', clResets: 'resets in {d}', clReset: 'RESET',
+    clResetSaid: 'the window has reset since the last reading',
+    clOff: 'OFF', clCreditOff: 'Extra usage is off',
+    clOfLimit: 'OF {n}', clSpent: '{a} of {b} spent this month',
+    clAsOf: 'AS OF {time}', clLapsed: 'LOGIN LAPSED', clSignedOut: 'NOT SIGNED IN',
+    clNoReply: 'NO REPLY',
+    clHintLapsed: "Claude Code's login has expired. Open Claude Code to renew it; the hall reads the same login.",
+    clHintSignedOut: 'Sign in to Claude Code on this machine; the hall reads its login.',
+    clHintNoReply: 'Anthropic did not answer. The hall asks again in a minute.',
+    ariaClaude: 'Claude usage: session, weekly plan and credit',
     almSub: 'The sky over {place}',
     almHigh: 'HIGH', almLow: 'LOW', almPrecip: 'PRECIP', almWind: 'WIND',
     almRise: 'RISE', almSet: 'SET',
@@ -273,6 +288,20 @@ var STR = {
     wkCpuCount: '{c} 核 {t} 线程',
     wkOf: '{a} / {b} GB', wkLoad: 'GPU 负载 {n}%',
     wkDown: '下 {d} · 上 {u} MB/s',
+    clSession: '会话', clWeek: '本周', clCredit: '额度',
+    clSessionLong: '当前会话，滚动 5 小时窗口',
+    clWeekLong: '本周套餐用量，全部模型',
+    clCreditLong: '本月额外用量额度',
+    clUsed: '已用 {n}%', clResets: '{d}后重置', clReset: '已重置',
+    clResetSaid: '自上次读数后窗口已重置',
+    clOff: '未启用', clCreditOff: '额外用量未启用',
+    clOfLimit: '共 {n}', clSpent: '本月已用 {a}，上限 {b}',
+    clAsOf: '{time} 读数', clLapsed: '登录已过期', clSignedOut: '未登录',
+    clNoReply: '无回应',
+    clHintLapsed: 'Claude Code 的登录已过期。打开 Claude Code 即可续期，大厅读取的是同一个登录。',
+    clHintSignedOut: '请在本机登录 Claude Code，大厅读取它的登录。',
+    clHintNoReply: 'Anthropic 没有回应，大厅一分钟后再问。',
+    ariaClaude: 'Claude 用量：会话、每周套餐与额度',
     almSub: '{place}上空的天象',
     almHigh: '高', almLow: '低', almPrecip: '降水', almWind: '风',
     almRise: '日出', almSet: '日落',
@@ -3002,6 +3031,191 @@ function startWorks() {
   return pollWorks();
 }
 
+/* ----- THE CLAUDE REGISTER -----------------------------------------------
+   Under the tape, in the same case: what is left of the Claude subscription
+   this hall's owner works on. Three sight-gauges, one per allowance: the
+   session window (the rolling five hours), the plan's week, and the month's
+   extra-usage credit. The hub reads them with Claude Code's own login
+   (claude_usage.py) and never renews it, so a lapsed login is a state the
+   register shows: the last reading stays up, smoked, with the time it was
+   taken. A window whose reset has passed since that reading reads RESET,
+   not a figure from the window before.
+   The gauges are a gilt column in a brass-framed channel whose last 15% is
+   red lacquer, the same 85% mark as the dials' arcs. The column is scaled,
+   not sized, so a new reading is a compositor turn like a needle's. */
+var CL_METERS = [
+  { key: 'session', name: 'clSession', long: 'clSessionLong' },
+  { key: 'week', name: 'clWeek', long: 'clWeekLong' },
+  { key: 'credit', name: 'clCredit', long: 'clCreditLong' }
+];
+var CL_POLL_MS = 60000;   // the countdowns are minutes; the hub holds 2 min
+var allowance = null;
+var clTimer = null;
+var clBusy = false;
+
+function renderClaude() {
+  var reg = $('#cl-reg');
+  if (!reg || reg.querySelector('.cl-meter')) return;
+  CL_METERS.forEach(function (m) {
+    var row = el('div', 'cl-meter');
+    row.dataset.meter = m.key;
+    // A tab stop, as the dials are: the long line (what the window is, when
+    // it resets, the scoped weeks) is a tooltip for the mouse and a slip on
+    // focus for everyone else.
+    row.tabIndex = 0;
+    var name = el('span', 'cl-name display', t(m.name));
+    name.setAttribute('aria-hidden', 'true');
+    row.appendChild(name);
+    var bar = el('span', 'cl-bar');
+    bar.setAttribute('aria-hidden', 'true');
+    bar.appendChild(el('span', 'cl-fill'));
+    row.appendChild(bar);
+    var val = el('span', 'cl-val num', '—');
+    val.setAttribute('aria-hidden', 'true');
+    row.appendChild(val);
+    var when = el('span', 'cl-when num', '');
+    when.setAttribute('aria-hidden', 'true');
+    row.appendChild(when);
+    var tip = el('span', 'cs-tip zh-sentence');
+    tip.setAttribute('aria-hidden', 'true');
+    row.appendChild(tip);
+    row.appendChild(el('span', 'sr-only cl-sr'));
+    reg.appendChild(row);
+  });
+  syncClaude();
+}
+
+/* $12.40 under a hundred, $240 over it: the window is a sixth of the case. */
+function money(n, cur) {
+  if (n === null || n === undefined) return '—';
+  var sign = cur && cur !== 'USD' ? cur + ' ' : '$';
+  // A whole figure (a limit, mostly) is engraved whole: $50, not $50.00.
+  var whole = n >= 100 || n === Math.round(n);
+  return sign + (whole ? Math.round(n).toLocaleString('en-US') : n.toFixed(2));
+}
+
+function clockAt(ms) {
+  var d = new Date(ms);
+  return pad2(d.getHours()) + ':' + pad2(d.getMinutes());
+}
+
+/* What one gauge shows: the column (pct, 0..100 or null), the window's
+   figure, the faint figure after it, the long line and the spoken line. */
+function clRead(key, a) {
+  var u = a && a.usage;
+  if (key === 'credit') {
+    var c = u && u.credit;
+    if (!c) return null;
+    if (!c.enabled) {
+      return { pct: 0, text: t('clOff'), when: '', off: true,
+               title: t('clCreditOff'), said: t('clCreditOff') };
+    }
+    var spent = t('clSpent', { a: money(c.used, c.currency), b: money(c.limit, c.currency) });
+    return { pct: c.pct, text: money(c.used, c.currency),
+             when: c.limit !== null ? t('clOfLimit', { n: money(c.limit, c.currency) }) : '',
+             title: spent, said: spent };
+  }
+  var w = u && u[key];
+  if (!w) return null;
+  var left = w.resets_at ? Math.round((w.resets_at - Date.now()) / 1000) : null;
+  if (left !== null && left <= 0) {
+    return { pct: null, text: t('clReset'), when: '',
+             title: t('clResetSaid'), said: t('clResetSaid') };
+  }
+  var used = t('clUsed', { n: Math.round(w.pct) });
+  var resets = left !== null ? t('clResets', { d: runFor(left) }) : '';
+  var line = used + (resets ? t('list') + resets : '');
+  // The weekly gauge also says the weeks a model family keeps of its own.
+  if (key === 'week' && u.scoped && u.scoped.length) {
+    line += t('list') + u.scoped.map(function (s) {
+      return s.name + ' ' + Math.round(s.pct) + '%';
+    }).join(t('list'));
+  }
+  return { pct: w.pct, text: Math.round(w.pct) + '%',
+           when: left !== null ? runFor(left) : '',
+           title: line,
+           said: used + (left !== null ? t('list') + t('clResets', { d: runSaid(left) }) : '') };
+}
+
+function syncClaude() {
+  var reg = $('#cl-reg');
+  if (!reg) return;
+  var a = allowance;
+  var state = a ? a.state : 'none';
+  reg.dataset.state = state;
+  // The rule carries the plan, and whatever is wrong with the reading.
+  var plan = $('#cl-plan');
+  var note = '', hint = '';
+  if (a && state === 'signed_out') { note = t('clSignedOut'); hint = t('clHintSignedOut'); }
+  else if (a && state !== 'live') {
+    note = a.usage && a.read_at ? t('clAsOf', { time: clockAt(a.read_at) })
+         : state === 'lapsed' ? t('clLapsed') : t('clNoReply');
+    hint = state === 'lapsed' ? t('clHintLapsed') : t('clHintNoReply');
+  }
+  if (plan) {
+    plan.textContent = [a && a.plan, note].filter(Boolean).join(' · ');
+    plan.title = hint;
+    plan.hidden = !plan.textContent;
+  }
+  CL_METERS.forEach(function (m) {
+    var row = reg.querySelector('[data-meter="' + m.key + '"]');
+    if (!row) return;
+    var r = clRead(m.key, a);
+    var has = r && r.pct !== null && r.pct !== undefined;
+    var pct = has ? Math.max(0, Math.min(100, r.pct)) : 0;
+    $('.cl-fill', row).style.setProperty('--fill', (pct / 100).toFixed(4));
+    row.dataset.hot = has && r.pct >= 85 ? 'yes' : 'no';
+    row.dataset.blank = r && !r.off ? 'no' : 'yes';
+    $('.cl-val', row).textContent = r ? r.text : '—';
+    $('.cl-when', row).textContent = r ? r.when : '';
+    row.title = t(m.long) + (r && r.title ? t('join') + r.title : '') +
+      (hint ? '\n' + hint : '');
+    $('.cs-tip', row).textContent = row.title;
+    $('.cl-sr', row).textContent = t(m.long) + t('join') +
+      (r ? r.said + (has && r.pct >= 85 ? t('list') + t('wkHot') : '') : t('wkNoReading')) +
+      (note ? t('list') + note : '');
+  });
+}
+
+function relabelClaude() {
+  CL_METERS.forEach(function (m) {
+    var row = document.querySelector('#cl-reg [data-meter="' + m.key + '"]');
+    if (row) $('.cl-name', row).textContent = t(m.name);
+  });
+  syncClaude();
+}
+
+/* The register is read only while it is on screen: its case is open and
+   fitCases() has not set it aside on a short wall. Each read is a call past
+   the machine, on the owner's login. */
+function claudeVisible() {
+  var reg = $('#cl-reg');
+  return worksVisible() && !!reg && getComputedStyle(reg).display !== 'none';
+}
+
+function pollClaude() {
+  if (!claudeVisible()) return Promise.resolve();
+  if (clBusy) return Promise.resolve();
+  clBusy = true;
+  return fetchJson('/api/allowance').then(function (a) {
+    if (allowance && a && a.generated < allowance.generated) return;
+    allowance = a;
+  }).catch(function () {
+    // A restarting hub is not a reading. The one on the gauges was taken at
+    // read_at and the countdowns keep running against it; a minute on, the
+    // next beat asks again.
+  }).then(function () {
+    clBusy = false;
+    syncClaude();
+  });
+}
+
+function startClaude() {
+  clearInterval(clTimer);
+  clTimer = setInterval(pollClaude, CL_POLL_MS);
+  return pollClaude();
+}
+
 /* ----- THE ALMANAC -------------------------------------------------------
    The east board. Where STATISTICS reads the machine, this reads the sky
    over it — and it is deliberately built out of two halves that fail
@@ -3675,6 +3889,8 @@ function pollAlmanac() {
 function readCases() {
   if (!works || Date.now() - worksOkAt > WORKS_STALE_MS) pollWorks();
   if (!almWeather() || Date.now() - almReadAt > ALM_POLL_MS) pollAlmanac();
+  // The hub holds the allowance for two minutes, so this asks nobody twice.
+  pollClaude();
 }
 
 /* The boards open at 2800px, so a window that grows past that shows a case
@@ -3736,8 +3952,17 @@ function fitCasesAtRest() {
   var open = getComputedStyle(boards[0]).display !== 'none';
   var hung = null, dpu = 1;
   if (open) {
-    var d = $('.wk-dial', dials), r = d ? d.getBoundingClientRect() : null;
-    var dialPx = r ? Math.min(r.width, r.height) : 0;
+    // The CLAUDE register takes its height out of the dials. The case tries
+    // it under the dials as they stand, then under the four set in one row
+    // (a short wall has the width to spare and not the height), and only
+    // then sets the register aside, so it never costs the hall its dials.
+    var dialPx = 0;
+    ['full', 'row', 'off'].some(function (fit) {
+      boards[0].dataset.claude = fit;
+      var d = $('.wk-dial', dials), r = d ? d.getBoundingClientRect() : null;
+      dialPx = r ? Math.min(r.width, r.height) : 0;
+      return dialPx >= DIAL_MIN_PX;
+    });
     dpu = dialPx / 100;
     hung = dialPx >= DIAL_MIN_PX && skyRoom(host).h >= SKY_MIN_PX;
   }
@@ -5358,6 +5583,8 @@ document.addEventListener('visibilitychange', function () {
   // So are the dials, which otherwise showed the reading from before the tab
   // was hidden as live until the next beat.
   pollWorks();
+  // And the Claude gauges, whose countdowns ran on while nobody looked.
+  pollClaude();
 });
 
 /* ========================================================================
@@ -5871,6 +6098,7 @@ function setLang(next) {
   applyStats();
   renderLedger();
   relabelWorks();
+  relabelClaude();
   renderAlmanac();
   if (keyplate && !keyplate.hidden) renderKeyplate();
   updateLedgerBadge();
@@ -6263,10 +6491,14 @@ buildFloorInlay();
 window.Cabinet.dressCase($('#works'));
 window.Cabinet.dressCase($('#almanac'));
 renderWorks();      // the dials stand engraved before the first reading
+renderClaude();     // and the gauges, empty, under them
 buildAisles();
 renderAlmanac();    // the plate is engraved before the first forecast lands
 // Their first readings are part of the hall the entrance waits for.
 var boardsRead = [startWorks(), startAlmanac()];
+// Not part of what the entrance waits for: the allowance is a call past the
+// machine, and the hall does not hold its doors for Anthropic.
+startClaude();
 // Seed the drive: without it the first throw would start from 0 whatever
 // the wing, and a Bureau hall's first throw would have nowhere to go.
 setDrive(root.dataset.wing === 'bureau' ? 1 : 0);

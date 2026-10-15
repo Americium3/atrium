@@ -29,6 +29,7 @@ from pathlib import Path
 import httpx
 
 import almanac
+import claude_usage
 
 try:                                    # host instrumentation is optional
     import psutil
@@ -1569,6 +1570,15 @@ async def api_almanac():
     # forecast service's request rate — and a hall nobody has opened above
     # 2200px asks for nothing at all.
     return JSONResponse(await almanac.snapshot(STATE_DIR))
+
+
+@app.get("/api/allowance")
+async def api_allowance():
+    # The CLAUDE register: session, weekly plan and extra-usage credit, read
+    # with Claude Code's own login. Behind a 2-minute TTL in the module and
+    # asked for only while the west case is on screen; the token never
+    # leaves the module.
+    return JSONResponse(await claude_usage.snapshot())
 
 
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")

@@ -54,6 +54,26 @@ and only while the case is actually on screen. (The route and the CSS keep
 the older name: the case's title is what it shows you, `the works` is what
 the data is, and `/api/stats` already serves the services' status.)
 
+Under the tape the same glass carries the CLAUDE register: three brass-framed
+sight-gauges for the Claude subscription you work on, under a rule engraved
+with the plan (`MAX 20×`). SESSION is the rolling five-hour window, WEEKLY the
+plan's week across all models (the weeks a model family keeps of its own,
+Opus or Sonnet, are in its tooltip), and CREDIT the organization's extra
+usage this month, spent against its limit. Each gauge has the dials' red
+lacquer from 85% and a countdown to its reset. The hub reads them from
+`/api/allowance`, which asks the endpoint Claude Code's own usage screen
+asks, signed with the login Claude Code keeps in
+`~/.claude/.credentials.json` (or `$CLAUDE_CONFIG_DIR`). The hall needs no
+key of its own. It reads that login and never renews it: renewal rotates the
+refresh token, and a second process doing that can sign Claude Code out. So
+when the login has expired the gauges keep the last reading, smoked, under
+`AS OF 14:02`, until Claude Code next renews the file; a window whose reset
+has passed since reads RESET. Signed out reads NOT SIGNED IN (as it will on
+macOS, where the login lives in the Keychain). Anthropic is asked at most
+every two minutes, and only while the register is on screen. On a short
+wall the four dials stand in one row to make room for it, and on a wall too
+short for even that it is set aside before the dials are.
+
 ### The Almanac
 
 The right aisle holds the same kind of case in figured walnut, and it shows

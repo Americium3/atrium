@@ -413,6 +413,35 @@
 }
 .board .wk-cell { grid-row: 1 / span 3; grid-template-rows: subgrid; }
 .board .wk-cell:nth-child(n + 3) { grid-row: 5 / span 3; }
+/* Where the CLAUDE register would leave the pairs too small, the four stand
+   in one row instead (fitCases in app.js): a short wall in a wide aisle. */
+.board[data-claude="row"] .wk-dials {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  /* The dial's track is as tall as a quarter of the aisle draws it, and
+     the row stands in the middle of the register rather than on its floor;
+     on a wall too short for that the track gives way first. */
+  grid-template-rows: minmax(0, auto) auto auto;
+  align-content: center;
+  column-gap: 1.6cqw;
+}
+.board[data-claude="row"] .wk-cell,
+.board[data-claude="row"] .wk-cell:nth-child(n + 3) {
+  grid-row: 1 / span 3;
+  /* The cell's one column is its own width, not its widest line: sized to
+     content, PROCESSOR's caption set the column and the dial was drawn to
+     it, past the cell's clip. */
+  grid-template-columns: minmax(0, 1fr);
+}
+/* The row is taller than a quarter of the aisle is wide, so each dial is
+   drawn to the width and set down on its caption, not left floating in the
+   middle of its track. The needle's sheet keeps the dial's box exactly. */
+.board[data-claude="row"] .wk-cell > .wk-dial,
+.board[data-claude="row"] .wk-cell > .wk-hands {
+  align-self: end;
+  width: 100%; height: auto; max-height: 100%;
+}
+/* A quarter of the aisle is narrower than PROCESSOR at the pairs' tracking. */
+.board[data-claude="row"] .wk-name { font-size: calc(9.5px * var(--ui)); letter-spacing: 0.1em; }
 .board .wk-dial { overflow: visible; }
 .board .wk-dial .d-brass {
   width: 100%; height: 100%;
@@ -586,6 +615,146 @@ html[lang="zh"] .board .wk-slabel, html[lang="zh"] .board .al-strips .al-slabel 
 /* Over the next register down, which otherwise paints later at the same
    level. */
 .board .wk-dials:focus-within, .board .al-read:focus { z-index: 2; }
+
+/* ----- The CLAUDE register ------------------------------------------------
+   Three sight-gauges under the tape: a gilt column in a brass-framed channel,
+   graduated in quarters, whose last 15% is laid in the dials' red lacquer.
+   One grid for the three, so the names, the channels and both figures stand
+   in columns (subgrid), whichever reading is longest. */
+.board .cl-reg {
+  position: relative; z-index: 1;
+  flex: none;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  column-gap: 1.8cqw; row-gap: 1.3cqw;
+  margin: 1.4cqw 0.4cqw 0;
+}
+/* The rule it hangs from: the name in leaf between two gilt hairlines, the
+   plan after it, and what is wrong with the reading when something is. */
+.board .cl-head {
+  grid-column: 1 / -1;
+  display: flex; align-items: center; justify-content: center;
+  gap: 0.7em;
+  margin: 0;
+  font-size: calc(10.5px * var(--ui));
+  line-height: 1.2;
+  letter-spacing: 0.24em;
+  font-weight: 600;
+  white-space: nowrap;
+  color: var(--cab-gold);
+}
+.board .cl-head::before, .board .cl-head::after {
+  content: ""; flex: 1 1 0; min-width: 1em; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--cab-gold));
+  opacity: 0.5;
+}
+.board .cl-head::after { background: linear-gradient(270deg, transparent, var(--cab-gold)); }
+.board .cl-plan { color: var(--cab-faint); letter-spacing: 0.14em; overflow: hidden; text-overflow: ellipsis; }
+.board .cl-plan::before { content: "·" / ""; margin-right: 0.7em; color: var(--cab-gold); }
+.board .cl-reg:not([data-state="live"]) .cl-plan { color: var(--cab-ink); }
+
+.board .cl-meter {
+  grid-column: 1 / -1;
+  display: grid; grid-template-columns: subgrid;
+  align-items: center;
+  position: relative;
+}
+.board .cl-name {
+  font-size: calc(10px * var(--ui));
+  letter-spacing: 0.2em;
+  line-height: 1.2;
+  font-weight: 600;
+  color: var(--cab-gold);
+  white-space: nowrap;
+}
+/* The channel: black glass sunk in a three-ring brass holder, the same
+   rings the tape's labels sit in, lacquered red past 85. */
+.board .cl-bar {
+  position: relative;
+  height: calc(9px * var(--ui));
+  margin: 3px 0;
+  overflow: hidden;
+  background:
+    linear-gradient(90deg, transparent 85%, var(--lacquer-red-lo) 85%, var(--lacquer-red) 100%),
+    linear-gradient(180deg, #000, #1a130b);
+  box-shadow:
+    inset 0 1px 2px rgba(0, 0, 0, 0.85),
+    0 0 0 1px var(--br-1), 0 0 0 2px var(--br-3), 0 0 0 3px var(--br-1),
+    0 2px 3px 2px rgba(0, 0, 0, 0.45);
+  border-radius: 1px;
+}
+/* The column is scaled, not sized: a new reading turns on the compositor
+   with the needles' spring, and the case is never re-laid for it. */
+.board .cl-fill {
+  position: absolute; inset: 1px;
+  transform-origin: 0 50%;
+  transform: scaleX(var(--fill, 0));
+  transition: transform 0.9s var(--ease-spring);
+  background: linear-gradient(180deg, var(--br-5), var(--br-3) 35%, var(--br-2) 72%, var(--br-1));
+  will-change: transform;
+}
+.board .cl-meter[data-hot="yes"] .cl-fill {
+  background: linear-gradient(180deg, var(--lacquer-red-hi), var(--lacquer-red) 55%, var(--lacquer-red-lo));
+}
+/* The graduations, engraved over the column at each quarter. */
+.board .cl-bar::after {
+  content: ""; position: absolute; inset: 0;
+  background: repeating-linear-gradient(90deg,
+    transparent 0 calc(25% - 1px), rgba(20, 12, 4, 0.7) calc(25% - 1px) 25%);
+  pointer-events: none;
+}
+/* The figure, in the dials' ivorine window; the countdown after it, in the
+   glass's own faint ink. */
+.board .cl-val {
+  min-width: 3.4em;
+  padding: 0.1em 0.45em 0.05em;
+  font-size: calc(11.5px * var(--ui));
+  line-height: 1.2;
+  text-align: center;
+  white-space: nowrap;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
+  color: var(--ivorine-ink);
+  background:
+    linear-gradient(180deg, rgba(0, 0, 0, 0.16), transparent 30%),
+    url('/static/assets/tex/grain-card.webp') 0 0 / 120px,
+    var(--ivorine);
+  background-blend-mode: normal, soft-light, normal;
+  box-shadow:
+    0 0 0 1px var(--br-1), 0 0 0 2px var(--br-3), 0 0 0 3px var(--br-1),
+    0 2px 3px 2px rgba(0, 0, 0, 0.5);
+  border-radius: 1px;
+}
+.board .cl-meter[data-hot="yes"] .cl-val { color: var(--lacquer-red); }
+.board .cl-meter[data-blank="yes"] .cl-val {
+  color: #6b5f4a; letter-spacing: 0.14em; font-size: calc(10px * var(--ui));
+}
+.board .cl-when {
+  min-width: 4.6em;
+  font-size: calc(10.5px * var(--ui));
+  line-height: 1.2;
+  text-align: right;
+  white-space: nowrap;
+  letter-spacing: 0.04em;
+  font-variant-numeric: tabular-nums;
+  color: var(--cab-faint);
+}
+/* A reading held through a lapse is the last one, not a live one: the
+   columns are smoked, never taken down, since the owner still wants to know
+   where they stood. */
+.board .cl-reg[data-state="lapsed"] .cl-fill,
+.board .cl-reg[data-state="unreachable"] .cl-fill { opacity: 0.5; }
+.board .cl-reg[data-state="lapsed"] .cl-val,
+.board .cl-reg[data-state="unreachable"] .cl-val { opacity: 0.75; }
+/* Its slip rises over the tape, since the register is the last thing on
+   the glass and under it is the apron. */
+.board .cl-meter .cs-tip { top: auto; bottom: calc(100% + 0.6cqw); }
+.board .cl-meter:focus .cs-tip { display: block; }
+.board .cl-reg:focus-within { z-index: 2; }
+/* A wall too short for the dials and the register both keeps the dials;
+   fitCases() sets the register aside before it folds the cases. */
+.board[data-claude="off"] .cl-reg { display: none; }
 
 /* ----- The apron and the maker's plate ------------------------------------ */
 .board .bd-foot {
