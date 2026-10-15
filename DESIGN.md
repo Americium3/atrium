@@ -244,7 +244,7 @@ fallback sigil keeps the line rules (1.5px stroke, zero corner radius, at
 most one accent-filled shape); the app marks are enamel and follow "App
 marks (v7)". One shared
 SVG `<defs>` block for frames, so every gate provably uses identical ornament
-paths. A **generic fallback sigil** (plain deco keystone) exists for future
+paths. A generic fallback sigil (plain deco keystone) exists for future
 services without custom art.
 
 ## Typography
@@ -254,7 +254,7 @@ services without custom art.
   `font-variant-ligatures: none` on tracked caps.
 - Addresses / stat numerals: true caps + `font-variant-numeric: tabular-nums`,
   11–12px, tracking 0.08em. (Not "small caps"; digits have none.)
-- CJK: **LXGW Heart Serif** (霞鹜铭心宋, a Kokoro Mincho derivative), second
+- CJK: LXGW Heart Serif (霞鹜铭心宋, a Kokoro Mincho derivative), second
   in `--serif`, so it sets every Chinese character in either language's
   hall (a CJK anime title in the English hall included). It fills only what
   EB Garamond lacks, and EB Garamond has every other glyph the hall uses.
@@ -273,7 +273,7 @@ services without custom art.
 - `@font-face`: `font-weight: 400 800` (EBGaramond-wght.ttf) and `200 900`
   (LXGWHeartSerif.ttf), `font-display: swap`, both preloaded; no italic
   styles anywhere. Long-lived Cache-Control on `/static/fonts`.
-- The CJK face ships **byte-for-byte**. It is under the IPA Font License,
+- The CJK face ships byte-for-byte. It is under the IPA Font License,
   where a subset is a "Derived Program" that must be renamed and shipped
   with its source, so the 11 MB file is not an optimization target, and
   woff2 recompression is off the table for this face.
@@ -565,8 +565,8 @@ if the lever has been thrown in the meantime.
 Desktop-first: optimized 1440–1920px, supported down to 1280px, and opening
 into a full three-bay concourse on a wide screen (see "The concourse (v4)").
 Below 1280px the Ledger moves beneath the stage; below ~900px everything
-stacks single-column (masthead → ticker → lever → active gates → receded
-gates → Ledger). Mobile is out of scope for v1 but must not break.
+stacks single-column (masthead, ticker, lever, active gates, receded
+gates, Ledger, top to bottom). Mobile is out of scope for v1 but must not break.
 
 The hall stands on one screen. No vertical scrollbar at any supported
 size, and no horizontal one either. The vertical budget is spent in this
@@ -601,7 +601,7 @@ Optical scale (`--ui`): what a 34" desk display changes is physical
 size, not pixel count. The 12.5px engraving that reads at arm's length on a
 laptop is illegible from across a room. One multiplier drives every piece of
 hall lettering and the arch module: `--ui-auto` steps with the viewport
-(1 → 1.12 at 1900px → 1.24 at 2400px → 1.40 at 3000px), `--ui-user` is the
+(1, rising to 1.12 at 1900px, 1.24 at 2400px and 1.40 at 3000px), `--ui-user` is the
 reader's own correction from PREFERENCES (0.90 / 1 / 1.15), and `--ui` is
 their product, registered with `@property` as a `<number>` so scripts read
 the computed value instead of the raw `calc()` token. The arch module takes
@@ -777,7 +777,7 @@ below that it collapses to the single centre column the hall shipped with
 and both boards are hidden (they are ultrawide furniture, not a fallback).
 `--aisle-w` spends the *surplus*, `clamp(300px, (100vw − 2150px) / 2.4,
 520px)`, rather than a flat fraction, so decoration can never squeeze the
-stage. The hall cap rises 1720px → `min(3360px, 100%)`.
+stage. The hall cap rises from 1720px to `min(3360px, 100%)`.
 
 The breakpoint was 2200px until v5. The row the stage has to hold since then
 (four full-size arches either side of the full-size clock, about 6.3 arch
@@ -901,16 +901,16 @@ flat and foreshortened to a third of its height, and the brass never outlines
 a shape. It only fills a joint. The wordmark went with the line work, since
 the masthead already carries it.
 
-What is on the plane, near to far: a **runner** (a rectangle in floor space,
+What is on the plane, near to far: a runner (a rectangle in floor space,
 which the projection turns into the trapezoid a runner actually is), running
-off the near edge with its fringe at the far end; the **medallion**, two
+off the near edge with its fringe at the far end; the medallion, two
 banded courses of alternating wedges on 32 and 16 divisions with a bronze
 eight-point star, a tessera ring and a bronze boss. The *concentric* break is
-what stops a radial fan reading as a paper doily; a **square-in-circle
-roundel** over each aisle, a different construction so the floor reads as a
-set of inlays rather than one motif stamped three times; **aggregate**, 700
+what stops a radial fan reading as a paper doily; a square-in-circle
+roundel over each aisle, a different construction so the floor reads as a
+set of inlays rather than one motif stamped three times; aggregate, 700
 chips on a fixed hash, three tones, one in eleven in brass, biased toward the
-viewer; a border course and key band in plane units; and **reflections**.
+viewer; a border course and key band in plane units; and reflections.
 
 Reflections: the stone is waxed, so every arch, the clock and both aisle
 cases come back up off it. The smears are drawn in *plane* space and left to
@@ -1040,10 +1040,10 @@ and exits non-zero on any of them. It is the check that would have caught
 this, and the reason it exists is that every one of these faults renders as a
 perfectly handsome dial.
 
-Two things it deliberately does not draw. A **meridian**: local noon is the
+Two things it deliberately does not draw. A meridian: local noon is the
 midpoint of sunrise and sunset by construction, so the line would sit dead
 centre on every plate ever printed: ornament impersonating an instrument.
-A **clock**: there is a grande-complication regulator the size of a doorway
+A clock: there is a grande-complication regulator the size of a doorway
 standing between the arches, and the bead's job is the one thing it cannot
 say, which is *where in the day* this is.
 
@@ -1413,7 +1413,7 @@ as on a gate.
 - Read is what the pointer rested on: an unread card carries a jewel
   lamp in its holder's corner (champagne at night, gold glass by day); the Ledger itself always shows the full window. A
   dispatch is marked read when the pointer has rested on its card for
-  **420 ms**, when the keyboard caret has rested on it (the mark lands as
+  420 ms, when the keyboard caret has rested on it (the mark lands as
   the caret moves on, so a screen reader still hears "unread" on arrival),
   when it is followed through to its service, or when the reader presses
   the stamp. Nothing else marks
@@ -1421,7 +1421,7 @@ as on a gate.
   three screens down was not read by the act of shutting a drawer over it.
   Two localStorage keys back this: `atrium.read`
   is the set of dispatch ids, pruned to the ids still inside the feed window
-  so it cannot grow forever; `atrium.lastVisit` is now a frozen **floor** left
+  so it cannot grow forever; `atrium.lastVisit` is now a frozen floor left
   by the old close-stamp, kept only so the change of model does not resurface
   a fortnight of dispatches the reader already dismissed.
 - The stamp (v4.5), a brass rubber dater in a cradle since v6: one
@@ -1431,20 +1431,20 @@ as on a gate.
   dispatch read except the reader, and a press on the stamp is the reader
   saying so; it is the only wholesale path, and the drawer's own open and
   close still clear nothing.
-  * It clears **both wings** even while a chip is filtering the column,
+  * It clears both wings even while a chip is filtering the column,
     because the annunciator on the masthead counts both: a control labelled
     "mark all read" that leaves the disc lit has not done what it says. The
     tooltip states this rather than leaving it to be found, and while a chip
     is filtering, the stamp engraves BOTH WINGS beside its label, because a
     tooltip never shows for keyboard focus.
-  * It runs the **dwell's own 420 ms drain**, staggered down the column from
+  * It runs the dwell's own 420 ms drain, staggered down the column from
     the top, so the confirmation is the same mechanic the reader already
     knows, shown at scale, rather than a new one. The stagger is capped in
     TOTAL (`min(40ms, 640ms / n)`): at a flat per-card delay a full window
     takes longer to clear than the drawer takes to open, and the reader ends
     up watching an animation instead of receiving a confirmation. Reduced
     motion strikes in one tick.
-  * With nothing to strike it goes **inert, not gone**, since a control that
+  * With nothing to strike it goes inert rather than away, since a control that
     vanishes when idle moves every other control out from under the pointer
     and returns in a place nobody is looking. Inert is `aria-disabled` plus a
     class, never the `disabled` attribute, which would drop focus to the body
@@ -1503,7 +1503,7 @@ as on a gate.
   plaques; same-id dispatches update in place. A dispatch this page has
   already shown does not play its arrival again after dropping out of one
   poll (a hub restarting).
-- **Out of reach behind it**: while the drawer is open the hall and the desk
+- Out of reach behind it: while the drawer is open the hall and the desk
   behind its scrim are inert, as behind Preferences, so a screen reader's
   cursor stays in the drawer that Tab already keeps it in. The key plate
   stays in reach over it. A line count that changes meanwhile is said once
@@ -1514,10 +1514,10 @@ as on a gate.
 
 ## Ticker: the status band
 
-The band under the masthead carries **status segments** (LINES OPEN n/m,
+The band under the masthead carries status segments (LINES OPEN n/m,
 counted over every registered service in both wings, then each gate's live
 figure after its hall's short name: `AUTOPILOT · 4 AIRING TODAY`) plus only
-dispatches **still unread**, the six newest of them. Past six the band
+dispatches still unread, the six newest of them. Past six the band
 closes on one more segment that counts the rest into the Ledger
 (`2 MORE IN THE LEDGER`), so the band never drops a dispatch the hatch's
 count includes. The short name is signage and stays English,
@@ -1672,11 +1672,11 @@ Anime Autopilot (`127.0.0.1:8767`, GET-only, server-side, no CORS.
 *Never POST*: `/api/notifications/read` would eat the user's panel banners):
 
 - 60 s: `GET /api/notifications` (~50 ms). Known kinds enumerated:
-  `kind == "completed"` → finished-show; **key absent** → premiere
-  (`promoted` flag); any other kind value → drop and log, never default into
-  the premiere branch. Window: `read == false` + `detected_at` within 7 d.
-  `GET /api/unresolved` → warning dispatches.
-- 5 min: `GET /api/overview` → grace alerts (`status=='grace'`,
+  `kind == "completed"` maps to finished-show; **key absent** maps to premiere
+  (`promoted` flag); any other kind value is dropped and logged, never defaulted
+  into the premiere branch. Window: `read == false` + `detected_at` within 7 d.
+  `GET /api/unresolved` feeds warning dispatches.
+- 5 min: `GET /api/overview` feeds grace alerts (`status=='grace'`,
   `grace.expires` epoch s), daemon health (`last_sync` stale >15 min,
   `qb_ok`), and the stat: the watching count, and AIRING TODAY. `airing_at`
   is episode 1's slot, so for each show Autopilot still calls `airing` it is
@@ -1697,7 +1697,7 @@ Anime Autopilot (`127.0.0.1:8767`, GET-only, server-side, no CORS.
   how 2026-09-04 went unnoticed for two days behind a green lamp.
 - Episodes ("which anime landed"): `GET /api/events?after_seq=<cursor>&limit=200`,
   Autopilot's append-only ledger, with the cursor in `state/cursors.json`.
-  Kinds `episode.landed` / `show.subscribed`; any other kind → drop and log.
+  Kinds `episode.landed` / `show.subscribed`; any other kind is dropped and logged.
   `ts` is epoch **seconds** here and must be multiplied on the way in.
   Autopilot returns events **ascending** by seq (`hasMore` means NEWER matches
   remain), so the catch-up walks the cursor FORWARD, the mirror image of the
@@ -1713,11 +1713,11 @@ Anime Autopilot (`127.0.0.1:8767`, GET-only, server-side, no CORS.
 Ground Station (`127.0.0.1:8768`, header `X-PMH: 1` on *every* call
 including the ping probe):
 
-- 60 s: `GET /api/ping`; if `.seq` == stored cursor → done. Else page
+- 60 s: `GET /api/ping`; if `.seq` == stored cursor, stop there. Else page
   `GET /api/feed?after_seq=<cursor>&limit=200` until short page. Relayed
   events `updated|removed|banned`; `downloaded` is muted (`GS_MUTED_KINDS`)
   because it retells what `updated` already said and is the one kind Ground
-  Station raises regardless of the mod's *cared* flag. Map `appId`→game via
+  Station raises regardless of the mod's *cared* flag. Map `appId` to its game via
   `/api/state` `games[]` (cached per session). Changelog snippet: local file
   `X:/Github/pdx-mod-hub/data/changelogs/<modId>.json`, match
   `entries[].ts == event.ts`; never call `/api/mods/:id/changelog`.
@@ -1920,11 +1920,11 @@ points down, slight x.
 
 - Scene: `perspective` as a plain property on `.gate` (never
   `preserve-3d` on #gates, because it would replace the load-bearing active/receded
-  z-index contract with depth sorting). Per-gate chain:
-  `.gate {perspective:900px}` → `.g-pose` (`preserve-3d`, static wing tilt,
-  transitioned with the stage choreography) → `.g-shell` (pointer parallax,
-  NO transition, since a transition would smear the tilt) → flat children (the
-  intra-gate z-index stack survives verbatim).
+  z-index contract with depth sorting). Per-gate chain, outermost first:
+  `.gate {perspective:900px}`, then `.g-pose` (`preserve-3d`, static wing tilt,
+  transitioned with the stage choreography), then `.g-shell` (pointer parallax,
+  NO transition, since a transition would smear the tilt), then flat children
+  (the intra-gate z-index stack survives verbatim).
 - Triptych pose: receded flanks tilt inward `rotateY(±10deg)` via
   `--side` set by layoutStage, an altar-wing composition.
 - Pointer parallax: one rAF lerp loop (k≈0.1) writes each `.g-shell`'s
@@ -1951,7 +1951,7 @@ points down, slight x.
 - Entrance in 3D: `#entrance {perspective:1100px}`; panels hinge at the
   outer edges (`transform-origin: left/right center`) and swing open
   `rotateY(±74deg)` + outward translate, 0.9 s; a subtle stage dolly
-  (scale 0.965→1) lands with the gates.
+  (scale 0.965 to 1) lands with the gates.
 - Ledger/lever depth: chamfered plaques get
   `filter: drop-shadow()` ×2 on `.pl-frame` (box-shadow dies under
   clip-path), excluded on ghosts; hover lifts 2 px. Lever plaque gets one
