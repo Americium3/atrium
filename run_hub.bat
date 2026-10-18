@@ -1,7 +1,7 @@
 @echo off
 setlocal
 set PYTHONUTF8=1
-cd /d "X:\Github\atrium"
+cd /d "X:\A-Code\Github\atrium"
 rem server.py owns hub.log and rotates it itself. This file must NOT append
 rem there too: a second open handle makes Windows refuse the rename rotation
 rem needs. What lands here is only what escapes logging entirely - an import

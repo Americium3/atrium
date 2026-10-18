@@ -136,9 +136,9 @@ PRESSROOM_URL = "http://127.0.0.1:8765"
 ARSENAL_URL = "http://127.0.0.1:8770"
 BOURSE_URL = "http://127.0.0.1:8771"
 
-GS_DATA_DIR = Path(r"X:\Github\pdx-mod-hub\data")
-AP_DATA_DIR = Path(r"X:\Github\anime-rss-auto")
-OUTREACH_DIR = Path(r"X:\Github\linkedin-networking")
+GS_DATA_DIR = Path(r"X:\A-Code\Github\pdx-mod-hub\data")
+AP_DATA_DIR = Path(r"X:\A-Code\Github\anime-rss-auto")
+OUTREACH_DIR = Path(r"X:\A-Code\Github\linkedin-networking")
 
 # Privacy hard rule: outreach dispatches/stats may only ever carry aggregate
 # count keys. Names, draft text and per-person URLs never leave this process.
@@ -162,7 +162,7 @@ SERVICES = [
         "addr": "127.0.0.1:8767",
         "sigil": "autopilot",
         "desc_key": "autopilot",
-        "launch_hint": r"X:\Github\anime-rss-auto\run_webui_hidden.vbs",
+        "launch_hint": r"X:\A-Code\Github\anime-rss-auto\run_webui_hidden.vbs",
         "order": 1,
     },
     {
@@ -174,7 +174,7 @@ SERVICES = [
         "addr": "127.0.0.1:8768",
         "sigil": "groundstation",
         "desc_key": "groundstation",
-        "launch_hint": r"X:\Github\pdx-mod-hub\scripts\run_hub_hidden.vbs",
+        "launch_hint": r"X:\A-Code\Github\pdx-mod-hub\scripts\run_hub_hidden.vbs",
         "order": 2,
     },
     {
@@ -186,7 +186,7 @@ SERVICES = [
         "addr": "127.0.0.1:8802",
         "sigil": "outreach",
         "desc_key": "outreach",
-        "launch_hint": r"X:\Github\linkedin-networking\run_server_hidden.vbs",
+        "launch_hint": r"X:\A-Code\Github\linkedin-networking\run_server_hidden.vbs",
         "order": 3,
     },
     {
@@ -198,7 +198,7 @@ SERVICES = [
         "addr": "127.0.0.1:8765",
         "sigil": "pressroom",
         "desc_key": "pressroom",
-        "launch_hint": r"X:\Github\yorha-news\scripts\run_server_hidden.vbs",
+        "launch_hint": r"X:\A-Code\Github\yorha-news\scripts\run_server_hidden.vbs",
         "order": 4,
     },
     {
@@ -210,7 +210,7 @@ SERVICES = [
         "addr": "127.0.0.1:8770",
         "sigil": "arsenal",
         "desc_key": "arsenal",
-        "launch_hint": r"X:\Github\arsenal\run_server_hidden.vbs",
+        "launch_hint": r"X:\A-Code\Github\arsenal\run_server_hidden.vbs",
         "order": 5,
     },
     {
@@ -222,7 +222,7 @@ SERVICES = [
         "addr": "127.0.0.1:8771",
         "sigil": "bourse",
         "desc_key": "bourse",
-        "launch_hint": r"X:\Github\bourse\run_server_hidden.vbs",
+        "launch_hint": r"X:\A-Code\Github\bourse\run_server_hidden.vbs",
         "order": 6,
     },
 ]

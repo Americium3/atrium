@@ -25,15 +25,15 @@
 # permanently sick and be killed on a loop.
 $services = @(
     @{ Name = 'ground-station'; Port = 8768; Path = '/api/ping';   Headers = @{ 'X-PMH' = '1' }
-       Launcher = 'X:\Github\pdx-mod-hub\scripts\run_hub_hidden.vbs' },
+       Launcher = 'X:\A-Code\Github\pdx-mod-hub\scripts\run_hub_hidden.vbs' },
     @{ Name = 'outreach-desk';  Port = 8802; Path = '/api/ping';   Headers = @{}
-       Launcher = 'X:\Github\linkedin-networking\run_server_hidden.vbs' },
+       Launcher = 'X:\A-Code\Github\linkedin-networking\run_server_hidden.vbs' },
     @{ Name = 'atrium-hub';     Port = 8769; Path = '/';           Headers = @{}
-       Launcher = 'X:\Github\atrium\run_hub_hidden.vbs' },
+       Launcher = 'X:\A-Code\Github\atrium\run_hub_hidden.vbs' },
     @{ Name = 'press-room';     Port = 8765; Path = '/api/status'; Headers = @{}
-       Launcher = 'X:\Github\yorha-news\scripts\run_server_hidden.vbs' },
+       Launcher = 'X:\A-Code\Github\yorha-news\scripts\run_server_hidden.vbs' },
     @{ Name = 'anime-autopilot'; Port = 8767; Path = '/';          Headers = @{}
-       Launcher = 'X:\Github\anime-rss-auto\run_webui_hidden.vbs' },
+       Launcher = 'X:\A-Code\Github\anime-rss-auto\run_webui_hidden.vbs' },
     # The watch daemon is the half of Autopilot that actually does the work:
     # it mirrors new episodes into the Jellyfin library and writes the event
     # ledger the Ledger reads. Its only socket is the Jellyfin webhook listener
@@ -41,11 +41,11 @@ $services = @(
     # Without this entry it was invisible: it died on 2026-09-04, the panel on
     # :8767 kept answering, and nothing noticed for two days.
     @{ Name = 'anime-watch';    Port = 8766; Path = '/';           Headers = @{}
-       Launcher = 'X:\Github\anime-rss-auto\run_watch_hidden.vbs' },
+       Launcher = 'X:\A-Code\Github\anime-rss-auto\run_watch_hidden.vbs' },
     @{ Name = 'arsenal';        Port = 8770; Path = '/api/status'; Headers = @{}
-       Launcher = 'X:\Github\arsenal\run_server_hidden.vbs' },
+       Launcher = 'X:\A-Code\Github\arsenal\run_server_hidden.vbs' },
     @{ Name = 'bourse';         Port = 8771; Path = '/api/status'; Headers = @{}
-       Launcher = 'X:\Github\bourse\run_server_hidden.vbs' }
+       Launcher = 'X:\A-Code\Github\bourse\run_server_hidden.vbs' }
 )
 # Anime Autopilot also has .lnk files in shell:startup, and the Press Room has
 # its own "YoRHaNews-Server" logon task. Both are listed here as a safety net,
@@ -69,8 +69,8 @@ $sickCyclesBeforeKill = 2
 $cooldownMinutes = 10
 $maxRepairsPerHour = 3
 
-$log   = 'X:\Github\atrium\state\concierge.log'
-$state = 'X:\Github\atrium\state\concierge-state.json'
+$log   = 'X:\A-Code\Github\atrium\state\concierge.log'
+$state = 'X:\A-Code\Github\atrium\state\concierge-state.json'
 New-Item -ItemType Directory -Force -Path (Split-Path $log) | Out-Null
 
 # Keep the log readable by hand: this script now runs ~288 times a day, so a

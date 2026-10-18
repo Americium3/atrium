@@ -139,16 +139,16 @@ MARKS = list(HUE)                       # registry order
 # Brand directories in the apps' own repositories. Written only with
 # --brand ... --allow-outside-repo, after the owner has signed off.
 TARGETS = {
-    'autopilot':     r'X:\Github\anime-rss-auto\static\brand',
-    'groundstation': r'X:\Github\pdx-mod-hub\web\public\brand',
-    'outreach':      r'X:\Github\linkedin-networking\static\brand',
+    'autopilot':     r'X:\A-Code\Github\anime-rss-auto\static\brand',
+    'groundstation': r'X:\A-Code\Github\pdx-mod-hub\web\public\brand',
+    'outreach':      r'X:\A-Code\Github\linkedin-networking\static\brand',
     'atrium':        str(ROOT / 'static' / 'brand'),
-    'arsenal':       r'X:\Github\arsenal\static\brand',
+    'arsenal':       r'X:\A-Code\Github\arsenal\static\brand',
     # Bourse has no brand directory yet, and The Press Room never had one:
     # their marks reach the hall only.
 }
 SYMBOL_TARGETS = {
-    'autopilot': r'X:\Github\anime-rss-auto\static\index.html',
+    'autopilot': r'X:\A-Code\Github\anime-rss-auto\static\index.html',
 }
 CHROME_BG = {'autopilot': '#1a0e06'}
 SPLASH_BG = {'atrium': '#0c0a07'}
