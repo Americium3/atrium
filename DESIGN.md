@@ -1703,7 +1703,7 @@ Anime Autopilot (`127.0.0.1:8767`, GET-only, server-side, no CORS.
   remain), so the catch-up walks the cursor FORWARD, the mirror image of the
   Ground Station feed below. Cold start backfills the recent window only; a
   seq regression means the ledger was reset, so drop the group and resync.
-  Offline fallback reads `X:\Github\anime-rss-auto\events.json` directly.
+  Offline fallback reads `X:\A-Code\Github\anime-rss-auto\events.json` directly.
   Superseded a qBittorrent snoop that inferred episodes from torrent names:
   the ledger means "hardlinked into the library" rather than "queued", it
   survives the dedupe pass deleting the torrent, and it is durable across a
@@ -1719,12 +1719,12 @@ including the ping probe):
   because it retells what `updated` already said and is the one kind Ground
   Station raises regardless of the mod's *cared* flag. Map `appId` to its game via
   `/api/state` `games[]` (cached per session). Changelog snippet: local file
-  `X:/Github/pdx-mod-hub/data/changelogs/<modId>.json`, match
+  `X:/A-Code/Github/pdx-mod-hub/data/changelogs/<modId>.json`, match
   `entries[].ts == event.ts`; never call `/api/mods/:id/changelog`.
 - Cursor persisted in `state/cursors.json` (atomic temp+replace). Cold
   start: read current `.seq`, backfill only events within the 48 h window,
   set cursor.
-- Offline fallback: `X:/Github/pdx-mod-hub/data/events.json`, same cursor.
+- Offline fallback: `X:/A-Code/Github/pdx-mod-hub/data/events.json`, same cursor.
 - Link `http://127.0.0.1:8768/#/updates`. Stat: mods tracked / updates
   pending. Hint: `scripts\run_hub_hidden.vbs`.
 

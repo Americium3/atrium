@@ -418,7 +418,7 @@ outside the task's job object and survive its execution time limit:
 
 ```powershell
 $a = New-ScheduledTaskAction -Execute 'wscript.exe' `
-       -Argument '"X:\Github\atrium\scripts\concierge.vbs"'
+       -Argument '"X:\A-Code\Github\atrium\scripts\concierge.vbs"'
 $logon = New-ScheduledTaskTrigger -AtLogOn -User $env:USERNAME
 $logon.Delay = 'PT15S'
 # A repetition on the logon trigger alone only starts at the NEXT logon, so a
