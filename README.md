@@ -432,6 +432,27 @@ Register-ScheduledTask -TaskName 'AtriumConcierge' `
   -Action $a -Trigger @($logon, $every) -Settings $s
 ```
 
+A second task, `AtriumConciergeLogon`, runs the same script once at logon and
+never again. It exists because a disabled task fires nothing, its logon
+trigger included. On 2026-10-18 a maintenance script disabled
+`AtriumConcierge` so it would stop relaunching services mid-job, the machine
+hung before the script could enable it again, and after the reboot five of
+the eight services stayed down. The fallback runs only at logon, so it cannot
+fight a maintenance job that is still running. When both tasks start together
+the script holds a named mutex (`Local\AtriumConcierge`): the second copy
+waits for the first, then finds every launch inside its cooldown and does
+nothing.
+
+```powershell
+$t = New-ScheduledTaskTrigger -AtLogOn -User "$env:USERDOMAIN\$env:USERNAME"
+$s = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries `
+       -ExecutionTimeLimit (New-TimeSpan -Minutes 5) -MultipleInstances IgnoreNew -StartWhenAvailable
+Register-ScheduledTask -TaskName 'AtriumConciergeLogon' -Action $a -Trigger $t -Settings $s
+```
+
+Anything that disables `AtriumConcierge` for maintenance must enable it again
+in a `finally` block, so a script that fails halfway still restores it.
+
 `run_hub.bat` is ASCII with CRLF line endings, and must stay that way.
 `cmd.exe` parses a `.bat` by byte: bare LF endings make it drop the first
 characters of every line (`setlocal` runs as `ocal`, `python server.py` as

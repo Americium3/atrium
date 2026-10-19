@@ -69,7 +69,17 @@ $sickCyclesBeforeKill = 2
 $cooldownMinutes = 10
 $maxRepairsPerHour = 3
 
-$log   = 'X:\A-Code\Github\atrium\state\concierge.log'
+# One concierge at a time. At logon two copies start together (the task's
+# logon trigger and the AtriumConciergeLogon fallback task), and both would
+# read the same state file, see the same silent ports and launch every service
+# twice. The second copy waits here instead; by the time it gets the lock the
+# first has recorded its launches, so the cooldown below makes it skip them.
+# A lock left by a copy that died counts as acquired (AbandonedMutexException).
+$mutex = New-Object System.Threading.Mutex($false, 'Local\AtriumConcierge')
+try { $null = $mutex.WaitOne([TimeSpan]::FromMinutes(3)) }
+catch [System.Threading.AbandonedMutexException] { }
+
+$log   ='X:\A-Code\Github\atrium\state\concierge.log'
 $state = 'X:\A-Code\Github\atrium\state\concierge-state.json'
 New-Item -ItemType Directory -Force -Path (Split-Path $log) | Out-Null
 
@@ -230,3 +240,7 @@ foreach ($s in $services) {
 }
 
 $st | ConvertTo-Json -Depth 5 | Set-Content $state -Encoding UTF8
+
+# Hand the lock to the next copy. Exiting would release it too, but explicitly
+# is cheaper than making the waiter notice an abandoned mutex.
+try { $mutex.ReleaseMutex() } catch { }
