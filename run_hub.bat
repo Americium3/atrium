@@ -11,4 +11,6 @@ rem
 rem ASCII and CRLF only. cmd.exe parses .bat by byte: bare LF line endings
 rem make it drop the first characters of every line ("setlocal" ran as
 rem "ocal"), and a non-ASCII byte here is read in the OEM codepage, not UTF-8.
-python server.py > hub.boot.log 2>&1
+rem "python3.11", not "python": an App Installer update can take over the
+rem bare python alias and point it at the Store redirector (2026-11-01).
+python3.11 server.py > hub.boot.log 2>&1
