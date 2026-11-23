@@ -400,6 +400,20 @@ is a job for a human, and relaunching it forever is worse than leaving it
 down. A healthy fleet writes nothing to `state/concierge.log`. Every line in
 that file is a change of state, so it stays readable by eye.
 
+Docker Desktop is on the list too, probed through Ollama on `:11434`, because
+Ollama runs in one of its containers and the Press Room cannot print without
+it. On 2026-11-17 Docker Desktop had been started from inside a Claude session.
+The Claude app updated itself that afternoon, took its process tree down, and
+Docker went with it. Five nightly editions stopped after the crawl. Docker gets
+the launch path only. If Docker Desktop is already running while the port is
+silent, it is still booting and is left alone, and it is never killed: stopping
+it drops every container and can lose the WSL GPU adapter.
+
+Every launch goes through WMI (`Win32_Process.Create`), so the new process
+belongs to the WMI host and not to whoever ran the script. A tree kill of the
+caller, or the end of a scheduled task, cannot reach it. Start fleet services
+by hand the same way, or run `schtasks /run /tn AtriumConcierge`.
+
 Anime Autopilot is in the list now, twice, because it is two processes. The
 panel on `:8767` is the half a human looks at; the watch daemon behind `:8766`
 is the half that does the work, mirroring new episodes into the Jellyfin

@@ -45,7 +45,20 @@ $services = @(
     @{ Name = 'arsenal';        Port = 8770; Path = '/api/status'; Headers = @{}
        Launcher = 'X:\A-Code\Github\arsenal\run_server_hidden.vbs' },
     @{ Name = 'bourse';         Port = 8771; Path = '/api/status'; Headers = @{}
-       Launcher = 'X:\A-Code\Github\bourse\run_server_hidden.vbs' }
+       Launcher = 'X:\A-Code\Github\bourse\run_server_hidden.vbs' },
+    # Ollama lives in a Docker Desktop container (restart=unless-stopped), so
+    # bringing Docker Desktop back brings Ollama back. On 2026-11-17 Docker
+    # Desktop had been started from inside a Claude session; the Claude app's
+    # auto-update took it down with the app's own process tree, and the Press
+    # Room missed five editions because nothing here watched it.
+    # Exe instead of Launcher: started directly, still through WMI.
+    # Process: if Docker Desktop is already running and the port is silent, it
+    # is booting (or the container was stopped on purpose) -- leave it alone.
+    # NoKill: never kill Docker. Stopping it drops every container and can
+    # lose the WSL GPU adapter, which only a WSL shutdown repairs.
+    @{ Name = 'docker-ollama';  Port = 11434; Path = '/api/version'; Headers = @{}
+       Exe = 'C:\Program Files\Docker\Docker\Docker Desktop.exe'
+       Process = 'Docker Desktop'; NoKill = $true }
 )
 # Anime Autopilot also has .lnk files in shell:startup, and the Press Room has
 # its own "YoRHaNews-Server" logon task. Both are listed here as a safety net,
@@ -164,11 +177,12 @@ function Stop-PortHolder([int]$port, [string]$name) {
 }
 
 function Start-Service-Detached($svc) {
-    if (-not (Test-Path $svc.Launcher)) {
-        Write-Log "$($svc.Name) launcher missing: $($svc.Launcher)"
+    $target = if ($svc.Exe) { $svc.Exe } else { $svc.Launcher }
+    if (-not (Test-Path $target)) {
+        Write-Log "$($svc.Name) launcher missing: $target"
         return $false
     }
-    $cmd = 'wscript.exe "' + $svc.Launcher + '"'
+    $cmd = if ($svc.Exe) { '"' + $svc.Exe + '"' } else { 'wscript.exe "' + $svc.Launcher + '"' }
     $r = Invoke-CimMethod -ClassName Win32_Process -MethodName Create `
         -Arguments @{ CommandLine = $cmd } -ErrorAction SilentlyContinue
     if ($null -ne $r -and $r.ReturnValue -eq 0) {
@@ -211,6 +225,9 @@ foreach ($s in $services) {
     # for the rate limit (a service that will not stay up must not be hammered).
     if (-not $portOpen) {
         $entry.Sick = 0
+        if ($s.Process -and (Get-Process -Name $s.Process -ErrorAction SilentlyContinue)) {
+            continue
+        }
         if (Test-RepairAllowed $entry $s.Name) {
             Write-Log "$($s.Name) down on :$($s.Port) - launching"
             if (Start-Service-Detached $s) {
@@ -223,6 +240,10 @@ foreach ($s in $services) {
     # Port answers TCP but the service does not serve. This is the destructive
     # branch, so require persistence before acting.
     $entry.Sick = [int]$entry.Sick + 1
+    if ($s.NoKill) {
+        if ($entry.Sick -eq 1) { Write-Log "$($s.Name) not healthy on :$($s.Port) - not ours to kill, leaving it" }
+        continue
+    }
     if ($entry.Sick -lt $sickCyclesBeforeKill) {
         Write-Log "$($s.Name) not healthy on :$($s.Port) (strike $($entry.Sick)/$sickCyclesBeforeKill)"
         continue
